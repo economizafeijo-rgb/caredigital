@@ -12,7 +12,7 @@ export function useNow(interval = 1000) {
 }
 
 export function secondsUntil(now: Date, hhmm: string) {
-  const [h, m] = hhmm.split(":").map(Number);
+  const [h = 0, m = 0] = hhmm.split(":").map(Number);
   const t = new Date(now);
   t.setHours(h, m, 0, 0);
   return Math.floor((t.getTime() - now.getTime()) / 1000);

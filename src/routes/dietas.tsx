@@ -16,7 +16,7 @@ export const Route = createFileRoute("/dietas")({
 });
 
 function Dietas() {
-  const [active, setActive] = useState(diets[0].id);
+  const [active, setActive] = useState(diets[0]!.id);
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [water, setWater] = useState(3);
   const diet = diets.find((d) => d.id === active)!;

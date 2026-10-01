@@ -22,7 +22,7 @@ function Pacientes() {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Omit<Patient, "id">>({
-    name: "", age: 60, condition: "", protocol: protocols[0].name, diet: diets[0].name, caregiver: team[2].name, status: "Estável",
+    name: "", age: 60, condition: "", protocol: protocols[0]!.name, diet: diets[0]!.name, caregiver: team[2]!.name, status: "Estável",
   });
 
   const filtered = list.filter((p) => (p.name + p.condition).toLowerCase().includes(q.toLowerCase()));

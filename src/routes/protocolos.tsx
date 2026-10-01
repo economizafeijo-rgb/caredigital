@@ -19,7 +19,7 @@ const typeTone: Record<Protocol["type"], ToneKey> = { Doença: "destructive", Tr
 
 function Protocolos() {
   const [list, setList] = useState(initial);
-  const [selected, setSelected] = useState(initial[0].id);
+  const [selected, setSelected] = useState(initial[0]!.id);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: "", type: "Doença" as Protocol["type"], summary: "", steps: "" });
   const current = list.find((p) => p.id === selected) ?? list[0];
@@ -52,7 +52,7 @@ function Protocolos() {
                 <h2 className="mt-3 font-display text-4xl tracking-tight">{current.name}</h2>
                 <p className="mt-2 max-w-[60ch] text-muted-foreground">{current.summary}</p>
               </div>
-              <Btn variant="danger" onClick={() => { setList((l) => l.filter((x) => x.id !== current.id)); setSelected(list[0]?.id); }}>Excluir</Btn>
+              <Btn variant="danger" onClick={() => { setList((l) => l.filter((x) => x.id !== current.id)); setSelected(list[0]?.id ?? ""); }}>Excluir</Btn>
             </div>
             <ol className="mt-6 space-y-3">
               {current.steps.map((s, i) => (
