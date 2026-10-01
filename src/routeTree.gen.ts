@@ -10,33 +10,92 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as DietasRouteImport } from './routes/dietas'
+import { Route as MedicamentosRouteImport } from './routes/medicamentos'
+import { Route as PacientesRouteImport } from './routes/pacientes'
+import { Route as ProtocolosRouteImport } from './routes/protocolos'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DietasRoute = DietasRouteImport.update({
+  id: '/dietas',
+  path: '/dietas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MedicamentosRoute = MedicamentosRouteImport.update({
+  id: '/medicamentos',
+  path: '/medicamentos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PacientesRoute = PacientesRouteImport.update({
+  id: '/pacientes',
+  path: '/pacientes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProtocolosRoute = ProtocolosRouteImport.update({
+  id: '/protocolos',
+  path: '/protocolos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/dietas': typeof DietasRoute
+  '/medicamentos': typeof MedicamentosRoute
+  '/pacientes': typeof PacientesRoute
+  '/protocolos': typeof ProtocolosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/dietas': typeof DietasRoute
+  '/medicamentos': typeof MedicamentosRoute
+  '/pacientes': typeof PacientesRoute
+  '/protocolos': typeof ProtocolosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/dietas': typeof DietasRoute
+  '/medicamentos': typeof MedicamentosRoute
+  '/pacientes': typeof PacientesRoute
+  '/protocolos': typeof ProtocolosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    '/' | '/admin' | '/dietas' | '/medicamentos' | '/pacientes' | '/protocolos'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    '/' | '/admin' | '/dietas' | '/medicamentos' | '/pacientes' | '/protocolos'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/dietas'
+    | '/medicamentos'
+    | '/pacientes'
+    | '/protocolos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  DietasRoute: typeof DietasRoute
+  MedicamentosRoute: typeof MedicamentosRoute
+  PacientesRoute: typeof PacientesRoute
+  ProtocolosRoute: typeof ProtocolosRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +107,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dietas': {
+      id: '/dietas'
+      path: '/dietas'
+      fullPath: '/dietas'
+      preLoaderRoute: typeof DietasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/medicamentos': {
+      id: '/medicamentos'
+      path: '/medicamentos'
+      fullPath: '/medicamentos'
+      preLoaderRoute: typeof MedicamentosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pacientes': {
+      id: '/pacientes'
+      path: '/pacientes'
+      fullPath: '/pacientes'
+      preLoaderRoute: typeof PacientesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/protocolos': {
+      id: '/protocolos'
+      path: '/protocolos'
+      fullPath: '/protocolos'
+      preLoaderRoute: typeof ProtocolosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  DietasRoute: DietasRoute,
+  MedicamentosRoute: MedicamentosRoute,
+  PacientesRoute: PacientesRoute,
+  ProtocolosRoute: ProtocolosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
