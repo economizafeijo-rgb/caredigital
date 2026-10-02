@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { protocols as initial, type Protocol } from "@/lib/mock-data";
-import { Btn, Field, Modal, PageHeader, Panel, Tag, type ToneKey } from "@/components/vigia/ui";
+import { Btn, Field, Modal, PageHeader, Panel, SelectField, Tag, type ToneKey } from "@/components/vigia/ui";
 import { DigestiveProtocolLibrary } from "@/components/vigia/DigestiveProtocolLibrary";
 
 export const Route = createFileRoute("/protocolos")({
@@ -92,7 +92,7 @@ function Protocolos() {
         }}>
           <div className="grid grid-cols-2 gap-4">
             <Field label="Nome"><input className="field" required maxLength={80} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
-            <Field label="Tipo"><select className="field" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as Protocol["type"] })}>{Object.keys(typeTone).map((t) => <option key={t}>{t}</option>)}</select></Field>
+            <Field label="Tipo"><SelectField value={form.type} onValueChange={(type) => setForm({ ...form, type: type as Protocol["type"] })} options={Object.keys(typeTone).map((type) => ({ value: type, label: type }))} /></Field>
           </div>
           <Field label="Resumo"><input className="field" maxLength={200} value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} /></Field>
           <Field label="Etapas (uma por linha)"><textarea rows={5} className="field" maxLength={2000} value={form.steps} onChange={(e) => setForm({ ...form, steps: e.target.value })} /></Field>

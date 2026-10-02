@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { Activity, Droplets, Ellipsis, Home, Pill, Utensils, Users, X } from "lucide-react";
+import { Activity, Droplets, Ellipsis, Home, LogIn, Pill, Utensils, Users, X } from "lucide-react";
 import { fmtClock, useNow } from "./ui";
 import { HydrationProvider, HydrationReminder } from "./HydrationTracker";
 
@@ -16,6 +16,7 @@ const moreNav = [
   { to: "/pacientes", label: "Pacientes", icon: Users },
   { to: "/medicamentos", label: "Medicamentos", icon: Pill },
   { to: "/admin", label: "Administração", icon: Ellipsis },
+  { to: "/entrar", label: "Entrar na equipe", icon: LogIn },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -58,7 +59,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div className="hidden items-center gap-2 font-mono text-[10px] text-muted-foreground lg:flex">
                 <span className="size-1.5 rounded-full bg-success" />{fmtClock(now)}
               </div>
-              <div className="grid size-8 place-items-center rounded-full bg-primary/10 font-display text-xs text-primary">MC</div>
+              <Link to="/entrar" aria-label="Entrar na equipe" className="grid size-8 place-items-center rounded-full bg-primary/10 font-display text-xs text-primary">DC</Link>
             </div>
           </div>
         </header>

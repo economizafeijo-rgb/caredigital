@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode, type ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export function useNow(interval = 1000) {
   const [now, setNow] = useState<Date | null>(null);
@@ -121,6 +122,33 @@ export function Field({ label, children }: { label: string; children: ReactNode 
       <span className="label-mono mb-1.5 block text-[10px] text-muted-foreground">{label}</span>
       {children}
     </label>
+  );
+}
+
+export function SelectField({
+  value,
+  onValueChange,
+  options,
+  placeholder = "Selecione uma opção",
+  className,
+  disabled,
+}: {
+  value: string;
+  onValueChange: (value: string) => void;
+  options: Array<{ value: string; label: string }>;
+  placeholder?: string;
+  className?: string;
+  disabled?: boolean;
+}) {
+  return (
+    <Select value={value} onValueChange={onValueChange} {...(disabled === undefined ? {} : { disabled })}>
+      <SelectTrigger className={cn("field flex items-center justify-between gap-3 text-left", className)}>
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+      </SelectContent>
+    </Select>
   );
 }
 
