@@ -39,7 +39,6 @@ function Dashboard() {
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute -right-16 -top-24 size-[360px] rounded-full bg-primary/25 blur-3xl" />
           <div className="absolute -bottom-24 left-1/4 size-[300px] rounded-full bg-sky/20 blur-3xl" />
-          <div className="absolute inset-y-0 w-24 animate-sweep bg-primary-foreground/10" />
         </div>
         <div className="relative grid items-center gap-8 lg:grid-cols-[1.1fr_1fr]">
           <div className="animate-rise">
