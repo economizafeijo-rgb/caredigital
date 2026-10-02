@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
+import { Droplets } from "lucide-react";
 import { Panel, Tag } from "@/components/vigia/ui";
 
 const STORAGE_KEY = "vigia-hydration-v1";
@@ -157,12 +158,18 @@ export function HydrationReminder() {
   const { data, ready, due, now, addWater, snooze } = useHydration();
   if (!ready) return null;
   const seconds = Math.ceil((data.nextReminderAt - now.getTime()) / 1000);
-  return <aside className={`fixed bottom-4 right-4 z-40 w-[min(21rem,calc(100vw-2rem))] rounded-2xl border p-4 shadow-xl backdrop-blur-xl ${due ? "border-primary/50 bg-background/95" : "border-border bg-background/90"}`} aria-live="polite">
-    <div className="flex items-center justify-between gap-2"><div className="label-mono text-muted-foreground">Lembrete de água</div><Tag tone={due ? "primary" : "success"}>{due ? "Agora" : countdown(seconds)}</Tag></div>
-    <div className="mt-2 flex items-baseline justify-between"><strong className="font-display text-2xl">{data.intakeMl} ml</strong><span className="text-xs text-muted-foreground">meta ajustável · {data.targetMl} ml</span></div>
-    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-foreground/10"><div className="h-full rounded-full bg-primary transition-all" style={{ width: `${Math.min(100, (data.intakeMl / data.targetMl) * 100)}%` }} /></div>
-    <div className="mt-3 flex gap-2"><button type="button" onClick={() => addWater(200)} className="flex-1 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground">Registrei 200 ml</button>{due && <button type="button" onClick={snooze} className="rounded-lg bg-foreground/5 px-3 py-2 text-xs font-semibold">Adiar 15 min</button>}</div>
-    <Link to="/hidratacao" className="mt-2 block text-center text-xs font-semibold text-primary underline underline-offset-4">Ver cronograma</Link>
+  return <aside className={`fixed bottom-20 left-2 right-2 z-40 rounded-xl border p-2 shadow-xl backdrop-blur-xl md:bottom-4 md:left-auto md:right-4 md:w-[21rem] md:rounded-2xl md:p-4 ${due ? "border-primary/50 bg-background/95" : "border-border bg-background/90"}`} aria-live="polite">
+    <div className="flex items-center justify-between gap-2 md:hidden">
+      <div className="flex min-w-0 items-center gap-2"><Droplets size={16} className="shrink-0 text-primary" /><span className="text-xs font-semibold">{due ? "Hora de beber água" : countdown(seconds)}</span><span className="truncate text-[11px] text-muted-foreground">{data.intakeMl}/{data.targetMl} ml</span></div>
+      <button type="button" onClick={() => addWater(200)} className="shrink-0 rounded-lg bg-primary px-3 py-2 text-[11px] font-semibold text-primary-foreground">+200 ml</button>
+    </div>
+    <div className="hidden md:block">
+      <div className="flex items-center justify-between gap-2"><div className="label-mono text-muted-foreground">Lembrete de água</div><Tag tone={due ? "primary" : "success"}>{due ? "Agora" : countdown(seconds)}</Tag></div>
+      <div className="mt-2 flex items-baseline justify-between"><strong className="font-display text-2xl">{data.intakeMl} ml</strong><span className="text-xs text-muted-foreground">meta ajustável · {data.targetMl} ml</span></div>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-foreground/10"><div className="h-full rounded-full bg-primary transition-all" style={{ width: `${Math.min(100, (data.intakeMl / data.targetMl) * 100)}%` }} /></div>
+      <div className="mt-3 flex gap-2"><button type="button" onClick={() => addWater(200)} className="flex-1 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground">Registrei 200 ml</button>{due && <button type="button" onClick={snooze} className="rounded-lg bg-foreground/5 px-3 py-2 text-xs font-semibold">Adiar 15 min</button>}</div>
+      <Link to="/hidratacao" className="mt-2 block text-center text-xs font-semibold text-primary underline underline-offset-4">Ver cronograma</Link>
+    </div>
   </aside>;
 }
 

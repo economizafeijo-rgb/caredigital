@@ -91,10 +91,10 @@ export const kindTone = (k: string): ToneKey =>
 
 export function PageHeader({ eyebrow, title, children }: { eyebrow: string; title: string; children?: ReactNode }) {
   return (
-    <div className="mb-8 flex animate-rise flex-col gap-4 md:flex-row md:items-end md:justify-between">
+    <div className="mb-5 flex animate-rise flex-col gap-3 md:mb-7 md:flex-row md:items-end md:justify-between">
       <div>
         <div className="label-mono text-muted-foreground">{eyebrow}</div>
-        <h1 className="mt-2 font-display text-5xl leading-[0.95] tracking-tight">{title}</h1>
+        <h1 className="mt-1 font-display text-3xl leading-[0.98] tracking-tight md:mt-2 md:text-4xl">{title}</h1>
       </div>
       {children && <div className="flex flex-wrap gap-2">{children}</div>}
     </div>
@@ -106,7 +106,7 @@ export function Panel({ title, action, children, className, delay = 0 }: { title
     <div className={cn("panel animate-rise", className)} style={{ animationDelay: `${delay}s` }}>
       {(title || action) && (
         <div className="mb-4 flex items-center justify-between gap-3">
-          {title && <h2 className="font-display text-2xl tracking-tight">{title}</h2>}
+          {title && <h2 className="font-display text-xl tracking-tight md:text-2xl">{title}</h2>}
           {action}
         </div>
       )}

@@ -20,7 +20,7 @@ function Dietas() {
   return (
     <>
       <PageHeader eyebrow="Alimentação e saúde digestiva" title="Dietas com horários" />
-      <div className="mb-8 rounded-2xl border border-warning/30 bg-warning/10 p-4 text-sm leading-relaxed">
+      <div className="mb-5 rounded-2xl border border-warning/30 bg-warning/10 p-3 text-sm leading-relaxed">
         Dietas podem ajudar a controlar sintomas, mas não curam a maioria das causas de gastrite. A gastrite por H. pylori, por exemplo, precisa de avaliação e tratamento médico. Os cardápios abaixo são exemplos educativos para adultos; ajuste alimentos e horários com sua equipe de saúde.
       </div>
       <ReadyDigestiveDietPlans />

@@ -35,7 +35,7 @@ function Protocolos() {
 
       <div className="mb-5 mt-12">
         <div className="label-mono text-muted-foreground">Área de demonstração do prontuário</div>
-        <h2 className="mt-2 font-display text-4xl tracking-tight">Protocolos da equipe</h2>
+        <h2 className="mt-2 font-display text-3xl tracking-tight md:text-4xl">Protocolos da equipe</h2>
       </div>
       <div className="grid gap-6 lg:grid-cols-3">
         <Panel title="Biblioteca">
@@ -56,7 +56,7 @@ function Protocolos() {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <Tag tone={typeTone[current.type]}>{current.type}</Tag>
-                <h2 className="mt-3 font-display text-4xl tracking-tight">{current.name}</h2>
+                <h2 className="mt-3 font-display text-3xl tracking-tight md:text-4xl">{current.name}</h2>
                 <p className="mt-2 max-w-[60ch] text-muted-foreground">{current.summary}</p>
               </div>
               <Btn variant="danger" onClick={() => { setList((l) => l.filter((x) => x.id !== current.id)); setSelected(list[0]?.id ?? ""); }}>Excluir</Btn>

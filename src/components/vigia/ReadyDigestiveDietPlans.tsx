@@ -47,7 +47,7 @@ export function ReadyDigestiveDietPlans() {
     <section aria-labelledby="ready-diet-plans-title">
       <div>
         <div className="label-mono text-muted-foreground">Cardápios do dia · ativos no banco de dados</div>
-        <h2 id="ready-diet-plans-title" className="mt-2 font-display text-4xl tracking-tight">Dietas prontas para organizar o dia</h2>
+        <h2 id="ready-diet-plans-title" className="mt-2 font-display text-3xl tracking-tight md:text-4xl">Dietas prontas para organizar o dia</h2>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">Cada condição tem três combinações de cardápio. Escolha uma condição e depois compare as opções A, B e C, cada uma com cinco horários e alimentos diferentes. As refeições são exemplos para adultos; quantidades devem ser individualizadas.</p>
       </div>
 
