@@ -1,16 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { medications } from "@/lib/mock-data";
-import { loadDigestiveProtocols, loadDietPlans, type DigestiveProtocol, type DietPlan } from "@/lib/digestive-protocols";
+import { loadDietPlans, type DietPlan } from "@/lib/digestive-protocols";
+import { DigestiveProtocolLibrary } from "@/components/vigia/DigestiveProtocolLibrary";
+import { DigestiveDietGuides } from "@/components/vigia/DigestiveDietGuides";
 import { Btn, IconBox, PageHeader, Panel, Tag } from "@/components/vigia/ui";
 
 export const Route = createFileRoute("/dietas")({
   head: () => ({
     meta: [
-      { title: "Dietas e suplementos — Vigia" },
-      { name: "description", content: "Planos alimentares, regimes, hidratação e suplementação dos pacientes." },
-      { property: "og:title", content: "Dietas e suplementos — Vigia" },
-      { property: "og:description", content: "Planos alimentares, regimes, hidratação e suplementação dos pacientes." },
+      { title: "Protocolos e dietas digestivas — Vigia" },
+      { name: "description", content: "Protocolos clínicos e orientações alimentares para gastrite, refluxo, intestino irritável e intolerâncias, com fontes." },
+      { property: "og:title", content: "Protocolos e dietas digestivas — Vigia" },
+      { property: "og:description", content: "Orientações alimentares por condição digestiva, com referências e cuidados." },
     ],
   }),
   component: Dietas,
@@ -23,16 +25,7 @@ function Dietas() {
   const [active, setActive] = useState("");
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [water, setWater] = useState(3);
-  const [protocols, setProtocols] = useState<DigestiveProtocol[]>([]);
-  const [protocolsLoading, setProtocolsLoading] = useState(true);
-  const [protocolsError, setProtocolsError] = useState("");
-  const [protocolFilter, setProtocolFilter] = useState("Todas");
-  const [selectedProtocolId, setSelectedProtocolId] = useState("");
   const diet = diets.find((d) => d.id === active) ?? diets[0];
-  const visibleProtocols = protocolFilter === "Todas"
-    ? protocols
-    : protocols.filter((protocol) => protocol.category === protocolFilter);
-  const selectedProtocol = protocols.find((protocol) => protocol.id === selectedProtocolId) ?? visibleProtocols[0];
   const supplements = medications.filter((m) => m.kind === "Suplemento");
   const eaten = diet?.meals.filter((m) => checked[diet.id + m.time]).reduce((a, m) => a + m.kcal, 0) ?? 0;
 
@@ -52,28 +45,25 @@ function Dietas() {
         if (!cancelled) setDietLoading(false);
       });
 
-    loadDigestiveProtocols()
-      .then((rows) => {
-        if (cancelled) return;
-        setProtocols(rows);
-        setSelectedProtocolId(rows[0]?.id ?? "");
-        setProtocolsError("");
-      })
-      .catch((error: unknown) => {
-        if (!cancelled) setProtocolsError(error instanceof Error ? error.message : "Erro ao carregar protocolos.");
-      })
-      .finally(() => {
-        if (!cancelled) setProtocolsLoading(false);
-      });
     return () => { cancelled = true; };
   }, []);
 
   return (
     <>
-      <PageHeader eyebrow="Alimentação, regime e suplementos" title="Dietas">
-        {diets.map((d) => <Btn key={d.id} variant={active === d.id ? "dark" : "ghost"} onClick={() => setActive(d.id)}>{d.name}</Btn>)}
-      </PageHeader>
+      <PageHeader eyebrow="Alimentação e saúde digestiva" title="Protocolos e dietas" />
+      <DigestiveProtocolLibrary />
+      <DigestiveDietGuides />
 
+      <section className="mt-12" aria-labelledby="meal-plans-title">
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <div className="label-mono text-muted-foreground">Exemplos demonstrativos · individualizar com profissional</div>
+          <h2 id="meal-plans-title" className="mt-2 font-display text-4xl tracking-tight">Modelos de cardápio</h2>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {diets.map((d) => <Btn key={d.id} variant={active === d.id ? "dark" : "ghost"} onClick={() => setActive(d.id)}>{d.name}</Btn>)}
+        </div>
+      </div>
       <div className="grid gap-6 lg:grid-cols-3">
         <Panel title="Refeições do dia" className="lg:col-span-2" action={diet ? <Tag tone="primary">{diet.goal}</Tag> : undefined}>
           <div className="divide-y divide-border">
@@ -136,77 +126,6 @@ function Dietas() {
       <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
         Os cardápios e metas exibidos são modelos demonstrativos; calorias e hidratação devem ser individualizadas por profissional de saúde.
       </p>
-
-      <section className="mt-10" aria-labelledby="digestive-protocols-title">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <div className="label-mono text-muted-foreground">Biblioteca clínica · fontes abertas</div>
-            <h2 id="digestive-protocols-title" className="mt-2 font-display text-4xl tracking-tight">Protocolos digestivos</h2>
-          </div>
-          <div className="flex flex-wrap gap-2" aria-label="Filtrar protocolos por área">
-            {["Todas", "Estômago", "Intestino", "Intolerância"].map((category) => (
-              <Btn key={category} variant={protocolFilter === category ? "dark" : "ghost"} onClick={() => setProtocolFilter(category)}>
-                {category}
-              </Btn>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-5 rounded-2xl border border-warning/30 bg-warning/10 p-4 text-sm leading-relaxed">
-          Material educativo para apoiar a conversa com a equipe de saúde; não é diagnóstico nem prescrição individual. Para gastrite, a dieta geralmente não trata a causa: priorize avaliação clínica e gatilhos comprovados para cada pessoa.
-        </div>
-
-        <div className="mt-5 grid gap-5 lg:grid-cols-3">
-          <div className="space-y-2">
-            {protocolsLoading && <p className="rounded-xl bg-foreground/5 p-4 text-sm text-muted-foreground">Carregando protocolos do banco de dados…</p>}
-            {!protocolsLoading && protocolsError && <p role="alert" className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm">{protocolsError}</p>}
-            {!protocolsLoading && !protocolsError && visibleProtocols.length === 0 && <p className="rounded-xl bg-foreground/5 p-4 text-sm text-muted-foreground">Nenhum protocolo encontrado para este filtro.</p>}
-            {visibleProtocols.map((protocol) => (
-              <button key={protocol.id} onClick={() => setSelectedProtocolId(protocol.id)}
-                aria-pressed={selectedProtocolId === protocol.id}
-                className={`w-full rounded-xl p-4 text-left transition-colors ${selectedProtocolId === protocol.id ? "bg-primary/10 ring-1 ring-primary/30" : "bg-foreground/5 hover:bg-foreground/10"}`}>
-                <div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{protocol.category}</div>
-                <div className="mt-1 text-sm font-semibold">{protocol.name}</div>
-                <div className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">{protocol.summary}</div>
-              </button>
-            ))}
-          </div>
-
-          {selectedProtocol && <Panel className="lg:col-span-2" delay={0.1}>
-            <Tag tone="primary">{selectedProtocol.category}</Tag>
-            <h3 className="mt-3 font-display text-3xl tracking-tight">{selectedProtocol.name}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{selectedProtocol.summary}</p>
-            <h4 className="mt-6 label-mono">Como aplicar com segurança</h4>
-            <ol className="mt-3 space-y-3">
-              {selectedProtocol.guidance.map((item, index) => (
-                <li key={item} className="flex items-start gap-3 rounded-xl bg-foreground/5 p-3 text-sm leading-relaxed">
-                  <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-foreground font-mono text-xs text-primary-foreground">{index + 1}</span>
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ol>
-            <div className="mt-5 rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm leading-relaxed">
-              <strong className="block text-foreground">Limites e cuidados</strong>
-              <span className="mt-1 block text-muted-foreground">{selectedProtocol.caution}</span>
-            </div>
-            <div className="mt-5">
-              <h4 className="label-mono">Fontes consultadas</h4>
-              <ul className="mt-2 space-y-2">
-                {selectedProtocol.sources.map((source) => (
-                  <li key={source.url}>
-                    <a href={source.url} target="_blank" rel="noreferrer" className="text-sm font-medium text-primary underline-offset-4 hover:underline">
-                      {source.label} ↗
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </Panel>}
-        </div>
-
-        <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
-          Procure atendimento imediato diante de vômito com sangue ou aspecto de borra de café, fezes negras, desmaio ou dor intensa. Protocolos de restrição alimentar devem ter objetivo e prazo definidos e, quando possível, acompanhamento de nutricionista.
-        </p>
       </section>
     </>
   );

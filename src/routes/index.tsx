@@ -53,8 +53,8 @@ function Dashboard() {
               Timer programável, protocolos por doença e dietas — tudo em um prontuário que não deixa nada passar.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link to="/medicamentos"><Btn variant="primary" size="lg">Cadastrar remédio</Btn></Link>
-              <Link to="/protocolos"><Btn variant="glass" size="lg">Novo protocolo</Btn></Link>
+              <Link to="/protocolos"><Btn variant="primary" size="lg">Ver protocolos digestivos</Btn></Link>
+              <Link to="/dietas"><Btn variant="glass" size="lg">Ver dietas</Btn></Link>
             </div>
           </div>
           <div className="animate-rise" style={{ animationDelay: "0.1s" }}>

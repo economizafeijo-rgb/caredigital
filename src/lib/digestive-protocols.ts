@@ -7,6 +7,7 @@ export type DigestiveProtocol = {
   caution: string;
   sources: { label: string; url: string }[];
   updated_at: string;
+  is_active: boolean;
 };
 
 export type DietPlan = {
@@ -17,6 +18,19 @@ export type DietPlan = {
   water: string;
   meals: { time: string; name: string; items: string; kcal: number }[];
   updated_at: string;
+  is_active: boolean;
+};
+
+export type DigestiveDietGuide = {
+  id: string;
+  category: string;
+  name: string;
+  summary: string;
+  guidance: string[];
+  caution: string;
+  sources: { label: string; url: string }[];
+  updated_at: string;
+  is_active: boolean;
 };
 
 async function readTable<T>(table: string, select: string, order: string): Promise<T[]> {
@@ -30,6 +44,7 @@ async function readTable<T>(table: string, select: string, order: string): Promi
   const endpoint = new URL(`/rest/v1/${table}`, url);
   endpoint.searchParams.set("select", select);
   endpoint.searchParams.set("order", order);
+  endpoint.searchParams.set("is_active", "eq.true");
 
   const response = await fetch(endpoint, {
     headers: { apikey: key, Accept: "application/json" },
@@ -44,9 +59,13 @@ async function readTable<T>(table: string, select: string, order: string): Promi
 
 /** Reads the published, read-only clinical library from Supabase PostgREST. */
 export async function loadDigestiveProtocols(): Promise<DigestiveProtocol[]> {
-  return readTable("digestive_protocols", "id,category,name,summary,guidance,caution,sources,updated_at", "category.asc,name.asc");
+  return readTable("digestive_protocols", "id,category,name,summary,guidance,caution,sources,updated_at,is_active", "category.asc,name.asc");
 }
 
 export async function loadDietPlans(): Promise<DietPlan[]> {
-  return readTable("diet_plans", "id,name,goal,kcal,water,meals,updated_at", "name.asc");
+  return readTable("diet_plans", "id,name,goal,kcal,water,meals,updated_at,is_active", "name.asc");
+}
+
+export async function loadDigestiveDietGuides(): Promise<DigestiveDietGuide[]> {
+  return readTable("digestive_diet_guides", "id,category,name,summary,guidance,caution,sources,updated_at,is_active", "category.asc,name.asc");
 }

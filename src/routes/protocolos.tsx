@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { protocols as initial, type Protocol } from "@/lib/mock-data";
 import { Btn, Field, Modal, PageHeader, Panel, Tag, type ToneKey } from "@/components/vigia/ui";
+import { DigestiveProtocolLibrary } from "@/components/vigia/DigestiveProtocolLibrary";
 
 export const Route = createFileRoute("/protocolos")({
   head: () => ({
@@ -30,6 +31,12 @@ function Protocolos() {
         <Btn size="lg" onClick={() => setOpen(true)}>+ Novo protocolo</Btn>
       </PageHeader>
 
+      <DigestiveProtocolLibrary />
+
+      <div className="mb-5 mt-12">
+        <div className="label-mono text-muted-foreground">Área de demonstração do prontuário</div>
+        <h2 className="mt-2 font-display text-4xl tracking-tight">Protocolos da equipe</h2>
+      </div>
       <div className="grid gap-6 lg:grid-cols-3">
         <Panel title="Biblioteca">
           <div className="space-y-2">

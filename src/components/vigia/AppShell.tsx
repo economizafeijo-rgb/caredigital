@@ -4,10 +4,10 @@ import { fmtClock, useNow } from "./ui";
 
 const nav = [
   { to: "/", label: "Painel" },
+  { to: "/protocolos", label: "Protocolos digestivos" },
+  { to: "/dietas", label: "Dietas" },
   { to: "/pacientes", label: "Pacientes" },
   { to: "/medicamentos", label: "Medicamentos" },
-  { to: "/protocolos", label: "Protocolos" },
-  { to: "/dietas", label: "Dietas" },
   { to: "/admin", label: "Admin" },
 ] as const;
 
