@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { loadDietPlans, type DietPlan } from "@/lib/digestive-protocols";
 import { Panel, Tag } from "@/components/vigia/ui";
 
@@ -6,7 +6,8 @@ export function ReadyDigestiveDietPlans() {
   const [plans, setPlans] = useState<DietPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [activeId, setActiveId] = useState("");
+  const [activeCondition, setActiveCondition] = useState("");
+  const [activePlanId, setActivePlanId] = useState("");
   const [checked, setChecked] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -15,7 +16,9 @@ export function ReadyDigestiveDietPlans() {
       .then((rows) => {
         if (cancelled) return;
         setPlans(rows);
-        setActiveId(rows.find((plan) => plan.id === "plano-gastrite")?.id ?? rows[0]?.id ?? "");
+        const initialPlan = rows.find((plan) => plan.id === "plano-gastrite") ?? rows[0];
+        setActiveCondition(initialPlan?.condition_key ?? "");
+        setActivePlanId(initialPlan?.id ?? "");
       })
       .catch((cause: unknown) => {
         if (!cancelled) setError(cause instanceof Error ? cause.message : "Não foi possível carregar os cardápios.");
@@ -24,7 +27,20 @@ export function ReadyDigestiveDietPlans() {
     return () => { cancelled = true; };
   }, []);
 
-  const activePlan = plans.find((plan) => plan.id === activeId);
+  const groups = useMemo(() => {
+    const byCondition = new Map<string, DietPlan[]>();
+    for (const plan of plans) {
+      const group = byCondition.get(plan.condition_key) ?? [];
+      group.push(plan);
+      byCondition.set(plan.condition_key, group);
+    }
+    return [...byCondition.entries()].map(([conditionKey, variants]) => ({
+      conditionKey,
+      plans: variants.sort((a, b) => a.variant - b.variant),
+    }));
+  }, [plans]);
+  const activeGroup = groups.find((group) => group.conditionKey === activeCondition);
+  const activePlan = activeGroup?.plans.find((plan) => plan.id === activePlanId) ?? activeGroup?.plans[0];
   const doneCount = activePlan?.meals.filter((meal) => checked[`${activePlan.id}:${meal.time}`]).length ?? 0;
 
   return (
@@ -32,7 +48,7 @@ export function ReadyDigestiveDietPlans() {
       <div>
         <div className="label-mono text-muted-foreground">Cardápios do dia · ativos no banco de dados</div>
         <h2 id="ready-diet-plans-title" className="mt-2 font-display text-4xl tracking-tight">Dietas prontas para organizar o dia</h2>
-        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">Escolha a condição para ver horários e alimentos sugeridos. Os horários são ajustáveis à sua rotina; as refeições são exemplos para adultos e não trazem porções ou metas de calorias individualizadas.</p>
+        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">Cada condição tem três combinações de cardápio. Escolha uma condição e depois compare as opções A, B e C, cada uma com cinco horários e alimentos diferentes. As refeições são exemplos para adultos; quantidades devem ser individualizadas.</p>
       </div>
 
       {loading && <p className="mt-5 rounded-xl bg-foreground/5 p-4 text-sm text-muted-foreground">Carregando cardápios públicos…</p>}
@@ -40,13 +56,17 @@ export function ReadyDigestiveDietPlans() {
       {!loading && !error && plans.length === 0 && <p className="mt-5 rounded-xl bg-foreground/5 p-4 text-sm text-muted-foreground">Nenhum cardápio ativo está disponível.</p>}
 
       {plans.length > 0 && <>
-        <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-4" aria-label="Escolher cardápio por condição">
-          {plans.map((plan) => <button key={plan.id} type="button" onClick={() => setActiveId(plan.id)} aria-pressed={plan.id === activeId}
-            className={`rounded-xl p-4 text-left transition-colors ${plan.id === activeId ? "bg-primary/10 ring-1 ring-primary/40" : "bg-foreground/5 hover:bg-foreground/10"}`}>
-            <div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{plan.category}</div>
-            <div className="mt-1 text-sm font-semibold leading-snug">{plan.name}</div>
-            <div className="mt-2 text-xs leading-relaxed text-muted-foreground">{plan.goal}</div>
-          </button>)}
+        <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-4" aria-label="Escolher condição digestiva">
+          {groups.map((group) => {
+            const first = group.plans[0]!;
+            const selected = group.conditionKey === activeCondition;
+            return <button key={group.conditionKey} type="button" onClick={() => { setActiveCondition(group.conditionKey); setActivePlanId(first.id); }} aria-pressed={selected}
+              className={`rounded-xl p-4 text-left transition-colors ${selected ? "bg-primary/10 ring-1 ring-primary/40" : "bg-foreground/5 hover:bg-foreground/10"}`}>
+              <div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{first.category} · {group.plans.length} opções</div>
+              <div className="mt-1 text-sm font-semibold leading-snug">{first.name}</div>
+              <div className="mt-2 text-xs leading-relaxed text-muted-foreground">{first.goal}</div>
+            </button>;
+          })}
         </div>
 
         {activePlan && <Panel className="mt-5" delay={0.1}>
@@ -56,6 +76,14 @@ export function ReadyDigestiveDietPlans() {
           </div>
           <h3 className="mt-3 font-display text-3xl tracking-tight">{activePlan.name}</h3>
           <p className="mt-2 max-w-4xl text-sm leading-relaxed text-muted-foreground">{activePlan.summary}</p>
+
+          <div className="mt-5 flex flex-wrap items-center gap-2" aria-label="Escolher combinação de refeições">
+            <span className="mr-1 label-mono text-muted-foreground">Outras combinações</span>
+            {activeGroup?.plans.map((plan) => <button key={plan.id} type="button" onClick={() => setActivePlanId(plan.id)} aria-pressed={plan.id === activePlan.id}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${plan.id === activePlan.id ? "bg-foreground text-primary-foreground" : "bg-foreground/5 hover:bg-foreground/10"}`}>
+              {plan.variant_label}
+            </button>)}
+          </div>
 
           <ol className="mt-5 divide-y divide-border rounded-xl border border-border/70">
             {activePlan.meals.map((meal) => {

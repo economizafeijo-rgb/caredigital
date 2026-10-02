@@ -16,40 +16,65 @@ export type Database = {
     Tables: {
       diet_plans: {
         Row: {
+          category: string
+          caution: string
+          condition_key: string
           goal: string
           id: string
-          kcal: number
+          is_active: boolean
+          kcal: number | null
           meals: Json
           name: string
+          sources: Json
+          summary: string
           updated_at: string
+          variant: number
+          variant_label: string
           water: string
         }
         Insert: {
+          category?: string
+          caution?: string
+          condition_key?: string
           goal: string
           id: string
-          kcal: number
+          is_active?: boolean
+          kcal?: number | null
           meals?: Json
           name: string
+          sources?: Json
+          summary?: string
           updated_at?: string
+          variant?: number
+          variant_label?: string
           water: string
         }
         Update: {
+          category?: string
+          caution?: string
+          condition_key?: string
           goal?: string
           id?: string
-          kcal?: number
+          is_active?: boolean
+          kcal?: number | null
           meals?: Json
           name?: string
+          sources?: Json
+          summary?: string
           updated_at?: string
+          variant?: number
+          variant_label?: string
           water?: string
         }
         Relationships: []
       }
-      digestive_protocols: {
+      digestive_diet_guides: {
         Row: {
           category: string
           caution: string
           guidance: string[]
           id: string
+          is_active: boolean
           name: string
           sources: Json
           summary: string
@@ -60,6 +85,7 @@ export type Database = {
           caution: string
           guidance?: string[]
           id: string
+          is_active?: boolean
           name: string
           sources?: Json
           summary: string
@@ -70,6 +96,43 @@ export type Database = {
           caution?: string
           guidance?: string[]
           id?: string
+          is_active?: boolean
+          name?: string
+          sources?: Json
+          summary?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      digestive_protocols: {
+        Row: {
+          category: string
+          caution: string
+          guidance: string[]
+          id: string
+          is_active: boolean
+          name: string
+          sources: Json
+          summary: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          caution: string
+          guidance?: string[]
+          id: string
+          is_active?: boolean
+          name: string
+          sources?: Json
+          summary: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          caution?: string
+          guidance?: string[]
+          id?: string
+          is_active?: boolean
           name?: string
           sources?: Json
           summary?: string

@@ -14,6 +14,9 @@ export type DietPlan = {
   id: string;
   name: string;
   goal: string;
+  condition_key: string;
+  variant: number;
+  variant_label: string;
   category: string;
   summary: string;
   caution: string;
@@ -65,7 +68,7 @@ export async function loadDigestiveProtocols(): Promise<DigestiveProtocol[]> {
 }
 
 export async function loadDietPlans(): Promise<DietPlan[]> {
-  return readTable("diet_plans", "id,name,goal,category,summary,caution,sources,meals,updated_at,is_active", "category.asc,name.asc");
+  return readTable("diet_plans", "id,name,goal,category,condition_key,variant,variant_label,summary,caution,sources,meals,updated_at,is_active", "category.asc,name.asc,variant.asc");
 }
 
 export async function loadDigestiveDietGuides(): Promise<DigestiveDietGuide[]> {
