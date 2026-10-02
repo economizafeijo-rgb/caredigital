@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as DietasRouteImport } from './routes/dietas'
 import { Route as MedicamentosRouteImport } from './routes/medicamentos'
+import { Route as NutricaoEsportivaRouteImport } from './routes/nutricao-esportiva'
 import { Route as PacientesRouteImport } from './routes/pacientes'
 import { Route as ProtocolosRouteImport } from './routes/protocolos'
 
@@ -36,6 +37,11 @@ const MedicamentosRoute = MedicamentosRouteImport.update({
   path: '/medicamentos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NutricaoEsportivaRoute = NutricaoEsportivaRouteImport.update({
+  id: '/nutricao-esportiva',
+  path: '/nutricao-esportiva',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PacientesRoute = PacientesRouteImport.update({
   id: '/pacientes',
   path: '/pacientes',
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/dietas': typeof DietasRoute
   '/medicamentos': typeof MedicamentosRoute
+  '/nutricao-esportiva': typeof NutricaoEsportivaRoute
   '/pacientes': typeof PacientesRoute
   '/protocolos': typeof ProtocolosRoute
 }
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/dietas': typeof DietasRoute
   '/medicamentos': typeof MedicamentosRoute
+  '/nutricao-esportiva': typeof NutricaoEsportivaRoute
   '/pacientes': typeof PacientesRoute
   '/protocolos': typeof ProtocolosRoute
 }
@@ -69,22 +77,36 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/dietas': typeof DietasRoute
   '/medicamentos': typeof MedicamentosRoute
+  '/nutricao-esportiva': typeof NutricaoEsportivaRoute
   '/pacientes': typeof PacientesRoute
   '/protocolos': typeof ProtocolosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/admin' | '/dietas' | '/medicamentos' | '/pacientes' | '/protocolos'
+    | '/'
+    | '/admin'
+    | '/dietas'
+    | '/medicamentos'
+    | '/nutricao-esportiva'
+    | '/pacientes'
+    | '/protocolos'
   fileRoutesByTo: FileRoutesByTo
   to:
-    '/' | '/admin' | '/dietas' | '/medicamentos' | '/pacientes' | '/protocolos'
+    | '/'
+    | '/admin'
+    | '/dietas'
+    | '/medicamentos'
+    | '/nutricao-esportiva'
+    | '/pacientes'
+    | '/protocolos'
   id:
     | '__root__'
     | '/'
     | '/admin'
     | '/dietas'
     | '/medicamentos'
+    | '/nutricao-esportiva'
     | '/pacientes'
     | '/protocolos'
   fileRoutesById: FileRoutesById
@@ -94,6 +116,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   DietasRoute: typeof DietasRoute
   MedicamentosRoute: typeof MedicamentosRoute
+  NutricaoEsportivaRoute: typeof NutricaoEsportivaRoute
   PacientesRoute: typeof PacientesRoute
   ProtocolosRoute: typeof ProtocolosRoute
 }
@@ -128,6 +151,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MedicamentosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/nutricao-esportiva': {
+      id: '/nutricao-esportiva'
+      path: '/nutricao-esportiva'
+      fullPath: '/nutricao-esportiva'
+      preLoaderRoute: typeof NutricaoEsportivaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pacientes': {
       id: '/pacientes'
       path: '/pacientes'
@@ -150,6 +180,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   DietasRoute: DietasRoute,
   MedicamentosRoute: MedicamentosRoute,
+  NutricaoEsportivaRoute: NutricaoEsportivaRoute,
   PacientesRoute: PacientesRoute,
   ProtocolosRoute: ProtocolosRoute,
 }

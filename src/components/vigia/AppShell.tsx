@@ -6,6 +6,7 @@ const nav = [
   { to: "/", label: "Painel" },
   { to: "/protocolos", label: "Protocolos digestivos" },
   { to: "/dietas", label: "Dietas" },
+  { to: "/nutricao-esportiva", label: "Nutrição esportiva" },
   { to: "/pacientes", label: "Pacientes" },
   { to: "/medicamentos", label: "Medicamentos" },
   { to: "/admin", label: "Admin" },

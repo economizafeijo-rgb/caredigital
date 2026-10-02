@@ -55,6 +55,7 @@ function Dashboard() {
             <div className="mt-6 flex flex-wrap gap-3">
               <Link to="/protocolos"><Btn variant="primary" size="lg">Ver protocolos digestivos</Btn></Link>
               <Link to="/dietas"><Btn variant="glass" size="lg">Ver dietas</Btn></Link>
+              <Link to="/nutricao-esportiva"><Btn variant="glass" size="lg">Nutrição esportiva</Btn></Link>
             </div>
           </div>
           <div className="animate-rise" style={{ animationDelay: "0.1s" }}>

@@ -39,6 +39,19 @@ export type DigestiveDietGuide = {
   is_active: boolean;
 };
 
+export type SportsSupplement = {
+  id: string; name: string; category: string; purpose: string; evidence: string;
+  use_case: string; common_dose: string; timing: string; cautions: string;
+  sources: { label: string; url: string }[];
+};
+
+export type SportsGoalPlan = {
+  id: string; goal_key: string; name: string; summary: string;
+  priorities: string[]; foods: string[];
+  meals: { time: string; name: string; items: string }[];
+  note: string; sources: { label: string; url: string }[];
+};
+
 async function readTable<T>(table: string, select: string, order: string): Promise<T[]> {
   const url = import.meta.env["VITE_SUPABASE_URL"];
   const key = import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
@@ -74,4 +87,12 @@ export async function loadDietPlans(): Promise<DietPlan[]> {
 
 export async function loadDigestiveDietGuides(): Promise<DigestiveDietGuide[]> {
   return readTable("digestive_diet_guides", "id,category,name,summary,guidance,caution,sources,updated_at,is_active", "category.asc,name.asc");
+}
+
+export async function loadSportsSupplements(): Promise<SportsSupplement[]> {
+  return readTable("sports_supplements", "id,name,category,purpose,evidence,use_case,common_dose,timing,cautions,sources", "name.asc");
+}
+
+export async function loadSportsGoalPlans(): Promise<SportsGoalPlan[]> {
+  return readTable("sports_goal_plans", "id,goal_key,name,summary,priorities,foods,meals,note,sources", "goal_key.asc");
 }
