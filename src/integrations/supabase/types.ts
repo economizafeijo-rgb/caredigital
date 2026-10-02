@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       diet_plans: {
         Row: {
+          beverages: Json
           category: string
           caution: string
           condition_key: string
@@ -31,9 +32,9 @@ export type Database = {
           variant: number
           variant_label: string
           water: string
-          beverages: Json
         }
         Insert: {
+          beverages?: Json
           category?: string
           caution?: string
           condition_key?: string
@@ -49,9 +50,9 @@ export type Database = {
           variant?: number
           variant_label?: string
           water: string
-          beverages?: Json
         }
         Update: {
+          beverages?: Json
           category?: string
           caution?: string
           condition_key?: string
@@ -67,7 +68,6 @@ export type Database = {
           variant?: number
           variant_label?: string
           water?: string
-          beverages?: Json
         }
         Relationships: []
       }
@@ -75,7 +75,7 @@ export type Database = {
         Row: {
           category: string
           caution: string
-          guidance: string[]
+          guidance: Json
           id: string
           is_active: boolean
           name: string
@@ -86,7 +86,7 @@ export type Database = {
         Insert: {
           category: string
           caution: string
-          guidance?: string[]
+          guidance?: Json
           id: string
           is_active?: boolean
           name: string
@@ -97,7 +97,7 @@ export type Database = {
         Update: {
           category?: string
           caution?: string
-          guidance?: string[]
+          guidance?: Json
           id?: string
           is_active?: boolean
           name?: string
@@ -140,6 +140,93 @@ export type Database = {
           sources?: Json
           summary?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      sports_goal_plans: {
+        Row: {
+          foods: Json
+          goal_key: string
+          id: string
+          is_active: boolean
+          meals: Json
+          name: string
+          note: string
+          priorities: Json
+          sources: Json
+          summary: string
+          updated_at: string
+        }
+        Insert: {
+          foods?: Json
+          goal_key: string
+          id: string
+          is_active?: boolean
+          meals?: Json
+          name: string
+          note: string
+          priorities?: Json
+          sources?: Json
+          summary: string
+          updated_at?: string
+        }
+        Update: {
+          foods?: Json
+          goal_key?: string
+          id?: string
+          is_active?: boolean
+          meals?: Json
+          name?: string
+          note?: string
+          priorities?: Json
+          sources?: Json
+          summary?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sports_supplements: {
+        Row: {
+          category: string
+          cautions: string
+          common_dose: string
+          evidence: string
+          id: string
+          is_active: boolean
+          name: string
+          purpose: string
+          sources: Json
+          timing: string
+          updated_at: string
+          use_case: string
+        }
+        Insert: {
+          category: string
+          cautions: string
+          common_dose: string
+          evidence: string
+          id: string
+          is_active?: boolean
+          name: string
+          purpose: string
+          sources?: Json
+          timing: string
+          updated_at?: string
+          use_case: string
+        }
+        Update: {
+          category?: string
+          cautions?: string
+          common_dose?: string
+          evidence?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          purpose?: string
+          sources?: Json
+          timing?: string
+          updated_at?: string
+          use_case?: string
         }
         Relationships: []
       }
