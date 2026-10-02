@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { diets, medications } from "@/lib/mock-data";
-import { loadDigestiveProtocols, type DigestiveProtocol } from "@/lib/digestive-protocols";
+import { medications } from "@/lib/mock-data";
+import { loadDigestiveProtocols, loadDietPlans, type DigestiveProtocol, type DietPlan } from "@/lib/digestive-protocols";
 import { Btn, IconBox, PageHeader, Panel, Tag } from "@/components/vigia/ui";
 
 export const Route = createFileRoute("/dietas")({
@@ -17,7 +17,10 @@ export const Route = createFileRoute("/dietas")({
 });
 
 function Dietas() {
-  const [active, setActive] = useState(diets[0]!.id);
+  const [diets, setDiets] = useState<DietPlan[]>([]);
+  const [dietLoading, setDietLoading] = useState(true);
+  const [dietError, setDietError] = useState("");
+  const [active, setActive] = useState("");
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [water, setWater] = useState(3);
   const [protocols, setProtocols] = useState<DigestiveProtocol[]>([]);
@@ -25,16 +28,30 @@ function Dietas() {
   const [protocolsError, setProtocolsError] = useState("");
   const [protocolFilter, setProtocolFilter] = useState("Todas");
   const [selectedProtocolId, setSelectedProtocolId] = useState("");
-  const diet = diets.find((d) => d.id === active)!;
+  const diet = diets.find((d) => d.id === active) ?? diets[0];
   const visibleProtocols = protocolFilter === "Todas"
     ? protocols
     : protocols.filter((protocol) => protocol.category === protocolFilter);
   const selectedProtocol = protocols.find((protocol) => protocol.id === selectedProtocolId) ?? visibleProtocols[0];
   const supplements = medications.filter((m) => m.kind === "Suplemento");
-  const eaten = diet.meals.filter((m) => checked[diet.id + m.time]).reduce((a, m) => a + m.kcal, 0);
+  const eaten = diet?.meals.filter((m) => checked[diet.id + m.time]).reduce((a, m) => a + m.kcal, 0) ?? 0;
 
   useEffect(() => {
     let cancelled = false;
+    loadDietPlans()
+      .then((rows) => {
+        if (cancelled) return;
+        setDiets(rows);
+        setActive(rows[0]?.id ?? "");
+        setDietError("");
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) setDietError(error instanceof Error ? error.message : "Erro ao carregar cardápios.");
+      })
+      .finally(() => {
+        if (!cancelled) setDietLoading(false);
+      });
+
     loadDigestiveProtocols()
       .then((rows) => {
         if (cancelled) return;
@@ -58,9 +75,12 @@ function Dietas() {
       </PageHeader>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <Panel title="Refeições do dia" className="lg:col-span-2" action={<Tag tone="primary">{diet.goal}</Tag>}>
+        <Panel title="Refeições do dia" className="lg:col-span-2" action={diet ? <Tag tone="primary">{diet.goal}</Tag> : undefined}>
           <div className="divide-y divide-border">
-            {diet.meals.map((m) => {
+            {dietLoading && <p className="py-4 text-sm text-muted-foreground">Carregando cardápios do banco de dados…</p>}
+            {!dietLoading && dietError && <p role="alert" className="py-4 text-sm text-destructive">{dietError}</p>}
+            {!dietLoading && !dietError && !diet && <p className="py-4 text-sm text-muted-foreground">Nenhum cardápio encontrado.</p>}
+            {diet?.meals.map((m) => {
               const k = diet.id + m.time;
               return (
                 <label key={k} className="flex cursor-pointer items-center gap-4 py-3">
@@ -82,11 +102,11 @@ function Dietas() {
             <div className="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full bg-primary/30 blur-3xl" />
             <div className="relative">
               <div className="label-mono text-primary-foreground/60">Calorias consumidas</div>
-              <div className="mt-2 font-display text-6xl tabular-nums leading-none">{eaten}<span className="text-2xl text-primary-foreground/50"> / {diet.kcal}</span></div>
+              <div className="mt-2 font-display text-6xl tabular-nums leading-none">{eaten}<span className="text-2xl text-primary-foreground/50"> / {diet?.kcal ?? "—"}</span></div>
               <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-primary-foreground/15">
-                <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${Math.min(100, (eaten / diet.kcal) * 100)}%` }} />
+                <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${diet ? Math.min(100, (eaten / diet.kcal) * 100) : 0}%` }} />
               </div>
-              <div className="mt-6 label-mono text-primary-foreground/60">Hidratação · meta {diet.water}</div>
+              <div className="mt-6 label-mono text-primary-foreground/60">Hidratação · meta {diet?.water ?? "—"}</div>
               <div className="mt-2 flex gap-1.5">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <button key={i} onClick={() => setWater(i + 1)} aria-label={`${i + 1} copos`}
@@ -112,6 +132,10 @@ function Dietas() {
           </Panel>
         </div>
       </div>
+
+      <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+        Os cardápios e metas exibidos são modelos demonstrativos; calorias e hidratação devem ser individualizadas por profissional de saúde.
+      </p>
 
       <section className="mt-10" aria-labelledby="digestive-protocols-title">
         <div className="flex flex-wrap items-end justify-between gap-4">
