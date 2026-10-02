@@ -37,7 +37,7 @@ export function DigestiveDietGuides() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="label-mono text-muted-foreground">Orientações alimentares · banco público</div>
-          <h2 id="digestive-diets-title" className="mt-2 font-display text-4xl tracking-tight">Dietas por condição</h2>
+          <h2 id="digestive-diets-title" className="mt-2 font-display text-3xl tracking-tight md:text-4xl">Dietas por condição</h2>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Veja o que costuma ser recomendado, o que precisa de acompanhamento e de onde vem cada orientação.</p>
         </div>
         <div className="flex flex-wrap gap-2" aria-label="Filtrar dietas por área">

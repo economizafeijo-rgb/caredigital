@@ -35,36 +35,36 @@ function Dashboard() {
 
   return (
     <>
-      <section className="relative overflow-hidden rounded-3xl bg-foreground p-8 text-primary-foreground md:p-10">
+      <section className="relative isolate overflow-hidden rounded-3xl bg-foreground bg-cover bg-center px-4 py-5 text-primary-foreground sm:px-6 md:px-8 md:py-8" style={{ backgroundImage: "linear-gradient(90deg, rgba(7, 20, 33, .97) 0%, rgba(7, 20, 33, .9) 45%, rgba(7, 20, 33, .5) 100%), url('/images/caredigital-care-hero.webp')" }}>
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute -right-16 -top-24 size-[360px] rounded-full bg-primary/25 blur-3xl" />
           <div className="absolute -bottom-24 left-1/4 size-[300px] rounded-full bg-sky/20 blur-3xl" />
         </div>
-        <div className="relative grid items-center gap-8 lg:grid-cols-[1.1fr_1fr]">
+        <div className="relative grid items-center gap-5 md:gap-7 lg:grid-cols-[1.1fr_1fr]">
           <div className="animate-rise">
             <div className="label-mono text-primary-foreground/60">Painel do cuidador</div>
-            <h1 className="mt-4 text-balance font-display text-5xl leading-[0.95] tracking-tight md:text-6xl">
+            <h1 className="mt-2 max-w-[13ch] text-balance font-display text-3xl leading-[0.98] tracking-tight sm:mt-3 sm:text-5xl md:mt-4 md:text-6xl">
               Próximas doses,
               <br />
               sob controle.
             </h1>
-            <p className="mt-4 max-w-[46ch] text-pretty text-primary-foreground/70">
+            <p className="mt-2 hidden max-w-[46ch] text-pretty text-xs text-primary-foreground/75 sm:mt-3 sm:block sm:text-sm md:mt-4 md:text-base">
               Timer programável, protocolos por doença e dietas — tudo em um prontuário que não deixa nada passar.
             </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link to="/protocolos"><Btn variant="primary" size="lg">Ver protocolos digestivos</Btn></Link>
-              <Link to="/dietas"><Btn variant="glass" size="lg">Ver dietas</Btn></Link>
-              <Link to="/nutricao-esportiva"><Btn variant="glass" size="lg">Nutrição esportiva</Btn></Link>
+            <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2 md:mt-5 md:gap-3">
+              <Link to="/protocolos"><Btn variant="primary">Protocolos</Btn></Link>
+              <Link to="/dietas"><Btn variant="glass">Dietas</Btn></Link>
+              <Link to="/nutricao-esportiva"><Btn variant="glass">Nutrição</Btn></Link>
             </div>
           </div>
           <div className="animate-rise" style={{ animationDelay: "0.1s" }}>
-            <div className="rounded-2xl bg-primary-foreground/10 p-6 ring-1 ring-primary-foreground/15 backdrop-blur-xl">
+            <div className="rounded-2xl bg-primary-foreground/10 p-4 ring-1 ring-primary-foreground/15 backdrop-blur-xl md:p-5">
               <div className="flex items-center justify-between">
                 <span className="label-mono text-primary-foreground/60">Próxima dose</span>
                 <span className="font-mono text-[11px] text-primary-foreground/60">{next?.d.patient ?? "—"}</span>
               </div>
-              <div className="mt-4 flex flex-wrap items-end gap-4">
-                <div className={`font-display text-6xl leading-none tabular-nums ${next && next.s < 0 ? "text-destructive" : ""}`}>
+              <div className="mt-3 flex flex-wrap items-end gap-3">
+                <div className={`font-display text-5xl leading-none tabular-nums md:text-6xl ${next && next.s < 0 ? "text-destructive" : ""}`}>
                   {next ? (next.s < 0 ? "-" : "") + fmtDuration(Math.abs(next.s)) : "--:--:--"}
                 </div>
                 <div className="pb-1">
@@ -74,7 +74,7 @@ function Dashboard() {
                   </div>
                 </div>
               </div>
-              <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-primary-foreground/15">
+              <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-primary-foreground/15">
                 <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${adherence}%` }} />
               </div>
               {next && (
@@ -83,9 +83,9 @@ function Dashboard() {
                   <Btn variant="glass" onClick={() => setSnoozed((s) => ({ ...s, [next.d.id]: (s[next.d.id] ?? 0) + 15 }))}>Adiar 15 min</Btn>
                 </div>
               )}
-              <div className="mt-4 grid grid-cols-3 gap-2">
+              <div className="mt-3 grid grid-cols-3 gap-2">
                 {[["Hoje", doses.length], ["Pendentes", pending.length], ["Adesão", `${adherence}%`]].map(([k, v]) => (
-                  <div key={k} className="rounded-lg bg-primary-foreground/10 p-3">
+                  <div key={k} className="rounded-lg bg-primary-foreground/10 p-2.5">
                     <div className="font-mono text-[10px] uppercase tracking-wider text-primary-foreground/50">{k}</div>
                     <div className="font-display text-2xl">{v}</div>
                   </div>
@@ -96,7 +96,7 @@ function Dashboard() {
         </div>
       </section>
 
-      <section className="mt-8 grid gap-6 lg:grid-cols-3">
+      <section className="mt-5 grid grid-cols-1 gap-4 md:mt-6 md:gap-5 lg:grid-cols-3">
         <Panel title="Doses de hoje" className="lg:col-span-2" delay={0.15}
           action={<span className="label-mono text-muted-foreground">{doses.length} programadas</span>}>
           <div className="divide-y divide-border">

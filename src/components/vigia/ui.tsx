@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode, type ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export function useNow(interval = 1000) {
   const [now, setNow] = useState<Date | null>(null);
@@ -91,10 +92,10 @@ export const kindTone = (k: string): ToneKey =>
 
 export function PageHeader({ eyebrow, title, children }: { eyebrow: string; title: string; children?: ReactNode }) {
   return (
-    <div className="mb-8 flex animate-rise flex-col gap-4 md:flex-row md:items-end md:justify-between">
+    <div className="mb-5 flex animate-rise flex-col gap-3 md:mb-7 md:flex-row md:items-end md:justify-between">
       <div>
         <div className="label-mono text-muted-foreground">{eyebrow}</div>
-        <h1 className="mt-2 font-display text-5xl leading-[0.95] tracking-tight">{title}</h1>
+        <h1 className="mt-1 font-display text-3xl leading-[0.98] tracking-tight md:mt-2 md:text-4xl">{title}</h1>
       </div>
       {children && <div className="flex flex-wrap gap-2">{children}</div>}
     </div>
@@ -106,7 +107,7 @@ export function Panel({ title, action, children, className, delay = 0 }: { title
     <div className={cn("panel animate-rise", className)} style={{ animationDelay: `${delay}s` }}>
       {(title || action) && (
         <div className="mb-4 flex items-center justify-between gap-3">
-          {title && <h2 className="font-display text-2xl tracking-tight">{title}</h2>}
+          {title && <h2 className="font-display text-xl tracking-tight md:text-2xl">{title}</h2>}
           {action}
         </div>
       )}
@@ -121,6 +122,33 @@ export function Field({ label, children }: { label: string; children: ReactNode 
       <span className="label-mono mb-1.5 block text-[10px] text-muted-foreground">{label}</span>
       {children}
     </label>
+  );
+}
+
+export function SelectField({
+  value,
+  onValueChange,
+  options,
+  placeholder = "Selecione uma opção",
+  className,
+  disabled,
+}: {
+  value: string;
+  onValueChange: (value: string) => void;
+  options: Array<{ value: string; label: string }>;
+  placeholder?: string;
+  className?: string;
+  disabled?: boolean;
+}) {
+  return (
+    <Select value={value} onValueChange={onValueChange} {...(disabled === undefined ? {} : { disabled })}>
+      <SelectTrigger className={cn("field flex items-center justify-between gap-3 text-left", className)}>
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+      </SelectContent>
+    </Select>
   );
 }
 
