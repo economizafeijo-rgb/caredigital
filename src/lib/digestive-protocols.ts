@@ -21,6 +21,7 @@ export type DietPlan = {
   summary: string;
   caution: string;
   sources: { label: string; url: string }[];
+  beverages: { type: "Priorize" | "Observe" | "Atenção" | "Evite"; name: string; note: string }[];
   meals: { time: string; name: string; items: string }[];
   updated_at: string;
   is_active: boolean;
@@ -68,7 +69,7 @@ export async function loadDigestiveProtocols(): Promise<DigestiveProtocol[]> {
 }
 
 export async function loadDietPlans(): Promise<DietPlan[]> {
-  return readTable("diet_plans", "id,name,goal,category,condition_key,variant,variant_label,summary,caution,sources,meals,updated_at,is_active", "category.asc,name.asc,variant.asc");
+  return readTable("diet_plans", "id,name,goal,category,condition_key,variant,variant_label,summary,caution,sources,beverages,meals,updated_at,is_active", "category.asc,name.asc,variant.asc");
 }
 
 export async function loadDigestiveDietGuides(): Promise<DigestiveDietGuide[]> {

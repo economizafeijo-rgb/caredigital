@@ -31,6 +31,7 @@ export type Database = {
           variant: number
           variant_label: string
           water: string
+          beverages: Json
         }
         Insert: {
           category?: string
@@ -48,6 +49,7 @@ export type Database = {
           variant?: number
           variant_label?: string
           water: string
+          beverages?: Json
         }
         Update: {
           category?: string
@@ -65,6 +67,7 @@ export type Database = {
           variant?: number
           variant_label?: string
           water?: string
+          beverages?: Json
         }
         Relationships: []
       }

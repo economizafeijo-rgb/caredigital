@@ -103,6 +103,24 @@ export function ReadyDigestiveDietPlans() {
             })}
           </ol>
 
+          <section className="mt-6" aria-labelledby="beverages-title">
+            <h4 id="beverages-title" className="label-mono">Bebidas: o que priorizar e o que observar</h4>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              {activePlan.beverages.map((beverage) => {
+                const badge = beverage.type === "Priorize"
+                  ? "bg-success/10 text-success"
+                  : beverage.type === "Evite"
+                    ? "bg-destructive/10 text-destructive"
+                    : "bg-warning/15 text-warning";
+                return <article key={`${beverage.type}:${beverage.name}`} className="rounded-xl bg-foreground/5 p-4">
+                  <span className={`inline-flex rounded-full px-2 py-1 font-mono text-[10px] uppercase tracking-wider ${badge}`}>{beverage.type}</span>
+                  <h5 className="mt-2 text-sm font-semibold">{beverage.name}</h5>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{beverage.note}</p>
+                </article>;
+              })}
+            </div>
+          </section>
+
           <div className="mt-5 rounded-xl border border-warning/30 bg-warning/10 p-4 text-sm leading-relaxed"><strong className="block">Cuidados</strong><span className="mt-1 block text-muted-foreground">{activePlan.caution}</span></div>
           <div className="mt-5">
             <h4 className="label-mono">Fontes clínicas</h4>
