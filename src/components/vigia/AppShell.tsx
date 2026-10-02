@@ -1,12 +1,14 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { fmtClock, useNow } from "./ui";
+import { HydrationProvider, HydrationReminder } from "./HydrationTracker";
 
 const nav = [
   { to: "/", label: "Painel" },
   { to: "/protocolos", label: "Protocolos digestivos" },
   { to: "/dietas", label: "Dietas" },
   { to: "/nutricao-esportiva", label: "Nutrição esportiva" },
+  { to: "/hidratacao", label: "Hidratação" },
   { to: "/pacientes", label: "Pacientes" },
   { to: "/medicamentos", label: "Medicamentos" },
   { to: "/admin", label: "Admin" },
@@ -15,6 +17,7 @@ const nav = [
 export function AppShell({ children }: { children: ReactNode }) {
   const now = useNow(30000);
   return (
+    <HydrationProvider>
     <div className="relative min-h-screen bg-background text-foreground">
       <div className="pointer-events-none fixed inset-0 -z-0 overflow-hidden">
         <div className="absolute -left-32 -top-40 size-[520px] rounded-full bg-primary/15 blur-3xl" />
@@ -67,6 +70,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       <main className="relative mx-auto max-w-7xl px-6 py-8">{children}</main>
+      <HydrationReminder />
     </div>
+    </HydrationProvider>
   );
 }
