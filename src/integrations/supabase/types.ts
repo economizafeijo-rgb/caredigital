@@ -14,7 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      diet_plans: {
+        Row: {
+          goal: string
+          id: string
+          kcal: number
+          meals: Json
+          name: string
+          updated_at: string
+          water: string
+        }
+        Insert: {
+          goal: string
+          id: string
+          kcal: number
+          meals?: Json
+          name: string
+          updated_at?: string
+          water: string
+        }
+        Update: {
+          goal?: string
+          id?: string
+          kcal?: number
+          meals?: Json
+          name?: string
+          updated_at?: string
+          water?: string
+        }
+        Relationships: []
+      }
+      digestive_protocols: {
+        Row: {
+          category: string
+          caution: string
+          guidance: string[]
+          id: string
+          name: string
+          sources: Json
+          summary: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          caution: string
+          guidance?: string[]
+          id: string
+          name: string
+          sources?: Json
+          summary: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          caution?: string
+          guidance?: string[]
+          id?: string
+          name?: string
+          sources?: Json
+          summary?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
