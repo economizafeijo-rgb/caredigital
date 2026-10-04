@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as DietasRouteImport } from './routes/dietas'
+import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as HidratacaoRouteImport } from './routes/hidratacao'
 import { Route as MedicamentosRouteImport } from './routes/medicamentos'
 import { Route as NutricaoEsportivaRouteImport } from './routes/nutricao-esportiva'
@@ -31,6 +32,11 @@ const AdminRoute = AdminRouteImport.update({
 const DietasRoute = DietasRouteImport.update({
   id: '/dietas',
   path: '/dietas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EntrarRoute = EntrarRouteImport.update({
+  id: '/entrar',
+  path: '/entrar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HidratacaoRoute = HidratacaoRouteImport.update({
@@ -63,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/dietas': typeof DietasRoute
+  '/entrar': typeof EntrarRoute
   '/hidratacao': typeof HidratacaoRoute
   '/medicamentos': typeof MedicamentosRoute
   '/nutricao-esportiva': typeof NutricaoEsportivaRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/dietas': typeof DietasRoute
+  '/entrar': typeof EntrarRoute
   '/hidratacao': typeof HidratacaoRoute
   '/medicamentos': typeof MedicamentosRoute
   '/nutricao-esportiva': typeof NutricaoEsportivaRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/dietas': typeof DietasRoute
+  '/entrar': typeof EntrarRoute
   '/hidratacao': typeof HidratacaoRoute
   '/medicamentos': typeof MedicamentosRoute
   '/nutricao-esportiva': typeof NutricaoEsportivaRoute
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/dietas'
+    | '/entrar'
     | '/hidratacao'
     | '/medicamentos'
     | '/nutricao-esportiva'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/dietas'
+    | '/entrar'
     | '/hidratacao'
     | '/medicamentos'
     | '/nutricao-esportiva'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/dietas'
+    | '/entrar'
     | '/hidratacao'
     | '/medicamentos'
     | '/nutricao-esportiva'
@@ -127,6 +139,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   DietasRoute: typeof DietasRoute
+  EntrarRoute: typeof EntrarRoute
   HidratacaoRoute: typeof HidratacaoRoute
   MedicamentosRoute: typeof MedicamentosRoute
   NutricaoEsportivaRoute: typeof NutricaoEsportivaRoute
@@ -155,6 +168,13 @@ declare module '@tanstack/react-router' {
       path: '/dietas'
       fullPath: '/dietas'
       preLoaderRoute: typeof DietasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/entrar': {
+      id: '/entrar'
+      path: '/entrar'
+      fullPath: '/entrar'
+      preLoaderRoute: typeof EntrarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hidratacao': {
@@ -199,6 +219,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   DietasRoute: DietasRoute,
+  EntrarRoute: EntrarRoute,
   HidratacaoRoute: HidratacaoRoute,
   MedicamentosRoute: MedicamentosRoute,
   NutricaoEsportivaRoute: NutricaoEsportivaRoute,

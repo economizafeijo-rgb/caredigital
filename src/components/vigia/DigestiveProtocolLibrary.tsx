@@ -38,7 +38,7 @@ export function DigestiveProtocolLibrary() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="label-mono text-muted-foreground">Biblioteca pública · conteúdo com fontes</div>
-          <h2 id="digestive-protocols-title" className="mt-2 font-display text-4xl tracking-tight">Protocolos digestivos</h2>
+          <h2 id="digestive-protocols-title" className="mt-2 font-display text-3xl tracking-tight md:text-4xl">Protocolos digestivos</h2>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Orientações educativas organizadas por condição, com cuidados e links para as fontes.</p>
         </div>
         <div className="flex flex-wrap gap-2" aria-label="Filtrar protocolos por área">

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { Panel, Tag } from "@/components/vigia/ui";
+import { Droplets } from "lucide-react";
+import { Panel, SelectField, Tag } from "@/components/vigia/ui";
 
 const STORAGE_KEY = "vigia-hydration-v1";
 const goals = [
@@ -157,12 +158,18 @@ export function HydrationReminder() {
   const { data, ready, due, now, addWater, snooze } = useHydration();
   if (!ready) return null;
   const seconds = Math.ceil((data.nextReminderAt - now.getTime()) / 1000);
-  return <aside className={`fixed bottom-4 right-4 z-40 w-[min(21rem,calc(100vw-2rem))] rounded-2xl border p-4 shadow-xl backdrop-blur-xl ${due ? "border-primary/50 bg-background/95" : "border-border bg-background/90"}`} aria-live="polite">
-    <div className="flex items-center justify-between gap-2"><div className="label-mono text-muted-foreground">Lembrete de água</div><Tag tone={due ? "primary" : "success"}>{due ? "Agora" : countdown(seconds)}</Tag></div>
-    <div className="mt-2 flex items-baseline justify-between"><strong className="font-display text-2xl">{data.intakeMl} ml</strong><span className="text-xs text-muted-foreground">meta ajustável · {data.targetMl} ml</span></div>
-    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-foreground/10"><div className="h-full rounded-full bg-primary transition-all" style={{ width: `${Math.min(100, (data.intakeMl / data.targetMl) * 100)}%` }} /></div>
-    <div className="mt-3 flex gap-2"><button type="button" onClick={() => addWater(200)} className="flex-1 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground">Registrei 200 ml</button>{due && <button type="button" onClick={snooze} className="rounded-lg bg-foreground/5 px-3 py-2 text-xs font-semibold">Adiar 15 min</button>}</div>
-    <Link to="/hidratacao" className="mt-2 block text-center text-xs font-semibold text-primary underline underline-offset-4">Ver cronograma</Link>
+  return <aside className={`fixed bottom-20 left-2 right-2 z-40 rounded-xl border p-2 shadow-xl backdrop-blur-xl md:bottom-4 md:left-auto md:right-4 md:w-[21rem] md:rounded-2xl md:p-4 ${due ? "border-primary/50 bg-background/95" : "border-border bg-background/90"}`} aria-live="polite">
+    <div className="flex items-center justify-between gap-2 md:hidden">
+      <div className="flex min-w-0 items-center gap-2"><Droplets size={16} className="shrink-0 text-primary" /><span className="text-xs font-semibold">{due ? "Hora de beber água" : countdown(seconds)}</span><span className="truncate text-[11px] text-muted-foreground">{data.intakeMl}/{data.targetMl} ml</span></div>
+      <button type="button" onClick={() => addWater(200)} className="shrink-0 rounded-lg bg-primary px-3 py-2 text-[11px] font-semibold text-primary-foreground">+200 ml</button>
+    </div>
+    <div className="hidden md:block">
+      <div className="flex items-center justify-between gap-2"><div className="label-mono text-muted-foreground">Lembrete de água</div><Tag tone={due ? "primary" : "success"}>{due ? "Agora" : countdown(seconds)}</Tag></div>
+      <div className="mt-2 flex items-baseline justify-between"><strong className="font-display text-2xl">{data.intakeMl} ml</strong><span className="text-xs text-muted-foreground">meta ajustável · {data.targetMl} ml</span></div>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-foreground/10"><div className="h-full rounded-full bg-primary transition-all" style={{ width: `${Math.min(100, (data.intakeMl / data.targetMl) * 100)}%` }} /></div>
+      <div className="mt-3 flex gap-2"><button type="button" onClick={() => addWater(200)} className="flex-1 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground">Registrei 200 ml</button>{due && <button type="button" onClick={snooze} className="rounded-lg bg-foreground/5 px-3 py-2 text-xs font-semibold">Adiar 15 min</button>}</div>
+      <Link to="/hidratacao" className="mt-2 block text-center text-xs font-semibold text-primary underline underline-offset-4">Ver cronograma</Link>
+    </div>
   </aside>;
 }
 
@@ -186,13 +193,13 @@ export function HydrationDashboard() {
 
     <div className="grid gap-5 lg:grid-cols-[.85fr_1.15fr]">
       <Panel title="Configurar rotina">
-        <label className="mb-4 block"><span className="label-mono mb-1.5 block text-[10px] text-muted-foreground">Objetivo atual</span><select value={data.objective} onChange={(e) => setSettings({ objective: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"><option value="hipertrofia">Hipertrofia / ganho de massa</option><option value="emagrecimento">Emagrecimento</option><option value="ganho-de-peso">Aumento de peso</option></select></label>
+      <label className="mb-4 block"><span className="label-mono mb-1.5 block text-[10px] text-muted-foreground">Objetivo atual</span><SelectField value={data.objective} onValueChange={(objective) => setSettings({ objective })} options={[{ value: "hipertrofia", label: "Hipertrofia / ganho de massa" }, { value: "emagrecimento", label: "Emagrecimento" }, { value: "ganho-de-peso", label: "Aumento de peso" }]} /></label>
         <label className="mb-4 block"><span className="label-mono mb-1.5 block text-[10px] text-muted-foreground">Meta diária pessoal (ml) · definida com sua equipe</span><input type="number" min="250" max="6000" step="50" value={data.targetMl} onChange={(e) => setSettings({ targetMl: Math.min(6000, Math.max(250, Number(e.target.value) || 250)) })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" /></label>
         <div className="grid grid-cols-2 gap-3">
           <label className="block"><span className="label-mono mb-1.5 block text-[10px] text-muted-foreground">Acordar</span><input type="time" value={data.wakeTime} onChange={(e) => setSettings({ wakeTime: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" /></label>
           <label className="block"><span className="label-mono mb-1.5 block text-[10px] text-muted-foreground">Encerrar</span><input type="time" value={data.sleepTime} onChange={(e) => setSettings({ sleepTime: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" /></label>
         </div>
-        <label className="mt-4 block"><span className="label-mono mb-1.5 block text-[10px] text-muted-foreground">Lembrete a cada · minutos</span><select value={data.intervalMinutes} onChange={(e) => setSettings({ intervalMinutes: Number(e.target.value) })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"><option value={45}>45 minutos</option><option value={60}>60 minutos</option><option value={90}>90 minutos</option><option value={120}>120 minutos</option></select></label>
+        <label className="mt-4 block"><span className="label-mono mb-1.5 block text-[10px] text-muted-foreground">Lembrete a cada · minutos</span><SelectField value={String(data.intervalMinutes)} onValueChange={(interval) => setSettings({ intervalMinutes: Number(interval) })} options={[{ value: "45", label: "45 minutos" }, { value: "60", label: "60 minutos" }, { value: "90", label: "90 minutos" }, { value: "120", label: "120 minutos" }]} /></label>
         <p className="mt-4 rounded-xl bg-foreground/5 p-3 text-xs leading-relaxed text-muted-foreground">{objective.note}</p>
         <button type="button" onClick={() => void enableNotifications()} className="mt-4 w-full rounded-lg bg-foreground px-4 py-3 text-sm font-semibold text-primary-foreground">Ativar notificações do navegador</button>
         <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">O lembrete na tela funciona enquanto o app está aberto. O navegador pode suspender ou não entregar avisos se a página for fechada, se o sistema bloquear notificações ou se a economia de bateria estiver ativa.</p>

@@ -39,11 +39,7 @@ export function SportsNutritionLibrary() {
 
   return (
     <div>
-      <div className="mb-6 rounded-2xl border border-primary/20 bg-primary/5 p-5">
-        <div className="label-mono text-primary">Nutrição esportiva · biblioteca pública</div>
-        <h2 className="mt-2 font-display text-3xl tracking-tight">Comece pelo objetivo e pela rotina alimentar</h2>
-        <p className="mt-2 max-w-4xl text-sm leading-relaxed text-muted-foreground">Suplementos são opcionais. O resultado depende principalmente de alimentação suficiente, treino adequado, sono e consistência. A área abaixo oferece referências educativas para adultos; não prescreve tratamento nem substitui nutricionista ou médico.</p>
-      </div>
+      <p className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs leading-relaxed text-muted-foreground">Suplementos são opcionais. Os resultados dependem principalmente de alimentação, treino, sono e consistência. Conteúdo educativo para adultos; não substitui nutricionista ou médico.</p>
 
       {loading && <p className="rounded-xl bg-foreground/5 p-4 text-sm text-muted-foreground">Carregando planos e suplementos do banco de dados…</p>}
       {error && <p role="alert" className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm">{error}</p>}
@@ -87,7 +83,7 @@ export function SportsNutritionLibrary() {
         </>}
 
         <section className="mt-10" aria-labelledby="sports-supplements-title">
-          <div className="mb-4"><div className="label-mono text-muted-foreground">Guia de uso responsável</div><h2 id="sports-supplements-title" className="mt-2 font-display text-4xl tracking-tight">Suplementos: função, evidência e uso</h2><p className="mt-2 max-w-4xl text-sm leading-relaxed text-muted-foreground">As quantidades abaixo são referências gerais quando há evidência. Para vitaminas, maca e BCAA, dose universal para hipertrofia ou perda de peso não está estabelecida.</p></div>
+          <div className="mb-4"><div className="label-mono text-muted-foreground">Guia de uso responsável</div><h2 id="sports-supplements-title" className="mt-2 font-display text-3xl tracking-tight md:text-4xl">Suplementos: função, evidência e uso</h2><p className="mt-2 max-w-4xl text-sm leading-relaxed text-muted-foreground">As quantidades abaixo são referências gerais quando há evidência. Para vitaminas, maca e BCAA, dose universal para hipertrofia ou perda de peso não está estabelecida.</p></div>
           <div className="grid gap-4 md:grid-cols-2">
             {supplements.map((item) => <Panel key={item.id}>
               <div className="flex flex-wrap items-center justify-between gap-2"><Tag tone={item.id === "creatina-monohidratada" ? "success" : "muted"}>{item.category}</Tag><span className="label-mono text-muted-foreground">{item.name}</span></div>

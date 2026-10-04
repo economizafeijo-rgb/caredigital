@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { protocols as initial, type Protocol } from "@/lib/mock-data";
-import { Btn, Field, Modal, PageHeader, Panel, Tag, type ToneKey } from "@/components/vigia/ui";
+import { Btn, Field, Modal, PageHeader, Panel, SelectField, Tag, type ToneKey } from "@/components/vigia/ui";
 import { DigestiveProtocolLibrary } from "@/components/vigia/DigestiveProtocolLibrary";
 
 export const Route = createFileRoute("/protocolos")({
@@ -35,7 +35,7 @@ function Protocolos() {
 
       <div className="mb-5 mt-12">
         <div className="label-mono text-muted-foreground">Área de demonstração do prontuário</div>
-        <h2 className="mt-2 font-display text-4xl tracking-tight">Protocolos da equipe</h2>
+        <h2 className="mt-2 font-display text-3xl tracking-tight md:text-4xl">Protocolos da equipe</h2>
       </div>
       <div className="grid gap-6 lg:grid-cols-3">
         <Panel title="Biblioteca">
@@ -56,7 +56,7 @@ function Protocolos() {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <Tag tone={typeTone[current.type]}>{current.type}</Tag>
-                <h2 className="mt-3 font-display text-4xl tracking-tight">{current.name}</h2>
+                <h2 className="mt-3 font-display text-3xl tracking-tight md:text-4xl">{current.name}</h2>
                 <p className="mt-2 max-w-[60ch] text-muted-foreground">{current.summary}</p>
               </div>
               <Btn variant="danger" onClick={() => { setList((l) => l.filter((x) => x.id !== current.id)); setSelected(list[0]?.id ?? ""); }}>Excluir</Btn>
@@ -92,7 +92,7 @@ function Protocolos() {
         }}>
           <div className="grid grid-cols-2 gap-4">
             <Field label="Nome"><input className="field" required maxLength={80} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
-            <Field label="Tipo"><select className="field" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as Protocol["type"] })}>{Object.keys(typeTone).map((t) => <option key={t}>{t}</option>)}</select></Field>
+            <Field label="Tipo"><SelectField value={form.type} onValueChange={(type) => setForm({ ...form, type: type as Protocol["type"] })} options={Object.keys(typeTone).map((type) => ({ value: type, label: type }))} /></Field>
           </div>
           <Field label="Resumo"><input className="field" maxLength={200} value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} /></Field>
           <Field label="Etapas (uma por linha)"><textarea rows={5} className="field" maxLength={2000} value={form.steps} onChange={(e) => setForm({ ...form, steps: e.target.value })} /></Field>

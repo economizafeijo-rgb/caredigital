@@ -14,6 +14,93 @@ export type Database = {
   }
   public: {
     Tables: {
+      care_clients: {
+        Row: {
+          age_years: number | null
+          assigned_professional_id: string
+          client_type: string
+          condition_summary: string
+          created_at: string
+          created_by: string
+          display_name: string
+          goal: string
+          height_cm: number | null
+          hydration_target_ml: number | null
+          id: string
+          sex_for_reference: string
+          updated_at: string
+          weight_kg: number | null
+        }
+        Insert: {
+          age_years?: number | null
+          assigned_professional_id: string
+          client_type?: string
+          condition_summary?: string
+          created_at?: string
+          created_by: string
+          display_name: string
+          goal?: string
+          height_cm?: number | null
+          hydration_target_ml?: number | null
+          id?: string
+          sex_for_reference?: string
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Update: {
+          age_years?: number | null
+          assigned_professional_id?: string
+          client_type?: string
+          condition_summary?: string
+          created_at?: string
+          created_by?: string
+          display_name?: string
+          goal?: string
+          height_cm?: number | null
+          hydration_target_ml?: number | null
+          id?: string
+          sex_for_reference?: string
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
+      professional_profiles: {
+        Row: {
+          created_at: string
+          display_name: string
+          email: string
+          invited_by: string | null
+          is_active: boolean
+          role: string
+          specialty: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          email: string
+          invited_by?: string | null
+          is_active?: boolean
+          role?: string
+          specialty?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          email?: string
+          invited_by?: string | null
+          is_active?: boolean
+          role?: string
+          specialty?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       diet_plans: {
         Row: {
           beverages: Json

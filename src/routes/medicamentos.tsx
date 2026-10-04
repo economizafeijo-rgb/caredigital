@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { medications as initial, type Medication } from "@/lib/mock-data";
-import { Btn, Field, IconBox, PageHeader, Panel, Tag, fmtDuration, kindTone, useNow } from "@/components/vigia/ui";
+import { Btn, Field, IconBox, PageHeader, Panel, SelectField, Tag, fmtDuration, kindTone, useNow } from "@/components/vigia/ui";
 
 export const Route = createFileRoute("/medicamentos")({
   head: () => ({
@@ -70,8 +70,8 @@ function Medicamentos() {
               <Field label="Nome"><input className="field" required maxLength={80} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Dose"><input className="field" maxLength={30} placeholder="500mg" value={form.dose} onChange={(e) => setForm({ ...form, dose: e.target.value })} /></Field>
-                <Field label="Tipo"><select className="field" value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value as Medication["kind"] })}><option>Medicamento</option><option>Natural</option><option>Suplemento</option></select></Field>
-                <Field label="Via"><select className="field" value={form.route} onChange={(e) => setForm({ ...form, route: e.target.value })}>{["Via oral", "Sublingual", "Injetável", "Tópica", "Inalatória"].map((r) => <option key={r}>{r}</option>)}</select></Field>
+                <Field label="Tipo"><SelectField value={form.kind} onValueChange={(kind) => setForm({ ...form, kind: kind as Medication["kind"] })} options={["Medicamento", "Natural", "Suplemento"].map((value) => ({ value, label: value }))} /></Field>
+                <Field label="Via"><SelectField value={form.route} onValueChange={(route) => setForm({ ...form, route })} options={["Via oral", "Sublingual", "Injetável", "Tópica", "Inalatória"].map((value) => ({ value, label: value }))} /></Field>
                 <Field label="Estoque"><input type="number" min={0} className="field" value={form.stock} onChange={(e) => setForm({ ...form, stock: +e.target.value })} /></Field>
               </div>
               <Field label="Horários (separe por vírgula)"><input className="field font-mono" placeholder="08:00, 20:00" value={form.times} onChange={(e) => setForm({ ...form, times: e.target.value })} /></Field>
