@@ -31,7 +31,7 @@ function Prontuario() {
   const [observationValue, setObservationValue] = useState("");
   const [observationNotes, setObservationNotes] = useState("");
   const [observationBusy, setObservationBusy] = useState(false);
-  const [agendaDay, setAgendaDay] = useState("2026-10-31");
+  const [agendaDay, setAgendaDay] = useState(() => new Intl.DateTimeFormat("en-CA", {timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date()));
   const [agendaFilter, setAgendaFilter] = useState("todos");
   const [activeSection, setActiveSection] = useState<"agenda" | "agua" | "evolucao">("agenda");
   const [name, setName] = useState("");
@@ -242,12 +242,12 @@ function Prontuario() {
               ))}
             </div>
             {activeSection === "agenda" && <Panel title="Agenda de cuidados" action={<ClipboardList size={19} className="text-primary" />}>
-              <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-3">
+              {tasks.length === 0 && <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-3">
                 <strong className="text-sm">Calendário solicitado · 31/10 a 13/11/2026</strong>
                 <p className="mt-1 text-xs text-muted-foreground">Inclui horários de tratamento informados, seis momentos de alimentação e verificações de hidratação das 08h às 20h. Não envia notificações; não define volume de água. A etapa de continuidade de lansoprazol depende de confirmação da prescrição.</p>
                 <label className="mt-3 flex items-start gap-2 text-xs"><input type="checkbox" className="mt-0.5" checked={prescriptionChecked} onChange={e => setPrescriptionChecked(e.target.checked)} /><span>Conferi a prescrição com o profissional responsável, incluindo os horários e a fase de continuidade, e autorizo registrar esta agenda.</span></label>
                 <Btn type="button" className="mt-3" disabled={!prescriptionChecked || generating} onClick={() => void generateRequestedSchedule()}>{generating ? "Criando agenda…" : "Criar agenda de 14 dias"}</Btn>
-              </div>
+              </div>}
               <form onSubmit={(e) => void createTask(e)} className="mb-4 grid gap-3 rounded-xl bg-foreground/5 p-3 sm:grid-cols-2">
                 <label className="text-xs">Atividade<input className="field mt-1" required value={taskTitle} maxLength={140} onChange={(e) => setTaskTitle(e.target.value)} placeholder="Ex.: Refeição ou cuidado prescrito" /></label>
                 <label className="text-xs">Data e hora<input className="field mt-1" type="datetime-local" required value={taskDate} onChange={(e) => setTaskDate(e.target.value)} /></label>
