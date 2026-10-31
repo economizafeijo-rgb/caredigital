@@ -13,7 +13,8 @@ const primaryNav = [
 
 const moreNav = [
   { to: "/nutricao-esportiva", label: "Nutrição esportiva", icon: Activity },
-  { to: "/pacientes", label: "Pacientes", icon: Users },
+  { to: "/prontuario", label: "Prontuários", icon: Users },
+  { to: "/pacientes", label: "Clientes", icon: Users },
   { to: "/medicamentos", label: "Medicamentos", icon: Pill },
   { to: "/admin", label: "Administração", icon: Ellipsis },
   { to: "/entrar", label: "Entrar na equipe", icon: LogIn },
