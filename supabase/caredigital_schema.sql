@@ -126,6 +126,6 @@ begin
  end loop;
 end $$;
 
-revoke all on all tables in schema public from anon;
+revoke all on public.care_profiles,public.care_patients,public.care_medications,public.care_doses,public.care_protocols,public.care_patient_protocols,public.care_diets,public.care_meals,public.care_patient_diets,public.care_team,public.care_hydration from anon;
 grant usage on schema public to authenticated;
 grant select,insert,update,delete on public.care_profiles,public.care_patients,public.care_medications,public.care_doses,public.care_protocols,public.care_patient_protocols,public.care_diets,public.care_meals,public.care_patient_diets,public.care_team,public.care_hydration to authenticated;
