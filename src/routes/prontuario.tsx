@@ -27,6 +27,8 @@ function Prontuario() {
   const [water, setWater] = useState<{id:string;amount_ml:number;recorded_at:string}[]>([]);
   const [waterMl, setWaterMl] = useState("200");
   const [waterBusy, setWaterBusy] = useState(false);
+  const [agendaDay, setAgendaDay] = useState("2026-10-31");
+  const [agendaFilter, setAgendaFilter] = useState("todos");
   const [name, setName] = useState("");
   const [birth, setBirth] = useState("");
   const [condition, setCondition] = useState("");
@@ -156,6 +158,10 @@ function Prontuario() {
   }
   const current = clients.find((client) => client.id === selected);
   const completed = tasks.filter((task) => task.completed_at).length;
+  const localDay = (date: string) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(date));
+  const filteredTasks = tasks.filter(task => localDay(task.scheduled_at) === agendaDay && (agendaFilter === "todos" || task.category === agendaFilter));
+  const dayTasks = tasks.filter(task => localDay(task.scheduled_at) === agendaDay);
+  const dayDone = dayTasks.filter(task => task.completed_at).length;
   const todayBrazil = new Intl.DateTimeFormat("en-CA", {timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
   const consumedToday = water.filter(w => new Intl.DateTimeFormat("en-CA", {timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(w.recorded_at)) === todayBrazil).reduce((sum,w) => sum + w.amount_ml,0);
   return <>
@@ -209,8 +215,13 @@ function Prontuario() {
                 <label className="text-xs">Categoria<select className="field mt-1" value={taskCategory} onChange={(e) => setTaskCategory(e.target.value)}>{[["medicacao","Medicação"],["refeicao","Refeição"],["hidratacao","Hidratação"],["peso","Peso"],["outro","Outro"]].map(([v,t])=><option key={v} value={v}>{t}</option>)}</select></label>
                 <Btn type="submit" className="self-end">Adicionar à agenda</Btn>
               </form>
-              {tasks.length === 0 ? <p className="py-5 text-sm text-muted-foreground">Agenda vazia. Insira horários validados para iniciar o acompanhamento.</p> :
-                <div className="max-h-96 divide-y divide-border overflow-y-auto">{tasks.map(task => <button type="button" key={task.id} onClick={() => void toggle(task)} className="flex w-full items-center gap-3 px-2 py-3 text-left hover:bg-foreground/5">{task.completed_at ? <CheckCircle2 className="text-success" size={20} /> : <Circle className="text-muted-foreground" size={20} />}<span className="flex-1"><span className={`block text-sm font-semibold ${task.completed_at ? "line-through opacity-60" : ""}`}>{task.title}</span><span className="text-xs text-muted-foreground">{fmt(task.scheduled_at)} · {task.category}</span></span></button>)}</div>}
+              <div className="mb-3 grid gap-3 sm:grid-cols-2">
+                <label className="text-xs">Dia da agenda<input type="date" className="field mt-1" value={agendaDay} onChange={e => setAgendaDay(e.target.value)} /></label>
+                <label className="text-xs">Exibir<select className="field mt-1" value={agendaFilter} onChange={e => setAgendaFilter(e.target.value)}><option value="todos">Todas as atividades</option><option value="medicacao">Medicação</option><option value="refeicao">Alimentação</option><option value="hidratacao">Hidratação</option><option value="peso">Peso</option><option value="outro">Outros</option></select></label>
+              </div>
+              <p className="mb-3 text-xs text-muted-foreground">{dayDone} de {dayTasks.length} atividades concluídas no dia selecionado. Uma atividade pendente não significa que o cuidado foi omitido.</p>
+              {tasks.length === 0 ? <p className="py-5 text-sm text-muted-foreground">Agenda vazia. Insira horários validados para iniciar o acompanhamento.</p> : filteredTasks.length === 0 ? <p className="py-5 text-sm text-muted-foreground">Nenhuma atividade cadastrada neste dia e filtro.</p> :
+                <div className="max-h-96 divide-y divide-border overflow-y-auto">{filteredTasks.map(task => <button type="button" key={task.id} onClick={() => void toggle(task)} className="flex w-full items-center gap-3 px-2 py-3 text-left hover:bg-foreground/5">{task.completed_at ? <CheckCircle2 className="text-success" size={20} /> : <Circle className="text-muted-foreground" size={20} />}<span className="flex-1"><span className={`block text-sm font-semibold ${task.completed_at ? "line-through opacity-60" : ""}`}>{task.title}</span><span className="text-xs text-muted-foreground">{fmt(task.scheduled_at)} · {task.category}</span></span></button>)}</div>}
             </Panel>
             <Panel title="Hidratação registrada" action={<Droplets size={19} className="text-primary" />}>
               <div className="flex items-baseline gap-2"><strong className="text-3xl">{consumedToday.toLocaleString("pt-BR")}</strong><span className="text-sm text-muted-foreground">ml registrados hoje</span></div>
