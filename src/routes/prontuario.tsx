@@ -1,0 +1,146 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState, type FormEvent } from "react";
+import { ClipboardList, Droplets, HeartPulse, Plus, CheckCircle2, Circle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Btn, Panel, PageHeader } from "@/components/vigia/ui";
+
+export const Route = createFileRoute("/prontuario")({
+  head: () => ({ meta: [{ title: "Prontuário de acompanhamento — CareDigital" }] }),
+  component: Prontuario,
+});
+
+type Client = { id: string; full_name: string; birth_date: string | null; condition_notes: string | null; status: string };
+type Task = { id: string; patient_id: string; category: string; scheduled_at: string; title: string; notes: string | null; completed_at: string | null };
+type Observation = { id: string; patient_id: string; observation_type: string; numeric_value: number | null; unit: string | null; notes: string | null; recorded_at: string };
+
+// Explicit runtime schemas are maintained in supabase/caredigital_schema.sql and migrations.
+// The generated Database type should be regenerated when the backend migrations are synchronized.
+const db = supabase as unknown as { from: (table: string) => any; auth: typeof supabase.auth };
+const fmt = (iso: string) => new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" }).format(new Date(iso));
+
+function Prontuario() {
+  const [owner, setOwner] = useState<string | null>(null);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [selected, setSelected] = useState("");
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [observations, setObservations] = useState<Observation[]>([]);
+  const [name, setName] = useState("");
+  const [birth, setBirth] = useState("");
+  const [condition, setCondition] = useState("");
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDate, setTaskDate] = useState("");
+  const [taskCategory, setTaskCategory] = useState("medicacao");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  async function loadClients(userId: string) {
+    const { data, error } = await db.from("care_patients").select("id,full_name,birth_date,condition_notes,status").eq("owner_id", userId).order("created_at", { ascending: false });
+    if (error) throw error;
+    setClients(data ?? []);
+    setSelected((previous) => previous || data?.[0]?.id || "");
+  }
+  async function loadRecords(userId: string, patientId: string) {
+    const [schedule, history] = await Promise.all([
+      db.from("care_daily_checklist").select("id,patient_id,category,scheduled_at,title,notes,completed_at").eq("owner_id", userId).eq("patient_id", patientId).order("scheduled_at", { ascending: true }).limit(300),
+      db.from("care_observations").select("id,patient_id,observation_type,numeric_value,unit,notes,recorded_at").eq("owner_id", userId).eq("patient_id", patientId).order("recorded_at", { ascending: false }).limit(100),
+    ]);
+    if (schedule.error) throw schedule.error;
+    if (history.error) throw history.error;
+    setTasks(schedule.data ?? []);
+    setObservations(history.data ?? []);
+  }
+  useEffect(() => {
+    let active = true;
+    void db.auth.getUser().then(async ({ data, error }: {data: {user: {id: string} | null}; error: unknown}) => {
+      if (!active) return;
+      if (error || !data.user) { setMessage("Entre com sua conta para acessar prontuários protegidos."); setLoading(false); return; }
+      setOwner(data.user.id);
+      try { await loadClients(data.user.id); } catch { setMessage("Não foi possível carregar os clientes. Verifique o projeto Supabase conectado."); }
+      finally { if (active) setLoading(false); }
+    });
+    return () => { active = false; };
+  }, []);
+  useEffect(() => {
+    if (!owner || !selected) { setTasks([]); setObservations([]); return; }
+    void loadRecords(owner, selected).catch(() => setMessage("Não foi possível carregar a agenda e o histórico."));
+  }, [owner, selected]);
+
+  async function createClient(event: FormEvent) {
+    event.preventDefault();
+    if (!owner || !name.trim()) return;
+    const { error } = await db.from("care_patients").insert({ owner_id: owner, full_name: name.trim(), birth_date: birth || null, condition_notes: condition || null });
+    if (error) { setMessage(error.message); return; }
+    setName(""); setBirth(""); setCondition("");
+    await loadClients(owner);
+    setMessage("Cliente cadastrado com segurança.");
+  }
+  async function createTask(event: FormEvent) {
+    event.preventDefault();
+    if (!owner || !selected || !taskTitle || !taskDate) return;
+    const timestamp = new Date(taskDate).toISOString();
+    const { error } = await db.from("care_daily_checklist").insert({ owner_id: owner, patient_id: selected, category: taskCategory, title: taskTitle.trim(), scheduled_at: timestamp });
+    if (error) { setMessage(error.message); return; }
+    setTaskTitle(""); setTaskDate("");
+    await loadRecords(owner, selected);
+    setMessage("Compromisso salvo na agenda. Esta página não envia notificações automáticas.");
+  }
+  async function toggle(task: Task) {
+    if (!owner) return;
+    const { error } = await db.from("care_daily_checklist").update({ completed_at: task.completed_at ? null : new Date().toISOString() }).eq("id", task.id).eq("owner_id", owner);
+    if (error) { setMessage(error.message); return; }
+    await loadRecords(owner, selected);
+  }
+  const current = clients.find((client) => client.id === selected);
+  const completed = tasks.filter((task) => task.completed_at).length;
+  return <>
+    <PageHeader eyebrow="Área protegida · CareDigital" title="Prontuário de acompanhamento" />
+    <p className="mb-5 rounded-xl border border-warning/30 bg-warning/10 p-3 text-sm">Registros de acompanhamento, não prescrições. Horários e doses devem seguir orientação profissional validada. Os lembretes nesta tela não são notificações do sistema.</p>
+    {message && <div role="status" className="mb-4 rounded-xl bg-primary/10 p-3 text-sm">{message}</div>}
+    {loading ? <Panel>Carregando prontuários…</Panel> : !owner ? <Panel title="Acesso protegido"><Link to="/entrar" className="font-semibold text-primary underline">Entrar na minha conta</Link></Panel> : <>
+      <div className="grid gap-5 lg:grid-cols-[1fr_2fr]">
+        <div className="space-y-5">
+          <Panel title="Clientes acompanhados">
+            <label className="block text-xs text-muted-foreground">Selecionar prontuário</label>
+            <select className="field mt-2" value={selected} onChange={(e) => setSelected(e.target.value)}>
+              <option value="">Selecione um cliente</option>
+              {clients.map(c => <option key={c.id} value={c.id}>{c.full_name}</option>)}
+            </select>
+            <form className="mt-5 space-y-3" onSubmit={(e) => void createClient(e)}>
+              <h3 className="text-sm font-semibold">Novo cliente</h3>
+              <label className="block text-xs">Nome completo<input className="field mt-1" required maxLength={120} value={name} onChange={(e) => setName(e.target.value)} /></label>
+              <label className="block text-xs">Data de nascimento<input className="field mt-1" type="date" value={birth} onChange={(e) => setBirth(e.target.value)} /></label>
+              <label className="block text-xs">Contexto clínico (opcional)<textarea className="field mt-1" rows={3} value={condition} onChange={(e) => setCondition(e.target.value)} /></label>
+              <Btn type="submit" size="lg" className="w-full"><Plus size={16} /> Salvar cliente</Btn>
+            </form>
+          </Panel>
+          <Panel title="Privacidade">
+            <p className="text-xs leading-relaxed text-muted-foreground">Os registros ficam associados à conta autenticada, com controle de acesso por proprietário. O compartilhamento entre profissionais ainda não está habilitado.</p>
+          </Panel>
+        </div>
+        <div className="space-y-5">
+          {!current ? <Panel title="Selecione um cliente"><p className="text-sm text-muted-foreground">Escolha ou cadastre um cliente para abrir a ficha individual.</p></Panel> : <>
+            <Panel title="Ficha individual">
+              <div className="flex items-center gap-3"><HeartPulse className="text-primary" /><div><h2 className="text-xl font-semibold">{current.full_name}</h2><p className="text-xs text-muted-foreground">{current.birth_date ? `Nascimento: ${new Date(current.birth_date+"T12:00:00").toLocaleDateString("pt-BR")}` : "Nascimento não informado"}</p></div></div>
+              {current.condition_notes && <p className="mt-4 rounded-xl bg-foreground/5 p-3 text-sm">{current.condition_notes}</p>}
+              <div className="mt-4 grid grid-cols-2 gap-3"><div className="rounded-xl bg-foreground/5 p-3"><span className="text-xs text-muted-foreground">Tarefas</span><div className="text-2xl font-semibold">{tasks.length}</div></div><div className="rounded-xl bg-foreground/5 p-3"><span className="text-xs text-muted-foreground">Concluídas</span><div className="text-2xl font-semibold">{completed}</div></div></div>
+            </Panel>
+            <Panel title="Agenda de cuidados" action={<ClipboardList size={19} className="text-primary" />}>
+              <form onSubmit={(e) => void createTask(e)} className="mb-4 grid gap-3 rounded-xl bg-foreground/5 p-3 sm:grid-cols-2">
+                <label className="text-xs">Atividade<input className="field mt-1" required value={taskTitle} maxLength={140} onChange={(e) => setTaskTitle(e.target.value)} placeholder="Ex.: Refeição ou cuidado prescrito" /></label>
+                <label className="text-xs">Data e hora<input className="field mt-1" type="datetime-local" required value={taskDate} onChange={(e) => setTaskDate(e.target.value)} /></label>
+                <label className="text-xs">Categoria<select className="field mt-1" value={taskCategory} onChange={(e) => setTaskCategory(e.target.value)}>{[["medicacao","Medicação"],["refeicao","Refeição"],["hidratacao","Hidratação"],["peso","Peso"],["outro","Outro"]].map(([v,t])=><option key={v} value={v}>{t}</option>)}</select></label>
+                <Btn type="submit" className="self-end">Adicionar à agenda</Btn>
+              </form>
+              {tasks.length === 0 ? <p className="py-5 text-sm text-muted-foreground">Agenda vazia. Insira horários validados para iniciar o acompanhamento.</p> :
+                <div className="max-h-96 divide-y divide-border overflow-y-auto">{tasks.map(task => <button type="button" key={task.id} onClick={() => void toggle(task)} className="flex w-full items-center gap-3 px-2 py-3 text-left hover:bg-foreground/5">{task.completed_at ? <CheckCircle2 className="text-success" size={20} /> : <Circle className="text-muted-foreground" size={20} />}<span className="flex-1"><span className={`block text-sm font-semibold ${task.completed_at ? "line-through opacity-60" : ""}`}>{task.title}</span><span className="text-xs text-muted-foreground">{fmt(task.scheduled_at)} · {task.category}</span></span></button>)}</div>}
+            </Panel>
+            <Panel title="Histórico de evolução">
+              {observations.length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma observação registrada ainda.</p> : <div className="space-y-2">{observations.map(o => <div key={o.id} className="rounded-xl bg-foreground/5 p-3 text-sm"><strong>{o.observation_type}</strong> {o.numeric_value ?? ""} {o.unit ?? ""}<p>{o.notes}</p><span className="text-xs text-muted-foreground">{fmt(o.recorded_at)}</span></div>)}</div>}
+              <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground"><Droplets size={15} />Registros de hidratação e evolução corporal serão integrados nesta ficha.</p>
+            </Panel>
+          </>}
+        </div>
+      </div>
+    </>}
+  </>;
+}
