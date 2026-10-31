@@ -33,6 +33,7 @@ function Prontuario() {
   const [observationBusy, setObservationBusy] = useState(false);
   const [agendaDay, setAgendaDay] = useState("2026-10-31");
   const [agendaFilter, setAgendaFilter] = useState("todos");
+  const [activeSection, setActiveSection] = useState<"agenda" | "agua" | "evolucao">("agenda");
   const [name, setName] = useState("");
   const [birth, setBirth] = useState("");
   const [condition, setCondition] = useState("");
@@ -185,6 +186,10 @@ function Prontuario() {
     if (error) { setMessage(error.message); return; }
     await loadRecords(owner, selected);
   }
+  const weights = observations.filter(o => o.observation_type === "peso" && o.numeric_value !== null).slice().reverse();
+  const latestWeight = weights.length ? weights[weights.length - 1].numeric_value : null;
+  const initialWeight = clients.find(client => client.id === selected)?.weight_kg ?? null;
+  const weightDifference = latestWeight !== null && initialWeight !== null ? latestWeight - initialWeight : null;
   const current = clients.find((client) => client.id === selected);
   const completed = tasks.filter((task) => task.completed_at).length;
   const localDay = (date: string) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(date));
@@ -231,7 +236,12 @@ function Prontuario() {
               {current.condition_notes && <p className="mt-4 rounded-xl bg-foreground/5 p-3 text-sm">{current.condition_notes}</p>}
               <div className="mt-4 grid grid-cols-2 gap-3"><div className="rounded-xl bg-foreground/5 p-3"><span className="text-xs text-muted-foreground">Tarefas</span><div className="text-2xl font-semibold">{tasks.length}</div></div><div className="rounded-xl bg-foreground/5 p-3"><span className="text-xs text-muted-foreground">Concluídas</span><div className="text-2xl font-semibold">{completed}</div></div></div>
             </Panel>
-            <Panel title="Agenda de cuidados" action={<ClipboardList size={19} className="text-primary" />}>
+            <div className="grid grid-cols-3 gap-2" role="tablist" aria-label="Seções do prontuário">
+              {([["agenda","Agenda"],["agua","Água"],["evolucao","Evolução"]] as const).map(([id,label]) => (
+                <button key={id} type="button" role="tab" aria-selected={activeSection === id} onClick={() => setActiveSection(id)} className={`rounded-xl border px-3 py-3 text-sm font-semibold transition-colors ${activeSection === id ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-foreground/5"}`}>{label}</button>
+              ))}
+            </div>
+            {activeSection === "agenda" && <Panel title="Agenda de cuidados" action={<ClipboardList size={19} className="text-primary" />}>
               <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-3">
                 <strong className="text-sm">Calendário solicitado · 31/10 a 13/11/2026</strong>
                 <p className="mt-1 text-xs text-muted-foreground">Inclui horários de tratamento informados, seis momentos de alimentação e verificações de hidratação das 08h às 20h. Não envia notificações; não define volume de água. A etapa de continuidade de lansoprazol depende de confirmação da prescrição.</p>
@@ -251,8 +261,8 @@ function Prontuario() {
               <p className="mb-3 text-xs text-muted-foreground">{dayDone} de {dayTasks.length} atividades concluídas no dia selecionado. Uma atividade pendente não significa que o cuidado foi omitido.</p>
               {tasks.length === 0 ? <p className="py-5 text-sm text-muted-foreground">Agenda vazia. Insira horários validados para iniciar o acompanhamento.</p> : filteredTasks.length === 0 ? <p className="py-5 text-sm text-muted-foreground">Nenhuma atividade cadastrada neste dia e filtro.</p> :
                 <div className="max-h-96 divide-y divide-border overflow-y-auto">{filteredTasks.map(task => <button type="button" key={task.id} onClick={() => void toggle(task)} className="flex w-full items-center gap-3 px-2 py-3 text-left hover:bg-foreground/5">{task.completed_at ? <CheckCircle2 className="text-success" size={20} /> : <Circle className="text-muted-foreground" size={20} />}<span className="flex-1"><span className={`block text-sm font-semibold ${task.completed_at ? "line-through opacity-60" : ""}`}>{task.title}</span><span className="text-xs text-muted-foreground">{fmt(task.scheduled_at)} · {task.category}</span></span></button>)}</div>}
-            </Panel>
-            <Panel title="Hidratação registrada" action={<Droplets size={19} className="text-primary" />}>
+            </Panel>}
+            {activeSection === "agua" && <Panel title="Hidratação registrada" action={<Droplets size={19} className="text-primary" />}>
               <div className="flex items-baseline gap-2"><strong className="text-3xl">{consumedToday.toLocaleString("pt-BR")}</strong><span className="text-sm text-muted-foreground">ml registrados hoje</span></div>
               <p className="mt-2 text-xs text-muted-foreground">Total efetivamente informado, não uma meta ou prescrição. Os volumes devem refletir apenas o que foi consumido.</p>
               <form className="mt-4 flex flex-wrap items-end gap-3" onSubmit={e => void recordWater(e)}>
@@ -260,8 +270,10 @@ function Prontuario() {
                 <Btn type="submit" disabled={waterBusy}>{waterBusy ? "Salvando…" : "Registrar água bebida"}</Btn>
               </form>
               <div className="mt-4 max-h-40 space-y-1 overflow-y-auto">{water.slice(0,15).map(w => <div key={w.id} className="flex justify-between border-b border-border/60 py-2 text-xs"><span>{fmt(w.recorded_at)}</span><strong>{w.amount_ml} ml</strong></div>)}</div>
-            </Panel>
-            <Panel title="Histórico de evolução">
+            </Panel>}
+            {activeSection === "evolucao" && <Panel title="Histórico de evolução">
+              <div className="mb-4 grid grid-cols-2 gap-3 rounded-xl bg-foreground/5 p-3"><div><p className="text-xs text-muted-foreground">Peso mais recente registrado</p><strong className="text-xl">{latestWeight === null ? "Sem registro" : `${latestWeight} kg`}</strong></div><div><p className="text-xs text-muted-foreground">Variação desde o cadastro</p><strong className="text-xl">{weightDifference === null ? "—" : `${weightDifference > 0 ? "+" : ""}${weightDifference.toFixed(1)} kg`}</strong></div></div>
+              {weights.length > 0 && <div className="mb-4 max-h-40 overflow-auto rounded-xl border border-border p-3"><h3 className="mb-2 text-xs font-semibold">Histórico de peso</h3>{weights.map(w => <div key={w.id} className="flex justify-between border-b border-border/50 py-1 text-xs"><span>{fmt(w.recorded_at)}</span><strong>{w.numeric_value} kg</strong></div>)}</div>}
               <form className="mb-4 grid gap-3 rounded-xl bg-foreground/5 p-3 sm:grid-cols-2" onSubmit={event => void recordObservation(event)}>
                 <label className="text-xs">Tipo de registro
                   <select className="field mt-1" value={observationType} onChange={event => setObservationType(event.target.value)}>
@@ -277,7 +289,7 @@ function Prontuario() {
               </form>
               {observations.length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma observação registrada ainda.</p> : <div className="space-y-2">{observations.map(o => <div key={o.id} className="rounded-xl bg-foreground/5 p-3 text-sm"><strong>{o.observation_type}</strong> {o.numeric_value ?? ""} {o.unit ?? ""}<p>{o.notes}</p><span className="text-xs text-muted-foreground">{fmt(o.recorded_at)}</span></div>)}</div>}
               <p className="mt-3 text-xs text-muted-foreground">Evolução corporal e observações clínicas devem ser registradas pela equipe responsável.</p>
-            </Panel>
+            </Panel>}
           </>}
         </div>
       </div>
