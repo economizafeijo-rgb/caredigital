@@ -9,7 +9,7 @@ export const Route = createFileRoute("/prontuario")({
   component: Prontuario,
 });
 
-type Client = { id: string; full_name: string; birth_date: string | null; condition_notes: string | null; status: string };
+type Client = { id: string; full_name: string; birth_date: string | null; condition_notes: string | null; status: string; contact_email: string | null; weight_kg: number | null; height_cm: number | null; care_goal: string | null };
 type Task = { id: string; patient_id: string; category: string; scheduled_at: string; title: string; notes: string | null; completed_at: string | null };
 type Observation = { id: string; patient_id: string; observation_type: string; numeric_value: number | null; unit: string | null; notes: string | null; recorded_at: string };
 
@@ -34,7 +34,7 @@ function Prontuario() {
   const [loading, setLoading] = useState(true);
 
   async function loadClients(userId: string) {
-    const { data, error } = await db.from("care_patients").select("id,full_name,birth_date,condition_notes,status").eq("owner_id", userId).order("created_at", { ascending: false });
+    const { data, error } = await db.from("care_patients").select("id,full_name,birth_date,condition_notes,status,contact_email,weight_kg,height_cm,care_goal").eq("owner_id", userId).order("created_at", { ascending: false });
     if (error) throw error;
     setClients(data ?? []);
     setSelected((previous) => previous || data?.[0]?.id || "");
@@ -121,6 +121,12 @@ function Prontuario() {
           {!current ? <Panel title="Selecione um cliente"><p className="text-sm text-muted-foreground">Escolha ou cadastre um cliente para abrir a ficha individual.</p></Panel> : <>
             <Panel title="Ficha individual">
               <div className="flex items-center gap-3"><HeartPulse className="text-primary" /><div><h2 className="text-xl font-semibold">{current.full_name}</h2><p className="text-xs text-muted-foreground">{current.birth_date ? `Nascimento: ${new Date(current.birth_date+"T12:00:00").toLocaleDateString("pt-BR")}` : "Nascimento não informado"}</p></div></div>
+              {current.contact_email && <p className="mt-2 text-xs text-muted-foreground">{current.contact_email}</p>}
+              <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                <div className="rounded-xl bg-foreground/5 p-3"><p className="text-xs text-muted-foreground">Peso inicial</p><strong>{current.weight_kg ? `${current.weight_kg} kg` : "Não registrado"}</strong></div>
+                <div className="rounded-xl bg-foreground/5 p-3"><p className="text-xs text-muted-foreground">Altura</p><strong>{current.height_cm ? `${current.height_cm} cm` : "Não registrada"}</strong></div>
+                <div className="rounded-xl bg-foreground/5 p-3"><p className="text-xs text-muted-foreground">Objetivo</p><strong className="text-xs">{current.care_goal || "Não definido"}</strong></div>
+              </div>
               {current.condition_notes && <p className="mt-4 rounded-xl bg-foreground/5 p-3 text-sm">{current.condition_notes}</p>}
               <div className="mt-4 grid grid-cols-2 gap-3"><div className="rounded-xl bg-foreground/5 p-3"><span className="text-xs text-muted-foreground">Tarefas</span><div className="text-2xl font-semibold">{tasks.length}</div></div><div className="rounded-xl bg-foreground/5 p-3"><span className="text-xs text-muted-foreground">Concluídas</span><div className="text-2xl font-semibold">{completed}</div></div></div>
             </Panel>
