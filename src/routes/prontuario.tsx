@@ -16,7 +16,7 @@ type Observation = { id: string; patient_id: string; observation_type: string; n
 // Explicit runtime schemas are maintained in supabase/caredigital_schema.sql and migrations.
 // The generated Database type should be regenerated when the backend migrations are synchronized.
 const db = supabase as unknown as { from: (table: string) => any; auth: typeof supabase.auth };
-const fmt = (iso: string) => new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" }).format(new Date(iso));
+const fmt = (iso: string) => new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Rio_Branco" }).format(new Date(iso));
 
 function Prontuario() {
   const [owner, setOwner] = useState<string | null>(null);
@@ -31,7 +31,7 @@ function Prontuario() {
   const [observationValue, setObservationValue] = useState("");
   const [observationNotes, setObservationNotes] = useState("");
   const [observationBusy, setObservationBusy] = useState(false);
-  const [agendaDay, setAgendaDay] = useState(() => new Intl.DateTimeFormat("en-CA", {timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date()));
+  const [agendaDay, setAgendaDay] = useState(() => new Intl.DateTimeFormat("en-CA", {timeZone:"America/Rio_Branco",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date()));
   const [agendaFilter, setAgendaFilter] = useState("todos");
   const [activeSection, setActiveSection] = useState<"agenda" | "agua" | "evolucao">("agenda");
   const [name, setName] = useState("");
@@ -107,7 +107,7 @@ function Prontuario() {
     try {
       const schedule: {owner_id:string;patient_id:string;category:string;scheduled_at:string;title:string;notes:string}[] = [];
       const add = (day: string, time: string, category: string, title: string, notes: string) => {
-        schedule.push({ owner_id: owner, patient_id: selected, category, scheduled_at: new Date(day + "T" + time + ":00-03:00").toISOString(), title, notes });
+        schedule.push({ owner_id: owner, patient_id: selected, category, scheduled_at: new Date(day + "T" + time + ":00-05:00").toISOString(), title, notes });
       };
       const dayAt = (offset: number) => {
         const date = new Date(Date.UTC(2026, 9, 31 + offset));
@@ -128,8 +128,8 @@ function Prontuario() {
           add(date, String(hour).padStart(2,"0") + ":00", "hidratacao", "Verificar hidratação", "Marcar somente após beber. Registrar volume real; meta diária individualizada por profissional.");
         }
       }
-      const first = new Date("2026-10-31T00:00:00-03:00").toISOString();
-      const last = new Date("2026-11-14T00:00:00-03:00").toISOString();
+      const first = new Date("2026-10-31T00:00:00-05:00").toISOString();
+      const last = new Date("2026-11-14T00:00:00-05:00").toISOString();
       const existing = await db.from("care_daily_checklist").select("category,scheduled_at,title").eq("owner_id", owner).eq("patient_id", selected).gte("scheduled_at", first).lt("scheduled_at", last).limit(1000);
       if (existing.error) throw existing.error;
       const keys = new Set((existing.data ?? []).map((row: {category:string;scheduled_at:string;title:string}) => row.category + "|" + row.scheduled_at + "|" + row.title));
@@ -192,12 +192,12 @@ function Prontuario() {
   const weightDifference = latestWeight !== null && initialWeight !== null ? latestWeight - initialWeight : null;
   const current = clients.find((client) => client.id === selected);
   const completed = tasks.filter((task) => task.completed_at).length;
-  const localDay = (date: string) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(date));
+  const localDay = (date: string) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Rio_Branco", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(date));
   const filteredTasks = tasks.filter(task => localDay(task.scheduled_at) === agendaDay && (agendaFilter === "todos" || task.category === agendaFilter));
   const dayTasks = tasks.filter(task => localDay(task.scheduled_at) === agendaDay);
   const dayDone = dayTasks.filter(task => task.completed_at).length;
-  const todayBrazil = new Intl.DateTimeFormat("en-CA", {timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
-  const consumedToday = water.filter(w => new Intl.DateTimeFormat("en-CA", {timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(w.recorded_at)) === todayBrazil).reduce((sum,w) => sum + w.amount_ml,0);
+  const todayBrazil = new Intl.DateTimeFormat("en-CA", {timeZone:"America/Rio_Branco",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+  const consumedToday = water.filter(w => new Intl.DateTimeFormat("en-CA", {timeZone:"America/Rio_Branco",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(w.recorded_at)) === todayBrazil).reduce((sum,w) => sum + w.amount_ml,0);
   return <>
     <PageHeader eyebrow="Área protegida · CareDigital" title="Prontuário de acompanhamento" />
     <p className="mb-5 rounded-xl border border-warning/30 bg-warning/10 p-3 text-sm">Registros de acompanhamento, não prescrições. Horários e doses devem seguir orientação profissional validada. Os lembretes nesta tela não são notificações do sistema.</p>
