@@ -40,7 +40,7 @@
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 0.875rem;
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
   --background: oklch(0.975 0.006 240);
   --foreground: oklch(0.2 0.03 250);
