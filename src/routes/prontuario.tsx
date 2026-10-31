@@ -24,6 +24,9 @@ function Prontuario() {
   const [selected, setSelected] = useState("");
   const [tasks, setTasks] = useState<Task[]>([]);
   const [observations, setObservations] = useState<Observation[]>([]);
+  const [water, setWater] = useState<{id:string;amount_ml:number;recorded_at:string}[]>([]);
+  const [waterMl, setWaterMl] = useState("200");
+  const [waterBusy, setWaterBusy] = useState(false);
   const [name, setName] = useState("");
   const [birth, setBirth] = useState("");
   const [condition, setCondition] = useState("");
@@ -42,14 +45,17 @@ function Prontuario() {
     setSelected((previous) => previous || data?.[0]?.id || "");
   }
   async function loadRecords(userId: string, patientId: string) {
-    const [schedule, history] = await Promise.all([
-      db.from("care_daily_checklist").select("id,patient_id,category,scheduled_at,title,notes,completed_at").eq("owner_id", userId).eq("patient_id", patientId).order("scheduled_at", { ascending: true }).limit(300),
+    const [schedule, history, hydration] = await Promise.all([
+      db.from("care_daily_checklist").select("id,patient_id,category,scheduled_at,title,notes,completed_at").eq("owner_id", userId).eq("patient_id", patientId).order("scheduled_at", { ascending: true }).limit(500),
       db.from("care_observations").select("id,patient_id,observation_type,numeric_value,unit,notes,recorded_at").eq("owner_id", userId).eq("patient_id", patientId).order("recorded_at", { ascending: false }).limit(100),
+      db.from("care_hydration").select("id,amount_ml,recorded_at").eq("owner_id", userId).eq("patient_id", patientId).order("recorded_at", { ascending: false }).limit(500),
     ]);
     if (schedule.error) throw schedule.error;
     if (history.error) throw history.error;
+    if (hydration.error) throw hydration.error;
     setTasks(schedule.data ?? []);
     setObservations(history.data ?? []);
+    setWater(hydration.data ?? []);
   }
   useEffect(() => {
     let active = true;
@@ -63,7 +69,7 @@ function Prontuario() {
     return () => { active = false; };
   }, []);
   useEffect(() => {
-    if (!owner || !selected) { setTasks([]); setObservations([]); return; }
+    if (!owner || !selected) { setTasks([]); setObservations([]); setWater([]); return; }
     void loadRecords(owner, selected).catch(() => setMessage("Não foi possível carregar a agenda e o histórico."));
   }, [owner, selected]);
 
@@ -131,6 +137,17 @@ function Prontuario() {
       setMessage("A geração foi interrompida. Verifique sua conexão e tente novamente; tarefas existentes serão preservadas.");
     } finally { setGenerating(false); }
   }
+  async function recordWater(event: FormEvent) {
+    event.preventDefault();
+    if (!owner || !selected || waterBusy) return;
+    const amount = Number(waterMl);
+    if (!Number.isInteger(amount) || amount < 10 || amount > 1500) { setMessage("Informe um volume entre 10 e 1500 ml realmente consumido."); return; }
+    setWaterBusy(true);
+    const { error } = await db.from("care_hydration").insert({ owner_id: owner, patient_id: selected, amount_ml: amount });
+    if (error) setMessage("Não foi possível salvar a hidratação. Tente novamente.");
+    else { await loadRecords(owner, selected); setMessage(`Consumo de ${amount} ml registrado no prontuário.`); }
+    setWaterBusy(false);
+  }
   async function toggle(task: Task) {
     if (!owner) return;
     const { error } = await db.from("care_daily_checklist").update({ completed_at: task.completed_at ? null : new Date().toISOString() }).eq("id", task.id).eq("owner_id", owner);
@@ -139,6 +156,8 @@ function Prontuario() {
   }
   const current = clients.find((client) => client.id === selected);
   const completed = tasks.filter((task) => task.completed_at).length;
+  const todayBrazil = new Intl.DateTimeFormat("en-CA", {timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+  const consumedToday = water.filter(w => new Intl.DateTimeFormat("en-CA", {timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(w.recorded_at)) === todayBrazil).reduce((sum,w) => sum + w.amount_ml,0);
   return <>
     <PageHeader eyebrow="Área protegida · CareDigital" title="Prontuário de acompanhamento" />
     <p className="mb-5 rounded-xl border border-warning/30 bg-warning/10 p-3 text-sm">Registros de acompanhamento, não prescrições. Horários e doses devem seguir orientação profissional validada. Os lembretes nesta tela não são notificações do sistema.</p>
@@ -193,9 +212,18 @@ function Prontuario() {
               {tasks.length === 0 ? <p className="py-5 text-sm text-muted-foreground">Agenda vazia. Insira horários validados para iniciar o acompanhamento.</p> :
                 <div className="max-h-96 divide-y divide-border overflow-y-auto">{tasks.map(task => <button type="button" key={task.id} onClick={() => void toggle(task)} className="flex w-full items-center gap-3 px-2 py-3 text-left hover:bg-foreground/5">{task.completed_at ? <CheckCircle2 className="text-success" size={20} /> : <Circle className="text-muted-foreground" size={20} />}<span className="flex-1"><span className={`block text-sm font-semibold ${task.completed_at ? "line-through opacity-60" : ""}`}>{task.title}</span><span className="text-xs text-muted-foreground">{fmt(task.scheduled_at)} · {task.category}</span></span></button>)}</div>}
             </Panel>
+            <Panel title="Hidratação registrada" action={<Droplets size={19} className="text-primary" />}>
+              <div className="flex items-baseline gap-2"><strong className="text-3xl">{consumedToday.toLocaleString("pt-BR")}</strong><span className="text-sm text-muted-foreground">ml registrados hoje</span></div>
+              <p className="mt-2 text-xs text-muted-foreground">Total efetivamente informado, não uma meta ou prescrição. Os volumes devem refletir apenas o que foi consumido.</p>
+              <form className="mt-4 flex flex-wrap items-end gap-3" onSubmit={e => void recordWater(e)}>
+                <label className="text-xs">Quantidade consumida (ml)<input type="number" min={10} max={1500} step={10} required className="field mt-1 w-36" value={waterMl} onChange={e => setWaterMl(e.target.value)} /></label>
+                <Btn type="submit" disabled={waterBusy}>{waterBusy ? "Salvando…" : "Registrar água bebida"}</Btn>
+              </form>
+              <div className="mt-4 max-h-40 space-y-1 overflow-y-auto">{water.slice(0,15).map(w => <div key={w.id} className="flex justify-between border-b border-border/60 py-2 text-xs"><span>{fmt(w.recorded_at)}</span><strong>{w.amount_ml} ml</strong></div>)}</div>
+            </Panel>
             <Panel title="Histórico de evolução">
               {observations.length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma observação registrada ainda.</p> : <div className="space-y-2">{observations.map(o => <div key={o.id} className="rounded-xl bg-foreground/5 p-3 text-sm"><strong>{o.observation_type}</strong> {o.numeric_value ?? ""} {o.unit ?? ""}<p>{o.notes}</p><span className="text-xs text-muted-foreground">{fmt(o.recorded_at)}</span></div>)}</div>}
-              <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground"><Droplets size={15} />Registros de hidratação e evolução corporal serão integrados nesta ficha.</p>
+              <p className="mt-3 text-xs text-muted-foreground">Evolução corporal e observações clínicas devem ser registradas pela equipe responsável.</p>
             </Panel>
           </>}
         </div>
