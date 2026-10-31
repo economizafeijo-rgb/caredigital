@@ -30,6 +30,8 @@ function Prontuario() {
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDate, setTaskDate] = useState("");
   const [taskCategory, setTaskCategory] = useState("medicacao");
+  const [prescriptionChecked, setPrescriptionChecked] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -84,6 +86,51 @@ function Prontuario() {
     await loadRecords(owner, selected);
     setMessage("Compromisso salvo na agenda. Esta página não envia notificações automáticas.");
   }
+
+  async function generateRequestedSchedule() {
+    if (!owner || !selected || !prescriptionChecked || generating) return;
+    setGenerating(true);
+    setMessage("");
+    try {
+      const schedule: {owner_id:string;patient_id:string;category:string;scheduled_at:string;title:string;notes:string}[] = [];
+      const add = (day: string, time: string, category: string, title: string, notes: string) => {
+        schedule.push({ owner_id: owner, patient_id: selected, category, scheduled_at: new Date(day + "T" + time + ":00-03:00").toISOString(), title, notes });
+      };
+      const dayAt = (offset: number) => {
+        const date = new Date(Date.UTC(2026, 9, 31 + offset));
+        return date.toISOString().slice(0, 10);
+      };
+      for (let day = 0; day < 14; day++) {
+        const date = dayAt(day);
+        if (day < 7) {
+          add(date, "07:00", "medicacao", "Esquema combinado — manhã", "Tomada informada pelo cliente. Conferir receita, apresentação e doses. Não confirmada como administrada.");
+          add(date, "19:00", "medicacao", "Esquema combinado — noite", "Tomada informada pelo cliente. Conferir receita, apresentação e doses. Não confirmada como administrada.");
+        } else {
+          add(date, "07:00", "medicacao", "Lansoprazol — continuidade", "Tomada diária informada pelo cliente. Confirmar dose e duração na receita; não confirmada como administrada.");
+        }
+        for (const [time, label] of [["07:30", "Café da manhã"], ["10:00", "Lanche da manhã"], ["12:30", "Almoço"], ["16:00", "Lanche da tarde"], ["19:30", "Jantar"], ["21:00", "Ceia opcional"]]) {
+          add(date, time, "refeicao", label, "Registrar alimentação e tolerância; adaptar com orientação profissional.");
+        }
+        for (let hour = 8; hour <= 20; hour++) {
+          add(date, String(hour).padStart(2,"0") + ":00", "hidratacao", "Verificar hidratação", "Marcar somente após beber. Registrar volume real; meta diária individualizada por profissional.");
+        }
+      }
+      const first = new Date("2026-10-31T00:00:00-03:00").toISOString();
+      const last = new Date("2026-11-14T00:00:00-03:00").toISOString();
+      const existing = await db.from("care_daily_checklist").select("category,scheduled_at,title").eq("owner_id", owner).eq("patient_id", selected).gte("scheduled_at", first).lt("scheduled_at", last).limit(1000);
+      if (existing.error) throw existing.error;
+      const keys = new Set((existing.data ?? []).map((row: {category:string;scheduled_at:string;title:string}) => row.category + "|" + row.scheduled_at + "|" + row.title));
+      const missing = schedule.filter(row => !keys.has(row.category + "|" + row.scheduled_at + "|" + row.title));
+      for (let start=0; start<missing.length;start+=100) {
+        const result = await db.from("care_daily_checklist").insert(missing.slice(start,start+100));
+        if (result.error) throw result.error;
+      }
+      await loadRecords(owner, selected);
+      setMessage(missing.length ? `Agenda criada: ${missing.length} atividades pendentes. Nenhuma foi marcada como concluída.` : "A agenda solicitada já foi cadastrada. Nenhuma duplicação feita.");
+    } catch {
+      setMessage("A geração foi interrompida. Verifique sua conexão e tente novamente; tarefas existentes serão preservadas.");
+    } finally { setGenerating(false); }
+  }
   async function toggle(task: Task) {
     if (!owner) return;
     const { error } = await db.from("care_daily_checklist").update({ completed_at: task.completed_at ? null : new Date().toISOString() }).eq("id", task.id).eq("owner_id", owner);
@@ -131,6 +178,12 @@ function Prontuario() {
               <div className="mt-4 grid grid-cols-2 gap-3"><div className="rounded-xl bg-foreground/5 p-3"><span className="text-xs text-muted-foreground">Tarefas</span><div className="text-2xl font-semibold">{tasks.length}</div></div><div className="rounded-xl bg-foreground/5 p-3"><span className="text-xs text-muted-foreground">Concluídas</span><div className="text-2xl font-semibold">{completed}</div></div></div>
             </Panel>
             <Panel title="Agenda de cuidados" action={<ClipboardList size={19} className="text-primary" />}>
+              <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-3">
+                <strong className="text-sm">Calendário solicitado · 31/10 a 13/11/2026</strong>
+                <p className="mt-1 text-xs text-muted-foreground">Inclui horários de tratamento informados, seis momentos de alimentação e verificações de hidratação das 08h às 20h. Não envia notificações; não define volume de água. A etapa de continuidade de lansoprazol depende de confirmação da prescrição.</p>
+                <label className="mt-3 flex items-start gap-2 text-xs"><input type="checkbox" className="mt-0.5" checked={prescriptionChecked} onChange={e => setPrescriptionChecked(e.target.checked)} /><span>Conferi a prescrição com o profissional responsável, incluindo os horários e a fase de continuidade, e autorizo registrar esta agenda.</span></label>
+                <Btn type="button" className="mt-3" disabled={!prescriptionChecked || generating} onClick={() => void generateRequestedSchedule()}>{generating ? "Criando agenda…" : "Criar agenda de 14 dias"}</Btn>
+              </div>
               <form onSubmit={(e) => void createTask(e)} className="mb-4 grid gap-3 rounded-xl bg-foreground/5 p-3 sm:grid-cols-2">
                 <label className="text-xs">Atividade<input className="field mt-1" required value={taskTitle} maxLength={140} onChange={(e) => setTaskTitle(e.target.value)} placeholder="Ex.: Refeição ou cuidado prescrito" /></label>
                 <label className="text-xs">Data e hora<input className="field mt-1" type="datetime-local" required value={taskDate} onChange={(e) => setTaskDate(e.target.value)} /></label>
