@@ -18,6 +18,7 @@ import { Route as MedicamentosRouteImport } from './routes/medicamentos'
 import { Route as NutricaoEsportivaRouteImport } from './routes/nutricao-esportiva'
 import { Route as PacientesRouteImport } from './routes/pacientes'
 import { Route as ProtocolosRouteImport } from './routes/protocolos'
+import { Route as ProntuarioRouteImport } from './routes/prontuario'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -59,6 +60,11 @@ const PacientesRoute = PacientesRouteImport.update({
   path: '/pacientes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProntuarioRoute = ProntuarioRouteImport.update({
+  id: '/prontuario',
+  path: '/prontuario',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProtocolosRoute = ProtocolosRouteImport.update({
   id: '/protocolos',
   path: '/protocolos',
@@ -66,6 +72,7 @@ const ProtocolosRoute = ProtocolosRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/prontuario': typeof ProntuarioRoute
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/dietas': typeof DietasRoute
@@ -77,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/protocolos': typeof ProtocolosRoute
 }
 export interface FileRoutesByTo {
+  '/prontuario': typeof ProntuarioRoute
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/dietas': typeof DietasRoute
@@ -88,6 +96,7 @@ export interface FileRoutesByTo {
   '/protocolos': typeof ProtocolosRoute
 }
 export interface FileRoutesById {
+  '/prontuario': typeof ProntuarioRoute
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
@@ -111,6 +120,7 @@ export interface FileRouteTypes {
     | '/nutricao-esportiva'
     | '/pacientes'
     | '/protocolos'
+    | '/prontuario'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
     | '/nutricao-esportiva'
     | '/pacientes'
     | '/protocolos'
+    | '/prontuario'
   id:
     | '__root__'
     | '/'
@@ -133,6 +144,7 @@ export interface FileRouteTypes {
     | '/nutricao-esportiva'
     | '/pacientes'
     | '/protocolos'
+    | '/prontuario'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -145,6 +157,7 @@ export interface RootRouteChildren {
   NutricaoEsportivaRoute: typeof NutricaoEsportivaRoute
   PacientesRoute: typeof PacientesRoute
   ProtocolosRoute: typeof ProtocolosRoute
+  ProntuarioRoute: typeof ProntuarioRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -205,6 +218,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PacientesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/prontuario': {
+      id: '/prontuario'
+      path: '/prontuario'
+      fullPath: '/prontuario'
+      preLoaderRoute: typeof ProntuarioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/protocolos': {
       id: '/protocolos'
       path: '/protocolos'
@@ -225,6 +245,7 @@ const rootRouteChildren: RootRouteChildren = {
   NutricaoEsportivaRoute: NutricaoEsportivaRoute,
   PacientesRoute: PacientesRoute,
   ProtocolosRoute: ProtocolosRoute,
+  ProntuarioRoute: ProntuarioRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
