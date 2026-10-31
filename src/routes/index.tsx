@@ -19,6 +19,9 @@ function Dashboard() {
   const now = useNow();
   const [doses, setDoses] = useState(initialDoses);
   const [snoozed, setSnoozed] = useState<Record<string, number>>({});
+  const [doseFilter, setDoseFilter] = useState<"Todas" | "Pendentes" | "Concluídas">("Todas");
+  const [patientFilter, setPatientFilter] = useState("Todos");
+  const [lastConfirmed, setLastConfirmed] = useState<string | null>(null);
 
   const pending = doses.filter((d) => !d.done);
   const withSecs = now
@@ -26,15 +29,18 @@ function Dashboard() {
     : [];
   const next = withSecs.find((x) => x.s > -1800) ?? withSecs[0];
   const doneCount = doses.length - pending.length;
-  const adherence = Math.round((doneCount / doses.length) * 100);
+  const adherence = doses.length ? Math.round((doneCount / doses.length) * 100) : 0;
+  const visibleDoses = doses.filter((d) => (patientFilter === "Todos" || d.patient === patientFilter) && (doseFilter === "Todas" || (doseFilter === "Pendentes" ? !d.done : !!d.done)));
 
   const confirm = (id: string) => {
     const t = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
     setDoses((ds) => ds.map((d) => (d.id === id ? { ...d, done: t } : d)));
+    setLastConfirmed(id);
   };
 
   return (
     <>
+      <div role="note" className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-xs text-foreground"><strong>Ambiente de demonstração</strong><span>Os registros exibidos são fictícios e as confirmações não substituem um prontuário nem alertas clínicos reais.</span></div>
       <section className="relative isolate overflow-hidden rounded-3xl bg-foreground bg-cover bg-center px-4 py-5 text-primary-foreground sm:px-6 md:px-8 md:py-8" style={{ backgroundImage: "linear-gradient(90deg, rgba(7, 20, 33, .97) 0%, rgba(7, 20, 33, .9) 45%, rgba(7, 20, 33, .5) 100%), url('/images/caredigital-care-hero.webp')" }}>
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute -right-16 -top-24 size-[360px] rounded-full bg-primary/25 blur-3xl" />
@@ -98,12 +104,28 @@ function Dashboard() {
 
       <section className="mt-5 grid grid-cols-1 gap-4 md:mt-6 md:gap-5 lg:grid-cols-3">
         <Panel title="Doses de hoje" className="lg:col-span-2" delay={0.15}
-          action={<span className="label-mono text-muted-foreground">{doses.length} programadas</span>}>
+          action={<span className="label-mono text-muted-foreground">{visibleDoses.length} exibidas</span>}>
+          <div className="mb-4 flex flex-wrap items-end gap-3 rounded-xl bg-foreground/5 p-3">
+            <label className="flex min-w-36 flex-1 flex-col gap-1 text-xs font-medium text-muted-foreground">Status
+              <select className="field" value={doseFilter} onChange={(e) => setDoseFilter(e.target.value as typeof doseFilter)}>
+                <option>Todas</option><option>Pendentes</option><option>Concluídas</option>
+              </select>
+            </label>
+            <label className="flex min-w-36 flex-1 flex-col gap-1 text-xs font-medium text-muted-foreground">Paciente
+              <select className="field" value={patientFilter} onChange={(e) => setPatientFilter(e.target.value)}>
+                <option value="Todos">Todos os pacientes</option>
+                {Array.from(new Set(doses.map((d) => d.patient))).map((name) => <option key={name} value={name}>{name}</option>)}
+              </select>
+            </label>
+            {(doseFilter !== "Todas" || patientFilter !== "Todos") && <Btn variant="ghost" onClick={() => { setDoseFilter("Todas"); setPatientFilter("Todos"); }}>Limpar filtros</Btn>}
+          </div>
+          {lastConfirmed && <div role="status" className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-success/30 bg-success/10 p-3 text-xs"><span>Dose confirmada nesta demonstração.</span><Btn variant="ghost" onClick={() => { setDoses((ds) => ds.map((d) => d.id === lastConfirmed ? { ...d, done: undefined } : d)); setLastConfirmed(null); }}>Desfazer</Btn></div>}
           <div className="divide-y divide-border">
-            {doses.map((d) => {
+            {visibleDoses.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">Nenhuma dose encontrada para os filtros selecionados.</p>}
+            {visibleDoses.map((d) => {
               const s = now ? secondsUntil(now, d.time) + (snoozed[d.id] ?? 0) * 60 : null;
               return (
-                <div key={d.id} className="flex items-center gap-4 py-3">
+                <div key={d.id} className="flex flex-wrap items-center gap-3 rounded-lg px-2 py-3 transition-colors hover:bg-foreground/5 sm:flex-nowrap">
                   <IconBox tone={kindTone(d.kind)}>{d.name[0]}</IconBox>
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-semibold">{d.name}</div>
