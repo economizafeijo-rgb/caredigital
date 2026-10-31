@@ -27,6 +27,10 @@ function Prontuario() {
   const [water, setWater] = useState<{id:string;amount_ml:number;recorded_at:string}[]>([]);
   const [waterMl, setWaterMl] = useState("200");
   const [waterBusy, setWaterBusy] = useState(false);
+  const [observationType, setObservationType] = useState("peso");
+  const [observationValue, setObservationValue] = useState("");
+  const [observationNotes, setObservationNotes] = useState("");
+  const [observationBusy, setObservationBusy] = useState(false);
   const [agendaDay, setAgendaDay] = useState("2026-10-31");
   const [agendaFilter, setAgendaFilter] = useState("todos");
   const [name, setName] = useState("");
@@ -150,6 +154,31 @@ function Prontuario() {
     else { await loadRecords(owner, selected); setMessage(`Consumo de ${amount} ml registrado no prontuário.`); }
     setWaterBusy(false);
   }
+  async function recordObservation(event: FormEvent) {
+    event.preventDefault();
+    if (!owner || !selected || observationBusy) return;
+    const numeric = observationType === "peso" ? Number(observationValue) : null;
+    if (observationType === "peso" && (!Number.isFinite(numeric) || numeric === null || numeric < 20 || numeric > 400)) {
+      setMessage("Informe um peso válido, em kg, entre 20 e 400."); return;
+    }
+    if (observationType !== "peso" && !observationNotes.trim()) {
+      setMessage("Descreva a observação antes de salvar."); return;
+    }
+    setObservationBusy(true);
+    const result = await db.from("care_observations").insert({
+      owner_id: owner, patient_id: selected, observation_type: observationType,
+      numeric_value: observationType === "peso" ? numeric : null,
+      unit: observationType === "peso" ? "kg" : null,
+      notes: observationNotes.trim() || null,
+    });
+    if (result.error) setMessage("Falha ao registrar evolução. Verifique sua conexão e permissões.");
+    else {
+      setObservationValue(""); setObservationNotes("");
+      await loadRecords(owner, selected);
+      setMessage("Evolução registrada no prontuário.");
+    }
+    setObservationBusy(false);
+  }
   async function toggle(task: Task) {
     if (!owner) return;
     const { error } = await db.from("care_daily_checklist").update({ completed_at: task.completed_at ? null : new Date().toISOString() }).eq("id", task.id).eq("owner_id", owner);
@@ -233,6 +262,19 @@ function Prontuario() {
               <div className="mt-4 max-h-40 space-y-1 overflow-y-auto">{water.slice(0,15).map(w => <div key={w.id} className="flex justify-between border-b border-border/60 py-2 text-xs"><span>{fmt(w.recorded_at)}</span><strong>{w.amount_ml} ml</strong></div>)}</div>
             </Panel>
             <Panel title="Histórico de evolução">
+              <form className="mb-4 grid gap-3 rounded-xl bg-foreground/5 p-3 sm:grid-cols-2" onSubmit={event => void recordObservation(event)}>
+                <label className="text-xs">Tipo de registro
+                  <select className="field mt-1" value={observationType} onChange={event => setObservationType(event.target.value)}>
+                    <option value="peso">Peso corporal</option><option value="sintoma">Sintoma relatado</option>
+                    <option value="alimentacao">Alimentação / tolerância</option><option value="sinais_vitais">Sinais vitais</option><option value="outro">Outra observação</option>
+                  </select>
+                </label>
+                {observationType === "peso" && <label className="text-xs">Peso medido (kg)<input type="number" className="field mt-1" min={20} max={400} step={0.1} value={observationValue} onChange={event => setObservationValue(event.target.value)} required /></label>}
+                <label className="text-xs sm:col-span-2">Anotações do acompanhamento
+                  <textarea className="field mt-1" rows={2} maxLength={1000} placeholder="Descreva somente informações observadas ou relatadas." value={observationNotes} onChange={event => setObservationNotes(event.target.value)} />
+                </label>
+                <Btn type="submit" disabled={observationBusy} className="sm:col-span-2">{observationBusy ? "Salvando…" : "Registrar evolução"}</Btn>
+              </form>
               {observations.length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma observação registrada ainda.</p> : <div className="space-y-2">{observations.map(o => <div key={o.id} className="rounded-xl bg-foreground/5 p-3 text-sm"><strong>{o.observation_type}</strong> {o.numeric_value ?? ""} {o.unit ?? ""}<p>{o.notes}</p><span className="text-xs text-muted-foreground">{fmt(o.recorded_at)}</span></div>)}</div>}
               <p className="mt-3 text-xs text-muted-foreground">Evolução corporal e observações clínicas devem ser registradas pela equipe responsável.</p>
             </Panel>
