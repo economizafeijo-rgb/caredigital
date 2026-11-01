@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as ClienteRouteImport } from './routes/cliente'
 import { Route as DietasRouteImport } from './routes/dietas'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as HidratacaoRouteImport } from './routes/hidratacao'
@@ -28,6 +29,11 @@ const IndexRoute = IndexRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClienteRoute = ClienteRouteImport.update({
+  id: '/cliente',
+  path: '/cliente',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DietasRoute = DietasRouteImport.update({
@@ -72,6 +78,7 @@ const ProtocolosRoute = ProtocolosRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/cliente': typeof ClienteRoute
   '/prontuario': typeof ProntuarioRoute
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
@@ -84,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/protocolos': typeof ProtocolosRoute
 }
 export interface FileRoutesByTo {
+  '/cliente': typeof ClienteRoute
   '/prontuario': typeof ProntuarioRoute
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
@@ -96,6 +104,7 @@ export interface FileRoutesByTo {
   '/protocolos': typeof ProtocolosRoute
 }
 export interface FileRoutesById {
+  '/cliente': typeof ClienteRoute
   '/prontuario': typeof ProntuarioRoute
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
@@ -113,6 +122,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/cliente'
     | '/dietas'
     | '/entrar'
     | '/hidratacao'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/cliente'
     | '/dietas'
     | '/entrar'
     | '/hidratacao'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/cliente'
     | '/dietas'
     | '/entrar'
     | '/hidratacao'
@@ -150,6 +162,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  ClienteRoute: typeof ClienteRoute
   DietasRoute: typeof DietasRoute
   EntrarRoute: typeof EntrarRoute
   HidratacaoRoute: typeof HidratacaoRoute
@@ -174,6 +187,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cliente': {
+      id: '/cliente'
+      path: '/cliente'
+      fullPath: '/cliente'
+      preLoaderRoute: typeof ClienteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dietas': {
@@ -238,6 +258,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  ClienteRoute: ClienteRoute,
   DietasRoute: DietasRoute,
   EntrarRoute: EntrarRoute,
   HidratacaoRoute: HidratacaoRoute,
