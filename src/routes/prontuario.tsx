@@ -47,6 +47,8 @@ function Prontuario() {
   const [generating, setGenerating] = useState(false);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [confirmTask, setConfirmTask] = useState<Task | null>(null);
+  const [savingTask, setSavingTask] = useState(false);
   const [clockNow, setClockNow] = useState(() => Date.now());
 
   async function loadClients(userId: string) {
@@ -190,11 +192,23 @@ function Prontuario() {
     }
     setObservationBusy(false);
   }
+  async function confirmTaskCompletion() {
+    const task = confirmTask;
+    if (!task || !owner || !selected || task.patient_id !== selected || savingTask) return;
+    setSavingTask(true);
+    const { error } = await db.from("care_daily_checklist")
+      .update({ completed_at: new Date().toISOString() })
+      .eq("id", task.id).eq("owner_id", owner).eq("patient_id", selected).is("completed_at", null);
+    if (error) setMessage("Não foi possível registrar a atividade. Tente novamente.");
+    else { await loadRecords(owner, selected); setMessage("Atividade registrada como concluída."); }
+    setConfirmTask(null);
+    setSavingTask(false);
+  }
   async function toggle(task: Task) {
     if (!owner || !selected || task.patient_id !== selected) return;
-    if (!task.completed_at && task.category === "medicacao") {
-      const confirmed = window.confirm("Confirme somente se a medicação foi realmente administrada conforme a prescrição. Registrar como concluída?");
-      if (!confirmed) return;
+    if (!task.completed_at && (task.category === "medicacao" || task.category === "hidratacao")) {
+      setConfirmTask(task);
+      return;
     }
     const { error } = await db.from("care_daily_checklist").update({ completed_at: task.completed_at ? null : new Date().toISOString() }).eq("id", task.id).eq("owner_id", owner).eq("patient_id", selected);
     if (error) { setMessage("Não foi possível atualizar a atividade. Tente novamente."); return; }
@@ -222,6 +236,11 @@ function Prontuario() {
   return <>
     <PageHeader eyebrow="Área protegida · CareDigital" title="Prontuário de acompanhamento" />
     <p className="mb-5 rounded-xl border border-warning/30 bg-warning/10 p-3 text-sm">Registros de acompanhamento, não prescrições. Horários e doses devem seguir orientação profissional validada. Os lembretes nesta tela não são notificações do sistema.</p>
+    {confirmTask && <div className="mb-4 rounded-2xl border border-primary/30 bg-background p-4 shadow-sm" role="dialog" aria-modal="true" aria-label="Confirmar cuidado realizado">
+      <div className="flex items-start gap-3"><CheckCircle2 size={22} className="shrink-0 text-primary" /><div><h2 className="font-semibold">Confirmar cuidado realizado</h2><p className="mt-1 text-sm">{confirmTask.title} · {fmt(confirmTask.scheduled_at)}</p></div></div>
+      <p className="mt-3 text-sm text-muted-foreground">{confirmTask.category === "medicacao" ? "Registre como concluída somente se a medicação foi realmente administrada conforme a prescrição confirmada. Não tome dose extra para compensar um registro ausente." : "Marque concluída apenas se houve consumo de água. Para informar a quantidade, utilize a aba Água."}</p>
+      <div className="mt-4 flex flex-wrap gap-2"><Btn type="button" disabled={savingTask} onClick={() => void confirmTaskCompletion()}>{savingTask ? "Salvando…" : "Confirmar realização"}</Btn><button type="button" disabled={savingTask} className="rounded-lg border border-border px-4 py-2 text-sm font-semibold" onClick={() => setConfirmTask(null)}>Cancelar</button></div>
+    </div>}
     {message && <div role="status" className="mb-4 rounded-xl bg-primary/10 p-3 text-sm">{message}</div>}
     {loading ? <Panel>Carregando prontuários…</Panel> : !owner ? <Panel title="Acesso protegido"><Link to="/entrar" className="font-semibold text-primary underline">Entrar na minha conta</Link></Panel> : <>
       <div className="grid gap-5 lg:grid-cols-[1fr_2fr]">
