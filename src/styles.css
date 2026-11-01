@@ -126,3 +126,15 @@ textarea { cursor: text; }
 input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button { appearance: none; margin: 0; }
+
+
+/* Oculta somente o selo promocional do construtor, sem afetar a marca CareDigital. */
+#lovable-badge,
+[data-lovable-badge],
+lovable-badge,
+a[href^="https://lovable.dev/projects/"][target="_blank"],
+a[href^="https://lovable.dev/?utm_source=lovable-badge"],
+iframe[title*="Lovable" i][title*="badge" i] {
+  display: none !important;
+  visibility: hidden !important;
+}
