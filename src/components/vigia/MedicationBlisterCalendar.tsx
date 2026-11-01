@@ -54,6 +54,22 @@ export function MedicationBlisterCalendar({patientId,ownerId,revision,onConfirm}
   <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-200"><div className="h-full rounded-full bg-emerald-600" style={{width:`${Math.min(100,completePills/84*100)}%`}}/></div>
   {error&&<p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
   {loading?<p className="mt-5 text-sm">Carregando cartelas…</p>: <>
+  <div className="mt-5 rounded-2xl border border-border bg-card p-3 sm:p-5">
+   <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><div><h5 className="text-base font-bold text-foreground">Cartela 1 · visualização ampliada</h5><p className="text-xs text-muted-foreground">Quatro unidades da manhã à esquerda e quatro da noite à direita. Toque em qualquer unidade para confirmar a tomada correspondente, somente no dia programado.</p></div><span className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">31/10/2026</span></div>
+   <div className="mx-auto max-w-[420px]">
+    <div className="relative aspect-[480/440] w-full overflow-hidden rounded-xl bg-white">
+     <img src="/images/cartela-combinada-8.svg" alt="Representação visual da cartela 1 com oito medicamentos organizados em duas colunas, manhã e noite" className="absolute inset-0 h-full w-full object-contain"/>
+     {Array.from({length:8},(_,i)=>{
+       const morning=i<4;
+       const task=days[0]?.tasks.find(t=>formatTime(t.scheduled_at).slice(0,2)===(morning?"07":"19"))??days[0]?.tasks[morning?0:1];
+       const active=Boolean(task)&&!task?.completed_at&&formatDay(task.scheduled_at)===todayKey;
+       const row=i%4;
+       return <button key={i} type="button" disabled={!active} onClick={()=>task&&active&&onConfirm(task)} title={morning?"Manhã — unidade "+(row+1):"Noite — unidade "+(row+1)} aria-label={`Cartela 1, ${morning?"manhã":"noite"}, unidade ${row+1}: ${task?.completed_at?"tomada confirmada":active?"abrir confirmação da tomada":"somente leitura"}`} className={`absolute flex items-center justify-center rounded-full border-2 transition-all focus-visible:outline focus-visible:outline-4 focus-visible:outline-primary ${task?.completed_at?"border-emerald-400/90 bg-emerald-500/35 text-white":active?"border-white/80 bg-white/10 text-white hover:bg-primary/40":"border-transparent bg-transparent"}`} style={{left:morning?"10.8%":"56.3%",top:`${(30+row*91)/440*100}%`,width:"39.2%",height:"17.9%"}}>{task?.completed_at&&<Check size={26} strokeWidth={3}/>}</button>;
+     })}
+    </div>
+   </div>
+   <p className="mt-2 text-center text-xs text-muted-foreground">Ilustração vetorial baseada na imagem enviada; não é a fotografia original. As oito áreas são interativas e cada grupo de quatro confirma uma única tomada.</p>
+  </div>
   <h5 className="mt-5 text-sm font-bold text-[#173b52]">Etapa 1 · 7 cartelas, 8 comprimidos por dia</h5>
   <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">{days.slice(0,7).map(d=>{
    const morning=d.tasks.find(t=>formatTime(t.scheduled_at).slice(0,2)==="07")??d.tasks[0];
