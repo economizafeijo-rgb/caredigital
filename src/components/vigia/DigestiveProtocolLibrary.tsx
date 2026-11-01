@@ -88,12 +88,12 @@ export function DigestiveProtocolLibrary() {
           <div className="mt-3 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-xs leading-relaxed">
             <strong className="block text-foreground">Cuidados e limites</strong><span className="mt-1 block text-muted-foreground">{selected.caution}</span>
           </div>
-          <div className="mt-5">
-            <h4 className="label-mono">Fontes consultadas</h4>
+          <details className="mt-3 rounded-xl border border-border p-3">
+            <summary className="cursor-pointer text-xs font-semibold text-foreground">Fontes consultadas ({selected.sources.length})</summary>
             <ul className="mt-2 space-y-2">
-              {selected.sources.map((source) => <li key={source.url}><a href={source.url} target="_blank" rel="noreferrer" className="text-sm font-medium text-primary underline-offset-4 hover:underline">{source.label} ↗</a></li>)}
+              {selected.sources.map((source) => <li key={source.url}><a href={source.url} target="_blank" rel="noreferrer" className="text-xs font-medium text-primary underline-offset-4 hover:underline">{source.label} ↗</a></li>)}
             </ul>
-          </div>
+          </details>
         </Panel>}
       </div>
 
