@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ClipboardList, Droplets, HeartPulse, Plus, CheckCircle2, Circle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Btn, Panel, PageHeader } from "@/components/vigia/ui";
@@ -44,6 +44,9 @@ function Prontuario() {
   const [generating, setGenerating] = useState(false);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [alertsOn, setAlertsOn] = useState(false);
+  const [alertInfo, setAlertInfo] = useState("");
+  const notified = useRef(new Set<string>());
 
   async function loadClients(userId: string) {
     const { data, error } = await db.from("care_patients").select("id,full_name,birth_date,condition_notes,status,contact_email,weight_kg,height_cm,care_goal").eq("owner_id", userId).order("created_at", { ascending: false });
@@ -80,6 +83,39 @@ function Prontuario() {
     void loadRecords(owner, selected).catch(() => setMessage("Não foi possível carregar a agenda e o histórico."));
   }, [owner, selected]);
 
+
+  useEffect(() => {
+    if (!alertsOn || !selected || typeof window === "undefined" || !("Notification" in window)) return;
+    const check = () => {
+      if (document.visibilityState !== "visible" || Notification.permission !== "granted") return;
+      const now = Date.now();
+      for (const task of tasks) {
+        if (task.patient_id !== selected || task.completed_at || task.category !== "medicacao") continue;
+        const delta = now - new Date(task.scheduled_at).getTime();
+        if (delta < 0 || delta > 60000 || notified.current.has(task.id)) continue;
+        notified.current.add(task.id);
+        new Notification("CareDigital — cuidado agendado", {
+          body: "Há uma atividade de acompanhamento programada. Abra o prontuário para conferir a orientação.",
+          tag: "care-task-" + task.id,
+        });
+      }
+    };
+    check();
+    const interval = window.setInterval(check, 15000);
+    return () => window.clearInterval(interval);
+  }, [alertsOn, selected, tasks]);
+
+  async function enableAlerts() {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      setAlertInfo("Este navegador não suporta notificações. Use a agenda e os alarmes do celular.");
+      return;
+    }
+    const permission = await Notification.requestPermission();
+    setAlertsOn(permission === "granted");
+    setAlertInfo(permission === "granted"
+      ? "Avisos locais ativados enquanto esta página estiver aberta e visível. Não funcionam com o app fechado."
+      : "Permissão não concedida. Utilize alarmes do celular.");
+  }
   async function createClient(event: FormEvent) {
     event.preventDefault();
     if (!owner || !name.trim()) return;
@@ -241,6 +277,11 @@ function Prontuario() {
                 <button key={id} type="button" role="tab" aria-selected={activeSection === id} onClick={() => setActiveSection(id)} className={`rounded-xl border px-3 py-3 text-sm font-semibold transition-colors ${activeSection === id ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-foreground/5"}`}>{label}</button>
               ))}
             </div>
+            {activeSection === "agenda" && <div className="rounded-xl border border-border bg-foreground/5 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-3"><div><strong className="text-sm">Avisos no navegador</strong><p className="mt-1 text-xs text-muted-foreground">Horários do Acre · apenas com esta aba aberta e visível.</p></div><Btn type="button" variant="ghost" disabled={alertsOn} onClick={() => void enableAlerts()}>{alertsOn ? "Avisos ativados" : "Ativar avisos locais"}</Btn></div>
+              {alertInfo && <p role="status" className="mt-2 text-xs text-muted-foreground">{alertInfo}</p>}
+              <p className="mt-2 text-xs text-muted-foreground">Para alertas confiáveis com o aplicativo fechado, configure também alarmes no celular. O aviso não confirma nem substitui a prescrição.</p>
+            </div>}
             {activeSection === "agenda" && <Panel title="Agenda de cuidados" action={<ClipboardList size={19} className="text-primary" />}>
               {tasks.length === 0 && <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-3">
                 <strong className="text-sm">Calendário solicitado · 31/10 a 13/11/2026</strong>
