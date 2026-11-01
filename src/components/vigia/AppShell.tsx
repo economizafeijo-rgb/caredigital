@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "@tanstack/react-router";
-import { Activity, Droplets, Ellipsis, Home, LogIn, Maximize, Minimize, Moon, Sun, Pill, Utensils, Users, X } from "lucide-react";
+import { Activity, Droplets, Ellipsis, Home, LogIn, LogOut, Maximize, Minimize, Moon, Sun, Pill, Utensils, Users, X } from "lucide-react";
 import { fmtClock, useNow } from "./ui";
 import { HydrationProvider, HydrationReminder } from "./HydrationTracker";
 
@@ -56,16 +56,35 @@ export function AppShell({ children }: { children: ReactNode }) {
   };
   const [clientOnly, setClientOnly] = useState(false);
   const [adminAccess, setAdminAccess] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
+  const [clientName, setClientName] = useState("");
+  const [signingOut, setSigningOut] = useState(false);
+  const [authError, setAuthError] = useState("");
+  async function signOut() {
+    if (signingOut) return;
+    setSigningOut(true);
+    setAuthError("");
+    const { error } = await supabase.auth.signOut();
+    setSigningOut(false);
+    if (error) { setAuthError("Não foi possível sair. Tente novamente."); return; }
+    setSignedIn(false); setClientOnly(false); setClientName("");
+    window.location.assign("/");
+  }
   useEffect(() => {
     let active = true;
     const check = async () => {
       const { data } = await supabase.auth.getUser();
-      if (!active || !data.user) { if (active) { setClientOnly(false); setAdminAccess(false); } return; }
+      if (!active || !data.user) { if (active) { setClientOnly(false); setAdminAccess(false); setSignedIn(false); setClientName(""); } return; }
+      if (active) setSignedIn(true);
       const admin = (data.user.email ?? "").trim().toLowerCase() === "francdenisbr@gmail.com";
       if (active) setAdminAccess(admin);
-      if (admin) { if (active) setClientOnly(false); return; }
+      if (admin) { if (active) { setClientOnly(false); setClientName(""); } return; }
       const { data: grants } = await (supabase as any).from("care_patient_access").select("patient_id").eq("user_id",data.user.id).limit(1);
-      if (active) setClientOnly(Boolean(grants?.length));
+      const patientId = grants?.[0]?.patient_id;
+      if (active) setClientOnly(Boolean(patientId));
+      if (!patientId) { if (active) setClientName(""); return; }
+      const person = await (supabase as any).from("care_patients").select("full_name").eq("id",patientId).limit(1);
+      if (active) setClientName(person.data?.[0]?.full_name ?? "Meu acompanhamento");
     };
     void check();
     const { data: listener } = supabase.auth.onAuthStateChange(() => { void check(); });
@@ -109,10 +128,11 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div className="hidden items-center gap-2 font-mono text-[10px] text-muted-foreground lg:flex">
                 <span className="size-1.5 rounded-full bg-success" />{fmtClock(now)}
               </div>
+              {clientOnly && <Link to="/cliente" title="Abrir meu painel" className="hidden max-w-[215px] flex-col items-start rounded-xl border border-primary/20 bg-primary/10 px-3 py-1.5 sm:flex"><span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Cliente conectado</span><span className="max-w-full truncate text-sm font-bold text-foreground">{clientName || "Meu painel"}</span></Link>}
               {clientOnly && <Link to="/cliente" className="hidden rounded-lg border border-border bg-primary/10 px-3 py-2 text-xs font-semibold text-primary sm:flex sm:items-center sm:gap-1.5"><Users size={15}/> Área do cliente</Link>}
               <button type="button" onClick={() => void toggleFullscreen()} aria-label={fullScreen ? "Sair da tela cheia" : "Ativar tela cheia"} title={fullScreen ? "Sair da tela cheia" : "Tela cheia"} aria-pressed={fullScreen} className="grid size-9 place-items-center rounded-xl border border-border bg-surface text-foreground hover:bg-muted">{fullScreen ? <Minimize size={18}/> : <Maximize size={18}/>}</button>
               <button type="button" onClick={toggleTheme} aria-label={darkMode ? "Ativar tema claro" : "Ativar tema escuro"} title={darkMode ? "Modo claro" : "Modo escuro"} aria-pressed={darkMode} className="grid size-9 place-items-center rounded-xl border border-border bg-surface text-foreground transition-colors hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">{darkMode ? <Sun size={18}/> : <Moon size={18}/>}</button>
-              <Link to="/entrar" aria-label="Entrar na equipe" className="grid size-8 place-items-center rounded-full bg-primary/10 font-display text-xs text-primary">DC</Link>
+              {signedIn ? <button type="button" onClick={() => void signOut()} disabled={signingOut} aria-label="Sair da conta" title="Sair da conta" className="flex h-9 items-center gap-1.5 rounded-xl border border-border bg-surface px-2.5 text-xs font-semibold text-foreground hover:bg-muted disabled:opacity-60"><LogOut size={16}/><span className="hidden sm:inline">{signingOut ? "Saindo…" : "Sair"}</span></button> : <Link to="/entrar" aria-label="Entrar na conta" title="Entrar" className="flex h-9 items-center gap-1.5 rounded-xl bg-primary px-2.5 text-xs font-semibold text-primary-foreground"><LogIn size={16}/><span className="hidden sm:inline">Entrar</span></Link>}
             </div>
           </div>
         </header>
@@ -125,6 +145,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </nav>
         </>}
 
+        {authError && <p role="alert" className="relative z-20 mx-auto max-w-7xl px-3 py-2 text-xs text-destructive">{authError}</p>}
         {fullScreenError && <p role="alert" className="relative z-20 mx-auto max-w-7xl px-3 py-2 text-xs text-destructive">{fullScreenError}</p>}
         <main className="relative z-10 mx-auto max-w-7xl px-3 py-4 pb-32 sm:px-5 md:px-6 md:py-6 md:pb-8">{children}</main>
 
