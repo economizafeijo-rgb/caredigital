@@ -69,32 +69,32 @@ function Dashboard() {
     <>
       {accessMode === "client" && <ClientHomeSummary />}
       {accessMode !== "client" && <>
-      <section className="relative isolate overflow-hidden rounded-[1.75rem] border border-[#9ac1d1]/30 bg-[#102f4d] bg-cover bg-center px-5 py-4 text-white shadow-[0_22px_65px_-32px_rgba(15,51,75,.75)] sm:px-7 sm:py-5 md:px-8 md:py-6" style={{ backgroundImage: "linear-gradient(105deg, rgba(12,38,62,.98) 0%, rgba(18,62,87,.95) 48%, rgba(21,86,106,.58) 100%), url('/images/caredigital-care-hero.webp')" }}>
+      <section className="homepage-hero relative isolate overflow-hidden rounded-[1.75rem] border border-[#9ac1d1]/30 bg-[#102f4d] bg-cover bg-center px-5 py-4 text-white shadow-[0_22px_65px_-32px_rgba(15,51,75,.75)] sm:px-7 sm:py-5 md:px-8 md:py-6" style={{ backgroundImage: "linear-gradient(105deg, rgba(12,38,62,.98) 0%, rgba(18,62,87,.95) 48%, rgba(21,86,106,.58) 100%), url('/images/caredigital-care-hero.webp')" }}>
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute -right-16 -top-24 size-[360px] rounded-full bg-primary/25 blur-3xl" />
           <div className="absolute -bottom-24 left-1/4 size-[300px] rounded-full bg-sky/20 blur-3xl" />
         </div>
         <div className="relative grid items-center gap-3 md:gap-4 lg:grid-cols-[1.1fr_1fr]">
           <div className="animate-rise">
-            <div className="label-mono text-sky-200/90">CAREDIGITAL · CUIDADO E TECNOLOGIA</div>
-            <h1 className="mt-1 max-w-[16ch] text-balance font-display text-3xl leading-[1.02] tracking-tight sm:mt-2 sm:text-4xl md:text-5xl">
+            <div className="label-mono text-[#bfebff]">CAREDIGITAL · CUIDADO E TECNOLOGIA</div>
+            <h1 className="mt-1 max-w-[16ch] text-balance font-display text-3xl leading-[1.02] tracking-tight text-white sm:mt-2 sm:text-4xl md:text-5xl">
               Próximas doses,
               <br />
               sob controle.
             </h1>
-            <p className="mt-2 hidden max-w-[54ch] text-pretty text-xs text-primary-foreground/75 sm:block sm:text-sm">
+            <p className="mt-2 hidden max-w-[54ch] text-pretty text-xs text-[#e4f1f8] sm:block sm:text-sm">
               Acompanhe a agenda, a hidratação e a evolução do cuidado em um único lugar, com informações organizadas e acesso ao prontuário.
             </p>
             <div className="mt-2 flex flex-wrap gap-1.5 sm:mt-3 sm:gap-2">
-              <Link to="/prontuario"><Btn variant="primary">Abrir prontuário</Btn></Link>
-              <Link to="/protocolos"><Btn variant="glass">Protocolos</Btn></Link>
-              <Link to="/dietas"><Btn variant="glass">Alimentação</Btn></Link>
+              <Link to="/prontuario" className="inline-flex items-center justify-center rounded-xl bg-[#79d1ed] px-3.5 py-2 text-xs font-bold !text-[#082233] shadow-sm transition hover:bg-[#b2ebfc]">Abrir prontuário</Link>
+              <Link to="/protocolos" className="inline-flex items-center justify-center rounded-xl border border-white/30 bg-[#173f57]/85 px-3.5 py-2 text-xs font-semibold !text-white transition hover:bg-[#286581]">Protocolos</Link>
+              <Link to="/dietas" className="inline-flex items-center justify-center rounded-xl border border-white/30 bg-[#173f57]/85 px-3.5 py-2 text-xs font-semibold !text-white transition hover:bg-[#286581]">Alimentação</Link>
             </div>
           </div>
           <div className="animate-rise" style={{ animationDelay: "0.1s" }}>
             <div className="rounded-2xl border border-white/20 bg-[#123f59]/75 p-3 text-white shadow-xl backdrop-blur-xl md:p-4">
               <div className="flex items-center justify-between">
-                <span className="label-mono text-primary-foreground/60">Próxima dose</span>
+                <span className="label-mono text-[#cae4f2]">Próxima dose</span>
                 <span className="font-mono text-[11px] text-primary-foreground/60">{next?.d.patient ?? "—"}</span>
               </div>
               <div className="mt-2 flex flex-wrap items-end gap-2">
