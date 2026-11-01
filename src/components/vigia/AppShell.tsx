@@ -71,7 +71,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     const { data: listener } = supabase.auth.onAuthStateChange(() => { void check(); });
     return () => { active = false; listener.subscription.unsubscribe(); };
   }, []);
-  const visibleNav = clientOnly ? primaryNav.filter(item => item.to === "/") : primaryNav;
+  const visibleNav = clientOnly ? primaryNav.filter(item => item.to === "/" || item.to === "/hidratacao") : primaryNav;
 
   return (
     <HydrationProvider>
@@ -109,7 +109,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div className="hidden items-center gap-2 font-mono text-[10px] text-muted-foreground lg:flex">
                 <span className="size-1.5 rounded-full bg-success" />{fmtClock(now)}
               </div>
-              {clientOnly && <Link to="/cliente" className="hidden rounded-lg border border-border bg-primary/10 px-3 py-2 text-xs font-semibold text-primary sm:block">Área do cliente</Link>}
+              {clientOnly && <Link to="/cliente" className="hidden rounded-lg border border-border bg-primary/10 px-3 py-2 text-xs font-semibold text-primary sm:flex sm:items-center sm:gap-1.5"><Users size={15}/> Área do cliente</Link>}
               <button type="button" onClick={() => void toggleFullscreen()} aria-label={fullScreen ? "Sair da tela cheia" : "Ativar tela cheia"} title={fullScreen ? "Sair da tela cheia" : "Tela cheia"} aria-pressed={fullScreen} className="grid size-9 place-items-center rounded-xl border border-border bg-surface text-foreground hover:bg-muted">{fullScreen ? <Minimize size={18}/> : <Maximize size={18}/>}</button>
               <button type="button" onClick={toggleTheme} aria-label={darkMode ? "Ativar tema claro" : "Ativar tema escuro"} title={darkMode ? "Modo claro" : "Modo escuro"} aria-pressed={darkMode} className="grid size-9 place-items-center rounded-xl border border-border bg-surface text-foreground transition-colors hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">{darkMode ? <Sun size={18}/> : <Moon size={18}/>}</button>
               <Link to="/entrar" aria-label="Entrar na equipe" className="grid size-8 place-items-center rounded-full bg-primary/10 font-display text-xs text-primary">DC</Link>
@@ -128,7 +128,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {fullScreenError && <p role="alert" className="relative z-20 mx-auto max-w-7xl px-3 py-2 text-xs text-destructive">{fullScreenError}</p>}
         <main className="relative z-10 mx-auto max-w-7xl px-3 py-4 pb-32 sm:px-5 md:px-6 md:py-6 md:pb-8">{children}</main>
 
-        <nav className={`fixed inset-x-0 bottom-0 z-50 grid ${clientOnly ? "grid-cols-2" : "grid-cols-5"} border-t border-border/80 bg-background/95 px-1 pb-[max(.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden`} aria-label="Navegação do app">
+        <nav className={`fixed inset-x-0 bottom-0 z-50 grid ${clientOnly ? "grid-cols-3" : "grid-cols-5"} border-t border-border/80 bg-background/95 px-1 pb-[max(.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden`} aria-label="Navegação do app">
           {visibleNav.map(({ to, label, icon: Icon }) => <Link key={to} to={to} activeOptions={{ exact: to === "/" }} className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-muted-foreground" activeProps={{ className: "!text-primary" }}><Icon size={19} strokeWidth={2} /><span className="text-[10px] font-semibold">{label}</span></Link>)}
           {clientOnly && <Link to="/cliente" className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-primary"><Users size={19}/><span className="text-[10px] font-semibold">Meu painel</span></Link>}
           {!clientOnly && <button type="button" onClick={() => setMoreOpen((open) => !open)} aria-expanded={moreOpen} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl ${moreOpen ? "text-primary" : "text-muted-foreground"}`}><Ellipsis size={20} /><span className="text-[10px] font-semibold">Mais</span></button>}
