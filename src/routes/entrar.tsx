@@ -24,10 +24,10 @@ function Entrar() {
         event.preventDefault();
         setBusy(true);
         setMessage("");
-        const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
         setBusy(false);
         if (error) { setMessage("Não foi possível entrar. Confira seu e-mail e senha ou peça um novo convite ao administrador."); return; }
-        await navigate({ to: "/cliente" });
+        await navigate({ to: data.user?.email?.trim().toLowerCase() === "francdenisbr@gmail.com" ? "/admin" : "/cliente" });
       }}>
         <Field label="E-mail cadastrado"><input type="email" autoComplete="username" className="field" required value={email} onChange={(event) => setEmail(event.target.value)} /></Field>
         <Field label="Senha"><input type="password" autoComplete="current-password" className="field" required value={password} onChange={(event) => setPassword(event.target.value)} /></Field>
