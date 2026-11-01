@@ -1,3 +1,4 @@
+import { fallbackProtocols, fallbackGuides, fallbackPlans } from "./digestive-fallback";
 export type DigestiveProtocol = {
   id: string;
   category: "Estômago" | "Intestino" | "Intolerância";
@@ -57,7 +58,7 @@ async function readTable<T>(table: string, select: string, order: string): Promi
   const key = import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
 
   if (!url || !key) {
-    throw new Error("A conexão com Supabase não está configurada neste ambiente.");
+    return fallbackFor<T>(table);
   }
 
   const endpoint = new URL(`/rest/v1/${table}`, url);
@@ -65,15 +66,25 @@ async function readTable<T>(table: string, select: string, order: string): Promi
   endpoint.searchParams.set("order", order);
   endpoint.searchParams.set("is_active", "eq.true");
 
+  try {
   const response = await fetch(endpoint, {
     headers: { apikey: key, Accept: "application/json" },
   });
 
   if (!response.ok) {
-    throw new Error(`Não foi possível carregar ${table} do Supabase.`);
+    return fallbackFor<T>(table);
   }
 
-  return response.json() as Promise<T[]>;
+  const rows = await response.json() as T[];
+  return rows.length ? rows : fallbackFor<T>(table);
+  } catch { return fallbackFor<T>(table); }
+}
+
+function fallbackFor<T>(table: string): T[] {
+  if (table === "digestive_protocols") return fallbackProtocols as T[];
+  if (table === "digestive_diet_guides") return fallbackGuides as T[];
+  if (table === "diet_plans") return fallbackPlans as T[];
+  return [];
 }
 
 /** Reads the published, read-only clinical library from Supabase PostgREST. */
