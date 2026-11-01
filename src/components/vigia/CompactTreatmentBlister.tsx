@@ -59,20 +59,38 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm}:P
   {loading?<p className="mt-5 text-center text-sm text-muted-foreground">Carregando tratamento…</p>:<>
    <div className="mx-auto mt-2 w-full max-w-[205px]">
      <div className={`relative mx-auto overflow-hidden rounded-xl ${first?"aspect-[480/440]":"aspect-[580/430]"}`}>
-       <img className="absolute inset-0 h-full w-full object-contain" src={first?"/images/cartela-combinada-8.svg":"/images/cartela-lansoprazol-7.svg"} alt={first?"Cartela ilustrativa de oito unidades organizadas por manhã e noite":"Cartela ilustrativa de sete cápsulas"}/>
-       {first?Array.from({length:8},(_,i)=>{
-         const period=i<4?"morning":"night";
-         const task=getTask(period);
-         const reported=firstReport;
-         const done=Boolean(task?.completed_at);
-         const row=i%4;
-         return <button key={i} type="button" onClick={()=>setActivePill({index:selected,period,slot:row+1})}
-           aria-label={`Ver unidade ${row+1} ${period==="morning"?"da manhã":"da noite"}`}
-           className={`absolute flex items-center justify-center rounded-full border-0 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${done?"bg-emerald-500/20 text-white":reported?"bg-amber-500/15 text-white":"bg-transparent hover:bg-sky-300/15"}`}
-           style={{left:period==="morning"?"10.8333%":"56.25%",top:`${(30+row*91)/440*100}%`,width:"35.8333%",height:"14.7727%"}}>
-           {(done||reported)&&<Check size={17} strokeWidth={3}/>}
-         </button>;
-       }):Array.from({length:7},(_,i)=>{
+       {!first&&<img className="absolute inset-0 h-full w-full object-contain" src="/images/cartela-lansoprazol-7.svg" alt="Cartela ilustrativa de sete cápsulas"/>}
+       {first?<svg viewBox="0 0 480 440" role="group" aria-label="Cartela de oito unidades. Quatro unidades à esquerda são da manhã e quatro à direita são da noite" className="absolute inset-0 block h-full w-full">
+         <defs>
+           <pattern id="compact-foil" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="1.15" fill="#adc2d0"/></pattern>
+         </defs>
+         <rect x="13" y="10" width="454" height="420" rx="34" fill="#d5e1e9" stroke="#86a4b8" strokeWidth="3"/>
+         <rect x="20" y="17" width="440" height="404" rx="29" fill="url(#compact-foil)"/>
+         <path d="M250 18h179c17 0 30 14 30 30v340H250z" fill="#0659b2"/>
+         {Array.from({length:8},(_,i)=>{
+           const period=i<4?"morning":"night" as const;
+           const row=i%4;
+           const task=getTask(period);
+           const done=Boolean(task?.completed_at);
+           const reported=firstReport&&!done;
+           const x=period==="morning"?53:267;
+           const y=32+row*91;
+           const colors=row===0?["#07a8ee","#fafbfc"]:row===1?["#fafbfc","#fafbfc"]:row===2?(period==="morning"?["#ef1b93","#0737b4"]:["#0737b4","#ef1b93"]):["#0737b4","#ef1b93"];
+           return <g key={i} role="button" tabIndex={0} focusable="true" aria-label={`Abrir informações da unidade ${row+1}, ${period==="morning"?"manhã":"noite"}`} onClick={()=>setActivePill({index:selected,period,slot:row+1})} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setActivePill({index:selected,period,slot:row+1})}}} className="cursor-pointer outline-none">
+             <rect x={x-5} y={y-5} width="170" height="72" rx="35" fill="#d7e5ef" stroke="#9bb4c5" strokeWidth="2"/>
+             <clipPath id={`compact-pocket-${i}`}><rect x={x} y={y} width="160" height="62" rx="31"/></clipPath>
+             <g clipPath={`url(#compact-pocket-${i})`}>
+               <rect x={x} y={y} width="80" height="62" fill={colors[0]}/>
+               <rect x={x+80} y={y} width="80" height="62" fill={colors[1]}/>
+               <path d={`M${x+15} ${y+14} Q${x+80} ${y-5} ${x+144} ${y+14}`} stroke="#fff" strokeOpacity=".36" strokeWidth="5" fill="none"/>
+             </g>
+             <rect x={x} y={y} width="160" height="62" rx="31" fill="transparent" stroke="#e9f3f9" strokeWidth="2"/>
+             {(done||reported)&&<g><circle cx={x+142} cy={y+50} r="13" fill={done?"#158567":"#bd7c19"}/><path d={`M${x+136} ${y+50}l4 4 8-9`} stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/></g>}
+           </g>;
+         })}
+         <text x="35" y="410" fontFamily="Arial,sans-serif" fontSize="15" fontWeight="700" fill="#244a68">MANHÃ</text>
+         <text x="369" y="410" fontFamily="Arial,sans-serif" fontSize="15" fontWeight="700" fill="#e7f7ff">NOITE</text>
+       </svg>:Array.from({length:7},(_,i)=>{
          const task=day.tasks[0];
          return <button key={i} type="button" onClick={()=>setActivePill({index:selected,period:"morning",slot:i+1})} aria-label={`Detalhes da cápsula ${i+1}`} className={`absolute rounded-full border ${task?.completed_at?"border-success bg-success/25":"border-sky-400/40 hover:bg-sky-400/15"}`} style={{width:"30%",height:"21%",left:`${10+(i%2)*46}%`,top:`${7+Math.floor(i/2)*23}%`}}>{task?.completed_at&&<Check size={15} className="mx-auto text-success"/>}</button>;
        })}
