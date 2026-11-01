@@ -1,4 +1,5 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Link } from "@tanstack/react-router";
 import { Activity, Droplets, Ellipsis, Home, LogIn, Pill, Utensils, Users, X } from "lucide-react";
 import { fmtClock, useNow } from "./ui";
@@ -23,6 +24,20 @@ const moreNav = [
 export function AppShell({ children }: { children: ReactNode }) {
   const now = useNow(30000);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [clientOnly, setClientOnly] = useState(false);
+  useEffect(() => {
+    let active = true;
+    const check = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (!active || !data.user) { if (active) setClientOnly(false); return; }
+      const { data: grants } = await (supabase as any).from("care_patient_access").select("patient_id").eq("user_id",data.user.id).limit(1);
+      if (active) setClientOnly(Boolean(grants?.length));
+    };
+    void check();
+    const { data: listener } = supabase.auth.onAuthStateChange(() => { void check(); });
+    return () => { active = false; listener.subscription.unsubscribe(); };
+  }, []);
+  const visibleNav = clientOnly ? primaryNav.filter(item => item.to === "/") : primaryNav;
 
   return (
     <HydrationProvider>
@@ -43,17 +58,17 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Link>
 
             <nav className="hidden items-center gap-1 label-mono md:flex" aria-label="Navegação principal">
-              {primaryNav.map((item) => (
+              {visibleNav.map((item) => (
                 <Link key={item.to} to={item.to} activeOptions={{ exact: item.to === "/" }}
                   className="rounded-lg px-3 py-2 text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
                   activeProps={{ className: "!bg-foreground !text-primary-foreground" }}>
                   {item.label}
                 </Link>
               ))}
-              <button type="button" onClick={() => setMoreOpen((open) => !open)} aria-expanded={moreOpen}
+              {!clientOnly && <button type="button" onClick={() => setMoreOpen((open) => !open)} aria-expanded={moreOpen}
                 className={`rounded-lg px-3 py-2 transition-colors hover:bg-foreground/5 ${moreOpen ? "bg-foreground/5 text-foreground" : "text-muted-foreground"}`}>
                 Mais
-              </button>
+              </button>}
             </nav>
 
             <div className="flex items-center gap-2">
@@ -65,7 +80,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        {moreOpen && <>
+        {moreOpen && !clientOnly && <>
           <button type="button" aria-label="Fechar menu" className="fixed inset-0 z-30 cursor-default" onClick={() => setMoreOpen(false)} />
           <nav className="fixed right-4 top-[4.25rem] z-40 grid w-64 gap-1 rounded-2xl border border-border bg-background p-2 shadow-xl md:right-[max(1.5rem,calc((100vw-80rem)/2))]" aria-label="Mais seções">
             <div className="flex items-center justify-between px-3 py-2"><span className="label-mono text-muted-foreground">Mais áreas</span><button type="button" onClick={() => setMoreOpen(false)} aria-label="Fechar"><X size={15} /></button></div>
@@ -75,9 +90,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <main className="relative mx-auto max-w-7xl px-3 py-4 pb-32 sm:px-5 md:px-6 md:py-6 md:pb-8">{children}</main>
 
-        <nav className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-border/80 bg-background/95 px-1 pb-[max(.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden" aria-label="Navegação do app">
-          {primaryNav.map(({ to, label, icon: Icon }) => <Link key={to} to={to} activeOptions={{ exact: to === "/" }} className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-muted-foreground" activeProps={{ className: "!text-primary" }}><Icon size={19} strokeWidth={2} /><span className="text-[10px] font-semibold">{label}</span></Link>)}
-          <button type="button" onClick={() => setMoreOpen((open) => !open)} aria-expanded={moreOpen} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl ${moreOpen ? "text-primary" : "text-muted-foreground"}`}><Ellipsis size={20} /><span className="text-[10px] font-semibold">Mais</span></button>
+        <nav className={`fixed inset-x-0 bottom-0 z-50 grid ${clientOnly ? "grid-cols-1" : "grid-cols-5"} border-t border-border/80 bg-background/95 px-1 pb-[max(.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden`} aria-label="Navegação do app">
+          {visibleNav.map(({ to, label, icon: Icon }) => <Link key={to} to={to} activeOptions={{ exact: to === "/" }} className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-muted-foreground" activeProps={{ className: "!text-primary" }}><Icon size={19} strokeWidth={2} /><span className="text-[10px] font-semibold">{label}</span></Link>)}
+          {!clientOnly && <button type="button" onClick={() => setMoreOpen((open) => !open)} aria-expanded={moreOpen} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl ${moreOpen ? "text-primary" : "text-muted-foreground"}`}><Ellipsis size={20} /><span className="text-[10px] font-semibold">Mais</span></button>}
         </nav>
 
         <HydrationReminder />
