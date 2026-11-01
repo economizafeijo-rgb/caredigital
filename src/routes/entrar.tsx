@@ -17,7 +17,7 @@ function Entrar() {
   const [message, setMessage] = useState("");
 
   return <div className="mx-auto max-w-xl">
-    <PageHeader eyebrow="Acesso da equipe" title="Entrar no DigitalCare" />
+    <PageHeader eyebrow="Acesso da equipe" title="Entrar no CareDigital" />
     <Panel title="Acesso seguro">
       {!isSupabaseConfigured() && <p className="mb-4 rounded-xl border border-warning/30 bg-warning/10 p-3 text-sm">Supabase ainda não está configurado neste ambiente. Conecte o projeto no Lovable para habilitar a autenticação.</p>}
       <form className="space-y-4" onSubmit={async (event) => {
@@ -27,7 +27,7 @@ function Entrar() {
         const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
         setBusy(false);
         if (error) { setMessage("Não foi possível entrar. Confira seu e-mail e senha ou peça um novo convite ao administrador."); return; }
-        await navigate({ to: "/admin" });
+        await navigate({ to: "/" });
       }}>
         <Field label="E-mail cadastrado"><input type="email" autoComplete="username" className="field" required value={email} onChange={(event) => setEmail(event.target.value)} /></Field>
         <Field label="Senha"><input type="password" autoComplete="current-password" className="field" required value={password} onChange={(event) => setPassword(event.target.value)} /></Field>
