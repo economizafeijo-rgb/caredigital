@@ -1,14 +1,45 @@
-import {createFileRoute,Link} from "@tanstack/react-router";
-import {HomeClientCard} from "@/components/vigia/HomeClientCard";
-import {House} from "lucide-react";
-export const Route=createFileRoute("/cliente")({component:ClientPage});
-function ClientPage(){
- return <div className="mx-auto max-w-6xl space-y-2">
-  <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card/95 px-3 py-2.5">
-   <div><p className="text-[10px] font-semibold uppercase tracking-wider text-primary">CareDigital · Área do cliente</p><h1 className="text-base font-bold">Meu acompanhamento</h1></div>
-   <Link to="/" className="flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"><House size={15}/> Ir para a homepage</Link>
-  </div>
-  <HomeClientCard/>
-  <p className="px-1 text-[11px] text-muted-foreground">Horários no fuso do Acre. As confirmações registram o momento efetivo no servidor; não substituem orientações profissionais.</p>
- </div>;
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { House, UserRound, LogIn } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { HomeClientCard } from "@/components/vigia/HomeClientCard";
+
+export const Route = createFileRoute("/cliente")({ component: ClientPage });
+
+function ClientPage() {
+  const [name, setName] = useState("");
+  const [status, setStatus] = useState<"loading" | "ready" | "guest" | "unlinked">("loading");
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      const user = await supabase.auth.getUser();
+      if (!active) return;
+      if (!user.data.user) { setStatus("guest"); setName(""); return; }
+      const grants = await (supabase as any).from("care_patient_access")
+        .select("patient_id").eq("user_id",user.data.user.id).limit(1);
+      if (!active) return;
+      const patientId = grants.data?.[0]?.patient_id;
+      if (grants.error || !patientId) { setStatus("unlinked"); setName(""); return; }
+      const person = await (supabase as any).from("care_patients")
+        .select("full_name").eq("id",patientId).limit(1);
+      if (!active) return;
+      if (person.error || !person.data?.length) { setStatus("unlinked"); return; }
+      setName(person.data[0].full_name || "Cliente");
+      setStatus("ready");
+    };
+    void load();
+    const {data:listener} = supabase.auth.onAuthStateChange(() => { if(active) void load(); });
+    return () => { active = false; listener.subscription.unsubscribe(); };
+  }, []);
+  if (status === "loading") return <div role="status" className="rounded-xl border border-border bg-card p-4 text-sm">Verificando seu acesso…</div>;
+  if (status === "guest") return <section className="mx-auto max-w-lg rounded-2xl border border-border bg-card p-6 text-center"><UserRound className="mx-auto text-primary" size={30}/><h1 className="mt-3 text-xl font-bold">Área do cliente</h1><p className="mt-2 text-sm text-muted-foreground">Entre com sua conta para consultar seu acompanhamento.</p><Link to="/entrar" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground"><LogIn size={17}/> Entrar</Link></section>;
+  if (status === "unlinked") return <section className="mx-auto max-w-lg rounded-2xl border border-border bg-card p-6"><h1 className="text-lg font-bold">Prontuário não vinculado</h1><p className="mt-2 text-sm text-muted-foreground">Sua conta está conectada, mas não foi possível localizar um prontuário autorizado. Solicite acesso ao administrador.</p><Link to="/" className="mt-3 inline-block text-sm font-semibold text-primary underline">Voltar à homepage</Link></section>;
+  return <div className="mx-auto max-w-6xl space-y-2">
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/20 bg-card px-4 py-3 shadow-sm">
+      <div className="flex min-w-0 items-center gap-3"><div className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary"><UserRound size={23}/></div><div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[.13em] text-primary">Área do cliente · sessão ativa</p><h1 className="truncate text-xl font-extrabold tracking-tight text-foreground sm:text-2xl">{name}</h1><p className="text-xs text-muted-foreground">Meu acompanhamento de saúde</p></div></div>
+      <Link to="/" className="flex shrink-0 items-center gap-2 rounded-xl border border-border bg-muted px-3 py-2.5 text-xs font-semibold text-foreground hover:bg-primary/10"><House size={16}/> Homepage</Link>
+    </div>
+    <HomeClientCard/>
+    <p className="px-1 text-[11px] text-muted-foreground">Horários apresentados no fuso do Acre. As confirmações são registradas no servidor e não substituem orientações profissionais.</p>
+  </div>;
 }
