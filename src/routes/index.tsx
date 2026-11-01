@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Activity, ArrowRight, ClipboardList, Droplets, HeartPulse, LockKeyhole, Utensils } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ClientHomeSummary } from "@/components/vigia/ClientHomeSummary";
+import { careBrandArtwork } from "@/components/vigia/CareBrandArtwork";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -61,36 +62,25 @@ function Homepage() {
   }
 
   return <div className="mx-auto max-w-6xl space-y-4">
-    <section className="relative isolate overflow-hidden rounded-3xl border border-[#8fb2c5]/25 bg-[#092b40] text-white shadow-[0_20px_60px_-36px_rgba(0,29,51,.75)]">
-      <img
-        src="/images/caredigital-care-hero.webp"
-        alt="Profissional de saúde em ambiente clínico"
-        className="pointer-events-none absolute inset-0 -z-20 h-full w-full object-cover object-[72%_28%] sm:object-[65%_35%] lg:object-[center_32%]"
-      />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-[#092439]/95 via-[#10374d]/85 to-[#103d57]/35 sm:from-[#092439]/95 sm:via-[#10374d]/80 sm:to-[#103d57]/20" />
-      <div className="relative flex min-h-[240px] flex-col justify-center gap-3 px-5 py-7 sm:min-h-[260px] sm:px-8 sm:py-9 lg:max-w-[65%]">
-        <span className="text-[10px] font-bold uppercase tracking-[.18em] text-[#b9e9f9]">
-          CareDigital · cuidado conectado
-        </span>
-        <h1 className="max-w-[17ch] text-balance font-display text-4xl leading-[1.03] tracking-tight text-white sm:text-5xl">
-          Sua saúde, com tudo no lugar.
-        </h1>
-        <p className="max-w-[50ch] text-sm leading-relaxed text-[#e8f5fc]">
-          Tratamento, lembretes e histórico reunidos para uma rotina mais simples.
-        </p>
-        <div className="mt-1 flex flex-wrap gap-2">
-          {access === "admin" ? (
-            <Link to="/prontuario" className="inline-flex items-center gap-2 rounded-xl bg-[#8bd8f3] px-4 py-2.5 text-xs font-bold !text-[#0b2737] transition hover:bg-[#c0eeff]">
-              <ClipboardList size={16}/> Abrir prontuários <ArrowRight size={15}/>
-            </Link>
-          ) : (
-            <Link to="/entrar" className="inline-flex items-center gap-2 rounded-xl bg-[#8bd8f3] px-4 py-2.5 text-xs font-bold !text-[#0b2737] transition hover:bg-[#c0eeff]">
-              <LockKeyhole size={16}/> Acessar minha conta <ArrowRight size={15}/>
-            </Link>
-          )}
-          <Link to="/hidratacao" className="inline-flex items-center gap-2 rounded-xl border border-white/35 bg-[#123e57]/80 px-4 py-2.5 text-xs font-semibold !text-white transition hover:bg-[#245b76]">
-            <Droplets size={16}/> Hidratação
-          </Link>
+    <section className="relative isolate overflow-hidden rounded-3xl border border-[#9acbdc]/60 bg-gradient-to-br from-[#eaf7fc] via-[#d8f0f8] to-[#b5e4ee] text-[#102c43] shadow-[0_20px_55px_-36px_rgba(14,82,115,.4)] dark:border-[#7ec5da]/30 dark:from-[#132f44] dark:via-[#174056] dark:to-[#174f62] dark:text-white">
+      <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-24 size-60 rounded-full bg-[#61c6d6]/25 blur-3xl"/>
+      <div className="relative grid min-h-[310px] items-center gap-2 sm:min-h-[340px] sm:grid-cols-[minmax(205px,0.72fr)_minmax(0,1.75fr)]">
+        <div className="relative mx-auto flex h-full min-h-[235px] w-full max-w-[270px] items-end justify-center overflow-hidden sm:max-w-[320px]">
+          <div aria-hidden="true" className="absolute bottom-3 left-2 right-2 top-7 rounded-[45%_45%_20%_20%] bg-[#76cbdc]/30 blur-2xl"/>
+          <img src={careBrandArtwork} alt="Profissional de saúde da arte original CareDigital, com tablet" className="relative h-[250px] w-auto max-w-none rounded-2xl object-cover object-top mix-blend-multiply dark:mix-blend-normal sm:h-[325px]" />
+        </div>
+        <div className="relative px-5 pb-7 pt-2 sm:py-7 sm:pl-2 sm:pr-8">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#24627c] dark:text-[#a7e9f5]">CareDigital · rotina de cuidados</p>
+          <h1 className="mt-2 max-w-[22ch] text-balance font-display text-3xl leading-tight tracking-tight text-[#102c43] dark:text-white sm:text-4xl lg:text-5xl">Seu tratamento, organizado e sempre com você.</h1>
+          <p className="mt-2 max-w-[52ch] text-sm leading-relaxed text-[#385c74] dark:text-[#d7eaf5]">Medicações, alimentação, água e evolução do cuidado em um único lugar.</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {access === "admin" ?
+              <Link to="/prontuario" className="inline-flex items-center gap-2 rounded-xl bg-[#0d587a] px-4 py-2.5 text-xs font-bold !text-white hover:bg-[#126e92]"><ClipboardList size={16}/> Prontuários <ArrowRight size={14}/></Link> :
+              <Link to="/entrar" className="inline-flex items-center gap-2 rounded-xl bg-[#0d587a] px-4 py-2.5 text-xs font-bold !text-white hover:bg-[#126e92]"><LockKeyhole size={16}/> Acessar minha conta <ArrowRight size={14}/></Link>
+            }
+            <Link to="/hidratacao" className="inline-flex items-center gap-2 rounded-xl border border-[#77acbf] bg-white/65 px-4 py-2.5 text-xs font-semibold !text-[#184c65] hover:bg-white dark:border-white/25 dark:bg-white/10 dark:!text-white dark:hover:bg-white/20"><Droplets size={16}/> Hidratação</Link>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-3 text-[11px] font-medium text-[#416a7a] dark:text-[#c0dce9]"><span className="inline-flex items-center gap-1"><HeartPulse size={14}/> Acompanhamento</span><span>·</span><span>Rotina organizada</span><span>·</span><span>Dados protegidos</span></div>
         </div>
       </div>
     </section>
