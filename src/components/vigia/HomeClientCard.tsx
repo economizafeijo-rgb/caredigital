@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { CalendarClock, CheckCircle2, Droplets, LockKeyhole, Pill, UtensilsCrossed, UserRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-type Client = { id: string; full_name: string; status: string; care_goal: string | null };
+type Client = { id: string; owner_id: string; full_name: string; status: string; care_goal: string | null };
 type Task = { id: string; patient_id: string; title: string; category: string; scheduled_at: string; completed_at: string | null };
 const db = supabase as unknown as { from: (table: string) => any; auth: typeof supabase.auth };
 const tz = "America/Rio_Branco";
@@ -49,7 +49,12 @@ export function HomeClientCard() {
     if (!owner) { setClient(null); setTasks([]); return; }
     let active = true;
     const load = async () => {
-      const res = await db.from("care_patients").select("id,full_name,status,care_goal").eq("owner_id", owner).order("created_at", {ascending: true}).limit(1);
+      const grants = await db.from("care_patient_access").select("patient_id").eq("user_id",owner).limit(1);
+      if (grants.error) { if (active) setNotice("Não foi possível verificar o vínculo de acesso."); return; }
+      const assignedId = grants.data?.[0]?.patient_id;
+      const res = assignedId
+        ? await db.from("care_patients").select("id,owner_id,full_name,status,care_goal").eq("id",assignedId).limit(1)
+        : await db.from("care_patients").select("id,owner_id,full_name,status,care_goal").eq("owner_id", owner).order("created_at", {ascending: true}).limit(1);
       if (!active) return;
       if (res.error) { setNotice("Não foi possível consultar o prontuário."); return; }
       const first = (res.data ?? [])[0] as Client | undefined;
@@ -59,7 +64,7 @@ export function HomeClientCard() {
       const from = new Date(date + "T00:00:00-05:00").toISOString();
       const until = new Date(new Date(from).getTime() + 86400000).toISOString();
       const rows = await db.from("care_daily_checklist").select("id,patient_id,title,category,scheduled_at,completed_at")
-        .eq("owner_id",owner).eq("patient_id",first.id).gte("scheduled_at",from).lt("scheduled_at",until)
+        .eq("owner_id",first.owner_id).eq("patient_id",first.id).gte("scheduled_at",from).lt("scheduled_at",until)
         .in("category",["medicacao","hidratacao","refeicao"]).order("scheduled_at",{ascending:true}).limit(100);
       if (active) { if (rows.error) setNotice("Não foi possível carregar a agenda de hoje."); else setTasks(rows.data ?? []); }
     };
