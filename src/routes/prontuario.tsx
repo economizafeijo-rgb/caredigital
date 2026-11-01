@@ -49,6 +49,7 @@ function Prontuario() {
   const [loading, setLoading] = useState(true);
   const [confirmTask, setConfirmTask] = useState<Task | null>(null);
   const [savingTask, setSavingTask] = useState(false);
+  const [confirmedWaterMl, setConfirmedWaterMl] = useState("200");
   const [clockNow, setClockNow] = useState(() => Date.now());
 
   async function loadClients(userId: string) {
@@ -195,6 +196,7 @@ function Prontuario() {
   async function confirmTaskCompletion() {
     const task = confirmTask;
     if (!task || !owner || !selected || task.patient_id !== selected || savingTask) return;
+    if (task.category === "hidratacao" && (!Number.isInteger(Number(confirmedWaterMl)) || Number(confirmedWaterMl) < 10 || Number(confirmedWaterMl) > 1500)) { setMessage("Informe um volume válido consumido."); return; }
     setSavingTask(true);
     const { error } = await db.from("care_daily_checklist")
       .update({ completed_at: new Date().toISOString() })
@@ -239,6 +241,7 @@ function Prontuario() {
     {confirmTask && <div className="mb-4 rounded-2xl border border-primary/30 bg-background p-4 shadow-sm" role="dialog" aria-modal="true" aria-label="Confirmar cuidado realizado">
       <div className="flex items-start gap-3"><CheckCircle2 size={22} className="shrink-0 text-primary" /><div><h2 className="font-semibold">Confirmar cuidado realizado</h2><p className="mt-1 text-sm">{confirmTask.title} · {fmt(confirmTask.scheduled_at)}</p></div></div>
       <p className="mt-3 text-sm text-muted-foreground">{confirmTask.category === "medicacao" ? "Registre como concluída somente se a medicação foi realmente administrada conforme a prescrição confirmada. Não tome dose extra para compensar um registro ausente." : "Marque concluída apenas se houve consumo de água. Para informar a quantidade, utilize a aba Água."}</p>
+      {confirmTask.category === "hidratacao" && <label className="mt-3 block text-xs">Volume consumido em ml<input className="field mt-1 w-40" type="number" min={10} max={1500} step={10} value={confirmedWaterMl} onChange={e => setConfirmedWaterMl(e.target.value)} /></label>}
       <div className="mt-4 flex flex-wrap gap-2"><Btn type="button" disabled={savingTask} onClick={() => void confirmTaskCompletion()}>{savingTask ? "Salvando…" : "Confirmar realização"}</Btn><button type="button" disabled={savingTask} className="rounded-lg border border-border px-4 py-2 text-sm font-semibold" onClick={() => setConfirmTask(null)}>Cancelar</button></div>
     </div>}
     {message && <div role="status" className="mb-4 rounded-xl bg-primary/10 p-3 text-sm">{message}</div>}
