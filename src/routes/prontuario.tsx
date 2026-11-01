@@ -34,6 +34,8 @@ function Prontuario() {
   const [agendaDay, setAgendaDay] = useState(() => new Intl.DateTimeFormat("en-CA", {timeZone:"America/Rio_Branco",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date()));
   const [agendaFilter, setAgendaFilter] = useState("todos");
   const [taskStatusFilter, setTaskStatusFilter] = useState("todos");
+  const [showNewTask, setShowNewTask] = useState(false);
+  const [showNewClient, setShowNewClient] = useState(false);
   const [activeSection, setActiveSection] = useState<"agenda" | "agua" | "evolucao">("agenda");
   const [name, setName] = useState("");
   const [birth, setBirth] = useState("");
@@ -100,7 +102,7 @@ function Prontuario() {
   async function createTask(event: FormEvent) {
     event.preventDefault();
     if (!owner || !selected || !taskTitle || !taskDate) return;
-    const timestamp = new Date(taskDate).toISOString();
+    const timestamp = new Date(taskDate + ":00-05:00").toISOString();
     const { error } = await db.from("care_daily_checklist").insert({ owner_id: owner, patient_id: selected, category: taskCategory, title: taskTitle.trim(), scheduled_at: timestamp });
     if (error) { setMessage(error.message); return; }
     setTaskTitle(""); setTaskDate("");
@@ -202,7 +204,8 @@ function Prontuario() {
   const todayForAlerts = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Rio_Branco", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(clockNow));
   const todayMedication = tasks.filter(task => task.category === "medicacao" && localDay(task.scheduled_at) === todayForAlerts).sort((a,b) => a.scheduled_at.localeCompare(b.scheduled_at));
   const dueNow = todayMedication.filter(task => !task.completed_at && new Date(task.scheduled_at).getTime() <= clockNow && clockNow - new Date(task.scheduled_at).getTime() <= 60*60*1000);
-  const upcoming = todayMedication.filter(task => !task.completed_at && new Date(task.scheduled_at).getTime() > clockNow).slice(0,2);
+  const futureMedication = todayMedication.filter(task => !task.completed_at && new Date(task.scheduled_at).getTime() > clockNow);
+  const upcoming = futureMedication.slice(0,2);
   const priorUnconfirmed = todayMedication.filter(task => !task.completed_at && clockNow - new Date(task.scheduled_at).getTime() > 3600000);
   const confirmedToday = todayMedication.filter(task => Boolean(task.completed_at));
   const current = clients.find((client) => client.id === selected);
@@ -210,7 +213,7 @@ function Prontuario() {
   const filteredTasks = tasks.filter(task => localDay(task.scheduled_at) === agendaDay && (agendaFilter === "todos" || task.category === agendaFilter) && (taskStatusFilter === "todos" || (taskStatusFilter === "concluidos" ? Boolean(task.completed_at) : !task.completed_at)));
   const dayTasks = tasks.filter(task => localDay(task.scheduled_at) === agendaDay);
   const dayDone = dayTasks.filter(task => task.completed_at).length;
-  const todayBrazil = new Intl.DateTimeFormat("en-CA", {timeZone:"America/Rio_Branco",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+  const todayBrazil = new Intl.DateTimeFormat("en-CA", {timeZone:"America/Rio_Branco",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(clockNow));
   const consumedToday = water.filter(w => new Intl.DateTimeFormat("en-CA", {timeZone:"America/Rio_Branco",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(w.recorded_at)) === todayBrazil).reduce((sum,w) => sum + w.amount_ml,0);
   return <>
     <PageHeader eyebrow="Área protegida · CareDigital" title="Prontuário de acompanhamento" />
@@ -225,13 +228,14 @@ function Prontuario() {
               <option value="">Selecione um cliente</option>
               {clients.map(c => <option key={c.id} value={c.id}>{c.full_name}</option>)}
             </select>
-            <form className="mt-5 space-y-3" onSubmit={(e) => void createClient(e)}>
+            <button type="button" className="mt-4 w-full rounded-lg border border-border px-3 py-2 text-sm font-semibold" onClick={() => setShowNewClient(!showNewClient)} aria-expanded={showNewClient}>{showNewClient ? "Fechar cadastro" : "Cadastrar outro cliente"}</button>
+            {showNewClient && <form className="mt-5 space-y-3" onSubmit={(e) => void createClient(e)}>
               <h3 className="text-sm font-semibold">Novo cliente</h3>
               <label className="block text-xs">Nome completo<input className="field mt-1" required maxLength={120} value={name} onChange={(e) => setName(e.target.value)} /></label>
               <label className="block text-xs">Data de nascimento<input className="field mt-1" type="date" value={birth} onChange={(e) => setBirth(e.target.value)} /></label>
               <label className="block text-xs">Contexto clínico (opcional)<textarea className="field mt-1" rows={3} value={condition} onChange={(e) => setCondition(e.target.value)} /></label>
               <Btn type="submit" size="lg" className="w-full"><Plus size={16} /> Salvar cliente</Btn>
-            </form>
+            </form>}
           </Panel>
           <Panel title="Privacidade">
             <p className="text-xs leading-relaxed text-muted-foreground">Os registros ficam associados à conta autenticada, com controle de acesso por proprietário. O compartilhamento entre profissionais ainda não está habilitado.</p>
@@ -262,7 +266,7 @@ function Prontuario() {
                 {dueNow.map(task => <p key={task.id} className="mt-1 text-sm">{fmt(task.scheduled_at)} — {task.title}</p>)}
                 <p className="mt-2 text-xs text-muted-foreground">Confira a prescrição e registre a atividade somente após verificar o cuidado. Um horário alcançado não confirma atraso nem dose não tomada.</p>
               </div>}
-              <div className="mb-3 grid grid-cols-3 gap-2 text-center">{[["Próximos", upcoming.length], ["Sem registro", priorUnconfirmed.length], ["Concluídos", confirmedToday.length]].map(([label, count]) => <div key={label} className="rounded-lg bg-foreground/5 p-2"><strong className="block text-lg">{count}</strong><span className="text-xs text-muted-foreground">{label}</span></div>)}</div>
+              <div className="mb-3 grid grid-cols-3 gap-2 text-center">{[["Próximos", futureMedication.length], ["Sem registro", priorUnconfirmed.length], ["Concluídos", confirmedToday.length]].map(([label, count]) => <div key={label} className="rounded-lg bg-foreground/5 p-2"><strong className="block text-lg">{count}</strong><span className="text-xs text-muted-foreground">{label}</span></div>)}</div>
               {upcoming.length > 0 ? <div className="space-y-2">{upcoming.map(task => <div key={task.id} className="flex items-center gap-3 rounded-xl bg-foreground/5 p-3"><Clock3 size={17} className="shrink-0 text-primary" /><div className="flex-1"><p className="text-sm font-medium">{task.title}</p><p className="text-xs text-muted-foreground">{fmt(task.scheduled_at)} · programado</p></div></div>)}</div> : <p className="text-sm text-muted-foreground">{todayMedication.length ? "Não há outras atividades de medicação previstas para hoje." : "Nenhum horário de medicação cadastrado para hoje."}</p>}
               <p className="mt-3 text-xs text-muted-foreground">Avisos exibidos exclusivamente dentro do CareDigital. Sem pop-ups do navegador ou solicitações de permissão. Esta central não envia mensagens com o aplicativo fechado.</p>
             </section>}
@@ -273,12 +277,13 @@ function Prontuario() {
                 <label className="mt-3 flex items-start gap-2 text-xs"><input type="checkbox" className="mt-0.5" checked={prescriptionChecked} onChange={e => setPrescriptionChecked(e.target.checked)} /><span>Conferi a prescrição com o profissional responsável, incluindo os horários e a fase de continuidade, e autorizo registrar esta agenda.</span></label>
                 <Btn type="button" className="mt-3" disabled={!prescriptionChecked || generating} onClick={() => void generateRequestedSchedule()}>{generating ? "Criando agenda…" : "Criar agenda de 14 dias"}</Btn>
               </div>}
-              <form onSubmit={(e) => void createTask(e)} className="mb-4 grid gap-3 rounded-xl bg-foreground/5 p-3 sm:grid-cols-2">
+              <button type="button" className="mb-3 w-full rounded-lg border border-border px-3 py-2 text-sm font-semibold" onClick={() => setShowNewTask(!showNewTask)} aria-expanded={showNewTask}>{showNewTask ? "Fechar formulário" : "Adicionar atividade avulsa"}</button>
+              {showNewTask && <form onSubmit={(e) => void createTask(e)} className="mb-4 grid gap-3 rounded-xl bg-foreground/5 p-3 sm:grid-cols-2">
                 <label className="text-xs">Atividade<input className="field mt-1" required value={taskTitle} maxLength={140} onChange={(e) => setTaskTitle(e.target.value)} placeholder="Ex.: Refeição ou cuidado prescrito" /></label>
                 <label className="text-xs">Data e hora<input className="field mt-1" type="datetime-local" required value={taskDate} onChange={(e) => setTaskDate(e.target.value)} /></label>
                 <label className="text-xs">Categoria<select className="field mt-1" value={taskCategory} onChange={(e) => setTaskCategory(e.target.value)}>{[["medicacao","Medicação"],["refeicao","Refeição"],["hidratacao","Hidratação"],["peso","Peso"],["outro","Outro"]].map(([v,t])=><option key={v} value={v}>{t}</option>)}</select></label>
                 <Btn type="submit" className="self-end">Adicionar à agenda</Btn>
-              </form>
+              </form>}
               <div className="mb-3 grid gap-3 sm:grid-cols-2">
                 <label className="text-xs">Dia da agenda<input type="date" className="field mt-1" value={agendaDay} onChange={e => setAgendaDay(e.target.value)} /></label>
                 <label className="text-xs">Exibir<select className="field mt-1" value={agendaFilter} onChange={e => setAgendaFilter(e.target.value)}><option value="todos">Todas as atividades</option><option value="medicacao">Medicação</option><option value="refeicao">Alimentação</option><option value="hidratacao">Hidratação</option><option value="peso">Peso</option><option value="outro">Outros</option></select></label>
