@@ -11,6 +11,7 @@ export const Route = createFileRoute("/prontuario")({
 
 type Client = { id: string; full_name: string; birth_date: string | null; condition_notes: string | null; status: string; contact_email: string | null; weight_kg: number | null; height_cm: number | null; care_goal: string | null };
 type Task = { id: string; patient_id: string; category: string; scheduled_at: string; title: string; notes: string | null; completed_at: string | null };
+type Medication = { id: string; name: string; dose: string | null; notes: string | null; route: string | null };
 type Observation = { id: string; patient_id: string; observation_type: string; numeric_value: number | null; unit: string | null; notes: string | null; recorded_at: string };
 
 // Explicit runtime schemas are maintained in supabase/caredigital_schema.sql and migrations.
@@ -24,6 +25,7 @@ function Prontuario() {
   const [selected, setSelected] = useState("");
   const [tasks, setTasks] = useState<Task[]>([]);
   const [observations, setObservations] = useState<Observation[]>([]);
+  const [medications, setMedications] = useState<Medication[]>([]);
   const [water, setWater] = useState<{id:string;amount_ml:number;recorded_at:string}[]>([]);
   const [waterMl, setWaterMl] = useState("200");
   const [waterBusy, setWaterBusy] = useState(false);
@@ -59,17 +61,20 @@ function Prontuario() {
     setSelected((previous) => previous || data?.[0]?.id || "");
   }
   async function loadRecords(userId: string, patientId: string) {
-    const [schedule, history, hydration] = await Promise.all([
+    const [schedule, history, hydration, medicationRecords] = await Promise.all([
       db.from("care_daily_checklist").select("id,patient_id,category,scheduled_at,title,notes,completed_at").eq("owner_id", userId).eq("patient_id", patientId).order("scheduled_at", { ascending: true }).limit(500),
       db.from("care_observations").select("id,patient_id,observation_type,numeric_value,unit,notes,recorded_at").eq("owner_id", userId).eq("patient_id", patientId).order("recorded_at", { ascending: false }).limit(100),
       db.from("care_hydration").select("id,amount_ml,recorded_at").eq("owner_id", userId).eq("patient_id", patientId).order("recorded_at", { ascending: false }).limit(500),
+      db.from("care_medications").select("id,name,dose,notes,route").eq("owner_id", userId).limit(100),
     ]);
     if (schedule.error) throw schedule.error;
     if (history.error) throw history.error;
     if (hydration.error) throw hydration.error;
+    if (medicationRecords.error) throw medicationRecords.error;
     setTasks(schedule.data ?? []);
     setObservations(history.data ?? []);
     setWater(hydration.data ?? []);
+    setMedications((medicationRecords.data ?? []).filter((med: Medication) => med.notes?.includes(patientId)));
   }
   useEffect(() => {
     let active = true;
@@ -83,7 +88,7 @@ function Prontuario() {
     return () => { active = false; };
   }, []);
   useEffect(() => {
-    if (!owner || !selected) { setTasks([]); setObservations([]); setWater([]); return; }
+    if (!owner || !selected) { setTasks([]); setObservations([]); setWater([]); setMedications([]); return; }
     void loadRecords(owner, selected).catch(() => setMessage("Não foi possível carregar a agenda e o histórico."));
   }, [owner, selected]);
 
@@ -284,6 +289,12 @@ function Prontuario() {
               {current.condition_notes && <p className="mt-4 rounded-xl bg-foreground/5 p-3 text-sm">{current.condition_notes}</p>}
               <div className="mt-4 grid grid-cols-2 gap-3"><div className="rounded-xl bg-foreground/5 p-3"><span className="text-xs text-muted-foreground">Tarefas</span><div className="text-2xl font-semibold">{tasks.length}</div></div><div className="rounded-xl bg-foreground/5 p-3"><span className="text-xs text-muted-foreground">Concluídas</span><div className="text-2xl font-semibold">{completed}</div></div></div>
             </Panel>
+            {medications.length > 0 && <Panel title="Medicamento identificado">
+              {medications.map(med => <div key={med.id} className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                <img src="https://www.nortesulreal.com.br/ccstore/v1/images/?height=475&outputFormat=JPEG&quality=0.8&source=%2Ffile%2Fv1566709691030109489%2Fproducts%2FNSM_83085.jpg&width=475" alt="Caixa do medicamento genérico Teuto: lansoprazol, claritromicina e amoxicilina" referrerPolicy="no-referrer" loading="lazy" className="h-44 w-44 shrink-0 rounded-xl border border-border bg-white object-contain p-2" />
+                <div className="min-w-0 space-y-2"><h3 className="text-sm font-semibold">{med.name}</h3><p className="text-xs text-muted-foreground">Concentrações da embalagem: {med.dose}</p><p className="text-xs text-muted-foreground">Administração oral · Produto identificado pela embalagem apresentada. A quantidade por tomada deve ser conferida na receita.</p><a href="https://www.nortesulreal.com.br/p/medicamentos/lans-clarit-amoxibp-28-cpr/NSM_83085" target="_blank" rel="noreferrer" className="inline-block text-xs font-semibold text-primary underline">Ver identificação do produto</a></div>
+              </div>)}
+            </Panel>}
             <div className="grid grid-cols-3 gap-2" role="tablist" aria-label="Seções do prontuário">
               {([["agenda","Agenda"],["agua","Água"],["evolucao","Evolução"]] as const).map(([id,label]) => (
                 <button key={id} type="button" role="tab" aria-selected={activeSection === id} onClick={() => setActiveSection(id)} className={`rounded-xl border px-3 py-3 text-sm font-semibold transition-colors ${activeSection === id ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-foreground/5"}`}>{label}</button>
