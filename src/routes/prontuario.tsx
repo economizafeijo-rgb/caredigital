@@ -197,13 +197,13 @@ function Prontuario() {
   const latestWeight = weights.length ? weights[weights.length - 1].numeric_value : null;
   const initialWeight = clients.find(client => client.id === selected)?.weight_kg ?? null;
   const weightDifference = latestWeight !== null && initialWeight !== null ? latestWeight - initialWeight : null;
+  const localDay = (date: string) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Rio_Branco", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(date));
   const todayForAlerts = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Rio_Branco", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(clockNow));
   const todayMedication = tasks.filter(task => task.category === "medicacao" && localDay(task.scheduled_at) === todayForAlerts).sort((a,b) => a.scheduled_at.localeCompare(b.scheduled_at));
   const dueNow = todayMedication.filter(task => !task.completed_at && new Date(task.scheduled_at).getTime() <= clockNow && clockNow - new Date(task.scheduled_at).getTime() <= 60*60*1000);
   const upcoming = todayMedication.filter(task => !task.completed_at && new Date(task.scheduled_at).getTime() > clockNow).slice(0,2);
   const current = clients.find((client) => client.id === selected);
   const completed = tasks.filter((task) => task.completed_at).length;
-  const localDay = (date: string) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Rio_Branco", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(date));
   const filteredTasks = tasks.filter(task => localDay(task.scheduled_at) === agendaDay && (agendaFilter === "todos" || task.category === agendaFilter));
   const dayTasks = tasks.filter(task => localDay(task.scheduled_at) === agendaDay);
   const dayDone = dayTasks.filter(task => task.completed_at).length;
