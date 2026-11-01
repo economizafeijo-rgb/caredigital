@@ -95,7 +95,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           {!clientOnly && <button type="button" onClick={() => setMoreOpen((open) => !open)} aria-expanded={moreOpen} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl ${moreOpen ? "text-primary" : "text-muted-foreground"}`}><Ellipsis size={20} /><span className="text-[10px] font-semibold">Mais</span></button>}
         </nav>
 
-        <HydrationReminder />
+        {!clientOnly && <HydrationReminder />}
       </div>
     </HydrationProvider>
   );
