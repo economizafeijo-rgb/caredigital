@@ -65,12 +65,8 @@ function Dashboard() {
 
   if (accessMode === "loading") return <div role="status" className="rounded-2xl bg-white/80 p-8 text-sm text-muted-foreground">Verificando acesso ao seu painel…</div>;
   if (accessMode === "unlinked") return <section className="mx-auto max-w-3xl rounded-3xl border border-[#b8d2df] bg-white p-6"><h1 className="text-2xl font-bold">Área do cliente</h1><p className="mt-3 text-sm text-muted-foreground">Sua conta está conectada, mas nenhum prontuário foi localizado para este acesso. Solicite ao administrador a vinculação do seu cadastro.</p></section>;
-  if (accessMode === "client") return <div className="mx-auto max-w-5xl space-y-5">
-    <section className="rounded-2xl bg-gradient-to-r from-[#153b55] to-[#216b81] px-5 py-4 text-white sm:px-7 sm:py-5">
-      <span className="text-xs font-semibold uppercase tracking-widest text-sky-200">CareDigital · Área do cliente</span>
-      <h1 className="mt-1.5 text-2xl font-bold tracking-tight sm:text-3xl">Seu cuidado, sua rotina.</h1>
-      <p className="mt-1.5 max-w-2xl text-xs text-white/80 sm:text-sm">Confira os próximos horários e registre medicação, hidratação e refeições com segurança. Seus dados são exclusivos do seu acompanhamento.</p>
-    </section>
+  if (accessMode === "client") return <div className="mx-auto max-w-6xl space-y-2">
+    <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card/80 px-4 py-2.5"><div><p className="text-[10px] font-semibold uppercase tracking-widest text-primary">CareDigital · Área do cliente</p><h1 className="text-base font-bold text-foreground">Seu acompanhamento em um só lugar</h1></div><span className="text-[11px] text-muted-foreground">Tratamento · Rotina · Histórico</span></div>
     <HomeClientCard />
     <p className="px-1 text-xs text-muted-foreground">Horários exibidos no fuso do Acre. Confirme somente os cuidados realmente realizados. Alterações na prescrição devem ser orientadas pelo profissional responsável.</p>
   </div>;
