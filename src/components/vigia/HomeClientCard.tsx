@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { CalendarClock, Clock3, CheckCircle2, Droplets, LockKeyhole, Pill, UtensilsCrossed, UserRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { MedicationBlisterCalendar } from "./MedicationBlisterCalendar";
 
 type Client = { id: string; owner_id: string; full_name: string; status: string; care_goal: string | null };
 type Task = { id: string; patient_id: string; title: string; category: string; scheduled_at: string; completed_at: string | null };
@@ -107,6 +108,7 @@ export function HomeClientCard() {
       const result = await (supabase as any).rpc("care_confirm_task", { p_task_id: pending.id, p_water_ml: payload });
       if (result.error) throw result.error;
       setTasks(previous => previous.map(t => t.id === pending.id ? { ...t, completed_at: typeof result.data === "string" ? result.data : new Date().toISOString() } : t));
+      setTick(value => value + 1);
       setNotice(pending.category === "hidratacao" ? "Hidratação confirmada e volume registrado." : "Atividade confirmada no prontuário.");
       setPending(null);
     } catch {
@@ -134,6 +136,7 @@ export function HomeClientCard() {
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-2"><div className="rounded-xl bg-white p-4 ring-1 ring-[#d8e7ed]"><h5 className="text-sm font-bold text-[#153c54]">Etapa 1 · 31/10 a 06/11</h5><p className="mt-2 text-sm">07:00 — Conferir medicação da manhã</p><p className="mt-1 text-sm">19:00 — Conferir medicação da noite</p></div><div className="rounded-xl bg-white p-4 ring-1 ring-[#d8e7ed]"><h5 className="text-sm font-bold text-[#153c54]">Etapa 2 · 07/11 a 13/11</h5><p className="mt-2 text-sm">07:00 — Lansoprazol, conforme programação cadastrada</p><p className="mt-2 text-xs text-muted-foreground">Confirme com o prescritor se a segunda etapa e a duração estão corretas.</p></div></div>
       </section>
+      <MedicationBlisterCalendar patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm}/>
       <div className="mb-5 grid gap-3 md:grid-cols-2">
         <div className="rounded-2xl bg-[#123b58] p-5 text-white"><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-sky-200"><Clock3 size={16}/> Relógio digital · Acre</div><div className="mt-3 font-mono text-4xl font-bold tabular-nums sm:text-5xl">{clock ? new Intl.DateTimeFormat("pt-BR",{timeZone:tz,hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(clock) : "--:--:--"}</div><p className="mt-2 text-sm capitalize text-white/75">{clock ? dateInAcre(clock) : "Sincronizando horário…"}</p></div>
         <div className="rounded-2xl border border-[#c9dfe9] bg-[#e9f3f7] p-5"><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[#2b647f]"><CalendarClock size={16}/> Próximo cuidado</div>{nextCare ? <><div className="mt-3 text-2xl font-bold text-[#163b54]">{timeInAcre(nextCare.scheduled_at)} · {categoryInfo[nextCare.category]?.label ?? "Atividade"}</div><p className="mt-1 text-sm text-[#43647a]">{nextCare.title}</p><button onClick={() => askConfirm(nextCare)} className="mt-3 rounded-lg bg-[#216083] px-4 py-2 text-sm font-semibold text-white">Confirmar realização</button></> : <p className="mt-4 text-sm text-[#43647a]">Sem cuidados pendentes hoje.</p>}</div>
@@ -160,7 +163,7 @@ export function HomeClientCard() {
     {pending && <div role="dialog" aria-label="Confirmar cuidado" className="m-5 rounded-2xl border border-[#aec8d6] bg-[#eff5f8] p-5">
       <div className="flex items-center gap-2 font-bold text-[#163b56]"><CheckCircle2 size={19}/> Confirmação de cuidado</div>
       <p className="mt-2 text-sm">{pending.title} · {timeInAcre(pending.scheduled_at)}</p>
-      {pending.category === "medicacao" && <p className="mt-2 text-xs text-muted-foreground">Confirme somente se a medicação foi realmente administrada conforme a prescrição. Um horário agendado não comprova a tomada.</p>}
+      {pending.category === "medicacao" && <div className="mt-3 space-y-2 text-sm"><p>Horário programado: <strong>{timeInAcre(pending.scheduled_at)}</strong>. Registro efetivo: <strong>data e hora atuais do servidor</strong>.</p>{Math.abs(Date.now()-new Date(pending.scheduled_at).getTime()) > 15*60000 && <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-amber-900">Atenção: você está fora da janela de 15 minutos do horário programado. A confirmação será registrada como adiantada ou atrasada, com horário real. Confirme somente se acabou de tomar; não tome dose extra para compensar.</p>}<p className="text-xs text-muted-foreground">Se tomou anteriormente e esqueceu de registrar, não use esta confirmação para informar uma hora passada.</p></div>}
       {pending.category === "refeicao" && <p className="mt-2 text-xs text-muted-foreground">Confirme somente se a refeição foi realizada.</p>}
       {pending.category === "hidratacao" && <label className="mt-3 block text-sm">Água realmente consumida (ml)<input className="field mt-1 max-w-40" type="number" min={10} max={1500} step={10} value={amount} onChange={e => setAmount(e.target.value)} /></label>}
       <div className="mt-4 flex flex-wrap gap-2"><button disabled={busy} onClick={() => void confirm()} className="rounded-xl bg-[#216083] px-5 py-3 text-sm font-semibold text-white disabled:opacity-50">{busy ? "Salvando…" : "Confirmar realização"}</button><button disabled={busy} onClick={() => setPending(null)} className="rounded-xl border border-[#b8d2df] px-4 py-3 text-sm">Cancelar</button></div>
