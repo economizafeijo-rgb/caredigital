@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "@tanstack/react-router";
-import { Activity, Droplets, Ellipsis, Home, LogIn, Pill, Utensils, Users, X } from "lucide-react";
+import { Activity, Droplets, Ellipsis, Home, LogIn, Moon, Sun, Pill, Utensils, Users, X } from "lucide-react";
 import { fmtClock, useNow } from "./ui";
 import { HydrationProvider, HydrationReminder } from "./HydrationTracker";
 
@@ -24,6 +24,21 @@ const moreNav = [
 export function AppShell({ children }: { children: ReactNode }) {
   const now = useNow(30000);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  useEffect(() => {
+    const stored = window.localStorage.getItem("caredigital-theme");
+    const enabled = stored === "dark" || (stored !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    document.documentElement.classList.toggle("dark", enabled);
+    document.documentElement.style.colorScheme = enabled ? "dark" : "light";
+    setDarkMode(enabled);
+  }, []);
+  const toggleTheme = () => {
+    const next = !darkMode;
+    setDarkMode(next);
+    document.documentElement.classList.toggle("dark", next);
+    document.documentElement.style.colorScheme = next ? "dark" : "light";
+    window.localStorage.setItem("caredigital-theme", next ? "dark" : "light");
+  };
   const [clientOnly, setClientOnly] = useState(false);
   useEffect(() => {
     let active = true;
@@ -75,6 +90,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div className="hidden items-center gap-2 font-mono text-[10px] text-muted-foreground lg:flex">
                 <span className="size-1.5 rounded-full bg-success" />{fmtClock(now)}
               </div>
+              <button type="button" onClick={toggleTheme} aria-label={darkMode ? "Ativar tema claro" : "Ativar tema escuro"} title={darkMode ? "Modo claro" : "Modo escuro"} aria-pressed={darkMode} className="grid size-9 place-items-center rounded-xl border border-border bg-surface text-foreground transition-colors hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">{darkMode ? <Sun size={18}/> : <Moon size={18}/>}</button>
               <Link to="/entrar" aria-label="Entrar na equipe" className="grid size-8 place-items-center rounded-full bg-primary/10 font-display text-xs text-primary">DC</Link>
             </div>
           </div>
