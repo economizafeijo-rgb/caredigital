@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { BookOpen, ChevronDown, ClipboardList, LockKeyhole, Plus, ShieldCheck, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DigestiveProtocolLibrary } from "@/components/vigia/DigestiveProtocolLibrary";
@@ -52,7 +52,7 @@ function Protocolos(){
     })();
     return()=>{mounted=false};
   },[isAdmin,userId]);
-  async function addProtocol(event:React.FormEvent<HTMLFormElement>){
+  async function addProtocol(event:FormEvent<HTMLFormElement>){
     event.preventDefault();
     if(!isAdmin||!userId||pending||!form.name.trim())return;
     setPending(true);setNotice("");
