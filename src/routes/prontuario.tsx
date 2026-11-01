@@ -198,10 +198,14 @@ function Prontuario() {
     if (!task || !owner || !selected || task.patient_id !== selected || savingTask) return;
     if (task.category === "hidratacao" && (!Number.isInteger(Number(confirmedWaterMl)) || Number(confirmedWaterMl) < 10 || Number(confirmedWaterMl) > 1500)) { setMessage("Informe um volume válido consumido."); return; }
     setSavingTask(true);
+    if (task.category === "hidratacao") {
+      const waterSave = await db.from("care_hydration").insert({ owner_id: owner, patient_id: selected, amount_ml: Number(confirmedWaterMl) });
+      if (waterSave.error) { setMessage("Não foi possível registrar a água."); setSavingTask(false); return; }
+    }
     const { error } = await db.from("care_daily_checklist")
       .update({ completed_at: new Date().toISOString() })
       .eq("id", task.id).eq("owner_id", owner).eq("patient_id", selected).is("completed_at", null);
-    if (error) setMessage("Não foi possível registrar a atividade. Tente novamente.");
+    if (error) setMessage("Não foi possível concluir a atividade. Verifique o histórico de água antes de tentar novamente.");
     else { await loadRecords(owner, selected); setMessage("Atividade registrada como concluída."); }
     setConfirmTask(null);
     setSavingTask(false);
