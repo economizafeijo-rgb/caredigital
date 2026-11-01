@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { CalendarClock, CheckCircle2, Droplets, LockKeyhole, Pill, UtensilsCrossed, UserRound } from "lucide-react";
+import { CalendarClock, Clock3, CheckCircle2, Droplets, LockKeyhole, Pill, UtensilsCrossed, UserRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type Client = { id: string; owner_id: string; full_name: string; status: string; care_goal: string | null };
@@ -8,6 +8,7 @@ type Task = { id: string; patient_id: string; title: string; category: string; s
 const db = supabase as unknown as { from: (table: string) => any; auth: typeof supabase.auth };
 const tz = "America/Rio_Branco";
 const dayInAcre = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+const dateInAcre = (d: Date) => new Intl.DateTimeFormat("pt-BR", { timeZone: tz, weekday:"long", day:"2-digit", month:"long" }).format(d);
 const timeInAcre = (iso: string) => new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: tz }).format(new Date(iso));
 const categoryInfo: Record<string, { label: string; icon: typeof Pill }> = {
   medicacao: { label: "Medicação", icon: Pill },
@@ -26,6 +27,8 @@ export function HomeClientCard() {
   const [amount, setAmount] = useState("200");
   const [busy, setBusy] = useState(false);
   const [tick, setTick] = useState(0);
+  const [clock, setClock] = useState<Date | null>(null);
+  useEffect(() => { const update = () => setClock(new Date()); update(); const timer = window.setInterval(update,1000); return () => window.clearInterval(timer); }, []);
 
   useEffect(() => {
     const interval = window.setInterval(() => setTick(t => t + 1), 60000);
@@ -81,6 +84,9 @@ export function HomeClientCard() {
     return grouped;
   }, [tasks, tick]);
   const completed = tasks.filter(t => Boolean(t.completed_at)).length;
+  const nextCare = tasks.find(t => !t.completed_at && new Date(t.scheduled_at).getTime() >= (clock?.getTime() ?? Date.now())) ?? tasks.find(t => !t.completed_at);
+  const meals = tasks.filter(t => t.category === "refeicao");
+  const mealGuide: Record<string,string> = { "Café da manhã":"Aveia cozida em água ou leite sem lactose, se tolerado, com banana madura.", "Lanche da manhã":"Mamão ou banana madura; ajuste à sua tolerância.", "Almoço":"Arroz, frango cozido ou grelhado sem excesso de gordura, batata e legumes cozidos.", "Lanche da tarde":"Batata-doce cozida ou fruta tolerada.", "Jantar":"Sopa suave de legumes e frango desfiado, sem pimenta.", "Ceia":"Mingau leve de aveia ou banana, conforme tolerância." };
 
   function askConfirm(task: Task) {
     if (!owner || !client) { setLocked(true); return; }
@@ -118,6 +124,11 @@ export function HomeClientCard() {
       <button onClick={() => setLocked(true)} className="rounded-xl bg-[#216083] px-5 py-3 text-sm font-semibold text-white">Consultar programação</button>
     </div> : !client ? <p className="p-6 text-sm text-muted-foreground">Nenhum cliente vinculado a esta conta. Confira seu acesso ao prontuário.</p> : <div className="p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-lg font-bold text-[#173b52]">{client.full_name}</h3><p className="text-xs text-muted-foreground">{client.care_goal || "Acompanhamento individual"}</p></div><div className="rounded-xl bg-[#e5f1f5] px-3 py-2 text-xs font-semibold text-[#1f5974]">{completed} de {tasks.length} cuidados registrados</div></div>
+      <div className="mb-5 grid gap-3 md:grid-cols-2">
+        <div className="rounded-2xl bg-[#123b58] p-5 text-white"><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-sky-200"><Clock3 size={16}/> Relógio digital · Acre</div><div className="mt-3 font-mono text-4xl font-bold tabular-nums sm:text-5xl">{clock ? new Intl.DateTimeFormat("pt-BR",{timeZone:tz,hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(clock) : "--:--:--"}</div><p className="mt-2 text-sm capitalize text-white/75">{clock ? dateInAcre(clock) : "Sincronizando horário…"}</p></div>
+        <div className="rounded-2xl border border-[#c9dfe9] bg-[#e9f3f7] p-5"><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[#2b647f]"><CalendarClock size={16}/> Próximo cuidado</div>{nextCare ? <><div className="mt-3 text-2xl font-bold text-[#163b54]">{timeInAcre(nextCare.scheduled_at)} · {categoryInfo[nextCare.category]?.label ?? "Atividade"}</div><p className="mt-1 text-sm text-[#43647a]">{nextCare.title}</p><button onClick={() => askConfirm(nextCare)} className="mt-3 rounded-lg bg-[#216083] px-4 py-2 text-sm font-semibold text-white">Confirmar realização</button></> : <p className="mt-4 text-sm text-[#43647a]">Sem cuidados pendentes hoje.</p>}</div>
+      </div>
+      <div className="mb-4"><h4 className="mb-3 text-base font-bold text-[#173b52]">Cuidados programados</h4></div>
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{nextItems.map(task => {
         const info = categoryInfo[task.category];
         const Icon = info.icon;
@@ -127,6 +138,7 @@ export function HomeClientCard() {
           <button type="button" onClick={() => askConfirm(task)} className="mt-3 w-full rounded-lg bg-[#216083] px-3 py-2 text-xs font-semibold text-white">Confirmar {task.category === "hidratacao" ? "água" : task.category === "medicacao" ? "medicação" : "refeição"}</button>
         </div>;
       })}</div>
+      <section className="mt-6 rounded-2xl border border-[#d4e3eb] bg-[#f5f9fb] p-4"><h4 className="text-base font-bold text-[#173b52]">Cardápio orientativo · Gastrite / H. pylori</h4><p className="mt-1 text-xs text-muted-foreground">Sugestões alimentares, não uma prescrição. Adapte conforme sintomas, alergias e orientação profissional. Evite alimentos que provocam dor, café e comidas muito gordurosas ou apimentadas.</p><div className="mt-4 grid gap-3 md:grid-cols-2">{meals.map(meal => <div key={meal.id} className="rounded-xl bg-white p-3 ring-1 ring-[#d7e7ee]"><div className="flex flex-wrap items-center justify-between gap-2"><div><strong className="text-sm text-[#173b52]">{meal.title}</strong><p className="text-xs text-[#53768c]">{timeInAcre(meal.scheduled_at)} · {meal.completed_at ? "Confirmada" : "Pendente"}</p></div>{!meal.completed_at && <button onClick={() => askConfirm(meal)} className="rounded-lg bg-[#216083] px-3 py-2 text-xs font-semibold text-white">Confirmar</button>}</div><p className="mt-2 text-sm text-[#49677a]">{mealGuide[meal.title] ?? "Refeição leve com alimentos bem tolerados, conforme seu plano alimentar."}</p></div>)}</div>{meals.length === 0 && <p className="mt-3 text-sm text-muted-foreground">Não há refeições programadas para hoje.</p>}</section>
       {nextItems.length === 0 && <p className="text-sm text-muted-foreground">Não há cuidados pendentes para hoje. Consulte o prontuário para outros dias.</p>}
     </div>}
     {notice && <p role="status" className="mx-5 mb-4 rounded-xl bg-[#e4eff4] p-3 text-sm text-[#24526c]">{notice}</p>}
