@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { HomeClientCard } from "@/components/vigia/HomeClientCard";
 import { doses as initialDoses, patients, protocols, team, initials } from "@/lib/mock-data";
 import { Btn, IconBox, Panel, Tag, fmtDuration, kindTone, secondsUntil, useNow } from "@/components/vigia/ui";
@@ -17,6 +18,21 @@ export const Route = createFileRoute("/")({
 });
 
 function Dashboard() {
+  const [accessMode, setAccessMode] = useState<"loading" | "client" | "public">("loading");
+  useEffect(() => {
+    let active = true;
+    const check = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (!active) return;
+      if (!data.user) { setAccessMode("public"); return; }
+      const { data: links, error } = await (supabase as any).from("care_patient_access").select("patient_id").eq("user_id",data.user.id).limit(1);
+      if (!active) return;
+      setAccessMode(!error && links?.length ? "client" : "public");
+    };
+    void check();
+    const { data: listener } = supabase.auth.onAuthStateChange(() => { void check(); });
+    return () => { active = false; listener.subscription.unsubscribe(); };
+  }, []);
   const now = useNow();
   const [doses, setDoses] = useState(initialDoses);
   const [snoozed, setSnoozed] = useState<Record<string, number>>({});
@@ -39,6 +55,16 @@ function Dashboard() {
     setLastConfirmed(id);
   };
 
+  if (accessMode === "loading") return <div role="status" className="rounded-2xl bg-white/80 p-8 text-sm text-muted-foreground">Verificando acesso ao seu painel…</div>;
+  if (accessMode === "client") return <div className="mx-auto max-w-5xl space-y-5">
+    <section className="rounded-3xl bg-gradient-to-r from-[#153b55] to-[#216b81] px-6 py-8 text-white sm:px-8">
+      <span className="text-xs font-semibold uppercase tracking-widest text-sky-200">CareDigital · Área do cliente</span>
+      <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Seu cuidado, sua rotina.</h1>
+      <p className="mt-3 max-w-2xl text-sm text-white/80">Confira os próximos horários e registre medicação, hidratação e refeições com segurança. Seus dados são exclusivos do seu acompanhamento.</p>
+    </section>
+    <HomeClientCard />
+    <p className="px-1 text-xs text-muted-foreground">Horários exibidos no fuso do Acre. Confirme somente os cuidados realmente realizados. Alterações na prescrição devem ser orientadas pelo profissional responsável.</p>
+  </div>;
   return (
     <>
       <div role="note" className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-[#abc8d7] bg-[#e0ecf3] px-4 py-3 text-xs text-[#25465c]"><strong>Visão demonstrativa</strong><span>Os indicadores desta página são ilustrativos. Para consultar o acompanhamento real, acesse o prontuário.</span></div>
