@@ -27,7 +27,7 @@ function Entrar() {
         const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
         setBusy(false);
         if (error) { setMessage("Não foi possível entrar. Confira seu e-mail e senha ou peça um novo convite ao administrador."); return; }
-        await navigate({ to: "/" });
+        await navigate({ to: "/cliente" });
       }}>
         <Field label="E-mail cadastrado"><input type="email" autoComplete="username" className="field" required value={email} onChange={(event) => setEmail(event.target.value)} /></Field>
         <Field label="Senha"><input type="password" autoComplete="current-password" className="field" required value={password} onChange={(event) => setPassword(event.target.value)} /></Field>
