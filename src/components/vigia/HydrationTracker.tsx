@@ -213,9 +213,36 @@ export function HydrationDashboard() {
           <div className="mt-4 flex flex-wrap gap-2">{[150, 200, 250, 350].map((amount) => <button key={amount} type="button" onClick={() => addWater(amount)} className="rounded-lg bg-foreground/5 px-3 py-2 text-sm font-semibold hover:bg-foreground/10">+{amount} ml</button>)}</div>
         </Panel>
 
-        <Panel title="Cronograma sugerido de lembretes">
-          <p className="mb-3 text-xs leading-relaxed text-muted-foreground">Exemplo de distribuição uniforme da meta selecionada, dentro da janela acordada; não é uma prescrição clínica. A porção se recalcula quando você muda o intervalo.</p>
-          <ol className="max-h-80 divide-y divide-border overflow-auto rounded-xl border border-border/70">{schedule.map((item) => <li key={item.at.toISOString()} className={`flex items-center justify-between gap-3 p-3 ${item.at.getHours() === now.getHours() && item.at.getMinutes() === now.getMinutes() ? "bg-primary/10" : ""}`}><time className="font-mono text-sm font-semibold text-primary">{item.at.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</time><span className="text-xs text-muted-foreground">Pausa para hidratação</span><span className="text-sm font-semibold">~{item.amount} ml</span></li>)}</ol>
+        <Panel title="Roteiro guiado de hidratação" action={<Tag tone={due?"warning":"primary"}>{due?"Pausa sugerida":"Rotina de hoje"}</Tag>}>
+          <p className="mb-3 text-xs leading-relaxed text-muted-foreground">Guia visual flexível, não prescrição: horários e porções sugeridos com base na sua meta e no período acordado. Marque apenas o volume realmente bebido; horários perdidos não exigem compensação rápida.</p>
+          <div className="mb-3 grid grid-cols-3 gap-2">
+            <div className="rounded-xl bg-muted p-2.5"><p className="text-[10px] text-muted-foreground">Meta do dia</p><p className="mt-1 text-base font-bold tabular-nums">{data.targetMl} ml</p></div>
+            <div className="rounded-xl bg-muted p-2.5"><p className="text-[10px] text-muted-foreground">Já registrado</p><p className="mt-1 text-base font-bold tabular-nums text-success">{data.intakeMl} ml</p></div>
+            <div className="rounded-xl bg-muted p-2.5"><p className="text-[10px] text-muted-foreground">Restante</p><p className="mt-1 text-base font-bold tabular-nums">{Math.max(0,data.targetMl-data.intakeMl)} ml</p></div>
+          </div>
+          <ol className="max-h-[390px] space-y-2 overflow-y-auto pr-1">
+            {schedule.map((item,index)=>{
+              const scheduledPassed=item.at.getTime()<=now.getTime();
+              const nextSlot= index===schedule.length-1 ? null : schedule[index+1]?.at;
+              const currentSlot=scheduledPassed&&(!nextSlot||nextSlot.getTime()>now.getTime());
+              const suggestedCumulative=Math.min(data.targetMl,Math.round((index+1)*data.targetMl/schedule.length));
+              const copy=index===0?"Ao acordar":index===schedule.length-1?"Fim da rotina":index<schedule.length/3?"Durante a manhã":index<schedule.length*2/3?"Ao longo do dia":"Fim da tarde/noite";
+              return <li key={item.at.toISOString()} className={`flex items-center gap-3 rounded-xl border p-2.5 sm:p-3 ${currentSlot?"border-primary/60 bg-primary/10":"border-border bg-background/70"}`}>
+                <div className="relative flex w-12 shrink-0 flex-col items-center gap-1">
+                  <svg viewBox="0 0 46 56" className="h-12 w-10" role="img" aria-label="Ilustração de copo de água"><path d="M8 6h30l-4 42a7 7 0 0 1-7 6h-8a7 7 0 0 1-7-6z" fill="none" stroke="currentColor" strokeOpacity=".5" strokeWidth="2.5"/><path d="M11 25q11-4 24 0l-2 21q-1 6-7 6h-6q-6 0-7-6z" fill="#58bcdf" fillOpacity=".75"/><path d="M12 21h23" stroke="#a5daec" strokeWidth="2"/></svg>
+                  <span className="text-[10px] font-bold text-muted-foreground">{index+1}/{schedule.length}</span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2"><time className="text-sm font-bold tabular-nums text-foreground">{item.at.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}</time>{currentSlot&&<span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">Etapa atual</span>}</div>
+                  <p className="mt-0.5 text-xs font-medium">{copy}</p>
+                  <p className="text-[11px] text-muted-foreground">Porção sugerida ~{Math.round(data.targetMl/schedule.length/25)*25} ml · referência acumulada {suggestedCumulative} ml</p>
+                  {scheduledPassed&&<p className="mt-0.5 text-[10px] text-muted-foreground">Volume real do dia: {data.intakeMl} ml (não atribuído automaticamente a esta etapa).</p>}
+                </div>
+                <button type="button" onClick={()=>addWater(Math.max(50,Math.round(data.targetMl/schedule.length/50)*50))} aria-label={`Registrar água bebida agora, etapa das ${item.at.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}`} className="shrink-0 rounded-lg border border-primary/30 bg-primary/10 px-2.5 py-2 text-xs font-semibold text-primary hover:bg-primary/20">+{Math.max(50,Math.round(data.targetMl/schedule.length/50)*50)} ml</button>
+              </li>;
+            })}
+          </ol>
+          <p className="mt-3 text-[11px] text-muted-foreground">O botão registra água no horário atual, mesmo quando usado em uma etapa antiga ou futura. Na gastrite, prefira pequenos goles que você tolere; ajuste horários conforme refeições e orientações dos medicamentos.</p>
         </Panel>
       </div>
     </div>
