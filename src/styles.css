@@ -138,3 +138,65 @@ iframe[title*="Lovable" i][title*="badge" i] {
   display: none !important;
   visibility: hidden !important;
 }
+
+/* CareDigital: dark theme shared by all routes, dialogs and authenticated dashboards. */
+:root.dark {
+  --background: #0b1623;
+  --foreground: #ecf4fa;
+  --surface: #142536;
+  --card: #142536;
+  --card-foreground: #ecf4fa;
+  --popover: #172b3d;
+  --popover-foreground: #ecf4fa;
+  --primary: #67bedc;
+  --primary-foreground: #091a27;
+  --secondary: #22384b;
+  --secondary-foreground: #eef7fc;
+  --muted: #1d3142;
+  --muted-foreground: #b1c3d1;
+  --accent: #28465a;
+  --accent-foreground: #effaff;
+  --destructive: #fa8090;
+  --destructive-foreground: #1e0d13;
+  --success: #64d5ac;
+  --warning: #f3bc65;
+  --sky: #79c5df;
+  --border: rgba(173,211,229,.20);
+  --input: rgba(173,211,229,.32);
+  --ring: #88d3ed;
+}
+.dark body { background-color: var(--background); color: var(--foreground); }
+.dark input, .dark select, .dark textarea { color: var(--foreground); }
+.dark input::placeholder, .dark textarea::placeholder { color: var(--muted-foreground); opacity: .8; }
+.dark input[type="date"], .dark input[type="time"] { color-scheme: dark; }
+.dark option { background-color: var(--popover); color: var(--popover-foreground); }
+.dark .panel { background-color: var(--surface); color: var(--foreground); }
+.dark .field { background-color: var(--muted); color: var(--foreground); }
+
+/* Legacy clinical cards use literal Tailwind light values; normalize them in dark mode. */
+.dark :is([class~="bg-white"], [class*="bg-[#f"], [class*="bg-[#e"], [class*="bg-[#d"]) {
+  background-color: #16283a !important;
+}
+.dark :is([class*="text-[#1"],[class*="text-[#2"],[class*="text-[#3"],[class*="text-[#4"],[class*="text-[#5"]) {
+  color: #e8f3f9 !important;
+}
+.dark :is([class*="border-[#"],[class*="ring-[#"]) {
+  border-color: rgba(173,211,229,.26) !important;
+}
+.dark [class*="from-[#f"], .dark [class*="from-[#e"] { --tw-gradient-from: #14283a !important; }
+.dark [class*="to-white"] { --tw-gradient-to: #172b3c !important; }
+.dark [class*="bg-gradient-to-br"][class*="from-[#f"] {
+  background-image: linear-gradient(to bottom right,#162e40,#122434) !important;
+}
+.dark :is([class*="bg-[#fff8"],[class*="bg-amber-50"]) {
+  background-color: #45341c !important;
+}
+.dark :is([class*="text-amber-900"],[class*="text-amber-700"]) { color: #f6ce86 !important; }
+.dark :is([class*="bg-emerald-50"],[class*="bg-emerald-100"]) { background-color: #174438 !important; }
+.dark :is([class*="text-emerald-700"],[class*="text-emerald-800"]) { color: #95e8c0 !important; }
+.dark :is([class*="bg-sky-50"],[class*="bg-sky-100"]) { background-color: #18384b !important; }
+.dark :is([class*="text-sky-700"],[class*="text-sky-800"]) { color: #a4dff3 !important; }
+.dark :is([class*="bg-slate-100"],[class*="bg-slate-200"]) { background-color: #293c4e !important; }
+.dark :is([class*="text-slate-300"],[class*="text-slate-400"]) { color: #afc4d4 !important; }
+.dark :is([class*="border-slate-200"],[class*="border-sky-200"]) { border-color: #3a586c !important; }
+.dark ::selection { background: #326f88; color: #fff; }
