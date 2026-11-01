@@ -27,7 +27,9 @@ function Dashboard() {
       if (!data.user) { setAccessMode("public"); return; }
       const { data: links, error } = await (supabase as any).from("care_patient_access").select("patient_id").eq("user_id",data.user.id).limit(1);
       if (!active) return;
-      setAccessMode(!error && links?.length ? "client" : "unlinked");
+      if (!error && links?.length) { setAccessMode("client"); return; }
+      const owned = await (supabase as any).from("care_patients").select("id").eq("owner_id", data.user.id).limit(1);
+      if (active) setAccessMode(!owned.error && owned.data?.length ? "client" : "unlinked");
     };
     void check();
     const { data: listener } = supabase.auth.onAuthStateChange(() => { void check(); });
