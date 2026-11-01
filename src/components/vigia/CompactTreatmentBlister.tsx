@@ -33,7 +33,7 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm}:P
    const iso=new Date(Date.parse("2026-10-31T12:00:00Z")+index*86400000).toISOString();
    return {index,iso,first:index<7,tasks:doses.filter(d=>dateKey(d.scheduled_at)===dateKey(iso))};
  }),[doses]);
- const day=days[selected];
+ const day=days[selected]??days[0]!;
  const first=day.first;
  const morning=day.tasks.find(t=>timeText(t.scheduled_at).startsWith("07:"))??day.tasks[0];
  const evening=first?(day.tasks.find(t=>timeText(t.scheduled_at).startsWith("19:"))??day.tasks[1]):undefined;
