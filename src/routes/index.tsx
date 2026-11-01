@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { HomeClientCard } from "@/components/vigia/HomeClientCard";
 import { doses as initialDoses, patients, protocols, team, initials } from "@/lib/mock-data";
 import { Btn, IconBox, Panel, Tag, fmtDuration, kindTone, secondsUntil, useNow } from "@/components/vigia/ui";
 
@@ -101,6 +102,8 @@ function Dashboard() {
           </div>
         </div>
       </section>
+
+      <HomeClientCard />
 
       <section className="mt-5 grid grid-cols-1 gap-4 md:mt-6 md:gap-5 lg:grid-cols-3">
         <Panel title="Doses de hoje" className="lg:col-span-2" delay={0.15}
