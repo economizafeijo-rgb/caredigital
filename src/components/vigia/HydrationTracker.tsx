@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState, type R
 import { Link } from "@tanstack/react-router";
 import { Droplets } from "lucide-react";
 import { Panel, SelectField, Tag } from "@/components/vigia/ui";
+import { HydrationPersonalPlan } from "./HydrationPersonalPlan";
 
 const STORAGE_KEY = "vigia-hydration-v1";
 const goals = [
@@ -187,7 +188,8 @@ export function HydrationDashboard() {
 
   if (!ready) return <p className="rounded-xl bg-foreground/5 p-4 text-sm text-muted-foreground">Carregando seu cronograma salvo neste dispositivo…</p>;
 
-  return <div className="space-y-5">
+  return <div className="space-y-4">
+    <HydrationPersonalPlan currentTarget={data.targetMl} onApply={(targetMl)=>setSettings({targetMl})}/>
     <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5"><div className="label-mono text-primary">Plano diário · sincronizado neste navegador</div><h2 className="mt-2 font-display text-3xl tracking-tight">Água ao longo do seu dia</h2><p className="mt-2 max-w-4xl text-sm leading-relaxed text-muted-foreground">Configure sua meta pessoal, janela do dia e intervalo. O objetivo ajuda a organizar os lembretes, mas não define sozinho a quantidade de água. O cronômetro permanece ativo ao navegar pelo app e salva registros/configurações neste dispositivo; para alertas do navegador, permita notificações e mantenha o app aberto.</p></div>
 
     <div className="grid gap-5 lg:grid-cols-[.85fr_1.15fr]">
