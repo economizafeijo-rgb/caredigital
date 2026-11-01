@@ -42,7 +42,7 @@ export function MedicationBlisterCalendar({patientId,ownerId,revision,onConfirm}
  const completePills=days.reduce((sum,d)=>sum+d.tasks.filter(t=>t.completed_at).length*(d.stage1?4:1),0);
  const phase1Done=days.slice(0,7).reduce((sum,d)=>sum+d.tasks.filter(t=>t.completed_at).length*4,0);
  const phase2Done=days.slice(7).reduce((sum,d)=>sum+d.tasks.filter(t=>t.completed_at).length,0);
- const current=days[selected]??days[0];
+ const current=days[selected]??days[0]!;
  const todayKey=formatDay(new Date().toISOString());
  const groupStatus=(task:Dose|undefined)=>task?.completed_at?"confirmado":"pendente";
  // A tomada de 31/10 foi relatada pelo paciente; não substituir o timestamp auditável do servidor.
