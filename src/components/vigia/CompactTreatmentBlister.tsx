@@ -66,23 +66,23 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm}:P
  const continuationWeek=selected>=7?Math.floor((selected-7)/7):0;
  const continuationDoses=selected>=7?days.slice(7+continuationWeek*7,14+continuationWeek*7).map(d=>d.tasks[0]):[];
  const reportTime=activePill?.period==="morning"?"10:00":"19:00";
- return <section aria-label="Cartelas interativas" className="min-h-0 overflow-y-auto rounded-2xl border border-border bg-card p-2.5 shadow-sm lg:max-h-[calc(100dvh-260px)]">
+ return <section aria-label="Cartelas interativas" className="min-h-0 overflow-y-auto rounded-xl border border-border bg-card p-2 shadow-sm">
   <div className="flex flex-wrap items-center justify-between gap-2">
    <div><h3 className="flex items-center gap-2 text-sm font-bold text-foreground"><Pill size={17} className="text-primary"/> Cartela interativa</h3><p className="text-[11px] text-muted-foreground">Cada tomada muda a cartela e registra data e hora.</p></div>
    <div className="text-right"><span className="text-lg font-extrabold tabular-nums text-foreground">{verified}/84</span><p className="text-[10px] text-muted-foreground">confirmadas no sistema</p></div>
   </div>
   <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-success transition-all" style={{width:`${verified/84*100}%`}}/></div>
-  <div className="mt-3 flex items-center justify-between gap-2">
+  <div className="mt-1 flex items-center justify-between gap-2">
     <button type="button" disabled={selected===0} onClick={()=>setSelected(x=>Math.max(0,x-1))} className="rounded-lg border border-border p-1.5 text-foreground disabled:opacity-30" aria-label="Cartela anterior"><ArrowLeft size={16}/></button>
     <div className="min-w-0 text-center"><p className="text-sm font-bold text-foreground">{first?`Cartela ${selected+1} de 7`:`Lansoprazol · semana ${Math.floor((selected-7)/7)+1} de 4`}</p><p className="text-[11px] text-muted-foreground">{dayLabel(day.iso)} · Dia {selected+1} de 35 · {first?"4 manhã + 4 noite":"1 cápsula diária"}</p></div>
     <button type="button" disabled={selected===34} onClick={()=>setSelected(x=>Math.min(34,x+1))} className="rounded-lg border border-border p-1.5 text-foreground disabled:opacity-30" aria-label="Próxima cartela"><ArrowRight size={16}/></button>
   </div>
-  <div className="mt-2 flex items-center justify-between gap-2 rounded-lg bg-muted/60 px-2.5 py-2 text-[11px]">
+  <div className="mt-1 flex items-center justify-between gap-2 rounded-lg bg-muted/60 px-2 py-1.5 text-[11px]">
    <span className="font-semibold text-foreground">{dayCompleted===dayExpected?"Dia confirmado":dayCompleted?"Tomada parcial":"Aguardando tomada"} · {dayCompleted}/{dayExpected} registros</span>
    <span className="text-muted-foreground">{day.tasks.filter(t=>t.completed_at).map(t=>timeText(t.completed_at!)).join(" · ")||"Sem confirmação"}</span>
   </div>
   {loading?<p className="mt-5 text-center text-sm text-muted-foreground">Carregando tratamento…</p>:<>
-   <div className="mx-auto mt-1 w-full max-w-[165px] sm:max-w-[185px]">
+   <div className="mx-auto mt-1 w-full max-w-[145px] sm:max-w-[165px]">
      <div className={`relative mx-auto overflow-hidden rounded-xl ${first?"aspect-[480/440]":"aspect-[580/430]"}`}>
        {!first&&<img className="absolute inset-0 h-full w-full object-contain" src="/images/cartela-lansoprazol-7.svg" alt="Cartela ilustrativa de sete cápsulas"/>}
        {first?<svg viewBox="0 0 480 440" role="group" aria-label="Cartela de oito unidades. Quatro unidades à esquerda são da manhã e quatro à direita são da noite" className="absolute inset-0 block h-full w-full">
@@ -129,7 +129,7 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm}:P
    {!first&&<p className="mt-2 text-center text-[11px] text-muted-foreground">Cada cápsula da semana representa um dia. Verde indica confirmação registrada.</p>}
    {error&&<p role="alert" className="mt-2 text-xs text-destructive">{error}</p>}
   </>}
-  <div className="mt-2 flex gap-1 overflow-x-auto pb-1" aria-label="Selecionar cartela">
+  <div className="mt-1 flex gap-1 overflow-x-auto pb-1" aria-label="Selecionar cartela">
     {Array.from({length:7},(_,i)=><button type="button" key={i} onClick={()=>setSelected(i)} aria-current={selected===i?"true":undefined} className={`min-w-8 rounded-lg border px-2 py-1 text-[11px] font-semibold ${selected===i?"border-primary bg-primary/15 text-primary":days[i].tasks.length&&days[i].tasks.every(t=>t.completed_at)?"border-emerald-500/40 bg-emerald-500/10 text-emerald-600":"border-border text-muted-foreground"}`}>{days[i].tasks.length&&days[i].tasks.every(t=>t.completed_at)?"✓":i+1}</button>)}
     <span className="my-auto whitespace-nowrap px-1 text-[10px] text-muted-foreground">Continuidade</span>
     {Array.from({length:4},(_,i)=><button type="button" key={i+7} onClick={()=>setSelected(7+i*7)} className={`min-w-9 rounded-lg border px-2 py-1 text-[11px] ${selected>=7+i*7&&selected<14+i*7?"border-primary bg-primary/15 text-primary":"border-border text-muted-foreground"}`}>S{i+1}</button>)}
