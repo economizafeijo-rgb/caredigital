@@ -66,10 +66,10 @@ function Dashboard() {
   if (accessMode === "loading") return <div role="status" className="rounded-2xl bg-white/80 p-8 text-sm text-muted-foreground">Verificando acesso ao seu painel…</div>;
   if (accessMode === "unlinked") return <section className="mx-auto max-w-3xl rounded-3xl border border-[#b8d2df] bg-white p-6"><h1 className="text-2xl font-bold">Área do cliente</h1><p className="mt-3 text-sm text-muted-foreground">Sua conta está conectada, mas nenhum prontuário foi localizado para este acesso. Solicite ao administrador a vinculação do seu cadastro.</p></section>;
   if (accessMode === "client") return <div className="mx-auto max-w-5xl space-y-5">
-    <section className="rounded-3xl bg-gradient-to-r from-[#153b55] to-[#216b81] px-6 py-8 text-white sm:px-8">
+    <section className="rounded-2xl bg-gradient-to-r from-[#153b55] to-[#216b81] px-5 py-4 text-white sm:px-7 sm:py-5">
       <span className="text-xs font-semibold uppercase tracking-widest text-sky-200">CareDigital · Área do cliente</span>
-      <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Seu cuidado, sua rotina.</h1>
-      <p className="mt-3 max-w-2xl text-sm text-white/80">Confira os próximos horários e registre medicação, hidratação e refeições com segurança. Seus dados são exclusivos do seu acompanhamento.</p>
+      <h1 className="mt-1.5 text-2xl font-bold tracking-tight sm:text-3xl">Seu cuidado, sua rotina.</h1>
+      <p className="mt-1.5 max-w-2xl text-xs text-white/80 sm:text-sm">Confira os próximos horários e registre medicação, hidratação e refeições com segurança. Seus dados são exclusivos do seu acompanhamento.</p>
     </section>
     <HomeClientCard />
     <p className="px-1 text-xs text-muted-foreground">Horários exibidos no fuso do Acre. Confirme somente os cuidados realmente realizados. Alterações na prescrição devem ser orientadas pelo profissional responsável.</p>
@@ -78,36 +78,36 @@ function Dashboard() {
     <>
       {!canManage && <div role="status" className="mb-3 flex items-center gap-2 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">Visualização pública: nenhuma informação pode ser alterada sem acesso de administrador. <Link to="/entrar" className="font-semibold text-primary underline">Entrar</Link></div>}
       <div role="note" className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-[#abc8d7] bg-[#e0ecf3] px-4 py-3 text-xs text-[#25465c]"><strong>Visão demonstrativa</strong><span>Os indicadores desta página são ilustrativos. Para consultar o acompanhamento real, acesse o prontuário.</span></div>
-      <section className="relative isolate overflow-hidden rounded-[1.75rem] border border-[#9ac1d1]/30 bg-[#102f4d] bg-cover bg-center px-5 py-8 text-white shadow-[0_22px_65px_-32px_rgba(15,51,75,.75)] sm:px-8 md:px-10 md:py-11" style={{ backgroundImage: "linear-gradient(105deg, rgba(12,38,62,.98) 0%, rgba(18,62,87,.95) 48%, rgba(21,86,106,.58) 100%), url('/images/caredigital-care-hero.webp')" }}>
+      <section className="relative isolate overflow-hidden rounded-[1.75rem] border border-[#9ac1d1]/30 bg-[#102f4d] bg-cover bg-center px-5 py-4 text-white shadow-[0_22px_65px_-32px_rgba(15,51,75,.75)] sm:px-7 sm:py-5 md:px-8 md:py-6" style={{ backgroundImage: "linear-gradient(105deg, rgba(12,38,62,.98) 0%, rgba(18,62,87,.95) 48%, rgba(21,86,106,.58) 100%), url('/images/caredigital-care-hero.webp')" }}>
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute -right-16 -top-24 size-[360px] rounded-full bg-primary/25 blur-3xl" />
           <div className="absolute -bottom-24 left-1/4 size-[300px] rounded-full bg-sky/20 blur-3xl" />
         </div>
-        <div className="relative grid items-center gap-5 md:gap-7 lg:grid-cols-[1.1fr_1fr]">
+        <div className="relative grid items-center gap-3 md:gap-4 lg:grid-cols-[1.1fr_1fr]">
           <div className="animate-rise">
             <div className="label-mono text-sky-200/90">CAREDIGITAL · CUIDADO E TECNOLOGIA</div>
-            <h1 className="mt-2 max-w-[13ch] text-balance font-display text-3xl leading-[0.98] tracking-tight sm:mt-3 sm:text-5xl md:mt-4 md:text-6xl">
+            <h1 className="mt-1 max-w-[16ch] text-balance font-display text-3xl leading-[1.02] tracking-tight sm:mt-2 sm:text-4xl md:text-5xl">
               Próximas doses,
               <br />
               sob controle.
             </h1>
-            <p className="mt-2 hidden max-w-[46ch] text-pretty text-xs text-primary-foreground/75 sm:mt-3 sm:block sm:text-sm md:mt-4 md:text-base">
+            <p className="mt-2 hidden max-w-[54ch] text-pretty text-xs text-primary-foreground/75 sm:block sm:text-sm">
               Acompanhe a agenda, a hidratação e a evolução do cuidado em um único lugar, com informações organizadas e acesso ao prontuário.
             </p>
-            <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2 md:mt-5 md:gap-3">
+            <div className="mt-2 flex flex-wrap gap-1.5 sm:mt-3 sm:gap-2">
               <Link to="/prontuario"><Btn variant="primary">Abrir prontuário</Btn></Link>
               <Link to="/protocolos"><Btn variant="glass">Protocolos</Btn></Link>
               <Link to="/dietas"><Btn variant="glass">Alimentação</Btn></Link>
             </div>
           </div>
           <div className="animate-rise" style={{ animationDelay: "0.1s" }}>
-            <div className="rounded-2xl border border-white/20 bg-[#123f59]/75 p-4 text-white shadow-xl backdrop-blur-xl md:p-5">
+            <div className="rounded-2xl border border-white/20 bg-[#123f59]/75 p-3 text-white shadow-xl backdrop-blur-xl md:p-4">
               <div className="flex items-center justify-between">
                 <span className="label-mono text-primary-foreground/60">Próxima dose</span>
                 <span className="font-mono text-[11px] text-primary-foreground/60">{next?.d.patient ?? "—"}</span>
               </div>
-              <div className="mt-3 flex flex-wrap items-end gap-3">
-                <div className={`font-display text-5xl leading-none tabular-nums md:text-6xl ${next && next.s < 0 ? "text-destructive" : ""}`}>
+              <div className="mt-2 flex flex-wrap items-end gap-2">
+                <div className={`font-display text-4xl leading-none tabular-nums md:text-5xl ${next && next.s < 0 ? "text-destructive" : ""}`}>
                   {next ? fmtDuration(Math.max(0, next.s)) : "--:--:--"}
                 </div>
                 <div className="pb-1">
