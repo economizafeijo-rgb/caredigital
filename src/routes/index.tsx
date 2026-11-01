@@ -44,9 +44,12 @@ function Dashboard() {
 
   const pending = doses.filter((d) => !d.done);
   const withSecs = now
-    ? pending.map((d) => ({ d, s: secondsUntil(now, d.time) + (snoozed[d.id] ?? 0) * 60 })).sort((a, b) => a.s - b.s)
+    ? pending.map((d) => {
+        const remaining = secondsUntil(now, d.time) + (snoozed[d.id] ?? 0) * 60;
+        return { d, s: remaining < 0 ? remaining + 86400 : remaining, tomorrow: remaining < 0 };
+      }).sort((a, b) => a.s - b.s)
     : [];
-  const next = withSecs.find((x) => x.s > -1800) ?? withSecs[0];
+  const next = withSecs[0];
   const doneCount = doses.length - pending.length;
   const adherence = doses.length ? Math.round((doneCount / doses.length) * 100) : 0;
   const visibleDoses = doses.filter((d) => (patientFilter === "Todos" || d.patient === patientFilter) && (doseFilter === "Todas" || (doseFilter === "Pendentes" ? !d.done : !!d.done)));
@@ -101,12 +104,12 @@ function Dashboard() {
               </div>
               <div className="mt-3 flex flex-wrap items-end gap-3">
                 <div className={`font-display text-5xl leading-none tabular-nums md:text-6xl ${next && next.s < 0 ? "text-destructive" : ""}`}>
-                  {next ? (next.s < 0 ? "-" : "") + fmtDuration(Math.abs(next.s)) : "--:--:--"}
+                  {next ? fmtDuration(Math.max(0, next.s)) : "--:--:--"}
                 </div>
                 <div className="pb-1">
                   <div className="text-sm font-semibold">{next?.d.name ?? "Tudo em dia"}</div>
                   <div className="font-mono text-[11px] text-primary-foreground/60">
-                    {next ? `${next.d.route} · ${next.d.time}` : ""}
+                    {next ? `${next.d.route} · ${next.d.time} · ${next.tomorrow ? "amanhã" : "hoje"}` : ""}
                   </div>
                 </div>
               </div>
