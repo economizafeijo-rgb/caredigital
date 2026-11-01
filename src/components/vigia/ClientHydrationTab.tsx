@@ -74,7 +74,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
  const schedule=useMemo(()=>tasks.filter(item=>item.category==="hidratacao").sort((a,b)=>Date.parse(a.scheduled_at)-Date.parse(b.scheduled_at)),[tasks]);
  const portions=useMemo(()=>schedule.map((_,i)=>{
    if(!goal||!schedule.length)return 0;
-   const unit=Math.floor(goal/schedule.length/50)*50;
+   const unit=Math.floor(goal/schedule.length/10)*10;
    return i===schedule.length-1?goal-unit*(schedule.length-1):unit;
  }),[schedule,goal]);
  const skipped=new Map(notDrunk.map(item=>[item.task_id,item.recorded_at]));
