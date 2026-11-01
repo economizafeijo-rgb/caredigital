@@ -65,16 +65,12 @@ function Dashboard() {
 
   if (accessMode === "loading") return <div role="status" className="rounded-2xl bg-white/80 p-8 text-sm text-muted-foreground">Verificando acesso ao seu painel…</div>;
   if (accessMode === "unlinked") return <section className="mx-auto max-w-3xl rounded-3xl border border-[#b8d2df] bg-white p-6"><h1 className="text-2xl font-bold">Área do cliente</h1><p className="mt-3 text-sm text-muted-foreground">Sua conta está conectada, mas nenhum prontuário foi localizado para este acesso. Solicite ao administrador a vinculação do seu cadastro.</p></section>;
-  if (false && accessMode === "client") return <div className="mx-auto max-w-6xl space-y-2">
-    <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card/80 px-4 py-2.5"><div><p className="text-[10px] font-semibold uppercase tracking-widest text-primary">CareDigital · Área do cliente</p><h1 className="text-base font-bold text-foreground">Seu acompanhamento em um só lugar</h1></div><span className="text-[11px] text-muted-foreground">Tratamento · Rotina · Histórico</span></div>
-    <ClientHomeSummary />
-    <p className="px-1 text-xs text-muted-foreground">Horários exibidos no fuso do Acre. Confirme somente os cuidados realmente realizados. Alterações na prescrição devem ser orientadas pelo profissional responsável.</p>
-  </div>;
   return (
     <>
       {accessMode === "client" && <ClientHomeSummary />}
       {accessMode !== "client" && !canManage && <div role="status" className="mb-3 flex items-center gap-2 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">Visualização pública: nenhuma informação pode ser alterada sem acesso de administrador. <Link to="/entrar" className="font-semibold text-primary underline">Entrar</Link></div>}
       {accessMode !== "client" && <div role="note" className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-[#abc8d7] bg-[#e0ecf3] px-4 py-3 text-xs text-[#25465c]"><strong>Visão demonstrativa</strong><span>Os indicadores desta página são ilustrativos. Para consultar o acompanhamento real, acesse o prontuário.</span></div>
+      {accessMode !== "client" && <>
       <section className="relative isolate overflow-hidden rounded-[1.75rem] border border-[#9ac1d1]/30 bg-[#102f4d] bg-cover bg-center px-5 py-4 text-white shadow-[0_22px_65px_-32px_rgba(15,51,75,.75)] sm:px-7 sm:py-5 md:px-8 md:py-6" style={{ backgroundImage: "linear-gradient(105deg, rgba(12,38,62,.98) 0%, rgba(18,62,87,.95) 48%, rgba(21,86,106,.58) 100%), url('/images/caredigital-care-hero.webp')" }}>
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute -right-16 -top-24 size-[360px] rounded-full bg-primary/25 blur-3xl" />
@@ -136,7 +132,7 @@ function Dashboard() {
         </div>
       </section>
 
-      {accessMode !== "client" && <ClientHomeSummary />}
+
 
       <section className="mt-5 grid grid-cols-1 gap-4 md:mt-6 md:gap-5 lg:grid-cols-3">
         <Panel title="Doses de hoje" className="lg:col-span-2" delay={0.15}
@@ -230,6 +226,7 @@ function Dashboard() {
           </div>
         </Panel>
       </section>
+      </>}
     </>
   );
 }
