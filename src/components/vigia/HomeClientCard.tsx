@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { CalendarClock, Clock3, CheckCircle2, Droplets, LockKeyhole, Pill, UtensilsCrossed, UserRound, AlertTriangle, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { MedicationBlisterCalendar } from "./MedicationBlisterCalendar";
+import { CompactTreatmentBlister } from "./CompactTreatmentBlister";
 import { PatientActivityHistory } from "./PatientActivityHistory";
 
 type Client = { id: string; owner_id: string; full_name: string; status: string; care_goal: string | null };
@@ -29,6 +29,7 @@ export function HomeClientCard() {
   const [amount, setAmount] = useState("200");
   const [busy, setBusy] = useState(false);
   const [lateReason, setLateReason] = useState("acordei_tarde");
+  const [activeTab, setActiveTab] = useState<"hoje" | "agenda" | "historico" | "alimentacao">("hoje");
   const [tick, setTick] = useState(0);
   const [clock, setClock] = useState<Date | null>(null);
   useEffect(() => { const update = () => setClock(new Date()); update(); const timer = window.setInterval(update,1000); return () => window.clearInterval(timer); }, []);
@@ -133,44 +134,41 @@ export function HomeClientCard() {
     } finally { setBusy(false); }
   }
 
-  return <section aria-label="Resumo do cliente e agenda" className="mt-6 overflow-hidden rounded-3xl border border-[#b8d2df] bg-white shadow-[0_20px_54px_-38px_rgba(11,55,78,.45)]">
-    <div className="flex flex-wrap items-center justify-between gap-3 bg-gradient-to-r from-[#123b58] to-[#216986] px-5 py-4 text-white">
-      <div className="flex items-center gap-3"><span className="rounded-xl bg-white/15 p-2"><UserRound size={22}/></span><div><h2 className="text-lg font-bold">Meu acompanhamento</h2><p className="text-xs text-white/75">Agenda de hoje · horário do Acre</p></div></div>
+  return <section aria-label="Resumo do cliente e agenda" className="mt-2 overflow-hidden rounded-2xl border border-[#b8d2df] bg-white shadow-[0_20px_54px_-38px_rgba(11,55,78,.45)]">
+    <div className="flex flex-wrap items-center justify-between gap-3 bg-gradient-to-r from-[#123b58] to-[#216986] px-4 py-2.5 text-white">
+      <div className="flex items-center gap-3"><span className="rounded-xl bg-white/15 p-2"><UserRound size={22}/></span><div><h2 className="text-base font-bold">Meu acompanhamento</h2><p className="text-xs text-white/75">Agenda de hoje · horário do Acre</p></div></div>
       <Link to={owner ? "/prontuario" : "/entrar"} className="rounded-xl border border-white/30 bg-white/10 px-4 py-2 text-xs font-semibold hover:bg-white/20">{owner ? "Abrir prontuário" : "Entrar para acessar"}</Link>
     </div>
     {loading ? <p className="p-6 text-sm text-muted-foreground">Verificando acesso seguro…</p> : !owner ? <div className="grid gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-center">
       <div><div className="flex items-center gap-2 font-semibold"><LockKeyhole size={19} className="text-primary"/> Acesso protegido</div><p className="mt-2 max-w-2xl text-sm text-muted-foreground">Entre com sua conta para visualizar o cliente cadastrado, consultar a programação e confirmar medicação, água e refeições. Nenhum dado pessoal aparece sem autenticação.</p></div>
       <button onClick={() => setLocked(true)} className="rounded-xl bg-[#216083] px-5 py-3 text-sm font-semibold text-white">Consultar programação</button>
-    </div> : !client ? <p className="p-6 text-sm text-muted-foreground">Nenhum cliente vinculado a esta conta. Confira seu acesso ao prontuário.</p> : <div className="p-5">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-lg font-bold text-[#173b52]">{client.full_name}</h3><p className="text-xs text-muted-foreground">{client.care_goal || "Acompanhamento individual"}</p></div><div className="rounded-xl bg-[#e5f1f5] px-3 py-2 text-xs font-semibold text-[#1f5974]">{completed} de {tasks.length} cuidados registrados</div></div>
-      <section className="mb-5 rounded-2xl border border-[#b6d4df] bg-gradient-to-br from-[#f3fafc] to-white p-5" aria-label="Tratamento atual">
-        <div className="mb-4 flex items-center gap-2"><Pill size={21} className="text-[#216083]"/><div><h4 className="text-xl font-bold text-[#153c54]">Tratamento de gastrite e H. pylori</h4><p className="text-xs text-[#54768b]">Programação cadastrada · não substitui a receita médica</p></div></div>
-        <div className="grid gap-5 sm:grid-cols-[230px_1fr]">
-          <div><img src="/images/cartela-combinada-8.svg" alt="Representação da cartela de oito unidades do tratamento combinado" className="h-52 w-full rounded-2xl border border-border bg-white object-contain p-2 shadow-sm"/><p className="mt-1 text-[10px] text-muted-foreground">Ilustração baseada na disposição dos oito comprimidos, sem substituir a embalagem real.</p></div>
-          <div><h5 className="text-base font-bold text-[#173b52]">Lansoprazol + claritromicina + amoxicilina</h5><p className="text-xs text-muted-foreground">Apresentação identificada anteriormente: 30 mg + 500 mg + 500 mg. Confira o medicamento e a posologia na receita.</p>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2"><div className="rounded-xl bg-white p-3 ring-1 ring-[#daebf0]"><p className="text-xs text-muted-foreground">Início registrado</p><strong className="text-sm">31/10/2026</strong></div><div className="rounded-xl bg-white p-3 ring-1 ring-[#daebf0]"><p className="text-xs text-muted-foreground">Término previsto da agenda</p><strong className="text-sm">04/12/2026</strong></div></div>
-          </div>
-        </div>
-        <div className="mt-4 grid gap-3 md:grid-cols-2"><div className="rounded-xl bg-white p-4 ring-1 ring-[#d8e7ed]"><h5 className="text-sm font-bold text-[#153c54]">Etapa 1 · 31/10 a 06/11 · 7 cartelas (8 unidades)</h5><p className="mt-2 text-sm">07:00 — Confirmar tomada matinal (4 unidades informadas)</p><p className="mt-1 text-sm">19:00 — Confirmar tomada noturna (4 unidades informadas)</p></div><div className="rounded-xl bg-white p-4 ring-1 ring-[#d8e7ed]"><h5 className="text-sm font-bold text-[#153c54]">Etapa 2 · 07/11 a 04/12 · 4 cartelas (7 cápsulas)</h5><p className="mt-2 text-sm">07:00 — 1 cápsula de lansoprazol em jejum, segundo relato do cliente</p><p className="mt-2 text-xs text-muted-foreground">Confirme com o prescritor se a segunda etapa e a duração estão corretas.</p></div></div>
-      </section>
-      <MedicationBlisterCalendar patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm}/>
-      <PatientActivityHistory patientId={client.id} ownerId={client.owner_id} revision={tick}/>
-      <div className="mb-5 grid gap-3 md:grid-cols-2">
-        <div className="rounded-2xl bg-[#123b58] p-5 text-white"><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-sky-200"><Clock3 size={16}/> Relógio digital · Acre</div><div className="mt-3 font-mono text-4xl font-bold tabular-nums sm:text-5xl">{clock ? new Intl.DateTimeFormat("pt-BR",{timeZone:tz,hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(clock) : "--:--:--"}</div><p className="mt-2 text-sm capitalize text-white/75">{clock ? dateInAcre(clock) : "Sincronizando horário…"}</p></div>
-        <div className="rounded-2xl border border-[#c9dfe9] bg-[#e9f3f7] p-5"><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[#2b647f]"><CalendarClock size={16}/> Próximo cuidado</div>{nextCare ? <><div className="mt-3 text-2xl font-bold text-[#163b54]">{timeInAcre(nextCare.scheduled_at)} · {categoryInfo[nextCare.category]?.label ?? "Atividade"}</div><p className="mt-1 text-sm text-[#43647a]">{nextCare.title}</p><button onClick={() => askConfirm(nextCare)} className="mt-3 rounded-lg bg-[#216083] px-4 py-2 text-sm font-semibold text-white">Confirmar realização</button></> : <p className="mt-4 text-sm text-[#43647a]">Sem cuidados pendentes hoje.</p>}</div>
+    </div> : !client ? <p className="p-6 text-sm text-muted-foreground">Nenhum cliente vinculado a esta conta. Confira seu acesso ao prontuário.</p> : <div className="p-3 sm:p-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="min-w-0"><h3 className="text-base font-bold text-foreground">{client.full_name}</h3><p className="text-[11px] text-muted-foreground">Gastrite / H. pylori · ciclo de 35 dias · horários do Acre</p></div>
+        <div className="flex items-center gap-2"><span className="rounded-lg bg-muted px-2.5 py-1.5 text-[11px] font-semibold text-foreground">{completed}/{tasks.length} cuidados hoje</span><span className="hidden font-mono text-xs tabular-nums text-muted-foreground sm:block">{clock?new Intl.DateTimeFormat("pt-BR",{timeZone:tz,hour:"2-digit",minute:"2-digit",hour12:false}).format(clock):"--:--"}</span></div>
       </div>
-      <div className="mb-4"><h4 className="mb-3 text-base font-bold text-[#173b52]">Cuidados programados</h4></div>
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{nextItems.map(task => {
-        const info = categoryInfo[task.category];
-        const Icon = info.icon;
-        return <div key={task.id} className="rounded-2xl border border-[#d4e3eb] bg-[#f5f9fb] p-3">
-          <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-[#286680]"><Icon size={16}/>{info.label}<span className="ml-auto font-mono">{timeInAcre(task.scheduled_at)}</span></div>
-          <p className="min-h-10 text-sm font-medium text-[#18374e]">{task.title}</p>
-          <button type="button" onClick={() => askConfirm(task)} className="mt-3 w-full rounded-lg bg-[#216083] px-3 py-2 text-xs font-semibold text-white">Confirmar {task.category === "hidratacao" ? "água" : task.category === "medicacao" ? "medicação" : "refeição"}</button>
-        </div>;
-      })}</div>
-      <section className="mt-6 rounded-2xl border border-[#d4e3eb] bg-[#f5f9fb] p-4"><h4 className="text-base font-bold text-[#173b52]">Cardápio orientativo · Gastrite / H. pylori</h4><p className="mt-1 text-xs text-muted-foreground">Sugestões alimentares, não uma prescrição. Adapte conforme sintomas, alergias e orientação profissional. Evite alimentos que provocam dor, café e comidas muito gordurosas ou apimentadas.</p><div className="mt-4 grid gap-3 md:grid-cols-2">{meals.map(meal => <div key={meal.id} className="rounded-xl bg-white p-3 ring-1 ring-[#d7e7ee]"><div className="flex flex-wrap items-center justify-between gap-2"><div><strong className="text-sm text-[#173b52]">{meal.title}</strong><p className="text-xs text-[#53768c]">{timeInAcre(meal.scheduled_at)} · {meal.completed_at ? "Confirmada" : "Pendente"}</p></div>{!meal.completed_at && <button onClick={() => askConfirm(meal)} className="rounded-lg bg-[#216083] px-3 py-2 text-xs font-semibold text-white">Confirmar</button>}</div><p className="mt-2 text-sm text-[#49677a]">{mealGuide[meal.title] ?? "Refeição leve com alimentos bem tolerados, conforme seu plano alimentar."}</p></div>)}</div>{meals.length === 0 && <p className="mt-3 text-sm text-muted-foreground">Não há refeições programadas para hoje.</p>}</section>
-      {nextItems.length === 0 && <p className="text-sm text-muted-foreground">Não há cuidados pendentes para hoje. Consulte o prontuário para outros dias.</p>}
+      <div className="mb-3 flex gap-1 overflow-x-auto rounded-xl border border-border bg-muted/40 p-1" role="tablist" aria-label="Seções do acompanhamento">
+        {([{key:"hoje",label:"Visão geral"},{key:"agenda",label:"Agenda"},{key:"historico",label:"Histórico"},{key:"alimentacao",label:"Alimentação"}] as const).map(tab=><button type="button" role="tab" key={tab.key} aria-selected={activeTab===tab.key} onClick={()=>setActiveTab(tab.key)} className={`flex-1 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${activeTab===tab.key?"bg-card text-primary shadow-sm ring-1 ring-border":"text-muted-foreground hover:text-foreground"}`}>{tab.label}</button>)}
+      </div>
+      <div className="grid items-start gap-3 lg:grid-cols-[minmax(275px,0.92fr)_minmax(0,1.08fr)]">
+        <CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm}/>
+        <div className="min-w-0 rounded-2xl border border-border bg-card p-3 sm:p-4">
+          {activeTab==="hoje"&&<div className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2"><h4 className="text-sm font-bold text-foreground">Resumo do dia</h4><span className="rounded-full bg-primary/10 px-2 py-1 text-[10px] font-semibold text-primary">{dateInAcre(clock??new Date())}</span></div>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="rounded-xl bg-muted p-2.5"><p className="text-[10px] text-muted-foreground">Cuidados</p><p className="mt-1 text-lg font-extrabold tabular-nums">{tasks.length}</p></div>
+              <div className="rounded-xl bg-muted p-2.5"><p className="text-[10px] text-muted-foreground">Concluídos</p><p className="mt-1 text-lg font-extrabold tabular-nums text-success">{completed}</p></div>
+              <div className="rounded-xl bg-muted p-2.5"><p className="text-[10px] text-muted-foreground">Pendentes</p><p className="mt-1 text-lg font-extrabold tabular-nums">{tasks.length-completed}</p></div>
+            </div>
+            <div className="rounded-xl border border-border p-3"><div className="flex items-center gap-2 text-xs font-bold text-foreground"><CalendarClock size={16} className="text-primary"/> Próximo cuidado</div>{nextCare?<><p className="mt-1 text-sm font-semibold">{timeInAcre(nextCare.scheduled_at)} · {categoryInfo[nextCare.category]?.label??"Atividade"}</p><p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{nextCare.title}</p><button type="button" onClick={()=>askConfirm(nextCare)} className="mt-2 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">Consultar / confirmar</button></>:<p className="mt-2 text-xs text-muted-foreground">Nenhum cuidado pendente hoje.</p>}</div>
+            <div className="rounded-xl bg-muted/65 p-3"><p className="text-xs font-bold">Plano cadastrado</p><p className="mt-1 text-xs text-muted-foreground">31/10–06/11: 7 cartelas de 8 unidades (4 manhã e 4 noite).</p><p className="mt-1 text-xs text-muted-foreground">07/11–04/12: 4 semanas de lansoprazol, 1 cápsula ao dia.</p></div>
+            <p className="text-[11px] text-muted-foreground">31/10: foram relatadas 8 unidades tomadas (10h e 19h). Relato não é confirmação persistida no prontuário.</p>
+          </div>}
+          {activeTab==="agenda"&&<div><h4 className="text-sm font-bold">Cuidados agendados para hoje</h4><p className="mt-1 text-xs text-muted-foreground">Selecione apenas uma atividade realizada; o horário é registrado pelo servidor.</p><div className="mt-3 max-h-[420px] space-y-2 overflow-y-auto">{tasks.map(task=>{const Icon=categoryInfo[task.category]?.icon??Pill;return <div key={task.id} className="flex items-center gap-2 rounded-xl border border-border p-2.5"><Icon size={17} className="shrink-0 text-primary"/><div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold">{task.title}</p><p className="text-[11px] text-muted-foreground">{timeInAcre(task.scheduled_at)} · {task.completed_at?"Confirmado":"Pendente"}</p></div>{!task.completed_at&&<button className="shrink-0 rounded-lg bg-primary/10 px-2.5 py-2 text-xs font-semibold text-primary" onClick={()=>askConfirm(task)}>Confirmar</button>}</div>})}{tasks.length===0&&<p className="text-sm text-muted-foreground">Nenhum cuidado cadastrado hoje.</p>}</div></div>}
+          {activeTab==="historico"&&<div><h4 className="mb-2 text-sm font-bold">Histórico e prontuário</h4><p className="mb-2 text-xs text-muted-foreground">Confira datas, horários e registros existentes, sem alterar o histórico original.</p><PatientActivityHistory patientId={client.id} ownerId={client.owner_id} revision={tick}/></div>}
+          {activeTab==="alimentacao"&&<div><h4 className="text-sm font-bold">Alimentação do dia</h4><p className="mt-1 text-xs text-muted-foreground">Sugestões orientativas; adapte aos sintomas e à prescrição.</p><div className="mt-3 max-h-[430px] space-y-2 overflow-y-auto">{meals.map(meal=><div key={meal.id} className="rounded-xl border border-border p-3"><div className="flex items-center justify-between gap-2"><p className="text-xs font-semibold">{meal.title}</p><span className="text-[10px] text-muted-foreground">{timeInAcre(meal.scheduled_at)}</span></div><p className="mt-1 text-xs text-muted-foreground">{mealGuide[meal.title]??"Alimentação leve conforme tolerância."}</p>{!meal.completed_at&&<button className="mt-2 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-semibold text-primary" onClick={()=>askConfirm(meal)}>Confirmar refeição</button>}</div>)}{meals.length===0&&<p className="text-sm text-muted-foreground">Sem refeições agendadas.</p>}</div></div>}
+        </div>
+      </div>
     </div>}
     {notice && <p role="status" className="mx-5 mb-4 rounded-xl bg-[#e4eff4] p-3 text-sm text-[#24526c]">{notice}</p>}
     {locked && <div role="dialog" aria-label="Acesso restrito" className="m-5 rounded-2xl border border-[#aec8d6] bg-[#eff5f8] p-5">
