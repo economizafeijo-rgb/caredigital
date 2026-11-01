@@ -140,7 +140,7 @@ export function HydrationProvider({ children }: { children: ReactNode }) {
   return <HydrationContext.Provider value={value}>{children}</HydrationContext.Provider>;
 }
 
-function useHydration() {
+export function useHydration() {
   const context = useContext(HydrationContext);
   if (!context) throw new Error("HydrationProvider ausente");
   return context;
