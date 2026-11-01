@@ -202,6 +202,8 @@ function Prontuario() {
   const todayMedication = tasks.filter(task => task.category === "medicacao" && localDay(task.scheduled_at) === todayForAlerts).sort((a,b) => a.scheduled_at.localeCompare(b.scheduled_at));
   const dueNow = todayMedication.filter(task => !task.completed_at && new Date(task.scheduled_at).getTime() <= clockNow && clockNow - new Date(task.scheduled_at).getTime() <= 60*60*1000);
   const upcoming = todayMedication.filter(task => !task.completed_at && new Date(task.scheduled_at).getTime() > clockNow).slice(0,2);
+  const priorUnconfirmed = todayMedication.filter(task => !task.completed_at && clockNow - new Date(task.scheduled_at).getTime() > 3600000);
+  const confirmedToday = todayMedication.filter(task => Boolean(task.completed_at));
   const current = clients.find((client) => client.id === selected);
   const completed = tasks.filter((task) => task.completed_at).length;
   const filteredTasks = tasks.filter(task => localDay(task.scheduled_at) === agendaDay && (agendaFilter === "todos" || task.category === agendaFilter));
@@ -259,6 +261,7 @@ function Prontuario() {
                 {dueNow.map(task => <p key={task.id} className="mt-1 text-sm">{fmt(task.scheduled_at)} — {task.title}</p>)}
                 <p className="mt-2 text-xs text-muted-foreground">Confira a prescrição e registre a atividade somente após verificar o cuidado. Um horário alcançado não confirma atraso nem dose não tomada.</p>
               </div>}
+              <div className="mb-3 grid grid-cols-3 gap-2 text-center">{[["Próximos", upcoming.length], ["Sem registro", priorUnconfirmed.length], ["Concluídos", confirmedToday.length]].map(([label, count]) => <div key={label} className="rounded-lg bg-foreground/5 p-2"><strong className="block text-lg">{count}</strong><span className="text-xs text-muted-foreground">{label}</span></div>)}</div>
               {upcoming.length > 0 ? <div className="space-y-2">{upcoming.map(task => <div key={task.id} className="flex items-center gap-3 rounded-xl bg-foreground/5 p-3"><Clock3 size={17} className="shrink-0 text-primary" /><div className="flex-1"><p className="text-sm font-medium">{task.title}</p><p className="text-xs text-muted-foreground">{fmt(task.scheduled_at)} · programado</p></div></div>)}</div> : <p className="text-sm text-muted-foreground">{todayMedication.length ? "Não há outras atividades de medicação previstas para hoje." : "Nenhum horário de medicação cadastrado para hoje."}</p>}
               <p className="mt-3 text-xs text-muted-foreground">Avisos exibidos exclusivamente dentro do CareDigital. Sem pop-ups do navegador ou solicitações de permissão. Esta central não envia mensagens com o aplicativo fechado.</p>
             </section>}
