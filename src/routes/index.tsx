@@ -18,13 +18,14 @@ export const Route = createFileRoute("/")({
 });
 
 function Dashboard() {
-  const [accessMode, setAccessMode] = useState<"loading" | "client" | "unlinked" | "public">("loading");
+  const [accessMode, setAccessMode] = useState<"loading" | "client" | "unlinked" | "public" | "admin">("loading");
   useEffect(() => {
     let active = true;
     const check = async () => {
       const { data } = await supabase.auth.getUser();
       if (!active) return;
       if (!data.user) { setAccessMode("public"); return; }
+      if ((data.user.email ?? "").trim().toLowerCase() === "francdenisbr@gmail.com") { setAccessMode("admin"); return; }
       const { data: links, error } = await (supabase as any).from("care_patient_access").select("patient_id").eq("user_id",data.user.id).limit(1);
       if (!active) return;
       if (!error && links?.length) { setAccessMode("client"); return; }
@@ -35,6 +36,7 @@ function Dashboard() {
     const { data: listener } = supabase.auth.onAuthStateChange(() => { void check(); });
     return () => { active = false; listener.subscription.unsubscribe(); };
   }, []);
+  const canManage = accessMode === "admin";
   const now = useNow();
   const [doses, setDoses] = useState(initialDoses);
   const [snoozed, setSnoozed] = useState<Record<string, number>>({});
@@ -55,6 +57,7 @@ function Dashboard() {
   const visibleDoses = doses.filter((d) => (patientFilter === "Todos" || d.patient === patientFilter) && (doseFilter === "Todas" || (doseFilter === "Pendentes" ? !d.done : !!d.done)));
 
   const confirm = (id: string) => {
+    if (!canManage) return;
     const t = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
     setDoses((ds) => ds.map((d) => (d.id === id ? { ...d, done: t } : d)));
     setLastConfirmed(id);
@@ -73,6 +76,7 @@ function Dashboard() {
   </div>;
   return (
     <>
+      {!canManage && <div role="status" className="mb-3 flex items-center gap-2 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">Visualização pública: nenhuma informação pode ser alterada sem acesso de administrador. <Link to="/entrar" className="font-semibold text-primary underline">Entrar</Link></div>}
       <div role="note" className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-[#abc8d7] bg-[#e0ecf3] px-4 py-3 text-xs text-[#25465c]"><strong>Visão demonstrativa</strong><span>Os indicadores desta página são ilustrativos. Para consultar o acompanhamento real, acesse o prontuário.</span></div>
       <section className="relative isolate overflow-hidden rounded-[1.75rem] border border-[#9ac1d1]/30 bg-[#102f4d] bg-cover bg-center px-5 py-8 text-white shadow-[0_22px_65px_-32px_rgba(15,51,75,.75)] sm:px-8 md:px-10 md:py-11" style={{ backgroundImage: "linear-gradient(105deg, rgba(12,38,62,.98) 0%, rgba(18,62,87,.95) 48%, rgba(21,86,106,.58) 100%), url('/images/caredigital-care-hero.webp')" }}>
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -118,8 +122,8 @@ function Dashboard() {
               </div>
               {next && (
                 <div className="mt-4 flex gap-2">
-                  <Btn variant="primary" onClick={() => confirm(next.d.id)}>Confirmar dose</Btn>
-                  <Btn variant="glass" onClick={() => setSnoozed((s) => ({ ...s, [next.d.id]: (s[next.d.id] ?? 0) + 15 }))}>Adiar 15 min</Btn>
+                  {canManage && <Btn variant="primary" onClick={() => confirm(next.d.id)}>Confirmar dose</Btn>}
+                  {canManage && <Btn variant="glass" onClick={() => setSnoozed((s) => ({ ...s, [next.d.id]: (s[next.d.id] ?? 0) + 15 }))}>Adiar 15 min</Btn>}
                 </div>
               )}
               <div className="mt-3 grid grid-cols-3 gap-2">
@@ -154,7 +158,7 @@ function Dashboard() {
             </label>
             {(doseFilter !== "Todas" || patientFilter !== "Todos") && <Btn variant="ghost" onClick={() => { setDoseFilter("Todas"); setPatientFilter("Todos"); }}>Limpar filtros</Btn>}
           </div>
-          {lastConfirmed && <div role="status" className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-success/30 bg-success/10 p-3 text-xs"><span>Dose confirmada nesta demonstração.</span><Btn variant="ghost" onClick={() => { setDoses((ds) => ds.map((d) => d.id === lastConfirmed ? { ...d, done: undefined } : d)); setLastConfirmed(null); }}>Desfazer</Btn></div>}
+          {lastConfirmed && <div role="status" className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-success/30 bg-success/10 p-3 text-xs"><span>Dose confirmada nesta demonstração.</span><Btn variant="ghost" disabled={!canManage} onClick={() => { if (!canManage) return; setDoses((ds) => ds.map((d) => d.id === lastConfirmed ? { ...d, done: undefined } : d)); setLastConfirmed(null); }}>Desfazer</Btn></div>}
           <div className="divide-y divide-border">
             {visibleDoses.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">Nenhuma dose encontrada para os filtros selecionados.</p>}
             {visibleDoses.map((d) => {
@@ -176,7 +180,7 @@ function Dashboard() {
                       <div className={`hidden font-mono text-[11px] tabular-nums sm:block ${s !== null && s < 0 ? "text-destructive" : "text-primary"}`}>
                         {s === null ? "--:--:--" : s < 0 ? `atrasado ${fmtDuration(-s)}` : fmtDuration(s)}
                       </div>
-                      <Btn onClick={() => confirm(d.id)}>Confirmar</Btn>
+                      {canManage ? <Btn onClick={() => confirm(d.id)}>Confirmar</Btn> : <span title="Somente o administrador pode confirmar dados da demonstração" className="rounded-lg border border-border px-3 py-2 text-xs text-muted-foreground">Somente leitura</span>}
                     </>
                   )}
                 </div>
@@ -203,7 +207,7 @@ function Dashboard() {
 
       <section className="mt-6 grid gap-6 lg:grid-cols-3">
         <Panel title="Protocolos ativos" className="lg:col-span-2" delay={0.25}
-          action={<Link to="/protocolos"><Btn>+ Novo</Btn></Link>}>
+          action={canManage ? <Link to="/protocolos"><Btn>+ Novo</Btn></Link> : undefined}>
           <div className="grid gap-3 sm:grid-cols-2">
             {protocols.map((p) => (
               <div key={p.id} className="rounded-xl bg-foreground/5 p-4">
@@ -215,7 +219,7 @@ function Dashboard() {
           </div>
         </Panel>
 
-        <Panel title="Equipe" delay={0.3} action={<Link to="/admin"><Btn>+ Conta</Btn></Link>}>
+        <Panel title="Equipe" delay={0.3} action={canManage ? <Link to="/admin"><Btn>+ Conta</Btn></Link> : undefined}>
           <div className="space-y-3">
             {team.slice(0, 4).map((m) => (
               <div key={m.id} className="flex items-center gap-3">
