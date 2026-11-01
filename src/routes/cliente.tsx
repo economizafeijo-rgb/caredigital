@@ -1,6 +1,6 @@
 import {createFileRoute,Link} from "@tanstack/react-router";
 import {HomeClientCard} from "@/components/vigia/HomeClientCard";
-import {ArrowLeft, House} from "lucide-react";
+import {House} from "lucide-react";
 export const Route=createFileRoute("/cliente")({component:ClientPage});
 function ClientPage(){
  return <div className="mx-auto max-w-6xl space-y-2">
