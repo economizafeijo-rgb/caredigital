@@ -71,7 +71,9 @@ export function HomeClientCard() {
     const now = Date.now();
     const future = tasks.filter(t => !t.completed_at && new Date(t.scheduled_at).getTime() >= now);
     const due = tasks.filter(t => !t.completed_at && new Date(t.scheduled_at).getTime() < now);
-    return [...due.slice(-3), ...future].slice(0,6);
+    const ordered = [...due.slice(-3).reverse(), ...future];
+    const grouped = ["medicacao", "hidratacao", "refeicao"].map(kind => ordered.find(t => t.category === kind)).filter((t): t is Task => Boolean(t));
+    return grouped;
   }, [tasks, tick]);
   const completed = tasks.filter(t => Boolean(t.completed_at)).length;
 
@@ -93,7 +95,7 @@ export function HomeClientCard() {
       const payload = pending.category === "hidratacao" ? Number(amount) : null;
       const result = await (supabase as any).rpc("care_confirm_task", { p_task_id: pending.id, p_water_ml: payload });
       if (result.error) throw result.error;
-      setTasks(previous => previous.map(t => t.id === pending.id ? { ...t, completed_at: result.data?.completed_at ?? new Date().toISOString() } : t));
+      setTasks(previous => previous.map(t => t.id === pending.id ? { ...t, completed_at: typeof result.data === "string" ? result.data : new Date().toISOString() } : t));
       setNotice(pending.category === "hidratacao" ? "Hidratação confirmada e volume registrado." : "Atividade confirmada no prontuário.");
       setPending(null);
     } catch {
