@@ -68,8 +68,8 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm}:P
          const row=i%4;
          return <button key={i} type="button" onClick={()=>setActivePill({index:selected,period,slot:row+1})}
            aria-label={`Ver unidade ${row+1} ${period==="morning"?"da manhã":"da noite"}`}
-           className={`absolute flex items-center justify-center rounded-full border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${done?"border-success bg-emerald-500/30 text-white":reported?"border-amber-400 bg-amber-500/20 text-white":"border-transparent bg-transparent hover:border-sky-300 hover:bg-sky-300/20"}`}
-           style={{left:period==="morning"?"10.8%":"56.3%",top:`${(30+row*91)/440*100}%`,width:"39.2%",height:"17.9%"}}>
+           className={`absolute flex items-center justify-center rounded-full border-0 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${done?"bg-emerald-500/20 text-white":reported?"bg-amber-500/15 text-white":"bg-transparent hover:bg-sky-300/15"}`}
+           style={{left:period==="morning"?"10.8333%":"56.25%",top:`${(30+row*91)/440*100}%`,width:"35.8333%",height:"14.7727%"}}>
            {(done||reported)&&<Check size={17} strokeWidth={3}/>}
          </button>;
        }):Array.from({length:7},(_,i)=>{
