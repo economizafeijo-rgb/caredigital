@@ -191,9 +191,13 @@ function Prontuario() {
     setObservationBusy(false);
   }
   async function toggle(task: Task) {
-    if (!owner) return;
-    const { error } = await db.from("care_daily_checklist").update({ completed_at: task.completed_at ? null : new Date().toISOString() }).eq("id", task.id).eq("owner_id", owner);
-    if (error) { setMessage(error.message); return; }
+    if (!owner || !selected || task.patient_id !== selected) return;
+    if (!task.completed_at && task.category === "medicacao") {
+      const confirmed = window.confirm("Confirme somente se a medicação foi realmente administrada conforme a prescrição. Registrar como concluída?");
+      if (!confirmed) return;
+    }
+    const { error } = await db.from("care_daily_checklist").update({ completed_at: task.completed_at ? null : new Date().toISOString() }).eq("id", task.id).eq("owner_id", owner).eq("patient_id", selected);
+    if (error) { setMessage("Não foi possível atualizar a atividade. Tente novamente."); return; }
     await loadRecords(owner, selected);
   }
   const weights = observations.filter(o => o.observation_type === "peso" && o.numeric_value !== null).slice().reverse();
@@ -293,7 +297,7 @@ function Prontuario() {
               </div>
               <p className="mb-3 text-xs text-muted-foreground">{dayDone} de {dayTasks.length} atividades concluídas no dia selecionado. Uma atividade pendente não significa que o cuidado foi omitido.</p>
               {tasks.length === 0 ? <p className="py-5 text-sm text-muted-foreground">Agenda vazia. Insira horários validados para iniciar o acompanhamento.</p> : filteredTasks.length === 0 ? <p className="py-5 text-sm text-muted-foreground">Nenhuma atividade cadastrada neste dia e filtro.</p> :
-                <div className="max-h-96 divide-y divide-border overflow-y-auto">{filteredTasks.map(task => <button type="button" key={task.id} onClick={() => void toggle(task)} className="flex w-full items-center gap-3 px-2 py-3 text-left hover:bg-foreground/5">{task.completed_at ? <CheckCircle2 className="text-success" size={20} /> : <Circle className="text-muted-foreground" size={20} />}<span className="flex-1"><span className={`block text-sm font-semibold ${task.completed_at ? "line-through opacity-60" : ""}`}>{task.title}</span><span className="text-xs text-muted-foreground">{fmt(task.scheduled_at)} · {task.category}</span></span></button>)}</div>}
+                <div className="max-h-96 divide-y divide-border overflow-y-auto">{filteredTasks.map(task => <button type="button" key={task.id} onClick={() => void toggle(task)} aria-label={task.completed_at ? `Desmarcar atividade concluída: ${task.title}` : `Marcar atividade realizada: ${task.title}`} className="flex w-full items-center gap-3 px-2 py-3 text-left hover:bg-foreground/5">{task.completed_at ? <CheckCircle2 className="text-success" size={20} /> : <Circle className="text-muted-foreground" size={20} />}<span className="flex-1"><span className={`block text-sm font-semibold ${task.completed_at ? "line-through opacity-60" : ""}`}>{task.title}</span><span className="text-xs text-muted-foreground">{fmt(task.scheduled_at)} · {task.category}</span></span></button>)}</div>}
             </Panel>}
             {activeSection === "agua" && <Panel title="Hidratação registrada" action={<Droplets size={19} className="text-primary" />}>
               <div className="flex items-baseline gap-2"><strong className="text-3xl">{consumedToday.toLocaleString("pt-BR")}</strong><span className="text-sm text-muted-foreground">ml registrados hoje</span></div>
