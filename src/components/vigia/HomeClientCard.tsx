@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { CalendarClock, Clock3, CheckCircle2, Droplets, LockKeyhole, Pill, UtensilsCrossed, UserRound, AlertTriangle, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { MedicationBlisterCalendar } from "./MedicationBlisterCalendar";
+import { PatientActivityHistory } from "./PatientActivityHistory";
 
 type Client = { id: string; owner_id: string; full_name: string; status: string; care_goal: string | null };
 type Task = { id: string; patient_id: string; title: string; category: string; scheduled_at: string; completed_at: string | null };
@@ -153,6 +154,7 @@ export function HomeClientCard() {
         <div className="mt-4 grid gap-3 md:grid-cols-2"><div className="rounded-xl bg-white p-4 ring-1 ring-[#d8e7ed]"><h5 className="text-sm font-bold text-[#153c54]">Etapa 1 · 31/10 a 06/11 · 7 cartelas (8 unidades)</h5><p className="mt-2 text-sm">07:00 — Confirmar tomada matinal (4 unidades informadas)</p><p className="mt-1 text-sm">19:00 — Confirmar tomada noturna (4 unidades informadas)</p></div><div className="rounded-xl bg-white p-4 ring-1 ring-[#d8e7ed]"><h5 className="text-sm font-bold text-[#153c54]">Etapa 2 · 07/11 a 04/12 · 4 cartelas (7 cápsulas)</h5><p className="mt-2 text-sm">07:00 — 1 cápsula de lansoprazol em jejum, segundo relato do cliente</p><p className="mt-2 text-xs text-muted-foreground">Confirme com o prescritor se a segunda etapa e a duração estão corretas.</p></div></div>
       </section>
       <MedicationBlisterCalendar patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm}/>
+      <PatientActivityHistory patientId={client.id} ownerId={client.owner_id} revision={tick}/>
       <div className="mb-5 grid gap-3 md:grid-cols-2">
         <div className="rounded-2xl bg-[#123b58] p-5 text-white"><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-sky-200"><Clock3 size={16}/> Relógio digital · Acre</div><div className="mt-3 font-mono text-4xl font-bold tabular-nums sm:text-5xl">{clock ? new Intl.DateTimeFormat("pt-BR",{timeZone:tz,hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(clock) : "--:--:--"}</div><p className="mt-2 text-sm capitalize text-white/75">{clock ? dateInAcre(clock) : "Sincronizando horário…"}</p></div>
         <div className="rounded-2xl border border-[#c9dfe9] bg-[#e9f3f7] p-5"><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[#2b647f]"><CalendarClock size={16}/> Próximo cuidado</div>{nextCare ? <><div className="mt-3 text-2xl font-bold text-[#163b54]">{timeInAcre(nextCare.scheduled_at)} · {categoryInfo[nextCare.category]?.label ?? "Atividade"}</div><p className="mt-1 text-sm text-[#43647a]">{nextCare.title}</p><button onClick={() => askConfirm(nextCare)} className="mt-3 rounded-lg bg-[#216083] px-4 py-2 text-sm font-semibold text-white">Confirmar realização</button></> : <p className="mt-4 text-sm text-[#43647a]">Sem cuidados pendentes hoje.</p>}</div>
