@@ -66,7 +66,7 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm}:P
  const continuationWeek=selected>=7?Math.floor((selected-7)/7):0;
  const continuationDoses=selected>=7?days.slice(7+continuationWeek*7,14+continuationWeek*7).map(d=>d.tasks[0]):[];
  const reportTime=activePill?.period==="morning"?"10:00":"19:00";
- return <section aria-label="Cartelas interativas" className="rounded-2xl border border-border bg-card p-3 shadow-sm sm:p-4">
+ return <section aria-label="Cartelas interativas" className="min-h-0 overflow-y-auto rounded-2xl border border-border bg-card p-2.5 shadow-sm lg:max-h-[calc(100dvh-260px)]">
   <div className="flex flex-wrap items-center justify-between gap-2">
    <div><h3 className="flex items-center gap-2 text-sm font-bold text-foreground"><Pill size={17} className="text-primary"/> Cartela interativa</h3><p className="text-[11px] text-muted-foreground">Cada tomada muda a cartela e registra data e hora.</p></div>
    <div className="text-right"><span className="text-lg font-extrabold tabular-nums text-foreground">{verified}/84</span><p className="text-[10px] text-muted-foreground">confirmadas no sistema</p></div>
@@ -82,7 +82,7 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm}:P
    <span className="text-muted-foreground">{day.tasks.filter(t=>t.completed_at).map(t=>timeText(t.completed_at!)).join(" · ")||"Sem confirmação"}</span>
   </div>
   {loading?<p className="mt-5 text-center text-sm text-muted-foreground">Carregando tratamento…</p>:<>
-   <div className="mx-auto mt-2 w-full max-w-[205px]">
+   <div className="mx-auto mt-1 w-full max-w-[165px] sm:max-w-[185px]">
      <div className={`relative mx-auto overflow-hidden rounded-xl ${first?"aspect-[480/440]":"aspect-[580/430]"}`}>
        {!first&&<img className="absolute inset-0 h-full w-full object-contain" src="/images/cartela-lansoprazol-7.svg" alt="Cartela ilustrativa de sete cápsulas"/>}
        {first?<svg viewBox="0 0 480 440" role="group" aria-label="Cartela de oito unidades. Quatro unidades à esquerda são da manhã e quatro à direita são da noite" className="absolute inset-0 block h-full w-full">
@@ -122,7 +122,7 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm}:P
      </div>
    </div>
    <div className="mt-2 flex items-center justify-center gap-3 text-[10px] text-muted-foreground"><span><i className="mr-1 inline-block size-2 rounded-full bg-success"/>Confirmado</span><span><i className="mr-1 inline-block size-2 rounded-full bg-amber-400"/>Relatado</span><span><i className="mr-1 inline-block size-2 rounded-full border border-border"/>Pendente</span></div>
-   {first&&<div className="mt-2 grid grid-cols-2 gap-2 text-[11px]">
+   {first&&<div className="mt-1 grid grid-cols-2 gap-1.5 text-[10px]">
      {([["Manhã",morning],["Noite",evening]] as const).map(([label,task])=><div key={label} className={`rounded-lg border px-2 py-2 ${task?.completed_at?"border-emerald-500/30 bg-emerald-500/10":"border-border bg-muted/40"}`}><p className="font-semibold text-foreground">{label} · 4 comprimidos</p><p className="mt-0.5 text-muted-foreground">Previsto: {task?timeText(task.scheduled_at).slice(0,5):"—"}</p><p className={task?.completed_at?"font-medium text-emerald-700 dark:text-emerald-300":"text-muted-foreground"}>{task?.completed_at?"Confirmado: "+new Intl.DateTimeFormat("pt-BR",{timeZone:zone,day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}).format(new Date(task.completed_at)):"Não confirmado"}</p></div>)}
    </div>}
    {firstReport&&<p className="mt-2 rounded-lg border border-amber-300/40 bg-amber-50 px-2 py-1.5 text-center text-[11px] text-amber-900 dark:bg-amber-950/25 dark:text-amber-100">31/10 · 8 unidades relatadas: manhã 10h, noite 19h</p>}
