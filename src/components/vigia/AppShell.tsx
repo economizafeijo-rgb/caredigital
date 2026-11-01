@@ -40,11 +40,15 @@ export function AppShell({ children }: { children: ReactNode }) {
     window.localStorage.setItem("caredigital-theme", next ? "dark" : "light");
   };
   const [clientOnly, setClientOnly] = useState(false);
+  const [adminAccess, setAdminAccess] = useState(false);
   useEffect(() => {
     let active = true;
     const check = async () => {
       const { data } = await supabase.auth.getUser();
-      if (!active || !data.user) { if (active) setClientOnly(false); return; }
+      if (!active || !data.user) { if (active) { setClientOnly(false); setAdminAccess(false); } return; }
+      const admin = (data.user.email ?? "").trim().toLowerCase() === "francdenisbr@gmail.com";
+      if (active) setAdminAccess(admin);
+      if (admin) { if (active) setClientOnly(false); return; }
       const { data: grants } = await (supabase as any).from("care_patient_access").select("patient_id").eq("user_id",data.user.id).limit(1);
       if (active) setClientOnly(Boolean(grants?.length));
     };
@@ -100,7 +104,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <button type="button" aria-label="Fechar menu" className="fixed inset-0 z-30 cursor-default" onClick={() => setMoreOpen(false)} />
           <nav className="fixed right-4 top-[4.25rem] z-40 grid w-64 gap-1 rounded-2xl border border-border bg-background p-2 shadow-xl md:right-[max(1.5rem,calc((100vw-80rem)/2))]" aria-label="Mais seções">
             <div className="flex items-center justify-between px-3 py-2"><span className="label-mono text-muted-foreground">Mais áreas</span><button type="button" onClick={() => setMoreOpen(false)} aria-label="Fechar"><X size={15} /></button></div>
-            {moreNav.map(({ to, label, icon: Icon }) => <Link key={to} to={to} onClick={() => setMoreOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-muted-foreground hover:bg-foreground/5 hover:text-foreground" activeProps={{ className: "!bg-primary/10 !text-primary" }}><Icon size={17} />{label}</Link>)}
+            {moreNav.filter(item => adminAccess || (item.to !== "/admin" && item.to !== "/prontuario" && item.to !== "/pacientes")).map(({ to, label, icon: Icon }) => <Link key={to} to={to} onClick={() => setMoreOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-muted-foreground hover:bg-foreground/5 hover:text-foreground" activeProps={{ className: "!bg-primary/10 !text-primary" }}><Icon size={17} />{label}</Link>)}
           </nav>
         </>}
 
@@ -111,7 +115,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           {!clientOnly && <button type="button" onClick={() => setMoreOpen((open) => !open)} aria-expanded={moreOpen} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl ${moreOpen ? "text-primary" : "text-muted-foreground"}`}><Ellipsis size={20} /><span className="text-[10px] font-semibold">Mais</span></button>}
         </nav>
 
-        {!clientOnly && <HydrationReminder />}
+        {adminAccess && <HydrationReminder />}
       </div>
     </HydrationProvider>
   );
