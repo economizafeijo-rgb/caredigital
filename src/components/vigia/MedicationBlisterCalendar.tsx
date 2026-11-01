@@ -42,7 +42,7 @@ export function MedicationBlisterCalendar({patientId,ownerId,revision,onConfirm}
  const completePills=days.reduce((sum,d)=>sum+d.tasks.filter(t=>t.completed_at).length*(d.stage1?4:1),0);
  const phase1Done=days.slice(0,7).reduce((sum,d)=>sum+d.tasks.filter(t=>t.completed_at).length*4,0);
  const phase2Done=days.slice(7).reduce((sum,d)=>sum+d.tasks.filter(t=>t.completed_at).length,0);
- const current=days[selected]??days[0];
+ const current=days[selected]??days[0]!;
  const todayKey=formatDay(new Date().toISOString());
  const groupStatus=(task:Dose|undefined)=>task?.completed_at?"confirmado":"pendente";
  // A tomada de 31/10 foi relatada pelo paciente; não substituir o timestamp auditável do servidor.
@@ -65,7 +65,7 @@ export function MedicationBlisterCalendar({patientId,ownerId,revision,onConfirm}
      {Array.from({length:8},(_,i)=>{
        const morning=i<4;
        const task=days[0]?.tasks.find(t=>formatTime(t.scheduled_at).slice(0,2)===(morning?"07":"19"))??days[0]?.tasks[morning?0:1];
-       const active=Boolean(task)&&!task?.completed_at&&formatDay(task.scheduled_at)===todayKey;
+       const active=Boolean(task)&&!task?.completed_at&&formatDay(task!.scheduled_at)===todayKey;
        const row=i%4;
        return <button key={i} type="button" onClick={()=>setPillInfo({period:morning?"morning":"night",unit:row+1})} title={morning?"Manhã — unidade "+(row+1):"Noite — unidade "+(row+1)} aria-label={`Cartela 1, ${morning?"manhã":"noite"}, unidade ${row+1}: ${task?.completed_at?"confirmação no sistema":firstBlisterReported?"tomada relatada pelo paciente, sem confirmação no sistema":active?"abrir detalhes":"somente leitura"}`} className={`absolute flex items-center justify-center rounded-full border-2 transition-all focus-visible:outline focus-visible:outline-4 focus-visible:outline-primary ${task?.completed_at?"border-emerald-400/90 bg-emerald-500/35 text-white":firstBlisterReported?"border-amber-300/90 bg-amber-500/25 text-white":active?"border-white/80 bg-white/10 text-white hover:bg-primary/40":"border-transparent bg-transparent"}`} style={{left:morning?"10.8%":"56.3%",top:`${(30+row*91)/440*100}%`,width:"39.2%",height:"17.9%"}}>{(task?.completed_at||firstBlisterReported)&&<Check size={26} strokeWidth={3}/>}</button>;
      })}
