@@ -68,8 +68,6 @@ function Dashboard() {
   return (
     <>
       {accessMode === "client" && <ClientHomeSummary />}
-      {accessMode !== "client" && !canManage && <div role="status" className="mb-3 flex items-center gap-2 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">Visualização pública: nenhuma informação pode ser alterada sem acesso de administrador. <Link to="/entrar" className="font-semibold text-primary underline">Entrar</Link></div>}
-      {accessMode !== "client" && <div role="note" className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-[#abc8d7] bg-[#e0ecf3] px-4 py-3 text-xs text-[#25465c]"><strong>Visão demonstrativa</strong><span>Os indicadores desta página são ilustrativos. Para consultar o acompanhamento real, acesse o prontuário.</span></div>}
       {accessMode !== "client" && <>
       <section className="relative isolate overflow-hidden rounded-[1.75rem] border border-[#9ac1d1]/30 bg-[#102f4d] bg-cover bg-center px-5 py-4 text-white shadow-[0_22px_65px_-32px_rgba(15,51,75,.75)] sm:px-7 sm:py-5 md:px-8 md:py-6" style={{ backgroundImage: "linear-gradient(105deg, rgba(12,38,62,.98) 0%, rgba(18,62,87,.95) 48%, rgba(21,86,106,.58) 100%), url('/images/caredigital-care-hero.webp')" }}>
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
