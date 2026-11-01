@@ -60,8 +60,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <HydrationProvider>
-      <div className="relative min-h-screen bg-background text-foreground">
-        <div className="pointer-events-none fixed inset-0 -z-0 overflow-hidden" aria-hidden="true">
+      <div className="care-shell relative min-h-screen bg-background text-foreground">
+        <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
           <div className="absolute -left-32 -top-40 size-[420px] rounded-full bg-primary/10 blur-3xl" />
           <div className="absolute -right-40 top-1/3 size-[380px] rounded-full bg-sky/15 blur-3xl" />
         </div>
@@ -108,7 +108,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </nav>
         </>}
 
-        <main className="relative mx-auto max-w-7xl px-3 py-4 pb-32 sm:px-5 md:px-6 md:py-6 md:pb-8">{children}</main>
+        <main className="relative z-10 mx-auto max-w-7xl px-3 py-4 pb-32 sm:px-5 md:px-6 md:py-6 md:pb-8">{children}</main>
 
         <nav className={`fixed inset-x-0 bottom-0 z-50 grid ${clientOnly ? "grid-cols-1" : "grid-cols-5"} border-t border-border/80 bg-background/95 px-1 pb-[max(.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden`} aria-label="Navegação do app">
           {visibleNav.map(({ to, label, icon: Icon }) => <Link key={to} to={to} activeOptions={{ exact: to === "/" }} className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-muted-foreground" activeProps={{ className: "!text-primary" }}><Icon size={19} strokeWidth={2} /><span className="text-[10px] font-semibold">{label}</span></Link>)}
