@@ -40,31 +40,31 @@ function Dashboard() {
 
   return (
     <>
-      <div role="note" className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-xs text-foreground"><strong>Ambiente de demonstração</strong><span>Os registros exibidos são fictícios e as confirmações não substituem um prontuário nem alertas clínicos reais.</span></div>
-      <section className="relative isolate overflow-hidden rounded-3xl bg-foreground bg-cover bg-center px-4 py-5 text-primary-foreground sm:px-6 md:px-8 md:py-8" style={{ backgroundImage: "linear-gradient(90deg, rgba(7, 20, 33, .97) 0%, rgba(7, 20, 33, .9) 45%, rgba(7, 20, 33, .5) 100%), url('/images/caredigital-care-hero.webp')" }}>
+      <div role="note" className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-[#abc8d7] bg-[#e0ecf3] px-4 py-3 text-xs text-[#25465c]"><strong>Visão demonstrativa</strong><span>Os indicadores desta página são ilustrativos. Para consultar o acompanhamento real, acesse o prontuário.</span></div>
+      <section className="relative isolate overflow-hidden rounded-[1.75rem] border border-[#9ac1d1]/30 bg-[#102f4d] bg-cover bg-center px-5 py-8 text-white shadow-[0_22px_65px_-32px_rgba(15,51,75,.75)] sm:px-8 md:px-10 md:py-11" style={{ backgroundImage: "linear-gradient(105deg, rgba(12,38,62,.98) 0%, rgba(18,62,87,.95) 48%, rgba(21,86,106,.58) 100%), url('/images/caredigital-care-hero.webp')" }}>
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute -right-16 -top-24 size-[360px] rounded-full bg-primary/25 blur-3xl" />
           <div className="absolute -bottom-24 left-1/4 size-[300px] rounded-full bg-sky/20 blur-3xl" />
         </div>
         <div className="relative grid items-center gap-5 md:gap-7 lg:grid-cols-[1.1fr_1fr]">
           <div className="animate-rise">
-            <div className="label-mono text-primary-foreground/60">Painel do cuidador</div>
+            <div className="label-mono text-sky-200/90">CAREDIGITAL · CUIDADO E TECNOLOGIA</div>
             <h1 className="mt-2 max-w-[13ch] text-balance font-display text-3xl leading-[0.98] tracking-tight sm:mt-3 sm:text-5xl md:mt-4 md:text-6xl">
               Próximas doses,
               <br />
               sob controle.
             </h1>
             <p className="mt-2 hidden max-w-[46ch] text-pretty text-xs text-primary-foreground/75 sm:mt-3 sm:block sm:text-sm md:mt-4 md:text-base">
-              Timer programável, protocolos por doença e dietas — tudo em um prontuário que não deixa nada passar.
+              Acompanhe a agenda, a hidratação e a evolução do cuidado em um único lugar, com informações organizadas e acesso ao prontuário.
             </p>
             <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2 md:mt-5 md:gap-3">
-              <Link to="/protocolos"><Btn variant="primary">Protocolos</Btn></Link>
-              <Link to="/dietas"><Btn variant="glass">Dietas</Btn></Link>
-              <Link to="/nutricao-esportiva"><Btn variant="glass">Nutrição</Btn></Link>
+              <Link to="/prontuario"><Btn variant="primary">Abrir prontuário</Btn></Link>
+              <Link to="/protocolos"><Btn variant="glass">Protocolos</Btn></Link>
+              <Link to="/dietas"><Btn variant="glass">Alimentação</Btn></Link>
             </div>
           </div>
           <div className="animate-rise" style={{ animationDelay: "0.1s" }}>
-            <div className="rounded-2xl bg-primary-foreground/10 p-4 ring-1 ring-primary-foreground/15 backdrop-blur-xl md:p-5">
+            <div className="rounded-2xl border border-white/20 bg-[#123f59]/75 p-4 text-white shadow-xl backdrop-blur-xl md:p-5">
               <div className="flex items-center justify-between">
                 <span className="label-mono text-primary-foreground/60">Próxima dose</span>
                 <span className="font-mono text-[11px] text-primary-foreground/60">{next?.d.patient ?? "—"}</span>
