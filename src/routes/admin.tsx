@@ -29,7 +29,8 @@ function Admin() {
       try {
         const { data: { user }, error } = await supabase.auth.getUser();
         if (error) throw error;
-        if (!user) { setMessage("É necessário entrar com sua conta para acessar o painel."); return; }
+        if (!user) { setMessage("É necessário entrar com sua conta administrativa para acessar o painel."); return; }
+        if ((user.email ?? "").trim().toLowerCase() !== "francdenisbr@gmail.com") { setMessage("Acesso reservado ao administrador da plataforma."); return; }
         if (!active) return;
         setEmail(user.email ?? "");
         // These tables are protected by RLS: a user sees only records owned by them.
