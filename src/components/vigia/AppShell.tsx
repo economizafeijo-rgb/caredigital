@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { Activity, Droplets, Ellipsis, Home, LogIn, LogOut, Maximize, Minimize, Moon, Sun, Pill, Utensils, Users, X } from "lucide-react";
 import { fmtClock, useNow } from "./ui";
 import { HydrationProvider, HydrationReminder } from "./HydrationTracker";
@@ -23,6 +23,7 @@ const moreNav = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   const now = useNow(30000);
+  const isClientPage = useRouterState({select: state => state.location.pathname === "/cliente"});
   const [moreOpen, setMoreOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   useEffect(() => {
@@ -94,14 +95,14 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <HydrationProvider>
-      <div className="care-shell relative min-h-screen bg-background text-foreground">
+      <div className="care-shell relative flex h-dvh min-h-0 flex-col overflow-hidden bg-background text-foreground">
         <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
           <div className="absolute -left-32 -top-40 size-[420px] rounded-full bg-primary/10 blur-3xl" />
           <div className="absolute -right-40 top-1/3 size-[380px] rounded-full bg-sky/15 blur-3xl" />
         </div>
 
-        <header className="sticky top-0 z-30 border-b border-border/70 bg-background/90 backdrop-blur-xl">
-          <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-3 px-3 md:h-16 md:px-6">
+        <header className="relative z-30 shrink-0 border-b border-border/70 bg-background/90 backdrop-blur-xl">
+          <div className="mx-auto flex h-12 max-w-7xl items-center justify-between gap-3 px-3 md:h-14 md:px-6">
             <Link to="/" className="flex shrink-0 items-center gap-2.5">
               <div className="grid size-8 place-items-center rounded-xl bg-foreground font-display text-lg leading-none text-primary-foreground">V</div>
               <div className="leading-none">
@@ -147,7 +148,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         {authError && <p role="alert" className="relative z-20 mx-auto max-w-7xl px-3 py-2 text-xs text-destructive">{authError}</p>}
         {fullScreenError && <p role="alert" className="relative z-20 mx-auto max-w-7xl px-3 py-2 text-xs text-destructive">{fullScreenError}</p>}
-        <main className="relative z-10 mx-auto max-w-7xl px-3 py-4 pb-32 sm:px-5 md:px-6 md:py-6 md:pb-8">{children}</main>
+        <main id="care-content" className={`relative z-10 mx-auto min-h-0 w-full max-w-7xl flex-1 px-3 pt-2 sm:px-5 md:px-6 md:pt-3 ${isClientPage ? "overflow-hidden pb-[70px] md:pb-3" : "overflow-y-auto overscroll-contain pb-[80px] md:pb-4"}`}>{children}</main>
 
         <nav className={`fixed inset-x-0 bottom-0 z-50 grid ${clientOnly ? "grid-cols-3" : "grid-cols-5"} border-t border-border/80 bg-background/95 px-1 pb-[max(.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden`} aria-label="Navegação do app">
           {visibleNav.map(({ to, label, icon: Icon }) => <Link key={to} to={to} activeOptions={{ exact: to === "/" }} className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-muted-foreground" activeProps={{ className: "!text-primary" }}><Icon size={19} strokeWidth={2} /><span className="text-[10px] font-semibold">{label}</span></Link>)}
