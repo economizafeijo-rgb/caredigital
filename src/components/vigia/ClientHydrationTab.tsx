@@ -6,7 +6,7 @@ type Task={id:string;patient_id:string;category:string;title:string;scheduled_at
 type Drink={id:string;amount_ml:number;recorded_at:string};
 type Response={task_id:string;recorded_at:string};
 type Profile={sex:"male"|"female"|"unspecified";age:number;weight_kg:number;objective:"recovery"|"muscle"|"weight";activity_minutes:number;sweat:"low"|"normal"|"high";fluid_restriction:boolean;target_ml:number|null};
-type Props={patientId:string;ownerId:string;tasks:Task[];revision:number;onConfirm:(task:Task)=>void};
+type Props={patientId:string;ownerId:string;tasks:Task[];revision:number;onConfirm:(task:Task)=>void;onRecorded:()=>void};
 const tz="America/Rio_Branco";
 const defaultProfile:Profile={sex:"unspecified",age:0,weight_kg:0,objective:"recovery",activity_minutes:0,sweat:"normal",fluid_restriction:false,target_ml:null};
 const round50=(value:number)=>Math.round(value/50)*50;
@@ -31,7 +31,7 @@ function estimate(profile:Profile){
  const reference=profile.sex==="male"?3000:profile.sex==="female"?2200:null;
  return {base,activity,target,reference,requiresReview:profile.fluid_restriction||profile.age>=75||target>4000};
 }
-export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm}:Props){
+export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,onRecorded}:Props){
  const [profile,setProfile]=useState<Profile>(defaultProfile);
  const [configured,setConfigured]=useState(false);
  const [editing,setEditing]=useState(false);
@@ -91,6 +91,17 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm}:
   setNotice(target?"Programa personalizado salvo.":"Perfil salvo; solicite uma meta individual ao profissional de saúde.");
   setReload(n=>n+1);
  }
+ async function confirmGlass(task:Task,volume:number){
+  if(action)return;
+  if(!goal||volume<10||volume>1500){onConfirm(task);return}
+  setAction(task.id);setError("");setNotice("");
+  const res=await (supabase as any).rpc("care_confirm_task",{p_task_id:task.id,p_water_ml:volume});
+  setAction(null);
+  if(res.error){setError("Não foi possível confirmar a água. Confira sua conexão ou tente novamente.");return}
+  setNotice(`Copo de ${volume} ml registrado com data e hora do servidor.`);
+  onRecorded();
+  setReload(n=>n+1);
+ }
  async function markNo(task:Task){
   if(action)return;
   setAction(task.id);setError("");setNotice("");
@@ -127,8 +138,8 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm}:
     return <article key={task.id} className={`flex items-center gap-2 rounded-xl border p-2.5 ${status==="done"?"border-emerald-500/40 bg-emerald-500/5":"border-border bg-card"}`}>
      <WaterGlass state={status}/>
      <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-1.5"><strong className="text-xs">Previsto: {time(task.scheduled_at)}</strong>{goal>0&&<span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">~{portions[i]} ml</span>}</div><p className="mt-1 text-[11px] text-muted-foreground">{status==="done"?`Bebeu · registrado em ${stamp(task.completed_at!)}`:status==="skipped"?`Não bebeu · informado em ${stamp(answered!)}`:"Aguardando sua resposta"}</p></div>
-     {status==="pending"&&<div className="flex shrink-0 flex-col gap-1"><button type="button" onClick={()=>onConfirm(task)} className="rounded-lg bg-primary px-2 py-1.5 text-[11px] font-bold text-primary-foreground">Bebi</button><button type="button" disabled={action===task.id} onClick={()=>void markNo(task)} className="rounded-lg border border-border px-2 py-1.5 text-[11px] font-medium text-foreground disabled:opacity-60">Não bebi</button></div>}
-     {status==="skipped"&&<button type="button" onClick={()=>onConfirm(task)} className="rounded-lg border border-primary/30 px-2 py-2 text-[11px] font-semibold text-primary">Bebi depois</button>}
+     {status==="pending"&&<div className="flex shrink-0 flex-col gap-1"><button type="button" onClick={()=>void confirmGlass(task,portions[i])} disabled={Boolean(action)} className="rounded-lg bg-primary px-2 py-1.5 text-[11px] font-bold text-primary-foreground disabled:opacity-60">{goal>0?`Bebi ${portions[i]} ml`:"Bebi"}</button><button type="button" disabled={action===task.id} onClick={()=>void markNo(task)} className="rounded-lg border border-border px-2 py-1.5 text-[11px] font-medium text-foreground disabled:opacity-60">Não bebi</button></div>}
+     {status==="skipped"&&<button type="button" onClick={()=>void confirmGlass(task,portions[i])} disabled={Boolean(action)} className="rounded-lg border border-primary/30 px-2 py-2 text-[11px] font-semibold text-primary disabled:opacity-60">Bebi depois</button>}
      {status==="done"&&<CheckCircle2 size={18} className="shrink-0 text-emerald-600"/>}
     </article>
    })}
