@@ -33,6 +33,7 @@ function Prontuario() {
   const [observationBusy, setObservationBusy] = useState(false);
   const [agendaDay, setAgendaDay] = useState(() => new Intl.DateTimeFormat("en-CA", {timeZone:"America/Rio_Branco",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date()));
   const [agendaFilter, setAgendaFilter] = useState("todos");
+  const [taskStatusFilter, setTaskStatusFilter] = useState("todos");
   const [activeSection, setActiveSection] = useState<"agenda" | "agua" | "evolucao">("agenda");
   const [name, setName] = useState("");
   const [birth, setBirth] = useState("");
@@ -206,7 +207,7 @@ function Prontuario() {
   const confirmedToday = todayMedication.filter(task => Boolean(task.completed_at));
   const current = clients.find((client) => client.id === selected);
   const completed = tasks.filter((task) => task.completed_at).length;
-  const filteredTasks = tasks.filter(task => localDay(task.scheduled_at) === agendaDay && (agendaFilter === "todos" || task.category === agendaFilter));
+  const filteredTasks = tasks.filter(task => localDay(task.scheduled_at) === agendaDay && (agendaFilter === "todos" || task.category === agendaFilter) && (taskStatusFilter === "todos" || (taskStatusFilter === "concluidos" ? Boolean(task.completed_at) : !task.completed_at)));
   const dayTasks = tasks.filter(task => localDay(task.scheduled_at) === agendaDay);
   const dayDone = dayTasks.filter(task => task.completed_at).length;
   const todayBrazil = new Intl.DateTimeFormat("en-CA", {timeZone:"America/Rio_Branco",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
@@ -281,6 +282,9 @@ function Prontuario() {
               <div className="mb-3 grid gap-3 sm:grid-cols-2">
                 <label className="text-xs">Dia da agenda<input type="date" className="field mt-1" value={agendaDay} onChange={e => setAgendaDay(e.target.value)} /></label>
                 <label className="text-xs">Exibir<select className="field mt-1" value={agendaFilter} onChange={e => setAgendaFilter(e.target.value)}><option value="todos">Todas as atividades</option><option value="medicacao">Medicação</option><option value="refeicao">Alimentação</option><option value="hidratacao">Hidratação</option><option value="peso">Peso</option><option value="outro">Outros</option></select></label>
+              </div>
+              <div className="mb-3 flex flex-wrap gap-2" aria-label="Filtrar situação dos cuidados">
+                {([["todos","Todos"],["pendentes","Pendentes"],["concluidos","Concluídos"]] as const).map(([value,label]) => <button key={value} type="button" aria-pressed={taskStatusFilter === value} onClick={() => setTaskStatusFilter(value)} className={`rounded-lg border px-3 py-2 text-xs font-semibold ${taskStatusFilter === value ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"}`}>{label}</button>)}
               </div>
               <p className="mb-3 text-xs text-muted-foreground">{dayDone} de {dayTasks.length} atividades concluídas no dia selecionado. Uma atividade pendente não significa que o cuidado foi omitido.</p>
               {tasks.length === 0 ? <p className="py-5 text-sm text-muted-foreground">Agenda vazia. Insira horários validados para iniciar o acompanhamento.</p> : filteredTasks.length === 0 ? <p className="py-5 text-sm text-muted-foreground">Nenhuma atividade cadastrada neste dia e filtro.</p> :
