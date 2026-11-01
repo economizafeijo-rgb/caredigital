@@ -136,26 +136,22 @@ export function HomeClientCard() {
     } finally { setBusy(false); }
   }
 
-  return <section aria-label="Resumo do cliente e agenda" className="mt-1 overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-    <div className="flex flex-wrap items-center justify-between gap-3 bg-gradient-to-r from-[#123b58] to-[#216986] px-3 py-2 text-white">
-      <div className="flex items-center gap-3"><span className="rounded-xl bg-white/15 p-2"><UserRound size={22}/></span><div><h2 className="text-base font-bold">Meu acompanhamento</h2><p className="text-xs text-white/75">Agenda de hoje · horário do Acre</p></div></div>
-      <Link to={owner ? "/prontuario" : "/entrar"} className="rounded-xl border border-white/30 bg-white/10 px-4 py-2 text-xs font-semibold hover:bg-white/20">{owner ? "Abrir prontuário" : "Entrar para acessar"}</Link>
-    </div>
+  return <section aria-label="Resumo do cliente e agenda" className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm">
     {loading ? <p className="p-6 text-sm text-muted-foreground">Verificando acesso seguro…</p> : !owner ? <div className="grid gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-center">
       <div><div className="flex items-center gap-2 font-semibold"><LockKeyhole size={19} className="text-primary"/> Acesso protegido</div><p className="mt-2 max-w-2xl text-sm text-muted-foreground">Entre com sua conta para visualizar o cliente cadastrado, consultar a programação e confirmar medicação, água e refeições. Nenhum dado pessoal aparece sem autenticação.</p></div>
       <button onClick={() => setLocked(true)} className="rounded-xl bg-[#216083] px-5 py-3 text-sm font-semibold text-white">Consultar programação</button>
     </div> : !client ? <p className="p-6 text-sm text-muted-foreground">Nenhum cliente vinculado a esta conta. Confira seu acesso ao prontuário.</p> : <div className="p-2 sm:p-3">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <div className="min-w-0"><h3 className="text-base font-bold text-foreground">{client.full_name}</h3><p className="text-[11px] text-muted-foreground">Gastrite / H. pylori · ciclo de 35 dias · horários do Acre</p></div>
+      <div className="mb-1 flex shrink-0 flex-wrap items-center justify-between gap-2">
+        <div className="min-w-0"><p className="text-[11px] font-semibold text-muted-foreground">Tratamento · 35 dias · horários do Acre</p></div>
         <div className="flex items-center gap-2"><span className="rounded-lg bg-muted px-2.5 py-1.5 text-[11px] font-semibold text-foreground">{completed}/{tasks.length} cuidados hoje</span><span className="hidden font-mono text-xs tabular-nums text-muted-foreground sm:block">{clock?new Intl.DateTimeFormat("pt-BR",{timeZone:tz,hour:"2-digit",minute:"2-digit",hour12:false}).format(clock):"--:--"}</span></div>
       </div>
-      <MedicationLateAlert tasks={tasks} onConfirm={alertTask=>{const task=tasks.find(t=>t.id===alertTask.id);if(task)askConfirm(task)}} compact now={clock}/>
-      <div className="mt-2 mb-2 flex gap-1 overflow-x-auto rounded-xl border border-border bg-muted/40 p-1" role="tablist" aria-label="Seções do acompanhamento">
+      <div className="shrink-0"><MedicationLateAlert tasks={tasks} onConfirm={alertTask=>{const task=tasks.find(t=>t.id===alertTask.id);if(task)askConfirm(task)}} compact now={clock}/></div>
+      <div className="mt-1 mb-1 flex shrink-0 gap-1 overflow-x-auto rounded-lg border border-border bg-muted/40 p-1" role="tablist" aria-label="Seções do acompanhamento">
         {([{key:"hoje",label:"Visão geral"},{key:"agenda",label:"Agenda"},{key:"hidratacao",label:"Minha hidratação"},{key:"historico",label:"Histórico"},{key:"alimentacao",label:"Alimentação"}] as const).map(tab=><button type="button" role="tab" key={tab.key} aria-selected={activeTab===tab.key} onClick={()=>setActiveTab(tab.key)} className={`flex-1 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${activeTab===tab.key?"bg-card text-primary shadow-sm ring-1 ring-border":"text-muted-foreground hover:text-foreground"}`}>{tab.label}</button>)}
       </div>
-      <div className="grid min-h-0 items-start gap-2 lg:grid-cols-[minmax(255px,0.9fr)_minmax(0,1.1fr)] lg:max-h-[calc(100dvh-250px)]">
+      <div className="grid min-h-0 flex-1 items-stretch gap-2 overflow-hidden md:grid-cols-[minmax(255px,0.9fr)_minmax(0,1.1fr)]">
         <CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm}/>
-        <div className="min-w-0 overflow-y-auto rounded-2xl border border-border bg-card p-2.5 sm:p-3 lg:max-h-[calc(100dvh-260px)]">
+        <div className="min-h-0 min-w-0 overflow-y-auto rounded-xl border border-border bg-card p-2.5 sm:p-3">
           {activeTab==="hoje"&&<div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2"><h4 className="text-sm font-bold text-foreground">Resumo do dia</h4><span className="rounded-full bg-primary/10 px-2 py-1 text-[10px] font-semibold text-primary">{dateInAcre(clock??new Date())}</span></div>
             <div className="grid grid-cols-3 gap-2">
