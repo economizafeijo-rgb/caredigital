@@ -18,7 +18,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Dashboard() {
-  const [accessMode, setAccessMode] = useState<"loading" | "client" | "public">("loading");
+  const [accessMode, setAccessMode] = useState<"loading" | "client" | "unlinked" | "public">("loading");
   useEffect(() => {
     let active = true;
     const check = async () => {
@@ -27,7 +27,7 @@ function Dashboard() {
       if (!data.user) { setAccessMode("public"); return; }
       const { data: links, error } = await (supabase as any).from("care_patient_access").select("patient_id").eq("user_id",data.user.id).limit(1);
       if (!active) return;
-      setAccessMode(!error && links?.length ? "client" : "public");
+      setAccessMode(!error && links?.length ? "client" : "unlinked");
     };
     void check();
     const { data: listener } = supabase.auth.onAuthStateChange(() => { void check(); });
@@ -56,6 +56,7 @@ function Dashboard() {
   };
 
   if (accessMode === "loading") return <div role="status" className="rounded-2xl bg-white/80 p-8 text-sm text-muted-foreground">Verificando acesso ao seu painel…</div>;
+  if (accessMode === "unlinked") return <section className="mx-auto max-w-3xl rounded-3xl border border-[#b8d2df] bg-white p-6"><h1 className="text-2xl font-bold">Área do cliente</h1><p className="mt-3 text-sm text-muted-foreground">Sua conta está conectada, mas nenhum prontuário foi localizado para este acesso. Solicite ao administrador a vinculação do seu cadastro.</p></section>;
   if (accessMode === "client") return <div className="mx-auto max-w-5xl space-y-5">
     <section className="rounded-3xl bg-gradient-to-r from-[#153b55] to-[#216b81] px-6 py-8 text-white sm:px-8">
       <span className="text-xs font-semibold uppercase tracking-widest text-sky-200">CareDigital · Área do cliente</span>
