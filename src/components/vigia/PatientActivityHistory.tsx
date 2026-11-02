@@ -79,6 +79,7 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
   const [showMobileDetail,setShowMobileDetail]=useState(false);
   const [editingTask,setEditingTask]=useState<CareTaskRecord|null>(null);
   const [reload,setReload]=useState(0);
+  const [filtersOpen,setFiltersOpen]=useState(true);
   const [loading,setLoading]=useState(true);
   const [problem,setProblem]=useState("");
   const [partial,setPartial]=useState(false);
@@ -207,7 +208,13 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
           <p className="truncate text-[10px] text-muted-foreground sm:text-xs">Consumos, refeições e cuidados · fuso do Acre</p>
         </div>
       </div>
-      <span className="rounded-full border border-border bg-muted/60 px-3 py-1 text-[11px] font-semibold tabular-nums">{dayItems.length} registros</span>
+      <div className="flex shrink-0 items-center gap-1.5">
+        <button type="button" aria-expanded={filtersOpen} onClick={()=>setFiltersOpen(value=>!value)}
+          className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-muted/40 px-2.5 text-[10px] font-semibold text-foreground hover:bg-muted">
+          <SlidersHorizontal size={14}/>{filtersOpen?"Recolher filtros":"Exibir filtros"}
+        </button>
+        <span className="rounded-full border border-border bg-muted/60 px-2.5 py-1 text-[10px] font-semibold tabular-nums">{dayItems.length} registros</span>
+      </div>
     </header>
 
     <div className="patient-history-categories grid shrink-0 min-w-0 grid-cols-5 gap-1.5" role="group" aria-label="Filtrar histórico por categoria">
@@ -225,7 +232,7 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
       })}
     </div>
 
-    <div className="patient-history-controls grid shrink-0 min-w-0 gap-2">
+    {filtersOpen&&<div className="patient-history-controls grid shrink-0 min-w-0 gap-2">
       <label className="relative block min-w-0">
         <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
         <input type="search" value={filters.query} onChange={event=>setFilter({query:event.target.value})}
@@ -271,7 +278,7 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
             className="grid size-9 shrink-0 place-items-center rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground"><RotateCcw size={15}/></button>}
         </div>
       </div>
-    </div>
+    </div>}
 
     <div className="patient-history-content grid min-h-0 min-w-0 flex-1 grid-cols-1 gap-2.5 lg:grid-cols-[minmax(0,.92fr)_minmax(0,1.08fr)]">
       <section aria-label="Lista de registros"
