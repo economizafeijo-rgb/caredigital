@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { Bell, BellOff, CheckCircle2, ChevronRight, Clock3, Volume2 } from "lucide-react";
+import { Bell, BellOff, ChevronRight, Clock3, Volume2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   CARE_REMINDER_WINDOW_MS, reminderCategoryLabel, reminderClock,
   reminderMmSs, summarizeCareReminders, type ReminderTask,
@@ -7,6 +8,9 @@ import {
 
 type Props = {
   tasks: ReminderTask[];
+  patientId: string;
+  ownerId: string;
+  refreshKey?: number;
   onOpen: (task: ReminderTask) => void;
   compact?: boolean;
 };
@@ -75,10 +79,17 @@ function chime(context:AudioContext) {
   });
 }
 
-export function CareReminderBeacon({tasks,onOpen,compact=false}:Props) {
+export function CareReminderBeacon({tasks,patientId,ownerId,refreshKey=0,onOpen,compact=false}:Props) {
   const [now,setNow]=useState(()=>Date.now());
   const [soundEnabled,setSoundEnabled]=useState(false);
   const [soundNotice,setSoundNotice]=useState("");
+  const [answeredWaterIds,setAnsweredWaterIds]=useState<ReadonlySet<string>>(()=>new Set());
+  const [answersStatus,setAnswersStatus]=useState<"loading"|"ready"|"error">("loading");
+  const [answersRevision,setAnswersRevision]=useState(0);
+  const waterIdsKey=useMemo(
+    ()=>tasks.filter(task=>task.category==="hidratacao").map(task=>task.id).sort().join(","),
+    [tasks]
+  );
   const contextRef=useRef<AudioContext|null>(null);
   const lastPlayed=useRef<{id:string;time:number}|null>(null);
   useEffect(()=>{
@@ -93,7 +104,55 @@ export function CareReminderBeacon({tasks,onOpen,compact=false}:Props) {
     };
   },[]);
   useEffect(()=>()=>{if(contextRef.current){void contextRef.current.close();contextRef.current=null;}},[]);
-  const summary=useMemo(()=>summarizeCareReminders(tasks,now),[tasks,now]);
+  useEffect(()=>{
+    const refresh=()=>setAnswersRevision(previous=>previous+1);
+    const visible=()=>{if(document.visibilityState==="visible")refresh();};
+    const timer=window.setInterval(refresh,45_000);
+    window.addEventListener("focus",refresh);
+    document.addEventListener("visibilitychange",visible);
+    return()=>{
+      window.clearInterval(timer);
+      window.removeEventListener("focus",refresh);
+      document.removeEventListener("visibilitychange",visible);
+    };
+  },[]);
+  useEffect(()=>{
+    let active=true;
+    setAnswersStatus("loading");
+    if(!patientId||!ownerId) {
+      setAnsweredWaterIds(new Set());
+      return()=>{active=false;};
+    }
+    if(!waterIdsKey) {
+      setAnsweredWaterIds(new Set());
+      setAnswersStatus("ready");
+      return()=>{active=false;};
+    }
+    void (async()=>{
+      // "Não bebi" is stored separately from completed_at. Query the
+      // authorized, real response rows before deciding which tasks remain open.
+      const result=await (supabase as any).from("care_hydration_responses")
+        .select("task_id,response")
+        .eq("patient_id",patientId).eq("owner_id",ownerId)
+        .in("task_id",waterIdsKey.split(","))
+        .eq("response","not_drunk")
+        .limit(120);
+      if(!active)return;
+      if(result.error){
+        // Fail closed: never claim "no confirmation" when patient responses
+        // could not be read.
+        setAnswersStatus("error");
+        return;
+      }
+      setAnsweredWaterIds(new Set<string>((result.data??[]).map((row:{task_id:string})=>row.task_id)));
+      setAnswersStatus("ready");
+    })();
+    return()=>{active=false;};
+  },[patientId,ownerId,waterIdsKey,refreshKey,answersRevision]);
+  const summary=useMemo(
+    ()=>summarizeCareReminders(tasks,now,answeredWaterIds),
+    [tasks,now,answeredWaterIds]
+  );
   const {primary,dueCount,unconfirmedCount,next}=summary;
   const stage=primary?.state??"quiet";
   const task=primary?.task;
@@ -134,21 +193,26 @@ export function CareReminderBeacon({tasks,onOpen,compact=false}:Props) {
       setSoundNotice("O navegador não autorizou o som. Os avisos visuais continuam disponíveis.");
     }
   }
-  const title=due?"Hora do seu cuidado":late?"Sem confirmação no prazo":
-    next?"Próximo lembrete programado":"Acompanhamento em dia";
+  const title=due?"Hora do seu cuidado":late?"Sem confirmação no prazo":"Acompanhamento em dia";
   const description=due?
     "Confirme apenas após realizar o cuidado. O aviso permanece por até 10 minutos.":
     late?
       "Passaram 10 minutos sem confirmação. O cuidado pode ter ocorrido; registre a informação real no prontuário.":
-      next?
-        `${reminderCategoryLabel(next.task.category)} às ${reminderClock(next.task.scheduled_at)} · aviso visual quando chegar o horário.`:
-        "Nenhum cuidado pendente na programação de hoje.";
+      "Nenhum cuidado aguardando resposta entre os acontecimentos recentes." ;
   const percent=due?Math.max(0,primary!.remainingMs/CARE_REMINDER_WINDOW_MS):late?1:0;
+  if(!patientId||!ownerId||answersStatus==="loading")return null;
+  if(answersStatus==="error")return <p role="status"
+    className="rounded-xl border border-border/60 bg-muted/25 px-3 py-2 text-[10px] text-muted-foreground">
+    Não foi possível verificar todas as respostas de hidratação. Os alertas foram ocultados até a consulta ser atualizada.
+  </p>;
+  // Do not show a banner for a completed or explicitly answered task, nor
+  // for old missing confirmations already visible in the historical agenda.
+  if(!primary)return null;
 
   return <section aria-label="Central de lembretes de cuidados"
     data-reminder-status={stage} data-reminder-category={task?.category??"nenhuma"}
     className={"care-reminder-beacon relative flex w-full min-w-0 items-center gap-2.5 overflow-hidden rounded-2xl border p-2.5 shadow-sm sm:gap-3 sm:px-3.5 "+(compact?"care-reminder-compact":"")}>
-    <ReminderArtwork category={task?.category??next?.task.category??"medicacao"}
+    <ReminderArtwork category={task?.category??"medicacao"}
       progress={percent} active={due}/>
     <div className="min-w-0 flex-1">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
