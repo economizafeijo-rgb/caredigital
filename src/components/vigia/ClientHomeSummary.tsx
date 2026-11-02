@@ -73,7 +73,7 @@ export function ClientHomeSummary(){
  const labelFor=(category:string)=>category==="medicacao"?"Medicação":category==="hidratacao"?"Água":"Refeição";
  const hour=new Intl.DateTimeFormat("pt-BR",{timeZone:zone,hour:"2-digit",hour12:false}).format(now??new Date());
  const greeting=Number(hour)<12?"Bom dia":Number(hour)<18?"Boa tarde":"Boa noite";
- return <section className="client-home-dashboard relative flex min-h-0 w-full flex-col gap-2.5 overflow-hidden rounded-2xl border border-white/10 p-3 text-slate-50 shadow-xl sm:p-4 lg:h-[calc(100dvh-105px)] lg:max-h-[920px] lg:gap-3" aria-label="Painel interativo do cliente na homepage">
+ return <section className="client-home-dashboard relative flex min-h-0 w-full flex-col gap-2.5 overflow-hidden rounded-2xl border border-white/10 p-3 text-slate-50 shadow-xl sm:p-4 md:h-[calc(100dvh-105px)] md:max-h-[920px] md:gap-3" aria-label="Painel interativo do cliente na homepage">
   <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-28 size-96 rounded-full bg-sky-400/10 blur-[90px]"/>
   <div className="relative flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
     <div className="flex min-w-0 items-center gap-3">
