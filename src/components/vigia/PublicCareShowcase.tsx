@@ -155,6 +155,29 @@ function MedicationSvg() {
   </svg>;
 }
 
+function EditorialCareArt({kind}:{kind:ShowcaseKind}) {
+  const heading=kind==="hydration"?"Água e hidratação":kind==="medication"?"Agenda de medicação":"Alimentação e treino";
+  const symbol=kind==="hydration"?<Droplets size={32}/>:kind==="medication"?<Pill size={32}/>:<Dumbbell size={32}/>;
+  const details=kind==="hydration"?["Meta diária","Consumo registrado","Próximo lembrete"]:kind==="medication"?["Doses programadas","Tomadas registradas","Histórico pessoal"]:["Plano alimentar","Rotina de treino","Acompanhamento"];
+  return <div className="w-full max-w-[380px] overflow-hidden rounded-2xl border border-[#b5d2c8] bg-[#f5f9f7] p-3 text-[#244c45] shadow-sm" role="img" aria-label={heading+" — ilustração editorial do acompanhamento"}>
+    <div className="flex items-center justify-between border-b border-[#d4e4de] pb-2">
+      <span className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#39776b]">CareDigital</span>
+      <span className="flex items-center gap-1 text-[10px] font-semibold text-[#39776b]"><CheckCircle2 size={12}/> Organizado</span>
+    </div>
+    <div className="flex items-center gap-3 py-3">
+      <span className="grid size-14 shrink-0 place-items-center rounded-xl bg-[#d8eee6] text-[#24796b]">{symbol}</span>
+      <div className="min-w-0"><strong className="block text-sm font-bold">{heading}</strong><span className="text-[11px] text-[#66877c]">Rotina individual de cuidados</span></div>
+    </div>
+    <div className="grid gap-1.5">
+      {details.map((item,i)=><div key={item} className="flex items-center gap-2 rounded-lg border border-[#e0ebe6] bg-white px-2.5 py-1.5">
+        <span className="grid size-5 shrink-0 place-items-center rounded-full bg-[#e0f2e9] text-[#287c67]"><CheckCircle2 size={12}/></span>
+        <span className="flex-1 text-[11px] font-semibold">{item}</span>
+        <span className="h-1.5 rounded-full bg-[#c7dfd6]" style={{width:`${42+i*12}px`}}/>
+      </div>)}
+    </div>
+  </div>;
+}
+
 export function PublicCareShowcase({kind}:{kind:ShowcaseKind}) {
   const info=copy[kind];
   const MainIcon=kind==="hydration"?Droplets:kind==="sports"?Dumbbell:Pill;
@@ -179,7 +202,7 @@ export function PublicCareShowcase({kind}:{kind:ShowcaseKind}) {
           </div>
         </div>
         <div className="showcase-illustration flex min-w-0 items-center justify-center overflow-hidden rounded-xl">
-          {kind==="hydration"?<HydrationSvg/>:kind==="sports"?<div className="flex w-full flex-col items-center justify-center gap-1.5"><SportsNutritionIllustration/><span className="rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[10px] font-semibold text-primary">Alimentação • Treino • Evolução</span></div>:<MedicationSvg/>}
+          <EditorialCareArt kind={kind}/>
         </div>
       </div>
 
