@@ -101,7 +101,7 @@ export function CareProgressVisual({tasks,goal,onOpen}:Props){
       <div className="min-w-0 flex-1">
         <p className="care-visual-title truncate text-[10px] font-extrabold sm:text-xs">Hidratação</p>
         <strong className="care-visual-value block text-[13px] font-extrabold tabular-nums sm:text-base">{fmt(water)}<span className="text-[9px]"> ml</span></strong>
-        <p className="care-visual-subtitle truncate text-[9px]">{waterTarget? \`de \${fmt(waterTarget)} ml\`:"Sem meta definida"}</p>
+        <p className="care-visual-subtitle truncate text-[9px]">{waterTarget? `de ${fmt(waterTarget)} ml`:"Sem meta definida"}</p>
         <div className="care-visual-track mt-1 h-1 overflow-hidden rounded-full"><i style={{width:(waterRatio*100)+"%"}}/></div>
       </div>
     </article>
