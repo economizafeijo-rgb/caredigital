@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { CalendarClock, Check, Clock3, Droplets, Pill, Utensils, X, ArrowUpRight, ChevronRight, Activity, ListChecks } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { MedicationLateAlert } from "./MedicationLateAlert";
+import { ClientQuickIntake } from "./ClientQuickIntake";
 import { canConfirmCare, careScheduleBlockMessage } from "@/lib/care-schedule";
 
 type Care = {id:string;title:string;category:string;scheduled_at:string;completed_at:string|null};
@@ -91,7 +92,7 @@ export function ClientHomeSummary(){
       <span className="grid size-9 shrink-0 place-items-center rounded-xl border border-teal-300/20 bg-teal-300/10"><Activity size={19} className="text-teal-200"/></span>
       <div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[.2em] text-sky-300">Meu painel de cuidados</p><h2 className="truncate text-lg font-extrabold tracking-tight md:text-xl">{greeting}, {patient?.full_name?.split(" ")[0]??"bem-vindo"}</h2><p className="text-[11px] text-slate-300">Sua rotina de hoje · {new Intl.DateTimeFormat("pt-BR",{timeZone:zone,weekday:"long",day:"2-digit",month:"long"}).format(now??new Date())}</p></div>
     </div>
-    <Link to="/cliente" className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-teal-300 px-2.5 py-1.5 text-[11px] font-bold text-slate-950 transition hover:bg-teal-200">Meu prontuário <ArrowUpRight size={15}/></Link>
+    <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5"><ClientQuickIntake patientId={patient?.id ?? ""} variant="home" onRecorded={()=>setRefresh(value=>value+1)}/><Link to="/cliente" className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-teal-300 px-2.5 py-1.5 text-[11px] font-bold text-slate-950 transition hover:bg-teal-200">Meu prontuário <ArrowUpRight size={15}/></Link></div>
   </div>
   <div className="relative shrink-0"><MedicationLateAlert tasks={tasks} onConfirm={setSelected} compact now={now}/></div>
   <div className="relative grid min-h-0 min-w-0 flex-1 gap-2 md:grid-cols-[minmax(0,1.13fr)_minmax(0,0.87fr)] md:items-stretch">
