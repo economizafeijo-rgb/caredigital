@@ -42,29 +42,29 @@
 :root {
   --radius: 0.875rem;
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
-  --background: #edf3f7;
-  --foreground: #172b40;
+  --background: #f2f4f2;
+  --foreground: #26333b;
   --surface: #ffffff;
   --card: #ffffff;
-  --card-foreground: #172b40;
+  --card-foreground: #26333b;
   --popover: #ffffff;
-  --popover-foreground: #172b40;
-  --primary: #216083;
+  --popover-foreground: #26333b;
+  --primary: #286b64;
   --primary-foreground: #ffffff;
-  --secondary: #dfebf1;
-  --secondary-foreground: #172b40;
-  --muted: #e8f0f5;
-  --muted-foreground: #50667a;
-  --accent: #d4e8eb;
-  --accent-foreground: #153b4b;
-  --destructive: #bb4650;
+  --secondary: #e8eeeb;
+  --secondary-foreground: #26333b;
+  --muted: #edf1ee;
+  --muted-foreground: #576970;
+  --accent: #e0ece6;
+  --accent-foreground: #234e48;
+  --destructive: #b94852;
   --destructive-foreground: #ffffff;
-  --success: #267b66;
-  --warning: #c18a38;
-  --sky: #70b4cb;
-  --border: rgba(30, 72, 96, 0.14);
-  --input: rgba(30, 72, 96, 0.20);
-  --ring: #216083;
+  --success: #27775d;
+  --warning: #a8792d;
+  --sky: #8db9b2;
+  --border: rgba(55,79,78,0.16);
+  --input: rgba(55,79,78,0.24);
+  --ring: #286b64;
 }
 
 @layer base {
@@ -505,4 +505,90 @@ iframe[title*="Lovable" i][title*="badge" i] {
   .sports-showcase .showcase-header h1 { font-size: 1.1rem; }
   .sports-showcase .showcase-benefits h3 { font-size: 11px; }
   .sports-showcase .showcase-benefits p { font-size: 10px; }
+}
+
+
+/* CareDigital premium light theme: mineral white, graphite and muted sage.
+   Keep the nurse photograph visible behind PUBLIC pages in both themes. */
+:root:not(.dark) { color-scheme: light; }
+:root:not(.dark) .care-shell:has(.public-homepage, .public-care-showcase) {
+  background-color: transparent;
+  isolation: isolate;
+}
+:root:not(.dark) .care-shell:has(.public-homepage, .public-care-showcase)::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(90deg,
+      rgba(245,247,245,.97) 0%,
+      rgba(245,248,246,.89) 43%,
+      rgba(241,247,246,.24) 77%,
+      rgba(241,247,246,.11) 100%),
+    url("/images/caredigital-care-hero.webp"),
+    linear-gradient(145deg,#e9eeeb,#f8faf9);
+  background-size: cover,cover,cover;
+  background-position: center,100% 18%,center;
+  background-repeat: no-repeat;
+}
+:root:not(.dark) .care-shell:has(.public-homepage, .public-care-showcase)::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 12% 88%,rgba(191,214,206,.18),transparent 57%);
+}
+:root:not(.dark) .care-shell:has(.public-homepage, .public-care-showcase) > header {
+  background-color: rgba(250,252,250,.93);
+  border-color: rgba(65,90,83,.16);
+  box-shadow: 0 5px 24px rgba(25,50,45,.07);
+}
+:root:not(.dark) .care-shell:has(.public-homepage, .public-care-showcase) > div[aria-hidden="true"] {
+  opacity: .18;
+}
+:root:not(.dark) .public-homepage .public-hero {
+  background: linear-gradient(125deg,rgba(254,255,254,.96) 0%,rgba(247,250,248,.96) 52%,rgba(225,237,231,.93) 100%);
+  border-color: rgba(74,115,104,.19);
+  color: #26333b;
+  box-shadow: 0 22px 56px -37px rgba(34,70,58,.32);
+}
+:root:not(.dark) .public-homepage .public-hero h1 { color: #24343a; }
+:root:not(.dark) .public-homepage .public-hero h1 span { color: #286b64; }
+:root:not(.dark) .public-homepage .public-hero-copy > p { color: #546b70; }
+:root:not(.dark) .public-homepage .public-hero-copy > span {
+  background: rgba(225,238,232,.72);
+  border-color: rgba(61,110,99,.22);
+  color: #32635b;
+}
+:root:not(.dark) .public-homepage .public-feature-card {
+  background: rgba(255,255,255,.94);
+  border-color: rgba(65,93,84,.15);
+  box-shadow: 0 10px 23px -19px rgba(33,68,55,.26);
+}
+:root:not(.dark) .public-care-showcase > .showcase-panel,
+:root:not(.dark) .public-care-showcase > div:first-child {
+  background: rgba(252,253,252,.95);
+  border-color: rgba(58,89,78,.2);
+  box-shadow: 0 18px 46px -34px rgba(34,61,52,.3);
+}
+:root:not(.dark) .public-care-showcase .showcase-intro,
+:root:not(.dark) .public-care-showcase .showcase-steps {
+  background-color: rgba(234,240,236,.78);
+  border-color: rgba(60,93,82,.15);
+}
+:root:not(.dark) .public-care-showcase .showcase-benefits article,
+:root:not(.dark) .public-care-showcase .showcase-steps li {
+  background-color: #ffffff;
+  border-color: rgba(60,93,82,.15);
+}
+@media (max-width: 767px) {
+  :root:not(.dark) .care-shell:has(.public-homepage, .public-care-showcase)::before {
+    background-image:
+      linear-gradient(180deg,rgba(245,247,245,.92),rgba(245,247,245,.88)),
+      url("/images/caredigital-care-hero.webp");
+    background-position: center,75% top;
+  }
 }
