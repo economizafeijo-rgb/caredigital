@@ -91,7 +91,8 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
   }, [owner, tick]);
 
   const completed = tasks.filter(t => Boolean(t.completed_at)).length;
-  const nextCare = tasks.find(t => !t.completed_at && getCareScheduleState(t, clock?.getTime() ?? Date.now()) !== "missed");
+  const nextCare = tasks.find(t => !t.completed_at && Date.parse(t.scheduled_at) >= (clock?.getTime() ?? Date.now()))
+    ?? tasks.find(t => !t.completed_at && getCareScheduleState(t, clock?.getTime() ?? Date.now()) === "available");
   const meals = tasks.filter(t => t.category === "refeicao");
   const mealGuide: Record<string,string> = { "Café da manhã":"Aveia cozida em água ou leite sem lactose, se tolerado, com banana madura.", "Lanche da manhã":"Mamão ou banana madura; ajuste à sua tolerância.", "Almoço":"Arroz, frango cozido ou grelhado sem excesso de gordura, batata e legumes cozidos.", "Lanche da tarde":"Batata-doce cozida ou fruta tolerada.", "Jantar":"Sopa suave de legumes e frango desfiado, sem pimenta.", "Ceia":"Mingau leve de aveia ou banana, conforme tolerância." };
 
@@ -136,14 +137,14 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
       const actual = new Intl.DateTimeFormat("pt-BR",{timeZone:tz,day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new Date(verified.data.completed_at));
       setConfirmationResult({success:true,
         title:pending.category==="medicacao"?"Medicação registrada com sucesso!":pending.category==="refeicao"?"Refeição registrada com sucesso!":"Hidratação registrada com sucesso!",
-        detail:`${pending.title} · ${actual} (horário do Acre). ${pending.category==="medicacao" && Date.parse(verified.data.completed_at)>=Date.parse(pending.scheduled_at)+900000?"Tomada atrasada registrada. ":""}Data e hora reais salvas no prontuário.`});
+        detail:`${pending.title} · ${actual} (horário do Acre). ${pending.category==="medicacao" && Date.parse(verified.data.completed_at)>=Date.parse(pending.scheduled_at)+900000?"Tomada atrasada registrada. ":""}Data e hora reais salvas no prontuário. Próximos horários elegíveis são recalculados automaticamente.`});
       setNotice("");
       setPending(null);
       setMealDescription("");
     } catch (failure) {
       const message=failure instanceof Error?failure.message:"";
       const detail=/Care window not started/i.test(message)?"O horário programado ainda não chegou. Nenhuma confirmação foi salva."
-        :/Care window expired|Early meal confirmation disabled/i.test(message)?"O prazo terminou. Este cuidado permanecerá como Não confirmado, sem confirmação retroativa."
+        :/Care window expired|Early meal confirmation disabled/i.test(message)?"O servidor conectado ainda utiliza uma regra antiga. Atualize o aplicativo e verifique se o Supabase correto está configurado."
         :/already completed/i.test(message)?"Este cuidado já foi confirmado. Atualize a agenda."
         :/Water was already marked as not drunk/i.test(message)?"Este horário foi registrado como Não bebi e não pode ser confirmado novamente."
         :/task unavailable|authentication|permission|denied|401|403/i.test(message)?"Sua sessão não tem acesso a este cuidado. Entre novamente e consulte seu prontuário."
