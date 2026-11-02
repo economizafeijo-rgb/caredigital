@@ -29,7 +29,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const now = useNow(30000);
   const pathname = useRouterState({select: state => state.location.pathname});
   const isClientPage = pathname === "/cliente";
-  const isClientHome = pathname === "/" && clientOnly;
   const isSportsPage = pathname === "/nutricao-esportiva";
   const [moreOpen, setMoreOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -63,6 +62,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     } catch { setFullScreenError("O navegador não permitiu ativar tela cheia."); }
   };
   const [clientOnly, setClientOnly] = useState(false);
+  const isClientHome = pathname === "/" && clientOnly;
   const [adminAccess, setAdminAccess] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [clientName, setClientName] = useState("");
