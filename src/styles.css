@@ -139,155 +139,124 @@ iframe[title*="Lovable" i][title*="badge" i] {
   visibility: hidden !important;
 }
 
-/* CareDigital: dark theme shared by all routes, dialogs and authenticated dashboards. */
+/* CareDigital dark theme v3 — neutral graphite, slate and restrained teal.
+   One source of truth: previous overlapping blue overrides removed. */
 :root.dark {
-  --background: #0b1623;
-  --foreground: #ecf4fa;
-  --surface: #142536;
-  --card: #142536;
-  --card-foreground: #ecf4fa;
-  --popover: #172b3d;
-  --popover-foreground: #ecf4fa;
-  --primary: #67bedc;
-  --primary-foreground: #091a27;
-  --secondary: #22384b;
-  --secondary-foreground: #eef7fc;
-  --muted: #1d3142;
-  --muted-foreground: #b1c3d1;
-  --accent: #28465a;
-  --accent-foreground: #effaff;
-  --destructive: #fa8090;
-  --destructive-foreground: #1e0d13;
-  --success: #64d5ac;
-  --warning: #f3bc65;
-  --sky: #79c5df;
-  --border: rgba(173,211,229,.20);
-  --input: rgba(173,211,229,.32);
-  --ring: #88d3ed;
+  color-scheme: dark;
+  --background: #11151b;
+  --foreground: #f0f3f7;
+  --surface: #1b222c;
+  --card: #202934;
+  --card-foreground: #f0f3f7;
+  --popover: #252f3b;
+  --popover-foreground: #f0f3f7;
+  --primary: #7ad9cd;
+  --primary-foreground: #102221;
+  --secondary: #293541;
+  --secondary-foreground: #edf4f6;
+  --muted: #2b3642;
+  --muted-foreground: #bcc9d3;
+  --accent: #30464b;
+  --accent-foreground: #e5fcf8;
+  --destructive: #ff9b9b;
+  --destructive-foreground: #2c1519;
+  --success: #70d5ae;
+  --warning: #f4c781;
+  --sky: #9ccdd8;
+  --border: rgba(185,207,215,.23);
+  --input: rgba(185,207,215,.34);
+  --ring: #91e6db;
 }
 .dark body { background-color: var(--background); color: var(--foreground); }
-.dark input, .dark select, .dark textarea { color: var(--foreground); }
-.dark input::placeholder, .dark textarea::placeholder { color: var(--muted-foreground); opacity: .8; }
-.dark input[type="date"], .dark input[type="time"] { color-scheme: dark; }
+.dark :is(input,select,textarea) { color: var(--foreground); color-scheme: dark; }
+.dark :is(input,textarea)::placeholder { color: var(--muted-foreground); opacity:.8; }
 .dark option { background-color: var(--popover); color: var(--popover-foreground); }
-.dark .panel { background-color: var(--surface); color: var(--foreground); }
 .dark .field { background-color: var(--muted); color: var(--foreground); }
+.dark .panel { background-color: var(--surface); color: var(--foreground); }
 
-/* Legacy clinical cards use literal Tailwind light values; normalize them in dark mode. */
-.dark :is([class~="bg-white"], [class*="bg-[#f"], [class*="bg-[#e"], [class*="bg-[#d"]) {
-  background-color: #16283a !important;
-}
-.dark :is([class*="text-[#1"],[class*="text-[#2"],[class*="text-[#3"],[class*="text-[#4"],[class*="text-[#5"]) {
-  color: #e8f3f9 !important;
-}
-.dark :is([class*="border-[#"],[class*="ring-[#"]) {
-  border-color: rgba(173,211,229,.26) !important;
-}
-.dark [class*="from-[#f"], .dark [class*="from-[#e"] { --tw-gradient-from: #14283a !important; }
-.dark [class*="to-white"] { --tw-gradient-to: #172b3c !important; }
-.dark [class*="bg-gradient-to-br"][class*="from-[#f"] {
-  background-image: linear-gradient(to bottom right,#162e40,#122434) !important;
-}
-.dark :is([class*="bg-[#fff8"],[class*="bg-amber-50"]) {
-  background-color: #45341c !important;
-}
-.dark :is([class*="text-amber-900"],[class*="text-amber-700"]) { color: #f6ce86 !important; }
-.dark :is([class*="bg-emerald-50"],[class*="bg-emerald-100"]) { background-color: #174438 !important; }
-.dark :is([class*="text-emerald-700"],[class*="text-emerald-800"]) { color: #95e8c0 !important; }
-.dark :is([class*="bg-sky-50"],[class*="bg-sky-100"]) { background-color: #18384b !important; }
-.dark :is([class*="text-sky-700"],[class*="text-sky-800"]) { color: #a4dff3 !important; }
-.dark :is([class*="bg-slate-100"],[class*="bg-slate-200"]) { background-color: #293c4e !important; }
-.dark :is([class*="text-slate-300"],[class*="text-slate-400"]) { color: #afc4d4 !important; }
-.dark :is([class*="border-slate-200"],[class*="border-sky-200"]) { border-color: #3a586c !important; }
-.dark ::selection { background: #326f88; color: #fff; }
-
-
-/* CareDigital premium dark atmosphere — existing medical hero artwork, dimmed for readability. */
-:root.dark {
-  --background: #091522;
-  --foreground: #eef6fc;
-  --surface: #15293b;
-  --card: #15293b;
-  --card-foreground: #eff7fd;
-  --popover: #192d40;
-  --popover-foreground: #eff7fd;
-  --primary: #72c9e8;
-  --primary-foreground: #071723;
-  --secondary: #233d51;
-  --secondary-foreground: #f2f9fd;
-  --muted: #24384a;
-  --muted-foreground: #b6cbd9;
-  --accent: #244a60;
-  --accent-foreground: #f1faff;
-  --border: rgba(170,211,232,.22);
-  --input: rgba(170,211,232,.32);
-  --ring: #88d9f5;
-}
+/* Subtle medical artwork remains visible instead of covering the page in blue. */
 .dark .care-shell { background-color: transparent; isolation: isolate; }
 .dark .care-shell::before {
-  content: "";
-  position: fixed;
-  z-index: -1;
-  inset: 0;
-  pointer-events: none;
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
   background-image:
-    linear-gradient(115deg, rgba(6,17,29,.93) 0%,rgba(7,23,38,.83) 43%,rgba(8,25,41,.90) 100%),
+    linear-gradient(115deg,rgba(17,21,27,.96) 0%,rgba(17,22,29,.87) 55%,rgba(16,28,34,.90) 100%),
     url("/images/caredigital-care-hero.webp"),
-    linear-gradient(145deg,#081522,#13334a);
-  background-repeat: no-repeat;
-  background-position: center, center 28%, center;
-  background-size: cover, cover, cover;
-  opacity: .98;
+    linear-gradient(145deg,#11151b,#202d34);
+  background-size:cover,cover,cover;
+  background-position:center,center 32%,center;
+  background-repeat:no-repeat;
 }
 .dark .care-shell::after {
-  content: "";
-  position: fixed;
-  z-index: -1;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(ellipse at 9% 14%,rgba(68,156,204,.22),transparent 39%),
-    radial-gradient(ellipse at 90% 42%,rgba(37,110,148,.15),transparent 42%),
-    linear-gradient(180deg,transparent 50%,rgba(5,17,27,.35));
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background: radial-gradient(ellipse at 80% 8%,rgba(95,189,173,.13),transparent 45%),
+    radial-gradient(ellipse at 10% 80%,rgba(130,158,178,.08),transparent 44%);
 }
-.dark .care-shell main { z-index: 1; }
-.dark .care-shell header {
-  background: rgba(10,26,41,.83);
-  border-color: rgba(177,214,232,.18);
-  box-shadow: 0 8px 30px rgba(1,8,18,.22);
+.dark .care-shell > header {
+  background:rgba(24,31,40,.95);
+  border-color:var(--border);
+  box-shadow:0 8px 24px rgba(0,0,0,.18);
 }
 .dark .care-shell nav[aria-label="Navegação do app"] {
-  background: rgba(12,27,42,.94);
-  border-color: rgba(177,214,232,.16);
+  background:rgba(24,31,40,.96);
+  border-color:var(--border);
 }
 .dark .care-shell nav[aria-label="Mais seções"] {
-  background: rgba(19,38,56,.96);
-  box-shadow: 0 16px 42px rgba(0,0,0,.36);
+  background:rgba(30,39,49,.98);
+  box-shadow:0 20px 45px rgba(0,0,0,.32);
 }
-.dark .care-shell .panel,
-.dark .care-shell [class~="bg-card"] {
-  background-color: rgba(21,42,60,.89);
-  border-color: rgba(171,211,231,.16);
-  box-shadow: 0 14px 34px rgba(0,9,19,.20), inset 0 1px rgba(255,255,255,.035);
+.dark .care-shell :is(.panel,[class~="bg-card"]) {
+  background-color:rgba(32,41,52,.95);
+  border-color:var(--border);
 }
-.dark .care-shell .panel { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
-.dark .care-shell :is(input,textarea,select):focus-visible,
-.dark .care-shell :is(button,a):focus-visible {
-  outline: 2px solid #88d9f5;
-  outline-offset: 2px;
+.dark .care-shell :is(input,textarea,select,button,a):focus-visible {
+  outline:2px solid var(--ring);
+  outline-offset:2px;
 }
-.dark .care-shell [class~="bg-white"] {
-  background-color: #1a3347 !important;
+/* Map old light-only components to slate while retaining explicit status colors. */
+.dark [class~="bg-white"],
+.dark [class*="bg-[#f"],
+.dark [class*="bg-[#e"] { background-color:#24303c !important; }
+.dark [class*="text-[#1"],
+.dark [class*="text-[#2"],
+.dark [class*="text-[#3"],
+.dark [class*="text-[#4"],
+.dark [class*="text-[#5"] { color:#edf4f7 !important; }
+.dark [class*="bg-amber-50"] { background-color:#463520 !important; }
+.dark [class*="text-amber-900"] { color:#f6d29b !important; }
+.dark [class*="bg-emerald-50"] { background-color:#1e453b !important; }
+.dark [class*="text-emerald-700"] { color:#a3e9cb !important; }
+.dark [class*="bg-sky-50"] { background-color:#253e49 !important; }
+.dark [class*="text-sky-700"] { color:#b0e2ef !important; }
+.dark ::selection { background:#347f78; color:#fff; }
+
+/* Patient dashboard: neutral slate cards with teal highlights, in either UI mode. */
+.client-home-dashboard {
+  background:linear-gradient(140deg,#202831 0%,#1b252d 60%,#202e32 100%);
+  border-color:rgba(175,209,212,.22);
+  color:#f2f6f8;
 }
-.dark .care-shell [class*="bg-[#f"],
-.dark .care-shell [class*="bg-[#e"] {
-  background-color: #183044 !important;
+.client-home-dashboard .patient-next-care {
+  background:linear-gradient(140deg,#30444a,#293942 65%,#26373c);
+  border-color:rgba(151,223,207,.28);
 }
-@media (max-width: 768px) {
+.client-home-dashboard .patient-timeline {
+  background:#25313c;
+  border-color:rgba(175,209,212,.20);
+}
+@media (max-width:768px) {
   .dark .care-shell::before {
-    background-position: center, 62% top, center;
-    background-image: linear-gradient(180deg,rgba(7,18,30,.93),rgba(8,23,37,.94)),url("/images/caredigital-care-hero.webp"),linear-gradient(#081522,#13334a);
+    background-image:linear-gradient(180deg,rgba(17,21,27,.94),rgba(19,27,34,.96)),url("/images/caredigital-care-hero.webp");
+    background-position:center,62% top;
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .dark .care-shell *, .dark .care-shell *::before, .dark .care-shell *::after { scroll-behavior: auto; }
+@media (prefers-reduced-motion:reduce) {
+  .dark .care-shell *, .dark .care-shell *::before, .dark .care-shell *::after { scroll-behavior:auto; }
 }
