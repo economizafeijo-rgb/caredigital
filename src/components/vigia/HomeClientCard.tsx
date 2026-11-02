@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, CalendarClock, CalendarDays, CheckCircle2, Droplets, History, House, LayoutDashboard, LockKeyhole, Pill, Target, UtensilsCrossed, UserRound, AlertTriangle, Trash2, X } from "lucide-react";
+import { ArrowRight, CalendarClock, CalendarDays, CheckCircle2, Droplets, History, LayoutDashboard, LockKeyhole, Pill, Target, UtensilsCrossed, UserRound, AlertTriangle, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CompactTreatmentBlister } from "./CompactTreatmentBlister";
 import { PatientActivityHistory } from "./PatientActivityHistory";
@@ -213,7 +213,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
             <span className="min-w-0"><strong className="block text-xs font-extrabold text-foreground">{medicineTasks.length && medicineConfirmed===medicineTasks.length?"Medicações de hoje confirmadas":"Tratamento em acompanhamento"}</strong>
             <small className="block text-[10px] text-muted-foreground">{medicineTasks.length?`${medicineConfirmed}/${medicineTasks.length} doses confirmadas hoje`:"Nenhuma dose prevista hoje"}</small></span>
           </div>
-          <Link to="/" className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl border border-border bg-card px-3 text-xs font-bold text-foreground transition hover:border-primary/35 hover:text-primary"><House size={16}/> <span className="hidden sm:inline">Homepage</span><ArrowRight size={14}/></Link>
+          
         </div>
       </header>
 
