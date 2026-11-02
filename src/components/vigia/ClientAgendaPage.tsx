@@ -4,12 +4,13 @@ import {
   Filter, Pill, Search, Sparkles, UtensilsCrossed,
 } from "lucide-react";
 import { careReminderState, reminderClock, type ReminderTask } from "@/lib/care-reminders";
+type PatientCare = ReminderTask & {patient_id:string};
 
 type Props = {
-  tasks: ReminderTask[];
+  tasks: PatientCare[];
   now?: number;
-  onView: (task: ReminderTask)=>void;
-  onConfirm: (task: ReminderTask)=>void;
+  onView: (task: PatientCare)=>void;
+  onConfirm: (task: PatientCare)=>void;
 };
 type StatusFilter = "todos" | "confirmados" | "pendentes" | "futuros";
 const MAX_ITEMS=6;
