@@ -95,7 +95,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
 
   function askConfirm(task: Task) {
     if (!owner || !client) { setLocked(true); return; }
-    if (!canConfirmCare(task)) {
+    if (!canConfirmCare(task) && !(task.category === "medicacao" && !task.completed_at && Date.now() >= Date.parse(task.scheduled_at))) {
       setPending(null);
       setConfirmationResult({success:false,title:"Confirmação indisponível",detail:careScheduleBlockMessage(task)});
       return;
@@ -107,7 +107,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
 
   async function confirm() {
     if (!pending || !owner || !client || busy) return;
-    if (!canConfirmCare(pending)) {
+    if (!canConfirmCare(pending) && !(pending.category === "medicacao" && !pending.completed_at && Date.now() >= Date.parse(pending.scheduled_at))) {
       setConfirmationResult({success:false,title:"Confirmação fora do horário",detail:careScheduleBlockMessage(pending)});
       setPending(null);
       return;
@@ -130,7 +130,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
       const actual = new Intl.DateTimeFormat("pt-BR",{timeZone:tz,day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new Date(verified.data.completed_at));
       setConfirmationResult({success:true,
         title:pending.category==="medicacao"?"Medicação registrada com sucesso!":pending.category==="refeicao"?"Refeição registrada com sucesso!":"Hidratação registrada com sucesso!",
-        detail:`${pending.title} · ${actual} (horário do Acre). Data e hora reais salvas no prontuário.`});
+        detail:`${pending.title} · ${actual} (horário do Acre). ${pending.category==="medicacao" && Date.parse(verified.data.completed_at)>=Date.parse(pending.scheduled_at)+900000?"Tomada atrasada registrada. ":""}Data e hora reais salvas no prontuário.`});
       setNotice("");
       setPending(null);
     } catch (failure) {
@@ -328,11 +328,11 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
               <p className="text-xs font-bold text-foreground">{pending.title}</p>
               <p className="text-[11px] text-muted-foreground">Prevista: {timeInAcre(pending.scheduled_at)} · Acre</p>
             </div>
-            <p className="text-[10px] leading-snug text-muted-foreground">A confirmação fica disponível apenas nos 15 minutos após o horário previsto e usa a hora real do servidor. Não altere a medicação sem orientação profissional.</p>
+            <p className="text-[10px] leading-snug text-muted-foreground">Se tomou esta dose agora, confirme para registrar a hora real do servidor, mesmo com atraso. Se ainda não tomou, procure orientação profissional antes de decidir; não dobre a dose.</p>
           </div>
           <div className="grid shrink-0 grid-cols-2 gap-2 border-t border-border bg-card px-3 py-2.5">
             <button type="button" disabled={busy} onClick={()=>setPending(null)} className="h-9 rounded-lg border border-border text-xs font-semibold text-foreground">Cancelar</button>
-            <button type="button" disabled={busy || !canConfirmCare(pending,clock?.getTime()??Date.now())} onClick={()=>void confirm()} className="h-9 rounded-lg bg-primary px-2 text-xs font-bold text-primary-foreground disabled:opacity-60">{busy?"Registrando…":"Sim, tomei agora"}</button>
+            <button type="button" disabled={busy || (!canConfirmCare(pending,clock?.getTime()??Date.now()) && (clock?.getTime()??Date.now()) < Date.parse(pending.scheduled_at))} onClick={()=>void confirm()} className="h-9 rounded-lg bg-primary px-2 text-xs font-bold text-primary-foreground disabled:opacity-60">{busy?"Registrando…":"Confirmo que tomei agora"}</button>
           </div>
         </section>
       </div>,
