@@ -83,4 +83,25 @@ describe("CareDigital — lembretes de até 10 minutos",()=>{
     expect(summary.dueCount).toBe(0);
   });
 
+  it("retira da faixa refeição declarada não realizada e medicação cancelada",()=>{
+    const meal=task("meal","refeicao",-15);
+    const med=task("med","medicacao",-20);
+    const now=start;
+    const unresolved=summarizeCareReminders([meal,med],now);
+    expect(unresolved.unconfirmedCount).toBe(2);
+    const answered=new Set(["meal","med"]);
+    const resolved=summarizeCareReminders([meal,med],now,answered);
+    expect(resolved.primary).toBeNull();
+    expect(resolved.unconfirmedCount).toBe(0);
+    expect(careReminderState(meal,now,answered)).toBe("responded");
+    expect(careReminderState(med,now,answered)).toBe("responded");
+    expect(summarizeCareReminders([meal,med],now,new Set()).unconfirmedCount).toBe(2);
+  });
+  it("uma remarcação futura não fica presa como pendência antiga",()=>{
+    const rescheduled=task("meal","refeicao",40);
+    const summary=summarizeCareReminders([rescheduled],start);
+    expect(summary.primary).toBeNull();
+    expect(summary.next?.task.id).toBe("meal");
+  });
+
 });
