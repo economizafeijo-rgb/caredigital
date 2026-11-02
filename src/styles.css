@@ -1151,3 +1151,22 @@ iframe[title*="Lovable" i][title*="badge" i] {
   .patient-history-workspace .patient-history-detail {padding: 8px;}
   .patient-history-list-scroll {margin-top: 5px;}
 }
+
+@media (max-width: 540px) {
+  .patient-history-workspace .patient-history-categories {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    padding-bottom: 2px;
+  }
+  .patient-history-workspace .patient-history-categories > button {
+    flex: 0 0 auto;
+    min-width: 104px;
+    padding-inline: 8px;
+  }
+  .patient-history-workspace .patient-history-categories > button > span:last-child {
+    display: inline-flex;
+  }
+}
