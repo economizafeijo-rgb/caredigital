@@ -1174,7 +1174,7 @@ iframe[title*="Lovable" i][title*="badge" i] {
 /* CareDigital / Painel do cliente — arte turquesa interativa v2
    Implementação CSS da referência visual: nenhum texto vira imagem e
    todos os botões, dados e indicadores continuam reativos. */
-.client-home-dashboard.care-home-art-v2 {
+:root:not(.dark) .client-home-dashboard.care-home-art-v2 {
   isolation: isolate;
   color: #14344b;
   border-color: rgba(109, 182, 205, .50);
@@ -1184,85 +1184,85 @@ iframe[title*="Lovable" i][title*="badge" i] {
     linear-gradient(117deg, #fbffff 0%, #edfaff 44%, #e1f4fc 100%);
   box-shadow: 0 15px 38px rgba(31, 99, 134, .13), 0 1px 0 rgba(255,255,255,.96) inset;
 }
-.client-home-dashboard.care-home-art-v2 > :is(.patient-header,.care-home-medication,.care-home-body) {
+:root:not(.dark) .client-home-dashboard.care-home-art-v2 > :is(.patient-header,.care-home-medication,.care-home-body) {
   position: relative;
   z-index: 1;
 }
-.care-home-art-v2 .care-home-ambient { z-index: 0; }
-.care-home-art-v2 .care-home-glow {
+:root:not(.dark) .care-home-art-v2 .care-home-ambient { z-index: 0; }
+:root:not(.dark) .care-home-art-v2 .care-home-glow {
   position: absolute;
   display: block;
   pointer-events: none;
   border-radius: 50%;
   filter: blur(68px);
 }
-.care-home-art-v2 .care-home-glow-a {
+:root:not(.dark) .care-home-art-v2 .care-home-glow-a {
   top: -16%; right: -8%; width: 38%; height: 64%;
   background: rgba(78,193,255,.16);
 }
-.care-home-art-v2 .care-home-glow-b {
+:root:not(.dark) .care-home-art-v2 .care-home-glow-b {
   left: -9%; bottom: -28%; width: 54%; height: 55%;
   background: rgba(80,228,193,.16);
 }
-.care-home-art-v2 .patient-header { border-color: rgba(99,171,185,.22); }
-.care-home-art-v2 .patient-header h2 {
+:root:not(.dark) .care-home-art-v2 .patient-header { border-color: rgba(99,171,185,.22); }
+:root:not(.dark) .care-home-art-v2 .patient-header h2 {
   color: #123349;
   text-shadow: 0 1px 0 rgba(255,255,255,.75);
 }
-.care-home-art-v2 .patient-header .text-slate-300 {color: #587a91;}
-.care-home-art-v2 .care-home-eyebrow {
+:root:not(.dark) .care-home-art-v2 .patient-header .text-slate-300 {color: #587a91;}
+:root:not(.dark) .care-home-art-v2 .care-home-eyebrow {
   color: #057f85;
   letter-spacing: .17em;
 }
-.care-home-art-v2 .care-home-pulse-icon {
+:root:not(.dark) .care-home-art-v2 .care-home-pulse-icon {
   color: #008d8e;
   border-color: #98e7e0;
   background: linear-gradient(130deg,#ecffff,#8cf3e2);
   box-shadow: 0 4px 11px rgba(24,161,158,.16), inset 0 1px 0 rgba(255,255,255,.90);
 }
-.care-home-art-v2 .patient-home-actions > button,
-.care-home-art-v2 .patient-home-actions > a {
+:root:not(.dark) .care-home-art-v2 .patient-home-actions > button,
+:root:not(.dark) .care-home-art-v2 .patient-home-actions > a {
   min-height: 36px;
   border-radius: 999px;
   padding-inline: 12px;
   box-shadow: 0 3px 9px rgba(11,110,145,.12), 0 1px 0 rgba(255,255,255,.90) inset;
   transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
 }
-.care-home-art-v2 .patient-home-actions > button:hover,
-.care-home-art-v2 .patient-home-actions > a:hover {
+:root:not(.dark) .care-home-art-v2 .patient-home-actions > button:hover,
+:root:not(.dark) .care-home-art-v2 .patient-home-actions > a:hover {
   transform: translateY(-1px);
   box-shadow: 0 6px 14px rgba(11,110,145,.17);
 }
-.care-home-art-v2 .patient-home-actions > button:first-child {
+:root:not(.dark) .care-home-art-v2 .patient-home-actions > button:first-child {
   color: #07547d;
   border: 1px solid #90d3f7;
   background: linear-gradient(120deg,#e8f8ff,#bce6ff);
 }
-.care-home-art-v2 .patient-home-actions > button:nth-child(2) {
+:root:not(.dark) .care-home-art-v2 .patient-home-actions > button:nth-child(2) {
   color: #07547d;
   border: 1px solid #8bd2ed;
   background: linear-gradient(120deg,#e6fbff,#a9e7f7);
 }
-.care-home-art-v2 .patient-home-actions > .care-home-chart-link {
+:root:not(.dark) .care-home-art-v2 .patient-home-actions > .care-home-chart-link {
   color: #07534b;
   border: 1px solid #78e6c6;
   background: linear-gradient(120deg,#c7f8e8,#6cebc6);
 }
-.care-home-art-v2 .care-home-medication > section:not([role="alert"]) {
+:root:not(.dark) .care-home-art-v2 .care-home-medication > section:not([role="alert"]) {
   border-color: rgba(83,184,227,.43);
   color: #183f58;
   background: linear-gradient(107deg,rgba(241,250,255,.93),rgba(190,231,254,.83) 76%,rgba(140,235,222,.79));
   box-shadow: 0 3px 8px rgba(56,131,174,.15), 0 1px 0 rgba(255,255,255,.94) inset;
 }
-.care-home-art-v2 .care-home-medication > section:not([role="alert"]) button:last-child {
+:root:not(.dark) .care-home-art-v2 .care-home-medication > section:not([role="alert"]) button:last-child {
   background: rgba(255,255,255,.65);
   border-color: rgba(54,123,149,.32);
 }
-.care-home-art-v2 .care-home-body {
+:root:not(.dark) .care-home-art-v2 .care-home-body {
   grid-auto-rows: minmax(0,1fr);
   gap: 10px;
 }
-.care-home-art-v2 .patient-next-care {
+:root:not(.dark) .care-home-art-v2 .patient-next-care {
   isolation: isolate;
   border-color: rgba(91,207,219,.48);
   color: #15374d;
@@ -1272,43 +1272,43 @@ iframe[title*="Lovable" i][title*="badge" i] {
     linear-gradient(122deg,#eafffb 0%,#d4f5f4 40%,#a7e8f2 100%);
   box-shadow: 0 8px 21px rgba(25,137,160,.10), inset 0 1px 0 rgba(255,255,255,.77);
 }
-.care-home-art-v2 .patient-next-care .care-next-art {z-index:0;}
-.care-home-art-v2 .care-next-copy {max-width: 66%;}
-.care-home-art-v2 .care-next-overline {color: #006b75;}
-.care-home-art-v2 .care-next-time-chip {
+:root:not(.dark) .care-home-art-v2 .patient-next-care .care-next-art {z-index:0;}
+:root:not(.dark) .care-home-art-v2 .care-next-copy {max-width: 66%;}
+:root:not(.dark) .care-home-art-v2 .care-next-overline {color: #006b75;}
+:root:not(.dark) .care-home-art-v2 .care-next-time-chip {
   color:#316275;
   border: 1px solid rgba(255,255,255,.7);
   background:rgba(255,255,255,.58);
   box-shadow:0 2px 6px rgba(12,110,148,.09);
 }
-.care-home-art-v2 .care-next-copy h3 {color:#163449;}
-.care-home-art-v2 .care-next-countdown {
+:root:not(.dark) .care-home-art-v2 .care-next-copy h3 {color:#163449;}
+:root:not(.dark) .care-home-art-v2 .care-next-countdown {
   color:#007c86;
   font-variant-numeric:tabular-nums;
   text-shadow: 0 2px 6px rgba(255,255,255,.50);
 }
-.care-home-art-v2 .care-next-countdown-label {color:#496c84;}
-.care-home-art-v2 .care-next-cta {
+:root:not(.dark) .care-home-art-v2 .care-next-countdown-label {color:#496c84;}
+:root:not(.dark) .care-home-art-v2 .care-next-cta {
   color:#fff;
   border:1px solid rgba(3,121,124,.60);
   background:linear-gradient(180deg,#11bda9 0%,#078b8b 100%);
   box-shadow:0 5px 12px rgba(6,140,137,.25),0 1px 0 rgba(255,255,255,.22) inset;
 }
-.care-home-art-v2 .care-next-cta:hover {
+:root:not(.dark) .care-home-art-v2 .care-next-cta:hover {
   background:linear-gradient(180deg,#0cb29f,#056f76);
   box-shadow:0 7px 15px rgba(6,140,137,.29);
 }
-.care-home-art-v2 .care-next-secondary {
+:root:not(.dark) .care-home-art-v2 .care-next-secondary {
   color:#1d5776;
   border-color:rgba(92,167,195,.50);
   background:rgba(255,255,255,.84);
   box-shadow:0 4px 9px rgba(37,126,155,.12);
 }
-.care-home-art-v2 .care-next-secondary:hover {
+:root:not(.dark) .care-home-art-v2 .care-next-secondary:hover {
   background:#fff;
   border-color:#52b5cb;
 }
-.care-home-art-v2 .care-next-orbit {
+:root:not(.dark) .care-home-art-v2 .care-next-orbit {
   position:absolute;
   width:70%;
   height:112%;
@@ -1318,7 +1318,7 @@ iframe[title*="Lovable" i][title*="badge" i] {
   transform:rotate(-26deg);
   background:linear-gradient(125deg,transparent 8%,rgba(77,220,228,.24) 55%,rgba(23,206,195,.12));
 }
-.care-home-art-v2 .care-next-clock {
+:root:not(.dark) .care-home-art-v2 .care-next-clock {
   position:absolute;
   top:48%;right:12%;
   width:clamp(105px,27%,196px);
@@ -1337,13 +1337,13 @@ iframe[title*="Lovable" i][title*="badge" i] {
     inset 7px 7px 13px rgba(255,255,255,.72);
   opacity:.87;
 }
-.care-home-art-v2 .care-next-clock-face {
+:root:not(.dark) .care-home-art-v2 .care-next-clock-face {
   position:absolute;inset:4px;
   display:block;border-radius:50%;
   border:1px solid rgba(255,255,255,.70);
   background:radial-gradient(circle at 37% 29%,rgba(255,255,255,.45),transparent 61%);
 }
-.care-home-art-v2 .care-next-clock-face::before {
+:root:not(.dark) .care-home-art-v2 .care-next-clock-face::before {
   content:"";
   position:absolute;inset:8%;
   border-radius:50%;
@@ -1352,23 +1352,23 @@ iframe[title*="Lovable" i][title*="badge" i] {
   mask:radial-gradient(circle,transparent 69%,black 72% 76%,transparent 79%);
   opacity:.78;
 }
-.care-home-art-v2 .care-clock-hour,
-.care-home-art-v2 .care-clock-minute {
+:root:not(.dark) .care-home-art-v2 .care-clock-hour,
+:root:not(.dark) .care-home-art-v2 .care-clock-minute {
   position:absolute;left:50%;top:50%;
   display:block;border-radius:999px;
   background:#068e96;
   box-shadow:1px 1px 3px rgba(14,124,151,.29);
   transform-origin:50% 100%;
 }
-.care-home-art-v2 .care-clock-hour {
+:root:not(.dark) .care-home-art-v2 .care-clock-hour {
   width:5px;height:25%;
   transform:translate(-50%,-100%) rotate(-52deg);
 }
-.care-home-art-v2 .care-clock-minute {
+:root:not(.dark) .care-home-art-v2 .care-clock-minute {
   width:3px;height:37%;
   transform:translate(-50%,-100%) rotate(46deg);
 }
-.care-home-art-v2 .care-clock-pin {
+:root:not(.dark) .care-home-art-v2 .care-clock-pin {
   position:absolute;left:50%;top:50%;
   width:12px;height:12px;
   display:block;border-radius:50%;
@@ -1377,7 +1377,7 @@ iframe[title*="Lovable" i][title*="badge" i] {
   background:#d8ffff;
   box-shadow:0 0 0 2px rgba(1,112,134,.10);
 }
-.care-home-art-v2 .care-next-wave {
+:root:not(.dark) .care-home-art-v2 .care-next-wave {
   position:absolute;
   width:118%;height:56%;
   right:-31%;bottom:-30%;
@@ -1385,111 +1385,111 @@ iframe[title*="Lovable" i][title*="badge" i] {
   border-radius:50% 50% 0 0;
   transform:rotate(-15deg);
 }
-.care-home-art-v2 .care-next-wave-a {
+:root:not(.dark) .care-home-art-v2 .care-next-wave-a {
   background:linear-gradient(165deg,rgba(106,239,220,.23),rgba(55,213,195,.37));
 }
-.care-home-art-v2 .care-next-wave-b {
+:root:not(.dark) .care-home-art-v2 .care-next-wave-b {
   bottom:-39%;right:-38%;
   background:linear-gradient(165deg,rgba(147,246,225,.17),rgba(48,179,233,.21));
 }
-.care-home-art-v2 .care-next-cross {
+:root:not(.dark) .care-home-art-v2 .care-next-cross {
   position:absolute;right:8%;top:14%;
   font-size:44px;line-height:1;font-weight:200;
   color:rgba(255,255,255,.70);
   text-shadow:0 1px 3px rgba(14,162,181,.12);
 }
-.care-home-art-v2 .patient-stat-card {
+:root:not(.dark) .care-home-art-v2 .patient-stat-card {
   border-color:rgba(81,173,192,.27);
   box-shadow:0 4px 13px rgba(30,120,153,.07),inset 0 1px 0 rgba(255,255,255,.78);
   color:#18384c;
   gap:3px;
   transition:border-color .18s ease,transform .18s ease,box-shadow .18s ease;
 }
-.care-home-art-v2 .patient-stat-card:hover:not(:disabled) {
+:root:not(.dark) .care-home-art-v2 .patient-stat-card:hover:not(:disabled) {
   border-color:rgba(20,176,175,.53);
   transform:translateY(-2px);
   box-shadow:0 7px 17px rgba(30,120,153,.13);
 }
-.care-home-art-v2 .patient-stat-card:disabled {opacity:1;}
-.care-home-art-v2 .patient-stat-card[data-care-stat="medicacao"] {
+:root:not(.dark) .care-home-art-v2 .patient-stat-card:disabled {opacity:1;}
+:root:not(.dark) .care-home-art-v2 .patient-stat-card[data-care-stat="medicacao"] {
   background:linear-gradient(125deg,#eefdf3 0%,#b9f4df 100%);
 }
-.care-home-art-v2 .patient-stat-card[data-care-stat="refeicao"] {
+:root:not(.dark) .care-home-art-v2 .patient-stat-card[data-care-stat="refeicao"] {
   background:linear-gradient(125deg,#edfaff 0%,#b8e3ff 100%);
 }
-.care-home-art-v2 .patient-stat-card[data-care-stat="hidratacao"] {
+:root:not(.dark) .care-home-art-v2 .patient-stat-card[data-care-stat="hidratacao"] {
   background:linear-gradient(125deg,#e8fcff 0%,#a0eff5 100%);
 }
-.care-home-art-v2 .patient-stat-card[data-care-stat="medicacao"] > svg {color:#0b977b;}
-.care-home-art-v2 .patient-stat-card[data-care-stat="refeicao"] > svg {color:#1388ce;}
-.care-home-art-v2 .patient-stat-card[data-care-stat="hidratacao"] > svg {color:#039dad;}
-.care-home-art-v2 .patient-stat-card > span:last-child {
+:root:not(.dark) .care-home-art-v2 .patient-stat-card[data-care-stat="medicacao"] > svg {color:#0b977b;}
+:root:not(.dark) .care-home-art-v2 .patient-stat-card[data-care-stat="refeicao"] > svg {color:#1388ce;}
+:root:not(.dark) .care-home-art-v2 .patient-stat-card[data-care-stat="hidratacao"] > svg {color:#039dad;}
+:root:not(.dark) .care-home-art-v2 .patient-stat-card > span:last-child {
   background:rgba(255,255,255,.64);
   height:5px;
 }
-.care-home-art-v2 .patient-stat-card > span:last-child > span {
+:root:not(.dark) .care-home-art-v2 .patient-stat-card > span:last-child > span {
   background:linear-gradient(90deg,#1fcab8,#10a7a8);
 }
-.care-home-art-v2 .patient-stat-card[data-care-stat="refeicao"] > span:last-child > span {
+:root:not(.dark) .care-home-art-v2 .patient-stat-card[data-care-stat="refeicao"] > span:last-child > span {
   background:linear-gradient(90deg,#32b9f5,#0f92da);
 }
-.care-home-art-v2 .patient-progress {color:#416b7d;}
-.care-home-art-v2 .patient-progress > span:last-child {color:#007d82;}
-.care-home-art-v2 .patient-timeline {
+:root:not(.dark) .care-home-art-v2 .patient-progress {color:#416b7d;}
+:root:not(.dark) .care-home-art-v2 .patient-progress > span:last-child {color:#007d82;}
+:root:not(.dark) .care-home-art-v2 .patient-timeline {
   color:#173950;
   border-color:rgba(114,176,204,.39);
   background:linear-gradient(150deg,rgba(255,255,255,.97),rgba(241,250,255,.94));
   box-shadow:0 10px 22px rgba(53,121,151,.10),inset 0 1px 0 #fff;
 }
-.care-home-art-v2 .patient-timeline > div:first-child {border-color:#d3e7f0;}
-.care-home-art-v2 .care-timeline-eyebrow {color:#087786;}
-.care-home-art-v2 .patient-timeline > div:first-child h3 {color:#17374d;}
-.care-home-art-v2 .patient-timeline > div:first-child > span {
+:root:not(.dark) .care-home-art-v2 .patient-timeline > div:first-child {border-color:#d3e7f0;}
+:root:not(.dark) .care-home-art-v2 .care-timeline-eyebrow {color:#087786;}
+:root:not(.dark) .care-home-art-v2 .patient-timeline > div:first-child h3 {color:#17374d;}
+:root:not(.dark) .care-home-art-v2 .patient-timeline > div:first-child > span {
   background:#e1f3fc;
   color:#285976;
 }
-.care-home-art-v2 .patient-timeline-item {
+:root:not(.dark) .care-home-art-v2 .patient-timeline-item {
   border-color:#d2e9f2;
   background:linear-gradient(95deg,#effaff,#dceefe);
   color:#1b445e;
   min-height:47px;
 }
-.care-home-art-v2 .patient-timeline-item[data-care-state="done"] {
+:root:not(.dark) .care-home-art-v2 .patient-timeline-item[data-care-state="done"] {
   border-color:#c4f1db;
   background:linear-gradient(95deg,#e8fbf0,#cff9e9);
   color:#155d4c;
 }
-.care-home-art-v2 .patient-timeline-item[data-care-state="overdue"] {
+:root:not(.dark) .care-home-art-v2 .patient-timeline-item[data-care-state="overdue"] {
   border-color:#efd9aa;
   background:linear-gradient(95deg,#fff8e9,#ffedcf);
   color:#74501e;
 }
-.care-home-art-v2 .patient-timeline-item:hover {
+:root:not(.dark) .care-home-art-v2 .patient-timeline-item:hover {
   filter:saturate(1.12);
   border-color:#92cdcc;
   box-shadow:0 2px 7px rgba(41,142,163,.09);
 }
-.care-home-art-v2 .patient-timeline-item[data-care-category="hidratacao"] > span:nth-child(2) {
+:root:not(.dark) .care-home-art-v2 .patient-timeline-item[data-care-category="hidratacao"] > span:nth-child(2) {
   background:rgba(50,159,221,.12);
   color:#048cbd;
 }
-.care-home-art-v2 .patient-timeline-item[data-care-category="medicacao"] > span:nth-child(2) {
+:root:not(.dark) .care-home-art-v2 .patient-timeline-item[data-care-category="medicacao"] > span:nth-child(2) {
   background:rgba(13,183,147,.13);
   color:#049a77;
 }
-.care-home-art-v2 .patient-timeline-item[data-care-category="refeicao"] > span:nth-child(2) {
+:root:not(.dark) .care-home-art-v2 .patient-timeline-item[data-care-category="refeicao"] > span:nth-child(2) {
   background:rgba(57,184,130,.13);
   color:#16876d;
 }
-.care-home-art-v2 .patient-timeline-item > span:first-child {color:#086b91;}
-.care-home-art-v2 .patient-timeline-item .text-slate-400 {color:#55778b;}
-.care-home-art-v2 .patient-timeline-item .text-amber-300 {color:#a66b20;}
-.care-home-art-v2 .patient-timeline-item .text-emerald-300 {color:#008f7b;}
-.care-home-art-v2 .patient-timeline nav {
+:root:not(.dark) .care-home-art-v2 .patient-timeline-item > span:first-child {color:#086b91;}
+:root:not(.dark) .care-home-art-v2 .patient-timeline-item .text-slate-400 {color:#55778b;}
+:root:not(.dark) .care-home-art-v2 .patient-timeline-item .text-amber-300 {color:#a66b20;}
+:root:not(.dark) .care-home-art-v2 .patient-timeline-item .text-emerald-300 {color:#008f7b;}
+:root:not(.dark) .care-home-art-v2 .patient-timeline nav {
   border-color:rgba(89,161,187,.20);
 }
-.care-home-art-v2 .patient-timeline nav button {color:#276080;}
-.care-home-art-v2 .patient-timeline nav button:not(:disabled):hover {
+:root:not(.dark) .care-home-art-v2 .patient-timeline nav button {color:#276080;}
+:root:not(.dark) .care-home-art-v2 .patient-timeline nav button:not(:disabled):hover {
   background:#e4f5f9;
 }
 .dark .client-home-dashboard.care-home-art-v2 {
