@@ -16,6 +16,8 @@ const icons: Record<IntakeKind,LucideIcon>={
   leite:Milk,agua_coco:Leaf,refrigerante:CupSoda,outra:GlassWater,
 };
 
+export const getCareIntakeIcon=(kind:string):LucideIcon|undefined=>icons[kind as IntakeKind];
+
 export function CareIntakeIcon({kind,size=19,className=""}:{
   kind:string;size?:number;className?:string;
 }){
