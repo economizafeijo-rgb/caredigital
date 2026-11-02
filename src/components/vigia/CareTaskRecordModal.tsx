@@ -25,6 +25,8 @@ type TaskDetails = {
   can_edit_water: boolean;
 };
 
+type WaterResponse={response:string;recorded_at:string}|null;
+
 type Props = {
   task: CareTaskRecord | null;
   onClose: () => void;
@@ -51,10 +53,17 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [waterResponse,setWaterResponse]=useState<WaterResponse>(null);
+  const [responseReady,setResponseReady]=useState(false);
+  const [confirmNo,setConfirmNo]=useState(false);
+  const [decisionSaving,setDecisionSaving]=useState(false);
 
   useEffect(() => {
     if (!task) {
       setDetails(null);
+      setWaterResponse(null);
+      setResponseReady(false);
+      setConfirmNo(false);
       setEditing(false);
       setError("");
       setSuccess("");
@@ -66,8 +75,17 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
     setError("");
     setSuccess("");
     setDetails(null);
+    setWaterResponse(null);
+    setResponseReady(false);
+    setConfirmNo(false);
     void (async () => {
-      const response = await (supabase as any).rpc("care_get_task_record", { p_task_id: task.id });
+      const [response,waterDecision] = await Promise.all([
+        (supabase as any).rpc("care_get_task_record", {p_task_id:task.id}),
+        task.category==="hidratacao"?
+          (supabase as any).from("care_hydration_responses")
+            .select("response,recorded_at").eq("task_id",task.id).maybeSingle()
+          : Promise.resolve({data:null,error:null}),
+      ]);
       if (!active) return;
       if (response.error) {
         setError("Não foi possível consultar o registro: " + response.error.message);
@@ -76,6 +94,13 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
         setAmount(String(response.data.amount_ml ?? ""));
       } else {
         setError("Registro não encontrado no prontuário.");
+      }
+      if(waterDecision.error){
+        setResponseReady(false);
+        setError("Não foi possível verificar respostas anteriores de água. Atualize e tente novamente.");
+      }else{
+        setWaterResponse(waterDecision.data as WaterResponse);
+        setResponseReady(true);
       }
       setLoading(false);
     })();
@@ -125,17 +150,53 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
     }
   }
 
+  async function changeWaterDecision(decision:"not_drunk"|"reset_not_drunk"){
+    if(!task||!details||details.category!=="hidratacao"||details.completed_at||
+       !responseReady||saving||decisionSaving||!canConfirmCare(details))return;
+    if(decision==="not_drunk"&&!confirmNo)return;
+    if(decision==="reset_not_drunk"&&waterResponse?.response!=="not_drunk")return;
+    setDecisionSaving(true);setError("");setSuccess("");
+    try{
+      const result=await (supabase as any).rpc("care_record_water_decision",{
+        p_task_id:task.id,p_decision:decision,p_amount_ml:null
+      });
+      if(result.error)throw result.error;
+      if(result.data?.decision!==decision)throw new Error("O servidor não confirmou a resposta; consulte o prontuário.");
+      if(decision==="not_drunk"){
+        const recorded=result.data.recorded_at;
+        if(typeof recorded!=="string"||!Number.isFinite(Date.parse(recorded)))
+          throw new Error("O servidor não retornou a hora da resposta. Verifique o prontuário antes de repetir.");
+        setWaterResponse({response:"not_drunk",recorded_at:recorded});
+        setSuccess("“Não bebi” registrado com o horário real. Nenhum volume de água foi contabilizado.");
+      }else{
+        setWaterResponse(null);
+        setSuccess("Resposta desfeita com registro no histórico. Se bebeu, você pode confirmar agora.");
+      }
+      setConfirmNo(false);
+      onSaved?.();
+    }catch(failure){
+      setError(failure instanceof Error?failure.message:"Não foi possível salvar a resposta. Tente novamente.");
+      setConfirmNo(false);
+      onSaved?.();
+    }finally{setDecisionSaving(false);}
+  }
+
   const row = (title: string, value: string) =>
     <div className="rounded-xl bg-muted/60 px-3 py-2">
       <dt className="text-[11px] font-medium text-muted-foreground">{title}</dt>
       <dd className="mt-0.5 break-words text-xs font-bold text-foreground">{value}</dd>
     </div>;
 
-  const canConfirm = Boolean(details && !details.completed_at && onConfirm && ["hidratacao","refeicao","medicacao"].includes(details.category) && canConfirmCare(details));
+  const skippedWater=details?.category==="hidratacao"&&waterResponse?.response==="not_drunk";
+  const canMarkNo=Boolean(details&&details.category==="hidratacao"&&!details.completed_at&&responseReady&&!skippedWater&&canConfirmCare(details));
+  const canUndoNo=Boolean(details&&details.category==="hidratacao"&&!details.completed_at&&responseReady&&skippedWater&&canConfirmCare(details));
+  const canConfirm=Boolean(details&&!details.completed_at&&onConfirm&&
+    ["hidratacao","refeicao","medicacao"].includes(details.category)&&canConfirmCare(details)&&
+    (details.category!=="hidratacao"||(responseReady&&!skippedWater)));
 
   return createPortal(
     <div className="fixed inset-0 z-[10020] flex items-center justify-center bg-slate-950/75 p-2 backdrop-blur-sm sm:p-4"
-      onMouseDown={event => { if (event.target === event.currentTarget && !saving) onClose(); }}>
+      onMouseDown={event => { if (event.target === event.currentTarget && !saving && !decisionSaving) onClose(); }}>
       <section role="dialog" aria-modal="true" aria-labelledby="care-task-record-title"
         className="flex max-h-[calc(100dvh-1rem)] w-full max-w-md flex-col overflow-y-auto rounded-2xl border border-border bg-card p-3 text-card-foreground shadow-2xl sm:p-4">
         <div className="flex items-start justify-between gap-2">
@@ -143,7 +204,7 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
             <p className="text-[10px] font-extrabold uppercase tracking-widest text-primary">Detalhes do registro · {label(task.category)}</p>
             <h2 id="care-task-record-title" className="mt-1 text-base font-extrabold">{task.title}</h2>
           </div>
-          <button type="button" aria-label="Fechar detalhes" disabled={saving} onClick={onClose}
+          <button type="button" aria-label="Fechar detalhes" disabled={saving||decisionSaving} onClick={onClose}
             className="grid size-8 shrink-0 place-items-center rounded-lg border border-border hover:bg-muted disabled:opacity-50">
             <X size={17}/>
           </button>
@@ -152,7 +213,8 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
         {loading ? <p role="status" className="mt-3 text-xs text-muted-foreground">Consultando o prontuário…</p> :
           details && <dl className="mt-3 grid gap-2">
             {row("Horário previsto (Acre)", stamp(details.scheduled_at))}
-            {row("Situação", details.completed_at ? "Confirmado" : careScheduleLabel(details))}
+            {row("Situação", details.completed_at?"Confirmado":skippedWater?"Não bebi · resposta registrada":careScheduleLabel(details))}
+            {skippedWater&&waterResponse?.recorded_at&&row("Resposta registrada em (Acre)",stamp(waterResponse.recorded_at))}
             {details.completed_at && row("Confirmação registrada em (Acre)", stamp(details.completed_at))}
             {details.category === "refeicao" && row("Alimentos informados", details.description || "Sem descrição detalhada registrada")}
             {details.category === "hidratacao" && details.completed_at && row(
@@ -185,19 +247,48 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
           </div>
         </form>}
 
+        {confirmNo&&canMarkNo&&!editing&&<div role="group" aria-label="Confirmar ausência de consumo"
+          className="mt-3 rounded-xl border border-amber-500/35 bg-amber-500/[.08] p-3">
+          <p className="text-xs font-extrabold">Você não bebeu água neste horário?</p>
+          <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">Vamos registrar sua resposta com a data e hora reais, sem somar nenhum ml à meta. Você poderá corrigir depois.</p>
+          <div className="mt-3 flex justify-end gap-2">
+            <button type="button" disabled={decisionSaving} onClick={()=>setConfirmNo(false)}
+              className="min-h-9 rounded-lg border border-border px-3 text-[11px] font-semibold">Cancelar</button>
+            <button type="button" disabled={decisionSaving} onClick={()=>void changeWaterDecision("not_drunk")}
+              className="min-h-9 rounded-lg bg-amber-600 px-3 text-[11px] font-extrabold text-white hover:bg-amber-700 disabled:opacity-50">
+              {decisionSaving?"Salvando…":"Sim, não bebi"}
+            </button>
+          </div>
+        </div>}
+
         {success && <p role="status" className="mt-3 flex items-start gap-1.5 rounded-lg border border-success/30 bg-success/10 p-2 text-xs text-foreground">
           <CheckCircle2 size={16} className="shrink-0 text-success"/>{success}
         </p>}
         {error && <p role="alert" className="mt-3 rounded-lg border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive">{error}</p>}
         <div className="mt-3 flex items-center gap-2 text-[11px] text-muted-foreground">
-          {details?.completed_at ? <><CheckCircle2 size={14}/> Registro confirmado; consulta não altera o consumo.</> :
+          {details?.completed_at?<><CheckCircle2 size={14}/> Registro confirmado; consulta não altera o consumo.</>:
+            skippedWater?<><Droplets size={14}/> Você informou “Não bebi”. Nenhum ml foi contabilizado.</>:
             <><Clock3 size={14}/> Este cuidado ainda não foi confirmado.</>}
         </div>
-        {!editing && <div className="mt-3 grid gap-2" style={{gridTemplateColumns:canConfirm?"1fr 1fr":"1fr"}}>
-          <button type="button" disabled={saving} onClick={onClose} className="rounded-lg border border-border px-3 py-2.5 text-xs font-semibold">Fechar</button>
-          {canConfirm && onConfirm && <button type="button" onClick={() => { onClose(); onConfirm(task); }}
-            className="rounded-lg bg-primary px-3 py-2.5 text-xs font-bold text-primary-foreground">Confirmar agora</button>}
-        </div>}
+        {!editing && <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+          <button type="button" disabled={saving||decisionSaving} onClick={onClose}
+            className={"min-h-10 rounded-lg border border-border px-3 py-2.5 text-xs font-semibold "+(canConfirm&&canMarkNo?"col-span-2 sm:col-span-1":"")}>Fechar</button>
+          {canMarkNo&&!confirmNo&&<button type="button" disabled={saving||decisionSaving}
+            onClick={()=>{setConfirmNo(true);setError("");setSuccess("");}}
+            className="min-h-10 rounded-lg border border-amber-500/50 bg-amber-500/10 px-3 py-2.5 text-xs font-bold text-amber-800 hover:bg-amber-500/20 dark:text-amber-200">
+            Não bebi
+          </button>}
+          {canUndoNo&&<button type="button" disabled={saving||decisionSaving}
+            onClick={()=>void changeWaterDecision("reset_not_drunk")}
+            className="min-h-10 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2.5 text-xs font-bold text-foreground hover:bg-amber-500/20">
+            {decisionSaving?"Corrigindo…":"Desfazer “Não bebi”"}
+          </button>}
+          {canConfirm&&onConfirm&&!confirmNo&&<button type="button" disabled={saving||decisionSaving}
+            onClick={()=>{onClose();onConfirm(task);}}
+            className="min-h-10 rounded-lg bg-primary px-3 py-2.5 text-xs font-bold text-primary-foreground">
+            Confirmar agora
+          </button>}
+        </div>
       </section>
     </div>, document.body
   );
