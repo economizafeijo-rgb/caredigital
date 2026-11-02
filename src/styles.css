@@ -754,216 +754,66 @@ iframe[title*="Lovable" i][title*="badge" i] {
   }
 }
 
-/* Public desktop presentations: fit content in the available viewport instead of
-   creating an inner vertical scrollbar. Patient forms and mobile remain scrollable. */
-@media (min-width:1024px) and (min-height:650px) {
+
+/* Unified public page layout. Avoid legacy zoom/overflow overrides. */
+@media (min-width:1024px) {
   #care-content:has(.public-care-showcase) {
-    overflow-y:clip;
-    padding-top:clamp(4px,1vh,10px);
-    padding-bottom:clamp(4px,1vh,10px);
+    min-height:0;
+    overflow-y:auto;
+    padding-block:clamp(6px,1vh,14px);
   }
   #care-content:has(.public-care-showcase) > .public-care-showcase {
+    min-height:0;
     height:100%;
-    min-height:0;
-    overflow:hidden;
-    justify-content:flex-start;
-    padding-block:0;
-  }
-  .public-care-showcase > :first-child {
-    flex:1 1 auto;
-    min-height:0;
-    gap:clamp(5px,.85vh,10px);
-    padding:clamp(10px,1.6vh,18px);
-    overflow:hidden;
-  }
-  .public-care-showcase > :first-child > header {
-    flex-shrink:0;
-  }
-  .public-care-showcase > :first-child > section {
-    min-height:0;
-  }
-  .public-care-showcase svg[role="img"] {
-    height:clamp(95px,19vh,170px);
-    max-height:100%;
-  }
-  .public-care-showcase > :first-child > section:last-of-type {
-    flex-shrink:0;
-  }
-  .public-care-showcase > :first-child > footer {
-    flex-shrink:0;
-  }
-}
-@media (min-width:1024px) and (min-height:650px) and (max-height:800px) {
-  .public-care-showcase > :first-child {gap:5px;padding:10px;}
-  .public-care-showcase > :first-child section {padding-block:8px;}
-  .public-care-showcase > :first-child h1 {font-size:clamp(20px,2.8vh,26px);line-height:1.1;}
-  .public-care-showcase > :first-child h2 {font-size:clamp(18px,2.6vh,23px);line-height:1.12;}
-  .public-care-showcase > :first-child p {line-height:1.35;}
-  .public-care-showcase svg[role="img"] {height:clamp(95px,17vh,135px);}
-}
-
-/* Protocolos: short desktop windows previously fell outside the 650px rule,
-   leaving the scrollbar and clipping the heading. Scale the complete card
-   to available height instead of simply hiding a scrollbar. */
-@media (min-width:1024px) and (min-height:500px) and (max-height:649px) {
-  #care-content:has(.public-care-showcase) {
-    overflow:hidden!important;
-    padding-top:4px!important;
-    padding-bottom:4px!important;
-  }
-  #care-content:has(.public-care-showcase) .public-care-showcase {
-    min-height:0!important;
-    height:100%;
-    justify-content:flex-start;
     padding:0;
-    overflow:visible;
+    justify-content:flex-start;
   }
-  #care-content:has(.public-care-showcase) .public-care-showcase > :first-child {
-    zoom:.78;
-    gap:6px!important;
-    padding:10px!important;
-    flex-shrink:0;
-  }
-  #care-content:has(.public-care-showcase) .public-care-showcase svg[role="img"] {
-    height:125px!important;
-    max-height:125px!important;
-  }
-  #care-content:has(.public-care-showcase) .public-care-showcase > :first-child > section {
-    padding-block:8px!important;
-  }
-}
-@media (min-width:1024px) and (min-height:650px) and (max-height:780px) {
-  #care-content:has(.public-care-showcase) .public-care-showcase > :first-child {
-    zoom:.9;
-    flex-shrink:0;
-  }
-}
-
-/* Protocolos: distribute information through the available desktop height.
-   Only show the supplemental cards when the viewport has room for them. */
-@media (min-width:1024px) {
-  #care-content:has(.public-care-showcase) .public-care-showcase {
+  .public-care-showcase .showcase-panel,
+  .public-care-showcase .protocols-content {
+    flex:0 1 auto;
     min-height:0;
-    height:100%;
-    overflow:hidden;
-  }
-  #care-content:has(.public-care-showcase) .protocols-content {
-    box-sizing:border-box;
-    min-height:0;
-    height:100%;
-    flex:1 1 auto;
-    justify-content:space-between;
-    overflow:hidden;
-    gap:clamp(5px,1vh,14px);
-  }
-  #care-content:has(.public-care-showcase) .protocols-intro {
-    flex:1 1 auto;
-    min-height:0;
-    align-content:center;
-  }
-  #care-content:has(.public-care-showcase) .protocols-benefits article {
-    align-items:center;
-  }
-  #care-content:has(.public-care-showcase) .protocols-extra {
-    flex-shrink:0;
-  }
-}
-@media (min-width:1024px) and (max-height:800px) {
-  #care-content:has(.public-care-showcase) .protocols-extra {display:none;}
-  #care-content:has(.public-care-showcase) .protocols-content {zoom:1!important;}
-  #care-content:has(.public-care-showcase) .protocols-intro {flex:1 1 auto;}
-}
-@media (min-width:1024px) and (min-height:801px) {
-  #care-content:has(.public-care-showcase) .protocols-extra {display:grid;}
-  #care-content:has(.public-care-showcase) .protocols-content {zoom:1!important;}
-}
-@media (min-width:1024px) and (max-height:560px) {
-  #care-content:has(.public-care-showcase) .protocols-content {zoom:.82!important;}
-}
-
-/* Consistent public showcase cards: same proportions across nutrition,
-   hydration and medication; no oversized sports hero. */
-@media (min-width:1024px) {
-  #care-content:has(.public-care-showcase) .showcase-panel {
     height:auto;
     max-height:100%;
-    flex:0 1 auto;
+    overflow:visible;
     justify-content:flex-start;
     gap:clamp(6px,1.1vh,12px);
-    overflow:hidden;
+    padding:clamp(10px,1.6vh,18px);
   }
-  #care-content:has(.public-care-showcase) .showcase-intro {
-    flex:0 0 auto!important;
-    min-height:0;
-    align-content:center;
-    padding-block:clamp(9px,1.8vh,17px);
-  }
-  #care-content:has(.public-care-showcase) .showcase-illustration {
-    min-height:0;
-    max-height:clamp(120px,24vh,190px);
-  }
-  #care-content:has(.public-care-showcase) .showcase-illustration svg[role="img"] {
-    width:100%;
-    height:clamp(115px,22vh,178px)!important;
-    max-height:100%!important;
-    object-fit:contain;
-  }
-  #care-content:has(.public-care-showcase) .showcase-benefits,
-  #care-content:has(.public-care-showcase) .showcase-steps,
-  #care-content:has(.public-care-showcase) .showcase-footer {
+  .public-care-showcase .showcase-intro,
+  .public-care-showcase .protocols-intro {
     flex:0 0 auto;
+    min-height:0;
+    padding-block:clamp(8px,1.5vh,16px);
   }
-  #care-content:has(.public-care-showcase) .sports-showcase .showcase-panel {
-    height:auto!important;
-    min-height:0!important;
-    flex:0 1 auto!important;
-    justify-content:flex-start!important;
+  .public-care-showcase .showcase-illustration {
+    min-height:0;
+    max-height:clamp(110px,23vh,190px);
   }
-  #care-content:has(.public-care-showcase) .sports-showcase .showcase-intro {
-    flex:0 0 auto!important;
-    min-height:0!important;
-    max-height:none!important;
-    overflow:visible;
+  .public-care-showcase .showcase-illustration svg[role="img"] {
+    display:block;
+    width:100%;
+    height:clamp(105px,20vh,180px);
+    max-height:100%;
   }
-}
-@media (min-width:1024px) and (max-height:650px) {
-  #care-content:has(.public-care-showcase) .showcase-panel {
-    gap:5px!important;
-    padding:9px!important;
-  }
-  #care-content:has(.public-care-showcase) .showcase-intro {
-    padding-block:7px!important;
-  }
-  #care-content:has(.public-care-showcase) .showcase-illustration {
-    max-height:115px!important;
-  }
-  #care-content:has(.public-care-showcase) .showcase-illustration svg[role="img"] {
-    height:105px!important;
-  }
-}
-
-/* Keep the nurse in a professional portrait crop on wide public presentations.
-   Use a dedicated right-side image layer instead of cropping a full-screen cover. */
-@media (min-width:1024px) {
+  .public-care-showcase .protocols-extra {display:grid;}
   .care-shell:has(.public-care-showcase)::before {
-    background-image:
-      linear-gradient(90deg,rgba(37,46,50,.98) 0%,rgba(37,46,50,.92) 48%,rgba(37,46,50,.34) 73%,rgba(37,46,50,.08) 100%),
-      url("/images/caredigital-care-hero.webp"),
-      linear-gradient(145deg,#252e32,#405753)!important;
-    background-size:100% 100%,auto 100%,100% 100%!important;
-    background-position:center,right center,center!important;
-    background-repeat:no-repeat!important;
+    background-image:linear-gradient(90deg,rgba(37,46,50,.97) 0%,rgba(37,46,50,.89) 48%,rgba(37,46,50,.28) 73%,rgba(37,46,50,.06) 100%),url("/images/caredigital-care-hero.webp"),linear-gradient(145deg,#252e32,#405753);
+    background-size:100% 100%,auto 100%,100% 100%;
+    background-position:center,right center,center;
+    background-repeat:no-repeat;
   }
   :root:not(.dark) .care-shell:has(.public-care-showcase)::before {
-    background-image:
-      linear-gradient(90deg,rgba(245,248,246,.98) 0%,rgba(245,248,246,.92) 47%,rgba(245,248,246,.25) 73%,rgba(245,248,246,.05) 100%),
-      url("/images/caredigital-care-hero.webp"),
-      linear-gradient(145deg,#edf3f0,#e2eeea)!important;
+    background-image:linear-gradient(90deg,rgba(245,248,246,.97) 0%,rgba(245,248,246,.88) 48%,rgba(245,248,246,.22) 73%,rgba(245,248,246,.04) 100%),url("/images/caredigital-care-hero.webp"),linear-gradient(145deg,#edf3f0,#e2eeea);
   }
 }
-@media (min-width:1024px) and (max-width:1250px) {
-  .care-shell:has(.public-care-showcase)::before {
-    background-size:100% 100%,auto 90%,100% 100%!important;
-    background-position:center,right bottom,center!important;
-  }
+@media (min-width:1024px) and (max-height:750px) {
+  .public-care-showcase .protocols-extra {display:none;}
+  .public-care-showcase .showcase-panel,
+  .public-care-showcase .protocols-content {gap:5px;padding:9px;}
+  .public-care-showcase .showcase-intro,
+  .public-care-showcase .protocols-intro {padding-block:7px;}
+  .public-care-showcase .showcase-illustration svg[role="img"] {height:105px;}
+}
+@media (max-width:1023px) {
+  #care-content:has(.public-care-showcase) {overflow-y:auto;}
 }
