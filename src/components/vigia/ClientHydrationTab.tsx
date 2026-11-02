@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Droplets, CheckCircle2, AlertCircle, Save, SlidersHorizontal } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ClientQuickIntake } from "./ClientQuickIntake";
+import { CareTaskRecordModal } from "./CareTaskRecordModal";
 import {canConfirmCare,careScheduleBlockMessage,careScheduleLabel,getCareScheduleState} from "@/lib/care-schedule";
 
 type Task={id:string;patient_id:string;category:string;title:string;scheduled_at:string;completed_at:string|null};
@@ -40,6 +41,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
  const [saving,setSaving]=useState(false);
  const [drinks,setDrinks]=useState<Drink[]>([]);
  const [volumeByTask,setVolumeByTask]=useState<Record<string,number>>({});
+ const [detailTask,setDetailTask]=useState<Task|null>(null);
  const [notDrunk,setNotDrunk]=useState<Response[]>([]);
  const [action,setAction]=useState<string|null>(null);
  const [error,setError]=useState("");
@@ -163,7 +165,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
      {status==="pending"&&available&&<div className="flex shrink-0 flex-col gap-1"><label className="text-[10px] text-muted-foreground">Volume real (ml)<input aria-label={`Volume de água às ${time(task.scheduled_at)}`} type="number" min={10} max={1500} step={10} value={volumeByTask[task.id]??(portions[i]||200)} onChange={e=>setVolumeByTask(prev=>({...prev,[task.id]:Number(e.target.value)}))} className="mt-1 w-24 rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground" /></label><button type="button" onClick={()=>void confirmGlass(task,volumeByTask[task.id]??(portions[i]||200))} disabled={Boolean(action)} className="rounded-lg bg-primary px-2 py-1.5 text-[11px] font-bold text-primary-foreground disabled:opacity-60">{`Registrar ${volumeByTask[task.id]??(portions[i]||200)} ml`}</button><button type="button" disabled={action===task.id} onClick={()=>void markNo(task)} className="rounded-lg border border-border px-2 py-1.5 text-[11px] font-medium text-foreground disabled:opacity-60">Não bebi</button></div>}
      {status==="pending"&&!available&&<span className="text-[10px] font-semibold text-muted-foreground">Aguardando horário</span>}
       {status==="missed"&&<span className="text-[10px] font-semibold text-muted-foreground">Não confirmado</span>}
-     {status==="done"&&<CheckCircle2 size={18} className="shrink-0 text-emerald-600"/>}
+     {status==="done"&&<button type="button" onClick={()=>setDetailTask(task)} title="Ver registro e corrigir quantidade" className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2 py-1.5 text-[11px] font-bold text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-300"><CheckCircle2 size={15}/> Ver registro</button>}
     </article>
    })}
    {!schedule.length&&<p className="rounded-lg border border-border p-3 text-xs text-muted-foreground">Não há horários de água cadastrados hoje. Peça ao administrador para configurar a agenda; as confirmações dependem de horários reais.</p>}
@@ -172,6 +174,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
   {error&&<p role="alert" className="text-xs text-destructive">{error}</p>}
   {notice&&<p role="status" className="text-xs text-emerald-700 dark:text-emerald-300">{notice}</p>}
   <p className="text-[11px] leading-relaxed text-muted-foreground">Orientações sobre hidratação: A quantidade de água necessária varia conforme peso, idade, atividade física, clima e transpiração. Distribua o consumo ao longo do dia, respeitando sua sede e sua rotina. Registre a quantidade realmente ingerida para acompanhar seu progresso. A meta diária é uma estimativa individual ajustável, e não uma obrigação de consumo. Evite ingerir grandes volumes de uma só vez; prefira uma hidratação regular e equilibrada.</p>
+  <CareTaskRecordModal task={detailTask} onClose={()=>setDetailTask(null)} onSaved={()=>{setReload(value=>value+1);onRecorded();}}/>
   <p className="text-[10px] text-muted-foreground">Referências: <a className="underline" href="https://www.nationalacademies.org/read/10925/chapter/6" target="_blank" rel="noreferrer">National Academies</a> · <a className="underline" href="https://pubmed.ncbi.nlm.nih.gov/17277604/" target="_blank" rel="noreferrer">ACSM</a>.</p>
  </section>;
 }
