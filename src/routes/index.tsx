@@ -52,23 +52,23 @@ function Homepage() {
     </div>;
   }
 
-  return <div className="public-homepage mx-auto flex min-h-full w-full max-w-[1020px] flex-col gap-3 pb-2 lg:h-full lg:min-h-0 lg:overflow-hidden">
-    <section aria-labelledby="public-home-title" className="public-hero relative isolate flex min-h-[440px] flex-col overflow-hidden rounded-[28px] border border-[#9ecdd8]/70 bg-gradient-to-br from-[#edf9fb] via-[#d8eff3] to-[#b8e2e7] text-[#153748] shadow-[0_25px_65px_-40px_rgba(14,78,91,.45)] dark:border-[#7cb3bf]/25 dark:from-[#172b36] dark:via-[#183e49] dark:to-[#265962] dark:text-white lg:min-h-0 lg:flex-1">
+  return <div className="public-homepage mx-auto flex min-h-full w-full max-w-[1160px] flex-col items-start gap-3 pb-2 lg:h-full lg:min-h-0 lg:overflow-hidden">
+    <section aria-labelledby="public-home-title" className="public-hero relative isolate mr-auto flex min-h-[440px] w-full max-w-[850px] flex-col overflow-hidden rounded-[28px] border border-[#9ecdd8]/70 bg-gradient-to-br from-[#edf9fb] via-[#d8eff3] to-[#b8e2e7] text-[#153748] shadow-[0_25px_65px_-40px_rgba(14,78,91,.45)] dark:border-[#7cb3bf]/25 dark:from-[#172b36] dark:via-[#183e49] dark:to-[#265962] dark:text-white lg:min-h-0 lg:flex-1">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -left-24 -top-28 size-80 rounded-full bg-[#5bcecd]/20 blur-[75px]"/>
         <div className="absolute -bottom-44 right-0 size-[450px] rounded-full bg-[#8cddd5]/25 blur-[90px] dark:bg-[#6fd6c5]/10"/>
         <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-transparent via-[#4eb5ae]/60 to-transparent"/>
       </div>
-      <div className="relative grid min-h-0 flex-1 items-center gap-0 md:grid-cols-[minmax(0,0.96fr)_minmax(0,1.04fr)]">
-        <div className="public-hero-art relative flex min-h-0 items-center justify-center overflow-hidden px-5 pb-1 pt-5 sm:px-6 md:h-full md:p-5">
+      <div className="relative grid min-h-0 flex-1 items-center gap-0 md:grid-cols-[minmax(0,0.90fr)_minmax(0,1.10fr)]">
+        <div className="public-hero-art relative flex min-h-0 items-center justify-center overflow-hidden px-5 pb-1 pt-5 sm:px-6 md:h-full md:p-4">
           <div aria-hidden="true" className="pointer-events-none absolute aspect-square w-[min(78%,340px)] rounded-full border border-[#57bac4]/20 bg-white/20 shadow-[0_0_0_24px_rgba(113,200,205,.045)] dark:border-white/10 dark:bg-white/5"/>
           <img src="/images/caredigital-health-illustration.svg" width={780} height={540} loading="eager" decoding="async"
             alt="Ilustração vetorial de prontuário, medicação, hidratação e agenda de cuidados"
             className="relative block h-auto max-h-[225px] w-full max-w-[410px] object-contain drop-shadow-[0_16px_32px_rgba(10,57,73,.14)] sm:max-h-[280px] md:max-h-[min(43dvh,355px)]"/>
         </div>
-        <div className="public-hero-copy relative z-10 flex min-w-0 flex-col justify-center px-5 pb-7 pt-3 sm:px-7 md:py-6 md:pl-2 md:pr-8 lg:pr-9">
+        <div className="public-hero-copy relative z-10 flex min-w-0 flex-col justify-center px-5 pb-7 pt-3 sm:px-7 md:py-5 md:pl-2 md:pr-6">
           <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#7dbcc4]/50 bg-white/45 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[.13em] text-[#216177] dark:border-white/20 dark:bg-white/10 dark:text-[#b7f0ea]"><Sparkles size={13}/> CareDigital · rotina conectada</span>
-          <h1 id="public-home-title" className="mt-4 max-w-[19ch] text-balance font-display text-[2.65rem] leading-[1.12] tracking-tight text-[#14384d] dark:text-white sm:text-[3.1rem] lg:text-[3.3rem]">
+          <h1 id="public-home-title" className="mt-4 max-w-[19ch] text-balance font-display text-[2.65rem] leading-[1.12] tracking-tight text-[#14384d] dark:text-white sm:text-[2.85rem] lg:text-[3rem]">
             Seu cuidado, <span className="block text-primary dark:text-[#91e8df]">em um só lugar.</span>
           </h1>
           <p className="mt-3 max-w-[47ch] text-[13px] leading-relaxed text-[#3b6376] dark:text-[#d1e5e8] sm:text-sm">
@@ -92,7 +92,7 @@ function Homepage() {
       </div>
     </section>
 
-    <section aria-label="Conheça os recursos da plataforma" className="grid shrink-0 gap-2.5 sm:grid-cols-3">
+    <section aria-label="Conheça os recursos da plataforma" className="grid w-full max-w-[850px] shrink-0 gap-2.5 sm:grid-cols-3">
       {[
         {to:"/medicamentos",title:"Medicações",description:"Horários, lembretes e tomadas.",icon:Pill},
         {to:"/dietas",title:"Alimentação",description:"Refeições e rotina alimentar.",icon:Utensils},
