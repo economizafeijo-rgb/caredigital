@@ -14,6 +14,7 @@ type Props={
   patientId:string;
   ownerId:string;
   meals:PatientCare[];
+  resolved?:Record<string,string>;
   revision:number;
   now?:number;
   onView:(task:PatientCare)=>void;
@@ -38,7 +39,7 @@ const mealKind=(title:string):FoodKind=>{
 };
 const foodIcon=(title:string)=>getCareIntakeIcon(mealKind(title))??UtensilsCrossed;
 
-export function ClientMealsPage({patientId,ownerId,meals,revision,now=Date.now(),onView,onConfirm,onDelete,onRecorded}:Props){
+export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,now=Date.now(),onView,onConfirm,onDelete,onRecorded}:Props){
   const [details,setDetails]=useState<MealDetail[]>([]);
   const [detailsError,setDetailsError]=useState(false);
   const [filter,setFilter]=useState<"todos"|"confirmados"|"pendentes">("todos");
@@ -60,7 +61,7 @@ export function ClientMealsPage({patientId,ownerId,meals,revision,now=Date.now()
   },[patientId,ownerId,revision]);
   const byTask=useMemo(()=>new Map(details.map(m=>[m.task_id,m])),[details]);
   const confirmed=meals.filter(m=>Boolean(m.completed_at)).length;
-  const pending=meals.length-confirmed;
+  const pending=meals.filter(meal=>!meal.completed_at&&!resolved[meal.id]).length;
   const filtered=useMemo(()=>meals.filter(meal=>{
     if(filter==="confirmados"&&!meal.completed_at)return false;
     if(filter==="pendentes"&&meal.completed_at)return false;
@@ -116,6 +117,7 @@ export function ClientMealsPage({patientId,ownerId,meals,revision,now=Date.now()
           const detail=byTask.get(meal.id);
           const status=careReminderState(meal,now);
           const confirmedMeal=Boolean(meal.completed_at);
+          const response=resolved[meal.id];
           return <article key={meal.id} data-food-category={mealKind(meal.title)}
             className={"care-meal-record flex min-w-0 flex-col gap-2 rounded-2xl border p-3 "+
               (confirmedMeal?"border-emerald-500/25 bg-emerald-500/[.05]":"border-border bg-card/90")}>
@@ -141,6 +143,8 @@ export function ClientMealsPage({patientId,ownerId,meals,revision,now=Date.now()
                 "text-emerald-700 dark:text-emerald-300":status==="unconfirmed"?
                 "text-amber-700 dark:text-amber-300":"text-muted-foreground")}>
                 {confirmedMeal?"Confirmada às "+reminderClock(meal.completed_at!):
+                  response==="cancelado"?"Cancelada · resposta registrada":
+                  response==="nao_cumprido"?"Não comi · resposta registrada":
                   status==="unconfirmed"?"Sem confirmação no prazo":
                   status==="due"?"Disponível para registrar":"Aguardando horário"}
               </span>
@@ -149,7 +153,7 @@ export function ClientMealsPage({patientId,ownerId,meals,revision,now=Date.now()
                   className="rounded-lg border border-border bg-background px-2.5 py-1.5 text-[10px] font-bold text-foreground">
                   Ver detalhes
                 </button>
-                {!confirmedMeal&&status!=="waiting"&&<button type="button" onClick={()=>onConfirm(meal)}
+                {!confirmedMeal&&!response&&status!=="waiting"&&<button type="button" onClick={()=>onConfirm(meal)}
                   className="rounded-lg bg-primary px-2.5 py-1.5 text-[10px] font-extrabold text-primary-foreground">
                   Registrar
                 </button>}
