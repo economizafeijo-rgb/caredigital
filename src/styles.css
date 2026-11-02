@@ -873,3 +873,58 @@ iframe[title*="Lovable" i][title*="badge" i] {
   .client-home-dashboard .patient-stat-card { padding: .4rem .55rem; }
   .client-home-dashboard .patient-timeline-item { padding: .35rem .55rem; }
 }
+
+/* Faixa de próximos cuidados — alto destaque visual sem criar rolagem. */
+.care-timeline-highlight {
+  border-color: rgba(13, 148, 136, .58);
+  background: linear-gradient(105deg, #c9eee5 0%, #e1f5ed 45%, #e1f1f7 100%);
+  box-shadow: 0 0 0 1px rgba(20, 184, 166, .12), 0 7px 22px rgba(15, 118, 110, .17);
+}
+.care-timeline-highlight::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  pointer-events: none;
+  background: linear-gradient(90deg, #0f766e 0%, #14b8a6 55%, #38bdf8 100%);
+}
+.dark .care-timeline-highlight {
+  border-color: rgba(94, 234, 212, .46);
+  background: linear-gradient(108deg, #103f3b 0%, #173d44 47%, #1c3544 100%);
+  box-shadow: 0 0 0 1px rgba(94, 234, 212, .12), 0 9px 24px rgba(1, 18, 25, .35);
+}
+.care-timeline-highlight .care-timeline-item {
+  background-color: rgba(255, 255, 255, .78);
+}
+.dark .care-timeline-highlight .care-timeline-item {
+  background-color: rgba(14, 29, 37, .75);
+}
+.care-timeline-highlight .care-timeline-next {
+  border-color: rgba(6, 95, 89, .9);
+  background: linear-gradient(112deg, #0f766e, #0d686d);
+  box-shadow: 0 4px 12px rgba(13, 90, 86, .27);
+}
+.dark .care-timeline-highlight .care-timeline-next {
+  border-color: rgba(153, 246, 228, .9);
+  background: linear-gradient(112deg, #126e69, #155766);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .26);
+}
+.care-timeline-highlight .care-timeline-next .care-timeline-item-title,
+.care-timeline-highlight .care-timeline-next .care-timeline-item-status {
+  color: #fff;
+}
+.care-timeline-highlight .care-timeline-next .care-timeline-item-icon {
+  background: rgba(255, 255, 255, .19);
+  color: #fff;
+}
+.care-timeline-highlight .care-timeline-next > svg:last-child {
+  color: #fff;
+}
+@media (prefers-reduced-motion: reduce) {
+  .care-timeline-highlight .care-timeline-item {
+    transition: none;
+  }
+  .care-timeline-highlight .care-timeline-item:hover {
+    transform: none;
+  }
+}
