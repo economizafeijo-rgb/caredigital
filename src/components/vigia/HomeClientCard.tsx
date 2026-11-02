@@ -1,12 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
-import { CalendarClock, Clock3, CheckCircle2, Droplets, LockKeyhole, Pill, UtensilsCrossed, UserRound, AlertTriangle, X } from "lucide-react";
+import { ArrowRight, CalendarClock, CalendarDays, CheckCircle2, Droplets, History, House, LayoutDashboard, LockKeyhole, Pill, ShieldCheck, Target, UtensilsCrossed, UserRound, AlertTriangle, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CompactTreatmentBlister } from "./CompactTreatmentBlister";
 import { PatientActivityHistory } from "./PatientActivityHistory";
 import { ClientHydrationTab } from "./ClientHydrationTab";
 import { MedicationLateAlert } from "./MedicationLateAlert";
+import { ClientTodayTimeline } from "./ClientTodayTimeline";
 
 type Client = { id: string; owner_id: string; full_name: string; status: string; care_goal: string | null };
 type Task = { id: string; patient_id: string; title: string; category: string; scheduled_at: string; completed_at: string | null };
@@ -21,7 +22,7 @@ const categoryInfo: Record<string, { label: string; icon: typeof Pill }> = {
   refeicao: { label: "Refeição", icon: UtensilsCrossed },
 };
 
-export function HomeClientCard() {
+export function HomeClientCard({patientName}:{patientName?:string}={}) {
   const [owner, setOwner] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [client, setClient] = useState<Client | null>(null);
@@ -36,6 +37,7 @@ export function HomeClientCard() {
   const [activeTab, setActiveTab] = useState<"hoje" | "agenda" | "historico" | "alimentacao" | "hidratacao">("hoje");
   const [tick, setTick] = useState(0);
   const [clock, setClock] = useState<Date | null>(null);
+  const [treatmentProgress,setTreatmentProgress] = useState<{confirmed:number;total:number}|null>(null);
   useEffect(() => { const update = () => setClock(new Date()); update(); const timer = window.setInterval(update,15000); return () => window.clearInterval(timer); }, []);
 
   useEffect(() => {
@@ -83,14 +85,6 @@ export function HomeClientCard() {
     return () => { active = false; };
   }, [owner, tick]);
 
-  const nextItems = useMemo(() => {
-    const now = Date.now();
-    const future = tasks.filter(t => !t.completed_at && new Date(t.scheduled_at).getTime() >= now);
-    const due = tasks.filter(t => !t.completed_at && new Date(t.scheduled_at).getTime() < now);
-    const ordered = [...due.slice(-3).reverse(), ...future];
-    const grouped = ["medicacao", "hidratacao", "refeicao"].map(kind => ordered.find(t => t.category === kind)).filter((t): t is Task => Boolean(t));
-    return grouped;
-  }, [tasks, tick]);
   const completed = tasks.filter(t => Boolean(t.completed_at)).length;
   const nextCare = tasks.find(t => !t.completed_at && new Date(t.scheduled_at).getTime() >= (clock?.getTime() ?? Date.now())) ?? tasks.find(t => !t.completed_at);
   const meals = tasks.filter(t => t.category === "refeicao");
@@ -144,39 +138,119 @@ export function HomeClientCard() {
     } finally { setBusy(false); }
   }
 
-  return <section aria-label="Resumo do cliente e agenda" className="flex min-h-0 flex-col rounded-xl border border-border bg-card shadow-sm md:h-full md:overflow-hidden">
-    {loading ? <p className="p-6 text-sm text-muted-foreground">Verificando acesso seguro…</p> : !owner ? <div className="grid gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-center">
-      <div><div className="flex items-center gap-2 font-semibold"><LockKeyhole size={19} className="text-primary"/> Acesso protegido</div><p className="mt-2 max-w-2xl text-sm text-muted-foreground">Entre com sua conta para visualizar o cliente cadastrado, consultar a programação e confirmar medicação, água e refeições. Nenhum dado pessoal aparece sem autenticação.</p></div>
-      <button onClick={() => setLocked(true)} className="rounded-xl bg-[#216083] px-5 py-3 text-sm font-semibold text-white">Consultar programação</button>
-    </div> : !client ? <p className="p-6 text-sm text-muted-foreground">Nenhum cliente vinculado a esta conta. Confira seu acesso ao prontuário.</p> : <div className="flex min-h-0 flex-1 flex-col p-1.5 sm:p-2">
-      <div className="mb-1 flex shrink-0 flex-wrap items-center justify-between gap-2">
-        <div className="min-w-0"><p className="text-[11px] font-semibold text-muted-foreground">Tratamento · 35 dias · horários do Acre</p></div>
-        <div className="flex items-center gap-2"><span className="rounded-lg bg-muted px-2.5 py-1.5 text-[11px] font-semibold text-foreground">{completed}/{tasks.length} cuidados hoje</span><span className="hidden font-mono text-xs tabular-nums text-muted-foreground sm:block">{clock?new Intl.DateTimeFormat("pt-BR",{timeZone:tz,hour:"2-digit",minute:"2-digit",hour12:false}).format(clock):"--:--"}</span></div>
-      </div>
-      <div className="shrink-0"><MedicationLateAlert tasks={tasks} onConfirm={alertTask=>{const task=tasks.find(t=>t.id===alertTask.id);if(task)askConfirm(task)}} compact now={clock}/></div>
-      <div className="my-1 flex shrink-0 gap-1 overflow-x-auto rounded-lg border border-border bg-muted/40 p-0.5" role="tablist" aria-label="Seções do acompanhamento">
-        {([{key:"hoje",label:"Visão geral"},{key:"agenda",label:"Agenda"},{key:"hidratacao",label:"Minha hidratação"},{key:"historico",label:"Histórico"},{key:"alimentacao",label:"Alimentação"}] as const).map(tab=><button type="button" role="tab" key={tab.key} aria-selected={activeTab===tab.key} onClick={()=>setActiveTab(tab.key)} className={`flex-1 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${activeTab===tab.key?"bg-card text-primary shadow-sm ring-1 ring-border":"text-muted-foreground hover:text-foreground"}`}>{tab.label}</button>)}
-      </div>
-      <div className="grid min-h-0 flex-1 items-stretch gap-2 md:overflow-hidden md:grid-cols-[minmax(255px,0.9fr)_minmax(0,1.1fr)]">
-        <CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm}/>
-        <div className="min-h-0 min-w-0 overflow-y-auto rounded-xl border border-border bg-card p-2.5 sm:p-3 max-md:max-h-[420px]">
-          {activeTab==="hoje"&&<div className="space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2"><h4 className="text-sm font-bold text-foreground">Resumo do dia</h4><span className="rounded-full bg-primary/10 px-2 py-1 text-[10px] font-semibold text-primary">{dateInAcre(clock??new Date())}</span></div>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="rounded-xl bg-muted p-2.5"><p className="text-[10px] text-muted-foreground">Cuidados</p><p className="mt-1 text-lg font-extrabold tabular-nums">{tasks.length}</p></div>
-              <div className="rounded-xl bg-muted p-2.5"><p className="text-[10px] text-muted-foreground">Concluídos</p><p className="mt-1 text-lg font-extrabold tabular-nums text-success">{completed}</p></div>
-              <div className="rounded-xl bg-muted p-2.5"><p className="text-[10px] text-muted-foreground">Pendentes</p><p className="mt-1 text-lg font-extrabold tabular-nums">{tasks.length-completed}</p></div>
-            </div>
-            <div className="rounded-xl border border-border p-3"><div className="flex items-center gap-2 text-xs font-bold text-foreground"><CalendarClock size={16} className="text-primary"/> Próximo cuidado</div>{nextCare?<><p className="mt-1 text-sm font-semibold">{timeInAcre(nextCare.scheduled_at)} · {categoryInfo[nextCare.category]?.label??"Atividade"}</p><p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{nextCare.title}</p><button type="button" onClick={()=>askConfirm(nextCare)} className="mt-2 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">Consultar / confirmar</button></>:<p className="mt-2 text-xs text-muted-foreground">Nenhum cuidado pendente hoje.</p>}</div>
-            <details className="rounded-xl bg-muted/65 p-2.5"><summary className="cursor-pointer text-xs font-bold">Ver plano completo (35 dias)</summary><p className="mt-1 text-xs text-muted-foreground">31/10–06/11: 7 cartelas de 8 unidades (4 manhã e 4 noite).</p><p className="mt-1 text-xs text-muted-foreground">07/11–04/12: 4 semanas de lansoprazol, 1 cápsula ao dia.</p></details>
+  const medicineTasks=tasks.filter(task=>task.category==="medicacao");
+  const medicineConfirmed=medicineTasks.filter(task=>Boolean(task.completed_at)).length;
+  const progressPercent=treatmentProgress?Math.min(100,Math.round(treatmentProgress.confirmed/treatmentProgress.total*100)):0;
+  const tabs=[
+    {key:"hoje",label:"Visão geral",icon:LayoutDashboard},
+    {key:"agenda",label:"Agenda",icon:CalendarDays},
+    {key:"hidratacao",label:"Minha hidratação",icon:Droplets},
+    {key:"historico",label:"Histórico",icon:History},
+    {key:"alimentacao",label:"Alimentação",icon:UtensilsCrossed},
+  ] as const;
 
-          </div>}
-          {activeTab==="agenda"&&<div><h4 className="text-sm font-bold">Cuidados agendados para hoje</h4><p className="mt-1 text-xs text-muted-foreground">Selecione apenas uma atividade realizada; o horário é registrado pelo servidor.</p><div className="mt-3 max-h-[420px] space-y-2 overflow-y-auto">{tasks.map(task=>{const Icon=categoryInfo[task.category]?.icon??Pill;return <div key={task.id} className="flex items-center gap-2 rounded-xl border border-border p-2.5"><Icon size={17} className="shrink-0 text-primary"/><div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold">{task.title}</p><p className="text-[11px] text-muted-foreground">{timeInAcre(task.scheduled_at)} · {task.completed_at?"Confirmado":"Pendente"}</p></div>{!task.completed_at&&<button className="shrink-0 rounded-lg bg-primary/10 px-2.5 py-2 text-xs font-semibold text-primary" onClick={()=>askConfirm(task)}>Confirmar</button>}</div>})}{tasks.length===0&&<p className="text-sm text-muted-foreground">Nenhum cuidado cadastrado hoje.</p>}</div></div>}
-          {activeTab==="hidratacao"&&<ClientHydrationTab patientId={client.id} ownerId={client.owner_id} tasks={tasks} revision={tick} onConfirm={askConfirm} onRecorded={()=>setTick(value=>value+1)}/>}
-          {activeTab==="historico"&&<div><h4 className="mb-2 text-sm font-bold">Histórico e prontuário</h4><p className="mb-2 text-xs text-muted-foreground">Confira datas, horários e registros existentes, sem alterar o histórico original.</p><PatientActivityHistory patientId={client.id} ownerId={client.owner_id} revision={tick}/></div>}
-          {activeTab==="alimentacao"&&<div><h4 className="text-sm font-bold">Alimentação do dia</h4><p className="mt-1 text-xs text-muted-foreground">Sugestões orientativas; adapte aos sintomas e à prescrição.</p><div className="mt-3 max-h-[430px] space-y-2 overflow-y-auto">{meals.map(meal=><div key={meal.id} className="rounded-xl border border-border p-3"><div className="flex items-center justify-between gap-2"><p className="text-xs font-semibold">{meal.title}</p><span className="text-[10px] text-muted-foreground">{timeInAcre(meal.scheduled_at)}</span></div><p className="mt-1 text-xs text-muted-foreground">{mealGuide[meal.title]??"Alimentação leve conforme tolerância."}</p>{!meal.completed_at&&<button className="mt-2 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-semibold text-primary" onClick={()=>askConfirm(meal)}>Confirmar refeição</button>}</div>)}{meals.length===0&&<p className="text-sm text-muted-foreground">Sem refeições agendadas.</p>}</div></div>}
+  return <section aria-label="Painel de acompanhamento individual do cliente" className="care-client-dashboard flex h-full min-h-0 w-full flex-col overflow-hidden rounded-[22px] border border-border bg-card/95 shadow-[0_20px_60px_-44px_rgba(25,65,54,.45)]">
+    {loading ? <p role="status" className="p-6 text-sm text-muted-foreground">Verificando acesso seguro…</p> : !owner ? <div className="grid gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-center">
+      <div><div className="flex items-center gap-2 font-semibold"><LockKeyhole size={19} className="text-primary"/> Acesso protegido</div><p className="mt-2 max-w-2xl text-sm text-muted-foreground">Entre com sua conta para consultar somente seu acompanhamento e confirmar os cuidados realizados.</p></div>
+      <button onClick={() => setLocked(true)} className="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground">Consultar programação</button>
+    </div> : !client ? <p className="p-6 text-sm text-muted-foreground">Nenhum prontuário vinculado a esta conta. Confira seu acesso com o responsável.</p> : <div className="care-client-content flex h-full min-h-0 flex-1 flex-col gap-2 p-2 sm:p-3">
+
+      <header className="care-client-identity flex shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-2xl border border-primary/15 bg-gradient-to-r from-primary/[.07] via-card to-primary/[.035] px-3 py-2.5 sm:px-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary"><UserRound size={24}/></span>
+          <div className="min-w-0">
+            <p className="text-[10px] font-extrabold uppercase tracking-[.13em] text-primary">Meu acompanhamento · acesso individual</p>
+            <h1 className="truncate text-xl font-extrabold tracking-tight text-foreground sm:text-2xl">{patientName||client.full_name}</h1>
+            <p className="text-[11px] text-muted-foreground">Tratamento de 35 dias · horários do Acre</p>
+          </div>
         </div>
+        <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
+          <div className="care-client-dose-status flex items-center gap-2 rounded-xl border border-success/20 bg-success/10 px-3 py-2">
+            <CheckCircle2 className="shrink-0 text-success" size={21}/>
+            <span className="min-w-0"><strong className="block text-xs font-extrabold text-foreground">{medicineTasks.length && medicineConfirmed===medicineTasks.length?"Medicações de hoje confirmadas":"Tratamento em acompanhamento"}</strong>
+            <small className="block text-[10px] text-muted-foreground">{medicineTasks.length?`${medicineConfirmed}/${medicineTasks.length} doses confirmadas hoje`:"Nenhuma dose prevista hoje"}</small></span>
+          </div>
+          <Link to="/" className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl border border-border bg-card px-3 text-xs font-bold text-foreground transition hover:border-primary/35 hover:text-primary"><House size={16}/> <span className="hidden sm:inline">Homepage</span><ArrowRight size={14}/></Link>
+        </div>
+      </header>
+
+      <div className="care-client-medication-alert shrink-0">
+        <MedicationLateAlert tasks={tasks} onConfirm={alertTask=>{const task=tasks.find(t=>t.id===alertTask.id);if(task)askConfirm(task)}} compact now={clock}/>
       </div>
+
+      <div className="care-client-tabs flex shrink-0 gap-1 rounded-xl border border-border bg-muted/55 p-1" role="tablist" aria-label="Seções do acompanhamento">
+        {tabs.map(tab=>{
+          const Icon=tab.icon;
+          return <button type="button" role="tab" key={tab.key} aria-selected={activeTab===tab.key} aria-controls="care-client-tab-panel"
+            onClick={()=>setActiveTab(tab.key)} className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-[11px] font-bold transition-colors sm:text-xs ${activeTab===tab.key?"bg-primary text-primary-foreground shadow-sm":"text-muted-foreground hover:bg-card hover:text-foreground"}`}>
+            <Icon size={15} className="hidden sm:block"/><span className="truncate">{tab.label}</span>
+          </button>;
+        })}
+      </div>
+
+      <div id="care-client-tab-panel" className="care-client-main grid min-h-0 flex-1 items-stretch gap-2 lg:grid-cols-[minmax(0,1.06fr)_minmax(0,.94fr)]">
+        <CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm} dashboardMode onProgressChange={setTreatmentProgress}/>
+        <section className="care-client-summary min-h-0 min-w-0 overflow-y-auto rounded-2xl border border-border bg-card p-3 sm:p-4" aria-label="Detalhes do acompanhamento">
+          {activeTab==="hoje"&&<div className="care-summary-today flex h-full min-h-0 flex-col gap-3">
+            <div className="flex shrink-0 items-center justify-between gap-2">
+              <h2 className="inline-flex items-center gap-2 text-sm font-extrabold text-foreground"><LayoutDashboard size={18} className="text-primary"/> Resumo do dia</h2>
+              <span className="whitespace-nowrap rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-semibold text-primary">{dateInAcre(clock??new Date())}</span>
+            </div>
+
+            <div className="care-summary-stats grid shrink-0 grid-cols-3 gap-2">
+              <div className="rounded-2xl border border-border/55 bg-muted/70 p-3"><p className="text-[11px] text-muted-foreground">Cuidados</p><strong className="mt-1 block text-2xl font-extrabold tabular-nums text-foreground">{tasks.length}</strong></div>
+              <div className="rounded-2xl border border-success/15 bg-success/5 p-3"><p className="text-[11px] text-muted-foreground">Concluídos</p><strong className="mt-1 block text-2xl font-extrabold tabular-nums text-success">{completed}</strong></div>
+              <div className="rounded-2xl border border-border/55 bg-muted/70 p-3"><p className="text-[11px] text-muted-foreground">Pendentes</p><strong className="mt-1 block text-2xl font-extrabold tabular-nums text-foreground">{tasks.length-completed}</strong></div>
+            </div>
+
+            <div className="care-next-care flex shrink-0 flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/20 bg-primary/[.045] p-3">
+              <div className="flex min-w-0 flex-1 items-start gap-2.5">
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><CalendarClock size={21}/></span>
+                <div className="min-w-0">
+                  <p className="text-xs font-extrabold text-foreground">Próximo cuidado pendente</p>
+                  {nextCare?<><strong className="mt-1 block text-base font-extrabold tabular-nums text-foreground">{timeInAcre(nextCare.scheduled_at)} · {categoryInfo[nextCare.category]?.label??"Atividade"}</strong><p className="truncate text-xs text-muted-foreground">{nextCare.title}</p></>:<p className="mt-1 text-xs text-muted-foreground">Todos os cuidados de hoje foram confirmados.</p>}
+                </div>
+              </div>
+              {nextCare&&<button type="button" onClick={()=>askConfirm(nextCare)} className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-primary px-3 text-[11px] font-extrabold text-primary-foreground transition hover:opacity-90">Consultar / confirmar <ArrowRight size={15}/></button>}
+            </div>
+
+            <div className="care-treatment-progress mt-auto shrink-0 border-t border-border pt-3">
+              <div className="flex items-center justify-between gap-2"><h3 className="inline-flex items-center gap-2 text-xs font-extrabold text-foreground"><Target size={18} className="text-primary"/> Progresso do tratamento</h3>
+                <span className="text-xs font-extrabold tabular-nums text-foreground">{treatmentProgress?`${treatmentProgress.confirmed}/${treatmentProgress.total}`:"Carregando…"} <span className="font-medium text-muted-foreground">{treatmentProgress?`· ${progressPercent}%`:""}</span></span>
+              </div>
+              <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Unidades de medicação confirmadas" aria-valuenow={treatmentProgress?.confirmed??0} aria-valuemin={0} aria-valuemax={84}>
+                <div className="h-full rounded-full bg-gradient-to-r from-primary to-success transition-[width] duration-500" style={{width:`${progressPercent}%`}}/>
+              </div>
+              <p className="mt-1.5 text-[10px] text-muted-foreground">7 cartelas de 8 unidades + 4 semanas de continuidade (28 cápsulas). O progresso considera somente registros salvos.</p>
+            </div>
+          </div>}
+
+          {activeTab==="agenda"&&<div className="h-full space-y-2">
+            <h2 className="flex items-center gap-2 text-sm font-extrabold text-foreground"><CalendarDays size={17} className="text-primary"/> Cuidados programados para hoje</h2>
+            <p className="text-xs text-muted-foreground">Toque no cuidado realizado para registrar a hora real no servidor.</p>
+            <div className="space-y-1.5">
+              {tasks.map(task=>{const Icon=categoryInfo[task.category]?.icon??Pill;return <div key={task.id} className="flex items-center gap-2 rounded-xl border border-border bg-muted/30 p-2.5">
+                <Icon size={18} className="shrink-0 text-primary"/>
+                <div className="min-w-0 flex-1"><strong className="block truncate text-xs text-foreground">{task.title}</strong><p className="text-[10px] text-muted-foreground">{timeInAcre(task.scheduled_at)} · {task.completed_at?`Confirmado às ${timeInAcre(task.completed_at)}`:"Aguardando confirmação"}</p></div>
+                {task.completed_at?<CheckCircle2 size={18} className="shrink-0 text-success"/>:<button type="button" onClick={()=>askConfirm(task)} className="shrink-0 rounded-lg bg-primary px-2.5 py-1.5 text-[11px] font-bold text-primary-foreground">Confirmar</button>}
+              </div>})}
+              {!tasks.length&&<p className="text-sm text-muted-foreground">Nenhum cuidado cadastrado para hoje.</p>}
+            </div>
+          </div>}
+          {activeTab==="hidratacao"&&<ClientHydrationTab patientId={client.id} ownerId={client.owner_id} tasks={tasks} revision={tick} onConfirm={askConfirm} onRecorded={()=>setTick(value=>value+1)}/>}
+          {activeTab==="historico"&&<div><h2 className="mb-1 flex items-center gap-2 text-sm font-extrabold text-foreground"><History size={17} className="text-primary"/> Histórico e prontuário</h2><p className="mb-2 text-xs text-muted-foreground">Datas e horários auditáveis, sem alterar registros originais.</p><PatientActivityHistory patientId={client.id} ownerId={client.owner_id} revision={tick}/></div>}
+          {activeTab==="alimentacao"&&<div><h2 className="flex items-center gap-2 text-sm font-extrabold text-foreground"><UtensilsCrossed size={17} className="text-primary"/> Alimentação de hoje</h2><p className="mt-1 text-xs text-muted-foreground">Orientações ilustrativas; siga as orientações do profissional responsável.</p><div className="mt-2 space-y-2">
+            {meals.map(meal=><div key={meal.id} className="rounded-xl border border-border bg-muted/25 p-3">
+              <div className="flex items-center justify-between gap-2"><strong className="text-xs text-foreground">{meal.title}</strong><span className="text-[10px] text-muted-foreground">{timeInAcre(meal.scheduled_at)}</span></div>
+              <p className="mt-1 text-xs text-muted-foreground">{mealGuide[meal.title]??"Alimentação leve conforme tolerância."}</p>
+              {meal.completed_at?<p className="mt-1.5 flex items-center gap-1 text-[11px] font-semibold text-success"><CheckCircle2 size={14}/> Confirmado às {timeInAcre(meal.completed_at)}</p>:<button type="button" className="mt-2 rounded-lg bg-primary/10 px-2.5 py-1.5 text-[11px] font-bold text-primary hover:bg-primary/20" onClick={()=>askConfirm(meal)}>Confirmar refeição</button>}
+            </div>)}
+            {!meals.length&&<p className="text-sm text-muted-foreground">Sem refeições agendadas.</p>}
+          </div></div>}
+        </section>
+      </div>
+
+      <ClientTodayTimeline tasks={tasks} onConfirm={askConfirm}/>
     </div>}
     {confirmationResult&&<div className="fixed inset-x-3 top-16 z-[95] mx-auto max-w-lg" role={confirmationResult.success?"status":"alert"} aria-live={confirmationResult.success?"polite":"assertive"}>
       <div className={`flex items-start gap-3 rounded-2xl border p-4 shadow-2xl backdrop-blur-lg ${confirmationResult.success?"border-emerald-400 bg-emerald-50 text-emerald-950 dark:bg-emerald-950 dark:text-emerald-50":"border-rose-400 bg-rose-50 text-rose-950 dark:bg-rose-950 dark:text-rose-50"}`}>
