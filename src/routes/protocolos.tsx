@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  ArrowRight, CalendarClock, CheckCheck, ClipboardCheck, Clock3,
+  ArrowRight, CalendarClock, ClipboardCheck, Clock3,
   HeartPulse, LockKeyhole, ShieldCheck, UserRoundCheck,
 } from "lucide-react";
 
