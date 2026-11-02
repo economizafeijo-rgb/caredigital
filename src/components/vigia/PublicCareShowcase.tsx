@@ -159,7 +159,7 @@ export function PublicCareShowcase({kind}:{kind:ShowcaseKind}) {
   const info=copy[kind];
   const MainIcon=kind==="hydration"?Droplets:kind==="sports"?Dumbbell:Pill;
   return <div className={`public-care-showcase mx-auto flex min-h-full w-full max-w-[1080px] flex-col justify-start py-1.5 lg:ml-0 lg:mr-auto lg:max-w-[850px] lg:justify-center ${kind==="hydration"?"public-hydration-showcase":""} ${kind==="sports"?"sports-showcase":""}`} aria-label={"Demonstração pública — "+info.title}>
-    <section className="showcase-panel flex w-full shrink-0 flex-col gap-2.5 rounded-3xl border border-border bg-card/95 p-3 shadow-[0_14px_42px_-28px_rgba(26,65,81,.4)] sm:p-4 lg:gap-3">
+    <section className="showcase-panel flex w-full min-h-0 flex-col gap-2.5 rounded-3xl border border-border bg-card/95 p-3 shadow-[0_14px_42px_-28px_rgba(26,65,81,.4)] sm:p-4 lg:gap-3">
       <header className="showcase-header flex shrink-0 flex-wrap items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2.5">
           <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><MainIcon size={19}/></span>
@@ -178,8 +178,8 @@ export function PublicCareShowcase({kind}:{kind:ShowcaseKind}) {
             <Link to="/entrar" className="inline-flex min-h-9 items-center rounded-lg border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted">Entrar na conta</Link>
           </div>
         </div>
-        <div className="showcase-illustration flex min-w-0 items-center justify-center overflow-hidden">
-          {kind==="hydration"?<HydrationSvg/>:kind==="sports"?<SportsNutritionIllustration/>:<MedicationSvg/>}
+        <div className="showcase-illustration flex min-w-0 items-center justify-center overflow-hidden rounded-xl">
+          {kind==="hydration"?<HydrationSvg/>:kind==="sports"?<div className="flex w-full flex-col items-center justify-center gap-1.5"><SportsNutritionIllustration/><span className="rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[10px] font-semibold text-primary">Alimentação • Treino • Evolução</span></div>:<MedicationSvg/>}
         </div>
       </div>
 
