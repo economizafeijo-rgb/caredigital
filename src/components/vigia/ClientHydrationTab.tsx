@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Droplets, CheckCircle2, AlertCircle, Save, SlidersHorizontal } from "lucide-react";
+import { Droplets, CheckCircle2, AlertCircle, Save, SlidersHorizontal, ChevronLeft, ChevronRight, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ClientQuickIntake } from "./ClientQuickIntake";
 import { CareTaskRecordModal } from "./CareTaskRecordModal";
@@ -42,6 +42,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
  const [drinks,setDrinks]=useState<Drink[]>([]);
  const [volumeByTask,setVolumeByTask]=useState<Record<string,number>>({});
  const [detailTask,setDetailTask]=useState<Task|null>(null);
+ const [page,setPage]=useState(0);
  const [notDrunk,setNotDrunk]=useState<Response[]>([]);
  const [action,setAction]=useState<string|null>(null);
  const [error,setError]=useState("");
@@ -66,7 +67,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
    if(saved.error||water.error||responses.error)setError("Não foi possível consultar todos os registros de hidratação. Confira as permissões.");
    else setError("");
    if(saved.data){setProfile({...defaultProfile,...saved.data});setConfigured(true)}
-   else {setConfigured(false);setEditing(true)}
+   else {setConfigured(false);setEditing(false)}
    setDrinks(water.data??[]);
    setNotDrunk(responses.data??[]);
    setLoading(false);
@@ -99,6 +100,16 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
    return values;
  },[schedule,goal,remaining,skipped,clock]);
  const next=schedule.find(item=>!item.completed_at&&!skipped.has(item.id)&&Date.parse(item.scheduled_at)>=clock) ?? schedule.find(item=>!item.completed_at&&!skipped.has(item.id)&&getCareScheduleState(item,clock)==="available");
+ const pageSize=3;
+ const pageCount=Math.max(1,Math.ceil(schedule.length/pageSize));
+ const activePage=Math.min(page,pageCount-1);
+ const pageTasks=schedule.slice(activePage*pageSize,(activePage+1)*pageSize);
+ useEffect(()=>{
+   const upcomingIndex=schedule.findIndex(task=>!task.completed_at&&!skipped.has(task.id)&&Date.parse(task.scheduled_at)>=Date.now());
+   const fallbackIndex=schedule.findIndex(task=>!task.completed_at&&!skipped.has(task.id));
+   const index=upcomingIndex>=0?upcomingIndex:fallbackIndex>=0?fallbackIndex:Math.max(0,schedule.length-1);
+   setPage(Math.floor(index/3));
+ },[patientId,revision,schedule.length]);
  async function saveProfile(){
   if(!calculation||saving)return;
   setSaving(true);setError("");setNotice("");
@@ -133,48 +144,113 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
   setNotDrunk(prev=>[...prev.filter(t=>t.task_id!==task.id),{task_id:task.id,recorded_at:res.data}]);
   setNotice("Resposta 'Não bebi' salva no prontuário. Nenhum volume foi contabilizado.");
  }
- return <section className="space-y-3" aria-label="Programa personalizado de hidratação">
-  <header className="flex flex-wrap items-center justify-between gap-2"><div><h3 className="flex items-center gap-2 text-sm font-bold"><Droplets size={18} className="text-primary"/> Programa de hidratação</h3><p className="text-[11px] text-muted-foreground">Água avulsa a qualquer momento · meta e lembretes recalculados</p></div><div className="flex flex-wrap items-center gap-2"><ClientQuickIntake patientId={patientId} mode="water" onRecorded={()=>{setReload(n=>n+1);onRecorded();}}/><button type="button" onClick={()=>setEditing(v=>!v)} className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-primary"><SlidersHorizontal size={14}/> {editing?"Ocultar dados":"Meu perfil"}</button></div></header>
-  {editing&&<div className="rounded-xl border border-border bg-muted/30 p-3">
-   <p className="mb-2 text-xs font-semibold">Informações para estimar o consumo diário</p>
-   <div className="grid grid-cols-2 gap-2">
-     <label className="text-xs">Sexo para referência<select className="field mt-1" value={profile.sex} onChange={e=>update({sex:e.target.value as Profile["sex"]})}><option value="unspecified">Prefiro não informar</option><option value="male">Masculino</option><option value="female">Feminino</option></select></label>
-     <label className="text-xs">Idade (anos)<input className="field mt-1" type="number" min="18" max="110" value={profile.age||""} onChange={e=>update({age:Number(e.target.value)})} placeholder="Informe"/></label>
-     <label className="text-xs">Peso (kg)<input className="field mt-1" type="number" min="30" max="250" step=".5" value={profile.weight_kg||""} onChange={e=>update({weight_kg:Number(e.target.value)})} placeholder="Informe"/></label>
-     <label className="text-xs">Objetivo<select className="field mt-1" value={profile.objective} onChange={e=>update({objective:e.target.value as Profile["objective"]})}><option value="recovery">Hidratação e recuperação</option><option value="muscle">Ganho de massa muscular</option><option value="weight">Controle do peso</option></select></label>
-     <label className="text-xs">Treino (min/dia)<input className="field mt-1" type="number" min="0" max="240" value={profile.activity_minutes} onChange={e=>update({activity_minutes:Number(e.target.value)})}/></label>
-     <label className="text-xs">Transpiração<select className="field mt-1" value={profile.sweat} onChange={e=>update({sweat:e.target.value as Profile["sweat"]})}><option value="low">Pouca</option><option value="normal">Moderada</option><option value="high">Intensa</option></select></label>
-     <label className="col-span-2 flex gap-2 rounded-lg border border-border p-2 text-xs"><input type="checkbox" checked={profile.fluid_restriction} onChange={e=>update({fluid_restriction:e.target.checked})}/><span>Tenho restrição de líquidos, doença renal/cardíaca ou orientação profissional especial.</span></label>
-   </div>
-   {calculation?<div className="mt-2 rounded-lg bg-card p-2.5 text-xs"><strong>Estimativa: {calculation.target.toLocaleString("pt-BR")} ml/dia</strong><p className="mt-1 text-muted-foreground">{calculation.base} ml pela referência operacional de ~30 ml/kg + {calculation.activity} ml de ajuste ilustrativo ao treino. {calculation.reference?`Referência populacional de bebidas para este sexo: ~${calculation.reference} ml/dia.`:""} A idade e o objetivo orientam precauções; ganho muscular por si só não aumenta a meta.</p>{calculation.requiresReview&&<p className="mt-1 font-semibold text-amber-700 dark:text-amber-300"><AlertCircle size={13} className="mr-1 inline"/> Recomenda-se uma meta definida por profissional antes de aplicar o plano automático.</p>}</div>:<p className="mt-2 text-xs text-muted-foreground">Informe idade adulta e peso válido para calcular.</p>}
-   <button type="button" disabled={!calculation||saving} onClick={()=>void saveProfile()} className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2.5 text-xs font-bold text-primary-foreground disabled:opacity-50"><Save size={14}/>{saving?"Salvando…":"Salvar e gerar programa"}</button>
+ return <section className="flex min-h-0 w-full min-w-0 flex-col gap-2" aria-label="Programa personalizado de hidratação">
+  <header className="flex flex-wrap items-center justify-between gap-2">
+    <div className="min-w-0">
+      <h3 className="flex items-center gap-1.5 text-sm font-extrabold"><Droplets size={18} className="text-sky-600 dark:text-sky-300"/> Minha hidratação</h3>
+      <p className="text-[10px] text-muted-foreground">Consumo real · horário do Acre · acompanhamento diário</p>
+    </div>
+    <div className="flex flex-wrap items-center gap-1.5">
+      <ClientQuickIntake patientId={patientId} mode="water" onRecorded={()=>{setReload(n=>n+1);onRecorded();}}/>
+      <button type="button" aria-expanded={editing} onClick={()=>setEditing(value=>!value)}
+        className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-border px-2.5 text-[11px] font-semibold text-foreground hover:bg-muted">
+        <SlidersHorizontal size={14}/>{editing?"Fechar perfil":"Ajustar meta"}
+      </button>
+    </div>
+  </header>
+  {editing&&<div className="rounded-xl border border-border bg-muted/30 p-2.5">
+    <p className="mb-2 text-xs font-bold">Perfil para estimar a meta diária</p>
+    <div className="grid grid-cols-2 gap-2">
+      <label className="text-[11px]">Sexo para referência<select className="field mt-1" value={profile.sex} onChange={e=>update({sex:e.target.value as Profile["sex"]})}><option value="unspecified">Prefiro não informar</option><option value="male">Masculino</option><option value="female">Feminino</option></select></label>
+      <label className="text-[11px]">Idade (anos)<input className="field mt-1" type="number" min="18" max="110" value={profile.age||""} onChange={e=>update({age:Number(e.target.value)})} placeholder="Informe"/></label>
+      <label className="text-[11px]">Peso (kg)<input className="field mt-1" type="number" min="30" max="250" step=".5" value={profile.weight_kg||""} onChange={e=>update({weight_kg:Number(e.target.value)})} placeholder="Informe"/></label>
+      <label className="text-[11px]">Objetivo<select className="field mt-1" value={profile.objective} onChange={e=>update({objective:e.target.value as Profile["objective"]})}><option value="recovery">Hidratação e recuperação</option><option value="muscle">Ganho de massa muscular</option><option value="weight">Controle do peso</option></select></label>
+      <label className="text-[11px]">Treino (min/dia)<input className="field mt-1" type="number" min="0" max="240" value={profile.activity_minutes} onChange={e=>update({activity_minutes:Number(e.target.value)})}/></label>
+      <label className="text-[11px]">Transpiração<select className="field mt-1" value={profile.sweat} onChange={e=>update({sweat:e.target.value as Profile["sweat"]})}><option value="low">Pouca</option><option value="normal">Moderada</option><option value="high">Intensa</option></select></label>
+      <label className="col-span-2 flex gap-2 rounded-lg border border-border p-2 text-xs"><input type="checkbox" checked={profile.fluid_restriction} onChange={e=>update({fluid_restriction:e.target.checked})}/><span>Tenho restrição de líquidos ou orientação profissional especial.</span></label>
+    </div>
+    {calculation
+      ? <p className="mt-2 rounded-lg bg-card p-2 text-[11px]"><strong>Estimativa: {calculation.target.toLocaleString("pt-BR")} ml/dia.</strong> Referência de aproximadamente 30 ml/kg com ajuste ilustrativo à atividade.
+        {calculation.requiresReview&&<span className="mt-1 block font-semibold text-amber-700 dark:text-amber-300"><AlertCircle size={12} className="mr-1 inline"/>Meta individual deve ser avaliada por profissional.</span>}
+        {calculation.reference&&<span className="block text-muted-foreground">Referência populacional: {calculation.reference} ml/dia.</span>}
+        </p>
+      : <p className="mt-2 text-[11px] text-muted-foreground">Informe idade e peso válidos para estimar o consumo.</p>}
+    <button type="button" disabled={!calculation||saving} onClick={()=>void saveProfile()}
+      className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50"><Save size={14}/>{saving?"Salvando…":"Salvar meta"}</button>
   </div>}
-  <div className="grid grid-cols-3 gap-2">{[{label:"Meta",value:goal?`${goal} ml`:"A definir"},{label:"Bebido",value:`${intake} ml`},{label:"Restante",value:goal?`${Math.max(0,goal-intake)} ml`:"—"}].map(item=><div key={item.label} className="rounded-xl bg-muted p-2"><p className="text-[10px] text-muted-foreground">{item.label}</p><p className="mt-1 text-sm font-extrabold tabular-nums">{item.value}</p></div>)}</div>
-  <div className="h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Progresso de hidratação" aria-valuemin={0} aria-valuemax={goal||1} aria-valuenow={intake}><div className="h-full rounded-full bg-sky-500" style={{width:percent+"%"}}/></div>
-  {!planValid&&<p className="rounded-lg border border-amber-300/40 bg-amber-500/10 p-2 text-xs text-foreground">Configure seu perfil para gerar porções sugeridas. Os horários registrados continuam disponíveis, mas o sistema não inventa uma meta sem dados suficientes.</p>}
-  {goal>0&&<p className="text-[11px] text-muted-foreground">{remaining===0?"A meta estimada do dia já foi alcançada. Não é necessário beber mais apenas para cumprir lembretes.":`Os próximos volumes sugeridos foram distribuídos sobre ${remaining} ml restantes, considerando apenas os horários futuros.`}</p>}
- {next&&<div className="flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 p-2.5"><WaterGlass state="pending"/><div className="flex-1"><p className="text-[11px] font-semibold text-primary">Próximo horário</p><p className="text-sm font-bold">{time(next.scheduled_at)} · {next.title}</p>{goal>0&&<p className="text-[11px] text-muted-foreground">Porção sugerida: {portions[schedule.findIndex(t=>t.id===next.id)]||0} ml · restante: {remaining} ml</p>}</div></div>}
-  <div className="max-h-[335px] space-y-2 overflow-y-auto pr-1">
-   {schedule.map((task,i)=>{
-    const answered=skipped.get(task.id);
-    const status=task.completed_at?"done":answered?"skipped":getCareScheduleState(task,clock)==="missed"?"missed":"pending";
-     const available=canConfirmCare(task,clock);
-    return <article key={task.id} className={`flex items-center gap-2 rounded-xl border p-2.5 ${status==="done"?"border-emerald-500/40 bg-emerald-500/5":"border-border bg-card"}`}>
-     <WaterGlass state={status}/>
-     <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-1.5"><strong className="text-xs">Previsto: {time(task.scheduled_at)}</strong>{goal>0&&<span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">~{portions[i]} ml</span>}</div><p className="mt-1 text-[11px] text-muted-foreground">{status==="done"?`Bebeu · registrado em ${stamp(task.completed_at!)}`:status==="skipped"?`Não bebeu · informado em ${stamp(answered!)}`:status==="missed"?"Não confirmado · horário encerrado":careScheduleLabel(task,clock)}</p></div>
-     {status==="pending"&&available&&<div className="flex shrink-0 flex-col gap-1"><label className="text-[10px] text-muted-foreground">Volume real (ml)<input aria-label={`Volume de água às ${time(task.scheduled_at)}`} type="number" min={10} max={1500} step={10} value={volumeByTask[task.id]??(portions[i]||200)} onChange={e=>setVolumeByTask(prev=>({...prev,[task.id]:Number(e.target.value)}))} className="mt-1 w-24 rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground" /></label><button type="button" onClick={()=>void confirmGlass(task,volumeByTask[task.id]??(portions[i]||200))} disabled={Boolean(action)} className="rounded-lg bg-primary px-2 py-1.5 text-[11px] font-bold text-primary-foreground disabled:opacity-60">{`Registrar ${volumeByTask[task.id]??(portions[i]||200)} ml`}</button><button type="button" disabled={action===task.id} onClick={()=>void markNo(task)} className="rounded-lg border border-border px-2 py-1.5 text-[11px] font-medium text-foreground disabled:opacity-60">Não bebi</button></div>}
-     {status==="pending"&&!available&&<span className="text-[10px] font-semibold text-muted-foreground">Aguardando horário</span>}
-      {status==="missed"&&<span className="text-[10px] font-semibold text-muted-foreground">Não confirmado</span>}
-     {status==="done"&&<button type="button" onClick={()=>setDetailTask(task)} title="Ver registro e corrigir quantidade" className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2 py-1.5 text-[11px] font-bold text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-300"><CheckCircle2 size={15}/> Ver registro</button>}
-    </article>
-   })}
-   {!schedule.length&&<p className="rounded-lg border border-border p-3 text-xs text-muted-foreground">Não há horários de água cadastrados hoje. Peça ao administrador para configurar a agenda; as confirmações dependem de horários reais.</p>}
+  <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+    {[
+      {label:"Meta diária",value:goal?`${goal.toLocaleString("pt-BR")} ml`:"A definir"},
+      {label:"Consumido",value:`${intake.toLocaleString("pt-BR")} ml`},
+      {label:"Restante",value:goal?`${remaining.toLocaleString("pt-BR")} ml`:"—"},
+      {label:"Próxima água",value:next?time(next.scheduled_at):"Sem pendência"}
+    ].map(item=><div key={item.label} className="min-w-0 rounded-lg border border-border/70 bg-muted/40 px-2.5 py-2">
+      <p className="truncate text-[10px] font-medium text-muted-foreground">{item.label}</p>
+      <p className="mt-0.5 truncate text-sm font-extrabold tabular-nums text-foreground">{item.value}</p>
+    </div>)}
   </div>
-  {loading&&<p className="text-xs text-muted-foreground">Carregando registros…</p>}
-  {error&&<p role="alert" className="text-xs text-destructive">{error}</p>}
-  {notice&&<p role="status" className="text-xs text-emerald-700 dark:text-emerald-300">{notice}</p>}
-  <p className="text-[11px] leading-relaxed text-muted-foreground">Orientações sobre hidratação: A quantidade de água necessária varia conforme peso, idade, atividade física, clima e transpiração. Distribua o consumo ao longo do dia, respeitando sua sede e sua rotina. Registre a quantidade realmente ingerida para acompanhar seu progresso. A meta diária é uma estimativa individual ajustável, e não uma obrigação de consumo. Evite ingerir grandes volumes de uma só vez; prefira uma hidratação regular e equilibrada.</p>
+  <div className="flex items-center gap-2.5">
+    <div className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-muted" role="progressbar"
+      aria-label="Progresso da meta de hidratação" aria-valuemin={0} aria-valuemax={goal||1} aria-valuenow={goal?Math.min(intake,goal):0}>
+      <div className="h-full rounded-full bg-sky-500 transition-[width]" style={{width:percent+"%"}}/>
+    </div>
+    <span className="shrink-0 text-[11px] font-bold tabular-nums text-foreground">{goal?`${percent}%`:"Meta pendente"}</span>
+  </div>
+  {!planValid&&<button type="button" onClick={()=>setEditing(true)} className="rounded-lg border border-amber-300/30 bg-amber-500/5 px-2 py-1.5 text-left text-[11px] text-foreground">Defina uma meta em <strong>Ajustar meta</strong> para calcular volumes sugeridos. Os registros reais continuam disponíveis.</button>}
+  {goal>0&&<p className="text-[10px] text-muted-foreground">{remaining===0?"Meta estimada atingida; não é necessário beber apenas para cumprir avisos.":`Restam ${remaining.toLocaleString("pt-BR")} ml. As porções sugeridas se ajustam aos próximos horários ainda pendentes.`}</p>}
+  <div className="rounded-xl border border-border bg-card/70 p-2.5">
+    <div className="mb-2 flex min-w-0 items-center justify-between gap-2 border-b border-border/70 pb-2">
+      <div>
+        <h4 className="text-xs font-extrabold text-foreground">Horários e registros</h4>
+        <p className="text-[10px] text-muted-foreground">Toque em um registro confirmado para consultar ou corrigir</p>
+      </div>
+      <span className="shrink-0 rounded-md bg-muted px-2 py-1 text-[10px] font-semibold tabular-nums text-foreground">{schedule.length} horários</span>
+    </div>
+    <div className="space-y-1.5">
+      {pageTasks.map(task=>{
+        const i=schedule.findIndex(item=>item.id===task.id);
+        const answered=skipped.get(task.id);
+        const status=task.completed_at?"done":answered?"skipped":getCareScheduleState(task,clock)==="missed"?"missed":"pending";
+        const available=canConfirmCare(task,clock)&&!answered;
+        const suggested=portions[i]||0;
+        const defaultVolume=volumeByTask[task.id]??(suggested>0?suggested:200);
+        return <article key={task.id} className={`flex min-w-0 items-center gap-2 rounded-lg border px-2 py-1.5 ${status==="done"?"border-emerald-500/25 bg-emerald-500/[.055]":"border-border/75 bg-muted/25"}`}>
+          <span className={`grid size-7 shrink-0 place-items-center rounded-lg ${status==="done"?"bg-emerald-500/10 text-emerald-600 dark:text-emerald-300":"bg-sky-500/10 text-sky-600 dark:text-sky-300"}`}>{status==="done"?<CheckCircle2 size={16}/>:<Droplets size={16}/>}</span>
+          <div className="min-w-0 flex-1">
+            <p className="flex flex-wrap items-center gap-1 text-[11px] font-bold text-foreground"><span className="tabular-nums">{time(task.scheduled_at)}</span><span>· Água</span>{suggested>0&&!task.completed_at&&<span className="rounded bg-sky-500/10 px-1 text-[10px] text-sky-700 dark:text-sky-300">~{suggested} ml</span>}</p>
+            <p className="truncate text-[10px] text-muted-foreground">{status==="done"?`Confirmado em ${time(task.completed_at!)}`:status==="skipped"?`Não bebi · ${time(answered!)}`:status==="missed"?"Não confirmado":available?"Disponível para confirmar":"Programado"}</p>
+          </div>
+          {status==="done"?<button type="button" onClick={()=>setDetailTask(task)} title="Consultar e corrigir volume" className="shrink-0 rounded-lg border border-emerald-500/35 bg-emerald-500/10 px-2 py-1.5 text-[11px] font-bold text-emerald-700 hover:bg-emerald-500/15 dark:text-emerald-300">Ver registro</button>
+           :status==="skipped"?<span className="text-[10px] text-muted-foreground">Não bebi</span>
+           :available?<div className="flex max-w-[168px] shrink-0 flex-wrap items-center justify-end gap-1">
+             <input aria-label={`Volume de água às ${time(task.scheduled_at)} em ml`} type="number" min={10} max={1500} step={10}
+               value={defaultVolume} onChange={e=>setVolumeByTask(prev=>({...prev,[task.id]:Number(e.target.value)}))}
+               className="w-[58px] rounded-md border border-border bg-background px-1 py-1.5 text-center text-[11px] text-foreground"/>
+             <button type="button" disabled={Boolean(action)} onClick={()=>void confirmGlass(task,defaultVolume)}
+               className="rounded-md bg-primary px-2 py-1.5 text-[10px] font-bold text-primary-foreground disabled:opacity-50">Confirmar</button>
+             <button type="button" disabled={Boolean(action)} onClick={()=>void markNo(task)}
+               className="rounded-md border border-border px-2 py-1 text-[10px] text-foreground disabled:opacity-50">Não bebi</button>
+           </div>:<span className="shrink-0 text-[10px] text-muted-foreground">Aguardando</span>}
+        </article>;
+      })}
+      {!pageTasks.length&&<p className="rounded-lg bg-muted/30 p-2 text-xs text-muted-foreground">Nenhum horário de hidratação programado. Você ainda pode usar <strong>Registrar água</strong>.</p>}
+    </div>
+    {pageCount>1&&<nav aria-label="Páginas dos horários de hidratação" className="mt-2 flex items-center justify-between gap-2 border-t border-border pt-2">
+      <button type="button" disabled={activePage===0} onClick={()=>setPage(p=>Math.max(0,p-1))}
+        className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1.5 text-[11px] font-semibold text-foreground disabled:opacity-35"><ChevronLeft size={13}/> Anterior</button>
+      <span className="text-[10px] tabular-nums text-muted-foreground">Página {activePage+1} de {pageCount}</span>
+      <button type="button" disabled={activePage>=pageCount-1} onClick={()=>setPage(p=>Math.min(pageCount-1,p+1))}
+        className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1.5 text-[11px] font-semibold text-foreground disabled:opacity-35">Próxima <ChevronRight size={13}/></button>
+    </nav>}
+  </div>
+  {loading&&<p role="status" className="text-[11px] text-muted-foreground">Atualizando registros de água…</p>}
+  {error&&<p role="alert" className="rounded-lg bg-destructive/5 p-2 text-xs text-destructive">{error}</p>}
+  {notice&&<p role="status" className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">{notice}</p>}
+  <details className="group rounded-lg border border-border/60 bg-muted/20 px-2 py-1.5 text-[10px] text-muted-foreground">
+    <summary className="flex cursor-pointer items-center gap-1.5 font-semibold text-foreground"><Info size={13}/> Orientações e referências</summary>
+    <p className="mt-2 leading-relaxed">A necessidade de água varia conforme peso, idade, atividade física, temperatura e orientações médicas. A meta é estimativa, não obrigação. Evite grandes volumes de uma só vez e respeite qualquer restrição prescrita.</p>
+    <p className="mt-1">Referências: <a className="underline" href="https://www.nationalacademies.org/read/10925/chapter/6" target="_blank" rel="noreferrer">National Academies</a> · <a className="underline" href="https://pubmed.ncbi.nlm.nih.gov/17277604/" target="_blank" rel="noreferrer">ACSM</a>.</p>
+  </details>
   <CareTaskRecordModal task={detailTask} onClose={()=>setDetailTask(null)} onSaved={()=>{setReload(value=>value+1);onRecorded();}}/>
-  <p className="text-[10px] text-muted-foreground">Referências: <a className="underline" href="https://www.nationalacademies.org/read/10925/chapter/6" target="_blank" rel="noreferrer">National Academies</a> · <a className="underline" href="https://pubmed.ncbi.nlm.nih.gov/17277604/" target="_blank" rel="noreferrer">ACSM</a>.</p>
  </section>;
 }
