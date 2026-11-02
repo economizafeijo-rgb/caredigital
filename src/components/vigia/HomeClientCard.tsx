@@ -295,7 +295,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
         </section>
       </div>
 
-      <ClientTodayTimeline tasks={tasks} onConfirm={askConfirm}/>
+      <ClientTodayTimeline tasks={tasks} onConfirm={askConfirm} now={clock?.getTime()}/>
     </div>}
     {confirmationResult&&<div className="fixed inset-x-3 top-16 z-[95] mx-auto max-w-lg" role={confirmationResult.success?"status":"alert"} aria-live={confirmationResult.success?"polite":"assertive"}>
       <div className={`flex items-start gap-3 rounded-2xl border p-4 shadow-2xl backdrop-blur-lg ${confirmationResult.success?"border-emerald-400 bg-emerald-50 text-emerald-950 dark:bg-emerald-950 dark:text-emerald-50":"border-rose-400 bg-rose-50 text-rose-950 dark:bg-rose-950 dark:text-rose-50"}`}>
