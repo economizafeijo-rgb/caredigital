@@ -242,7 +242,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
       </header>
 
       <div className="care-client-medication-alert shrink-0">
-        <CareReminderBeacon tasks={tasks} onOpen={alertTask=>{const task=tasks.find(t=>t.id===alertTask.id);if(task)showTaskDetails(task)}} compact/>
+        <CareReminderBeacon tasks={tasks} patientId={client.id} ownerId={client.owner_id} refreshKey={tick} onOpen={alertTask=>{const task=tasks.find(t=>t.id===alertTask.id);if(task)showTaskDetails(task)}} compact/>
       </div>
 
       <div className="care-client-tabs care-client-page-nav flex shrink-0 gap-1 rounded-xl border border-border bg-muted/55 p-1" role="tablist" aria-label="Páginas do acompanhamento">
