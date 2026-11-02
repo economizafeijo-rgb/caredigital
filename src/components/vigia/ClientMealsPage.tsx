@@ -5,6 +5,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ClientQuickIntake } from "./ClientQuickIntake";
+import { getCareIntakeIcon } from "./CareIntakePicker";
+import type { FoodKind } from "@/lib/care-intake-categories";
 import { careReminderState, reminderClock, type ReminderTask } from "@/lib/care-reminders";
 type PatientCare = ReminderTask & {patient_id:string};
 
@@ -22,8 +24,19 @@ type Props={
 
 type MealDetail={task_id:string;description:string;recorded_at:string|null};
 const PAGE_SIZE=4;
-const isSnack=(title:string)=>/lanche|ceia|colação|colacao/i.test(title);
-const foodIcon=(title:string)=>isSnack(title)?Coffee:UtensilsCrossed;
+const mealKind=(title:string):FoodKind=>{
+  if(/café da manhã|cafe da manha/i.test(title))return "cafe_manha";
+  if(/almoço|almoco/i.test(title))return "almoco";
+  if(/jantar/i.test(title))return "jantar";
+  if(/ceia/i.test(title))return "ceia";
+  if(/lanche|colação|colacao/i.test(title))return "lanche";
+  if(/fruta/i.test(title))return "fruta";
+  if(/salada/i.test(title))return "salada";
+  if(/sopa|caldo/i.test(title))return "sopa";
+  if(/sobremesa/i.test(title))return "sobremesa";
+  return "refeicao";
+};
+const foodIcon=(title:string)=>getCareIntakeIcon(mealKind(title))??UtensilsCrossed;
 
 export function ClientMealsPage({patientId,ownerId,meals,revision,now=Date.now(),onView,onConfirm,onDelete,onRecorded}:Props){
   const [details,setDetails]=useState<MealDetail[]>([]);
@@ -103,7 +116,7 @@ export function ClientMealsPage({patientId,ownerId,meals,revision,now=Date.now()
           const detail=byTask.get(meal.id);
           const status=careReminderState(meal,now);
           const confirmedMeal=Boolean(meal.completed_at);
-          return <article key={meal.id}
+          return <article key={meal.id} data-food-category={mealKind(meal.title)}
             className={"care-meal-record flex min-w-0 flex-col gap-2 rounded-2xl border p-3 "+
               (confirmedMeal?"border-emerald-500/25 bg-emerald-500/[.05]":"border-border bg-card/90")}>
             <div className="flex min-w-0 items-start gap-2">
