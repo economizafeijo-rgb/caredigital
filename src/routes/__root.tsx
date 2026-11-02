@@ -62,9 +62,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Vigia — Prontuário de cuidados" },
-      { name: "description", content: "Controle de medicamentos, dietas, protocolos e equipe de cuidado." },
+      { title: "CareDigital — Cuidado conectado" },
+      { name: "description", content: "CareDigital: acompanhamento pessoal de medicações, alimentação, hidratação e cuidados com segurança." },
       { property: "og:type", content: "website" },
+      { property: "og:title", content: "CareDigital — Cuidado conectado" },
+      { property: "og:description", content: "A sua rotina de cuidados em um só lugar." },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
@@ -75,7 +77,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
       },
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/caredigital-icon.svg", type: "image/svg+xml" },
     ],
   }),
   shellComponent: RootShell,
