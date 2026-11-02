@@ -126,4 +126,27 @@ describe("histórico inteligente CareDigital",()=>{
     expect(filterCareHistory(all,{...filters,group:"liquidos",subtype:"shake"},now)).toHaveLength(1);
   });
 
+  it("mostra não realizado ou cancelado na data real e não duplica pendências",()=>{
+    const source=data();
+    source.checklist.push(
+      {id:"not-eaten",category:"refeicao",title:"Lanche da tarde",scheduled_at:"2026-11-02T19:00:00Z",completed_at:null},
+      {id:"cancel-med",category:"medicacao",title:"Medicação",scheduled_at:"2026-11-02T19:10:00Z",completed_at:null}
+    );
+    source.resolutions=[
+      {task_id:"not-eaten",status:"nao_cumprido",reason:"Não tive fome",
+        scheduled_at:"2026-11-02T19:00:00Z",resolved_at:"2026-11-02T20:03:00Z"},
+      {task_id:"cancel-med",status:"cancelado",reason:"Relato de suspensão",
+        scheduled_at:"2026-11-02T19:10:00Z",resolved_at:"2026-11-02T20:06:00Z"},
+    ];
+    const rows=assembleCareHistory(source,now);
+    const meal=rows.find(row=>row.id==="resolved-not-eaten");
+    const med=rows.find(row=>row.id==="resolved-cancel-med");
+    expect(meal?.status).toBe("nao_cumprido");
+    expect(meal?.description).toContain("Não tive fome");
+    expect(med?.status).toBe("cancelado");
+    expect(med?.description).toContain("Não altera a prescrição");
+    expect(rows.some(row=>row.id==="pending-not-eaten"||row.id==="pending-cancel-med")).toBe(false);
+    expect(filterCareHistory(rows,{...filters,group:"refeicoes",status:"nao_cumprido"},now)).toHaveLength(1);
+  });
+
 });
