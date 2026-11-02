@@ -2,7 +2,7 @@ import { useRef, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { CheckCircle2, Droplets, Plus, Save, UtensilsCrossed, X } from "lucide-react";
 import { CareIntakePicker, CareIntakeIcon } from "./CareIntakePicker";
-import { foodKinds,beverageKinds,foodCategory,beverageCategory,isFoodKind,type IntakeKind,type FoodKind,type BeverageKind } from "@/lib/care-intake-categories";
+import { foodCategory,beverageCategory,isFoodKind,type IntakeKind,type FoodKind,type BeverageKind } from "@/lib/care-intake-categories";
 import { supabase } from "@/integrations/supabase/client";
 
 type Props = { patientId: string; onRecorded?: () => void; variant?: "home" | "panel"; mode?: "all" | "water" | "food" | "drink" };
@@ -56,7 +56,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
     event.preventDefault();
     if (saving || !requestId.current) return;
     const volume = isFood ? null : Number(amount);
-    if (!isWater && (formDescription.length < (isFood ? 3 : 2) || formDescription.length > (isFood ? 1000 : 100))) {
+    if (!isWater && (description.trim().length < (isFood ? 3 : 2) || formDescription.length > (isFood ? 1000 : 100))) {
       setError(isFood ? "Descreva o alimento consumido (3 a 1.000 caracteres)." : "Informe a bebida (2 a 100 caracteres).");
       return;
     }
@@ -78,8 +78,8 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
       if (typeof data !== "string" || !Number.isFinite(Date.parse(data))) {
         throw new Error("O servidor não confirmou o horário de registro.");
       }
-      setNotice(mode === "water"
-        ? `Água registrada em ${formatTime(data)} (Acre). Total diário e lembretes atualizados.`
+      setNotice(isWater
+        ? `Água registrada em ${formatTime(data)} (Acre). Meta e histórico atualizados.`
         : `${label} registrado em ${formatTime(data)} (Acre). Veja o histórico no prontuário.`);
       setOpen(false);
       requestId.current = null;
