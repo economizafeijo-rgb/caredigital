@@ -260,3 +260,74 @@ iframe[title*="Lovable" i][title*="badge" i] {
 @media (prefers-reduced-motion:reduce) {
   .dark .care-shell *, .dark .care-shell *::before, .dark .care-shell *::after { scroll-behavior:auto; }
 }
+
+/* Light theme for authenticated patient dashboard — keep dark styling only in .dark. */
+:root:not(.dark) .client-home-dashboard {
+  background: linear-gradient(145deg,#ffffff 0%,#f2f7fa 100%);
+  color:#183047;
+  border-color:#c9dce5;
+  box-shadow:0 14px 42px -28px rgba(40,85,104,.28);
+}
+:root:not(.dark) .client-home-dashboard .patient-header,
+:root:not(.dark) .client-home-dashboard .patient-timeline > div:first-child {
+  border-color:#dce7ed;
+}
+:root:not(.dark) .client-home-dashboard .patient-next-care {
+  background:linear-gradient(125deg,#f1f9fb,#e1f0f3);
+  border-color:#bedde3;
+  color:#183047;
+}
+:root:not(.dark) .client-home-dashboard .patient-timeline {
+  background:#ffffff;
+  border-color:#d0e1e8;
+  color:#183047;
+}
+:root:not(.dark) .client-home-dashboard .patient-stat-card {
+  background:#ffffff;
+  border-color:#d5e4eb;
+  color:#1b3348;
+}
+:root:not(.dark) .client-home-dashboard .patient-stat-card:hover {
+  background:#f0faf8;
+  border-color:#80cbbd;
+}
+:root:not(.dark) .client-home-dashboard .patient-timeline-item {
+  background:#f4f8fb;
+  border-color:#d9e5ec;
+  color:#203b50;
+}
+:root:not(.dark) .client-home-dashboard .patient-timeline-item:hover:not(:disabled) {
+  background:#e8f4f2;
+  border-color:#87c9bd;
+}
+:root:not(.dark) .client-home-dashboard .patient-timeline-item:disabled {
+  background:#e9f6f0;
+  border-color:#bddfd2;
+  color:#215945;
+  opacity:1;
+}
+:root:not(.dark) .client-home-dashboard :is(.text-slate-300,.text-slate-400,.text-slate-200) {
+  color:#587185;
+}
+:root:not(.dark) .client-home-dashboard :is(.text-sky-200,.text-sky-300,.text-teal-100,.text-teal-200) {
+  color:#196b79;
+}
+:root:not(.dark) .client-home-dashboard .text-emerald-300 {color:#218363;}
+:root:not(.dark) .client-home-dashboard .text-amber-300 {color:#a46b09;}
+:root:not(.dark) .client-home-dashboard :is(.bg-white\/10,.bg-white\/\[\.055\],.bg-white\/\[\.045\]) {
+  background-color:#e9f3f6;
+}
+:root:not(.dark) .client-home-dashboard .patient-next-care .text-white,
+:root:not(.dark) .client-home-dashboard .patient-next-care a.text-white {
+  color:#285569;
+}
+:root:not(.dark) .client-home-dashboard .patient-next-care a.border-white\/20 {
+  border-color:#afcdd5;
+  background:#ffffffb8;
+}
+:root:not(.dark) .client-home-dashboard :is(.bg-teal-300,.bg-sky-300) {
+  background-color:#bcece3;
+}
+:root:not(.dark) .client-home-dashboard :is(.bg-teal-300,.bg-sky-300) .text-slate-950 {
+  color:#143d41;
+}
