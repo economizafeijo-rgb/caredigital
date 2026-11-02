@@ -83,9 +83,10 @@ export function CareReminderBeacon({tasks,patientId,ownerId,refreshKey=0,onOpen,
   const [now,setNow]=useState(()=>Date.now());
   const [soundEnabled,setSoundEnabled]=useState(false);
   const [soundNotice,setSoundNotice]=useState("");
-  const [answeredWaterIds,setAnsweredWaterIds]=useState<ReadonlySet<string>>(()=>new Set());
+  const [answeredTaskIds,setAnsweredTaskIds]=useState<ReadonlySet<string>>(()=>new Set());
   const [answersStatus,setAnswersStatus]=useState<"loading"|"ready"|"error">("loading");
   const [answersRevision,setAnswersRevision]=useState(0);
+  const allTaskIdsKey=useMemo(()=>tasks.map(task=>task.id).sort().join(","),[tasks]);
   const waterIdsKey=useMemo(
     ()=>tasks.filter(task=>task.category==="hidratacao").map(task=>task.id).sort().join(","),
     [tasks]
@@ -120,38 +121,47 @@ export function CareReminderBeacon({tasks,patientId,ownerId,refreshKey=0,onOpen,
     let active=true;
     setAnswersStatus("loading");
     if(!patientId||!ownerId) {
-      setAnsweredWaterIds(new Set());
+      setAnsweredTaskIds(new Set());
       return()=>{active=false;};
     }
-    if(!waterIdsKey) {
-      setAnsweredWaterIds(new Set());
+    if(!allTaskIdsKey) {
+      setAnsweredTaskIds(new Set());
       setAnswersStatus("ready");
       return()=>{active=false;};
     }
     void (async()=>{
       // "Não bebi" is stored separately from completed_at. Query the
       // authorized, real response rows before deciding which tasks remain open.
-      const result=await (supabase as any).from("care_hydration_responses")
-        .select("task_id,response")
-        .eq("patient_id",patientId).eq("owner_id",ownerId)
-        .in("task_id",waterIdsKey.split(","))
-        .eq("response","not_drunk")
-        .limit(120);
+      const [waterResult,resolutionsResult]=await Promise.all([
+        waterIdsKey?(supabase as any).from("care_hydration_responses")
+          .select("task_id,response")
+          .eq("patient_id",patientId).eq("owner_id",ownerId)
+          .in("task_id",waterIdsKey.split(","))
+          .eq("response","not_drunk").limit(120)
+          :Promise.resolve({data:[],error:null}),
+        (supabase as any).from("care_task_resolutions")
+          .select("task_id,status").eq("patient_id",patientId).eq("owner_id",ownerId)
+          .in("task_id",allTaskIdsKey.split(","))
+          .in("status",["nao_cumprido","cancelado"]).limit(120),
+      ]);
       if(!active)return;
-      if(result.error){
+      if(waterResult.error||resolutionsResult.error){
         // Fail closed: never claim "no confirmation" when patient responses
         // could not be read.
         setAnswersStatus("error");
         return;
       }
-      setAnsweredWaterIds(new Set<string>((result.data??[]).map((row:{task_id:string})=>row.task_id)));
+      setAnsweredTaskIds(new Set<string>([
+        ...(waterResult.data??[]).map((row:{task_id:string})=>row.task_id),
+        ...(resolutionsResult.data??[]).map((row:{task_id:string})=>row.task_id),
+      ]));
       setAnswersStatus("ready");
     })();
     return()=>{active=false;};
-  },[patientId,ownerId,waterIdsKey,refreshKey,answersRevision]);
+  },[patientId,ownerId,waterIdsKey,allTaskIdsKey,refreshKey,answersRevision]);
   const summary=useMemo(
-    ()=>summarizeCareReminders(tasks,now,answeredWaterIds),
-    [tasks,now,answeredWaterIds]
+    ()=>summarizeCareReminders(tasks,now,answeredTaskIds),
+    [tasks,now,answeredTaskIds]
   );
   const {primary,dueCount,unconfirmedCount,next}=summary;
   const stage=primary?.state??"quiet";
@@ -241,7 +251,7 @@ export function CareReminderBeacon({tasks,patientId,ownerId,refreshKey=0,onOpen,
     <div className="care-reminder-actions flex shrink-0 flex-col items-end justify-center gap-1.5">
       {task&&<button type="button" onClick={()=>onOpen(task)}
         className="care-reminder-open inline-flex min-h-8 items-center gap-1 rounded-full px-2.5 text-[10px] font-extrabold sm:text-[11px]">
-        Ver cuidado <ChevronRight size={14}/>
+        Resolver pendência <ChevronRight size={14}/>
       </button>}
       <button type="button" onClick={()=>void toggleAudio()} aria-pressed={soundEnabled}
         title={soundEnabled?"Desativar avisos sonoros":"Ativar avisos sonoros com teste"}
