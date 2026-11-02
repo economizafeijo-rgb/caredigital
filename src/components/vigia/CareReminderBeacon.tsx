@@ -141,7 +141,7 @@ export function CareReminderBeacon({tasks,onOpen,compact=false}:Props) {
     late?
       "Passaram 10 minutos sem confirmação. O cuidado pode ter ocorrido; registre a informação real no prontuário.":
       next?
-        \`\${reminderCategoryLabel(next.task.category)} às \${reminderClock(next.task.scheduled_at)} · aviso visual quando chegar o horário.\`:
+        `${reminderCategoryLabel(next.task.category)} às ${reminderClock(next.task.scheduled_at)} · aviso visual quando chegar o horário.`:
         "Nenhum cuidado pendente na programação de hoje.";
   const percent=due?Math.max(0,primary!.remainingMs/CARE_REMINDER_WINDOW_MS):late?1:0;
 
@@ -168,9 +168,9 @@ export function CareReminderBeacon({tasks,onOpen,compact=false}:Props) {
         <div className="care-reminder-track-fill h-full rounded-full" style={{width:(percent*100)+"%"}}/>
       </div>}
       {Boolean(dueCount>1||unconfirmedCount>0)&&<p className="care-reminder-queue mt-1 text-[10px] font-semibold">
-        {dueCount>1?\`\${dueCount} lembretes no horário\`:""}
+        {dueCount>1?`${dueCount} lembretes no horário`:""}
         {dueCount>1&&unconfirmedCount>0?" · ":""}
-        {unconfirmedCount>0?\`\${unconfirmedCount} sem confirmação no prazo\`:""}
+        {unconfirmedCount>0?`${unconfirmedCount} sem confirmação no prazo`:""}
       </p>}
       {soundNotice&&<p role="status" className="care-reminder-subtitle mt-0.5 text-[10px]">{soundNotice}</p>}
     </div>
