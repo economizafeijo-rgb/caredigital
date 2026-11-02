@@ -80,7 +80,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
       }
       setNotice(isWater
         ? `Água registrada em ${formatTime(data)} (Acre). Meta e histórico atualizados.`
-        : `${label} registrado em ${formatTime(data)} (Acre). Veja o histórico no prontuário.`);
+        : `Consumo (${label.toLowerCase()}) registrado em ${formatTime(data)} (Acre). Veja o histórico no prontuário.`);
       setOpen(false);
       requestId.current = null;
       onRecorded?.();
