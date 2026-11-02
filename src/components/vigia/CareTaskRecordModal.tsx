@@ -288,7 +288,7 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
             className="min-h-10 min-w-[110px] flex-1 rounded-lg bg-primary px-2.5 py-2.5 text-xs font-bold text-primary-foreground">
             {details?.category==="hidratacao"?"Bebi água":"Confirmar agora"}
           </button>}
-        </div>
+        </div>}
       </section>
     </div>, document.body
   );
