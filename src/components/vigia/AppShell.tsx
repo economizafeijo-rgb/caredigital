@@ -112,11 +112,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Link>
 
             <nav className="hidden items-center gap-1 md:flex lg:gap-1.5" aria-label="Navegação principal">
-              {visibleNav.map((item) => (
-                <Link key={item.to} to={item.to} title={item.label} aria-label={item.label} activeOptions={{ exact: item.to === "/" }}
+              {visibleNav.map(({to,label,icon:Icon}) => (
+                <Link key={to} to={to} title={label} aria-label={label} activeOptions={{ exact: to === "/" }}
                   className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-transparent px-3 text-xs font-bold tracking-[.015em] text-muted-foreground transition-all hover:border-border hover:bg-muted hover:text-foreground lg:h-11 lg:px-3.5 lg:text-[13px]"
                   activeProps={{ className: "!border-primary !bg-primary !text-primary-foreground shadow-sm" }}>
-                  <Icon size={17} strokeWidth={2.2}/><span className="hidden lg:inline">{item.label}</span>
+                  <Icon size={17} strokeWidth={2.2}/><span className="hidden lg:inline">{label}</span>
                 </Link>
               ))}
               {!clientOnly && <button type="button" title="Mais seções" aria-label="Mais seções" onClick={() => setMoreOpen((open) => !open)} aria-expanded={moreOpen}
