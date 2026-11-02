@@ -36,6 +36,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
   const [mealToDelete, setMealToDelete] = useState<Task | null>(null);
   const [hydrationView, setHydrationView] = useState<"agua" | "bebidas">("agua");
   const [amount, setAmount] = useState("200");
+  const [mealDescription,setMealDescription]=useState("");
   const [busy, setBusy] = useState(false);
   const [activeTab, setActiveTab] = useState<"hoje" | "agenda" | "historico" | "alimentacao" | "hidratacao">("hoje");
   const [tick, setTick] = useState(0);
@@ -102,6 +103,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
     }
     setNotice("");
     setConfirmationResult(null);
+    if(task.category==="refeicao")setMealDescription("");
     setPending(task);
   }
 
@@ -116,10 +118,11 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
       setNotice("Informe o volume de água realmente consumido (10 a 1.500 ml).");
       return;
     }
+    if(pending.category==="refeicao"&&(mealDescription.trim().length<3||mealDescription.trim().length>1000)){setNotice("Descreva os alimentos consumidos (3 a 1.000 caracteres).");return;}
     setBusy(true);
     try {
       const payload = pending.category === "hidratacao" ? Number(amount) : null;
-      const result = await (supabase as any).rpc("care_confirm_task", {p_task_id:pending.id,p_water_ml:payload});
+      const result = pending.category==="refeicao" ? await (supabase as any).rpc("care_confirm_meal",{p_task_id:pending.id,p_description:mealDescription.trim()}) : await (supabase as any).rpc("care_confirm_task", {p_task_id:pending.id,p_water_ml:payload});
       if (result.error) throw result.error;
       if (typeof result.data !== "string" || !Number.isFinite(Date.parse(result.data))) throw new Error("Missing server timestamp");
       const verified = await (supabase as any).from("care_daily_checklist").select("id,completed_at")
@@ -133,6 +136,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
         detail:`${pending.title} · ${actual} (horário do Acre). ${pending.category==="medicacao" && Date.parse(verified.data.completed_at)>=Date.parse(pending.scheduled_at)+900000?"Tomada atrasada registrada. ":""}Data e hora reais salvas no prontuário.`});
       setNotice("");
       setPending(null);
+      setMealDescription("");
     } catch (failure) {
       const message=failure instanceof Error?failure.message:"";
       const detail=/Care window not started/i.test(message)?"O horário programado ainda não chegou. Nenhuma confirmação foi salva."
@@ -350,7 +354,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
               <p className="text-sm font-bold">{pending.title}</p>
               <p className="mt-1 text-xs text-muted-foreground">Horário programado: {timeInAcre(pending.scheduled_at)} (Acre)</p>
             </div>
-            {pending.category==="refeicao"&&<p className="text-xs leading-relaxed text-muted-foreground">Confirme somente a refeição realizada dentro dos 15 minutos após o horário programado. O servidor registrará data e hora exatas, sem antecipações ou registros retroativos.</p>}
+            {pending.category==="refeicao"&&<label className="block text-xs font-semibold text-foreground">O que você comeu nesta refeição?<textarea rows={3} maxLength={1000} value={mealDescription} onChange={e=>setMealDescription(e.target.value)} placeholder="Ex.: pão, ovos, fruta; informe quantidades se desejar." className="mt-1.5 w-full rounded-lg border border-border bg-background p-2.5 text-sm text-foreground"/><span className="mt-1 block text-[11px] font-normal text-muted-foreground">Descreva os alimentos realmente consumidos. Confirmação disponível apenas durante os 15 minutos após o horário previsto.</span></label>}
             {pending.category==="hidratacao"&&<label className="block text-xs font-bold text-foreground">Volume de água realmente consumido (ml)
               <input className="field mt-1.5 w-full" type="number" min={10} max={1500} step={10} value={amount} onChange={e=>setAmount(e.target.value)}/>
               <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Confirme apenas a quantidade que você bebeu agora.</span>
@@ -358,7 +362,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
           </div>
           <div className="grid grid-cols-2 gap-2 border-t border-border px-4 py-3">
             <button type="button" disabled={busy} onClick={()=>setPending(null)} className="h-10 rounded-xl border border-border text-xs font-bold text-foreground">Cancelar</button>
-            <button type="button" disabled={busy || !canConfirmCare(pending,clock?.getTime()??Date.now())} onClick={()=>void confirm()} className="h-10 rounded-xl bg-primary px-2 text-xs font-extrabold text-primary-foreground disabled:opacity-60">{busy?"Registrando…":"Confirmar agora"}</button>
+            <button type="button" disabled={busy || !canConfirmCare(pending,clock?.getTime()??Date.now()) || (pending.category==="refeicao"&&mealDescription.trim().length<3)} onClick={()=>void confirm()} className="h-10 rounded-xl bg-primary px-2 text-xs font-extrabold text-primary-foreground disabled:opacity-60">{busy?"Registrando…":"Confirmar agora"}</button>
           </div>
         </section>
       </div>,
