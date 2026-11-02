@@ -43,7 +43,7 @@ const steps = [
 
 function FoodIllustration() {
   return <svg viewBox="0 0 570 278" role="img" aria-labelledby="food-svg-title food-svg-description"
-    xmlns="http://www.w3.org/2000/svg" className="mx-auto block h-auto w-full max-w-[495px]" fill="none">
+    xmlns="http://www.w3.org/2000/svg" className="mx-auto block h-[170px] w-full max-w-[410px] object-contain sm:h-[195px] lg:h-[205px]" fill="none">
     <title id="food-svg-title">Alimentação e rotina saudável</title>
     <desc id="food-svg-description">Prato ilustrativo com legumes, vegetais e alimentos, acompanhado de um calendário e confirmação.</desc>
     <defs>
@@ -91,8 +91,8 @@ function FoodIllustration() {
 }
 
 function Dietas() {
-  return <div className="mx-auto flex h-full min-h-0 w-full max-w-[1120px] flex-col justify-center overflow-y-auto py-2 md:overflow-hidden" aria-label="Página demonstrativa de alimentação">
-    <div className="flex min-h-0 flex-col gap-3 rounded-3xl border border-border bg-card/95 p-3 shadow-[0_18px_55px_-35px_rgba(17,50,70,.34)] sm:p-4 lg:gap-3.5 lg:p-5">
+  return <div className="mx-auto flex min-h-full w-full max-w-[1120px] flex-col justify-start py-2 lg:justify-center" aria-label="Página demonstrativa de alimentação">
+    <div className="flex w-full shrink-0 flex-col gap-2.5 rounded-3xl border border-border bg-card/95 p-3 shadow-[0_18px_55px_-35px_rgba(17,50,70,.34)] sm:p-4 lg:gap-3 lg:p-4">
       <header className="flex shrink-0 flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-primary/20 bg-primary/10 text-primary"><Utensils size={20}/></span>
@@ -104,31 +104,31 @@ function Dietas() {
         <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 text-[11px] font-semibold text-primary"><ShieldCheck size={14}/> Demonstração pública</span>
       </header>
 
-      <section className="grid min-h-0 items-center gap-3 rounded-2xl border border-border/70 bg-muted/35 px-3 py-3 sm:px-5 md:grid-cols-[minmax(0,1.05fr)_minmax(0,.95fr)]" aria-labelledby="diet-intro-title">
+      <section className="grid shrink-0 items-center gap-3 rounded-2xl border border-border/70 bg-muted/35 px-3 py-3 sm:px-4 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]" aria-labelledby="diet-intro-title">
         <div className="min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-[.16em] text-primary">Rotina alimentar individual</p>
           <h2 id="diet-intro-title" className="mt-1 max-w-[19ch] text-balance text-xl font-extrabold leading-tight text-foreground sm:text-2xl lg:text-[1.7rem]">Refeições e lembretes, no momento certo.</h2>
           <p className="mt-2 max-w-[55ch] text-xs leading-relaxed text-muted-foreground sm:text-sm">
             O CareDigital reúne os horários de alimentação definidos para cada acompanhamento. O cliente consulta sua rotina e confirma os cuidados realizados em um ambiente protegido.
           </p>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
+          <div className="mt-2.5 flex flex-wrap items-center gap-2">
             <Link to="/cliente" className="inline-flex items-center gap-2 rounded-xl bg-primary px-3.5 py-2.5 text-xs font-bold text-primary-foreground transition hover:opacity-90"><LockKeyhole size={15}/> Acessar minha rotina <ArrowRight size={14}/></Link>
             <Link to="/protocolos" className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-3.5 py-2.5 text-xs font-semibold text-foreground hover:bg-muted">Como funcionam os cuidados</Link>
           </div>
         </div>
-        <div className="min-w-0"><FoodIllustration/></div>
+        <div className="flex min-w-0 items-center justify-center"><FoodIllustration/></div>
       </section>
 
       <section className="grid shrink-0 gap-2 sm:grid-cols-3" aria-label="Informações sobre o acompanhamento alimentar">
         {topics.map(({icon:Icon,title,text})=>(
-          <article key={title} className="flex min-w-0 items-start gap-3 rounded-xl border border-border bg-background/65 p-3">
+          <article key={title} className="flex min-w-0 items-start gap-2.5 rounded-xl border border-border bg-background/65 p-2.5">
             <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><Icon size={19}/></span>
             <div className="min-w-0"><h3 className="text-xs font-bold text-foreground sm:text-sm">{title}</h3><p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{text}</p></div>
           </article>
         ))}
       </section>
 
-      <section className="shrink-0 rounded-xl border border-border bg-muted/35 px-3 py-3 sm:px-4" aria-labelledby="diet-steps">
+      <section className="shrink-0 rounded-xl border border-border bg-muted/35 px-3 py-2.5 sm:px-4" aria-labelledby="diet-steps">
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
           <h2 id="diet-steps" className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wide text-foreground"><HeartPulse size={15} className="text-primary"/> Como funciona</h2>
           <span className="text-[10px] text-muted-foreground">Fluxo ilustrativo · sem dietas ou pacientes reais</span>
@@ -144,7 +144,7 @@ function Dietas() {
         </ol>
       </section>
 
-      <footer className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl border border-primary/15 bg-primary/5 px-3 py-2.5 text-xs">
+      <footer className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl border border-primary/15 bg-primary/5 px-3 py-2 text-xs">
         <span className="inline-flex min-w-0 items-center gap-2 text-foreground"><CheckCircle2 size={17} className="shrink-0 text-primary"/> Orientações e dietas individuais ficam disponíveis somente na conta vinculada ao acompanhamento.</span>
         <Link to="/cliente" className="inline-flex items-center gap-1.5 whitespace-nowrap font-bold text-primary hover:underline">Minha área <ArrowRight size={14}/></Link>
       </footer>
