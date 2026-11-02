@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, CalendarClock, CalendarDays, CheckCircle2, Droplets, History, House, LayoutDashboard, LockKeyhole, Pill, ShieldCheck, Target, UtensilsCrossed, UserRound, AlertTriangle, X } from "lucide-react";
+import { ArrowRight, CalendarClock, CalendarDays, CheckCircle2, Droplets, History, House, LayoutDashboard, LockKeyhole, Pill, Target, UtensilsCrossed, UserRound, AlertTriangle, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CompactTreatmentBlister } from "./CompactTreatmentBlister";
 import { PatientActivityHistory } from "./PatientActivityHistory";
@@ -86,7 +86,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
   }, [owner, tick]);
 
   const completed = tasks.filter(t => Boolean(t.completed_at)).length;
-  const nextCare = tasks.find(t => !t.completed_at && new Date(t.scheduled_at).getTime() >= (clock?.getTime() ?? Date.now())) ?? tasks.find(t => !t.completed_at);
+  const nextCare = tasks.find(t => !t.completed_at);
   const meals = tasks.filter(t => t.category === "refeicao");
   const mealGuide: Record<string,string> = { "Café da manhã":"Aveia cozida em água ou leite sem lactose, se tolerado, com banana madura.", "Lanche da manhã":"Mamão ou banana madura; ajuste à sua tolerância.", "Almoço":"Arroz, frango cozido ou grelhado sem excesso de gordura, batata e legumes cozidos.", "Lanche da tarde":"Batata-doce cozida ou fruta tolerada.", "Jantar":"Sopa suave de legumes e frango desfiado, sem pimenta.", "Ceia":"Mingau leve de aveia ou banana, conforme tolerância." };
 
@@ -188,7 +188,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
         })}
       </div>
 
-      <div id="care-client-tab-panel" className="care-client-main grid min-h-0 flex-1 items-stretch gap-2 lg:grid-cols-[minmax(0,1.06fr)_minmax(0,.94fr)]">
+      <div id="care-client-tab-panel" className="care-client-main grid min-h-0 flex-1 items-stretch gap-2 md:grid-cols-[minmax(0,1.06fr)_minmax(0,.94fr)]">
         <CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm} dashboardMode onProgressChange={setTreatmentProgress}/>
         <section className="care-client-summary min-h-0 min-w-0 overflow-y-auto rounded-2xl border border-border bg-card p-3 sm:p-4" aria-label="Detalhes do acompanhamento">
           {activeTab==="hoje"&&<div className="care-summary-today flex h-full min-h-0 flex-col gap-3">
@@ -259,7 +259,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
         <button type="button" onClick={()=>setConfirmationResult(null)} aria-label="Fechar mensagem" className="rounded-lg border border-current/15 p-1"><X size={17}/></button>
       </div>
     </div>}
-    {notice && <p role="status" className="mx-5 mb-4 rounded-xl bg-[#e4eff4] p-3 text-sm text-[#24526c]">{notice}</p>}
+    {notice && <div role="status" className="pointer-events-none fixed inset-x-3 bottom-5 z-[95] mx-auto max-w-xl"><p className="pointer-events-auto rounded-xl border border-primary/20 bg-card px-4 py-3 text-sm text-foreground shadow-xl">{notice}</p></div>}
     {locked && <div role="dialog" aria-label="Acesso restrito" className="m-5 rounded-2xl border border-[#aec8d6] bg-[#eff5f8] p-5">
       <div className="flex items-center gap-2 font-bold text-[#163b56]"><LockKeyhole size={19}/> Acesso necessário</div>
       <p className="mt-2 text-sm text-[#456478]">Para proteger as informações de saúde, faça login antes de visualizar ou confirmar atividades do cliente.</p>
