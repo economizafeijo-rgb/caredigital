@@ -219,7 +219,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
         </div>
       </header>
 
-      <div className="care-client-medication-alert shrink-0">
+      <div className={"care-client-medication-alert shrink-0 "+(activeTab==="historico"?"hidden":"")}>
         <MedicationLateAlert tasks={tasks} onConfirm={alertTask=>{const task=tasks.find(t=>t.id===alertTask.id);if(task)askConfirm(task)}} compact now={clock}/>
       </div>
 
@@ -233,9 +233,9 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
         })}
       </div>
 
-      <div id="care-client-tab-panel" className="care-client-main grid min-h-0 flex-1 items-stretch gap-2 md:grid-cols-[minmax(0,1.06fr)_minmax(0,.94fr)]">
-        <CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm} dashboardMode onProgressChange={setTreatmentProgress}/>
-        <section className="care-client-summary min-h-0 min-w-0 overflow-y-auto rounded-2xl border border-border bg-card p-3 sm:p-4" aria-label="Detalhes do acompanhamento">
+      <div id="care-client-tab-panel" className={"care-client-main grid min-h-0 min-w-0 flex-1 items-stretch gap-2 "+(activeTab==="historico"?"grid-cols-1":"md:grid-cols-[minmax(0,1.06fr)_minmax(0,.94fr)]")}>
+        {activeTab!=="historico"&&<CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm} dashboardMode onProgressChange={setTreatmentProgress}/>}
+        <section className={"care-client-summary min-h-0 min-w-0 rounded-2xl border border-border bg-card "+(activeTab==="historico"?"overflow-hidden p-2 sm:p-3":"overflow-y-auto p-3 sm:p-4")} aria-label="Detalhes do acompanhamento">
           {activeTab==="hoje"&&<div className="care-summary-today flex h-full min-h-0 flex-col gap-3">
             <div className="flex shrink-0 items-center justify-between gap-2">
               <h2 className="inline-flex items-center gap-2 text-sm font-extrabold text-foreground"><LayoutDashboard size={18} className="text-primary"/> Resumo do dia</h2>
@@ -292,7 +292,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
               ? <ClientHydrationTab patientId={client.id} ownerId={client.owner_id} tasks={tasks} revision={tick} onConfirm={askConfirm} onRecorded={()=>setTick(value=>value+1)}/>
               : <ClientBeverageTracker patientId={client.id} ownerId={client.owner_id} revision={tick} onRecorded={()=>setTick(value=>value+1)}/>}
           </div>}
-          {activeTab==="historico"&&<div className="flex h-full min-h-0 flex-col gap-2"><h2 className="flex shrink-0 items-center gap-2 text-sm font-extrabold text-foreground"><History size={17} className="text-primary"/> Histórico e prontuário</h2><PatientActivityHistory patientId={client.id} ownerId={client.owner_id} revision={tick}/></div>}
+          {activeTab==="historico"&&<PatientActivityHistory patientId={client.id} ownerId={client.owner_id} revision={tick} onRecordChanged={()=>setTick(value=>value+1)}/>}
           {activeTab==="alimentacao"&&<div><h2 className="flex items-center gap-2 text-sm font-extrabold text-foreground"><UtensilsCrossed size={17} className="text-primary"/> Alimentação de hoje</h2><p className="mt-1 text-xs text-muted-foreground">Orientações ilustrativas; siga as orientações do profissional responsável.</p><div className="mt-2 space-y-2">
             {meals.map(meal=><div key={meal.id} className="rounded-xl border border-border bg-muted/25 p-3">
               <div className="flex items-center justify-between gap-2"><strong className="text-xs text-foreground">{meal.title}</strong><span className="text-[10px] text-muted-foreground">{timeInAcre(meal.scheduled_at)}</span></div>
