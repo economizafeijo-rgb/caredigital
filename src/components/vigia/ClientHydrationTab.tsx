@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Droplets, CheckCircle2, AlertCircle, Save, SlidersHorizontal, ChevronLeft, ChevronRight, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ClientQuickIntake } from "./ClientQuickIntake";
 import { CareTaskRecordModal } from "./CareTaskRecordModal";
+import { acreCalendarDay, acreHour, hydrationGoalNotice, type HydrationGoalSnapshot } from "@/lib/hydration-goal";
 import {canConfirmCare,careScheduleBlockMessage,careScheduleLabel,getCareScheduleState} from "@/lib/care-schedule";
 
 type Task={id:string;patient_id:string;category:string;title:string;scheduled_at:string;completed_at:string|null};
@@ -38,8 +39,19 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
  const [notice,setNotice]=useState("");
  const [reload,setReload]=useState(0);
  const [loading,setLoading]=useState(true);
+ const [dailyGoal,setDailyGoal]=useState<HydrationGoalSnapshot|null>(null);
+ const lastDeadlineRefresh=useRef<string>("");
  const [clock,setClock]=useState(()=>Date.now());
  useEffect(()=>{const timer=window.setInterval(()=>setClock(Date.now()),10000);return()=>window.clearInterval(timer)},[]);
+ // Force a final server read when the 23:00 deadline passes or the Acre date changes.
+ useEffect(()=>{
+   const day=acreCalendarDay(clock);
+   const changed=Boolean(dailyGoal&&dailyGoal.goal_date!==day);
+   const passed=Boolean(dailyGoal&&dailyGoal.goal_date===day&&dailyGoal.status==="em_andamento"&&acreHour(clock)>=23);
+   if((changed||passed)&&lastDeadlineRefresh.current!==day){
+      lastDeadlineRefresh.current=day;setReload(v=>v+1);
+   }
+ },[clock,dailyGoal?.goal_date,dailyGoal?.status]);
  const update=(change:Partial<Profile>)=>setProfile(prev=>({...prev,...change}));
  useEffect(()=>{let active=true;setLoading(true);
   void (async()=>{
@@ -47,16 +59,18 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
    const start=new Date(now+"T00:00:00-05:00");
    const end=new Date(start.getTime()+86400000);
    const db=supabase as any;
-   const [saved,water,responses]=await Promise.all([
+   const [saved,water,responses,goalSummary]=await Promise.all([
     db.from("care_hydration_profiles").select("sex,age,weight_kg,objective,activity_minutes,sweat,fluid_restriction,target_ml").eq("patient_id",patientId).maybeSingle(),
     db.from("care_hydration").select("id,amount_ml,recorded_at").eq("patient_id",patientId).eq("owner_id",ownerId).gte("recorded_at",start.toISOString()).lt("recorded_at",end.toISOString()).order("recorded_at",{ascending:true}).limit(200),
-    db.from("care_hydration_responses").select("task_id,recorded_at").eq("patient_id",patientId).eq("owner_id",ownerId).limit(100)
+    db.from("care_hydration_responses").select("task_id,recorded_at").eq("patient_id",patientId).eq("owner_id",ownerId).limit(100),
+    db.rpc("care_sync_hydration_goal",{p_patient_id:patientId})
    ]);
    if(!active)return;
-   if(saved.error||water.error||responses.error)setError("Não foi possível consultar todos os registros de hidratação. Confira as permissões.");
+   if(saved.error||water.error||responses.error||goalSummary.error)setError("Não foi possível consultar todos os registros de hidratação ou o fechamento da meta. Confira as permissões.");
    else setError("");
    if(saved.data){setProfile({...defaultProfile,...saved.data});setConfigured(true)}
    else {setConfigured(false);setEditing(false)}
+   setDailyGoal(goalSummary.error?null:goalSummary.data as HydrationGoalSnapshot);
    setDrinks(water.data??[]);
    setNotDrunk(responses.data??[]);
    setLoading(false);
@@ -65,8 +79,11 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
  },[patientId,ownerId,revision,reload]);
  const calculation=useMemo(()=>estimate(profile),[profile]);
  const planValid=Boolean(configured&&profile.target_ml&&!profile.fluid_restriction);
- const goal=planValid?profile.target_ml!:0;
- const intake=drinks.reduce((total,item)=>total+Number(item.amount_ml),0);
+ const goal=dailyGoal?.target_ml??(planValid?profile.target_ml!:0);
+ const cutoffUtc=Date.parse(acreCalendarDay(clock)+"T23:00:00-05:00");
+ const intake=dailyGoal?.consumed_ml??drinks.filter(item=>Date.parse(item.recorded_at)<cutoffUtc).reduce((total,item)=>total+Number(item.amount_ml),0);
+ const goalSummary=hydrationGoalNotice(dailyGoal,clock);
+ const dayClosed=acreHour(clock)>=23;
  const remaining=goal?Math.max(0,goal-intake):0;
  const percent=goal?Math.min(100,Math.round(intake/goal*100)):0;
  const schedule=useMemo(()=>tasks.filter(item=>item.category==="hidratacao").sort((a,b)=>Date.parse(a.scheduled_at)-Date.parse(b.scheduled_at)),[tasks]);
@@ -75,9 +92,9 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
  // tarefas já confirmadas permanecem intactos; consumo avulso abate o restante.
  const portions=useMemo(()=>{
    const values=Array<number>(schedule.length).fill(0);
-   if(!goal||remaining<10)return values;
+   if(!goal||remaining<10||dayClosed)return values;
    const upcoming=schedule.map((task,index)=>({task,index}))
-     .filter(({task})=>!task.completed_at&&!skipped.has(task.id)&&Date.parse(task.scheduled_at)>clock);
+     .filter(({task})=>!task.completed_at&&!skipped.has(task.id)&&Date.parse(task.scheduled_at)>clock&&Date.parse(task.scheduled_at)<cutoffUtc);
    if(!upcoming.length)return values;
    let left=remaining;
    upcoming.forEach(({index},position)=>{
@@ -87,8 +104,10 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
      left=Math.max(0,left-values[index]);
    });
    return values;
- },[schedule,goal,remaining,skipped,clock]);
- const next=schedule.find(item=>!item.completed_at&&!skipped.has(item.id)&&Date.parse(item.scheduled_at)>=clock) ?? schedule.find(item=>!item.completed_at&&!skipped.has(item.id)&&getCareScheduleState(item,clock)==="available");
+ },[schedule,goal,remaining,skipped,clock,dayClosed,cutoffUtc]);
+ const next=dayClosed||remaining===0?undefined:
+   schedule.find(item=>!item.completed_at&&!skipped.has(item.id)&&Date.parse(item.scheduled_at)>=clock&&Date.parse(item.scheduled_at)<cutoffUtc)
+   ?? (dayClosed?undefined:schedule.find(item=>!item.completed_at&&!skipped.has(item.id)&&getCareScheduleState(item,clock)==="available"&&Date.parse(item.scheduled_at)<cutoffUtc));
  const pageSize=3;
  const pageCount=Math.max(1,Math.ceil(schedule.length/pageSize));
  const activePage=Math.min(page,pageCount-1);
@@ -137,7 +156,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
   <header className="flex flex-wrap items-center justify-between gap-2">
     <div className="min-w-0">
       <h3 className="flex items-center gap-1.5 text-sm font-extrabold"><Droplets size={18} className="text-sky-600 dark:text-sky-300"/> Minha hidratação</h3>
-      <p className="text-[10px] text-muted-foreground">Consumo real · horário do Acre · acompanhamento diário</p>
+      <p className="text-[10px] text-muted-foreground">Meta diária até 23h · horário do Acre · água registrada</p>
     </div>
     <div className="flex flex-wrap items-center gap-1.5">
       <ClientQuickIntake patientId={patientId} mode="water" onRecorded={()=>{setReload(n=>n+1);onRecorded();}}/>
@@ -172,7 +191,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
       {label:"Meta diária",value:goal?`${goal.toLocaleString("pt-BR")} ml`:"A definir"},
       {label:"Consumido",value:`${intake.toLocaleString("pt-BR")} ml`},
       {label:"Restante",value:goal?`${remaining.toLocaleString("pt-BR")} ml`:"—"},
-      {label:"Próxima água",value:next?time(next.scheduled_at):"Sem pendência"}
+      {label:"Próxima água",value:dayClosed?"Encerrado":remaining===0?"Meta atingida":next?time(next.scheduled_at):"Até 23h"}
     ].map(item=><div key={item.label} className="min-w-0 rounded-lg border border-border/70 bg-muted/40 px-2.5 py-2">
       <p className="truncate text-[10px] font-medium text-muted-foreground">{item.label}</p>
       <p className="mt-0.5 truncate text-sm font-extrabold tabular-nums text-foreground">{item.value}</p>
@@ -186,7 +205,11 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
     <span className="shrink-0 text-[11px] font-bold tabular-nums text-foreground">{goal?`${percent}%`:"Meta pendente"}</span>
   </div>
   {!planValid&&<button type="button" onClick={()=>setEditing(true)} className="rounded-lg border border-amber-300/30 bg-amber-500/5 px-2 py-1.5 text-left text-[11px] text-foreground">Defina uma meta em <strong>Ajustar meta</strong> para calcular volumes sugeridos. Os registros reais continuam disponíveis.</button>}
-  {goal>0&&<p className="text-[10px] text-muted-foreground">{remaining===0?"Meta estimada atingida; não é necessário beber apenas para cumprir avisos.":`Restam ${remaining.toLocaleString("pt-BR")} ml. As porções sugeridas se ajustam aos próximos horários ainda pendentes.`}</p>}
+  {!loading&&dailyGoal&&dailyGoal.status!=="sem_meta"&&<div role="status" aria-live="polite" className={`flex items-start gap-1.5 rounded-lg border px-2.5 py-2 text-[11px] leading-snug ${goalSummary.kind==="met"?"border-emerald-500/25 bg-emerald-500/[.045] text-foreground":goalSummary.kind==="missed"?"border-amber-500/25 bg-amber-500/[.04] text-foreground":"border-border/70 bg-muted/25 text-foreground"}`}>
+    {goalSummary.kind==="met"?<CheckCircle2 size={14} className="mt-0.5 shrink-0 text-emerald-600 dark:text-emerald-300"/>:<Info size={14} className="mt-0.5 shrink-0 text-muted-foreground"/>}
+    <div><strong className="block text-[11px] font-bold">{goalSummary.title}</strong><p className="mt-0.5 text-[10px] text-muted-foreground">{goalSummary.message}</p></div>
+  </div>}
+  {!loading&&!dailyGoal&&goal>0&&<p className="text-[10px] text-muted-foreground">Meta até 23h (Acre). O resumo automático não está disponível no momento.</p>}
   <div className="rounded-xl border border-border bg-card/70 p-2.5">
     <div className="mb-2 flex min-w-0 items-center justify-between gap-2 border-b border-border/70 pb-2">
       <div>
@@ -237,7 +260,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
   {notice&&<p role="status" className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">{notice}</p>}
   <details className="group rounded-lg border border-border/60 bg-muted/20 px-2 py-1.5 text-[10px] text-muted-foreground">
     <summary className="flex cursor-pointer items-center gap-1.5 font-semibold text-foreground"><Info size={13}/> Orientações e referências</summary>
-    <p className="mt-2 leading-relaxed">A necessidade de água varia conforme peso, idade, atividade física, temperatura e orientações médicas. A meta é estimativa, não obrigação. Evite grandes volumes de uma só vez e respeite qualquer restrição prescrita.</p>
+    <p className="mt-2 leading-relaxed">A meta é avaliada às 23h (Acre) e considera somente registros de água feitos entre 00h e 23h. Consumos depois das 23h continuam no prontuário, mas não alteram o resultado já encerrado. A necessidade de água varia conforme peso, idade, atividade física, temperatura e orientações médicas. A meta é estimativa, não obrigação. Evite grandes volumes de uma só vez e respeite qualquer restrição prescrita.</p>
     <p className="mt-1">Referências: <a className="underline" href="https://www.nationalacademies.org/read/10925/chapter/6" target="_blank" rel="noreferrer">National Academies</a> · <a className="underline" href="https://pubmed.ncbi.nlm.nih.gov/17277604/" target="_blank" rel="noreferrer">ACSM</a>.</p>
   </details>
   <CareTaskRecordModal task={detailTask} onClose={()=>setDetailTask(null)} onSaved={()=>{setReload(value=>value+1);onRecorded();}}/>
