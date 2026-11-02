@@ -23,6 +23,6 @@ jobs:
       - name: Install locked dependencies
         run: bun install --frozen-lockfile
       - name: Run care scheduling and health metrics tests
-        run: bunx vitest run src/lib/care-schedule.test.ts src/lib/health-metrics.test.ts src/lib/care-history.test.ts src/lib/hydration-goal.test.ts src/lib/care-reminders.test.ts src/lib/care-intake-categories.test.ts src/lib/client-pages.test.ts src/components/vigia/ClientTodayTimeline.test.ts
+        run: bunx vitest run src/lib/care-schedule.test.ts src/lib/health-metrics.test.ts src/lib/care-history.test.ts src/lib/hydration-goal.test.ts src/lib/care-reminders.test.ts src/lib/care-intake-categories.test.ts src/components/vigia/CareIntakePicker.test.tsx src/lib/client-pages.test.ts src/components/vigia/ClientTodayTimeline.test.ts
       - name: Compile production site
         run: bun run build
