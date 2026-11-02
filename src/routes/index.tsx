@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Activity, ArrowRight, ClipboardList, Droplets, LockKeyhole, Utensils } from "lucide-react";
+import { Activity, ArrowRight, ClipboardList, Droplets, HeartPulse, LockKeyhole, Utensils } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ClientHomeSummary } from "@/components/vigia/ClientHomeSummary";
 import { careBrandArtwork } from "@/components/vigia/CareBrandArtwork";
