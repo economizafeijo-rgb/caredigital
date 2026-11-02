@@ -29,7 +29,7 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm}:P
    const timer=window.setInterval(update,45000);
    return ()=>{window.removeEventListener("focus",update);document.removeEventListener("visibilitychange",onVisible);window.clearInterval(timer)};
  },[]);
- useEffect(()=>{let active=true;setLoading(true);
+ useEffect(()=>{let active=true;
    void (async()=>{
      const result=await (supabase as any).from("care_daily_checklist")
        .select("id,patient_id,title,category,scheduled_at,completed_at")
@@ -37,8 +37,15 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm}:P
        .gte("scheduled_at","2026-10-31T00:00:00-05:00").lt("scheduled_at","2026-12-05T00:00:00-05:00")
        .order("scheduled_at",{ascending:true}).limit(80);
      if(!active)return;
-     setError(result.error?"Não foi possível carregar os registros de medicação.":"");
-     setDoses(result.data??[]);setLoading(false);
+     setError(result.error?"Não foi possível atualizar os registros de medicação.":"");
+     if(!result.error){
+       const incoming=(result.data??[]) as Dose[];
+       setDoses(previous=>{
+         const fp=(items:Dose[])=>items.map(item=>item.id+":"+item.completed_at).join("|");
+         return fp(previous)===fp(incoming)?previous:incoming;
+       });
+     }
+     setLoading(false);
    })();
    return ()=>{active=false};
  },[patientId,ownerId,revision,refresh]);
