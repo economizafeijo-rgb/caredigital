@@ -97,7 +97,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
   return <>
     <button type="button" onClick={openForm} disabled={!patientId}
       className={variant === "home"
-        ? "inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-sky-300/40 bg-sky-300/15 px-2.5 text-[11px] font-bold text-sky-100 transition hover:bg-sky-300/25 disabled:opacity-50"
+        ? "inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-sky-300/40 bg-sky-300/15 px-2.5 text-[11px] font-bold text-slate-900 transition hover:bg-sky-300/25 dark:text-sky-100 disabled:opacity-50"
         : mode === "water"
           ? "inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-sky-500/35 bg-sky-500/10 px-3 text-xs font-bold text-foreground transition hover:bg-sky-500/20 disabled:opacity-50"
           : "inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground transition hover:opacity-90 disabled:opacity-50"}>
@@ -157,7 +157,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
             <p className="rounded-lg bg-muted/60 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
               O horário real do registro será salvo automaticamente (Acre).
               {mode === "water"
-                ? "A água entra no total do dia e os próximos lembretes poderão ser adiados para respeitar um intervalo. Nenhuma dose de medicamento será alterada."
+                ? "A água entra no total diário e os próximos lembretes podem ser adiados. Não confirme novamente na agenda este mesmo copo de água. Horários de medicamentos não mudam."
                 : "Este consumo avulso não confirma nem substitui uma tarefa programada. Água entra no total hídrico; outras bebidas ficam no histórico de líquidos."}
             </p>
             {error && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive">{error}</p>}
