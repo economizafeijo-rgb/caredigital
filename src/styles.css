@@ -1083,3 +1083,71 @@ iframe[title*="Lovable" i][title*="badge" i] {
   .care-blister-refined .care-blister-period-subtitle { font-size: 8px; }
   .care-blister-refined .care-blister-legend { font-size: 8px; }
 }
+
+/* CareDigital — history reference layout: independent filter, list and detail areas. */
+.care-client-main:has(.patient-history-workspace) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.care-client-summary:has(.patient-history-workspace) {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.patient-history-workspace,
+.patient-history-content,
+.patient-history-list,
+.patient-history-detail {
+  min-width: 0;
+  min-height: 0;
+}
+.patient-history-list,
+.patient-history-detail {
+  isolation: isolate;
+}
+.patient-history-list-scroll,
+.patient-history-detail-scroll {
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--primary) 45%, transparent) transparent;
+}
+.patient-history-list-scroll::-webkit-scrollbar,
+.patient-history-detail-scroll::-webkit-scrollbar {width: 5px;}
+.patient-history-list-scroll::-webkit-scrollbar-thumb,
+.patient-history-detail-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--primary) 35%, transparent);
+  border-radius: 999px;
+}
+.patient-history-list-scroll::-webkit-scrollbar-track,
+.patient-history-detail-scroll::-webkit-scrollbar-track {background: transparent;}
+.patient-history-workspace .patient-history-categories button {
+  min-height: 37px;
+}
+.patient-history-list button[aria-pressed="true"] {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 50%, transparent);
+}
+@media (max-width: 1023px) {
+  .patient-history-workspace .patient-history-content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  .patient-history-workspace .patient-history-content {
+    grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr);
+  }
+}
+@media (min-width: 768px) and (max-height: 700px) {
+  .patient-history-workspace {gap: 5px;}
+  .patient-history-workspace .patient-history-header h2 {font-size: .875rem;}
+  .patient-history-workspace .patient-history-categories button {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    min-height: 30px;
+  }
+  .patient-history-workspace .patient-history-controls {gap: 5px;}
+  .patient-history-workspace .patient-history-controls input {height: 34px;}
+  .patient-history-workspace .patient-history-controls select,
+  .patient-history-workspace .patient-history-controls button {height: 30px;}
+  .patient-history-workspace .patient-history-list,
+  .patient-history-workspace .patient-history-detail {padding: 8px;}
+  .patient-history-list-scroll {margin-top: 5px;}
+}
