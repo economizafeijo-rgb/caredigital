@@ -6,6 +6,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { CompactTreatmentBlister } from "./CompactTreatmentBlister";
 import { PatientActivityHistory } from "./PatientActivityHistory";
 import { ClientHydrationTab } from "./ClientHydrationTab";
+import { ClientAgendaPage } from "./ClientAgendaPage";
+import { ClientMealsPage } from "./ClientMealsPage";
+import { ClientSectionHeader } from "./ClientSectionHeader";
+import { clientSectionFromHash, clientSectionHash, type ClientSection } from "@/lib/client-pages";
 import { ClientBeverageTracker } from "./ClientBeverageTracker";
 import { ClientQuickIntake } from "./ClientQuickIntake";
 import { CareTaskRecordModal } from "./CareTaskRecordModal";
@@ -41,10 +45,24 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
   const [mealDescription,setMealDescription]=useState("");
   const [detailTask,setDetailTask]=useState<Task|null>(null);
   const [busy, setBusy] = useState(false);
-  const [activeTab, setActiveTab] = useState<"hoje" | "agenda" | "historico" | "alimentacao" | "hidratacao">("hoje");
+  const [activeTab, setActiveTab] = useState<ClientSection>(()=>typeof window!=="undefined"?clientSectionFromHash(window.location.hash):"hoje");
   const [tick, setTick] = useState(0);
   const [clock, setClock] = useState<Date | null>(null);
   const [treatmentProgress,setTreatmentProgress] = useState<{confirmed:number;total:number}|null>(null);
+  useEffect(()=>{
+    const syncHash=()=>setActiveTab(clientSectionFromHash(window.location.hash));
+    window.addEventListener("hashchange",syncHash);
+    return()=>window.removeEventListener("hashchange",syncHash);
+  },[]);
+  function openSection(section:ClientSection){
+    setActiveTab(section);
+    if(typeof window!=="undefined"){
+      const desired=clientSectionHash(section);
+      if(window.location.hash!==desired){
+        window.history.replaceState(window.history.state,"",window.location.pathname+window.location.search+desired);
+      }
+    }
+  }
   useEffect(() => { const update = () => setClock(new Date()); update(); const timer = window.setInterval(update,15000); return () => window.clearInterval(timer); }, []);
 
   useEffect(() => {
@@ -200,7 +218,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
       <button onClick={() => setLocked(true)} className="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground">Consultar programação</button>
     </div> : !client ? <p className="p-6 text-sm text-muted-foreground">Nenhum prontuário vinculado a esta conta. Confira seu acesso com o responsável.</p> : <div className="care-client-content flex h-full min-h-0 flex-1 flex-col gap-2 p-2 sm:p-3">
 
-      <header className={"care-client-identity shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-2xl border border-primary/15 bg-gradient-to-r from-primary/[.07] via-card to-primary/[.035] px-3 py-2.5 sm:px-4 "+(activeTab==="historico"?"hidden":"flex")}>
+      <header className={"care-client-identity shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-2xl border border-primary/15 bg-gradient-to-r from-primary/[.07] via-card to-primary/[.035] px-3 py-2.5 sm:px-4 "+(activeTab==="hoje"?"flex":"hidden")}>
         <div className="flex min-w-0 items-center gap-3">
           <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary"><UserRound size={24}/></span>
           <div className="min-w-0">
@@ -223,19 +241,23 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
         <CareReminderBeacon tasks={tasks} onOpen={alertTask=>{const task=tasks.find(t=>t.id===alertTask.id);if(task)showTaskDetails(task)}} compact/>
       </div>
 
-      <div className="care-client-tabs flex shrink-0 gap-1 rounded-xl border border-border bg-muted/55 p-1" role="tablist" aria-label="Seções do acompanhamento">
+      <div className="care-client-tabs care-client-page-nav flex shrink-0 gap-1 rounded-xl border border-border bg-muted/55 p-1" role="tablist" aria-label="Páginas do acompanhamento">
         {tabs.map(tab=>{
           const Icon=tab.icon;
           return <button type="button" role="tab" key={tab.key} aria-selected={activeTab===tab.key} aria-controls="care-client-tab-panel"
-            onClick={()=>setActiveTab(tab.key)} className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-[11px] font-bold transition-colors sm:text-xs ${activeTab===tab.key?"bg-primary text-primary-foreground shadow-sm":"text-muted-foreground hover:bg-card hover:text-foreground"}`}>
+            onClick={()=>openSection(tab.key)} className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-[11px] font-bold transition-colors sm:text-xs ${activeTab===tab.key?"bg-primary text-primary-foreground shadow-sm":"text-muted-foreground hover:bg-card hover:text-foreground"}`}>
             <Icon size={15} className="hidden sm:block"/><span className="truncate">{tab.label}</span>
           </button>;
         })}
       </div>
 
-      <div id="care-client-tab-panel" className={"care-client-main grid min-h-0 min-w-0 flex-1 items-stretch gap-2 "+(activeTab==="historico"?"grid-cols-1":"md:grid-cols-[minmax(0,1.06fr)_minmax(0,.94fr)]")}>
-        {activeTab!=="historico"&&<CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm} dashboardMode onProgressChange={setTreatmentProgress}/>}
-        <section className={"care-client-summary min-h-0 min-w-0 rounded-2xl border border-border bg-card "+(activeTab==="historico"?"overflow-hidden p-2 sm:p-3":"overflow-y-auto p-3 sm:p-4")} aria-label="Detalhes do acompanhamento">
+      {activeTab!=="hoje"&&<ClientSectionHeader section={activeTab} count={activeTab==="agenda"?tasks.length:activeTab==="hidratacao"?tasks.filter(t=>t.category==="hidratacao").length:activeTab==="alimentacao"?meals.length:undefined} dateLabel={dateInAcre(clock??new Date())}/>}
+
+      <div id="care-client-tab-panel" role="tabpanel" aria-label={tabs.find(tab=>tab.key===activeTab)?.label}
+        data-client-page={activeTab}
+        className={"care-client-main care-client-page-main grid min-h-0 min-w-0 flex-1 items-stretch gap-2 "+(activeTab==="hoje"?"md:grid-cols-[minmax(0,1.06fr)_minmax(0,.94fr)]":"grid-cols-1")}>
+        {activeTab==="hoje"&&<CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm} dashboardMode onProgressChange={setTreatmentProgress}/>}
+        <section data-page={activeTab} className={"care-client-summary care-client-page-content min-h-0 min-w-0 rounded-2xl border border-border bg-card "+(activeTab==="hoje"?"overflow-y-auto p-3 sm:p-4":"overflow-hidden p-2 sm:p-3")} aria-label={"Página "+tabs.find(tab=>tab.key===activeTab)?.label}>
           {activeTab==="hoje"&&<div className="care-summary-today flex h-full min-h-0 flex-col gap-3">
             <div className="flex shrink-0 items-center justify-between gap-2">
               <h2 className="inline-flex items-center gap-2 text-sm font-extrabold text-foreground"><LayoutDashboard size={18} className="text-primary"/> Resumo do dia</h2>
@@ -270,42 +292,31 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
             </div>
           </div>}
 
-          {activeTab==="agenda"&&<div className="h-full space-y-2">
-            <h2 className="flex items-center gap-2 text-sm font-extrabold text-foreground"><CalendarDays size={17} className="text-primary"/> Cuidados programados para hoje</h2>
-            <p className="text-xs text-muted-foreground">Confirme somente no horário previsto e nos 15 minutos seguintes. Após esse prazo, o cuidado permanece como Não confirmado.</p>
-            <div className="space-y-1.5">
-              {tasks.map(task=>{const Icon=categoryInfo[task.category]?.icon??Pill;return <div key={task.id} role="button" tabIndex={0} aria-label={`Ver detalhes de ${task.title}`} onClick={()=>showTaskDetails(task)} onKeyDown={event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();showTaskDetails(task)}}} className="flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-muted/30 p-2.5 transition hover:border-primary/40 hover:bg-primary/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
-                <Icon size={18} className="shrink-0 text-primary"/>
-                <div className="min-w-0 flex-1"><strong className="block truncate text-xs text-foreground">{task.title}</strong><p className="text-[10px] text-muted-foreground">{timeInAcre(task.scheduled_at)} · {task.completed_at?`Confirmado às ${timeInAcre(task.completed_at)}`:careScheduleLabel(task,clock?.getTime()??Date.now())}</p></div>
-                {task.completed_at?<CheckCircle2 size={18} className="shrink-0 text-success"/>:canConfirmCare(task,clock?.getTime()??Date.now())?<button type="button" onClick={event=>{event.stopPropagation();askConfirm(task)}} className="shrink-0 rounded-lg bg-primary px-2.5 py-1.5 text-[11px] font-bold text-primary-foreground">Confirmar</button>:<span className="shrink-0 text-[10px] font-semibold text-muted-foreground">{careScheduleLabel(task,clock?.getTime()??Date.now())}</span>}
-                {task.category==="refeicao"&&<button type="button" title="Excluir refeição" aria-label={`Excluir ${task.title}`} onClick={event=>{event.stopPropagation();setPending(null);setMealToDelete(task)}} className="shrink-0 rounded-lg border border-destructive/30 p-1.5 text-destructive hover:bg-destructive/10"><Trash2 size={15}/></button>}
-              </div>})}
-              {!tasks.length&&<p className="text-sm text-muted-foreground">Nenhum cuidado cadastrado para hoje.</p>}
+          {activeTab==="agenda"&&<ClientAgendaPage tasks={tasks} now={clock?.getTime()}
+            onView={showTaskDetails} onConfirm={askConfirm}/>}
+          {activeTab==="hidratacao"&&<div className="care-client-hydration-page flex h-full min-h-0 flex-col gap-2">
+            <div className="care-client-hydration-switch grid shrink-0 grid-cols-2 gap-1 rounded-xl border border-border bg-muted/45 p-1" role="group" aria-label="Bebidas e hidratação">
+              <button type="button" aria-pressed={hydrationView==="agua"} onClick={()=>setHydrationView("agua")}
+                className={`rounded-lg px-3 py-2.5 text-xs font-bold transition-colors ${hydrationView==="agua"?"bg-primary text-primary-foreground shadow-sm":"text-muted-foreground hover:bg-card"}`}>Minha meta de água</button>
+              <button type="button" aria-pressed={hydrationView==="bebidas"} onClick={()=>setHydrationView("bebidas")}
+                className={`rounded-lg px-3 py-2.5 text-xs font-bold transition-colors ${hydrationView==="bebidas"?"bg-primary text-primary-foreground shadow-sm":"text-muted-foreground hover:bg-card"}`}>Chás e bebidas</button>
             </div>
-          </div>}
-          {activeTab==="hidratacao"&&<div className="space-y-3">
-            <div className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-muted/55 p-1" role="group" aria-label="Bebidas e hidratação">
-              <button type="button" aria-pressed={hydrationView==="agua"} onClick={()=>setHydrationView("agua")} className={`rounded-lg px-2 py-2 text-xs font-bold ${hydrationView==="agua"?"bg-primary text-primary-foreground":"text-muted-foreground"}`}>Programa de água</button>
-              <button type="button" aria-pressed={hydrationView==="bebidas"} onClick={()=>setHydrationView("bebidas")} className={`rounded-lg px-2 py-2 text-xs font-bold ${hydrationView==="bebidas"?"bg-primary text-primary-foreground":"text-muted-foreground"}`}>Chás e bebidas</button>
+            <div className="care-client-hydration-content min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-xl border border-border/55 bg-card/45 p-2 sm:p-3">
+              {hydrationView==="agua"
+                ? <ClientHydrationTab patientId={client.id} ownerId={client.owner_id} tasks={tasks} revision={tick} onConfirm={askConfirm} onRecorded={()=>setTick(value=>value+1)}/>
+                : <ClientBeverageTracker patientId={client.id} ownerId={client.owner_id} revision={tick} onRecorded={()=>setTick(value=>value+1)}/>}
             </div>
-            {hydrationView==="agua"
-              ? <ClientHydrationTab patientId={client.id} ownerId={client.owner_id} tasks={tasks} revision={tick} onConfirm={askConfirm} onRecorded={()=>setTick(value=>value+1)}/>
-              : <ClientBeverageTracker patientId={client.id} ownerId={client.owner_id} revision={tick} onRecorded={()=>setTick(value=>value+1)}/>}
           </div>}
           {activeTab==="historico"&&<PatientActivityHistory patientId={client.id} ownerId={client.owner_id} revision={tick} onRecordChanged={()=>setTick(value=>value+1)}/>}
-          {activeTab==="alimentacao"&&<div><h2 className="flex items-center gap-2 text-sm font-extrabold text-foreground"><UtensilsCrossed size={17} className="text-primary"/> Alimentação de hoje</h2><p className="mt-1 text-xs text-muted-foreground">Orientações ilustrativas; siga as orientações do profissional responsável.</p><div className="mt-2 space-y-2">
-            {meals.map(meal=><div key={meal.id} className="rounded-xl border border-border bg-muted/25 p-3">
-              <div className="flex items-center justify-between gap-2"><strong className="text-xs text-foreground">{meal.title}</strong><span className="text-[10px] text-muted-foreground">{timeInAcre(meal.scheduled_at)}</span></div>
-              <p className="mt-1 text-xs text-muted-foreground">{mealGuide[meal.title]??"Alimentação leve conforme tolerância."}</p>
-              {meal.completed_at?<p className="mt-1.5 flex items-center gap-1 text-[11px] font-semibold text-success"><CheckCircle2 size={14}/> Confirmado às {timeInAcre(meal.completed_at)}</p>:canConfirmCare(meal,clock?.getTime()??Date.now())?<button type="button" className="mt-2 rounded-lg bg-primary/10 px-2.5 py-1.5 text-[11px] font-bold text-primary hover:bg-primary/20" onClick={()=>askConfirm(meal)}>Confirmar refeição</button>:<p className="mt-1.5 text-[11px] font-semibold text-muted-foreground">{careScheduleLabel(meal,clock?.getTime()??Date.now())}</p>}
-              <button type="button" className="ml-2 mt-2 inline-flex items-center gap-1 rounded-lg border border-destructive/30 px-2.5 py-1.5 text-[11px] font-semibold text-destructive hover:bg-destructive/10" onClick={()=>{setPending(null);setMealToDelete(meal)}}><Trash2 size={13}/> Excluir refeição</button>
-            </div>)}
-            {!meals.length&&<p className="text-sm text-muted-foreground">Sem refeições agendadas.</p>}
-          </div></div>}
+          {activeTab==="alimentacao"&&<ClientMealsPage patientId={client.id} ownerId={client.owner_id}
+            meals={meals} revision={tick} now={clock?.getTime()}
+            onView={showTaskDetails} onConfirm={askConfirm}
+            onDelete={meal=>{const item=tasks.find(task=>task.id===meal.id);if(item){setPending(null);setMealToDelete(item);}}}
+            onRecorded={()=>setTick(value=>value+1)}/>}
         </section>
       </div>
 
-      <ClientTodayTimeline tasks={tasks} onConfirm={askConfirm} onDetails={showTaskDetails} now={clock?.getTime()}/>
+      {activeTab==="hoje"&&<ClientTodayTimeline tasks={tasks} onConfirm={askConfirm} onDetails={showTaskDetails} now={clock?.getTime()}/>}
     </div>}
     <CareTaskRecordModal task={detailTask} onClose={()=>setDetailTask(null)}
       onSaved={()=>setTick(value=>value+1)} onConfirm={record=>{const task=tasks.find(item=>item.id===record.id);if(task)askConfirm(task);}}/>
