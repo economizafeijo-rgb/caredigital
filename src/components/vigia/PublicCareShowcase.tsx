@@ -32,7 +32,7 @@ const copy = {
     eyebrow: "CareDigital · Nutrição esportiva",
     title: "Nutrição esportiva e rotina",
     lead: "Alimentação, treino e acompanhamento com clareza.",
-    description: "Esta página apresenta como orientações alimentares e horários podem compor uma rotina de cuidados. Objetivos, necessidades e ajustes devem ser avaliados individualmente por profissional habilitado.",
+    description: "Organize refeições e horários para acompanhar seus objetivos. Orientações nutricionais e ajustes são individuais e devem ser definidos com profissionais habilitados.",
     cta: "Acessar meu acompanhamento",
     benefits: [
       { icon: UserRoundCheck, title: "Objetivos individuais", text: "O planejamento considera o contexto e as necessidades de cada pessoa." },
@@ -45,7 +45,7 @@ const copy = {
       { name: "Rotina", detail: "Refeições e horários" },
       { name: "Acompanhamento", detail: "Revisão individual" },
     ],
-    privacy: "Planos alimentares, objetivos e dados de pacientes não são apresentados nesta página pública. Suplementos não substituem alimentação nem orientação profissional.",
+    privacy: "Planos e objetivos pessoais ficam na área privada. Suplementos não substituem alimentação nem orientação profissional.",
   },
   medication: {
     eyebrow: "CareDigital · Medicamentos",
@@ -158,9 +158,9 @@ function MedicationSvg() {
 export function PublicCareShowcase({kind}:{kind:ShowcaseKind}) {
   const info=copy[kind];
   const MainIcon=kind==="hydration"?Droplets:kind==="sports"?Dumbbell:Pill;
-  return <div className={`public-care-showcase mx-auto flex min-h-full w-full max-w-[1080px] flex-col justify-start py-1.5 lg:ml-0 lg:mr-auto lg:max-w-[850px] lg:justify-center ${kind==="hydration"?"public-hydration-showcase":""}`} aria-label={"Demonstração pública — "+info.title}>
-    <section className="flex w-full shrink-0 flex-col gap-2.5 rounded-3xl border border-border bg-card/95 p-3 shadow-[0_14px_42px_-28px_rgba(26,65,81,.4)] sm:p-4 lg:gap-3">
-      <header className="flex shrink-0 flex-wrap items-center justify-between gap-2">
+  return <div className={`public-care-showcase mx-auto flex min-h-full w-full max-w-[1080px] flex-col justify-start py-1.5 lg:ml-0 lg:mr-auto lg:max-w-[850px] lg:justify-center ${kind==="hydration"?"public-hydration-showcase":""} ${kind==="sports"?"sports-showcase":""}`} aria-label={"Demonstração pública — "+info.title}>
+    <section className="showcase-panel flex w-full shrink-0 flex-col gap-2.5 rounded-3xl border border-border bg-card/95 p-3 shadow-[0_14px_42px_-28px_rgba(26,65,81,.4)] sm:p-4 lg:gap-3">
+      <header className="showcase-header flex shrink-0 flex-wrap items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2.5">
           <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><MainIcon size={19}/></span>
           <div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[.16em] text-primary">{info.eyebrow}</p><h1 className="text-lg font-extrabold tracking-tight text-foreground sm:text-xl">{info.title}</h1></div>
@@ -168,7 +168,7 @@ export function PublicCareShowcase({kind}:{kind:ShowcaseKind}) {
         <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1.5 text-[10px] font-semibold text-primary"><ShieldCheck size={13}/> Área demonstrativa</span>
       </header>
 
-      <div className="grid shrink-0 items-center gap-3 rounded-2xl border border-border/70 bg-muted/35 px-3 py-2.5 sm:px-4 md:grid-cols-[minmax(0,1.05fr)_minmax(0,.95fr)]">
+      <div className="showcase-intro grid shrink-0 items-center gap-3 rounded-2xl border border-border/70 bg-muted/35 px-3 py-2.5 sm:px-4 md:grid-cols-[minmax(0,1.05fr)_minmax(0,.95fr)]">
         <div className="min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-[.14em] text-primary">Acompanhamento com privacidade</p>
           <h2 className="mt-1 max-w-[22ch] text-balance text-xl font-extrabold leading-tight text-foreground sm:text-[22px]">{info.lead}</h2>
@@ -178,19 +178,19 @@ export function PublicCareShowcase({kind}:{kind:ShowcaseKind}) {
             <Link to="/entrar" className="inline-flex min-h-9 items-center rounded-lg border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted">Entrar na conta</Link>
           </div>
         </div>
-        <div className="flex min-w-0 items-center justify-center overflow-hidden">
+        <div className="showcase-illustration flex min-w-0 items-center justify-center overflow-hidden">
           {kind==="hydration"?<HydrationSvg/>:kind==="sports"?<SportsNutritionIllustration/>:<MedicationSvg/>}
         </div>
       </div>
 
-      <div className="grid shrink-0 gap-2 sm:grid-cols-3" aria-label="Recursos explicativos">
+      <div className="showcase-benefits grid shrink-0 gap-2 sm:grid-cols-3" aria-label="Recursos explicativos">
         {info.benefits.map(({icon:Icon,title,text})=><article key={title} className="flex min-w-0 items-start gap-2.5 rounded-xl border border-border bg-background/70 p-2.5">
           <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><Icon size={18}/></span>
           <div className="min-w-0"><h3 className="text-xs font-bold text-foreground sm:text-sm">{title}</h3><p className="mt-1 text-[11px] leading-snug text-muted-foreground">{text}</p></div>
         </article>)}
       </div>
 
-      <div className="shrink-0 rounded-xl border border-border bg-muted/35 px-3 py-2.5" aria-label="Fluxo demonstrativo">
+      <div className="showcase-steps shrink-0 rounded-xl border border-border bg-muted/35 px-3 py-2.5" aria-label="Fluxo demonstrativo">
         <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2"><h3 className="inline-flex items-center gap-1.5 text-xs font-extrabold text-foreground"><HeartPulse size={15} className="text-primary"/> Como funciona</h3><span className="text-[10px] text-muted-foreground">Exemplo visual, sem informações pessoais</span></div>
         <ol className="grid grid-cols-2 gap-2 md:grid-cols-4">
           {info.steps.map((step,index)=><li key={step.name} className="flex min-w-0 items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-2">
@@ -200,7 +200,7 @@ export function PublicCareShowcase({kind}:{kind:ShowcaseKind}) {
         </ol>
       </div>
 
-      <footer className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-1.5 rounded-xl border border-primary/15 bg-primary/5 px-3 py-2 text-xs">
+      <footer className="showcase-footer flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-1.5 rounded-xl border border-primary/15 bg-primary/5 px-3 py-2 text-xs">
         <span className="inline-flex min-w-0 items-center gap-2 text-foreground"><CheckCircle2 size={16} className="shrink-0 text-primary"/>{info.privacy}</span>
         <Link to="/cliente" className="inline-flex items-center gap-1 whitespace-nowrap font-bold text-primary hover:underline">Minha área <ArrowRight size={14}/></Link>
       </footer>
