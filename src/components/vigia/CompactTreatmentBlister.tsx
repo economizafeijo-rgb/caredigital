@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { ArrowLeft, ArrowRight, Check, Clock3, Info, Moon, Pill, Sun, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {canConfirmCare,careScheduleLabel,careScheduleBlockMessage} from "@/lib/care-schedule";
@@ -179,8 +180,8 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,da
     {Array.from({length:4},(_,i)=><button type="button" key={i+7} onClick={()=>setSelected(7+i*7)} aria-current={selected>=7+i*7&&selected<14+i*7?"true":undefined} aria-label={`Semana de continuidade ${i+1}`}
       className={`care-blister-step min-w-[27px] shrink-0 rounded-full border px-1.5 py-1 text-[9px] font-semibold leading-tight transition-colors ${selected>=7+i*7&&selected<14+i*7?"border-primary bg-primary text-primary-foreground":"border-border bg-muted/30 text-muted-foreground hover:border-primary/40"}`}>S{i+1}</button>)}
   </nav>
-  {activePill&&<div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-3 backdrop-blur-sm" onMouseDown={e=>{if(e.target===e.currentTarget)setActivePill(null)}}>
-    <section role="dialog" aria-modal="true" aria-label="Detalhes da medicação" className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-2xl">
+  {activePill && typeof document !== "undefined" && createPortal(<div className="fixed inset-0 z-[9000] flex items-center justify-center overflow-y-auto bg-slate-950/70 p-3 backdrop-blur-sm" onMouseDown={e=>{if(e.target===e.currentTarget)setActivePill(null)}}>
+    <section role="dialog" aria-modal="true" aria-label="Detalhes da medicação" className="my-auto max-h-[calc(100dvh-1rem)] w-full max-w-sm overflow-y-auto rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-2xl">
       <div className="flex items-center justify-between gap-3"><h4 className="flex items-center gap-2 text-base font-bold"><Info size={18} className="text-primary"/> Detalhes da unidade</h4><button aria-label="Fechar" onClick={()=>setActivePill(null)} className="rounded-lg border border-border p-1.5"><X size={17}/></button></div>
       <p className="mt-2 text-xs text-muted-foreground">{info?.first?`Cartela ${activePill.index+1}`:`Continuidade · semana ${Math.floor((activePill.index-7)/7)+1}`} · unidade {activePill.slot} · {info?.first?(activePill.period==="morning"?"manhã":"noite"):"dia "+dayLabel(days[7+Math.floor((activePill.index-7)/7)*7+activePill.slot-1]?.iso??day.iso)}</p>
       <div className="mt-3 rounded-xl bg-muted p-3"><div className="flex items-center gap-2 text-sm font-semibold"><Clock3 size={16}/> Horário programado</div><p className="mt-1 text-sm">{infoTask?timeText(infoTask.scheduled_at):"Nenhum horário cadastrado"}</p></div>
@@ -190,6 +191,6 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,da
       <p className="mt-2 text-xs text-muted-foreground">Na primeira etapa, cada grupo de quatro comprimidos corresponde a uma confirmação. Na continuidade, cada cápsula representa uma dose diária. O horário é registrado no servidor.</p>
       <div className="mt-4 flex gap-2"><button type="button" className="flex-1 rounded-xl border border-border p-2.5 text-sm" onClick={()=>setActivePill(null)}>Fechar</button>{infoTask&&!infoTask.completed_at&&<button type="button" className="flex-1 rounded-xl bg-primary p-2.5 text-sm font-semibold text-primary-foreground" onClick={()=>{setActivePill(null);onConfirm(infoTask)}}>{canConfirmCare(infoTask) || Date.now()>=Date.parse(infoTask.scheduled_at)?"Registrar tomada":"Verificar horário"}</button>}</div>
     </section>
-   </div>}
+   </div>, document.body)}
  </section>;
 }
