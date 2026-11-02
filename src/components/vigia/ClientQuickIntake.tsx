@@ -4,7 +4,7 @@ import { CheckCircle2, Droplets, Plus, Save, Utensils, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type IntakeKind = "refeicao" | "lanche" | "agua" | "cha" | "suco" | "cafe" | "outra";
-type Props = { patientId: string; onRecorded?: () => void; variant?: "home" | "panel" };
+type Props = { patientId: string; onRecorded?: () => void; variant?: "home" | "panel"; mode?: "all" | "water" };
 
 const choices: { value: IntakeKind; label: string }[] = [
   { value: "refeicao", label: "Refeição extra" },
@@ -21,7 +21,7 @@ const formatTime = (date: string) => new Intl.DateTimeFormat("pt-BR", {
 }).format(new Date(date));
 
 /** Registros avulsos não criam tarefas e não confirmam horários da programação. */
-export function ClientQuickIntake({ patientId, onRecorded, variant = "panel" }: Props) {
+export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mode = "all" }: Props) {
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<IntakeKind>("lanche");
   const [description, setDescription] = useState("");
@@ -37,7 +37,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel" }: 
 
   function openForm() {
     requestId.current = crypto.randomUUID();
-    setKind("lanche");
+    setKind(mode === "water" ? "agua" : "lanche");
     setDescription("");
     setAmount("200");
     setError("");
@@ -78,7 +78,9 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel" }: 
       if (typeof data !== "string" || !Number.isFinite(Date.parse(data))) {
         throw new Error("O servidor não confirmou o horário de registro.");
       }
-      setNotice(`${label} registrado em ${formatTime(data)} (Acre). Veja o histórico no prontuário.`);
+      setNotice(mode === "water"
+        ? `Água registrada em ${formatTime(data)} (Acre). Total diário e lembretes atualizados.`
+        : `${label} registrado em ${formatTime(data)} (Acre). Veja o histórico no prontuário.`);
       setOpen(false);
       requestId.current = null;
       onRecorded?.();
@@ -96,8 +98,10 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel" }: 
     <button type="button" onClick={openForm} disabled={!patientId}
       className={variant === "home"
         ? "inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-sky-300/40 bg-sky-300/15 px-2.5 text-[11px] font-bold text-sky-100 transition hover:bg-sky-300/25 disabled:opacity-50"
-        : "inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground transition hover:opacity-90 disabled:opacity-50"}>
-      <Plus size={16}/> Registrar consumo
+        : mode === "water"
+          ? "inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-sky-500/35 bg-sky-500/10 px-3 text-xs font-bold text-foreground transition hover:bg-sky-500/20 disabled:opacity-50"
+          : "inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground transition hover:opacity-90 disabled:opacity-50"}>
+      {mode === "water" ? <Droplets size={16}/> : <Plus size={16}/>} {mode === "water" ? "Registrar água" : "Registrar consumo"}
     </button>
     {notice && typeof document !== "undefined" && createPortal(
       <div role="status" className="fixed right-3 top-16 z-[151] flex max-w-sm items-start gap-2 rounded-xl border border-success/30 bg-card p-3 text-xs font-semibold text-foreground shadow-xl">
@@ -117,7 +121,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel" }: 
                 {isFood ? <Utensils size={19}/> : <Droplets size={19}/>}
               </span>
               <div>
-                <h2 id="quick-intake-title" className="text-base font-extrabold">Registro avulso</h2>
+                <h2 id="quick-intake-title" className="text-base font-extrabold">{mode === "water" ? "Registrar água" : "Registro avulso"}</h2>
                 <p className="text-[11px] text-muted-foreground">Fora da programação</p>
               </div>
             </div>
@@ -125,12 +129,12 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel" }: 
               className="grid size-8 place-items-center rounded-lg border border-border"><X size={18}/></button>
           </div>
           <form className="mt-3 grid gap-3" onSubmit={event => void save(event)}>
-            <label className="text-xs font-semibold">O que deseja registrar?
+            {mode !== "water" && <label className="text-xs font-semibold">O que deseja registrar?
               <select className="field mt-1 w-full" value={kind}
                 onChange={event => { setKind(event.target.value as IntakeKind); setError(""); }}>
                 {choices.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}
               </select>
-            </label>
+            </label>}
             {!isWater && (isFood
               ? <label className="text-xs font-semibold">O que você comeu?
                   <textarea rows={3} required maxLength={1000} value={description}
@@ -144,6 +148,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel" }: 
                     placeholder={kind === "cha" ? "Ex.: chá de camomila" : "Ex.: suco natural"}/>
                 </label>
             )}
+            {mode === "water" && <div aria-label="Volumes rápidos de água" className="grid grid-cols-4 gap-1.5">{[100,200,300,500].map(value=><button key={value} type="button" onClick={()=>setAmount(String(value))} aria-pressed={amount===String(value)} className={`rounded-lg border px-1 py-2 text-[11px] font-bold ${amount===String(value)?"border-primary bg-primary/10 text-primary":"border-border bg-muted/50 text-foreground"}`}>{value} ml</button>)}</div>}
             {!isFood && <label className="text-xs font-semibold">Quantidade consumida (ml)
                 <input type="number" min={10} max={1500} step={1} required
                   className="field mt-1 w-full" value={amount}
@@ -151,8 +156,9 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel" }: 
               </label>}
             <p className="rounded-lg bg-muted/60 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
               O horário real do registro será salvo automaticamente (Acre).
-              Este consumo avulso não confirma nem substitui uma tarefa programada.
-              Água entra no total hídrico; outras bebidas ficam no histórico de líquidos.
+              {mode === "water"
+                ? "A água entra no total do dia e os próximos lembretes poderão ser adiados para respeitar um intervalo. Nenhuma dose de medicamento será alterada."
+                : "Este consumo avulso não confirma nem substitui uma tarefa programada. Água entra no total hídrico; outras bebidas ficam no histórico de líquidos."}
             </p>
             {error && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive">{error}</p>}
             <div className="grid grid-cols-2 gap-2">
