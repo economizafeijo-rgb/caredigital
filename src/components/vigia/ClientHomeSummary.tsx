@@ -33,6 +33,7 @@ export function ClientHomeSummary(){
  const [revision,setRevision]=useState(0);
  const [refresh,setRefresh]=useState(0);
  const [dailyGoal,setDailyGoal]=useState<HydrationGoalSnapshot|null>(null);
+ const [resolvedStates,setResolvedStates]=useState<Record<string,string>>({});
  const [agendaPage,setAgendaPage]=useState(0);
  const agendaPageSize=3;
  const agendaPageCount=Math.max(1,Math.ceil(tasks.length/agendaPageSize));
@@ -52,20 +53,30 @@ export function ClientHomeSummary(){
     setPatient(person);
     const from=new Date(day(new Date())+"T00:00:00-05:00");
     const finish=new Date(from.getTime()+86400000);
-    const [res,goalResult]=await Promise.all([
+    const [res,goalResult,resolutions,waterAnswers]=await Promise.all([
       (supabase as any).from("care_daily_checklist").select("id,title,category,scheduled_at,completed_at")
       .eq("owner_id",person.owner_id).eq("patient_id",person.id)
       .gte("scheduled_at",from.toISOString()).lt("scheduled_at",finish.toISOString())
       .in("category",["medicacao","refeicao","hidratacao"]).order("scheduled_at",{ascending:true}).limit(120),
-      (supabase as any).rpc("care_sync_hydration_goal",{p_patient_id:person.id})
+      (supabase as any).rpc("care_sync_hydration_goal",{p_patient_id:person.id}),
+      (supabase as any).from("care_task_resolutions").select("task_id,status")
+        .eq("patient_id",person.id).eq("owner_id",person.owner_id)
+        .gte("scheduled_at",from.toISOString()).lt("scheduled_at",finish.toISOString()).limit(120),
+      (supabase as any).from("care_hydration_responses").select("task_id,response")
+        .eq("patient_id",person.id).eq("owner_id",person.owner_id)
+        .gte("recorded_at",from.toISOString()).limit(120)
     ]);
     if(!active)return;
     if(res.error){setError("Não foi possível carregar sua agenda.");return;}
     setTasks(res.data??[]);
+    const resolutionMap:Record<string,string>={};
+    if(!resolutions.error)for(const row of resolutions.data??[])resolutionMap[row.task_id]=row.status;
+    if(!waterAnswers.error)for(const row of waterAnswers.data??[])resolutionMap[row.task_id]="nao_bebi";
+    setResolvedStates(resolutionMap);
     setDailyGoal(goalResult.error?null:goalResult.data as HydrationGoalSnapshot);
     setError("");
  })();return()=>{active=false}},[revision,refresh]);
- const pending=tasks.filter(t=>!t.completed_at);
+ const pending=tasks.filter(t=>!t.completed_at&&!resolvedStates[t.id]);
  const next=now?pending.filter(t=>new Date(t.scheduled_at).getTime()>=now.getTime())[0]??pending[0]:pending[0];
  const seconds=next&&now?Math.max(0,Math.round((new Date(next.scheduled_at).getTime()-now.getTime())/1000)):null;
  const countdown=seconds===null?"--:--:--":[Math.floor(seconds/3600),Math.floor(seconds%3600/60),seconds%60].map(x=>String(x).padStart(2,"0")).join(":");
@@ -115,7 +126,7 @@ export function ClientHomeSummary(){
           <span className="care-next-cross">+</span>
         </div>
         <div className="relative flex items-center justify-between gap-2"><span className="care-next-overline inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-widest"><Clock3 size={17}/> Próximo cuidado</span><span className="care-next-time-chip rounded-full px-2.5 py-1 text-[10px] font-bold">{next?time(next.scheduled_at):"Agenda concluída"}</span></div>
-        <div className="care-next-copy relative z-10 mt-2"><h3 className="max-w-[26ch] text-xl font-extrabold leading-tight md:text-2xl">{next?next.title:"Todos os cuidados concluídos"}</h3><div className="mt-2 flex flex-wrap items-baseline gap-2"><strong className="care-next-countdown font-mono text-2xl font-extrabold tabular-nums md:text-[30px]">{next?countdown:"✓"}</strong><span className="care-next-countdown-label text-xs">{next?(seconds===0?"Horário previsto já passou":"até o horário previsto"):"Nenhuma atividade pendente"}</span></div></div>
+        <div className="care-next-copy relative z-10 mt-2"><h3 className="max-w-[26ch] text-xl font-extrabold leading-tight md:text-2xl">{next?next.title:"Nenhum cuidado aguardando resposta"}</h3><div className="mt-2 flex flex-wrap items-baseline gap-2"><strong className="care-next-countdown font-mono text-2xl font-extrabold tabular-nums md:text-[30px]">{next?countdown:"✓"}</strong><span className="care-next-countdown-label text-xs">{next?(seconds===0?"Horário previsto já passou":"até o horário previsto"):"Nenhuma atividade pendente"}</span></div></div>
         <div className="relative z-10 mt-2 flex shrink-0 flex-wrap gap-1.5">{next&&<button type="button" onClick={()=>{setSelected(next);setError("");setMealTime(currentAcreTime());setMealDescription("");}} className="care-next-cta inline-flex min-h-9 items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-extrabold transition">Verificar / confirmar <ChevronRight size={15}/></button>}<Link to="/cliente" className="care-next-secondary inline-flex min-h-9 items-center rounded-full border px-3 py-1.5 text-[11px] font-bold transition">Ver tratamento completo</Link></div>
       </article>
       <CareProgressVisual tasks={tasks} goal={dailyGoal} onOpen={task=>{setDetailTask(task);setError("");}}/>
@@ -126,7 +137,7 @@ export function ClientHomeSummary(){
     </div>
     <div className="patient-timeline flex min-h-[260px] min-w-0 flex-col overflow-hidden rounded-[22px] border p-3 md:min-h-0">
       <div className="flex shrink-0 items-center justify-between gap-2 border-b border-white/10 pb-2"><div><p className="care-timeline-eyebrow text-[10px] font-extrabold uppercase tracking-widest">Linha do tempo</p><h3 className="mt-0.5 text-sm font-extrabold">Agenda de hoje</h3></div><span className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-2 py-1 text-[10px] text-slate-200"><ListChecks size={13}/>{tasks.length} itens</span></div>
-      <div className="mt-1.5 min-h-0 flex-1 space-y-1 overflow-hidden">{visibleAgenda.map(t=>{const Icon=icons[t.category as keyof typeof icons]??CalendarClock;const finished=Boolean(t.completed_at);const overdue=Boolean(now&&!finished&&Date.parse(t.scheduled_at)<now.getTime());return <button key={t.id} type="button" data-care-category={t.category} data-care-state={finished?"done":overdue?"overdue":"scheduled"} title={finished?"Ver registro e corrigir quantidade, se necessário":"Ver detalhes deste cuidado"} aria-label={`${t.title} às ${time(t.scheduled_at)} — ${finished?"confirmado, abrir detalhes":"abrir detalhes"}`} onClick={()=>{setDetailTask(t);setError("");}} className={`patient-timeline-item flex w-full min-w-0 items-center gap-2 rounded-xl border px-2.5 py-1.5 text-left transition ${finished?"border-emerald-500/15 bg-emerald-500/10":"border-white/10 bg-white/[.045] hover:border-sky-300/40 hover:bg-white/10"}`}><span className="w-11 shrink-0 font-mono text-[11px] font-bold tabular-nums text-sky-200">{time(t.scheduled_at)}</span><span className={`grid size-7 shrink-0 place-items-center rounded-lg ${finished?"bg-emerald-500/15 text-emerald-300":"bg-sky-300/10 text-sky-300"}`}><Icon size={16}/></span><span className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold">{t.title}</span><span className={`block text-[10px] ${overdue?"text-amber-300":"text-slate-400"}`}>{finished?"Confirmado":overdue?"Aguardando confirmação":"Programado"} · {labelFor(t.category)}</span></span>{finished?<span className="flex shrink-0 items-center gap-1 text-emerald-300"><Check size={14}/><ChevronRight size={14}/></span>:<ChevronRight size={15} className="shrink-0 text-slate-400"/>}</button>})}{tasks.length===0&&<p className="rounded-lg p-4 text-sm text-slate-300">Nenhum cuidado programado para hoje.</p>}</div>
+      <div className="mt-1.5 min-h-0 flex-1 space-y-1 overflow-hidden">{visibleAgenda.map(t=>{const Icon=icons[t.category as keyof typeof icons]??CalendarClock;const finished=Boolean(t.completed_at);const response=resolvedStates[t.id];const overdue=Boolean(now&&!finished&&!response&&Date.parse(t.scheduled_at)<now.getTime());return <button key={t.id} type="button" data-care-category={t.category} data-care-state={finished?"done":response?"done":overdue?"overdue":"scheduled"} title={finished?"Ver registro e corrigir quantidade, se necessário":"Ver detalhes deste cuidado"} aria-label={`${t.title} às ${time(t.scheduled_at)} — ${finished?"confirmado, abrir detalhes":"abrir detalhes"}`} onClick={()=>{setDetailTask(t);setError("");}} className={`patient-timeline-item flex w-full min-w-0 items-center gap-2 rounded-xl border px-2.5 py-1.5 text-left transition ${finished?"border-emerald-500/15 bg-emerald-500/10":"border-white/10 bg-white/[.045] hover:border-sky-300/40 hover:bg-white/10"}`}><span className="w-11 shrink-0 font-mono text-[11px] font-bold tabular-nums text-sky-200">{time(t.scheduled_at)}</span><span className={`grid size-7 shrink-0 place-items-center rounded-lg ${finished?"bg-emerald-500/15 text-emerald-300":"bg-sky-300/10 text-sky-300"}`}><Icon size={16}/></span><span className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold">{t.title}</span><span className={`block text-[10px] ${overdue?"text-amber-300":"text-slate-400"}`}>{finished?"Confirmado":response==="cancelado"?"Cancelado":response==="nao_cumprido"?"Não realizado":response==="nao_bebi"?"Não bebi":overdue?"Aguardando confirmação":"Programado"} · {labelFor(t.category)}</span></span>{finished?<span className="flex shrink-0 items-center gap-1 text-emerald-300"><Check size={14}/><ChevronRight size={14}/></span>:<ChevronRight size={15} className="shrink-0 text-slate-400"/>}</button>})}{tasks.length===0&&<p className="rounded-lg p-4 text-sm text-slate-300">Nenhum cuidado programado para hoje.</p>}</div>
       {tasks.length>agendaPageSize&&<nav aria-label="Páginas da agenda" className="mt-1.5 flex shrink-0 items-center justify-between border-t border-white/10 pt-1.5">
         <button type="button" onClick={()=>setAgendaPage(p=>Math.max(0,p-1))} disabled={agendaPage===0} className="rounded-lg border border-white/15 px-2.5 py-1 text-[11px] font-semibold disabled:opacity-35">Anterior</button>
         <span className="text-[11px] text-slate-300">Página {Math.min(agendaPage,agendaPageCount-1)+1} de {agendaPageCount}</span>
