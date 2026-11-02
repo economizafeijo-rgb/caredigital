@@ -191,6 +191,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         {fullScreenError && <p role="alert" className="relative z-20 mx-auto max-w-7xl px-3 py-2 text-xs text-destructive">{fullScreenError}</p>}
         <main id="care-content" className={`relative z-10 mx-auto min-h-0 w-full max-w-7xl flex-1 px-3 pt-2 sm:px-5 md:px-6 md:pt-3 ${isClientPage ? "overflow-y-auto pb-[70px] md:overflow-hidden md:pb-3" : isSportsPage ? "sports-nutrition-main overflow-y-auto overscroll-contain pb-[80px] lg:pb-2" : "overflow-y-auto overscroll-contain pb-[80px] md:pb-4"}`}>{children}</main>
 
+        <footer aria-label="Créditos de desenvolvimento" className="relative z-10 hidden shrink-0 items-center justify-center gap-2 border-t border-border/50 bg-background/80 px-4 py-2 text-[11px] text-muted-foreground backdrop-blur-sm md:flex">
+          <span>CareDigital</span>
+          <span aria-hidden="true">·</span>
+          <span>Desenvolvido por <strong className="font-semibold text-foreground">Franc D&apos;nis</strong></span>
+          <span aria-hidden="true">·</span>
+          <span>Feijó, Acre</span>
+        </footer>
+
         <nav className={`fixed inset-x-0 bottom-0 z-50 grid ${clientOnly ? "grid-cols-3" : "grid-cols-5"} border-t border-border/80 bg-background/95 px-1 pb-[max(.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden`} aria-label="Navegação do app">
           {visibleNav.map(({ to, label, icon: Icon }) => <Link key={to} to={to} activeOptions={{ exact: to === "/" }} className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-muted-foreground" activeProps={{ className: "!text-primary" }}><Icon size={19} strokeWidth={2} /><span className="text-[10px] font-semibold">{label}</span></Link>)}
           {clientOnly && <Link to="/cliente" className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-primary"><Users size={19}/><span className="text-[10px] font-semibold">Meu painel</span></Link>}
