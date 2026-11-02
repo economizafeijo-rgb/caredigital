@@ -138,7 +138,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
   setAction(task.id);setError("");setNotice("");
   const res=await (supabase as any).rpc("care_record_water_decision",{p_task_id:task.id,p_decision:"drank",p_amount_ml:volume});
   setAction(null);
-  if(res.error){setError(/Care window not started|Care window expired/i.test(res.error.message??"")?careScheduleBlockMessage(task):`Não foi possível registrar: ${res.error.message??"verifique a conexão"}`);onRecorded();return}
+  if(res.error||res.data?.decision!=="drank"){setError(/Care window not started|Care window expired/i.test(res.error?.message??"")?careScheduleBlockMessage(task):`Não foi possível verificar o registro: ${res.error?.message??"consulte o prontuário antes de tentar novamente"}`);onRecorded();return}
   setNotice(`${volume} ml de água registrados com a hora real do servidor. ${skipped.has(task.id)?"Resposta anterior corrigida. ":""}O acompanhamento será atualizado.`);
   setCorrectingTaskId(null);
   onRecorded();
@@ -150,7 +150,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
   setAction(task.id);setError("");setNotice("");
   const res=await (supabase as any).rpc("care_record_water_decision",{p_task_id:task.id,p_decision:"not_drunk",p_amount_ml:null});
   setAction(null);
-  if(res.error){setError(/Care window not started|Care window expired/i.test(res.error.message??"")?careScheduleBlockMessage(task):`Não foi possível registrar a resposta: ${res.error.message??"tente novamente"}`);return}
+  if(res.error||res.data?.decision!=="not_drunk"){setError(/Care window not started|Care window expired/i.test(res.error?.message??"")?careScheduleBlockMessage(task):`Não foi possível confirmar a resposta: ${res.error?.message??"consulte o prontuário antes de repetir"}`);return}
   setNotDrunk(prev=>[...prev.filter(t=>t.task_id!==task.id),{task_id:task.id,recorded_at:res.data.recorded_at}]);
   setNotice("Resposta “Não bebi” registrada com o horário real. Nenhum volume foi contabilizado.");
   onRecorded();setReload(n=>n+1);
@@ -160,7 +160,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
   setAction(task.id);setError("");setNotice("");
   const res=await (supabase as any).rpc("care_record_water_decision",{p_task_id:task.id,p_decision:"reset_not_drunk",p_amount_ml:null});
   setAction(null);
-  if(res.error){setError(`Não foi possível desfazer a resposta: ${res.error.message??"tente novamente"}`);return}
+  if(res.error||res.data?.decision!=="reset_not_drunk"){setError(`Não foi possível verificar a correção: ${res.error?.message??"consulte o prontuário"}`);return}
   setNotDrunk(prev=>prev.filter(t=>t.task_id!==task.id));
   setCorrectingTaskId(null);
   setNotice("Resposta anterior desfeita; este horário está novamente sem confirmação.");
