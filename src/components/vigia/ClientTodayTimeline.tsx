@@ -7,6 +7,7 @@ export type CareTimelineTask = {
 };
 type Props = {
   tasks:CareTimelineTask[];
+  resolved?:Record<string,string>;
   onConfirm:(task:CareTimelineTask)=>void;
   onDetails?:(task:CareTimelineTask)=>void;
   now?:number;
@@ -36,13 +37,13 @@ const kindStyle = {
  * não podem ocultar o próximo cuidado. Diversifica as categorias quando
  * há tarefas cadastradas, sem inventar uma suplementação inexistente.
  */
-export function pickCareTimelineItems(tasks:CareTimelineTask[], now:number, limit=3) {
+export function pickCareTimelineItems(tasks:CareTimelineTask[], now:number, limit=3, resolved:Record<string,string>={}) {
   const sorted=[...tasks].filter(task=>Number.isFinite(Date.parse(task.scheduled_at)))
     .sort((a,b)=>Date.parse(a.scheduled_at)-Date.parse(b.scheduled_at));
-  const future=sorted.filter(task=>!task.completed_at && Date.parse(task.scheduled_at)>=now);
-  const overdue=sorted.filter(task=>!task.completed_at && Date.parse(task.scheduled_at)<now).reverse();
-  const completed=sorted.filter(task=>Boolean(task.completed_at))
-    .sort((a,b)=>Date.parse(b.completed_at!)-Date.parse(a.completed_at!));
+  const future=sorted.filter(task=>!task.completed_at && !resolved[task.id] && Date.parse(task.scheduled_at)>=now);
+  const overdue=sorted.filter(task=>!task.completed_at && !resolved[task.id] && Date.parse(task.scheduled_at)<now).reverse();
+  const completed=sorted.filter(task=>Boolean(task.completed_at)||Boolean(resolved[task.id]))
+    .sort((a,b)=>Date.parse(b.completed_at??b.scheduled_at)-Date.parse(a.completed_at??a.scheduled_at));
   const picked:CareTimelineTask[]=[];
   if(future.length){
     picked.push(future[0]);
@@ -59,9 +60,9 @@ export function pickCareTimelineItems(tasks:CareTimelineTask[], now:number, limi
   return picked.sort((a,b)=>Date.parse(a.scheduled_at)-Date.parse(b.scheduled_at));
 }
 
-export function ClientTodayTimeline({tasks,onConfirm,onDetails,now=Date.now()}:Props) {
-  const selected=pickCareTimelineItems(tasks,now);
-  const next=tasks.filter(task=>!task.completed_at && Date.parse(task.scheduled_at)>=now)
+export function ClientTodayTimeline({tasks,resolved={},onConfirm,onDetails,now=Date.now()}:Props) {
+  const selected=pickCareTimelineItems(tasks,now,3,resolved);
+  const next=tasks.filter(task=>!task.completed_at && !resolved[task.id] && Date.parse(task.scheduled_at)>=now)
     .sort((a,b)=>Date.parse(a.scheduled_at)-Date.parse(b.scheduled_at))[0];
   const supplementScheduled=tasks.some(task=>careTimelineKind(task)==="suplementacao");
 
@@ -77,11 +78,12 @@ export function ClientTodayTimeline({tasks,onConfirm,onDetails,now=Date.now()}:P
           const config=kindStyle[kind];
           const Icon=config.icon;
           const completed=Boolean(task.completed_at);
+          const response=resolved[task.id];
           const upcoming=task.id===next?.id;
           const past=Date.parse(task.scheduled_at)<now;
-          const available=["hidratacao","refeicao","medicacao"].includes(task.category)&&canConfirmCare(task,now);
-          const status=completed?"Confirmado":upcoming?"Próximo":past?(available?"Pendente · registrar":"Não confirmado"):"Programado";
-          const statusClass=completed?"text-emerald-700 dark:text-emerald-300":upcoming?"text-primary font-bold":past?"text-amber-700 dark:text-amber-300":"text-muted-foreground";
+          const available=!response&&["hidratacao","refeicao","medicacao"].includes(task.category)&&canConfirmCare(task,now);
+          const status=completed?"Confirmado":response==="cancelado"?"Cancelado":response==="nao_cumprido"?"Não realizado":response==="nao_bebi"?"Não bebi":upcoming?"Próximo":past?(available?"Pendente · registrar":"Não confirmado"):"Programado";
+          const statusClass=completed||response?"text-emerald-700 dark:text-emerald-300":upcoming?"text-primary font-bold":past?"text-amber-700 dark:text-amber-300":"text-muted-foreground";
           return <button key={task.id} type="button" data-next={upcoming?"true":undefined} onClick={()=>onDetails?onDetails(task):available?onConfirm(task):undefined}
             aria-label={`${config.label} às ${at(task.scheduled_at)}. ${status}. Abrir detalhes.`}
             title={`${task.title} · ${careScheduleLabel(task,now)}`}
@@ -92,7 +94,7 @@ export function ClientTodayTimeline({tasks,onConfirm,onDetails,now=Date.now()}:P
               <span className="care-timeline-item-title block truncate text-[12px] font-extrabold tabular-nums text-foreground">{at(task.scheduled_at)} · {config.label}</span>
               <span className={`care-timeline-item-status block truncate text-[10px] ${statusClass}`}>{status}{!completed && !upcoming && !past?" · "+task.title:""}</span>
             </span>
-            {completed?<CheckCircle2 size={15} className="shrink-0 text-emerald-600 dark:text-emerald-300"/>:<ChevronRight size={15} className={`shrink-0 ${upcoming?"text-primary":"text-muted-foreground"}`}/>}
+            {completed||response?<CheckCircle2 size={15} className="shrink-0 text-emerald-600 dark:text-emerald-300"/>:<ChevronRight size={15} className={`shrink-0 ${upcoming?"text-primary":"text-muted-foreground"}`}/>}
           </button>;
         })}
         {!selected.length&&<p className="col-span-full py-2 text-xs text-muted-foreground">Nenhum horário de hidratação, refeição ou outro cuidado programado para hoje.</p>}
