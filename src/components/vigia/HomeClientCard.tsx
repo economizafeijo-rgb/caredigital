@@ -9,7 +9,7 @@ import { ClientHydrationTab } from "./ClientHydrationTab";
 import { ClientBeverageTracker } from "./ClientBeverageTracker";
 import { ClientQuickIntake } from "./ClientQuickIntake";
 import { CareTaskRecordModal } from "./CareTaskRecordModal";
-import { MedicationLateAlert } from "./MedicationLateAlert";
+import { CareReminderBeacon } from "./CareReminderBeacon";
 import { ClientTodayTimeline } from "./ClientTodayTimeline";
 import { canConfirmCare, careScheduleBlockMessage, careScheduleLabel, getCareScheduleState } from "@/lib/care-schedule";
 
@@ -219,8 +219,8 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
         </div>
       </header>
 
-      <div className={"care-client-medication-alert shrink-0 "+(activeTab==="historico"?"hidden":"")}>
-        <MedicationLateAlert tasks={tasks} onConfirm={alertTask=>{const task=tasks.find(t=>t.id===alertTask.id);if(task)askConfirm(task)}} compact now={clock}/>
+      <div className="care-client-medication-alert shrink-0">
+        <CareReminderBeacon tasks={tasks} onOpen={alertTask=>{const task=tasks.find(t=>t.id===alertTask.id);if(task)showTaskDetails(task)}} compact/>
       </div>
 
       <div className="care-client-tabs flex shrink-0 gap-1 rounded-xl border border-border bg-muted/55 p-1" role="tablist" aria-label="Seções do acompanhamento">
