@@ -22,9 +22,25 @@ export function PatientActivityHistory({patientId,ownerId,revision}:{patientId:s
   if(!hydration.error)(hydration.data??[]).forEach((h:any)=>all.push({id:"agua-"+h.id,category:"hidratacao",title:"Água · "+h.amount_ml+" ml",scheduled_at:h.recorded_at,completed_at:h.recorded_at}));
   if(!observations.error)(observations.data??[]).forEach((o:any)=>all.push({id:"observacao-"+o.id,category:o.observation_type,title:o.notes||"Observação registrada",scheduled_at:o.recorded_at,completed_at:o.recorded_at}));
   if(!beverages.error)(beverages.data??[]).forEach((b:any)=>all.push({id:"bebida-"+b.id,category:"bebida",title:`${b.kind==="cha"?"Chá":b.kind==="agua"?"Água":b.kind==="suco"?"Suco":b.kind==="cafe"?"Café":"Bebida"} · ${b.name} · ${b.amount_ml} ml`,scheduled_at:b.consumed_at,completed_at:b.consumed_at}));
-  if(!audit.error)(audit.data??[]).filter((e:any)=>e.event_type!=="confirmed").forEach((e:any)=>all.push({id:"log-"+e.id,category:e.event_type==="deleted"?"exclusao":e.category,title:e.event_type==="deleted"?`Refeição excluída · ${e.details?.title||"Refeição"}`:e.event_type==="patient_report"?"Relato do paciente — "+(e.details?.period==="morning"?"manhã fora do horário":e.details?.period==="night"?"noite às 19h":"horário informado"):"Ocorrência registrada",scheduled_at:e.scheduled_at||e.happened_at||e.recorded_at,completed_at:e.recorded_at}));
+  if(!audit.error)(audit.data??[])
+    .filter((e:any)=>e.event_type!=="confirmed")
+    // Água e bebidas avulsas já constam nas tabelas próprias. Evita histórico duplicado.
+    .filter((e:any)=>e.source!=="client_unscheduled_intake" || ["refeicao","lanche"].includes(e.details?.kind))
+    .forEach((e:any)=>{
+      const manualMeal=e.source==="client_unscheduled_intake";
+      all.push({
+        id:"log-"+e.id,
+        category:manualMeal?"refeicao_avulsa":e.event_type==="deleted"?"exclusao":e.category,
+        title:manualMeal?`${e.details?.title||"Refeição extra"} · ${e.details?.description||"Consumo informado"}`
+          :e.event_type==="deleted"?`Refeição excluída · ${e.details?.title||"Refeição"}`
+          :e.event_type==="patient_report"?"Relato do paciente — "+(e.details?.period==="morning"?"manhã fora do horário":e.details?.period==="night"?"noite às 19h":"horário informado")
+          :"Ocorrência registrada",
+        scheduled_at:e.scheduled_at||e.happened_at||e.recorded_at,
+        completed_at:e.recorded_at
+      });
+    });
   all.sort((x,y)=>Date.parse(y.completed_at)-Date.parse(x.completed_at));
   setEvents(all);setProblem("");
  })();return()=>{live=false};},[patientId,ownerId,revision]);
- return <section className="mt-6 rounded-2xl border border-border bg-card p-5"><h4 className="text-lg font-bold">Histórico do paciente</h4><p className="mt-1 text-xs text-muted-foreground">Registros confirmados, cuidados não confirmados, refeições, chás, bebidas e exclusões. As confirmações usam o horário real do servidor; ausência de confirmação não comprova que o cuidado deixou de acontecer.</p>{problem&&<p role="alert">{problem}</p>}<div className="mt-4 max-h-96 space-y-2 overflow-y-auto">{events.map(e=><article key={e.id} className="rounded-xl border border-border bg-background p-3"><p className="text-sm font-semibold">{e.title}</p><p className="mt-1 text-xs text-muted-foreground">{e.category==="nao_confirmado"?`Previsto para ${fmt(e.scheduled_at)} (Acre) · Não confirmado no horário` : e.category==="bebida"||e.category==="exclusao"?`Registrado em: ${fmt(e.completed_at)} (Acre)` :`${e.category} · previsto: ${fmt(e.scheduled_at)} · registrado: ${fmt(e.completed_at)} (Acre)`}</p></article>)}{!events.length&&!problem&&<p className="text-sm text-muted-foreground">Ainda não há confirmações registradas.</p>}</div></section>;
+ return <section className="mt-6 rounded-2xl border border-border bg-card p-5"><h4 className="text-lg font-bold">Histórico do paciente</h4><p className="mt-1 text-xs text-muted-foreground">Registros confirmados, cuidados não confirmados, refeições, chás, bebidas e exclusões. As confirmações usam o horário real do servidor; ausência de confirmação não comprova que o cuidado deixou de acontecer.</p>{problem&&<p role="alert">{problem}</p>}<div className="mt-4 max-h-96 space-y-2 overflow-y-auto">{events.map(e=><article key={e.id} className="rounded-xl border border-border bg-background p-3"><p className="text-sm font-semibold">{e.title}</p><p className="mt-1 text-xs text-muted-foreground">{e.category==="nao_confirmado"?`Previsto para ${fmt(e.scheduled_at)} (Acre) · Não confirmado no horário` : e.category==="bebida"||e.category==="exclusao"||e.category==="refeicao_avulsa"?`Registrado em: ${fmt(e.completed_at)} (Acre)` :`${e.category} · previsto: ${fmt(e.scheduled_at)} · registrado: ${fmt(e.completed_at)} (Acre)`}</p></article>)}{!events.length&&!problem&&<p className="text-sm text-muted-foreground">Ainda não há confirmações registradas.</p>}</div></section>;
 }
