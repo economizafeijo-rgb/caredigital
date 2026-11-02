@@ -102,45 +102,45 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         <header className="relative z-30 shrink-0 border-b border-border/70 bg-background/90 backdrop-blur-xl">
-          <div className="mx-auto flex h-12 max-w-7xl items-center justify-between gap-3 px-3 md:h-14 md:px-6">
+          <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-2.5 px-3 md:h-[68px] md:gap-3 md:px-6">
             <Link to="/" className="flex shrink-0 items-center gap-2.5">
-              <div className="grid size-8 place-items-center rounded-xl bg-foreground font-display text-lg leading-none text-primary-foreground">V</div>
+              <div className="grid size-9 place-items-center rounded-xl bg-foreground font-display text-xl leading-none text-primary-foreground md:size-10">V</div>
               <div className="leading-none">
-                <div className="font-display text-base tracking-tight md:text-lg">VIGIA</div>
+                <div className="font-display text-lg tracking-tight md:text-xl">VIGIA</div>
                 <div className="mt-1 hidden font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground sm:block">Cuidado digital</div>
               </div>
             </Link>
 
-            <nav className="hidden items-center gap-1 label-mono md:flex" aria-label="Navegação principal">
+            <nav className="hidden items-center gap-1 md:flex lg:gap-1.5" aria-label="Navegação principal">
               {visibleNav.map((item) => (
-                <Link key={item.to} to={item.to} activeOptions={{ exact: item.to === "/" }}
-                  className="rounded-lg px-3 py-2 text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
-                  activeProps={{ className: "!bg-foreground !text-primary-foreground" }}>
-                  {item.label}
+                <Link key={item.to} to={item.to} title={item.label} aria-label={item.label} activeOptions={{ exact: item.to === "/" }}
+                  className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-transparent px-3 text-xs font-bold tracking-[.015em] text-muted-foreground transition-all hover:border-border hover:bg-muted hover:text-foreground lg:h-11 lg:px-3.5 lg:text-[13px]"
+                  activeProps={{ className: "!border-primary !bg-primary !text-primary-foreground shadow-sm" }}>
+                  <Icon size={17} strokeWidth={2.2}/><span className="hidden lg:inline">{item.label}</span>
                 </Link>
               ))}
-              {!clientOnly && <button type="button" onClick={() => setMoreOpen((open) => !open)} aria-expanded={moreOpen}
-                className={`rounded-lg px-3 py-2 transition-colors hover:bg-foreground/5 ${moreOpen ? "bg-foreground/5 text-foreground" : "text-muted-foreground"}`}>
-                Mais
+              {!clientOnly && <button type="button" title="Mais seções" aria-label="Mais seções" onClick={() => setMoreOpen((open) => !open)} aria-expanded={moreOpen}
+                className={`inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl border px-3 text-xs font-bold transition-all lg:h-11 lg:px-3.5 lg:text-[13px] ${moreOpen ? "border-primary/30 bg-primary/10 text-primary" : "border-transparent text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground"}`}>
+                <Ellipsis size={18} strokeWidth={2.2}/><span className="hidden lg:inline">Mais</span>
               </button>}
             </nav>
 
-            <div className="flex items-center gap-2">
-              <div className="hidden items-center gap-2 font-mono text-[10px] text-muted-foreground lg:flex">
+            <div className="flex items-center gap-1.5 md:gap-2">
+              <div className="hidden items-center gap-2 font-mono text-[11px] text-muted-foreground xl:flex">
                 <span className="size-1.5 rounded-full bg-success" />{fmtClock(now)}
               </div>
               {clientOnly && <Link to="/cliente" title="Abrir meu painel" className="hidden max-w-[215px] flex-col items-start rounded-xl border border-primary/20 bg-primary/10 px-3 py-1.5 sm:flex"><span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Cliente conectado</span><span className="max-w-full truncate text-sm font-bold text-foreground">{clientName || "Meu painel"}</span></Link>}
               {clientOnly && <Link to="/cliente" className="hidden rounded-lg border border-border bg-primary/10 px-3 py-2 text-xs font-semibold text-primary sm:flex sm:items-center sm:gap-1.5"><Users size={15}/> Área do cliente</Link>}
-              <button type="button" onClick={() => void toggleFullscreen()} aria-label={fullScreen ? "Sair da tela cheia" : "Ativar tela cheia"} title={fullScreen ? "Sair da tela cheia" : "Tela cheia"} aria-pressed={fullScreen} className="grid size-9 place-items-center rounded-xl border border-border bg-surface text-foreground hover:bg-muted">{fullScreen ? <Minimize size={18}/> : <Maximize size={18}/>}</button>
-              <button type="button" onClick={toggleTheme} aria-label={darkMode ? "Ativar tema claro" : "Ativar tema escuro"} title={darkMode ? "Modo claro" : "Modo escuro"} aria-pressed={darkMode} className="grid size-9 place-items-center rounded-xl border border-border bg-surface text-foreground transition-colors hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">{darkMode ? <Sun size={18}/> : <Moon size={18}/>}</button>
-              {signedIn ? <button type="button" onClick={() => void signOut()} disabled={signingOut} aria-label="Sair da conta" title="Sair da conta" className="flex h-9 items-center gap-1.5 rounded-xl border border-border bg-surface px-2.5 text-xs font-semibold text-foreground hover:bg-muted disabled:opacity-60"><LogOut size={16}/><span className="hidden sm:inline">{signingOut ? "Saindo…" : "Sair"}</span></button> : <Link to="/entrar" aria-label="Entrar na conta" title="Entrar" className="flex h-9 items-center gap-1.5 rounded-xl bg-primary px-2.5 text-xs font-semibold text-primary-foreground"><LogIn size={16}/><span className="hidden sm:inline">Entrar</span></Link>}
+              <button type="button" onClick={() => void toggleFullscreen()} aria-label={fullScreen ? "Sair da tela cheia" : "Ativar tela cheia"} title={fullScreen ? "Sair da tela cheia" : "Tela cheia"} aria-pressed={fullScreen} className="grid size-10 shrink-0 place-items-center rounded-xl border border-border bg-surface text-foreground transition hover:border-primary/30 hover:bg-muted">{fullScreen ? <Minimize size={18}/> : <Maximize size={18}/>}</button>
+              <button type="button" onClick={toggleTheme} aria-label={darkMode ? "Ativar tema claro" : "Ativar tema escuro"} title={darkMode ? "Modo claro" : "Modo escuro"} aria-pressed={darkMode} className="grid size-10 shrink-0 place-items-center rounded-xl border border-border bg-surface text-foreground transition-colors hover:border-primary/30 hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">{darkMode ? <Sun size={18}/> : <Moon size={18}/>}</button>
+              {signedIn ? <button type="button" onClick={() => void signOut()} disabled={signingOut} aria-label="Sair da conta" title="Sair da conta" className="flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-border bg-surface px-3 text-xs font-bold text-foreground hover:bg-muted disabled:opacity-60"><LogOut size={16}/><span className="hidden sm:inline">{signingOut ? "Saindo…" : "Sair"}</span></button> : <Link to="/entrar" aria-label="Entrar na conta" title="Entrar" className="flex h-10 shrink-0 items-center gap-2 rounded-xl bg-primary px-3.5 text-xs font-bold text-primary-foreground shadow-sm transition hover:opacity-90 lg:text-[13px]"><LogIn size={16}/><span className="hidden sm:inline">Entrar</span></Link>}
             </div>
           </div>
         </header>
 
         {moreOpen && !clientOnly && <>
           <button type="button" aria-label="Fechar menu" className="fixed inset-0 z-30 cursor-default" onClick={() => setMoreOpen(false)} />
-          <nav className="fixed right-4 top-[4.25rem] z-40 grid w-64 gap-1 rounded-2xl border border-border bg-background p-2 shadow-xl md:right-[max(1.5rem,calc((100vw-80rem)/2))]" aria-label="Mais seções">
+          <nav className="fixed right-4 top-[4.75rem] z-40 grid w-64 gap-1 rounded-2xl border border-border bg-background p-2 shadow-xl md:right-[max(1.5rem,calc((100vw-80rem)/2))]" aria-label="Mais seções">
             <div className="flex items-center justify-between px-3 py-2"><span className="label-mono text-muted-foreground">Mais áreas</span><button type="button" onClick={() => setMoreOpen(false)} aria-label="Fechar"><X size={15} /></button></div>
             {moreNav.filter(item => adminAccess || (item.to !== "/admin" && item.to !== "/prontuario" && item.to !== "/pacientes")).map(({ to, label, icon: Icon }) => <Link key={to} to={to} onClick={() => setMoreOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-muted-foreground hover:bg-foreground/5 hover:text-foreground" activeProps={{ className: "!bg-primary/10 !text-primary" }}><Icon size={17} />{label}</Link>)}
           </nav>
