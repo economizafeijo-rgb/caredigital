@@ -1,64 +1,101 @@
-import { CalendarDays, CheckCircle2, Clock3, Droplets, Pill, Utensils } from "lucide-react";
-import { canConfirmCare, careScheduleLabel, getCareScheduleState } from "@/lib/care-schedule";
+import { CalendarDays, CheckCircle2, ChevronRight, Clock3, Droplets, Pill, Sparkles, Utensils } from "lucide-react";
+import { canConfirmCare, careScheduleLabel } from "@/lib/care-schedule";
 
 export type CareTimelineTask = {
-  id:string; patient_id:string; title:string; category:string; scheduled_at:string; completed_at:string|null;
+  id:string; patient_id:string; title:string; category:string;
+  scheduled_at:string; completed_at:string|null;
+};
+type Props = {
+  tasks:CareTimelineTask[];
+  onConfirm:(task:CareTimelineTask)=>void;
+  onDetails?:(task:CareTimelineTask)=>void;
+  now?:number;
 };
 
-type Props = {tasks:CareTimelineTask[]; onConfirm:(task:CareTimelineTask)=>void; onDetails?:(task:CareTimelineTask)=>void; now?: number};
-
-const timezone="America/Rio_Branco";
-const at=(iso:string)=>new Intl.DateTimeFormat("pt-BR",{
+const timezone = "America/Rio_Branco";
+const at = (iso:string) => new Intl.DateTimeFormat("pt-BR", {
   timeZone:timezone,hour:"2-digit",minute:"2-digit",hour12:false,
 }).format(new Date(iso));
 
-const category = {
-  medicacao:{label:"Medicação", icon:Pill},
-  hidratacao:{label:"Hidratação", icon:Droplets},
-  refeicao:{label:"Refeição", icon:Utensils},
+type Kind = "hidratacao" | "refeicao" | "suplementacao" | "medicacao" | "outro";
+export const careTimelineKind = (task:CareTimelineTask):Kind => {
+  if (/(suplement|vitamina|creatina|whey|ômega|omega|minerais|magnésio|magnesio)/i.test(task.title)) return "suplementacao";
+  if (task.category === "hidratacao" || task.category === "refeicao" || task.category === "medicacao") return task.category;
+  return "outro";
+};
+const kindStyle = {
+  hidratacao:{label:"Hidratação",icon:Droplets,classes:"border-sky-500/30 bg-sky-500/[.075] hover:bg-sky-500/15",iconClass:"text-sky-600 dark:text-sky-300",color:"bg-sky-500"},
+  refeicao:{label:"Refeição",icon:Utensils,classes:"border-emerald-500/30 bg-emerald-500/[.075] hover:bg-emerald-500/15",iconClass:"text-emerald-600 dark:text-emerald-300",color:"bg-emerald-500"},
+  suplementacao:{label:"Suplementação",icon:Sparkles,classes:"border-violet-500/30 bg-violet-500/[.075] hover:bg-violet-500/15",iconClass:"text-violet-600 dark:text-violet-300",color:"bg-violet-500"},
+  medicacao:{label:"Medicação",icon:Pill,classes:"border-amber-500/30 bg-amber-500/[.075] hover:bg-amber-500/15",iconClass:"text-amber-700 dark:text-amber-300",color:"bg-amber-500"},
+  outro:{label:"Cuidado",icon:Clock3,classes:"border-border bg-muted/40 hover:bg-muted/65",iconClass:"text-muted-foreground",color:"bg-muted-foreground"},
 } as const;
 
-export function ClientTodayTimeline({tasks,onConfirm,onDetails,now=Date.now()}:Props) {
-  const sorted=[...tasks].sort((a,b)=>a.scheduled_at.localeCompare(b.scheduled_at));
-  const done=sorted.filter(task=>Boolean(task.completed_at));
-  const open=sorted.filter(task=>!task.completed_at);
-  const selected=[
-    ...done.slice(-1),
-    ...open.slice(0,3-(done.length?1:0)),
-  ];
-  if(selected.length<3) {
-    const ids=new Set(selected.map(task=>task.id));
-    for(const task of sorted) {
-      if(selected.length>=3)break;
-      if(!ids.has(task.id)){selected.push(task);ids.add(task.id)}
+/**
+ * A faixa prioriza os horários que AINDA VÃO OCORRER; registros antigos
+ * não podem ocultar o próximo cuidado. Diversifica as categorias quando
+ * há tarefas cadastradas, sem inventar uma suplementação inexistente.
+ */
+export function pickCareTimelineItems(tasks:CareTimelineTask[], now:number, limit=3) {
+  const sorted=[...tasks].filter(task=>Number.isFinite(Date.parse(task.scheduled_at)))
+    .sort((a,b)=>Date.parse(a.scheduled_at)-Date.parse(b.scheduled_at));
+  const future=sorted.filter(task=>!task.completed_at && Date.parse(task.scheduled_at)>=now);
+  const overdue=sorted.filter(task=>!task.completed_at && Date.parse(task.scheduled_at)<now).reverse();
+  const completed=sorted.filter(task=>Boolean(task.completed_at))
+    .sort((a,b)=>Date.parse(b.completed_at!)-Date.parse(a.completed_at!));
+  const picked:CareTimelineTask[]=[];
+  if(future.length){
+    picked.push(future[0]);
+    const chosenKinds=new Set<Kind>([careTimelineKind(future[0])]);
+    for(const task of future.slice(1)){
+      if(picked.length>=limit)break;
+      const kind=careTimelineKind(task);
+      if(!chosenKinds.has(kind)){picked.push(task);chosenKinds.add(kind);}
     }
+    for(const task of future){if(picked.length>=limit)break;if(!picked.some(item=>item.id===task.id))picked.push(task);}
   }
-  return <section className="care-timeline shrink-0 rounded-2xl border border-border bg-muted/35 px-3 py-2 sm:px-4" aria-label="Rotina de cuidados de hoje">
-    <div className="flex min-w-0 items-center gap-3">
-      <div className="care-timeline-heading flex shrink-0 items-center gap-2 border-r border-border pr-3 sm:pr-4">
-        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><CalendarDays size={19}/></span>
-        <span className="hidden lg:block"><strong className="block text-sm font-extrabold text-foreground">Rotina de hoje</strong><small className="block text-[10px] text-muted-foreground">Cuidados programados</small></span>
+  for(const task of overdue){if(picked.length>=limit)break;if(!picked.some(item=>item.id===task.id))picked.push(task);}
+  for(const task of completed){if(picked.length>=limit)break;if(!picked.some(item=>item.id===task.id))picked.push(task);}
+  return picked.sort((a,b)=>Date.parse(a.scheduled_at)-Date.parse(b.scheduled_at));
+}
+
+export function ClientTodayTimeline({tasks,onConfirm,onDetails,now=Date.now()}:Props) {
+  const selected=pickCareTimelineItems(tasks,now);
+  const next=tasks.filter(task=>!task.completed_at && Date.parse(task.scheduled_at)>=now)
+    .sort((a,b)=>Date.parse(a.scheduled_at)-Date.parse(b.scheduled_at))[0];
+  const supplementScheduled=tasks.some(task=>careTimelineKind(task)==="suplementacao");
+
+  return <section className="care-timeline shrink-0 rounded-2xl border border-border bg-card/90 px-2.5 py-2 sm:px-3" aria-label="Próximos horários de cuidados">
+    <div className="flex min-w-0 items-center gap-2.5">
+      <div className="care-timeline-heading flex w-[125px] shrink-0 items-center gap-2 border-r border-border pr-2 sm:w-[174px]">
+        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><CalendarDays size={17}/></span>
+        <span className="min-w-0"><strong className="block text-[12px] font-extrabold text-foreground">Próximos cuidados</strong><small className="block text-[10px] leading-tight text-muted-foreground">{supplementScheduled?"Água · Refeição · Suplemento":"Água · Refeição · Cuidados"}</small></span>
       </div>
-      <div className="grid min-w-0 flex-1 grid-cols-1 gap-2 sm:grid-cols-3">
+      <div className="grid min-w-0 flex-1 grid-cols-1 gap-1.5 sm:grid-cols-3">
         {selected.map(task=>{
-          const ItemIcon=category[task.category as keyof typeof category]?.icon??Clock3;
-          const title=category[task.category as keyof typeof category]?.label??"Cuidado";
-          const complete=Boolean(task.completed_at);
-          const state=getCareScheduleState(task,now);
+          const kind=careTimelineKind(task);
+          const config=kindStyle[kind];
+          const Icon=config.icon;
+          const completed=Boolean(task.completed_at);
+          const upcoming=task.id===next?.id;
+          const past=Date.parse(task.scheduled_at)<now;
           const available=canConfirmCare(task,now);
-          return <button type="button" key={task.id}
-              onClick={()=>onDetails?onDetails(task):available?onConfirm(task):undefined}
-              aria-label={complete?`${title} confirmado às ${at(task.completed_at!)}`:`${title} previsto para ${at(task.scheduled_at)}: ${careScheduleLabel(task,now)}`}
-              className={`care-timeline-item group flex min-w-0 items-center gap-2 rounded-xl border px-2.5 py-2 text-left transition-colors hover:border-primary/50 hover:bg-primary/5 ${complete?"border-success/30 bg-success/10":state==="missed"?"border-border bg-muted/65 opacity-70":available?"border-border bg-card hover:border-primary/45 hover:bg-primary/5":"border-border bg-card"}`}>
-              <span className={`grid size-8 shrink-0 place-items-center rounded-lg ${complete?"bg-success/10 text-success":"bg-primary/10 text-primary"}`}><ItemIcon size={17}/></span>
-              <span className="min-w-0 flex-1">
-                <strong className="block truncate text-xs font-bold tabular-nums text-foreground">{complete?at(task.completed_at!):at(task.scheduled_at)} · {title}</strong>
-                <span className="block truncate text-[10px] text-muted-foreground">{complete?"Registrado no prontuário":available?task.title:careScheduleLabel(task,now)}</span>
-              </span>
-              {complete&&<CheckCircle2 size={16} className="shrink-0 text-success"/>}
-          </button>
+          const status=completed?"Confirmado":upcoming?"Próximo":past?(available?"Pendente · registrar":"Não confirmado"):"Programado";
+          const statusClass=completed?"text-emerald-700 dark:text-emerald-300":upcoming?"text-primary font-bold":past?"text-amber-700 dark:text-amber-300":"text-muted-foreground";
+          return <button key={task.id} type="button" onClick={()=>onDetails?onDetails(task):available?onConfirm(task):undefined}
+            aria-label={`${config.label} às ${at(task.scheduled_at)}. ${status}. Abrir detalhes.`}
+            title={`${task.title} · ${careScheduleLabel(task,now)}`}
+            className={`care-timeline-item group relative flex min-w-0 items-center gap-2 rounded-xl border px-2 py-1.5 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${config.classes} ${upcoming?"ring-1 ring-primary/60":""}`}>
+            <span className={`absolute bottom-1.5 left-0.5 top-1.5 w-[3px] rounded-full ${config.color}`} aria-hidden="true"/>
+            <span className={`grid size-8 shrink-0 place-items-center rounded-lg bg-background/65 ${config.iconClass}`}><Icon size={17}/></span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[12px] font-extrabold tabular-nums text-foreground">{at(task.scheduled_at)} · {config.label}</span>
+              <span className={`block truncate text-[10px] ${statusClass}`}>{status}{!completed && !upcoming && !past?" · "+task.title:""}</span>
+            </span>
+            {completed?<CheckCircle2 size={15} className="shrink-0 text-emerald-600 dark:text-emerald-300"/>:<ChevronRight size={15} className={`shrink-0 ${upcoming?"text-primary":"text-muted-foreground"}`}/>}
+          </button>;
         })}
-        {!selected.length&&<p className="col-span-full py-2 text-xs text-muted-foreground">Ainda não há atividades programadas para hoje.</p>}
+        {!selected.length&&<p className="col-span-full py-2 text-xs text-muted-foreground">Nenhum horário de hidratação, refeição ou outro cuidado programado para hoje.</p>}
       </div>
     </div>
   </section>;
