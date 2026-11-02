@@ -1618,3 +1618,255 @@ iframe[title*="Lovable" i][title*="badge" i] {
   .care-home-art-v2 .patient-home-actions > button:hover,
   .care-home-art-v2 .patient-home-actions > a:hover {transform:none;}
 }
+
+/* CareDigital — Aurora Care Pulse: status-based reminders and original animated SVGs.
+   Audio is opt-in. Motion respects reduced-motion. No patient data stored in CSS. */
+.care-reminder-beacon {
+  --beacon-text:#15394e;
+  --beacon-sub:#476778;
+  --beacon-border:rgba(69,164,194,.42);
+  --beacon-badge-bg:#dff6fb;
+  --beacon-badge-text:#075c79;
+  isolation:isolate;
+  min-height:86px;
+  color:var(--beacon-text);
+  border-color:var(--beacon-border);
+  background:
+    radial-gradient(ellipse at 5% 15%,rgba(100,225,225,.19),transparent 55%),
+    linear-gradient(110deg,#f6feff 0%,#e6f7fd 50%,#e8faf5 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.88),0 5px 16px rgba(39,120,155,.10);
+}
+.care-reminder-beacon[data-reminder-status="due"] {
+  --beacon-border:#16b6c6;
+  --beacon-badge-bg:#bff9ec;
+  --beacon-badge-text:#08776c;
+  background:linear-gradient(110deg,#eefffa 0%,#d0fbf0 51%,#d1f5ff 100%);
+  box-shadow:inset 0 1px 0 #fff,0 0 0 2px rgba(23,205,171,.11),0 6px 19px rgba(6,161,165,.19);
+  animation:care-reminder-border-flare 2.25s ease-in-out infinite;
+}
+.care-reminder-beacon[data-reminder-status="unconfirmed"] {
+  --beacon-border:#e1a248;
+  --beacon-badge-bg:#fbe3b2;
+  --beacon-badge-text:#80501d;
+  background:linear-gradient(110deg,#fff9ea 0%,#ffefcc 62%,#fff4dc 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.88),0 4px 14px rgba(179,118,36,.13);
+  border-left:4px solid #d89c30;
+}
+.care-reminder-beacon .care-reminder-heading {color:var(--beacon-text);letter-spacing:-.02em;}
+.care-reminder-beacon .care-reminder-task {color:#15536b;}
+.care-reminder-beacon .care-reminder-subtitle {color:var(--beacon-sub);}
+.care-reminder-beacon .care-reminder-queue {color:#9b6327;}
+.care-reminder-beacon .care-reminder-badge {
+  background:var(--beacon-badge-bg);
+  color:var(--beacon-badge-text);
+  border:1px solid rgba(32,148,150,.15);
+}
+.care-reminder-beacon .care-reminder-art {
+  color:#178da9;
+  filter:drop-shadow(0 2px 4px rgba(46,142,162,.12));
+}
+.care-reminder-beacon .care-reminder-art.is-active {
+  animation:care-reminder-symbol-breathe 2.4s ease-in-out infinite;
+}
+.care-reminder-beacon .care-reminder-ring {
+  transition:stroke-dashoffset .4s linear;
+}
+.care-reminder-beacon .care-reminder-track {background:rgba(13,151,160,.16);}
+.care-reminder-beacon .care-reminder-track-fill {
+  background:linear-gradient(90deg,#0ca3c3,#21cda4);
+  transition:width .7s linear;
+}
+.care-reminder-beacon .care-reminder-open {
+  color:#fff;
+  background:linear-gradient(120deg,#0d9aab,#087b89);
+  border:1px solid rgba(3,119,143,.5);
+  box-shadow:0 2px 7px rgba(12,136,154,.16);
+}
+.care-reminder-beacon .care-reminder-open:hover {background:linear-gradient(120deg,#088da2,#076878);}
+.care-reminder-beacon .care-reminder-sound {
+  color:#17596e;
+  background:rgba(255,255,255,.73);
+  border-color:rgba(80,154,172,.35);
+}
+.care-reminder-beacon .care-reminder-sound[aria-pressed="true"] {
+  color:#096a5e;
+  background:#cff7e9;
+  border-color:rgba(14,174,145,.41);
+}
+.care-reminder-beacon[data-reminder-status="unconfirmed"] .care-reminder-open {
+  background:linear-gradient(125deg,#bd772b,#925524);
+  border-color:#b58137;
+}
+.dark .care-reminder-beacon {
+  --beacon-text:#e9faff;
+  --beacon-sub:#b2d2dc;
+  --beacon-border:rgba(103,216,224,.34);
+  --beacon-badge-bg:rgba(59,170,188,.24);
+  --beacon-badge-text:#adf3fc;
+  color:var(--beacon-text);
+  border-color:var(--beacon-border);
+  background:linear-gradient(110deg,#1c3c4b,#1e5664 66%,#204e53);
+  box-shadow:0 5px 17px rgba(0,15,27,.24);
+}
+.dark .care-reminder-beacon[data-reminder-status="due"] {
+  --beacon-border:rgba(87,244,204,.72);
+  --beacon-badge-bg:rgba(96,234,193,.19);
+  --beacon-badge-text:#b5ffe4;
+  background:linear-gradient(110deg,#174b49,#196d68 57%,#1b5b70);
+  box-shadow:0 0 0 1px rgba(97,230,196,.13),0 5px 17px rgba(0,15,27,.25);
+}
+.dark .care-reminder-beacon[data-reminder-status="unconfirmed"] {
+  --beacon-border:rgba(244,185,91,.58);
+  --beacon-badge-bg:rgba(242,182,82,.21);
+  --beacon-badge-text:#ffd98d;
+  background:linear-gradient(110deg,#493a30,#60503a 60%,#544438);
+  border-left-color:#ffc46f;
+}
+.dark .care-reminder-beacon .care-reminder-task {color:#ceeff7;}
+.dark .care-reminder-beacon .care-reminder-queue {color:#ffd5a0;}
+.dark .care-reminder-beacon .care-reminder-sound {
+  color:#e2fbff;
+  background:rgba(12,46,59,.50);
+  border-color:rgba(138,217,235,.36);
+}
+.dark .care-reminder-beacon .care-reminder-sound[aria-pressed="true"] {
+  color:#adffe4;
+  background:rgba(48,159,129,.27);
+}
+.dark .care-reminder-beacon .care-reminder-art {color:#b3f2ff;}
+/* Supersede old single-medication banners in the illustrated dashboard. */
+:root:not(.dark) .care-home-art-v2 .care-home-medication > .care-reminder-beacon {
+  border-color:var(--beacon-border);
+  color:var(--beacon-text);
+  background:linear-gradient(110deg,#f2fffa,#d9faf3 56%,#dbf5ff);
+}
+:root:not(.dark) .care-home-art-v2 .care-home-medication > .care-reminder-beacon[data-reminder-status="unconfirmed"] {
+  background:linear-gradient(110deg,#fff9ea,#ffefcb);
+}
+.dark .care-home-art-v2 .care-home-medication > .care-reminder-beacon {
+  color:var(--beacon-text);
+  background:linear-gradient(110deg,#193e4c,#1d5b64);
+}
+.dark .care-home-art-v2 .care-home-medication > .care-reminder-beacon[data-reminder-status="due"] {
+  background:linear-gradient(110deg,#174b49,#196d68 57%,#1b5b70);
+}
+.dark .care-home-art-v2 .care-home-medication > .care-reminder-beacon[data-reminder-status="unconfirmed"] {
+  background:linear-gradient(110deg,#493a30,#60503a);
+}
+
+.care-visual-progress {
+  container-type:inline-size;
+  gap:8px;
+}
+.care-visual-progress .care-visual-tile {
+  min-height:91px;
+  color:#17455c;
+  border-color:rgba(88,164,195,.34);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.83),0 3px 10px rgba(37,131,155,.09);
+  transition:transform .18s ease,box-shadow .18s ease;
+}
+.care-visual-progress button.care-visual-tile:hover:not(:disabled) {
+  transform:translateY(-2px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.89),0 7px 16px rgba(37,131,155,.15);
+}
+.care-visual-progress button:disabled {opacity:1;}
+.care-visual-progress [data-visual="water"] {
+  background:linear-gradient(125deg,#eafcff,#bef1fb 72%,#a5edfa);
+}
+.care-visual-progress [data-visual="meals"] {
+  background:linear-gradient(125deg,#f2fff7,#c7f5de 72%,#aef5d5);
+}
+.care-visual-progress [data-visual="medicine"] {
+  background:linear-gradient(125deg,#f5f4ff,#dcdfff 69%,#c9d3ff);
+}
+.care-visual-progress .care-visual-title {color:#376178;}
+.care-visual-progress .care-visual-value {color:#173d55;line-height:1.1;}
+.care-visual-progress .care-visual-subtitle {color:#507387;}
+.care-visual-progress .care-visual-track {background:rgba(255,255,255,.70);}
+.care-visual-progress .care-visual-track > i {
+  display:block;height:100%;border-radius:999px;
+  background:linear-gradient(90deg,#18aadb,#17d4ba);
+  transition:width .6s ease;
+}
+.care-visual-progress [data-visual="meals"] .care-visual-track > i {
+  background:linear-gradient(90deg,#1cab81,#63deaa);
+}
+.care-visual-progress [data-visual="medicine"] .care-visual-track > i {
+  background:linear-gradient(90deg,#7063da,#ad9afa);
+}
+.care-visual-progress .care-progress-svg {
+  min-width:0;
+  flex-shrink:0;
+  filter:drop-shadow(1px 3px 4px rgba(30,124,154,.12));
+  animation:care-progress-float 3.7s ease-in-out infinite;
+}
+.care-visual-progress [data-visual="meals"] .care-progress-svg {animation-delay:.7s;}
+.care-visual-progress [data-visual="medicine"] .care-progress-svg {animation-delay:1.3s;}
+.care-visual-progress .care-progress-ring {transition:stroke-dashoffset .7s ease;}
+.care-visual-progress .care-water-fill {transition:y .7s ease,height .7s ease;}
+.care-visual-progress .care-water-wave {animation:care-water-sway 2.7s ease-in-out infinite;transform-origin:center;}
+.dark .care-visual-progress .care-visual-tile {border-color:rgba(131,220,218,.22);}
+.dark .care-visual-progress [data-visual="water"] {
+  background:linear-gradient(125deg,#1e5265,#236f80);
+}
+.dark .care-visual-progress [data-visual="meals"] {
+  background:linear-gradient(125deg,#1e5349,#287a67);
+}
+.dark .care-visual-progress [data-visual="medicine"] {
+  background:linear-gradient(125deg,#3b4066,#58588c);
+}
+.dark .care-visual-progress .care-visual-title {color:#bbdce7;}
+.dark .care-visual-progress .care-visual-value {color:#f0fbff;}
+.dark .care-visual-progress .care-visual-subtitle {color:#c2e2ed;}
+.dark .care-visual-progress .care-visual-track {background:rgba(255,255,255,.18);}
+@keyframes care-reminder-border-flare {
+  0%,100% {box-shadow:inset 0 1px 0 rgba(255,255,255,.78),0 0 0 1px rgba(20,204,170,.10),0 5px 15px rgba(10,147,141,.13);}
+  50% {box-shadow:inset 0 1px 0 rgba(255,255,255,.90),0 0 0 3px rgba(20,204,170,.20),0 8px 21px rgba(10,147,141,.22);}
+}
+@keyframes care-reminder-symbol-breathe {
+  0%,100% {transform:scale(1);filter:drop-shadow(0 2px 3px rgba(29,133,149,.10));}
+  50% {transform:scale(1.045);filter:drop-shadow(0 3px 7px rgba(29,133,149,.18));}
+}
+@keyframes care-progress-float {
+  0%,100% {transform:translateY(0);}
+  50% {transform:translateY(-3px);}
+}
+@keyframes care-water-sway {
+  0%,100% {transform:translateX(0);}
+  50% {transform:translateX(2px);}
+}
+@media (max-width:680px) {
+  .care-reminder-beacon {padding:9px;gap:7px;}
+  .care-reminder-beacon .care-reminder-art {width:49px;height:49px;}
+  .care-reminder-beacon .care-reminder-actions {gap:4px;}
+  .care-reminder-beacon .care-reminder-open,
+  .care-reminder-beacon .care-reminder-sound {min-height:28px;font-size:9px;padding-inline:8px;}
+  .care-visual-progress .care-progress-svg {width:48px;height:63px;}
+  .care-visual-progress .care-visual-tile {min-height:82px;padding:5px;gap:2px;}
+  .care-visual-progress .care-visual-value {font-size:13px;}
+  .care-visual-progress .care-visual-title {font-size:10px;}
+  .care-visual-progress .care-visual-subtitle {font-size:9px;}
+}
+@media (max-width:440px) {
+  .care-reminder-beacon .care-reminder-art {width:40px;height:40px;}
+  .care-reminder-beacon .care-reminder-subtitle {display:none;}
+  .care-visual-progress .care-visual-tile {flex-direction:column;text-align:center;justify-content:center;}
+  .care-visual-progress .care-progress-svg {width:41px;height:48px;}
+  .care-visual-progress .care-visual-subtitle {font-size:8px;}
+}
+@media (min-width:768px) and (max-height:690px) {
+  .care-reminder-beacon {min-height:63px;padding:5px 9px;}
+  .care-reminder-beacon .care-reminder-art {width:45px;height:45px;}
+  .care-reminder-beacon .care-reminder-subtitle {font-size:9px;}
+  .care-visual-progress .care-visual-tile {min-height:69px;padding-block:3px;}
+  .care-visual-progress .care-progress-svg {width:50px;height:61px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .care-reminder-beacon[data-reminder-status="due"],
+  .care-reminder-beacon .care-reminder-art.is-active,
+  .care-visual-progress .care-progress-svg,
+  .care-visual-progress .care-water-wave {animation:none!important;}
+  .care-reminder-beacon .care-reminder-track-fill,
+  .care-visual-progress .care-progress-ring,
+  .care-visual-progress .care-water-fill {transition:none;}
+}
