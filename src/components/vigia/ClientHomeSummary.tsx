@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { CalendarClock, Check, Clock3, Droplets, Pill, Utensils, X, ArrowUpRight, ChevronRight, Activity, ListChecks } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { MedicationLateAlert } from "./MedicationLateAlert";
+import { CareReminderBeacon } from "./CareReminderBeacon";
+import { CareProgressVisual } from "./CareProgressVisual";
 import { ClientQuickIntake } from "./ClientQuickIntake";
 import { CareTaskRecordModal } from "./CareTaskRecordModal";
 import type { HydrationGoalSnapshot } from "@/lib/hydration-goal";
@@ -103,7 +104,7 @@ export function ClientHomeSummary(){
     </div>
     <div className="patient-home-actions flex min-w-0 shrink-0 flex-wrap items-center justify-end gap-2"><ClientQuickIntake patientId={patient?.id ?? ""} variant="home" mode="water" onRecorded={()=>setRefresh(value=>value+1)}/><ClientQuickIntake patientId={patient?.id ?? ""} variant="home" onRecorded={()=>setRefresh(value=>value+1)}/><Link to="/cliente" className="care-home-chart-link inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-[11px] font-extrabold transition">Meu prontuário <ArrowUpRight size={15}/></Link></div>
   </div>
-  <div className="care-home-medication relative shrink-0"><MedicationLateAlert tasks={tasks} onConfirm={setSelected} compact now={now}/></div>
+  <div className="care-home-medication relative shrink-0"><CareReminderBeacon tasks={tasks} onOpen={task=>{setDetailTask(task);setError("");}} compact/></div>
   <div className="care-home-body relative grid min-h-0 min-w-0 flex-1 gap-2.5 md:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] md:items-stretch">
     <div className="grid min-h-0 min-w-0 grid-rows-[minmax(0,1fr)_auto_auto] gap-1.5">
       <article className="patient-next-care relative flex min-h-[210px] min-w-0 flex-col justify-between overflow-hidden rounded-[22px] border p-3 sm:p-4 md:min-h-0">
@@ -117,7 +118,7 @@ export function ClientHomeSummary(){
         <div className="care-next-copy relative z-10 mt-2"><h3 className="max-w-[26ch] text-xl font-extrabold leading-tight md:text-2xl">{next?next.title:"Todos os cuidados concluídos"}</h3><div className="mt-2 flex flex-wrap items-baseline gap-2"><strong className="care-next-countdown font-mono text-2xl font-extrabold tabular-nums md:text-[30px]">{next?countdown:"✓"}</strong><span className="care-next-countdown-label text-xs">{next?(seconds===0?"Horário previsto já passou":"até o horário previsto"):"Nenhuma atividade pendente"}</span></div></div>
         <div className="relative z-10 mt-2 flex shrink-0 flex-wrap gap-1.5">{next&&<button type="button" onClick={()=>{setSelected(next);setError("");setMealTime(currentAcreTime());setMealDescription("");}} className="care-next-cta inline-flex min-h-9 items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-extrabold transition">Verificar / confirmar <ChevronRight size={15}/></button>}<Link to="/cliente" className="care-next-secondary inline-flex min-h-9 items-center rounded-full border px-3 py-1.5 text-[11px] font-bold transition">Ver tratamento completo</Link></div>
       </article>
-      <div className="grid min-w-0 grid-cols-3 gap-1.5">{(["medicacao","refeicao","hidratacao"] as const).map(category=>{const Icon=icons[category];const group=tasks.filter(t=>t.category===category);const done=group.filter(t=>t.completed_at).length;const first=group.find(t=>!t.completed_at);return <button key={category} type="button" data-care-stat={category} onClick={()=>{if(first){setSelected(first);setError("");setMealTime(currentAcreTime());setMealDescription("");}}} disabled={!first} className="patient-stat-card flex min-w-0 flex-col items-start gap-0.5 rounded-xl border border-white/10 bg-white/[.055] p-2 text-left transition hover:border-teal-300/40 hover:bg-white/10 disabled:cursor-default disabled:opacity-75"><Icon size={16} className="text-sky-300"/><span className="text-[11px] font-semibold text-slate-200">{category==="medicacao"?"Medicação":category==="refeicao"?"Refeições":"Hidratação"}</span><span className="text-lg font-extrabold tabular-nums">{done}<span className="text-xs font-medium text-slate-400">/{group.length}</span></span><span className="h-1 w-full overflow-hidden rounded-full bg-white/10"><span className="block h-full rounded-full bg-sky-300" style={{width:(group.length?100*done/group.length:0)+"%"}}/></span></button>})}</div>
+      <CareProgressVisual tasks={tasks} goal={dailyGoal} onOpen={task=>{setDetailTask(task);setError("");}}/>
       <div className="patient-progress flex flex-wrap items-center gap-1.5 text-[10px] text-slate-300"><Check size={14} className="text-emerald-300"/>{finished} de {tasks.length} cuidados concluídos
         {dailyGoal?.status==="atingida"&&<span title={`Hidratação: ${dailyGoal.consumed_ml} de ${dailyGoal.target_ml} ml até 23h.`} className="inline-flex items-center gap-1 rounded-md border border-emerald-300/25 bg-emerald-400/10 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-200"><Droplets size={11}/> Meta de água atingida</span>}
         {dailyGoal?.status==="nao_atingida"&&<span title={`Hidratação: ${dailyGoal.consumed_ml} de ${dailyGoal.target_ml} ml até 23h.`} className="inline-flex items-center gap-1 rounded-md border border-amber-300/25 bg-amber-400/10 px-1.5 py-0.5 text-[9px] font-semibold text-amber-200"><Droplets size={11}/> Meta não atingida · 23h</span>}
