@@ -180,7 +180,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
             <p className="rounded-lg bg-muted/60 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
               O horário real do registro será salvo automaticamente (Acre).
               {isWater
-                ? "Apenas água é contabilizada na meta diária. Este registro não substitui confirmações da programação."
+                ? "Apenas água entra na meta diária. Este registro não confirma horários programados; não registre o mesmo copo novamente na agenda."
                 : isFood?"Frutas, lanches e refeições completas são salvos no histórico de alimentação, sem confirmar uma refeição programada.":"Chás, energéticos, suplementos líquidos e shakes ficam no histórico, sem somar à meta exclusiva de água."}
             </p>
             {error && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive">{error}</p>}
