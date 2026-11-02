@@ -35,6 +35,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
  const [page,setPage]=useState(0);
  const [notDrunk,setNotDrunk]=useState<Response[]>([]);
  const [action,setAction]=useState<string|null>(null);
+ const [correctingTaskId,setCorrectingTaskId]=useState<string|null>(null);
  const [error,setError]=useState("");
  const [notice,setNotice]=useState("");
  const [reload,setReload]=useState(0);
@@ -135,10 +136,11 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
   if(!canConfirmCare(task)){setError(careScheduleBlockMessage(task));return}
   if(!Number.isFinite(volume)||volume<10||volume>1500){setError("Informe um volume real entre 10 e 1500 ml.");return}
   setAction(task.id);setError("");setNotice("");
-  const res=await (supabase as any).rpc("care_confirm_task",{p_task_id:task.id,p_water_ml:volume});
+  const res=await (supabase as any).rpc("care_record_water_decision",{p_task_id:task.id,p_decision:"drank",p_amount_ml:volume});
   setAction(null);
-  if(res.error){setError(/Care window not started|Care window expired/i.test(res.error.message??"")?careScheduleBlockMessage(task):"Não foi possível confirmar a água. Confira sua conexão ou tente novamente.");onRecorded();return}
-  setNotice(`Copo de ${volume} ml registrado com a hora real do servidor. Os próximos horários de água podem ser recalculados.`);
+  if(res.error){setError(/Care window not started|Care window expired/i.test(res.error.message??"")?careScheduleBlockMessage(task):`Não foi possível registrar: ${res.error.message??"verifique a conexão"}`);onRecorded();return}
+  setNotice(`${volume} ml de água registrados com a hora real do servidor. ${skipped.has(task.id)?"Resposta anterior corrigida. ":""}O acompanhamento será atualizado.`);
+  setCorrectingTaskId(null);
   onRecorded();
   setReload(n=>n+1);
  }
@@ -146,11 +148,23 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
   if(action)return;
   if(!canConfirmCare(task)){setError(careScheduleBlockMessage(task));return}
   setAction(task.id);setError("");setNotice("");
-  const res=await (supabase as any).rpc("care_mark_water_not_drunk",{p_task_id:task.id});
+  const res=await (supabase as any).rpc("care_record_water_decision",{p_task_id:task.id,p_decision:"not_drunk",p_amount_ml:null});
   setAction(null);
-  if(res.error){setError(/Care window not started|Care window expired/i.test(res.error.message??"")?careScheduleBlockMessage(task):"Não foi possível registrar a resposta. Tente novamente.");return}
-  setNotDrunk(prev=>[...prev.filter(t=>t.task_id!==task.id),{task_id:task.id,recorded_at:res.data}]);
-  setNotice("Resposta 'Não bebi' salva no prontuário. Nenhum volume foi contabilizado.");
+  if(res.error){setError(/Care window not started|Care window expired/i.test(res.error.message??"")?careScheduleBlockMessage(task):`Não foi possível registrar a resposta: ${res.error.message??"tente novamente"}`);return}
+  setNotDrunk(prev=>[...prev.filter(t=>t.task_id!==task.id),{task_id:task.id,recorded_at:res.data.recorded_at}]);
+  setNotice("Resposta “Não bebi” registrada com o horário real. Nenhum volume foi contabilizado.");
+  onRecorded();setReload(n=>n+1);
+ }
+ async function undoNo(task:Task){
+  if(action)return;
+  setAction(task.id);setError("");setNotice("");
+  const res=await (supabase as any).rpc("care_record_water_decision",{p_task_id:task.id,p_decision:"reset_not_drunk",p_amount_ml:null});
+  setAction(null);
+  if(res.error){setError(`Não foi possível desfazer a resposta: ${res.error.message??"tente novamente"}`);return}
+  setNotDrunk(prev=>prev.filter(t=>t.task_id!==task.id));
+  setCorrectingTaskId(null);
+  setNotice("Resposta anterior desfeita; este horário está novamente sem confirmação.");
+  onRecorded();setReload(n=>n+1);
  }
  return <section className="flex min-h-0 w-full min-w-0 flex-col gap-2" aria-label="Programa personalizado de hidratação">
   <header className="flex flex-wrap items-center justify-between gap-2">
@@ -223,26 +237,38 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
         const i=schedule.findIndex(item=>item.id===task.id);
         const answered=skipped.get(task.id);
         const status=task.completed_at?"done":answered?"skipped":getCareScheduleState(task,clock)==="missed"?"missed":"pending";
-        const available=canConfirmCare(task,clock)&&!answered;
+        const available=canConfirmCare(task,clock);
+        const correcting=correctingTaskId===task.id;
         const suggested=portions[i]||0;
         const defaultVolume=volumeByTask[task.id]??(suggested>0?suggested:200);
-        return <article key={task.id} className={`flex min-w-0 items-center gap-2 rounded-lg border px-2 py-1.5 ${status==="done"?"border-emerald-500/25 bg-emerald-500/[.055]":"border-border/75 bg-muted/25"}`}>
-          <span className={`grid size-7 shrink-0 place-items-center rounded-lg ${status==="done"?"bg-emerald-500/10 text-emerald-600 dark:text-emerald-300":"bg-sky-500/10 text-sky-600 dark:text-sky-300"}`}>{status==="done"?<CheckCircle2 size={16}/>:<Droplets size={16}/>}</span>
+        return <article key={task.id} className={`flex min-w-0 flex-col gap-1.5 rounded-lg border px-2 py-1.5 ${status==="done"?"border-emerald-500/25 bg-emerald-500/[.055]":status==="skipped"?"border-amber-500/30 bg-amber-500/[.04]":"border-border/75 bg-muted/25"}`}>
+          <div className="flex min-w-0 items-center gap-2"><span className={`grid size-7 shrink-0 place-items-center rounded-lg ${status==="done"?"bg-emerald-500/10 text-emerald-600 dark:text-emerald-300":"bg-sky-500/10 text-sky-600 dark:text-sky-300"}`}>{status==="done"?<CheckCircle2 size={16}/>:<Droplets size={16}/>}</span>
           <div className="min-w-0 flex-1">
             <p className="flex flex-wrap items-center gap-1 text-[11px] font-bold text-foreground"><span className="tabular-nums">{time(task.scheduled_at)}</span><span>· Água</span>{suggested>0&&!task.completed_at&&<span className="rounded bg-sky-500/10 px-1 text-[10px] text-sky-700 dark:text-sky-300">~{suggested} ml</span>}</p>
-            <p className="truncate text-[10px] text-muted-foreground">{status==="done"?`Confirmado em ${time(task.completed_at!)}`:status==="skipped"?`Não bebi · ${time(answered!)}`:status==="missed"?"Não confirmado":available?"Disponível para confirmar":"Programado"}</p>
+            <p className="truncate text-[10px] text-muted-foreground">{status==="done"?`Bebi · confirmado em ${time(task.completed_at!)}`:status==="skipped"?`Não bebi · resposta às ${time(answered!)}`:available?"Informe se bebeu ou não bebeu":`Programado · disponível a partir de ${time(task.scheduled_at)}`}</p>
           </div>
           {status==="done"?<button type="button" onClick={()=>setDetailTask(task)} title="Consultar e corrigir volume" className="shrink-0 rounded-lg border border-emerald-500/35 bg-emerald-500/10 px-2 py-1.5 text-[11px] font-bold text-emerald-700 hover:bg-emerald-500/15 dark:text-emerald-300">Ver registro</button>
-           :status==="skipped"?<span className="text-[10px] text-muted-foreground">Não bebi</span>
-           :available?<div className="flex max-w-[168px] shrink-0 flex-wrap items-center justify-end gap-1">
-             <input aria-label={`Volume de água às ${time(task.scheduled_at)} em ml`} type="number" min={10} max={1500} step={10}
-               value={defaultVolume} onChange={e=>setVolumeByTask(prev=>({...prev,[task.id]:Number(e.target.value)}))}
-               className="w-[58px] rounded-md border border-border bg-background px-1 py-1.5 text-center text-[11px] text-foreground"/>
+           :status==="skipped"?<button type="button" disabled={Boolean(action)} onClick={()=>setCorrectingTaskId(correcting?null:task.id)}
+             className="shrink-0 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2 py-1.5 text-[11px] font-bold text-foreground disabled:opacity-50">{correcting?"Fechar":"Corrigir"}</button>
+           :available?<span className="shrink-0 rounded-md bg-sky-500/10 px-2 py-1 text-[10px] font-semibold text-sky-700 dark:text-sky-300">Responder</span>
+           :<span className="shrink-0 text-[10px] font-medium text-muted-foreground">Aguardando</span>}
+          </div>
+          {((available&&!answered)||correcting)&&status!=="done"&&<div className="flex min-w-0 flex-wrap items-center gap-1.5 pl-0 sm:pl-9">
+             <label className="flex items-center gap-1 text-[10px] text-muted-foreground">
+               <span>Volume</span><input aria-label={`Volume de água às ${time(task.scheduled_at)} em ml`}
+                 type="number" min={10} max={1500} step={10}
+                 value={defaultVolume} onChange={e=>setVolumeByTask(prev=>({...prev,[task.id]:Number(e.target.value)}))}
+                 className="h-8 w-[65px] rounded-md border border-border bg-background px-1.5 text-center text-[11px] font-semibold text-foreground"/>
+               <span>ml</span>
+             </label>
              <button type="button" disabled={Boolean(action)} onClick={()=>void confirmGlass(task,defaultVolume)}
-               className="rounded-md bg-primary px-2 py-1.5 text-[10px] font-bold text-primary-foreground disabled:opacity-50">Confirmar</button>
-             <button type="button" disabled={Boolean(action)} onClick={()=>void markNo(task)}
-               className="rounded-md border border-border px-2 py-1 text-[10px] text-foreground disabled:opacity-50">Não bebi</button>
-           </div>:<span className="shrink-0 text-[10px] text-muted-foreground">Aguardando</span>}
+               className="h-8 rounded-lg bg-primary px-2.5 text-[11px] font-bold text-primary-foreground disabled:opacity-50">{action===task.id?"Salvando…":"Bebi"}</button>
+             {correcting?<button type="button" disabled={Boolean(action)} onClick={()=>void undoNo(task)}
+               className="h-8 rounded-lg border border-border px-2 text-[11px] font-semibold text-foreground disabled:opacity-50">Desfazer “Não bebi”</button>
+               :<button type="button" disabled={Boolean(action)} onClick={()=>void markNo(task)}
+               className="h-8 rounded-lg border border-border px-2.5 text-[11px] font-semibold text-foreground disabled:opacity-50">Não bebi</button>}
+          </div>}
+          {!available&&!task.completed_at&&!answered&&<p className="text-[10px] text-muted-foreground sm:pl-9">Se bebeu antes deste horário, use “Registrar água” para salvar agora sem antecipar a programação.</p>}
         </article>;
       })}
       {!pageTasks.length&&<p className="rounded-lg bg-muted/30 p-2 text-xs text-muted-foreground">Nenhum horário de hidratação programado. Você ainda pode usar <strong>Registrar água</strong>.</p>}
