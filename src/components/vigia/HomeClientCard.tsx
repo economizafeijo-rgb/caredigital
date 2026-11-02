@@ -35,6 +35,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
   const [loading, setLoading] = useState(true);
   const [client, setClient] = useState<Client | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [resolvedStates,setResolvedStates]=useState<Record<string,string>>({});
   const [notice, setNotice] = useState("");
   const [confirmationResult,setConfirmationResult]=useState<{success:boolean;title:string;detail:string}|null>(null);
   const [locked, setLocked] = useState(false);
@@ -101,22 +102,43 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
       if (res.error) { setNotice("Não foi possível consultar o prontuário."); return; }
       const first = (res.data ?? [])[0] as Client | undefined;
       setClient(first ?? null);
-      if (!first) { setTasks([]); return; }
+      if (!first) { setTasks([]); setResolvedStates({}); return; }
       const date = dayInAcre(new Date());
       const from = new Date(date + "T00:00:00-05:00").toISOString();
       const until = new Date(new Date(from).getTime() + 86400000).toISOString();
       const rows = await db.from("care_daily_checklist").select("id,patient_id,title,category,scheduled_at,completed_at")
         .eq("owner_id",first.owner_id).eq("patient_id",first.id).gte("scheduled_at",from).lt("scheduled_at",until)
         .in("category",["medicacao","hidratacao","refeicao","outro"]).order("scheduled_at",{ascending:true}).limit(120);
-      if (active) { if (rows.error) setNotice("Não foi possível carregar a agenda de hoje."); else setTasks((rows.data ?? []).filter((task:Task)=>task.category!=="outro" || /suplement|vitamin|creatina|whey|ômega|omega|minerais|magnésio|magnesio/i.test(task.title))); }
+      if(!active)return;
+      if(rows.error){setNotice("Não foi possível carregar a agenda de hoje.");return;}
+      const eligible=(rows.data??[]).filter((task:Task)=>task.category!=="outro"||
+        /suplement|vitamin|creatina|whey|ômega|omega|minerais|magnésio|magnesio/i.test(task.title));
+      const ids=eligible.map((task:Task)=>task.id);
+      const [decisions,waterAnswers]=ids.length?await Promise.all([
+        db.from("care_task_resolutions").select("task_id,status")
+          .eq("patient_id",first.id).eq("owner_id",first.owner_id)
+          .in("task_id",ids).limit(120),
+        db.from("care_hydration_responses").select("task_id,response")
+          .eq("patient_id",first.id).eq("owner_id",first.owner_id)
+          .in("task_id",ids).eq("response","not_drunk").limit(120)
+      ]):[{data:[],error:null},{data:[],error:null}];
+      if(!active)return;
+      if(decisions.error||waterAnswers.error){
+        setNotice("Não foi possível verificar todas as respostas. Consulte o prontuário antes de confirmar.");
+      }
+      const resolutionMap:Record<string,string>={};
+      for(const record of decisions.data??[])resolutionMap[record.task_id]=record.status;
+      for(const record of waterAnswers.data??[])resolutionMap[record.task_id]="nao_bebi";
+      setResolvedStates(resolutionMap);
+      setTasks(eligible);
     };
     void load();
     return () => { active = false; };
   }, [owner, tick]);
 
   const completed = tasks.filter(t => Boolean(t.completed_at)).length;
-  const nextCare = tasks.find(t => !t.completed_at && Date.parse(t.scheduled_at) >= (clock?.getTime() ?? Date.now()))
-    ?? tasks.find(t => !t.completed_at && getCareScheduleState(t, clock?.getTime() ?? Date.now()) === "available");
+  const nextCare = tasks.find(t => !t.completed_at && !resolvedStates[t.id] && Date.parse(t.scheduled_at) >= (clock?.getTime() ?? Date.now()))
+    ?? tasks.find(t => !t.completed_at && !resolvedStates[t.id] && getCareScheduleState(t, clock?.getTime() ?? Date.now()) === "available");
   const meals = tasks.filter(t => t.category === "refeicao");
   const mealGuide: Record<string,string> = { "Café da manhã":"Aveia cozida em água ou leite sem lactose, se tolerado, com banana madura.", "Lanche da manhã":"Mamão ou banana madura; ajuste à sua tolerância.", "Almoço":"Arroz, frango cozido ou grelhado sem excesso de gordura, batata e legumes cozidos.", "Lanche da tarde":"Batata-doce cozida ou fruta tolerada.", "Jantar":"Sopa suave de legumes e frango desfiado, sem pimenta.", "Ceia":"Mingau leve de aveia ou banana, conforme tolerância." };
 
@@ -124,6 +146,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
 
   function askConfirm(task: Task) {
     if (!owner || !client) { setLocked(true); return; }
+    if(resolvedStates[task.id]){showTaskDetails(task);return;}
     if (!canConfirmCare(task) && !(task.category === "medicacao" && !task.completed_at && Date.now() >= Date.parse(task.scheduled_at))) {
       setPending(null);
       setConfirmationResult({success:false,title:"Confirmação indisponível",detail:careScheduleBlockMessage(task)});
@@ -296,7 +319,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
             </div>
           </div>}
 
-          {activeTab==="agenda"&&<ClientAgendaPage tasks={tasks} now={clock?.getTime()}
+          {activeTab==="agenda"&&<ClientAgendaPage tasks={tasks} resolved={resolvedStates} now={clock?.getTime()}
             onView={showTaskDetails} onConfirm={askConfirm}/>}
           {activeTab==="hidratacao"&&<div className="care-client-hydration-page flex h-full min-h-0 flex-col gap-2">
             <div className="care-client-hydration-switch grid shrink-0 grid-cols-2 gap-1 rounded-xl border border-border bg-muted/45 p-1" role="group" aria-label="Bebidas e hidratação">
@@ -313,7 +336,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
           </div>}
           {activeTab==="historico"&&<PatientActivityHistory patientId={client.id} ownerId={client.owner_id} revision={tick} onRecordChanged={()=>setTick(value=>value+1)}/>}
           {activeTab==="alimentacao"&&<ClientMealsPage patientId={client.id} ownerId={client.owner_id}
-            meals={meals} revision={tick} now={clock?.getTime()}
+            meals={meals} resolved={resolvedStates} revision={tick} now={clock?.getTime()}
             onView={showTaskDetails} onConfirm={askConfirm}
             onDelete={meal=>{const item=tasks.find(task=>task.id===meal.id);if(item){setPending(null);setMealToDelete(item);}}}
             onRecorded={()=>setTick(value=>value+1)}/>}
