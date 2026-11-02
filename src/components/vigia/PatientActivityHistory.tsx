@@ -24,6 +24,7 @@ const groups:{key:"todos"|HistoryGroup;label:string;icon:typeof History}[]=[
 const subtypes:Record<HistoryGroup,{value:string;label:string}[]>={
   liquidos:[
     {value:"agua",label:"Água"},
+    {value:"meta_diaria",label:"Metas diárias"},
     {value:"cha",label:"Chás"},
     {value:"suco",label:"Sucos"},
     {value:"cafe",label:"Café"},
@@ -45,7 +46,8 @@ const subtypes:Record<HistoryGroup,{value:string;label:string}[]>={
 };
 const statusLabel:Record<HistoryStatus,string>={
   confirmado:"Confirmado",registrado:"Registrado",nao_confirmado:"Não confirmado",
-  nao_bebi:"Não bebi",corrigido:"Corrigido",reprogramado:"Reprogramado",excluido:"Excluído"
+  nao_bebi:"Não bebi",corrigido:"Corrigido",reprogramado:"Reprogramado",excluido:"Excluído",
+  meta_atingida:"Meta atingida",meta_nao_atingida:"Meta não atingida"
 };
 const defaultFilters:HistoryFilter={
   group:"liquidos",subtype:"todos",status:"todos",period:"hoje",query:"",order:"recentes"
@@ -84,7 +86,10 @@ export function PatientActivityHistory({patientId,ownerId,revision}:{
       // Scope every source to this authorized patient and its owner.
       // Fixed 30-day retrieval window; the day/period selectors only narrow it.
       const since=new Date(Date.now()-31*86400000).toISOString();
-      const [tasks,water,meals,drinks,observations,audit,responses]=await Promise.all([
+      // Reconcile the 23h result before reading the dated daily-history snapshots.
+      const sync=await db.rpc("care_sync_hydration_goal",{p_patient_id:patientId});
+      if(!live)return;
+      const [tasks,water,meals,drinks,observations,audit,responses,dailyGoals]=await Promise.all([
         db.from("care_daily_checklist").select("id,category,title,scheduled_at,completed_at")
           .eq("patient_id",patientId).eq("owner_id",ownerId)
           .gte("scheduled_at",since).order("scheduled_at",{ascending:false}).limit(400),
@@ -104,7 +109,11 @@ export function PatientActivityHistory({patientId,ownerId,revision}:{
           .gte("recorded_at",since).order("recorded_at",{ascending:false}).limit(500),
         db.from("care_hydration_responses").select("task_id,response,recorded_at")
           .eq("patient_id",patientId).eq("owner_id",ownerId)
-          .gte("recorded_at",since).order("recorded_at",{ascending:false}).limit(250)
+          .gte("recorded_at",since).order("recorded_at",{ascending:false}).limit(250),
+        db.from("care_hydration_daily_goals").select("goal_date,target_ml,consumed_ml,status,closed_at,updated_at")
+          .eq("patient_id",patientId).eq("owner_id",ownerId)
+          .gte("goal_date",new Date(Date.now()-31*86400000).toLocaleDateString("en-CA",{timeZone:"America/Rio_Branco"}))
+          .order("goal_date",{ascending:false}).limit(90)
       ]);
       if(!live)return;
       if(tasks.error){
@@ -113,12 +122,12 @@ export function PatientActivityHistory({patientId,ownerId,revision}:{
         setLoading(false);
         return;
       }
-      const responsesList=[water,meals,drinks,observations,audit,responses];
+      const responsesList=[water,meals,drinks,observations,audit,responses,dailyGoals,sync];
       setPartial(responsesList.some(result=>Boolean(result.error)));
       const raw:HistorySources={
         checklist:tasks.data??[],water:water.data??[],meals:meals.data??[],
         drinks:drinks.data??[],observations:observations.data??[],
-        audit:audit.data??[],responses:responses.data??[]
+        audit:audit.data??[],responses:responses.data??[],dailyGoals:dailyGoals.data??[]
       };
       try{
         setItems(assembleCareHistory(raw));
