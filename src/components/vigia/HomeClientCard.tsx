@@ -303,13 +303,31 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
       </div>,
       document.body
     )}
-    {pending && pending.category !== "medicacao" && <div role="dialog" aria-label="Confirmar cuidado" className="m-5 rounded-2xl border border-[#aec8d6] bg-[#eff5f8] p-5">
-      <div className="flex items-center gap-2 font-bold text-[#163b56]"><CheckCircle2 size={19}/> Confirmação de cuidado</div>
-      <p className="mt-2 text-sm">{pending.title} · {timeInAcre(pending.scheduled_at)}</p>
-      {pending.category === "medicacao" && <div className="mt-3 space-y-2 text-sm"><p>Horário programado: <strong>{timeInAcre(pending.scheduled_at)}</strong>. Registro efetivo: <strong>data e hora atuais do servidor</strong>.</p>{Math.abs(Date.now()-new Date(pending.scheduled_at).getTime()) > 15*60000 && <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-amber-900">Atenção: você está fora da janela de 15 minutos do horário programado. A confirmação será registrada como adiantada ou atrasada, com horário real. Confirme somente se acabou de tomar; não tome dose extra para compensar.</p>}<p className="text-xs text-muted-foreground">Se tomou anteriormente e esqueceu de registrar, não use esta confirmação para informar uma hora passada.</p></div>}
-      {pending.category === "refeicao" && <p className="mt-2 text-xs text-muted-foreground">Confirme somente se a refeição foi realizada.</p>}
-      {pending.category === "hidratacao" && <label className="mt-3 block text-sm">Água realmente consumida (ml)<input className="field mt-1 max-w-40" type="number" min={10} max={1500} step={10} value={amount} onChange={e => setAmount(e.target.value)} /></label>}
-      <div className="mt-4 flex flex-wrap gap-2"><button disabled={busy} onClick={() => void confirm()} className="rounded-xl bg-[#216083] px-5 py-3 text-sm font-semibold text-white disabled:opacity-50">{busy ? "Salvando…" : "Confirmar realização"}</button><button disabled={busy} onClick={() => setPending(null)} className="rounded-xl border border-[#b8d2df] px-4 py-3 text-sm">Cancelar</button></div>
-    </div>}
+    {pending && pending.category !== "medicacao" && typeof document !== "undefined" && createPortal(
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/70 p-3 backdrop-blur-sm" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)setPending(null)}}>
+        <section role="dialog" aria-modal="true" aria-labelledby="care-confirm-title" className="w-full max-w-[390px] overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-2xl">
+          <div className="flex items-center justify-between gap-3 border-b border-border bg-primary/10 px-4 py-3">
+            <h3 id="care-confirm-title" className="flex items-center gap-2 text-sm font-extrabold text-foreground"><CheckCircle2 size={20} className="text-primary"/> Confirmar cuidado realizado</h3>
+            <button type="button" disabled={busy} onClick={()=>setPending(null)} aria-label="Fechar confirmação" className="grid size-8 place-items-center rounded-lg hover:bg-muted"><X size={17}/></button>
+          </div>
+          <div className="space-y-3 px-4 py-3">
+            <div className="rounded-xl border border-border bg-muted/45 p-3">
+              <p className="text-sm font-bold">{pending.title}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Horário programado: {timeInAcre(pending.scheduled_at)} (Acre)</p>
+            </div>
+            {pending.category==="refeicao"&&<p className="text-xs leading-relaxed text-muted-foreground">Confirme somente se realizou esta refeição. O registro será salvo com a data e a hora do servidor.</p>}
+            {pending.category==="hidratacao"&&<label className="block text-xs font-bold text-foreground">Volume de água realmente consumido (ml)
+              <input className="field mt-1.5 w-full" type="number" min={10} max={1500} step={10} value={amount} onChange={e=>setAmount(e.target.value)}/>
+              <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Confirme apenas a quantidade que você bebeu agora.</span>
+            </label>}
+          </div>
+          <div className="grid grid-cols-2 gap-2 border-t border-border px-4 py-3">
+            <button type="button" disabled={busy} onClick={()=>setPending(null)} className="h-10 rounded-xl border border-border text-xs font-bold text-foreground">Cancelar</button>
+            <button type="button" disabled={busy} onClick={()=>void confirm()} className="h-10 rounded-xl bg-primary px-2 text-xs font-extrabold text-primary-foreground disabled:opacity-60">{busy?"Registrando…":"Confirmar agora"}</button>
+          </div>
+        </section>
+      </div>,
+      document.body
+    )}
   </section>;
 }
