@@ -89,7 +89,7 @@ export function ClientBeverageTracker({
       if (typeof result.data !== "string" || !Number.isFinite(Date.parse(result.data))) {
         throw new Error("Missing server timestamp");
       }
-      setNotice(kind==="agua"?`Água registrada às ${formatStamp(result.data)} (Acre). Sua meta diária foi atualizada; consulte Minha meta de água.`:`${beverageCategory(kind)?.label??"Bebida"} registrado(a) às ${formatStamp(result.data)} (Acre), no histórico de líquidos.`);
+      setNotice(kind==="agua"?`Água registrada às ${formatStamp(result.data)} (Acre). Sua meta diária foi atualizada; consulte Minha meta de água.`:`Consumo de ${(beverageCategory(kind)?.label??"bebida").toLowerCase()} registrado em ${formatStamp(result.data)} (Acre), no histórico de líquidos.`);
       requestId.current=null;
       setName(""); setNotes(""); setAmount("200");
       setReload(value => value + 1);
