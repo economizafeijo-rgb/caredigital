@@ -158,7 +158,7 @@ function MedicationSvg() {
 export function PublicCareShowcase({kind}:{kind:ShowcaseKind}) {
   const info=copy[kind];
   const MainIcon=kind==="hydration"?Droplets:kind==="sports"?Dumbbell:Pill;
-  return <div className="mx-auto flex min-h-full w-full max-w-[1080px] flex-col justify-start py-1.5 lg:justify-center" aria-label={"Demonstração pública — "+info.title}>
+  return <div className={`mx-auto flex min-h-full w-full max-w-[1080px] flex-col justify-start py-1.5 lg:justify-center ${kind==="hydration"?"public-hydration-showcase lg:ml-0 lg:mr-auto lg:max-w-[850px]":""}`} aria-label={"Demonstração pública — "+info.title}>
     <section className="flex w-full shrink-0 flex-col gap-2.5 rounded-3xl border border-border bg-card/95 p-3 shadow-[0_14px_42px_-28px_rgba(26,65,81,.4)] sm:p-4 lg:gap-3">
       <header className="flex shrink-0 flex-wrap items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2.5">
@@ -171,8 +171,8 @@ export function PublicCareShowcase({kind}:{kind:ShowcaseKind}) {
       <div className="grid shrink-0 items-center gap-3 rounded-2xl border border-border/70 bg-muted/35 px-3 py-2.5 sm:px-4 md:grid-cols-[minmax(0,1.05fr)_minmax(0,.95fr)]">
         <div className="min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-[.14em] text-primary">Acompanhamento com privacidade</p>
-          <h2 className="mt-1 max-w-[22ch] text-balance text-xl font-extrabold leading-tight text-foreground sm:text-2xl">{info.lead}</h2>
-          <p className="mt-2 max-w-[56ch] text-xs leading-relaxed text-muted-foreground sm:text-sm">{info.description}</p>
+          <h2 className={`mt-1 max-w-[22ch] text-balance text-xl font-extrabold leading-tight text-foreground ${kind==="hydration"?"sm:text-[22px]":"sm:text-2xl"}`}>{info.lead}</h2>
+          <p className={`mt-2 max-w-[56ch] text-xs leading-relaxed text-muted-foreground ${kind==="hydration"?"sm:text-xs":"sm:text-sm"}`}>{info.description}</p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <Link to="/cliente" className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground hover:opacity-90"><LockKeyhole size={14}/>{info.cta}<ArrowRight size={14}/></Link>
             <Link to="/entrar" className="inline-flex min-h-9 items-center rounded-lg border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted">Entrar na conta</Link>
