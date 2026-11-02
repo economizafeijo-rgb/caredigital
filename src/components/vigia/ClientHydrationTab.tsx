@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Droplets, CheckCircle2, AlertCircle, Save, SlidersHorizontal } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import {canConfirmCare,careScheduleBlockMessage,careScheduleLabel,getCareScheduleState} from "@/lib/care-schedule";
 
 type Task={id:string;patient_id:string;category:string;title:string;scheduled_at:string;completed_at:string|null};
 type Drink={id:string;amount_ml:number;recorded_at:string};
@@ -13,14 +14,14 @@ const round50=(value:number)=>Math.round(value/50)*50;
 const time=(iso:string)=>new Intl.DateTimeFormat("pt-BR",{timeZone:tz,hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date(iso));
 const stamp=(iso:string)=>new Intl.DateTimeFormat("pt-BR",{timeZone:tz,day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(new Date(iso));
 const dateKey=(iso:string)=>new Intl.DateTimeFormat("en-CA",{timeZone:tz,year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(iso));
-function WaterGlass({state}:{state:"pending"|"done"|"skipped"}){
- const color=state==="done"?"#16a085":state==="skipped"?"#b8c4ce":"#6dc9e7";
- return <svg viewBox="0 0 54 68" role="img" aria-label={state==="done"?"Copo confirmado":state==="skipped"?"Não bebeu neste horário":"Copo aguardando confirmação"} className="h-12 w-10 shrink-0">
+function WaterGlass({state}:{state:"pending"|"done"|"skipped"|"missed"}){
+ const color=state==="done"?"#16a085":state==="skipped"||state==="missed"?"#b8c4ce":"#6dc9e7";
+ return <svg viewBox="0 0 54 68" role="img" aria-label={state==="done"?"Copo confirmado":state==="skipped"?"Não bebeu neste horário":state==="missed"?"Não confirmado neste horário":"Copo aguardando confirmação"} className="h-12 w-10 shrink-0">
   <path d="M8 6h38l-4.5 47a10 10 0 0 1-10 9h-9a10 10 0 0 1-10-9z" fill="#e8f8ff" stroke="#4d9dbe" strokeWidth="2.5"/>
-  <path d="M12 30q15-5 30 0l-2 23a8 8 0 0 1-8 7H22a8 8 0 0 1-8-7z" fill={color} opacity={state==="skipped" ? 0.25 : 0.85}/>
+  <path d="M12 30q15-5 30 0l-2 23a8 8 0 0 1-8 7H22a8 8 0 0 1-8-7z" fill={color} opacity={state==="skipped"||state==="missed" ? 0.25 : 0.85}/>
   <path d="M13 23h28" stroke="#b6e1ee" strokeWidth="2" strokeLinecap="round"/>
   {state==="done"&&<g><circle cx="42" cy="13" r="10" fill="#0c946a"/><path d="m37 13 3.5 3.5 6-7" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></g>}
-  {state==="skipped"&&<g><circle cx="42" cy="13" r="10" fill="#778899"/><path d="M38 13h8" stroke="white" strokeWidth="2.5" strokeLinecap="round"/></g>}
+  {(state==="skipped"||state==="missed")&&<g><circle cx="42" cy="13" r="10" fill="#778899"/><path d="M38 13h8" stroke="white" strokeWidth="2.5" strokeLinecap="round"/></g>}
  </svg>;
 }
 function estimate(profile:Profile){
@@ -43,6 +44,8 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
  const [notice,setNotice]=useState("");
  const [reload,setReload]=useState(0);
  const [loading,setLoading]=useState(true);
+ const [clock,setClock]=useState(()=>Date.now());
+ useEffect(()=>{const timer=window.setInterval(()=>setClock(Date.now()),10000);return()=>window.clearInterval(timer)},[]);
  const update=(change:Partial<Profile>)=>setProfile(prev=>({...prev,...change}));
  useEffect(()=>{let active=true;setLoading(true);
   void (async()=>{
@@ -78,7 +81,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
    return i===schedule.length-1?goal-unit*(schedule.length-1):unit;
  }),[schedule,goal]);
  const skipped=new Map(notDrunk.map(item=>[item.task_id,item.recorded_at]));
- const next=schedule.find(item=>!item.completed_at&&!skipped.has(item.id));
+ const next=schedule.find(item=>!item.completed_at&&!skipped.has(item.id)&&getCareScheduleState(item,clock)!=="missed");
  async function saveProfile(){
   if(!calculation||saving)return;
   setSaving(true);setError("");setNotice("");
@@ -93,21 +96,23 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
  }
  async function confirmGlass(task:Task,volume:number){
   if(action)return;
+  if(!canConfirmCare(task)){setError(careScheduleBlockMessage(task));return}
   if(!goal||volume<10||volume>1500){onConfirm(task);return}
   setAction(task.id);setError("");setNotice("");
   const res=await (supabase as any).rpc("care_confirm_task",{p_task_id:task.id,p_water_ml:volume});
   setAction(null);
-  if(res.error){setError("Não foi possível confirmar a água. Confira sua conexão ou tente novamente.");return}
+  if(res.error){setError(/Care window not started|Care window expired/i.test(res.error.message??"")?careScheduleBlockMessage(task):"Não foi possível confirmar a água. Confira sua conexão ou tente novamente.");onRecorded();return}
   setNotice(`Copo de ${volume} ml registrado com data e hora do servidor.`);
   onRecorded();
   setReload(n=>n+1);
  }
  async function markNo(task:Task){
   if(action)return;
+  if(!canConfirmCare(task)){setError(careScheduleBlockMessage(task));return}
   setAction(task.id);setError("");setNotice("");
   const res=await (supabase as any).rpc("care_mark_water_not_drunk",{p_task_id:task.id});
   setAction(null);
-  if(res.error){setError("Não foi possível registrar a resposta. Tente novamente.");return}
+  if(res.error){setError(/Care window not started|Care window expired/i.test(res.error.message??"")?careScheduleBlockMessage(task):"Não foi possível registrar a resposta. Tente novamente.");return}
   setNotDrunk(prev=>[...prev.filter(t=>t.task_id!==task.id),{task_id:task.id,recorded_at:res.data}]);
   setNotice("Resposta 'Não bebi' salva no prontuário. Nenhum volume foi contabilizado.");
  }
@@ -134,12 +139,14 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
   <div className="max-h-[335px] space-y-2 overflow-y-auto pr-1">
    {schedule.map((task,i)=>{
     const answered=skipped.get(task.id);
-    const status=task.completed_at?"done":answered?"skipped":"pending";
+    const status=task.completed_at?"done":answered?"skipped":getCareScheduleState(task,clock)==="missed"?"missed":"pending";
+     const available=canConfirmCare(task,clock);
     return <article key={task.id} className={`flex items-center gap-2 rounded-xl border p-2.5 ${status==="done"?"border-emerald-500/40 bg-emerald-500/5":"border-border bg-card"}`}>
      <WaterGlass state={status}/>
-     <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-1.5"><strong className="text-xs">Previsto: {time(task.scheduled_at)}</strong>{goal>0&&<span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">~{portions[i]} ml</span>}</div><p className="mt-1 text-[11px] text-muted-foreground">{status==="done"?`Bebeu · registrado em ${stamp(task.completed_at!)}`:status==="skipped"?`Não bebeu · informado em ${stamp(answered!)}`:"Aguardando sua resposta"}</p></div>
-     {status==="pending"&&<div className="flex shrink-0 flex-col gap-1"><button type="button" onClick={()=>void confirmGlass(task,portions[i])} disabled={Boolean(action)} className="rounded-lg bg-primary px-2 py-1.5 text-[11px] font-bold text-primary-foreground disabled:opacity-60">{goal>0?`Bebi ${portions[i]} ml`:"Bebi"}</button><button type="button" disabled={action===task.id} onClick={()=>void markNo(task)} className="rounded-lg border border-border px-2 py-1.5 text-[11px] font-medium text-foreground disabled:opacity-60">Não bebi</button></div>}
-     {status==="skipped"&&<button type="button" onClick={()=>void confirmGlass(task,portions[i])} disabled={Boolean(action)} className="rounded-lg border border-primary/30 px-2 py-2 text-[11px] font-semibold text-primary disabled:opacity-60">Bebi depois</button>}
+     <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-1.5"><strong className="text-xs">Previsto: {time(task.scheduled_at)}</strong>{goal>0&&<span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">~{portions[i]} ml</span>}</div><p className="mt-1 text-[11px] text-muted-foreground">{status==="done"?`Bebeu · registrado em ${stamp(task.completed_at!)}`:status==="skipped"?`Não bebeu · informado em ${stamp(answered!)}`:status==="missed"?"Não confirmado · horário encerrado":careScheduleLabel(task,clock)}</p></div>
+     {status==="pending"&&available&&<div className="flex shrink-0 flex-col gap-1"><button type="button" onClick={()=>void confirmGlass(task,portions[i])} disabled={Boolean(action)} className="rounded-lg bg-primary px-2 py-1.5 text-[11px] font-bold text-primary-foreground disabled:opacity-60">{goal>0?`Bebi ${portions[i]} ml`:"Bebi"}</button><button type="button" disabled={action===task.id} onClick={()=>void markNo(task)} className="rounded-lg border border-border px-2 py-1.5 text-[11px] font-medium text-foreground disabled:opacity-60">Não bebi</button></div>}
+     {status==="pending"&&!available&&<span className="text-[10px] font-semibold text-muted-foreground">Aguardando horário</span>}
+      {status==="missed"&&<span className="text-[10px] font-semibold text-muted-foreground">Não confirmado</span>}
      {status==="done"&&<CheckCircle2 size={18} className="shrink-0 text-emerald-600"/>}
     </article>
    })}
@@ -148,7 +155,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
   {loading&&<p className="text-xs text-muted-foreground">Carregando registros…</p>}
   {error&&<p role="alert" className="text-xs text-destructive">{error}</p>}
   {notice&&<p role="status" className="text-xs text-emerald-700 dark:text-emerald-300">{notice}</p>}
-  <p className="text-[11px] leading-relaxed text-muted-foreground">Estimativa para adultos, não prescrição clínica. O sexo informa uma referência populacional, não uma necessidade individual exata. Idade avançada, restrição de líquidos ou meta elevada exigem avaliação individual. A hidratação deve respeitar sede, refeições, calor, treino e tolerância à gastrite. Confirmações são gravadas no Supabase com horário do servidor; “Não bebi” não acrescenta água ao consumo. Evite compensações rápidas ou grandes volumes de uma vez.</p>
+  <p className="text-[11px] leading-relaxed text-muted-foreground">Estimativa para adultos, não prescrição clínica. O sexo informa uma referência populacional, não uma necessidade individual exata. Idade avançada, restrição de líquidos ou meta elevada exigem avaliação individual. A hidratação deve respeitar sede, refeições, calor, treino e tolerância à gastrite. Confirmações são gravadas no Supabase com horário do servidor. O horário fica disponível durante 15 minutos; depois, sem registro, aparece como Não confirmado. “Não bebi” não acrescenta água ao consumo. Evite compensações rápidas ou grandes volumes de uma vez.</p>
   <p className="text-[10px] text-muted-foreground">Referências: <a className="underline" href="https://www.nationalacademies.org/read/10925/chapter/6" target="_blank" rel="noreferrer">National Academies</a> · <a className="underline" href="https://pubmed.ncbi.nlm.nih.gov/17277604/" target="_blank" rel="noreferrer">ACSM</a>.</p>
  </section>;
 }
