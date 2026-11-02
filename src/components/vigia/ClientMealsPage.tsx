@@ -7,15 +7,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { ClientQuickIntake } from "./ClientQuickIntake";
 import { careReminderState, reminderClock, type ReminderTask } from "@/lib/care-reminders";
 
-type Props={
+type Props<T extends ReminderTask = ReminderTask>={
   patientId:string;
   ownerId:string;
-  meals:ReminderTask[];
+  meals:T[];
   revision:number;
   now?:number;
-  onView:(task:ReminderTask)=>void;
-  onConfirm:(task:ReminderTask)=>void;
-  onDelete:(task:ReminderTask)=>void;
+  onView:(task:T)=>void;
+  onConfirm:(task:T)=>void;
+  onDelete:(task:T)=>void;
   onRecorded:()=>void;
 };
 
@@ -24,7 +24,7 @@ const PAGE_SIZE=4;
 const isSnack=(title:string)=>/lanche|ceia|colação|colacao/i.test(title);
 const foodIcon=(title:string)=>isSnack(title)?Coffee:UtensilsCrossed;
 
-export function ClientMealsPage({patientId,ownerId,meals,revision,now=Date.now(),onView,onConfirm,onDelete,onRecorded}:Props){
+export function ClientMealsPage<T extends ReminderTask>({patientId,ownerId,meals,revision,now=Date.now(),onView,onConfirm,onDelete,onRecorded}:Props<T>){
   const [details,setDetails]=useState<MealDetail[]>([]);
   const [detailsError,setDetailsError]=useState(false);
   const [filter,setFilter]=useState<"todos"|"confirmados"|"pendentes">("todos");
