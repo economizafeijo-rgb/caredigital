@@ -43,7 +43,8 @@ const subtypes:Record<HistoryGroup,{value:string;label:string}[]>={
 const statusLabel:Record<HistoryStatus,string>={
   confirmado:"Confirmado",registrado:"Registrado",nao_confirmado:"Não confirmado",
   nao_bebi:"Não bebi",corrigido:"Corrigido",reprogramado:"Reprogramado",excluido:"Excluído",
-  meta_atingida:"Meta atingida",meta_nao_atingida:"Meta não atingida"
+  meta_atingida:"Meta atingida",meta_nao_atingida:"Meta não atingida",
+  nao_cumprido:"Não realizado",cancelado:"Cancelado"
 };
 const defaultFilters:HistoryFilter={
   group:"todos",subtype:"todos",status:"todos",period:"hoje",query:"",order:"recentes"
@@ -94,7 +95,7 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
       // Reconcile the 23h result before reading the dated daily-history snapshots.
       const sync=await db.rpc("care_sync_hydration_goal",{p_patient_id:patientId});
       if(!live)return;
-      const [tasks,water,meals,drinks,observations,audit,responses,dailyGoals]=await Promise.all([
+      const [tasks,water,meals,drinks,observations,audit,responses,dailyGoals,resolutions]=await Promise.all([
         db.from("care_daily_checklist").select("id,category,title,scheduled_at,completed_at")
           .eq("patient_id",patientId).eq("owner_id",ownerId)
           .gte("scheduled_at",since).order("scheduled_at",{ascending:false}).limit(400),
@@ -118,7 +119,10 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
         db.from("care_hydration_daily_goals").select("goal_date,target_ml,consumed_ml,status,closed_at,updated_at")
           .eq("patient_id",patientId).eq("owner_id",ownerId)
           .gte("goal_date",acreCalendarDay(Date.now()-31*86400000))
-          .order("goal_date",{ascending:false}).limit(90)
+          .order("goal_date",{ascending:false}).limit(90),
+        db.from("care_task_resolutions").select("task_id,status,reason,scheduled_at,resolved_at")
+          .eq("patient_id",patientId).eq("owner_id",ownerId)
+          .gte("scheduled_at",since).order("resolved_at",{ascending:false}).limit(300)
       ]);
       if(!live)return;
       if(tasks.error){
@@ -127,15 +131,15 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
         setLoading(false);
         return;
       }
-      const responsesList=[water,meals,drinks,observations,audit,responses,dailyGoals,sync];
-      const sourceLabels=["água","alimentos","bebidas","observações","eventos","respostas","metas","sincronização"];
+      const responsesList=[water,meals,drinks,observations,audit,responses,dailyGoals,resolutions,sync];
+      const sourceLabels=["água","alimentos","bebidas","observações","eventos","respostas","metas","decisões","sincronização"];
       const failed=responsesList.flatMap((response,index)=>response.error?[sourceLabels[index]]:[]);
       setMissingSources(failed);
       setPartial(failed.length>0);
       const raw:HistorySources={
         checklist:tasks.data??[],water:water.data??[],meals:meals.data??[],
         drinks:drinks.data??[],observations:observations.data??[],
-        audit:audit.data??[],responses:responses.data??[],dailyGoals:dailyGoals.data??[]
+        audit:audit.data??[],responses:responses.data??[],resolutions:resolutions.data??[],dailyGoals:dailyGoals.data??[]
       };
       try{
         setItems(assembleCareHistory(raw));
