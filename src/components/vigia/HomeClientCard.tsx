@@ -284,17 +284,27 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
                 <Icon size={18} className="shrink-0 text-primary"/>
                 <div className="min-w-0 flex-1"><strong className="block truncate text-xs text-foreground">{task.title}</strong><p className="text-[10px] text-muted-foreground">{timeInAcre(task.scheduled_at)} · {task.completed_at?`Confirmado às ${timeInAcre(task.completed_at)}`:"Aguardando confirmação"}</p></div>
                 {task.completed_at?<CheckCircle2 size={18} className="shrink-0 text-success"/>:<button type="button" onClick={()=>askConfirm(task)} className="shrink-0 rounded-lg bg-primary px-2.5 py-1.5 text-[11px] font-bold text-primary-foreground">Confirmar</button>}
+                {task.category==="refeicao"&&<button type="button" title="Excluir refeição" aria-label={`Excluir ${task.title}`} onClick={()=>{setPending(null);setMealToDelete(task)}} className="shrink-0 rounded-lg border border-destructive/30 p-1.5 text-destructive hover:bg-destructive/10"><Trash2 size={15}/></button>}
               </div>})}
               {!tasks.length&&<p className="text-sm text-muted-foreground">Nenhum cuidado cadastrado para hoje.</p>}
             </div>
           </div>}
-          {activeTab==="hidratacao"&&<ClientHydrationTab patientId={client.id} ownerId={client.owner_id} tasks={tasks} revision={tick} onConfirm={askConfirm} onRecorded={()=>setTick(value=>value+1)}/>}
+          {activeTab==="hidratacao"&&<div className="space-y-3">
+            <div className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-muted/55 p-1" role="group" aria-label="Bebidas e hidratação">
+              <button type="button" aria-pressed={hydrationView==="agua"} onClick={()=>setHydrationView("agua")} className={`rounded-lg px-2 py-2 text-xs font-bold ${hydrationView==="agua"?"bg-primary text-primary-foreground":"text-muted-foreground"}`}>Programa de água</button>
+              <button type="button" aria-pressed={hydrationView==="bebidas"} onClick={()=>setHydrationView("bebidas")} className={`rounded-lg px-2 py-2 text-xs font-bold ${hydrationView==="bebidas"?"bg-primary text-primary-foreground":"text-muted-foreground"}`}>Chás e bebidas</button>
+            </div>
+            {hydrationView==="agua"
+              ? <ClientHydrationTab patientId={client.id} ownerId={client.owner_id} tasks={tasks} revision={tick} onConfirm={askConfirm} onRecorded={()=>setTick(value=>value+1)}/>
+              : <ClientBeverageTracker patientId={client.id} ownerId={client.owner_id} revision={tick} onRecorded={()=>setTick(value=>value+1)}/>}
+          </div>}
           {activeTab==="historico"&&<div><h2 className="mb-1 flex items-center gap-2 text-sm font-extrabold text-foreground"><History size={17} className="text-primary"/> Histórico e prontuário</h2><p className="mb-2 text-xs text-muted-foreground">Datas e horários auditáveis, sem alterar registros originais.</p><PatientActivityHistory patientId={client.id} ownerId={client.owner_id} revision={tick}/></div>}
           {activeTab==="alimentacao"&&<div><h2 className="flex items-center gap-2 text-sm font-extrabold text-foreground"><UtensilsCrossed size={17} className="text-primary"/> Alimentação de hoje</h2><p className="mt-1 text-xs text-muted-foreground">Orientações ilustrativas; siga as orientações do profissional responsável.</p><div className="mt-2 space-y-2">
             {meals.map(meal=><div key={meal.id} className="rounded-xl border border-border bg-muted/25 p-3">
               <div className="flex items-center justify-between gap-2"><strong className="text-xs text-foreground">{meal.title}</strong><span className="text-[10px] text-muted-foreground">{timeInAcre(meal.scheduled_at)}</span></div>
               <p className="mt-1 text-xs text-muted-foreground">{mealGuide[meal.title]??"Alimentação leve conforme tolerância."}</p>
-              {meal.completed_at?<p className="mt-1.5 flex items-center gap-1 text-[11px] font-semibold text-success"><CheckCircle2 size={14}/> Confirmado às {timeInAcre(meal.completed_at)}</p>:<button type="button" className="mt-2 rounded-lg bg-primary/10 px-2.5 py-1.5 text-[11px] font-bold text-primary hover:bg-primary/20" onClick={()=>askConfirm(meal)}>Confirmar refeição</button>}
+              {meal.completed_at?<p className="mt-1.5 flex items-center gap-1 text-[11px] font-semibold text-success"><CheckCircle2 size={14}/> Confirmado às {timeInAcre(meal.completed_at)}</p>:<button type="button" className="mt-2 rounded-lg bg-primary/10 px-2.5 py-1.5 text-[11px] font-bold text-primary hover:bg-primary/20" onClick={()=>askConfirm(meal)}>{Date.now()<Date.parse(meal.scheduled_at)?"Verificar registro antecipado":"Confirmar refeição"}</button>}
+              <button type="button" className="ml-2 mt-2 inline-flex items-center gap-1 rounded-lg border border-destructive/30 px-2.5 py-1.5 text-[11px] font-semibold text-destructive hover:bg-destructive/10" onClick={()=>{setPending(null);setMealToDelete(meal)}}><Trash2 size={13}/> Excluir refeição</button>
             </div>)}
             {!meals.length&&<p className="text-sm text-muted-foreground">Sem refeições agendadas.</p>}
           </div></div>}
@@ -334,7 +344,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
               <p className="text-xs font-bold text-foreground">{pending.title}</p>
               <p className="text-[11px] text-muted-foreground">Prevista: {timeInAcre(pending.scheduled_at)} · Acre</p>
             </div>
-            {Math.abs(Date.now()-new Date(pending.scheduled_at).getTime())>15*60000&&
+            {Date.now()>new Date(pending.scheduled_at).getTime()+15*60000&&
               <div className="rounded-lg border border-amber-500/40 bg-amber-500/5 px-2.5 py-2 text-xs">
                 <p className="flex items-center gap-1.5 font-bold text-foreground"><AlertTriangle size={14} className="shrink-0 text-warning"/> Fora do horário previsto</p>
                 <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">{Date.now()>new Date(pending.scheduled_at).getTime()?"Horário ultrapassado.":"Horário ainda não atingido."} Confirme somente se tomou agora. Não dobre a dose.</p>
@@ -344,7 +354,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
                   </select>
                 </label>}
               </div>}
-            <p className="text-[10px] leading-snug text-muted-foreground">A data e a hora da confirmação serão registradas no servidor. Se tomou antes, cancele e solicite correção do histórico.</p>
+            <p className="text-[10px] leading-snug text-muted-foreground">A confirmação será registrada com data e hora reais do servidor. Não antecipe medicamentos sem orientação do profissional responsável.</p>
           </div>
           <div className="grid shrink-0 grid-cols-2 gap-2 border-t border-border bg-card px-3 py-2.5">
             <button type="button" disabled={busy} onClick={()=>setPending(null)} className="h-9 rounded-lg border border-border text-xs font-semibold text-foreground">Cancelar</button>
@@ -366,7 +376,13 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
               <p className="text-sm font-bold">{pending.title}</p>
               <p className="mt-1 text-xs text-muted-foreground">Horário programado: {timeInAcre(pending.scheduled_at)} (Acre)</p>
             </div>
-            {pending.category==="refeicao"&&<p className="text-xs leading-relaxed text-muted-foreground">Confirme somente se realizou esta refeição. O registro será salvo com a data e a hora do servidor.</p>}
+            {pending.category==="refeicao"&&(Date.now()<Date.parse(pending.scheduled_at)
+              ? <div className="space-y-2 rounded-xl border border-amber-500/40 bg-amber-500/10 p-3">
+                  <p className="flex items-center gap-2 text-xs font-extrabold text-foreground"><AlertTriangle size={17} className="text-warning"/> Verificação de refeição antecipada</p>
+                  <p className="text-xs leading-relaxed text-foreground">Esta refeição está programada para {timeInAcre(pending.scheduled_at)} (Acre), e o horário ainda não chegou. Se você já a realizou, poderá registrar antecipadamente após confirmar. A data e a hora reais serão gravadas pelo servidor.</p>
+                  <label className="flex items-start gap-2 text-xs font-semibold text-foreground"><input type="checkbox" className="mt-0.5" checked={mealEarlyAcknowledged} onChange={event=>setMealEarlyAcknowledged(event.target.checked)}/><span>Confirmo que já realizei esta refeição e desejo registrar agora, antes do horário programado.</span></label>
+                </div>
+              : <p className="text-xs leading-relaxed text-muted-foreground">Confirme somente se realizou esta refeição. O registro será salvo com a data e a hora reais do servidor.</p>)}
             {pending.category==="hidratacao"&&<label className="block text-xs font-bold text-foreground">Volume de água realmente consumido (ml)
               <input className="field mt-1.5 w-full" type="number" min={10} max={1500} step={10} value={amount} onChange={e=>setAmount(e.target.value)}/>
               <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Confirme apenas a quantidade que você bebeu agora.</span>
@@ -374,11 +390,23 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
           </div>
           <div className="grid grid-cols-2 gap-2 border-t border-border px-4 py-3">
             <button type="button" disabled={busy} onClick={()=>setPending(null)} className="h-10 rounded-xl border border-border text-xs font-bold text-foreground">Cancelar</button>
-            <button type="button" disabled={busy} onClick={()=>void confirm()} className="h-10 rounded-xl bg-primary px-2 text-xs font-extrabold text-primary-foreground disabled:opacity-60">{busy?"Registrando…":"Confirmar agora"}</button>
+            <button type="button" disabled={busy||(pending.category==="refeicao"&&Date.now()<Date.parse(pending.scheduled_at)&&!mealEarlyAcknowledged)} onClick={()=>void confirm()} className="h-10 rounded-xl bg-primary px-2 text-xs font-extrabold text-primary-foreground disabled:opacity-60">{busy?"Registrando…":pending.category==="refeicao"&&Date.now()<Date.parse(pending.scheduled_at)?"Confirmar antecipação":"Confirmar agora"}</button>
           </div>
         </section>
       </div>,
       document.body
+    )}
+    {mealToDelete && typeof document !== "undefined" && createPortal(
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/75 p-3 backdrop-blur-sm" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget&&!busy)setMealToDelete(null)}}>
+        <section role="alertdialog" aria-modal="true" aria-labelledby="delete-meal-title" aria-describedby="delete-meal-description" className="w-full max-w-[410px] rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-2xl">
+          <div className="flex items-center gap-2"><Trash2 size={22} className="text-destructive"/><h3 id="delete-meal-title" className="text-base font-extrabold">Confirmar exclusão de refeição</h3></div>
+          <p id="delete-meal-description" className="mt-3 text-sm leading-relaxed">Deseja realmente excluir <strong>{mealToDelete.title}</strong>, programada para {timeInAcre(mealToDelete.scheduled_at)} (Acre)? A refeição será retirada da agenda, mas a data, a hora e o responsável pela exclusão permanecerão registrados no histórico de auditoria.</p>
+          <div className="mt-5 grid grid-cols-2 gap-2">
+            <button type="button" disabled={busy} onClick={()=>setMealToDelete(null)} className="rounded-xl border border-border px-3 py-2 text-xs font-bold">Cancelar</button>
+            <button type="button" disabled={busy} onClick={()=>void deleteMeal()} className="rounded-xl bg-destructive px-3 py-2 text-xs font-bold text-destructive-foreground disabled:opacity-60">{busy?"Excluindo…":"Sim, excluir refeição"}</button>
+          </div>
+        </section>
+      </div>, document.body
     )}
   </section>;
 }
