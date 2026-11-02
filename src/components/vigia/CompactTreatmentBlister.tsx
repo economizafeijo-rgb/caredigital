@@ -96,7 +96,7 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,da
    </div>;
  };
 
- return <section aria-label="Cartelas interativas" className={`care-blister-panel care-blister-refined rounded-2xl border border-border bg-card text-foreground shadow-sm ${dashboardMode?"care-blister-dashboard":"care-blister-standalone"}`}>
+ return <section aria-label="Cartelas interativas" data-layout-version="blister-compact-v2" className={`care-blister-panel care-blister-refined rounded-2xl border border-border bg-card text-foreground shadow-sm ${dashboardMode?"care-blister-dashboard":"care-blister-standalone"}`}>
   <header className="care-blister-header flex items-start justify-between gap-2">
     <div className="min-w-0">
       <h3 className="flex items-center gap-1.5 text-[13px] font-extrabold leading-tight text-foreground"><Pill size={16} className="shrink-0 text-primary"/> Cartela interativa</h3>
