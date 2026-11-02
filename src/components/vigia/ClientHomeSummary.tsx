@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { MedicationLateAlert } from "./MedicationLateAlert";
 import { ClientQuickIntake } from "./ClientQuickIntake";
 import { CareTaskRecordModal } from "./CareTaskRecordModal";
+import type { HydrationGoalSnapshot } from "@/lib/hydration-goal";
 import { canConfirmCare, careScheduleBlockMessage } from "@/lib/care-schedule";
 
 type Care = {id:string;title:string;category:string;scheduled_at:string;completed_at:string|null};
@@ -30,6 +31,7 @@ export function ClientHomeSummary(){
  const [receipt,setReceipt]=useState<{success:boolean;message:string}|null>(null);
  const [revision,setRevision]=useState(0);
  const [refresh,setRefresh]=useState(0);
+ const [dailyGoal,setDailyGoal]=useState<HydrationGoalSnapshot|null>(null);
  const [agendaPage,setAgendaPage]=useState(0);
  const agendaPageSize=3;
  const agendaPageCount=Math.max(1,Math.ceil(tasks.length/agendaPageSize));
@@ -49,13 +51,18 @@ export function ClientHomeSummary(){
     setPatient(person);
     const from=new Date(day(new Date())+"T00:00:00-05:00");
     const finish=new Date(from.getTime()+86400000);
-    const res=await (supabase as any).from("care_daily_checklist").select("id,title,category,scheduled_at,completed_at")
+    const [res,goalResult]=await Promise.all([
+      (supabase as any).from("care_daily_checklist").select("id,title,category,scheduled_at,completed_at")
       .eq("owner_id",person.owner_id).eq("patient_id",person.id)
       .gte("scheduled_at",from.toISOString()).lt("scheduled_at",finish.toISOString())
-      .in("category",["medicacao","refeicao","hidratacao"]).order("scheduled_at",{ascending:true}).limit(120);
+      .in("category",["medicacao","refeicao","hidratacao"]).order("scheduled_at",{ascending:true}).limit(120),
+      (supabase as any).rpc("care_sync_hydration_goal",{p_patient_id:person.id})
+    ]);
     if(!active)return;
     if(res.error){setError("Não foi possível carregar sua agenda.");return;}
-    setTasks(res.data??[]);setError("");
+    setTasks(res.data??[]);
+    setDailyGoal(goalResult.error?null:goalResult.data as HydrationGoalSnapshot);
+    setError("");
  })();return()=>{active=false}},[revision,refresh]);
  const pending=tasks.filter(t=>!t.completed_at);
  const next=now?pending.filter(t=>new Date(t.scheduled_at).getTime()>=now.getTime())[0]??pending[0]:pending[0];
@@ -106,7 +113,10 @@ export function ClientHomeSummary(){
         <div className="relative z-10 mt-2 flex shrink-0 flex-wrap gap-1.5">{next&&<button type="button" onClick={()=>{setSelected(next);setError("");setMealTime(currentAcreTime());setMealDescription("");}} className="inline-flex items-center gap-1 rounded-lg bg-sky-300 px-2.5 py-1.5 text-[11px] font-bold text-slate-950 hover:bg-sky-200">Verificar / confirmar <ChevronRight size={15}/></button>}<Link to="/cliente" className="rounded-lg border border-white/20 bg-white/5 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-white/10">Ver tratamento completo</Link></div>
       </article>
       <div className="grid min-w-0 grid-cols-3 gap-1.5">{(["medicacao","refeicao","hidratacao"] as const).map(category=>{const Icon=icons[category];const group=tasks.filter(t=>t.category===category);const done=group.filter(t=>t.completed_at).length;const first=group.find(t=>!t.completed_at);return <button key={category} type="button" onClick={()=>{if(first){setSelected(first);setError("");setMealTime(currentAcreTime());setMealDescription("");}}} disabled={!first} className="patient-stat-card flex min-w-0 flex-col items-start gap-0.5 rounded-xl border border-white/10 bg-white/[.055] p-2 text-left transition hover:border-teal-300/40 hover:bg-white/10 disabled:cursor-default disabled:opacity-75"><Icon size={16} className="text-sky-300"/><span className="text-[11px] font-semibold text-slate-200">{category==="medicacao"?"Medicação":category==="refeicao"?"Refeições":"Hidratação"}</span><span className="text-lg font-extrabold tabular-nums">{done}<span className="text-xs font-medium text-slate-400">/{group.length}</span></span><span className="h-1 w-full overflow-hidden rounded-full bg-white/10"><span className="block h-full rounded-full bg-sky-300" style={{width:(group.length?100*done/group.length:0)+"%"}}/></span></button>})}</div>
-      <div className="patient-progress flex flex-wrap items-center gap-1.5 text-[10px] text-slate-300"><Check size={14} className="text-emerald-300"/>{finished} de {tasks.length} cuidados concluídos <span className="ml-auto font-bold text-sky-200">{completion}%</span></div>
+      <div className="patient-progress flex flex-wrap items-center gap-1.5 text-[10px] text-slate-300"><Check size={14} className="text-emerald-300"/>{finished} de {tasks.length} cuidados concluídos
+        {dailyGoal?.status==="atingida"&&<span title={`Hidratação: ${dailyGoal.consumed_ml} de ${dailyGoal.target_ml} ml até 23h.`} className="inline-flex items-center gap-1 rounded-md border border-emerald-300/25 bg-emerald-400/10 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-200"><Droplets size={11}/> Meta de água atingida</span>}
+        {dailyGoal?.status==="nao_atingida"&&<span title={`Hidratação: ${dailyGoal.consumed_ml} de ${dailyGoal.target_ml} ml até 23h.`} className="inline-flex items-center gap-1 rounded-md border border-amber-300/25 bg-amber-400/10 px-1.5 py-0.5 text-[9px] font-semibold text-amber-200"><Droplets size={11}/> Meta não atingida · 23h</span>}
+        <span className="ml-auto font-bold text-sky-200">{completion}%</span></div>
     </div>
     <div className="patient-timeline flex min-h-[260px] min-w-0 flex-col overflow-hidden rounded-2xl border p-3 md:min-h-0">
       <div className="flex shrink-0 items-center justify-between gap-2 border-b border-white/10 pb-2"><div><p className="text-[10px] font-bold uppercase tracking-widest text-sky-300">Linha do tempo</p><h3 className="mt-0.5 text-sm font-extrabold">Agenda de hoje</h3></div><span className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-2 py-1 text-[10px] text-slate-200"><ListChecks size={13}/>{tasks.length} itens</span></div>
