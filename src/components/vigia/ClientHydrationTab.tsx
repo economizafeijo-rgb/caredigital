@@ -82,7 +82,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
    return i===schedule.length-1?goal-unit*(schedule.length-1):unit;
  }),[schedule,goal]);
  const skipped=new Map(notDrunk.map(item=>[item.task_id,item.recorded_at]));
- const next=schedule.find(item=>!item.completed_at&&!skipped.has(item.id)&&getCareScheduleState(item,clock)!=="missed");
+ const next=schedule.find(item=>!item.completed_at&&!skipped.has(item.id)&&Date.parse(item.scheduled_at)>=clock) ?? schedule.find(item=>!item.completed_at&&!skipped.has(item.id)&&getCareScheduleState(item,clock)==="available");
  async function saveProfile(){
   if(!calculation||saving)return;
   setSaving(true);setError("");setNotice("");
@@ -103,7 +103,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
   const res=await (supabase as any).rpc("care_confirm_task",{p_task_id:task.id,p_water_ml:volume});
   setAction(null);
   if(res.error){setError(/Care window not started|Care window expired/i.test(res.error.message??"")?careScheduleBlockMessage(task):"Não foi possível confirmar a água. Confira sua conexão ou tente novamente.");onRecorded();return}
-  setNotice(`Copo de ${volume} ml registrado com data e hora do servidor.`);
+  setNotice(`Copo de ${volume} ml registrado com a hora real do servidor. Os próximos horários de água podem ser recalculados.`);
   onRecorded();
   setReload(n=>n+1);
  }
