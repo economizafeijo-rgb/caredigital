@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Activity, CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, Clock3, Coffee, Droplets, History, Info, Pencil, Pill, RotateCcw, Search, SlidersHorizontal, UtensilsCrossed } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { acreCalendarDay } from "@/lib/hydration-goal";
-import { CareTaskRecordModal, type CareTaskRecord } from "./CareTaskRecordModal";
 import {
   assembleCareHistory, filterCareHistory, type HistoryEntry, type HistoryFilter,
   type HistoryGroup, type HistoryStatus, type HistorySources,
@@ -77,7 +76,11 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
   const [page,setPage]=useState(0);
   const [selectedId,setSelectedId]=useState<string|null>(null);
   const [showMobileDetail,setShowMobileDetail]=useState(false);
-  const [editingTask,setEditingTask]=useState<CareTaskRecord|null>(null);
+  const [editingWater,setEditingWater]=useState(false);
+  const [editAmount,setEditAmount]=useState("");
+  const [editSaving,setEditSaving]=useState(false);
+  const [editError,setEditError]=useState("");
+  const [editNotice,setEditNotice]=useState("");
   const [reload,setReload]=useState(0);
   const [filtersOpen,setFiltersOpen]=useState(true);
   const [loading,setLoading]=useState(true);
@@ -157,6 +160,7 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
     setPage(0);
     setSelectedId(null);
     setShowMobileDetail(false);
+    setEditingWater(false);
   }
   function setGroup(group:"todos"|HistoryGroup){
     setFilter({group,subtype:"todos",status:"todos"});
@@ -173,30 +177,54 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
   const selected=shown.find(entry=>entry.id===selectedId)??shown[0]??null;
   const selectedIcon=selected?typeIcon(selected):History;
   const SelectedIcon=selectedIcon;
-  const editableTask:CareTaskRecord|null=
-    selected?.group==="liquidos"&&selected.subtype==="agua"&&selected.status==="confirmado"
-    &&selected.taskId&&selected.scheduledAt
-    ? {id:selected.taskId,title:"Verificar hidratação",category:"hidratacao",
-       scheduled_at:selected.scheduledAt,completed_at:selected.occurredAt}
-    : null;
+  const editableWater=Boolean(selected&&selected.group==="liquidos"&&selected.subtype==="agua"
+    &&(selected.status==="confirmado"||selected.status==="registrado")&&selected.waterEntryId);
   function showAllHistory(){
     setFilters({...defaultFilters,period:"30d"});
     setPage(0);
     setSelectedId(null);
     setShowMobileDetail(false);
+    setEditingWater(false);
   }
   function changePage(next:number){
     setPage(Math.max(0,Math.min(pageCount-1,next)));
     setSelectedId(null);
     setShowMobileDetail(false);
+    setEditingWater(false);
   }
   function clearFilters(){
     setFilters(defaultFilters);
     setPage(0);
     setSelectedId(null);
     setShowMobileDetail(false);
+    setEditingWater(false);
   }
 
+  async function saveWaterCorrection(event:FormEvent<HTMLFormElement>){
+    event.preventDefault();
+    if(editSaving||!selected?.waterEntryId||!editableWater)return;
+    const quantity=Number(editAmount);
+    if(!Number.isInteger(quantity)||quantity<10||quantity>1500){
+      setEditError("Informe um volume entre 10 e 1.500 ml.");return;
+    }
+    if(quantity===selected.amountMl){setEditingWater(false);return;}
+    setEditSaving(true);setEditError("");setEditNotice("");
+    try{
+      const response=await (supabase as any).rpc("care_correct_water_entry",{
+        p_water_id:selected.waterEntryId,p_new_amount_ml:quantity
+      });
+      if(response.error)throw response.error;
+      if(response.data?.water_id!==selected.waterEntryId||response.data?.amount_ml!==quantity){
+        throw new Error("O servidor não confirmou a correção. Consulte o registro antes de tentar novamente.");
+      }
+      setEditingWater(false);
+      setEditNotice("Quantidade corrigida de "+response.data.previous_ml+" para "+quantity+" ml. Horário original preservado.");
+      setReload(value=>value+1);
+      onRecordChanged?.();
+    }catch(error){
+      setEditError(error instanceof Error?error.message:"Não foi possível salvar a correção.");
+    }finally{setEditSaving(false);}
+  }
 
   return <section aria-label="Histórico de consumos e cuidados"
     className="patient-history-workspace flex h-full min-h-0 min-w-0 flex-col gap-2 overflow-hidden text-foreground">
@@ -303,7 +331,7 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
                 entry.group==="ajustes"?"bg-violet-500/15 text-violet-700 dark:text-violet-300":
                 "bg-amber-500/15 text-amber-800 dark:text-amber-300";
               return <button key={entry.id} type="button" aria-pressed={active}
-                onClick={()=>{setSelectedId(entry.id);setShowMobileDetail(true);}}
+                onClick={()=>{setSelectedId(entry.id);setShowMobileDetail(true);setEditingWater(false);setEditError("");setEditNotice("");}}
                 className={"group flex w-full min-w-0 items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary "+
                   (active?"border-primary/70 bg-primary/[.095] shadow-[inset_0_0_0_1px_hsl(var(--primary)/.18)]":
                   "border-border bg-card/80 hover:border-primary/40 hover:bg-primary/[.04]")}>
@@ -383,6 +411,23 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
               <p className="mt-1 break-words text-xs leading-relaxed text-foreground">{selected.description||"Sem observações adicionais registradas."}</p>
               {typeof selected.amountMl==="number"&&<p className="mt-1 text-xs font-bold text-sky-700 dark:text-sky-300">Quantidade: {selected.amountMl} ml</p>}
             </div>
+            {editingWater&&editableWater&&<form onSubmit={event=>void saveWaterCorrection(event)} className="space-y-2 rounded-xl border border-primary/35 bg-primary/[.055] p-3">
+              <label className="block text-[11px] font-semibold text-foreground">Quantidade correta (ml)
+                <input type="number" min={10} max={1500} step={1} required autoFocus
+                  value={editAmount} onChange={event=>setEditAmount(event.target.value)}
+                  className="mt-1 block h-9 w-full rounded-lg border border-border bg-card px-3 text-xs font-bold text-foreground"/>
+              </label>
+              <p className="text-[10px] text-muted-foreground">Somente o volume muda. O horário original permanece e a correção é registrada no prontuário.</p>
+              {editError&&<p role="alert" className="text-[11px] text-destructive">{editError}</p>}
+              <div className="flex flex-wrap justify-end gap-2">
+                <button type="button" disabled={editSaving} onClick={()=>{setEditingWater(false);setEditError("");}}
+                  className="rounded-lg border border-border px-3 py-1.5 text-[11px] font-semibold text-foreground">Cancelar</button>
+                <button type="submit" disabled={editSaving} className="rounded-lg bg-primary px-3 py-1.5 text-[11px] font-bold text-primary-foreground disabled:opacity-50">
+                  {editSaving?"Salvando…":"Salvar correção"}
+                </button>
+              </div>
+            </form>}
+            {editNotice&&!editingWater&&<p role="status" className="flex items-start gap-1.5 rounded-lg border border-emerald-500/25 bg-emerald-500/[.07] p-2 text-[11px] text-foreground"><CheckCircle2 size={15} className="shrink-0 text-emerald-600"/>{editNotice}</p>}
             {selected.automatic&&<p className="flex items-start gap-1.5 text-[10px] text-muted-foreground"><Info size={14} className="shrink-0"/>Ajuste automático da programação, não equivale a um novo consumo.</p>}
           </div>
           <div className="mt-3 flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-border/60 pt-3">
@@ -390,7 +435,7 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
               className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-primary/50 bg-primary/5 px-3 text-[11px] font-bold text-foreground hover:bg-primary/10">
               <History size={15}/>Ver histórico completo
             </button>
-            {editableTask?<button type="button" onClick={()=>setEditingTask(editableTask)}
+            {editableWater?<button type="button" onClick={()=>{setEditAmount(String(selected.amountMl??""));setEditingWater(true);setEditError("");setEditNotice("");}}
               className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 text-[11px] font-bold text-primary-foreground hover:opacity-90">
               <Pencil size={15}/>Editar registro
             </button>:<span className="text-[10px] text-muted-foreground">Registro disponível para consulta</span>}
@@ -404,7 +449,5 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
     <p className="shrink-0 text-[10px] leading-tight text-muted-foreground">
       Últimos 30 dias · Horários reais no Acre · Ajustes automáticos não representam consumo.
     </p>
-    <CareTaskRecordModal task={editingTask} onClose={()=>setEditingTask(null)}
-      onSaved={()=>{setReload(value=>value+1);onRecordChanged?.();}}/>
   </section>;
 }
