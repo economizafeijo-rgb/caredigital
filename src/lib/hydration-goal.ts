@@ -40,17 +40,17 @@ export function hydrationGoalNotice(goal: HydrationGoalSnapshot | null, now: num
   if (goal.status === "atingida") return {
     kind:"met",title:"Meta diária atingida",
     message:goal.closed_at
-      ? \`\${format(consumed)} de \${format(target)} ml até as 23h. Resultado salvo no histórico de \${goal.goal_date.split("-").reverse().join("/")}.\`
-      : \`\${format(consumed)} de \${format(target)} ml registrados. O resultado aparecerá no histórico do dia.\`
+      ? `${format(consumed)} de ${format(target)} ml até as 23h. Resultado salvo no histórico de ${goal.goal_date.split("-").reverse().join("/")}.`
+      : `${format(consumed)} de ${format(target)} ml registrados. O resultado aparecerá no histórico do dia.`
   };
   if (goal.status === "nao_atingida") return {
     kind:"missed",title:"Dia encerrado às 23h",
-    message:\`\${format(consumed)} de \${format(target)} ml registrados; \${format(remaining)} ml abaixo da meta estimada. Resultado salvo no histórico de \${goal.goal_date.split("-").reverse().join("/")}.\`
+    message:`${format(consumed)} de ${format(target)} ml registrados; ${format(remaining)} ml abaixo da meta estimada. Resultado salvo no histórico de ${goal.goal_date.split("-").reverse().join("/")}.`
   };
   const reachedDeadline = acreCalendarDay(now)>goal.goal_date ||
     (acreCalendarDay(now)===goal.goal_date && acreHour(now)>=23);
   if (reachedDeadline) return {kind:"pending",title:"Fechamento das 23h",
     message:"Atualizando o resultado diário. Os consumos posteriores às 23h permanecem registrados, mas não alteram a meta encerrada."};
   return {kind:"pending",title:"Meta aberta até 23h",
-    message:\`\${format(consumed)} de \${format(target)} ml · \${format(remaining)} ml restantes. Meta estimada, respeite suas necessidades e orientação profissional.\`};
+    message:`${format(consumed)} de ${format(target)} ml · ${format(remaining)} ml restantes. Meta estimada, respeite suas necessidades e orientação profissional.`};
 }
