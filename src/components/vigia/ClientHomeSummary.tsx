@@ -104,7 +104,7 @@ export function ClientHomeSummary(){
     </div>
     <div className="patient-home-actions flex min-w-0 shrink-0 flex-wrap items-center justify-end gap-2"><ClientQuickIntake patientId={patient?.id ?? ""} variant="home" mode="water" onRecorded={()=>setRefresh(value=>value+1)}/><ClientQuickIntake patientId={patient?.id ?? ""} variant="home" onRecorded={()=>setRefresh(value=>value+1)}/><Link to="/cliente" className="care-home-chart-link inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-[11px] font-extrabold transition">Meu prontuário <ArrowUpRight size={15}/></Link></div>
   </div>
-  <div className="care-home-medication relative shrink-0"><CareReminderBeacon tasks={tasks} onOpen={task=>{setDetailTask(task);setError("");}} compact/></div>
+  <div className="care-home-medication relative shrink-0"><CareReminderBeacon tasks={tasks} patientId={patient?.id??""} ownerId={patient?.owner_id??""} refreshKey={refresh+revision} onOpen={task=>{setDetailTask(task);setError("");}} compact/></div>
   <div className="care-home-body relative grid min-h-0 min-w-0 flex-1 gap-2.5 md:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] md:items-stretch">
     <div className="grid min-h-0 min-w-0 grid-rows-[minmax(0,1fr)_auto_auto] gap-1.5">
       <article className="patient-next-care relative flex min-h-[210px] min-w-0 flex-col justify-between overflow-hidden rounded-[22px] border p-3 sm:p-4 md:min-h-0">
