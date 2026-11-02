@@ -19,6 +19,7 @@ export function ClientHomeSummary(){
  const [water,setWater]=useState(200);
  const [working,setWorking]=useState(false);
  const [error,setError]=useState("");
+ const [receipt,setReceipt]=useState<{success:boolean;message:string}|null>(null);
  const [revision,setRevision]=useState(0);
  const [refresh,setRefresh]=useState(0);
  useEffect(()=>{setNow(new Date());const id=window.setInterval(()=>setNow(new Date()),1000);return()=>window.clearInterval(id)},[]);
@@ -51,10 +52,20 @@ export function ClientHomeSummary(){
  async function confirm(){
   if(!selected||working||!patient)return;
   if(selected.category==="medicacao"&&day(new Date(selected.scheduled_at))!==day(new Date())){setError("Medicação somente pode ser confirmada no dia previsto.");return;}
-  setWorking(true);setError("");
+  setWorking(true);setError("");setReceipt(null);
   const response=await (supabase as any).rpc("care_confirm_task",{p_task_id:selected.id,p_water_ml:selected.category==="hidratacao"?water:null});
   setWorking(false);
-  if(response.error){setError("Não foi possível confirmar o cuidado. Consulte o prontuário.");return;}
+  if(response.error || typeof response.data!=="string"){
+    const msg=/already completed/i.test(response.error?.message??"")?"Esta atividade já consta como confirmada. Atualize a página.":"Não foi possível registrar. Confira seu acesso e a conexão antes de tentar novamente.";
+    setError(msg);setReceipt({success:false,message:msg});return;
+  }
+  const record=await (supabase as any).from("care_daily_checklist").select("completed_at").eq("id",selected.id).single();
+  if(record.error||!record.data?.completed_at){
+    setReceipt({success:false,message:"O sistema recebeu a solicitação, mas não conseguiu verificar o registro. Consulte o prontuário antes de repetir."});
+    setRevision(v=>v+1);return;
+  }
+  const when=new Intl.DateTimeFormat("pt-BR",{timeZone:zone,day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new Date(record.data.completed_at));
+  setReceipt({success:true,message:`${selected.title} confirmado em ${when} (Acre). Registro salvo no prontuário.`});
   setSelected(null);setRevision(v=>v+1);
  }
  return <section className="mb-4 rounded-2xl border border-border bg-card/95 p-4 shadow-sm" aria-label="Resumo interativo do cliente na homepage">
@@ -65,6 +76,7 @@ export function ClientHomeSummary(){
    <div className="grid grid-cols-3 gap-2">{(["medicacao","refeicao","hidratacao"] as const).map(category=>{const Icon=icons[category];const group=tasks.filter(t=>t.category===category);return <button key={category} type="button" onClick={()=>{const item=group.find(t=>!t.completed_at);if(item)setSelected(item)}} disabled={!group.some(t=>!t.completed_at)} className="rounded-xl border border-border bg-muted/40 p-2 text-center transition hover:border-primary disabled:opacity-60"><Icon className="mx-auto text-primary" size={18}/><p className="mt-1 text-[10px] font-semibold">{category==="medicacao"?"Remédios":category==="refeicao"?"Refeições":"Água"}</p><p className="mt-1 text-xs font-bold">{group.filter(t=>t.completed_at).length}/{group.length}</p></button>})}</div>
   </div>
   <div className="mt-2 flex gap-2 overflow-x-auto pb-1">{tasks.map(t=>{const Icon=icons[t.category as keyof typeof icons]??CalendarClock;return <button key={t.id} type="button" onClick={()=>!t.completed_at&&setSelected(t)} className={`flex min-w-[165px] max-w-[210px] flex-1 items-center gap-2 rounded-lg border px-2.5 py-2 text-left text-xs ${t.completed_at?"border-success/30 bg-success/10":"border-border bg-background hover:border-primary"}`}><Icon size={17} className="shrink-0 text-primary"/><div className="min-w-0"><div className="font-bold">{time(t.scheduled_at)} {t.completed_at?"· Feito":""}</div><div className="truncate text-muted-foreground">{t.title}</div></div>{t.completed_at&&<Check size={15} className="text-success"/>}</button>})}</div>
+  {receipt&&<div role={receipt.success?"status":"alert"} className={`fixed inset-x-3 top-16 z-[95] mx-auto flex max-w-lg items-start gap-3 rounded-2xl border p-4 text-sm font-semibold shadow-xl ${receipt.success?"border-emerald-400 bg-emerald-50 text-emerald-950 dark:bg-emerald-950 dark:text-emerald-50":"border-rose-400 bg-rose-50 text-rose-950 dark:bg-rose-950 dark:text-rose-50"}`}><span className="flex-1">{receipt.success?"✓ Registro confirmado. ":"Atenção. "}{receipt.message}</span><button aria-label="Fechar aviso" type="button" onClick={()=>setReceipt(null)}><X size={17}/></button></div>}
   {error&&<p role="alert" className="mt-2 text-xs text-destructive">{error}</p>}
   {selected&&<div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-4" onMouseDown={e=>{if(e.target===e.currentTarget&&!working)setSelected(null)}}><section role="dialog" aria-modal="true" aria-label="Confirmar cuidado" className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-2xl"><div className="flex items-center justify-between"><h3 className="text-lg font-bold">Confirmar cuidado</h3><button aria-label="Cancelar" disabled={working} onClick={()=>setSelected(null)}><X size={19}/></button></div><p className="mt-3 text-sm font-semibold">{selected.title}</p><p className="mt-1 text-xs text-muted-foreground">Previsto para {time(selected.scheduled_at)} · fuso do Acre</p>{selected.category==="medicacao"&&<p className="mt-3 rounded-xl bg-muted p-3 text-xs">Confirme somente se tomou agora. Se tomou anteriormente, não use esta confirmação para registrar um horário passado; procure o responsável pelo prontuário.</p>}{selected.category==="hidratacao"&&<label className="mt-3 block text-xs">Água consumida (ml)<input type="number" min={10} max={1500} step={10} value={water} onChange={e=>setWater(Number(e.target.value))} className="field mt-1"/></label>}<div className="mt-4 grid grid-cols-2 gap-2"><button onClick={()=>setSelected(null)} className="rounded-lg border border-border p-2.5 text-sm">Cancelar</button><button disabled={working||(selected.category==="hidratacao"&&(!Number.isInteger(water)||water<10||water>1500))} onClick={()=>void confirm()} className="rounded-lg bg-primary p-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50">{working?"Registrando…":"Confirmar agora"}</button></div></section></div>}
  </section>;
