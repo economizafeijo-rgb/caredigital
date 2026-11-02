@@ -36,7 +36,7 @@ export function HomeClientCard() {
   const [activeTab, setActiveTab] = useState<"hoje" | "agenda" | "historico" | "alimentacao" | "hidratacao">("hoje");
   const [tick, setTick] = useState(0);
   const [clock, setClock] = useState<Date | null>(null);
-  useEffect(() => { const update = () => setClock(new Date()); update(); const timer = window.setInterval(update,1000); return () => window.clearInterval(timer); }, []);
+  useEffect(() => { const update = () => setClock(new Date()); update(); const timer = window.setInterval(update,15000); return () => window.clearInterval(timer); }, []);
 
   useEffect(() => {
     const interval = window.setInterval(() => setTick(t => t + 1), 60000);
