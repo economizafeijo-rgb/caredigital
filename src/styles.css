@@ -331,3 +331,39 @@ iframe[title*="Lovable" i][title*="badge" i] {
 :root:not(.dark) .client-home-dashboard :is(.bg-teal-300,.bg-sky-300) .text-slate-950 {
   color:#143d41;
 }
+
+
+/* Public landing page: desktop one-viewport composition without tiny navigation.
+   On very short windows preserve access by scrolling rather than clipping. */
+.public-homepage .public-hero a:focus-visible,
+.public-homepage .public-feature-card:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 3px;
+}
+@media (min-width: 1024px) and (max-height: 720px) {
+  .public-homepage { gap: .625rem; }
+  .public-homepage .public-hero-copy h1 {
+    font-size: clamp(2.25rem, 3.4vw, 2.95rem);
+    margin-top: .7rem;
+  }
+  .public-homepage .public-hero-copy > p { margin-top: .65rem; line-height: 1.48; }
+  .public-homepage .public-hero-actions { margin-top: .875rem; }
+  .public-homepage .public-hero-trust { margin-top: .85rem; padding-top: .6rem; }
+  .public-homepage .public-hero-art img { max-height: min(42dvh, 290px); }
+  .public-homepage .public-feature-card { min-height: 82px; padding: .8rem; }
+}
+@media (min-width: 1024px) and (max-height: 535px) {
+  .public-homepage {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+  .public-homepage .public-hero {
+    min-height: 350px;
+    flex: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .public-homepage .public-feature-card,
+  .public-homepage .public-feature-card * { transition: none; }
+}
