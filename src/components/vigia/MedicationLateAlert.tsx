@@ -96,19 +96,14 @@ export function MedicationLateAlert({tasks,onConfirm,compact=false,now}:Props){
   if(!doses.length)return null;
 
   if(compact){
-    return <section role={firstLate?"alert":"status"} aria-label="Alarme de medicação" className={`flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border px-2.5 py-1.5 ${firstLate?"border-amber-500/70 bg-amber-100 text-amber-950 dark:bg-amber-950/75 dark:text-amber-50":"border-sky-500/20 bg-sky-500/5 text-foreground"}`}>
-      <svg viewBox="0 0 40 40" className="size-8 shrink-0" role="img" aria-label="Alarme de doses">
-        <circle cx="20" cy="20" r="18" fill={firstLate?"#fac96b":"#d7f2fa"}/>
-        <path d="M20 8a10 10 0 0 0-10 10v7l-3 4h26l-3-4v-7A10 10 0 0 0 20 8Z" fill={firstLate?"#97540d":"#216b8a"}/>
-        <path d="M17 33h6" stroke={firstLate?"#97540d":"#216b8a"} strokeWidth="3" strokeLinecap="round"/>
-      </svg>
+    return <section role={firstLate?"alert":"status"} aria-label="Alarme de medicação" className={`flex w-full min-w-0 items-center gap-2 rounded-xl border px-3 py-2 shadow-sm ${firstLate?"border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-100":"border-sky-200 bg-sky-50 text-slate-900 dark:border-sky-800 dark:bg-slate-900 dark:text-slate-100"}`}>
+      <Bell size={17} className="shrink-0"/>
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-extrabold">{firstLate?"Dose não confirmada no horário previsto":pending.length?"Alarme preparado":"Doses de hoje confirmadas"} {firstLate&&<span className="ml-1 text-[10px] font-semibold">· {Math.floor(minutesLate/60)}h {String(minutesLate%60).padStart(2,"0")} de atraso</span>}</p>
-        <p className="truncate text-[10px]">{firstLate?`${firstLate.title} · prevista ${clockFormat(firstLate.scheduled_at)}`:next?`Próxima dose às ${clockFormat(next.scheduled_at)}`:"Nenhuma dose pendente"}</p>
+        <p className="truncate text-[11px] font-extrabold">{firstLate?"Medicação atrasada":pending.length?"Próxima medicação":"Medicações confirmadas"}</p>
+        <p className="truncate text-[10px] opacity-80">{firstLate?`${firstLate.title} · ${clockFormat(firstLate.scheduled_at)} · ${minutesLate} min de atraso`:next?`${next.title} · ${clockFormat(next.scheduled_at)}`:"Nenhuma dose pendente"}</p>
       </div>
-      {firstLate&&<button type="button" onClick={()=>onConfirm(firstLate)} className="shrink-0 rounded-md bg-amber-200 px-2.5 py-1.5 text-[10px] font-bold text-amber-950 hover:bg-amber-300" aria-label="Consultar confirmação da dose atrasada">Ver dose · Não confirmado</button>}
-      <button type="button" onClick={()=>void toggleAudio()} aria-pressed={audioEnabled} className="inline-flex shrink-0 items-center gap-1 rounded-md border border-current/25 px-2 py-1.5 text-[10px] font-semibold">{audioEnabled?<BellOff size={13}/>:<Bell size={13}/>} {audioEnabled?"Silenciar":"Ativar som"}</button>
-      {message&&<p role="status" className="w-full text-[10px]">{message}</p>}
+      {firstLate&&<button type="button" onClick={()=>onConfirm(firstLate)} className="shrink-0 rounded-lg bg-amber-300 px-2.5 py-1.5 text-[10px] font-bold text-amber-950 hover:bg-amber-400">Registrar tomada</button>}
+      <button type="button" onClick={()=>void toggleAudio()} aria-label={audioEnabled?"Silenciar alarme":"Ativar alarme sonoro"} aria-pressed={audioEnabled} className="grid size-8 shrink-0 place-items-center rounded-lg border border-current/20">{audioEnabled?<BellOff size={15}/>:<Volume2 size={15}/>}</button>
     </section>;
   }
   if(!firstLate){
