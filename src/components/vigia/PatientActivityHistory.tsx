@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Activity, CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, Clock3, Coffee, Droplets, History, Info, Pencil, Pill, RotateCcw, Search, SlidersHorizontal, UtensilsCrossed } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { foodKinds,beverageKinds } from "@/lib/care-intake-categories";
+import { getCareIntakeIcon } from "./CareIntakePicker";
 import { acreCalendarDay } from "@/lib/hydration-goal";
 import {
   assembleCareHistory, filterCareHistory, type HistoryEntry, type HistoryFilter,
@@ -24,17 +26,10 @@ const groups:{key:"todos"|HistoryGroup;label:string;icon:typeof History}[]=[
 ];
 const subtypes:Record<HistoryGroup,{value:string;label:string}[]>={
   liquidos:[
-    {value:"agua",label:"Água"},
     {value:"meta_diaria",label:"Metas diárias"},
-    {value:"cha",label:"Chás"},
-    {value:"suco",label:"Sucos"},
-    {value:"cafe",label:"Café"},
-    {value:"outra",label:"Outras bebidas"},
+    ...beverageKinds.map(item=>({value:item.value,label:item.label})),
   ],
-  refeicoes:[
-    {value:"refeicao",label:"Refeições"},
-    {value:"lanche",label:"Lanches e ceia"},
-  ],
+  refeicoes:foodKinds.map(item=>({value:item.value,label:item.label})),
   cuidados:[
     {value:"medicacao",label:"Medicações"},
     {value:"observacao",label:"Observações"},
@@ -55,8 +50,8 @@ const defaultFilters:HistoryFilter={
 };
 const pageSize=5;
 const typeIcon=(entry:HistoryEntry)=>{
-  if(entry.group==="liquidos")return entry.subtype==="cha"||entry.subtype==="cafe"?Coffee:Droplets;
-  if(entry.group==="refeicoes")return UtensilsCrossed;
+  if(entry.group==="liquidos")return getCareIntakeIcon(entry.subtype)??Droplets;
+  if(entry.group==="refeicoes")return getCareIntakeIcon(entry.subtype)??UtensilsCrossed;
   if(entry.group==="ajustes")return SlidersHorizontal;
   if(entry.subtype==="medicacao")return Pill;
   return Activity;
