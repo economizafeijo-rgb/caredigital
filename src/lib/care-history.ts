@@ -140,6 +140,18 @@ export function assembleCareHistory(sources:HistorySources,now=Date.now()):Histo
       else reflow.set(key,{events:[item],category:item.category,recordedAt:item.recorded_at});
       continue;
     }
+    if(item.event_type==="water_decision_changed"){
+      const prev=text(details.previous_decision);
+      const next=text(details.new_decision);
+      // A resposta inicial "Não bebi" já aparece na tabela de respostas.
+      if(prev==="unanswered"&&next==="not_drunk")continue;
+      const action=next==="drank"?"Bebi":next==="reset_not_drunk"?"Sem resposta":"Não bebi";
+      events.push({id:"water-decision-"+item.id,group:"ajustes",subtype:"correcao",status:"corrigido",
+        title:"Resposta de hidratação corrigida",
+        description:`Resposta anterior: ${prev==="not_drunk"?"Não bebi":"Sem resposta"} · novo estado: ${action}${next==="drank"?" · "+String(details.amount_ml??"—")+" ml":""}. Correção registrada no horário real.`,
+        occurredAt:item.recorded_at,scheduledAt:item.scheduled_at??undefined});
+      continue;
+    }
     if(item.event_type==="water_volume_corrected"){
       events.push({id:"correction-"+item.id,group:"ajustes",subtype:"correcao",status:"corrigido",
         title:"Volume de água corrigido",
