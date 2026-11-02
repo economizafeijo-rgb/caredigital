@@ -5,6 +5,8 @@ export type HistoryEntry = {
   id: string;
   /** Underlying scheduled task, if present; used for audited record corrections. */
   taskId?: string;
+  /** Exact hydration source row for correcting amounts without changing timestamps. */
+  waterEntryId?: string;
   group: HistoryGroup;
   subtype: string;
   status: HistoryStatus;
@@ -65,7 +67,7 @@ export function assembleCareHistory(sources:HistorySources,now=Date.now()):Histo
     const skipped=skipByTask.get(task.id);
     if(task.completed_at){
       events.push({
-        id:"task-"+task.id,taskId:task.id,group,subtype:isWater?"agua":task.category==="refeicao"?/lanche|ceia/i.test(task.title)?"lanche":"refeicao":task.category,
+        id:"task-"+task.id,taskId:task.id,waterEntryId:water?.id,group,subtype:isWater?"agua":task.category==="refeicao"?/lanche|ceia/i.test(task.title)?"lanche":"refeicao":task.category,
         status:"confirmado",
         title:isWater&&water?"Água · "+water.amount_ml+" ml":task.title,
         description:description||(isWater?(water?"Consumo de água confirmado na agenda.":"Hidratação confirmada; volume não vinculado ao registro."):"Confirmação registrada no sistema."),
@@ -88,7 +90,7 @@ export function assembleCareHistory(sources:HistorySources,now=Date.now()):Histo
   for(const water of sources.water){
     // Task-linked hydration appears once, enriched with the actual ml above.
     if(water.task_id&&checklist.has(water.task_id))continue;
-    events.push({id:"water-"+water.id,taskId:water.task_id??undefined,group:"liquidos",subtype:"agua",status:"registrado",
+    events.push({id:"water-"+water.id,taskId:water.task_id??undefined,waterEntryId:water.id,group:"liquidos",subtype:"agua",status:"registrado",
       title:"Água · "+water.amount_ml+" ml",
       description:water.task_id?"Consumo de água associado a uma confirmação anterior.":"Água registrada fora da programação.",
       amountMl:water.amount_ml,occurredAt:water.recorded_at});
