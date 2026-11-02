@@ -11,7 +11,11 @@ export function getSupabaseConfigurationIssue(): string | null {
   const publishableKey = import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] as string | undefined;
   if (!url || !publishableKey) return "A conexão de autenticação não está configurada. Entre em contato com o suporte.";
   if (publishableKey.startsWith("sb_secret_")) return "Configuração de autenticação inválida. Entre em contato com o suporte.";
-  if (projectId && (url.endsWith("/") ? url.slice(0, -1) : url) !== `https://${projectId}.supabase.co`) {
+  // Prevent a platform-level .env override from silently reverting to the
+  // old Lovable Supabase project, where the patient's account does not exist.
+  const expectedId = "stlypzsqpqvrfsewlktx";
+  const normalizedUrl = url.endsWith("/") ? url.slice(0, -1) : url;
+  if (projectId !== expectedId || normalizedUrl !== `https://${expectedId}.supabase.co`) {
     return "A plataforma está conectada ao projeto de autenticação errado. Entre em contato com o suporte.";
   }
   return null;
