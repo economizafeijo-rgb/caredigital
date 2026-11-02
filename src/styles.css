@@ -880,3 +880,64 @@ iframe[title*="Lovable" i][title*="badge" i] {
 @media (min-width:1024px) and (max-height:560px) {
   #care-content:has(.public-care-showcase) .protocols-content {zoom:.82!important;}
 }
+
+/* Consistent public showcase cards: same proportions across nutrition,
+   hydration and medication; no oversized sports hero. */
+@media (min-width:1024px) {
+  #care-content:has(.public-care-showcase) .showcase-panel {
+    height:auto;
+    max-height:100%;
+    flex:0 1 auto;
+    justify-content:flex-start;
+    gap:clamp(6px,1.1vh,12px);
+    overflow:hidden;
+  }
+  #care-content:has(.public-care-showcase) .showcase-intro {
+    flex:0 0 auto!important;
+    min-height:0;
+    align-content:center;
+    padding-block:clamp(9px,1.8vh,17px);
+  }
+  #care-content:has(.public-care-showcase) .showcase-illustration {
+    min-height:0;
+    max-height:clamp(120px,24vh,190px);
+  }
+  #care-content:has(.public-care-showcase) .showcase-illustration svg[role="img"] {
+    width:100%;
+    height:clamp(115px,22vh,178px)!important;
+    max-height:100%!important;
+    object-fit:contain;
+  }
+  #care-content:has(.public-care-showcase) .showcase-benefits,
+  #care-content:has(.public-care-showcase) .showcase-steps,
+  #care-content:has(.public-care-showcase) .showcase-footer {
+    flex:0 0 auto;
+  }
+  #care-content:has(.public-care-showcase) .sports-showcase .showcase-panel {
+    height:auto!important;
+    min-height:0!important;
+    flex:0 1 auto!important;
+    justify-content:flex-start!important;
+  }
+  #care-content:has(.public-care-showcase) .sports-showcase .showcase-intro {
+    flex:0 0 auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:visible;
+  }
+}
+@media (min-width:1024px) and (max-height:650px) {
+  #care-content:has(.public-care-showcase) .showcase-panel {
+    gap:5px!important;
+    padding:9px!important;
+  }
+  #care-content:has(.public-care-showcase) .showcase-intro {
+    padding-block:7px!important;
+  }
+  #care-content:has(.public-care-showcase) .showcase-illustration {
+    max-height:115px!important;
+  }
+  #care-content:has(.public-care-showcase) .showcase-illustration svg[role="img"] {
+    height:105px!important;
+  }
+}
