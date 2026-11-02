@@ -1,7 +1,7 @@
 import { CalendarDays, CheckCircle2, Clock3, Droplets, Pill, Utensils } from "lucide-react";
 
 export type CareTimelineTask = {
-  id:string; title:string; category:string; scheduled_at:string; completed_at:string|null;
+  id:string; patient_id:string; title:string; category:string; scheduled_at:string; completed_at:string|null;
 };
 
 type Props = {tasks:CareTimelineTask[]; onConfirm:(task:CareTimelineTask)=>void};
