@@ -26,7 +26,7 @@ function chime(context:AudioContext){
     oscillator.stop(t+offset+.28);
   });
 }
-export function MedicationLateAlert({tasks,compact=false,now}:Props){
+export function MedicationLateAlert({tasks,onConfirm,compact=false,now}:Props){
   const [internalNow,setInternalNow]=useState(()=>new Date());
   const [audioEnabled,setAudioEnabled]=useState(false);
   const [previousPreference,setPreviousPreference]=useState(false);
@@ -106,7 +106,7 @@ export function MedicationLateAlert({tasks,compact=false,now}:Props){
         <p className="text-[11px] font-extrabold">{firstLate?"Dose não confirmada no horário previsto":pending.length?"Alarme preparado":"Doses de hoje confirmadas"} {firstLate&&<span className="ml-1 text-[10px] font-semibold">· {Math.floor(minutesLate/60)}h {String(minutesLate%60).padStart(2,"0")} de atraso</span>}</p>
         <p className="truncate text-[10px]">{firstLate?`${firstLate.title} · prevista ${clockFormat(firstLate.scheduled_at)}`:next?`Próxima dose às ${clockFormat(next.scheduled_at)}`:"Nenhuma dose pendente"}</p>
       </div>
-      {firstLate&&<span className="shrink-0 rounded-md bg-amber-200 px-2.5 py-1.5 text-[10px] font-bold text-amber-950">Não confirmado</span>}
+      {firstLate&&<button type="button" onClick={()=>onConfirm(firstLate)} className="shrink-0 rounded-md bg-amber-200 px-2.5 py-1.5 text-[10px] font-bold text-amber-950 hover:bg-amber-300" aria-label="Consultar confirmação da dose atrasada">Ver dose · Não confirmado</button>}
       <button type="button" onClick={()=>void toggleAudio()} aria-pressed={audioEnabled} className="inline-flex shrink-0 items-center gap-1 rounded-md border border-current/25 px-2 py-1.5 text-[10px] font-semibold">{audioEnabled?<BellOff size={13}/>:<Bell size={13}/>} {audioEnabled?"Silenciar":"Ativar som"}</button>
       {message&&<p role="status" className="w-full text-[10px]">{message}</p>}
     </section>;
@@ -146,7 +146,7 @@ export function MedicationLateAlert({tasks,compact=false,now}:Props){
       </div>
     </div>
     <div className="mt-2 flex flex-wrap gap-2">
-      <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-200 px-3 py-2 text-[11px] font-bold text-amber-950">Não confirmado — registro encerrado</span>
+      <button type="button" onClick={()=>onConfirm(firstLate)} className="inline-flex items-center gap-1.5 rounded-lg bg-amber-200 px-3 py-2 text-[11px] font-bold text-amber-950 hover:bg-amber-300">Consultar dose não confirmada</button>
       <button type="button" onClick={()=>void toggleAudio()} aria-pressed={audioEnabled} className="inline-flex items-center gap-1.5 rounded-lg border border-amber-900/30 px-3 py-2 text-[11px] font-semibold">{audioEnabled?<BellOff size={15}/>:<Bell size={15}/>} {audioEnabled?"Silenciar som":"Ativar alarme sonoro"}</button>
       <span className="ml-auto inline-flex items-center gap-1 text-[10px] opacity-80"><Clock3 size={12}/> Registro não confirmado</span>
     </div>
