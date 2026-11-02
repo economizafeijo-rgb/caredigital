@@ -48,9 +48,9 @@ const statusLabel:Record<HistoryStatus,string>={
   nao_bebi:"Não bebi",corrigido:"Corrigido",reprogramado:"Reprogramado",excluido:"Excluído"
 };
 const defaultFilters:HistoryFilter={
-  group:"todos",subtype:"todos",status:"todos",period:"hoje",query:"",order:"recentes"
+  group:"liquidos",subtype:"todos",status:"todos",period:"hoje",query:"",order:"recentes"
 };
-const pageSize=4;
+const pageSize=3;
 const typeIcon=(entry:HistoryEntry)=>{
   if(entry.group==="liquidos")return entry.subtype==="cha"||entry.subtype==="cafe"?Coffee:Droplets;
   if(entry.group==="refeicoes")return UtensilsCrossed;
@@ -183,7 +183,7 @@ export function PatientActivityHistory({patientId,ownerId,revision}:{
       <label className="flex min-w-0 flex-col gap-0.5 text-[10px] font-semibold text-muted-foreground">
         <span>Período</span>
         <select className="field h-8 w-full min-w-0 text-[11px]" value={filters.period}
-          onChange={event=>setFilter({period:event.target.value as HistoryFilter["period"]})}>
+          onChange={event=>setFilter({period:event.target.value as HistoryFilter["period"],subtype:"todos",status:"todos"})}>
           <option value="hoje">Hoje</option><option value="7d">Últimos 7 dias</option><option value="30d">Últimos 30 dias</option>
         </select>
       </label>
