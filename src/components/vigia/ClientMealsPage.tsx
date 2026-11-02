@@ -6,16 +6,17 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { ClientQuickIntake } from "./ClientQuickIntake";
 import { careReminderState, reminderClock, type ReminderTask } from "@/lib/care-reminders";
+type PatientCare = ReminderTask & {patient_id:string};
 
 type Props={
   patientId:string;
   ownerId:string;
-  meals:ReminderTask[];
+  meals:PatientCare[];
   revision:number;
   now?:number;
-  onView:(task:ReminderTask)=>void;
-  onConfirm:(task:ReminderTask)=>void;
-  onDelete:(task:ReminderTask)=>void;
+  onView:(task:PatientCare)=>void;
+  onConfirm:(task:PatientCare)=>void;
+  onDelete:(task:PatientCare)=>void;
   onRecorded:()=>void;
 };
 
