@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Activity, ArrowRight, ClipboardList, Droplets, HeartPulse, LockKeyhole, Utensils } from "lucide-react";
+import { Activity, ArrowRight, ClipboardList, Droplets, LockKeyhole, Utensils } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ClientHomeSummary } from "@/components/vigia/ClientHomeSummary";
 import { careBrandArtwork } from "@/components/vigia/CareBrandArtwork";
@@ -48,16 +48,8 @@ function Homepage() {
   }
 
   if (access === "client") {
-    return <div className="mx-auto max-w-6xl space-y-3">
+    return <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-col">
       <ClientHomeSummary />
-      <div className="flex flex-wrap gap-2">
-        <Link to="/cliente" className="inline-flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/10 px-4 py-2.5 text-xs font-semibold text-primary hover:bg-primary/20">
-          <HeartPulse size={17} /> Meu acompanhamento completo <ArrowRight size={15} />
-        </Link>
-        <Link to="/hidratacao" className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-muted">
-          <Droplets size={17} /> Meu cronograma de água
-        </Link>
-      </div>
     </div>;
   }
 
