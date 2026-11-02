@@ -20,6 +20,7 @@ export function ClientHomeSummary(){
  const [now,setNow]=useState<Date|null>(null);
  const [water,setWater]=useState(200);
  const [mealTime,setMealTime]=useState("");
+ const [mealDescription,setMealDescription]=useState("");
  const [working,setWorking]=useState(false);
  const [error,setError]=useState("");
  const [receipt,setReceipt]=useState<{success:boolean;message:string}|null>(null);
@@ -30,7 +31,7 @@ export function ClientHomeSummary(){
  const agendaPageCount=Math.max(1,Math.ceil(tasks.length/agendaPageSize));
  const visibleAgenda=tasks.slice(Math.min(agendaPage,agendaPageCount-1)*agendaPageSize,(Math.min(agendaPage,agendaPageCount-1)+1)*agendaPageSize);
  useEffect(()=>{setNow(new Date());const id=window.setInterval(()=>setNow(new Date()),1000);return()=>window.clearInterval(id)},[]);
- useEffect(()=>{const timer=window.setInterval(()=>setRefresh(v=>v+1),45000);const focus=()=>setRefresh(v=>v+1);window.addEventListener("focus",focus);return()=>{window.clearInterval(timer);window.removeEventListener("focus",focus)}},[]);
+ useEffect(()=>{const timer=window.setInterval(()=>setRefresh(v=>v+1),45000);const refreshAgenda=()=>setRefresh(v=>v+1);const visible=()=>{if(document.visibilityState==="visible")refreshAgenda()};window.addEventListener("focus",refreshAgenda);document.addEventListener("visibilitychange",visible);const channel=supabase.channel("client-home-care-changes").on("postgres_changes",{event:"*",schema:"public",table:"care_daily_checklist"},refreshAgenda).subscribe();return()=>{window.clearInterval(timer);window.removeEventListener("focus",refreshAgenda);document.removeEventListener("visibilitychange",visible);void supabase.removeChannel(channel)}},[]);
  useEffect(()=>{let active=true;void (async()=>{
     const session=await supabase.auth.getUser();
     const uid=session.data.user?.id;
