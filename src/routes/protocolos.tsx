@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight, CalendarClock, ClipboardCheck, Clock3,
-  HeartPulse, LockKeyhole, ShieldCheck, UserRoundCheck,
+  HeartPulse, LockKeyhole, ShieldCheck, UserRoundCheck, Droplets, UtensilsCrossed, BellRing,
 } from "lucide-react";
 
 export const Route = createFileRoute("/protocolos")({
@@ -94,7 +94,7 @@ function CareFlowIllustration() {
 function Protocolos() {
   return (
     <div className="public-care-showcase mx-auto flex min-h-full w-full max-w-[1080px] flex-col justify-start py-1.5 lg:ml-0 lg:mr-auto lg:max-w-[850px] lg:justify-center" aria-label="Apresentação demonstrativa dos protocolos de cuidado">
-      <div className="flex w-full shrink-0 flex-col gap-2.5 rounded-3xl border border-border bg-card/95 p-3 shadow-[0_18px_55px_-35px_rgba(17,50,70,.34)] sm:p-4 lg:gap-3 lg:p-4">
+      <div className="protocols-content flex w-full min-h-0 flex-1 flex-col gap-2.5 rounded-3xl border border-border bg-card/95 p-3 shadow-[0_18px_55px_-35px_rgba(17,50,70,.34)] sm:p-4 lg:gap-3 lg:p-4">
         <header className="flex shrink-0 flex-wrap items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
             <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
@@ -108,7 +108,7 @@ function Protocolos() {
           <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 text-[11px] font-semibold text-primary"><ShieldCheck size={14}/> Área demonstrativa</span>
         </header>
 
-        <section className="grid shrink-0 items-center gap-3 rounded-2xl border border-border/70 bg-muted/35 px-3 py-3 sm:px-4 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]" aria-labelledby="protocols-intro">
+        <section className="protocols-intro grid shrink-0 items-center gap-3 rounded-2xl border border-border/70 bg-muted/35 px-3 py-3 sm:px-4 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]" aria-labelledby="protocols-intro">
           <div className="min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-[.16em] text-primary">Seu cuidado, no seu espaço</p>
             <h2 id="protocols-intro" className="mt-1 max-w-[18ch] text-balance text-xl font-extrabold leading-tight text-foreground sm:text-[22px]">
@@ -131,7 +131,7 @@ function Protocolos() {
           </div>
         </section>
 
-        <section className="grid shrink-0 gap-2 sm:grid-cols-3" aria-label="Recursos de acompanhamento">
+        <section className="protocols-benefits grid shrink-0 gap-2 sm:grid-cols-3" aria-label="Recursos de acompanhamento">
           {benefits.map(({icon:Icon,title,description})=>(
             <article key={title} className="flex min-w-0 items-start gap-2.5 rounded-xl border border-border bg-background/65 p-2.5">
               <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><Icon size={19}/></span>
@@ -140,7 +140,7 @@ function Protocolos() {
           ))}
         </section>
 
-        <section className="shrink-0 rounded-xl border border-border bg-muted/35 px-3 py-2.5 sm:px-4" aria-labelledby="care-steps-title">
+        <section className="protocols-journey shrink-0 rounded-xl border border-border bg-muted/35 px-3 py-2.5 sm:px-4" aria-labelledby="care-steps-title">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <h2 id="care-steps-title" className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wide text-foreground"><Clock3 size={15} className="text-primary"/> Jornada de acompanhamento</h2>
             <span className="text-[10px] font-medium text-muted-foreground">Exemplo ilustrativo · sem dados de pacientes</span>
@@ -154,6 +154,19 @@ function Protocolos() {
               </li>
             ))}
           </ol>
+        </section>
+
+        <section className="protocols-extra grid gap-2 sm:grid-cols-3" aria-label="Exemplos práticos de acompanhamento">
+          {[
+            {icon:BellRing,title:"Lembretes claros",description:"Consulte os horários previstos e saiba o que está pendente."},
+            {icon:Droplets,title:"Hidratação diária",description:"Acompanhe sua meta e registre a quantidade de água consumida."},
+            {icon:UtensilsCrossed,title:"Refeições organizadas",description:"Veja a programação alimentar e informe o que foi consumido."},
+          ].map(({icon:Icon,title,description})=>(
+            <article key={title} className="flex items-start gap-3 rounded-xl border border-primary/15 bg-primary/5 p-3">
+              <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><Icon size={18}/></span>
+              <div><h3 className="text-xs font-bold text-foreground">{title}</h3><p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{description}</p></div>
+            </article>
+          ))}
         </section>
 
         <footer className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl border border-primary/15 bg-primary/5 px-3 py-2 text-xs">
