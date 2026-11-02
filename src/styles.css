@@ -1870,3 +1870,194 @@ iframe[title*="Lovable" i][title*="badge" i] {
   .care-visual-progress .care-progress-ring,
   .care-visual-progress .care-water-fill {transition:none;}
 }
+
+/* CareDigital — five independent patient workspaces.
+   One active page per menu; no medication blister on agenda/water/history/meals. */
+.care-client-dashboard .care-client-page-nav {
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:5px;
+  padding:5px;
+  border-color:color-mix(in srgb,var(--primary) 27%,var(--border));
+  background:color-mix(in srgb,var(--muted) 65%,var(--card));
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--background) 80%,transparent);
+}
+.care-client-dashboard .care-client-page-nav button {
+  min-width:0;
+  min-height:39px;
+  border:1px solid transparent;
+  border-radius:11px;
+  color:var(--muted-foreground);
+  background:transparent;
+  transition:background .17s ease,border-color .17s ease,transform .17s ease;
+}
+.care-client-dashboard .care-client-page-nav button:hover {
+  color:var(--foreground);
+  background:color-mix(in srgb,var(--background) 83%,transparent);
+  border-color:var(--border);
+}
+.care-client-dashboard .care-client-page-nav button[aria-selected="true"] {
+  color:#083e47;
+  border-color:rgba(9,170,162,.24);
+  background:linear-gradient(130deg,#abf8e4,#69dccd);
+  box-shadow:0 3px 11px rgba(31,151,151,.14),inset 0 1px 0 rgba(255,255,255,.60);
+}
+.dark .care-client-dashboard .care-client-page-nav button[aria-selected="true"] {
+  color:#e8ffff;
+  border-color:rgba(109,248,220,.27);
+  background:linear-gradient(130deg,#11625f,#15887f);
+  box-shadow:0 3px 12px rgba(0,16,22,.25);
+}
+.care-client-dashboard .care-client-page-main {
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+}
+.care-client-dashboard .care-client-page-main[data-client-page]:not([data-client-page="hoje"]) {
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+}
+.care-client-dashboard .care-client-page-main[data-client-page]:not([data-client-page="hoje"]) > .care-client-page-content {
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+  padding:10px;
+  border-color:color-mix(in srgb,var(--primary) 21%,var(--border));
+  background:color-mix(in srgb,var(--card) 92%,var(--muted));
+}
+.care-client-dashboard .care-section-heading {
+  --section-accent:#089e9e;
+  --section-light:rgba(47,214,190,.16);
+  border-color:color-mix(in srgb,var(--section-accent) 30%,var(--border));
+  background:linear-gradient(110deg,color-mix(in srgb,var(--section-accent) 10%,var(--card)),var(--card) 78%);
+  color:var(--foreground);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.48),0 3px 11px rgba(19,118,128,.06);
+}
+.care-client-dashboard .care-section-heading[data-page="agenda"] {
+  --section-accent:#358dd3;
+}
+.care-client-dashboard .care-section-heading[data-page="hidratacao"] {
+  --section-accent:#0eadd4;
+}
+.care-client-dashboard .care-section-heading[data-page="historico"] {
+  --section-accent:#7b69d8;
+}
+.care-client-dashboard .care-section-heading[data-page="alimentacao"] {
+  --section-accent:#14a986;
+}
+.care-section-heading-icon {
+  color:var(--section-accent);
+  border-color:color-mix(in srgb,var(--section-accent) 30%,var(--border));
+  background:color-mix(in srgb,var(--section-accent) 12%,var(--card));
+  box-shadow:0 3px 9px rgba(28,122,141,.07);
+}
+.care-section-heading-eyebrow {color:var(--section-accent);}
+.care-section-heading-subtitle {color:var(--muted-foreground);}
+.care-section-heading-decor {
+  background:radial-gradient(circle,var(--section-light),transparent 70%);
+}
+.care-section-heading-stat {
+  color:var(--foreground);
+  border-color:var(--border);
+  background:color-mix(in srgb,var(--background) 77%,var(--card));
+}
+.dark .care-client-dashboard .care-section-heading {
+  background:linear-gradient(110deg,color-mix(in srgb,var(--section-accent) 15%,var(--card)),var(--card) 83%);
+  box-shadow:0 3px 13px rgba(0,11,19,.18);
+}
+.dark .care-section-heading-icon {color:#b1f4ed;}
+.dark .care-section-heading-eyebrow {color:#a7e9e4;}
+.care-page-agenda,
+.care-page-meals,
+.care-client-hydration-page {min-width:0;min-height:0;}
+.care-page-agenda-content,
+.care-page-meals-list,
+.care-client-hydration-content {scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--primary) 40%,transparent) transparent;}
+.care-page-agenda-categories {scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--primary) 30%,transparent) transparent;}
+.care-agenda-row {
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--background) 65%,transparent);
+}
+.care-agenda-medicine {
+  background:color-mix(in srgb,#a596fa 10%,var(--card));
+  border-color:color-mix(in srgb,#9886e8 22%,var(--border));
+}
+.care-agenda-water {
+  background:color-mix(in srgb,#48c7f3 12%,var(--card));
+  border-color:color-mix(in srgb,#48c7f3 24%,var(--border));
+}
+.care-agenda-meals {
+  background:color-mix(in srgb,#55dbaa 11%,var(--card));
+  border-color:color-mix(in srgb,#45ce9f 24%,var(--border));
+}
+.care-agenda-supplements {
+  background:color-mix(in srgb,#c9a5fa 11%,var(--card));
+  border-color:color-mix(in srgb,#ad87da 24%,var(--border));
+}
+.care-agenda-row-icon {color:var(--primary);}
+.care-meal-record {
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--background) 58%,transparent);
+}
+.care-client-hydration-content {
+  background:linear-gradient(130deg,color-mix(in srgb,#4fcaf1 6%,var(--card)),var(--card));
+}
+@media (max-width:767px) {
+  .care-client-dashboard .care-client-page-nav {
+    display:grid;
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:2px;
+    padding:3px;
+  }
+  .care-client-dashboard .care-client-page-nav button {
+    min-width:0;
+    min-height:48px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:2px;
+    padding:3px 1px;
+    font-size:9px;
+    line-height:1.1;
+  }
+  .care-client-dashboard .care-client-page-nav button svg {width:14px;height:14px;display:block;}
+  .care-client-dashboard .care-client-page-nav button span {
+    display:block;
+    max-width:100%;
+    overflow-wrap:anywhere;
+    white-space:normal;
+    line-height:1.12;
+    text-align:center;
+  }
+  .care-client-dashboard .care-client-page-main[data-client-page]:not([data-client-page="hoje"]) {
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    min-height:min(67dvh,650px);
+  }
+  .care-client-dashboard .care-client-page-main[data-client-page]:not([data-client-page="hoje"]) > .care-client-page-content {
+    overflow:hidden;
+    min-height:0;
+    max-height:none;
+    flex:initial;
+  }
+  .care-client-dashboard .care-section-heading {padding:8px 10px;}
+  .care-client-dashboard .care-section-heading-icon {width:34px;height:34px;}
+  .care-client-dashboard .care-section-heading h2 {font-size:14px;}
+  .care-client-dashboard .care-section-heading-stat {font-size:9px;padding:3px 6px;}
+  .care-page-agenda-insights > div {padding:7px 8px;}
+  .care-page-agenda-insights strong {font-size:16px;}
+  .care-page-agenda-content,
+  .care-page-meals-list {min-height:145px;}
+  .care-page-meals-filters {gap:6px;}
+}
+@media (min-width:768px) and (max-height:690px) {
+  .care-client-dashboard .care-section-heading {padding:6px 10px;}
+  .care-client-dashboard .care-section-heading-icon {width:33px;height:33px;}
+  .care-client-dashboard .care-section-heading h2 {font-size:14px;}
+  .care-page-agenda, .care-page-meals {gap:6px;}
+  .care-page-agenda-insights > div {padding:5px 8px;}
+  .care-page-agenda-insights strong {font-size:15px;}
+  .care-page-agenda-filters {gap:4px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .care-client-dashboard .care-client-page-nav button {transition:none;}
+}
