@@ -43,6 +43,9 @@ describe("histórico inteligente CareDigital",()=>{
     const water=all.filter(e=>e.group==="liquidos"&&e.subtype==="agua"&&e.amountMl);
     expect(water).toHaveLength(2);
     expect(water.map(e=>e.amountMl).sort((a,b)=>(a??0)-(b??0))).toEqual([100,300]);
+    expect(water.find(e=>e.title.includes("100 ml"))?.waterEntryId).toBe("water1");
+    expect(water.find(e=>e.title.includes("300 ml"))?.waterEntryId).toBe("water2");
+    expect(water.find(e=>e.title.includes("100 ml"))?.taskId).toBe("water-scheduled");
   });
   it("separa refeição agendada e lanche extra, com as descrições reais",()=>{
     const all=assembleCareHistory(data(),now);
