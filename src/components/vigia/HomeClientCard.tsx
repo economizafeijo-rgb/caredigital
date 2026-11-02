@@ -9,6 +9,7 @@ import { ClientHydrationTab } from "./ClientHydrationTab";
 import { ClientBeverageTracker } from "./ClientBeverageTracker";
 import { MedicationLateAlert } from "./MedicationLateAlert";
 import { ClientTodayTimeline } from "./ClientTodayTimeline";
+import { canConfirmCare, careScheduleBlockMessage, careScheduleLabel, getCareScheduleState } from "@/lib/care-schedule";
 
 type Client = { id: string; owner_id: string; full_name: string; status: string; care_goal: string | null };
 type Task = { id: string; patient_id: string; title: string; category: string; scheduled_at: string; completed_at: string | null };
@@ -33,11 +34,9 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
   const [locked, setLocked] = useState(false);
   const [pending, setPending] = useState<Task | null>(null);
   const [mealToDelete, setMealToDelete] = useState<Task | null>(null);
-  const [mealEarlyAcknowledged, setMealEarlyAcknowledged] = useState(false);
   const [hydrationView, setHydrationView] = useState<"agua" | "bebidas">("agua");
   const [amount, setAmount] = useState("200");
   const [busy, setBusy] = useState(false);
-  const [lateReason, setLateReason] = useState("acordei_tarde");
   const [activeTab, setActiveTab] = useState<"hoje" | "agenda" | "historico" | "alimentacao" | "hidratacao">("hoje");
   const [tick, setTick] = useState(0);
   const [clock, setClock] = useState<Date | null>(null);
@@ -90,27 +89,17 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
   }, [owner, tick]);
 
   const completed = tasks.filter(t => Boolean(t.completed_at)).length;
-  const nextCare = tasks.find(t => !t.completed_at);
+  const nextCare = tasks.find(t => !t.completed_at && getCareScheduleState(t, clock?.getTime() ?? Date.now()) !== "missed");
   const meals = tasks.filter(t => t.category === "refeicao");
   const mealGuide: Record<string,string> = { "Café da manhã":"Aveia cozida em água ou leite sem lactose, se tolerado, com banana madura.", "Lanche da manhã":"Mamão ou banana madura; ajuste à sua tolerância.", "Almoço":"Arroz, frango cozido ou grelhado sem excesso de gordura, batata e legumes cozidos.", "Lanche da tarde":"Batata-doce cozida ou fruta tolerada.", "Jantar":"Sopa suave de legumes e frango desfiado, sem pimenta.", "Ceia":"Mingau leve de aveia ou banana, conforme tolerância." };
 
   function askConfirm(task: Task) {
     if (!owner || !client) { setLocked(true); return; }
-    if (task.completed_at) { setNotice("Esta atividade já foi confirmada."); return; }
-    if (task.category === "medicacao") {
-      if (dayInAcre(new Date(task.scheduled_at)) !== dayInAcre(new Date())) {
-        setConfirmationResult({ success:false, title:"Confirmação indisponível",
-          detail:"Somente medicamentos agendados para hoje podem ser confirmados. Para registrar uma dose de outro dia, procure o responsável pelo tratamento." });
-        return;
-      }
-      if (Date.now() < Date.parse(task.scheduled_at)) {
-        setConfirmationResult({ success:false, title:"Horário da medicação ainda não atingido",
-          detail:`Esta dose está programada para ${timeInAcre(task.scheduled_at)} (horário do Acre). Por segurança, o registro só será permitido a partir desse horário. Não antecipe a medicação sem orientação profissional. Nenhuma confirmação foi salva.` });
-        return;
-      }
+    if (!canConfirmCare(task)) {
+      setPending(null);
+      setConfirmationResult({success:false,title:"Confirmação indisponível",detail:careScheduleBlockMessage(task)});
+      return;
     }
-    setMealEarlyAcknowledged(false);
-    setLateReason("acordei_tarde");
     setNotice("");
     setConfirmationResult(null);
     setPending(task);
@@ -118,17 +107,9 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
 
   async function confirm() {
     if (!pending || !owner || !client || busy) return;
-    if (pending.category === "medicacao" &&
-      (dayInAcre(new Date(pending.scheduled_at)) !== dayInAcre(new Date()) ||
-        Date.now() < Date.parse(pending.scheduled_at))) {
-      setConfirmationResult({success:false,title:"Horário da medicação ainda não atingido",
-        detail:`Confirmação disponível apenas no dia e a partir das ${timeInAcre(pending.scheduled_at)} (Acre). Nenhuma confirmação foi salva.`});
+    if (!canConfirmCare(pending)) {
+      setConfirmationResult({success:false,title:"Confirmação fora do horário",detail:careScheduleBlockMessage(pending)});
       setPending(null);
-      return;
-    }
-    const mealIsEarly = pending.category === "refeicao" && Date.now() < Date.parse(pending.scheduled_at);
-    if (mealIsEarly && !mealEarlyAcknowledged) {
-      setNotice("Para registrar uma refeição antecipada, confirme que já a realizou.");
       return;
     }
     if (pending.category === "hidratacao" && (!Number.isInteger(Number(amount)) || Number(amount) < 10 || Number(amount) > 1500)) {
@@ -137,30 +118,33 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
     }
     setBusy(true);
     try {
-      // The database function performs confirmation and hydration logging atomically.
       const payload = pending.category === "hidratacao" ? Number(amount) : null;
-      const result = mealIsEarly
-        ? await (supabase as any).rpc("care_confirm_meal_early", { p_task_id: pending.id, p_verified: true })
-        : await (supabase as any).rpc("care_confirm_task", { p_task_id: pending.id, p_water_ml: payload });
+      const result = await (supabase as any).rpc("care_confirm_task", {p_task_id:pending.id,p_water_ml:payload});
       if (result.error) throw result.error;
-      if (typeof result.data !== "string" || !Number.isFinite(Date.parse(result.data))) throw new Error("Missing confirmed server timestamp");
-      const confirmedAt=result.data as string;
-      const verified=await (supabase as any).from("care_daily_checklist").select("id,completed_at")
+      if (typeof result.data !== "string" || !Number.isFinite(Date.parse(result.data))) throw new Error("Missing server timestamp");
+      const verified = await (supabase as any).from("care_daily_checklist").select("id,completed_at")
         .eq("id",pending.id).eq("patient_id",client.id).single();
       if (verified.error || !verified.data?.completed_at) throw new Error("Could not verify record");
-      setTasks(previous => previous.map(t=>t.id===pending.id?{...t,completed_at:verified.data.completed_at}:t));
+      setTasks(previous=>previous.map(t=>t.id===pending.id?{...t,completed_at:verified.data.completed_at}:t));
       setTick(value=>value+1);
-      const actual=new Intl.DateTimeFormat("pt-BR",{timeZone:tz,day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new Date(verified.data.completed_at));
-      setConfirmationResult({success:true,title:pending.category==="medicacao"?"Medicação registrada com sucesso!":pending.category==="refeicao"?"Refeição registrada com sucesso!":"Cuidado registrado com sucesso!",detail:`${pending.title} · ${actual} (horário do Acre). ${mealIsEarly?"Confirmação antecipada verificada. ":""}Data e hora reais salvas no prontuário.`});
+      const actual = new Intl.DateTimeFormat("pt-BR",{timeZone:tz,day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new Date(verified.data.completed_at));
+      setConfirmationResult({success:true,
+        title:pending.category==="medicacao"?"Medicação registrada com sucesso!":pending.category==="refeicao"?"Refeição registrada com sucesso!":"Hidratação registrada com sucesso!",
+        detail:`${pending.title} · ${actual} (horário do Acre). Data e hora reais salvas no prontuário.`});
       setNotice("");
       setPending(null);
     } catch (failure) {
       const message=failure instanceof Error?failure.message:"";
-      const detail=/already completed/i.test(message)?"Este cuidado já foi confirmado. Atualize o painel para consultar o registro.":/scheduled time not reached/i.test(message)?"O horário programado da medicação ainda não foi atingido. Nenhum registro foi salvo.":/scheduled date/i.test(message)?"Somente a dose agendada para hoje pode ser confirmada.":/Meal early confirmation requires verification/i.test(message)?"Uma refeição antecipada exige confirmação expressa antes do registro.":/task unavailable|authentication|permission|denied|401|403/i.test(message)?"Sua sessão não tem acesso a este cuidado. Entre novamente e consulte seu prontuário.":"O registro não pôde ser confirmado. Confira sua conexão e o histórico antes de tentar novamente.";
+      const detail=/Care window not started/i.test(message)?"O horário programado ainda não chegou. Nenhuma confirmação foi salva."
+        :/Care window expired|Early meal confirmation disabled/i.test(message)?"O prazo terminou. Este cuidado permanecerá como Não confirmado, sem confirmação retroativa."
+        :/already completed/i.test(message)?"Este cuidado já foi confirmado. Atualize a agenda."
+        :/Water was already marked as not drunk/i.test(message)?"Este horário foi registrado como Não bebi e não pode ser confirmado novamente."
+        :/task unavailable|authentication|permission|denied|401|403/i.test(message)?"Sua sessão não tem acesso a este cuidado. Entre novamente e consulte seu prontuário."
+        :"O registro não pôde ser confirmado. Confira sua conexão e o histórico antes de tentar novamente.";
       setConfirmationResult({success:false,title:"Não foi possível confirmar",detail});
       setNotice(detail);
       setTick(value=>value+1);
-    } finally { setBusy(false); }
+    } finally {setBusy(false);}
   }
 
   async function deleteMeal() {
@@ -251,7 +235,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
             <div className="care-summary-stats grid shrink-0 grid-cols-3 gap-2">
               <div className="rounded-2xl border border-border/55 bg-muted/70 p-3"><p className="text-[11px] text-muted-foreground">Cuidados</p><strong className="mt-1 block text-2xl font-extrabold tabular-nums text-foreground">{tasks.length}</strong></div>
               <div className="rounded-2xl border border-success/15 bg-success/5 p-3"><p className="text-[11px] text-muted-foreground">Concluídos</p><strong className="mt-1 block text-2xl font-extrabold tabular-nums text-success">{completed}</strong></div>
-              <div className="rounded-2xl border border-border/55 bg-muted/70 p-3"><p className="text-[11px] text-muted-foreground">Pendentes</p><strong className="mt-1 block text-2xl font-extrabold tabular-nums text-foreground">{tasks.length-completed}</strong></div>
+              <div className="rounded-2xl border border-border/55 bg-muted/70 p-3"><p className="text-[11px] text-muted-foreground">Não confirmados</p><strong className="mt-1 block text-2xl font-extrabold tabular-nums text-foreground">{tasks.length-completed}</strong></div>
             </div>
 
             <div className="care-next-care flex shrink-0 flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/20 bg-primary/[.045] p-3">
@@ -259,7 +243,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
                 <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><CalendarClock size={21}/></span>
                 <div className="min-w-0">
                   <p className="text-xs font-extrabold text-foreground">Próximo cuidado pendente</p>
-                  {nextCare?<><strong className="mt-1 block text-base font-extrabold tabular-nums text-foreground">{timeInAcre(nextCare.scheduled_at)} · {categoryInfo[nextCare.category]?.label??"Atividade"}</strong><p className="truncate text-xs text-muted-foreground">{nextCare.title}</p></>:<p className="mt-1 text-xs text-muted-foreground">Todos os cuidados de hoje foram confirmados.</p>}
+                  {nextCare?<><strong className="mt-1 block text-base font-extrabold tabular-nums text-foreground">{timeInAcre(nextCare.scheduled_at)} · {categoryInfo[nextCare.category]?.label??"Atividade"}</strong><p className="truncate text-xs text-muted-foreground">{nextCare.title}</p></>:<p className="mt-1 text-xs text-muted-foreground">Não há novos horários disponíveis. Consulte a agenda para ver os cuidados não confirmados.</p>}
                 </div>
               </div>
               {nextCare&&<button type="button" onClick={()=>askConfirm(nextCare)} className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-primary px-3 text-[11px] font-extrabold text-primary-foreground transition hover:opacity-90">Consultar / confirmar <ArrowRight size={15}/></button>}
@@ -278,12 +262,12 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
 
           {activeTab==="agenda"&&<div className="h-full space-y-2">
             <h2 className="flex items-center gap-2 text-sm font-extrabold text-foreground"><CalendarDays size={17} className="text-primary"/> Cuidados programados para hoje</h2>
-            <p className="text-xs text-muted-foreground">Toque no cuidado realizado para registrar a hora real no servidor.</p>
+            <p className="text-xs text-muted-foreground">Confirme somente no horário previsto e nos 15 minutos seguintes. Após esse prazo, o cuidado permanece como Não confirmado.</p>
             <div className="space-y-1.5">
               {tasks.map(task=>{const Icon=categoryInfo[task.category]?.icon??Pill;return <div key={task.id} className="flex items-center gap-2 rounded-xl border border-border bg-muted/30 p-2.5">
                 <Icon size={18} className="shrink-0 text-primary"/>
-                <div className="min-w-0 flex-1"><strong className="block truncate text-xs text-foreground">{task.title}</strong><p className="text-[10px] text-muted-foreground">{timeInAcre(task.scheduled_at)} · {task.completed_at?`Confirmado às ${timeInAcre(task.completed_at)}`:"Aguardando confirmação"}</p></div>
-                {task.completed_at?<CheckCircle2 size={18} className="shrink-0 text-success"/>:<button type="button" onClick={()=>askConfirm(task)} className="shrink-0 rounded-lg bg-primary px-2.5 py-1.5 text-[11px] font-bold text-primary-foreground">Confirmar</button>}
+                <div className="min-w-0 flex-1"><strong className="block truncate text-xs text-foreground">{task.title}</strong><p className="text-[10px] text-muted-foreground">{timeInAcre(task.scheduled_at)} · {task.completed_at?`Confirmado às ${timeInAcre(task.completed_at)}`:careScheduleLabel(task,clock?.getTime()??Date.now())}</p></div>
+                {task.completed_at?<CheckCircle2 size={18} className="shrink-0 text-success"/>:canConfirmCare(task,clock?.getTime()??Date.now())?<button type="button" onClick={()=>askConfirm(task)} className="shrink-0 rounded-lg bg-primary px-2.5 py-1.5 text-[11px] font-bold text-primary-foreground">Confirmar</button>:<span className="shrink-0 text-[10px] font-semibold text-muted-foreground">{careScheduleLabel(task,clock?.getTime()??Date.now())}</span>}
                 {task.category==="refeicao"&&<button type="button" title="Excluir refeição" aria-label={`Excluir ${task.title}`} onClick={()=>{setPending(null);setMealToDelete(task)}} className="shrink-0 rounded-lg border border-destructive/30 p-1.5 text-destructive hover:bg-destructive/10"><Trash2 size={15}/></button>}
               </div>})}
               {!tasks.length&&<p className="text-sm text-muted-foreground">Nenhum cuidado cadastrado para hoje.</p>}
@@ -303,7 +287,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
             {meals.map(meal=><div key={meal.id} className="rounded-xl border border-border bg-muted/25 p-3">
               <div className="flex items-center justify-between gap-2"><strong className="text-xs text-foreground">{meal.title}</strong><span className="text-[10px] text-muted-foreground">{timeInAcre(meal.scheduled_at)}</span></div>
               <p className="mt-1 text-xs text-muted-foreground">{mealGuide[meal.title]??"Alimentação leve conforme tolerância."}</p>
-              {meal.completed_at?<p className="mt-1.5 flex items-center gap-1 text-[11px] font-semibold text-success"><CheckCircle2 size={14}/> Confirmado às {timeInAcre(meal.completed_at)}</p>:<button type="button" className="mt-2 rounded-lg bg-primary/10 px-2.5 py-1.5 text-[11px] font-bold text-primary hover:bg-primary/20" onClick={()=>askConfirm(meal)}>{Date.now()<Date.parse(meal.scheduled_at)?"Verificar registro antecipado":"Confirmar refeição"}</button>}
+              {meal.completed_at?<p className="mt-1.5 flex items-center gap-1 text-[11px] font-semibold text-success"><CheckCircle2 size={14}/> Confirmado às {timeInAcre(meal.completed_at)}</p>:canConfirmCare(meal,clock?.getTime()??Date.now())?<button type="button" className="mt-2 rounded-lg bg-primary/10 px-2.5 py-1.5 text-[11px] font-bold text-primary hover:bg-primary/20" onClick={()=>askConfirm(meal)}>Confirmar refeição</button>:<p className="mt-1.5 text-[11px] font-semibold text-muted-foreground">{careScheduleLabel(meal,clock?.getTime()??Date.now())}</p>}
               <button type="button" className="ml-2 mt-2 inline-flex items-center gap-1 rounded-lg border border-destructive/30 px-2.5 py-1.5 text-[11px] font-semibold text-destructive hover:bg-destructive/10" onClick={()=>{setPending(null);setMealToDelete(meal)}}><Trash2 size={13}/> Excluir refeição</button>
             </div>)}
             {!meals.length&&<p className="text-sm text-muted-foreground">Sem refeições agendadas.</p>}
@@ -344,21 +328,11 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
               <p className="text-xs font-bold text-foreground">{pending.title}</p>
               <p className="text-[11px] text-muted-foreground">Prevista: {timeInAcre(pending.scheduled_at)} · Acre</p>
             </div>
-            {Date.now()>new Date(pending.scheduled_at).getTime()+15*60000&&
-              <div className="rounded-lg border border-amber-500/40 bg-amber-500/5 px-2.5 py-2 text-xs">
-                <p className="flex items-center gap-1.5 font-bold text-foreground"><AlertTriangle size={14} className="shrink-0 text-warning"/> Fora do horário previsto</p>
-                <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">{Date.now()>new Date(pending.scheduled_at).getTime()?"Horário ultrapassado.":"Horário ainda não atingido."} Confirme somente se tomou agora. Não dobre a dose.</p>
-                {Date.now()>new Date(pending.scheduled_at).getTime()&&<label className="mt-1.5 block text-[11px] font-semibold text-foreground">Motivo (opcional)
-                  <select value={lateReason} onChange={e=>setLateReason(e.target.value)} className="mt-1 h-8 w-full rounded-lg border border-input bg-background px-2 text-xs text-foreground">
-                    <option value="acordei_tarde">Acordei mais tarde</option><option value="rotina">Mudança na rotina</option><option value="outro">Outro motivo</option>
-                  </select>
-                </label>}
-              </div>}
-            <p className="text-[10px] leading-snug text-muted-foreground">A confirmação será registrada com data e hora reais do servidor. Não antecipe medicamentos sem orientação do profissional responsável.</p>
+            <p className="text-[10px] leading-snug text-muted-foreground">A confirmação fica disponível apenas nos 15 minutos após o horário previsto e usa a hora real do servidor. Não altere a medicação sem orientação profissional.</p>
           </div>
           <div className="grid shrink-0 grid-cols-2 gap-2 border-t border-border bg-card px-3 py-2.5">
             <button type="button" disabled={busy} onClick={()=>setPending(null)} className="h-9 rounded-lg border border-border text-xs font-semibold text-foreground">Cancelar</button>
-            <button type="button" disabled={busy} onClick={()=>void confirm()} className="h-9 rounded-lg bg-primary px-2 text-xs font-bold text-primary-foreground disabled:opacity-60">{busy?"Registrando…":"Sim, tomei agora"}</button>
+            <button type="button" disabled={busy || !canConfirmCare(pending,clock?.getTime()??Date.now())} onClick={()=>void confirm()} className="h-9 rounded-lg bg-primary px-2 text-xs font-bold text-primary-foreground disabled:opacity-60">{busy?"Registrando…":"Sim, tomei agora"}</button>
           </div>
         </section>
       </div>,
@@ -376,13 +350,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
               <p className="text-sm font-bold">{pending.title}</p>
               <p className="mt-1 text-xs text-muted-foreground">Horário programado: {timeInAcre(pending.scheduled_at)} (Acre)</p>
             </div>
-            {pending.category==="refeicao"&&(Date.now()<Date.parse(pending.scheduled_at)
-              ? <div className="space-y-2 rounded-xl border border-amber-500/40 bg-amber-500/10 p-3">
-                  <p className="flex items-center gap-2 text-xs font-extrabold text-foreground"><AlertTriangle size={17} className="text-warning"/> Verificação de refeição antecipada</p>
-                  <p className="text-xs leading-relaxed text-foreground">Esta refeição está programada para {timeInAcre(pending.scheduled_at)} (Acre), e o horário ainda não chegou. Se você já a realizou, poderá registrar antecipadamente após confirmar. A data e a hora reais serão gravadas pelo servidor.</p>
-                  <label className="flex items-start gap-2 text-xs font-semibold text-foreground"><input type="checkbox" className="mt-0.5" checked={mealEarlyAcknowledged} onChange={event=>setMealEarlyAcknowledged(event.target.checked)}/><span>Confirmo que já realizei esta refeição e desejo registrar agora, antes do horário programado.</span></label>
-                </div>
-              : <p className="text-xs leading-relaxed text-muted-foreground">Confirme somente se realizou esta refeição. O registro será salvo com a data e a hora reais do servidor.</p>)}
+            {pending.category==="refeicao"&&<p className="text-xs leading-relaxed text-muted-foreground">Confirme somente a refeição realizada dentro dos 15 minutos após o horário programado. O servidor registrará data e hora exatas, sem antecipações ou registros retroativos.</p>}
             {pending.category==="hidratacao"&&<label className="block text-xs font-bold text-foreground">Volume de água realmente consumido (ml)
               <input className="field mt-1.5 w-full" type="number" min={10} max={1500} step={10} value={amount} onChange={e=>setAmount(e.target.value)}/>
               <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Confirme apenas a quantidade que você bebeu agora.</span>
@@ -390,7 +358,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
           </div>
           <div className="grid grid-cols-2 gap-2 border-t border-border px-4 py-3">
             <button type="button" disabled={busy} onClick={()=>setPending(null)} className="h-10 rounded-xl border border-border text-xs font-bold text-foreground">Cancelar</button>
-            <button type="button" disabled={busy||(pending.category==="refeicao"&&Date.now()<Date.parse(pending.scheduled_at)&&!mealEarlyAcknowledged)} onClick={()=>void confirm()} className="h-10 rounded-xl bg-primary px-2 text-xs font-extrabold text-primary-foreground disabled:opacity-60">{busy?"Registrando…":pending.category==="refeicao"&&Date.now()<Date.parse(pending.scheduled_at)?"Confirmar antecipação":"Confirmar agora"}</button>
+            <button type="button" disabled={busy || !canConfirmCare(pending,clock?.getTime()??Date.now())} onClick={()=>void confirm()} className="h-10 rounded-xl bg-primary px-2 text-xs font-extrabold text-primary-foreground disabled:opacity-60">{busy?"Registrando…":"Confirmar agora"}</button>
           </div>
         </section>
       </div>,
