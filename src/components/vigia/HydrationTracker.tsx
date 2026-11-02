@@ -11,7 +11,7 @@ const goals = [
   { id: "ganho-de-peso", title: "Aumento de peso", note: "Organize goles entre refeições se isso ajudar na rotina. A meta de água não precisa aumentar só por buscar ganho de peso." },
 ] as const;
 
-type HydrationLog = { at: string; amountMl: number };
+type HydrationLog = { at: string; amountMl: number; scheduledAt?: string };
 type HydrationData = {
   day: string;
   targetMl: number;
@@ -72,7 +72,7 @@ type HydrationContextValue = {
   due: boolean;
   now: Date;
   setSettings: (patch: Partial<Pick<HydrationData, "targetMl" | "intervalMinutes" | "wakeTime" | "sleepTime" | "objective">>) => void;
-  addWater: (amountMl: number) => void;
+  addWater: (amountMl: number, scheduledAt?: string) => void;
   snooze: () => void;
   enableNotifications: () => Promise<boolean>;
 };
@@ -124,11 +124,11 @@ export function HydrationProvider({ children }: { children: ReactNode }) {
       if (timeOnDate(updated.wakeTime, new Date()).getTime() >= timeOnDate(updated.sleepTime, new Date()).getTime()) return previous;
       return { ...updated, nextReminderAt: nextReminder(new Date(), updated.wakeTime, updated.sleepTime, updated.intervalMinutes) };
     }),
-    addWater: (amountMl) => setData((previous) => {
+    addWater: (amountMl, scheduledAt) => setData((previous) => {
       const current = new Date();
       const today = dayKey(current);
       const base = previous.day === today ? previous : { ...previous, day: today, intakeMl: 0, logs: [] };
-      return { ...base, intakeMl: base.intakeMl + amountMl, logs: [{ at: current.toISOString(), amountMl }, ...base.logs].slice(0, 100), nextReminderAt: nextReminder(current, base.wakeTime, base.sleepTime, base.intervalMinutes) };
+      return { ...base, intakeMl: base.intakeMl + amountMl, logs: [{ at: current.toISOString(), amountMl, ...(scheduledAt ? {scheduledAt} : {}) }, ...base.logs].slice(0, 100), nextReminderAt: nextReminder(current, base.wakeTime, base.sleepTime, base.intervalMinutes) };
     }),
     snooze: () => setData((previous) => ({ ...previous, nextReminderAt: Date.now() + 15 * 60_000 })),
     enableNotifications: async () => {
@@ -176,6 +176,8 @@ export function HydrationReminder() {
 export function HydrationDashboard() {
   const { data, ready, due, now, setSettings, addWater, enableNotifications } = useHydration();
   const objective = goals.find((item) => item.id === data.objective) ?? goals[0];
+  const [confirmSlot,setConfirmSlot] = useState<{scheduledAt:string;amount:number}|null>(null);
+  const toleranceMs = 20*60*1000;
   const totalMinutes = Math.max(1, (timeOnDate(data.sleepTime, now).getTime() - timeOnDate(data.wakeTime, now).getTime()) / 60_000);
   const reminderCount = Math.max(1, Math.floor(totalMinutes / data.intervalMinutes) + 1);
   const portionMl = Math.round(data.targetMl / reminderCount / 25) * 25;
@@ -223,6 +225,9 @@ export function HydrationDashboard() {
           <ol className="max-h-[390px] space-y-2 overflow-y-auto pr-1">
             {schedule.map((item,index)=>{
               const scheduledPassed=item.at.getTime()<=now.getTime();
+              const slotConfirmed=data.logs.some(log=>log.scheduledAt===item.at.toISOString());
+              const slotExpired=now.getTime()>item.at.getTime()+toleranceMs;
+              const slotOpen=scheduledPassed&&!slotExpired&&!slotConfirmed;
               const nextSlot= index===schedule.length-1 ? null : schedule[index+1]?.at;
               const currentSlot=scheduledPassed&&(!nextSlot||nextSlot.getTime()>now.getTime());
               const suggestedCumulative=Math.min(data.targetMl,Math.round((index+1)*data.targetMl/schedule.length));
@@ -233,16 +238,17 @@ export function HydrationDashboard() {
                   <span className="text-[10px] font-bold text-muted-foreground">{index+1}/{schedule.length}</span>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2"><time className="text-sm font-bold tabular-nums text-foreground">{item.at.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}</time>{currentSlot&&<span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">Etapa atual</span>}</div>
+                  <div className="flex flex-wrap items-center gap-2"><time className="text-sm font-bold tabular-nums text-foreground">{item.at.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}</time>{slotConfirmed?<span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">Confirmado</span>:slotExpired?<span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-900">Não confirmado</span>:slotOpen?<span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">Confirmar · tolerância 20 min</span>:<span className="text-[10px] text-muted-foreground">Programado</span>}</div>
                   <p className="mt-0.5 text-xs font-medium">{copy}</p>
                   <p className="text-[11px] text-muted-foreground">Porção sugerida ~{Math.round(data.targetMl/schedule.length/25)*25} ml · referência acumulada {suggestedCumulative} ml</p>
                   {scheduledPassed&&<p className="mt-0.5 text-[10px] text-muted-foreground">Volume real do dia: {data.intakeMl} ml (não atribuído automaticamente a esta etapa).</p>}
                 </div>
-                <button type="button" onClick={()=>addWater(Math.max(50,Math.round(data.targetMl/schedule.length/50)*50))} aria-label={`Registrar água bebida agora, etapa das ${item.at.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}`} className="shrink-0 rounded-lg border border-primary/30 bg-primary/10 px-2.5 py-2 text-xs font-semibold text-primary hover:bg-primary/20">+{Math.max(50,Math.round(data.targetMl/schedule.length/50)*50)} ml</button>
+                <button type="button" onClick={()=>setConfirmSlot({scheduledAt:item.at.toISOString(),amount:Math.max(50,Math.round(data.targetMl/schedule.length/50)*50)})} disabled={!slotOpen} aria-label={`Confirmar água bebida na etapa das ${item.at.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}`} className="shrink-0 rounded-lg border border-primary/30 bg-primary/10 px-2.5 py-2 text-xs font-semibold text-primary hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-40">{slotConfirmed?"Registrado":slotExpired?"Expirado":!scheduledPassed?"Aguardar":"Confirmar"} · {Math.max(50,Math.round(data.targetMl/schedule.length/50)*50)} ml</button>
               </li>;
             })}
           </ol>
-          <p className="mt-3 text-[11px] text-muted-foreground">O botão registra água no horário atual, mesmo quando usado em uma etapa antiga ou futura. Na gastrite, prefira pequenos goles que você tolere; ajuste horários conforme refeições e orientações dos medicamentos.</p>
+          <p className="mt-3 text-[11px] text-muted-foreground">Cada horário pode ser confirmado durante 20 minutos após o início. Após esse período, fica como não confirmado, sem presumir que você não bebeu. Para registrar água realmente consumida fora do cronograma, use o registro livre acima.</p>
+          {confirmSlot&&<div role="dialog" aria-modal="true" aria-label="Confirmar copo de água" className="mt-3 rounded-xl border border-primary/30 bg-background p-4 shadow-lg"><p className="font-semibold">Você bebeu este copo de {confirmSlot.amount} ml?</p><p className="mt-1 text-xs text-muted-foreground">Horário previsto: {new Date(confirmSlot.scheduledAt).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}. O horário real da confirmação será registrado.</p><div className="mt-3 flex gap-2"><button type="button" className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground" onClick={()=>{const start=Date.parse(confirmSlot.scheduledAt);if(Date.now()>=start&&Date.now()<=start+toleranceMs&&!data.logs.some(log=>log.scheduledAt===confirmSlot.scheduledAt)){addWater(confirmSlot.amount,confirmSlot.scheduledAt)}setConfirmSlot(null)}}>Sim, bebi agora</button><button type="button" className="rounded-lg border px-4 py-2 text-xs" onClick={()=>setConfirmSlot(null)}>Cancelar</button></div></div>}
         </Panel>
       </div>
     </div>
