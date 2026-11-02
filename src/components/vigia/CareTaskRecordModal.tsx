@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { CheckCircle2, Clock3, Droplets, Pencil, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { canConfirmCare, careScheduleLabel } from "@/lib/care-schedule";
+import { CareTaskResolutionPanel, type CareResolution } from "./CareTaskResolutionPanel";
 
 export type CareTaskRecord = {
   id: string;
@@ -57,12 +58,16 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
   const [responseReady,setResponseReady]=useState(false);
   const [confirmNo,setConfirmNo]=useState(false);
   const [decisionSaving,setDecisionSaving]=useState(false);
+  const [resolution,setResolution]=useState<CareResolution|null>(null);
+  const [resolutionReady,setResolutionReady]=useState(false);
 
   useEffect(() => {
     if (!task) {
       setDetails(null);
       setWaterResponse(null);
       setResponseReady(false);
+      setResolution(null);
+      setResolutionReady(false);
       setConfirmNo(false);
       setEditing(false);
       setError("");
@@ -77,14 +82,18 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
     setDetails(null);
     setWaterResponse(null);
     setResponseReady(false);
+    setResolution(null);
+    setResolutionReady(false);
     setConfirmNo(false);
     void (async () => {
-      const [response,waterDecision] = await Promise.all([
+      const [response,waterDecision,resolutionResult] = await Promise.all([
         (supabase as any).rpc("care_get_task_record", {p_task_id:task.id}),
         task.category==="hidratacao"?
           (supabase as any).from("care_hydration_responses")
             .select("response,recorded_at").eq("task_id",task.id).maybeSingle()
           : Promise.resolve({data:null,error:null}),
+        (supabase as any).from("care_task_resolutions")
+          .select("task_id,status,reason,resolved_at").eq("task_id",task.id).maybeSingle(),
       ]);
       if (!active) return;
       if (response.error) {
@@ -101,6 +110,13 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
       }else{
         setWaterResponse(waterDecision.data as WaterResponse);
         setResponseReady(true);
+      }
+      if(resolutionResult.error){
+        setResolutionReady(false);
+        setError("Não foi possível conferir o estado da pendência. Atualize para tentar novamente.");
+      }else{
+        setResolution(resolutionResult.data as CareResolution|null);
+        setResolutionReady(true);
       }
       setLoading(false);
     })();
@@ -152,7 +168,7 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
 
   async function changeWaterDecision(decision:"not_drunk"|"reset_not_drunk"){
     if(!task||!details||details.category!=="hidratacao"||details.completed_at||
-       !responseReady||saving||decisionSaving||!canConfirmCare(details))return;
+       !responseReady||!resolutionReady||resolution||saving||decisionSaving||!canConfirmCare(details))return;
     if(decision==="not_drunk"&&!confirmNo)return;
     if(decision==="reset_not_drunk"&&waterResponse?.response!=="not_drunk")return;
     setDecisionSaving(true);setError("");setSuccess("");
@@ -188,11 +204,11 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
     </div>;
 
   const skippedWater=details?.category==="hidratacao"&&waterResponse?.response==="not_drunk";
-  const canMarkNo=Boolean(details&&details.category==="hidratacao"&&!details.completed_at&&responseReady&&!skippedWater&&canConfirmCare(details));
-  const canUndoNo=Boolean(details&&details.category==="hidratacao"&&!details.completed_at&&responseReady&&skippedWater&&canConfirmCare(details));
+  const canMarkNo=Boolean(details&&details.category==="hidratacao"&&!details.completed_at&&responseReady&&resolutionReady&&!resolution&&!skippedWater&&canConfirmCare(details));
+  const canUndoNo=Boolean(details&&details.category==="hidratacao"&&!details.completed_at&&responseReady&&resolutionReady&&!resolution&&skippedWater&&canConfirmCare(details));
   const canConfirm=Boolean(details&&!details.completed_at&&onConfirm&&
     ["hidratacao","refeicao","medicacao"].includes(details.category)&&canConfirmCare(details)&&
-    (details.category!=="hidratacao"||(responseReady&&!skippedWater)));
+    resolutionReady&&!resolution&&(details.category!=="hidratacao"||(responseReady&&!skippedWater)));
 
   return createPortal(
     <div className="fixed inset-0 z-[10020] flex items-center justify-center bg-slate-950/75 p-2 backdrop-blur-sm sm:p-4"
@@ -213,7 +229,7 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
         {loading ? <p role="status" className="mt-3 text-xs text-muted-foreground">Consultando o prontuário…</p> :
           details && <dl className="mt-3 grid gap-2">
             {row("Horário previsto (Acre)", stamp(details.scheduled_at))}
-            {row("Situação", details.completed_at?"Confirmado":skippedWater?"Não bebi · resposta registrada":careScheduleLabel(details))}
+            {row("Situação", details.completed_at?"Confirmado":resolution?.status==="cancelado"?"Cancelado · informado pelo cliente":resolution?.status==="nao_cumprido"?"Não realizado · informado pelo cliente":skippedWater?"Não bebi · resposta registrada":careScheduleLabel(details))}
             {skippedWater&&waterResponse?.recorded_at&&row("Resposta registrada em (Acre)",stamp(waterResponse.recorded_at))}
             {details.completed_at && row("Confirmação registrada em (Acre)", stamp(details.completed_at))}
             {details.category === "refeicao" && row("Alimentos informados", details.description || "Sem descrição detalhada registrada")}
@@ -267,9 +283,13 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
         {error && <p role="alert" className="mt-3 rounded-lg border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive">{error}</p>}
         <div className="mt-3 flex items-center gap-2 text-[11px] text-muted-foreground">
           {details?.completed_at?<><CheckCircle2 size={14}/> Registro confirmado; consulta não altera o consumo.</>:
+            resolution?<><CheckCircle2 size={14}/> Esta pendência já recebeu uma resposta. Confira ou corrija no prontuário.</>:
             skippedWater?<><Droplets size={14}/> Você informou “Não bebi”. Nenhum ml foi contabilizado.</>:
             <><Clock3 size={14}/> Este cuidado ainda não foi confirmado.</>}
         </div>
+        {!editing&&details&&!details.completed_at&&resolutionReady&&(!skippedWater||Boolean(resolution))&&<CareTaskResolutionPanel
+          key={task.id} task={task} resolution={resolution} waterAnswered={Boolean(skippedWater)}
+          onChange={setResolution} onSaved={()=>onSaved?.()} onClose={onClose}/>}
         {!editing && <div className="mt-3 flex flex-wrap items-center gap-2">
           <button type="button" disabled={saving||decisionSaving} onClick={onClose}
             className="min-h-10 min-w-[75px] flex-1 rounded-lg border border-border px-2.5 py-2.5 text-xs font-semibold">Fechar</button>
