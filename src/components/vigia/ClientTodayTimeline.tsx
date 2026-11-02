@@ -65,11 +65,11 @@ export function ClientTodayTimeline({tasks,onConfirm,onDetails,now=Date.now()}:P
     .sort((a,b)=>Date.parse(a.scheduled_at)-Date.parse(b.scheduled_at))[0];
   const supplementScheduled=tasks.some(task=>careTimelineKind(task)==="suplementacao");
 
-  return <section className="care-timeline shrink-0 rounded-2xl border border-border bg-card/90 px-2.5 py-2 sm:px-3" aria-label="Próximos horários de cuidados">
+  return <section className="care-timeline care-timeline-highlight relative shrink-0 overflow-hidden rounded-2xl border px-2.5 py-2 sm:px-3" aria-label="Próximos horários de cuidados">
     <div className="flex min-w-0 items-center gap-2.5">
-      <div className="care-timeline-heading flex w-[125px] shrink-0 items-center gap-2 border-r border-border pr-2 sm:w-[174px]">
-        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><CalendarDays size={17}/></span>
-        <span className="min-w-0"><strong className="block text-[12px] font-extrabold text-foreground">Próximos cuidados</strong><small className="block text-[10px] leading-tight text-muted-foreground"><span title={supplementScheduled?"Suplementação cadastrada na agenda":"Nenhuma suplementação cadastrada hoje"}>Água · Refeições · Suplementos</span></small></span>
+      <div className="care-timeline-heading flex w-[125px] shrink-0 items-center gap-2 border-r border-teal-700/20 pr-2 sm:w-[174px] dark:border-teal-200/20">
+        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-teal-700 text-white shadow-sm shadow-teal-950/20 dark:bg-teal-300 dark:text-teal-950"><CalendarDays size={17}/></span>
+        <span className="min-w-0"><strong className="block text-[12px] font-black text-teal-950 dark:text-teal-50">Próximos cuidados</strong><small className="block text-[10px] font-medium leading-tight text-teal-800/80 dark:text-teal-100/75"><span title={supplementScheduled?"Suplementação cadastrada na agenda":"Nenhuma suplementação cadastrada hoje"}>Água · Refeições · Suplementos</span></small></span>
       </div>
       <div className="grid min-w-0 flex-1 grid-cols-1 gap-1.5 sm:grid-cols-3">
         {selected.map(task=>{
@@ -82,15 +82,15 @@ export function ClientTodayTimeline({tasks,onConfirm,onDetails,now=Date.now()}:P
           const available=["hidratacao","refeicao","medicacao"].includes(task.category)&&canConfirmCare(task,now);
           const status=completed?"Confirmado":upcoming?"Próximo":past?(available?"Pendente · registrar":"Não confirmado"):"Programado";
           const statusClass=completed?"text-emerald-700 dark:text-emerald-300":upcoming?"text-primary font-bold":past?"text-amber-700 dark:text-amber-300":"text-muted-foreground";
-          return <button key={task.id} type="button" onClick={()=>onDetails?onDetails(task):available?onConfirm(task):undefined}
+          return <button key={task.id} type="button" data-next={upcoming?"true":undefined} onClick={()=>onDetails?onDetails(task):available?onConfirm(task):undefined}
             aria-label={`${config.label} às ${at(task.scheduled_at)}. ${status}. Abrir detalhes.`}
             title={`${task.title} · ${careScheduleLabel(task,now)}`}
-            className={`care-timeline-item group relative flex min-w-0 items-center gap-2 rounded-xl border px-2 py-1.5 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${config.classes} ${upcoming?"ring-1 ring-primary/60":""}`}>
+            className={`care-timeline-item group relative flex min-w-0 items-center gap-2 rounded-xl border px-2 py-1.5 text-left shadow-sm transition duration-150 hover:-translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 ${config.classes} ${upcoming?"care-timeline-next ring-1 ring-teal-600/40 dark:ring-teal-200/45":""}`}>
             <span className={`absolute bottom-1.5 left-0.5 top-1.5 w-[3px] rounded-full ${config.color}`} aria-hidden="true"/>
-            <span className={`grid size-8 shrink-0 place-items-center rounded-lg bg-background/65 ${config.iconClass}`}><Icon size={17}/></span>
+            <span className={`care-timeline-item-icon grid size-8 shrink-0 place-items-center rounded-lg bg-background/65 ${config.iconClass}`}><Icon size={17}/></span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-[12px] font-extrabold tabular-nums text-foreground">{at(task.scheduled_at)} · {config.label}</span>
-              <span className={`block truncate text-[10px] ${statusClass}`}>{status}{!completed && !upcoming && !past?" · "+task.title:""}</span>
+              <span className="care-timeline-item-title block truncate text-[12px] font-extrabold tabular-nums text-foreground">{at(task.scheduled_at)} · {config.label}</span>
+              <span className={`care-timeline-item-status block truncate text-[10px] ${statusClass}`}>{status}{!completed && !upcoming && !past?" · "+task.title:""}</span>
             </span>
             {completed?<CheckCircle2 size={15} className="shrink-0 text-emerald-600 dark:text-emerald-300"/>:<ChevronRight size={15} className={`shrink-0 ${upcoming?"text-primary":"text-muted-foreground"}`}/>}
           </button>;
