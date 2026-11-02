@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Activity, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock3, Coffee, Droplets, History, Pill, RotateCcw, Search, SlidersHorizontal, UtensilsCrossed } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { acreCalendarDay } from "@/lib/hydration-goal";
 import {
   assembleCareHistory, filterCareHistory, type HistoryEntry, type HistoryFilter,
   type HistoryGroup, type HistoryStatus, type HistorySources,
@@ -112,7 +113,7 @@ export function PatientActivityHistory({patientId,ownerId,revision}:{
           .gte("recorded_at",since).order("recorded_at",{ascending:false}).limit(250),
         db.from("care_hydration_daily_goals").select("goal_date,target_ml,consumed_ml,status,closed_at,updated_at")
           .eq("patient_id",patientId).eq("owner_id",ownerId)
-          .gte("goal_date",new Date(Date.now()-31*86400000).toLocaleDateString("en-CA",{timeZone:"America/Rio_Branco"}))
+          .gte("goal_date",acreCalendarDay(Date.now()-31*86400000))
           .order("goal_date",{ascending:false}).limit(90)
       ]);
       if(!live)return;
