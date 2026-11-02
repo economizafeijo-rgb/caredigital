@@ -60,7 +60,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel" }: 
       setError(isFood ? "Descreva o alimento consumido (3 a 1.000 caracteres)." : "Informe a bebida (2 a 100 caracteres).");
       return;
     }
-    if (!isFood && (!Number.isInteger(volume) || volume === null || volume < 10 || volume > 1500)) {
+    if (!isFood && (volume === null || !Number.isInteger(volume) || volume < 10 || volume > 1500)) {
       setError("Informe um volume entre 10 e 1.500 ml.");
       return;
     }
