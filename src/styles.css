@@ -367,3 +367,30 @@ iframe[title*="Lovable" i][title*="badge" i] {
   .public-homepage .public-feature-card,
   .public-homepage .public-feature-card * { transition: none; }
 }
+
+
+/* Public homepage portrait reveal: reserve the right side for the nurse's face.
+   Keep the darker page treatment on private and informational routes. */
+@media (min-width: 1024px) {
+  .dark .care-shell:has(.public-homepage)::before {
+    background-image:
+      linear-gradient(90deg,
+        rgba(17,21,27,.95) 0%,
+        rgba(17,22,29,.83) 46%,
+        rgba(16,28,34,.16) 78%,
+        rgba(16,28,34,.19) 100%),
+      url("/images/caredigital-care-hero.webp"),
+      linear-gradient(145deg,#11151b,#202d34);
+    background-size: cover,cover,cover;
+    background-position: center,100% 18%,center;
+  }
+  .dark .care-shell:has(.public-homepage)::after {
+    background: radial-gradient(ellipse at 72% 83%,rgba(17,23,30,.22),transparent 59%);
+  }
+}
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .public-homepage .public-hero,
+  .public-homepage > section[aria-label="Conheça os recursos da plataforma"] {
+    max-width: min(72vw, 850px);
+  }
+}
