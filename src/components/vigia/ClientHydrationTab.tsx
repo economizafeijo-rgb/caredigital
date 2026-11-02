@@ -14,18 +14,7 @@ const tz="America/Rio_Branco";
 const defaultProfile:Profile={sex:"unspecified",age:0,weight_kg:0,objective:"recovery",activity_minutes:0,sweat:"normal",fluid_restriction:false,target_ml:null};
 const round50=(value:number)=>Math.round(value/50)*50;
 const time=(iso:string)=>new Intl.DateTimeFormat("pt-BR",{timeZone:tz,hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date(iso));
-const stamp=(iso:string)=>new Intl.DateTimeFormat("pt-BR",{timeZone:tz,day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(new Date(iso));
 const dateKey=(iso:string)=>new Intl.DateTimeFormat("en-CA",{timeZone:tz,year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(iso));
-function WaterGlass({state}:{state:"pending"|"done"|"skipped"|"missed"}){
- const color=state==="done"?"#16a085":state==="skipped"||state==="missed"?"#b8c4ce":"#6dc9e7";
- return <svg viewBox="0 0 54 68" role="img" aria-label={state==="done"?"Copo confirmado":state==="skipped"?"Não bebeu neste horário":state==="missed"?"Não confirmado neste horário":"Copo aguardando confirmação"} className="h-12 w-10 shrink-0">
-  <path d="M8 6h38l-4.5 47a10 10 0 0 1-10 9h-9a10 10 0 0 1-10-9z" fill="#e8f8ff" stroke="#4d9dbe" strokeWidth="2.5"/>
-  <path d="M12 30q15-5 30 0l-2 23a8 8 0 0 1-8 7H22a8 8 0 0 1-8-7z" fill={color} opacity={state==="skipped"||state==="missed" ? 0.25 : 0.85}/>
-  <path d="M13 23h28" stroke="#b6e1ee" strokeWidth="2" strokeLinecap="round"/>
-  {state==="done"&&<g><circle cx="42" cy="13" r="10" fill="#0c946a"/><path d="m37 13 3.5 3.5 6-7" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></g>}
-  {(state==="skipped"||state==="missed")&&<g><circle cx="42" cy="13" r="10" fill="#778899"/><path d="M38 13h8" stroke="white" strokeWidth="2.5" strokeLinecap="round"/></g>}
- </svg>;
-}
 function estimate(profile:Profile){
  if(profile.age<18||profile.age>110||profile.weight_kg<30||profile.weight_kg>250||profile.activity_minutes<0||profile.activity_minutes>240)return null;
  const base=round50(profile.weight_kg*30);
