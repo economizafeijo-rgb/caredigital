@@ -1,6 +1,8 @@
 /** UI-only reminders for real, scheduled patient tasks. No clinical conclusion is
  * inferred from a missing confirmation, and no records are altered here. */
 export const CARE_REMINDER_WINDOW_MS = 10 * 60 * 1000;
+/** Only the most recent, still unanswered events belong in the live banner. */
+export const CARE_RECENT_UNANSWERED_MS = 2 * 60 * 60 * 1000;
 export type ReminderCategory = "medicacao" | "hidratacao" | "refeicao" | "outro";
 export type ReminderTask = {
   id: string;
@@ -9,7 +11,7 @@ export type ReminderTask = {
   scheduled_at: string;
   completed_at: string | null;
 };
-export type ReminderState = "waiting" | "due" | "unconfirmed" | "confirmed";
+export type ReminderState = "waiting" | "due" | "unconfirmed" | "confirmed" | "responded";
 export type CareReminder = {
   task: ReminderTask;
   state: ReminderState;
@@ -23,8 +25,11 @@ export type ReminderSummary = {
   next: CareReminder | null;
 };
 
-export function careReminderState(task: ReminderTask, now: number): ReminderState {
+export function careReminderState(task: ReminderTask, now: number, answeredTaskIds:ReadonlySet<string>=new Set()): ReminderState {
   if (task.completed_at) return "confirmed";
+  // A client reply of "Não bebi" is an acknowledged event, never an unanswered
+  // reminder. It must remain in the patient's history, not in the live banner.
+  if (task.category === "hidratacao" && answeredTaskIds.has(task.id)) return "responded";
   const scheduled = Date.parse(task.scheduled_at);
   if (!Number.isFinite(scheduled)) return "waiting";
   if (now < scheduled) return "waiting";
@@ -32,7 +37,7 @@ export function careReminderState(task: ReminderTask, now: number): ReminderStat
   return "unconfirmed";
 }
 
-export function summarizeCareReminders(tasks: ReminderTask[], now: number): ReminderSummary {
+export function summarizeCareReminders(tasks: ReminderTask[], now: number, answeredTaskIds:ReadonlySet<string>=new Set()): ReminderSummary {
   const entries: CareReminder[] = tasks
     .filter(task => ["medicacao", "hidratacao", "refeicao", "outro"].includes(task.category))
     .filter(task => Number.isFinite(Date.parse(task.scheduled_at)))
@@ -40,14 +45,14 @@ export function summarizeCareReminders(tasks: ReminderTask[], now: number): Remi
       const scheduled = Date.parse(task.scheduled_at);
       return {
         task,
-        state: careReminderState(task, now),
+        state: careReminderState(task, now, answeredTaskIds),
         elapsedMs: Math.max(0, now - scheduled),
         remainingMs: Math.max(0, scheduled + CARE_REMINDER_WINDOW_MS - now),
       };
     });
   const due = entries.filter(entry => entry.state === "due")
     .sort((a,b) => Date.parse(a.task.scheduled_at) - Date.parse(b.task.scheduled_at));
-  const unconfirmed = entries.filter(entry => entry.state === "unconfirmed")
+  const unconfirmed = entries.filter(entry => entry.state === "unconfirmed" && entry.elapsedMs <= CARE_RECENT_UNANSWERED_MS)
     .sort((a,b) => Date.parse(b.task.scheduled_at) - Date.parse(a.task.scheduled_at));
   const future = entries.filter(entry => entry.state === "waiting")
     .sort((a,b) => Date.parse(a.task.scheduled_at) - Date.parse(b.task.scheduled_at));
