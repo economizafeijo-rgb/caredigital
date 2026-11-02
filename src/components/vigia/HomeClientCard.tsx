@@ -52,14 +52,18 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
   useEffect(()=>{
     const syncHash=()=>setActiveTab(clientSectionFromHash(window.location.hash));
     window.addEventListener("hashchange",syncHash);
-    return()=>window.removeEventListener("hashchange",syncHash);
+    window.addEventListener("popstate",syncHash);
+    return()=>{
+      window.removeEventListener("hashchange",syncHash);
+      window.removeEventListener("popstate",syncHash);
+    };
   },[]);
   function openSection(section:ClientSection){
     setActiveTab(section);
     if(typeof window!=="undefined"){
       const desired=clientSectionHash(section);
       if(window.location.hash!==desired){
-        window.history.replaceState(window.history.state,"",window.location.pathname+window.location.search+desired);
+        window.history.pushState(window.history.state,"",window.location.pathname+window.location.search+desired);
       }
     }
   }
@@ -246,7 +250,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
           const Icon=tab.icon;
           return <button type="button" role="tab" key={tab.key} aria-selected={activeTab===tab.key} aria-controls="care-client-tab-panel"
             onClick={()=>openSection(tab.key)} className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-[11px] font-bold transition-colors sm:text-xs ${activeTab===tab.key?"bg-primary text-primary-foreground shadow-sm":"text-muted-foreground hover:bg-card hover:text-foreground"}`}>
-            <Icon size={15} className="hidden sm:block"/><span className="truncate">{tab.label}</span>
+            <Icon size={15} className="shrink-0"/><span className="min-w-0 whitespace-normal break-words text-center leading-tight">{tab.label}</span>
           </button>;
         })}
       </div>
