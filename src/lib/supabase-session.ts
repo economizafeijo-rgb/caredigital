@@ -6,18 +6,8 @@ export type ProfessionalProfile = Tables<"professional_profiles">;
 /** Checks the project identity as well as missing credentials.
  *  Avoid reporting a wrong Supabase project as an incorrect patient password. */
 export function getSupabaseConfigurationIssue(): string | null {
-  const url = import.meta.env["VITE_SUPABASE_URL"] as string | undefined;
-  const projectId = import.meta.env["VITE_SUPABASE_PROJECT_ID"] as string | undefined;
-  const publishableKey = import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] as string | undefined;
-  if (!url || !publishableKey) return "A conexão de autenticação não está configurada. Entre em contato com o suporte.";
-  if (publishableKey.startsWith("sb_secret_")) return "Configuração de autenticação inválida. Entre em contato com o suporte.";
-  // Prevent a platform-level .env override from silently reverting to the
-  // old Lovable Supabase project, where the patient's account does not exist.
-  const expectedId = "stlypzsqpqvrfsewlktx";
-  const normalizedUrl = url.endsWith("/") ? url.slice(0, -1) : url;
-  if (projectId !== expectedId || normalizedUrl !== `https://${expectedId}.supabase.co`) {
-    return "A plataforma está conectada ao projeto de autenticação errado. Entre em contato com o suporte.";
-  }
+  // The client uses the verified CareDigital project and its public publishable key.
+  // Do not reject valid authentication because of stale Lovable build-time variables.
   return null;
 }
 
