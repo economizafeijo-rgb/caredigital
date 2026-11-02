@@ -2,7 +2,7 @@
 import { beverageCategory,foodCategory,isBeverageKind,isFoodKind } from "./care-intake-categories";
 
 export type HistoryGroup = "liquidos" | "refeicoes" | "cuidados" | "ajustes";
-export type HistoryStatus = "confirmado" | "registrado" | "nao_confirmado" | "nao_bebi" | "corrigido" | "reprogramado" | "excluido" | "meta_atingida" | "meta_nao_atingida";
+export type HistoryStatus = "confirmado" | "registrado" | "nao_confirmado" | "nao_bebi" | "corrigido" | "reprogramado" | "excluido" | "nao_cumprido" | "cancelado" | "meta_atingida" | "meta_nao_atingida";
 export type HistoryEntry = {
   id: string;
   /** Underlying scheduled task, if present; used for audited record corrections. */
@@ -30,6 +30,7 @@ export type AuditRow = {
   scheduled_at:string|null;happened_at:string|null;recorded_at:string;
 };
 export type WaterResponseRow={task_id:string;response:string;recorded_at:string};
+export type TaskResolutionRow={task_id:string;status:"nao_cumprido"|"cancelado";reason:string;scheduled_at:string;resolved_at:string};
 export type DailyHydrationGoalRow={goal_date:string;target_ml:number;consumed_ml:number;status:"em_andamento"|"atingida"|"nao_atingida";closed_at:string|null;updated_at:string};
 export type HistorySources = {
   checklist:ChecklistRow[];
@@ -39,6 +40,7 @@ export type HistorySources = {
   observations:ObservationRow[];
   audit:AuditRow[];
   responses:WaterResponseRow[];
+  resolutions?:TaskResolutionRow[];
   dailyGoals?:DailyHydrationGoalRow[];
 };
 
@@ -59,6 +61,7 @@ export function assembleCareHistory(sources:HistorySources,now=Date.now()):Histo
   const waterByTask=new Map(sources.water.filter(item=>item.task_id).map(item=>[item.task_id!,item]));
   const mealByTask=new Map(sources.meals.map(item=>[item.task_id,item]));
   const skipByTask=new Map(sources.responses.filter(item=>item.response==="not_drunk").map(item=>[item.task_id,item]));
+  const decisionByTask=new Map((sources.resolutions??[]).map(row=>[row.task_id,row]));
   const today=acreDay(new Date(now).toISOString());
 
   for(const task of sources.checklist){
@@ -67,6 +70,7 @@ export function assembleCareHistory(sources:HistorySources,now=Date.now()):Histo
     const group=groupOf(task.category);
     const isWater=task.category==="hidratacao";
     const skipped=skipByTask.get(task.id);
+    const resolution=decisionByTask.get(task.id);
     if(task.completed_at){
       events.push({
         id:"task-"+task.id,taskId:task.id,waterEntryId:water?.id,group,subtype:isWater?"agua":task.category==="refeicao"?/lanche|ceia/i.test(task.title)?"lanche":"refeicao":task.category,
@@ -75,6 +79,16 @@ export function assembleCareHistory(sources:HistorySources,now=Date.now()):Histo
         description:description||(isWater?(water?"Consumo de água confirmado na agenda.":"Hidratação confirmada; volume não vinculado ao registro."):"Confirmação registrada no sistema."),
         amountMl:isWater?water?.amount_ml:undefined,
         scheduledAt:task.scheduled_at,occurredAt:task.completed_at
+      });
+    } else if(resolution){
+      events.push({
+        id:"resolved-"+task.id,taskId:task.id,group,subtype:isWater?"agua":task.category,
+        status:resolution.status,
+        title:(resolution.status==="cancelado"?"Cancelado · ":"Não realizado · ")+task.title,
+        description:(resolution.reason?"Motivo informado: "+resolution.reason+". ":"")+
+          "Resposta declarada pelo cliente, registrada no horário real."+
+          (task.category==="medicacao"?" Não altera a prescrição.":""),
+        scheduledAt:resolution.scheduled_at,occurredAt:resolution.resolved_at
       });
     } else if(skipped){
       events.push({id:"skip-"+task.id,taskId:task.id,group:"liquidos",subtype:"agua",status:"nao_bebi",
@@ -131,6 +145,7 @@ export function assembleCareHistory(sources:HistorySources,now=Date.now()):Histo
     const details=item.details??{};
     const kind=text(details.kind);
     if(item.event_type==="confirmed")continue; // Already represented by checklist.
+    if(item.event_type==="care_not_completed"||item.event_type==="care_cancelled")continue; // Current decision is represented by resolution row.
     if(item.source==="client_unscheduled_intake"){
       if(!isFoodKind(kind))continue; // Water and drinks come from their source tables.
       events.push({id:"manual-meal-"+item.id,group:"refeicoes",subtype:kind,status:"registrado",
@@ -144,6 +159,14 @@ export function assembleCareHistory(sources:HistorySources,now=Date.now()):Histo
       const batch=reflow.get(key);
       if(batch)batch.events.push(item);
       else reflow.set(key,{events:[item],category:item.category,recordedAt:item.recorded_at});
+      continue;
+    }
+    if(item.event_type==="care_resolution_reset"){
+      events.push({id:"reset-"+item.id,group:"ajustes",subtype:"correcao",status:"corrigido",
+        title:"Decisão de cuidado desfeita",
+        description:"Decisão anterior: "+(text(details.previous_resolution)==="cancelado"?"Cancelado":"Não realizado")+
+          ". O cuidado voltou a permitir registro.",
+        occurredAt:item.recorded_at,scheduledAt:item.scheduled_at??undefined});
       continue;
     }
     if(item.event_type==="water_decision_changed"){
