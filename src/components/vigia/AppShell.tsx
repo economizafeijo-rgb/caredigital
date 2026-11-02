@@ -113,10 +113,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         <header className="relative z-30 shrink-0 border-b border-border/70 bg-background/90 backdrop-blur-xl">
           <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-2 px-3 md:h-[68px] md:gap-2.5 md:px-5 xl:px-6">
             <Link to="/" className="flex shrink-0 items-center gap-2 lg:gap-2.5">
-              <div className="grid size-9 place-items-center rounded-xl bg-foreground font-display text-xl leading-none text-primary-foreground md:size-10">V</div>
+              <div className="grid size-9 place-items-center rounded-xl bg-primary font-display text-xl leading-none text-primary-foreground shadow-sm md:size-10" aria-hidden="true">C</div>
               <div className="leading-none">
-                <div className="font-display text-lg tracking-tight md:text-xl">VIGIA</div>
-                <div className="mt-1 hidden font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground sm:block">Cuidado digital</div>
+                <div className="text-[17px] font-extrabold tracking-[-.035em] text-foreground md:text-[19px]">Care<span className="text-primary">Digital</span></div>
+                <div className="mt-1 hidden text-[8px] font-semibold uppercase tracking-[.13em] text-muted-foreground sm:block">Cuidado conectado</div>
               </div>
             </Link>
 
