@@ -91,7 +91,7 @@ function FoodIllustration() {
 }
 
 function Dietas() {
-  return <div className="mx-auto flex min-h-full w-full max-w-[1120px] flex-col justify-start py-2 lg:justify-center" aria-label="Página demonstrativa de alimentação">
+  return <div className="public-care-showcase mx-auto flex min-h-full w-full max-w-[1080px] flex-col justify-start py-1.5 lg:ml-0 lg:mr-auto lg:max-w-[850px] lg:justify-center" aria-label="Página demonstrativa de alimentação">
     <div className="flex w-full shrink-0 flex-col gap-2.5 rounded-3xl border border-border bg-card/95 p-3 shadow-[0_18px_55px_-35px_rgba(17,50,70,.34)] sm:p-4 lg:gap-3 lg:p-4">
       <header className="flex shrink-0 flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
@@ -107,8 +107,8 @@ function Dietas() {
       <section className="grid shrink-0 items-center gap-3 rounded-2xl border border-border/70 bg-muted/35 px-3 py-3 sm:px-4 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]" aria-labelledby="diet-intro-title">
         <div className="min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-[.16em] text-primary">Rotina alimentar individual</p>
-          <h2 id="diet-intro-title" className="mt-1 max-w-[19ch] text-balance text-xl font-extrabold leading-tight text-foreground sm:text-2xl lg:text-[1.7rem]">Refeições e lembretes, no momento certo.</h2>
-          <p className="mt-2 max-w-[55ch] text-xs leading-relaxed text-muted-foreground sm:text-sm">
+          <h2 id="diet-intro-title" className="mt-1 max-w-[19ch] text-balance text-xl font-extrabold leading-tight text-foreground sm:text-[22px]">Refeições e lembretes, no momento certo.</h2>
+          <p className="mt-2 max-w-[55ch] text-xs leading-relaxed text-muted-foreground">
             O CareDigital reúne os horários de alimentação definidos para cada acompanhamento. O cliente consulta sua rotina e confirma os cuidados realizados em um ambiente protegido.
           </p>
           <div className="mt-2.5 flex flex-wrap items-center gap-2">
