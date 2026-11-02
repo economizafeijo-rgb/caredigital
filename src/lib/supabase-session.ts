@@ -11,7 +11,7 @@ export function getSupabaseConfigurationIssue(): string | null {
   const publishableKey = import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] as string | undefined;
   if (!url || !publishableKey) return "A conexão de autenticação não está configurada. Entre em contato com o suporte.";
   if (publishableKey.startsWith("sb_secret_")) return "Configuração de autenticação inválida. Entre em contato com o suporte.";
-  if (projectId && url.replace(/\\/$/, "") !== `https://${projectId}.supabase.co`) {
+  if (projectId && (url.endsWith("/") ? url.slice(0, -1) : url) !== `https://${projectId}.supabase.co`) {
     return "A plataforma está conectada ao projeto de autenticação errado. Entre em contato com o suporte.";
   }
   return null;
