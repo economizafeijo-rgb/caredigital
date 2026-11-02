@@ -143,29 +143,29 @@ iframe[title*="Lovable" i][title*="badge" i] {
    One source of truth: previous overlapping blue overrides removed. */
 :root.dark {
   color-scheme: dark;
-  --background: #11151b;
-  --foreground: #f0f3f7;
-  --surface: #1b222c;
-  --card: #202934;
-  --card-foreground: #f0f3f7;
-  --popover: #252f3b;
-  --popover-foreground: #f0f3f7;
-  --primary: #7ad9cd;
-  --primary-foreground: #102221;
-  --secondary: #293541;
-  --secondary-foreground: #edf4f6;
-  --muted: #2b3642;
-  --muted-foreground: #bcc9d3;
-  --accent: #30464b;
-  --accent-foreground: #e5fcf8;
-  --destructive: #ff9b9b;
-  --destructive-foreground: #2c1519;
-  --success: #70d5ae;
-  --warning: #f4c781;
-  --sky: #9ccdd8;
-  --border: rgba(185,207,215,.23);
-  --input: rgba(185,207,215,.34);
-  --ring: #91e6db;
+  --background: #252e32;
+  --foreground: #f0f5f2;
+  --surface: #303c3e;
+  --card: #344144;
+  --card-foreground: #f0f5f2;
+  --popover: #3a494a;
+  --popover-foreground: #f0f5f2;
+  --primary: #8dd7c7;
+  --primary-foreground: #173b36;
+  --secondary: #405052;
+  --secondary-foreground: #edf5f1;
+  --muted: #3c4a4c;
+  --muted-foreground: #c3d0cd;
+  --accent: #42615d;
+  --accent-foreground: #f0faf6;
+  --destructive: #ffaaa9;
+  --destructive-foreground: #351c20;
+  --success: #91ddba;
+  --warning: #f0cf91;
+  --sky: #acd4d8;
+  --border: rgba(204,224,218,.23);
+  --input: rgba(204,224,218,.36);
+  --ring: #a5e7d9;
 }
 .dark body { background-color: var(--background); color: var(--foreground); }
 .dark :is(input,select,textarea) { color: var(--foreground); color-scheme: dark; }
@@ -183,9 +183,9 @@ iframe[title*="Lovable" i][title*="badge" i] {
   z-index:-1;
   pointer-events:none;
   background-image:
-    linear-gradient(90deg,rgba(17,21,27,.98) 0%,rgba(17,22,29,.90) 47%,rgba(16,28,34,.54) 75%,rgba(16,28,34,.36) 100%),
+    linear-gradient(90deg,rgba(37,46,50,.94) 0%,rgba(37,46,50,.82) 47%,rgba(37,46,50,.34) 75%,rgba(37,46,50,.16) 100%),
     url("/images/caredigital-care-hero.webp"),
-    linear-gradient(145deg,#11151b,#202d34);
+    linear-gradient(145deg,#252e32,#405753);
   background-size:cover,cover,cover;
   background-position:center,100% 23%,center;
   background-repeat:no-repeat;
@@ -200,20 +200,20 @@ iframe[title*="Lovable" i][title*="badge" i] {
     radial-gradient(ellipse at 10% 80%,rgba(130,158,178,.08),transparent 44%);
 }
 .dark .care-shell > header {
-  background:rgba(24,31,40,.95);
+  background:rgba(43,55,57,.96);
   border-color:var(--border);
   box-shadow:0 8px 24px rgba(0,0,0,.18);
 }
 .dark .care-shell nav[aria-label="Navegação do app"] {
-  background:rgba(24,31,40,.96);
+  background:rgba(43,55,57,.97);
   border-color:var(--border);
 }
 .dark .care-shell nav[aria-label="Mais seções"] {
-  background:rgba(30,39,49,.98);
+  background:rgba(54,68,69,.98);
   box-shadow:0 20px 45px rgba(0,0,0,.32);
 }
 .dark .care-shell :is(.panel,[class~="bg-card"]) {
-  background-color:rgba(32,41,52,.95);
+  background-color:rgba(52,65,68,.95);
   border-color:var(--border);
 }
 .dark .care-shell :is(input,textarea,select,button,a):focus-visible {
@@ -223,7 +223,7 @@ iframe[title*="Lovable" i][title*="badge" i] {
 /* Map old light-only components to slate while retaining explicit status colors. */
 .dark [class~="bg-white"],
 .dark [class*="bg-[#f"],
-.dark [class*="bg-[#e"] { background-color:#24303c !important; }
+.dark [class*="bg-[#e"] { background-color:#39484a !important; }
 .dark [class*="text-[#1"],
 .dark [class*="text-[#2"],
 .dark [class*="text-[#3"],
