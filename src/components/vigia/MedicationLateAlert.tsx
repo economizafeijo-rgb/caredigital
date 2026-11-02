@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Bell, BellOff, Clock3, Pill, Volume2 } from "lucide-react";
+import { Bell, BellOff, Clock3, Volume2 } from "lucide-react";
 
 export type MedicineAlertTask = { id:string; title:string; category:string; scheduled_at:string; completed_at:string|null };
 type Props = {tasks:MedicineAlertTask[];onConfirm:(task:MedicineAlertTask)=>void;compact?:boolean;now?:Date|null};
@@ -26,7 +26,7 @@ function chime(context:AudioContext){
     oscillator.stop(t+offset+.28);
   });
 }
-export function MedicationLateAlert({tasks,onConfirm,compact=false,now}:Props){
+export function MedicationLateAlert({tasks,compact=false,now}:Props){
   const [internalNow,setInternalNow]=useState(()=>new Date());
   const [audioEnabled,setAudioEnabled]=useState(false);
   const [previousPreference,setPreviousPreference]=useState(false);
@@ -103,10 +103,10 @@ export function MedicationLateAlert({tasks,onConfirm,compact=false,now}:Props){
         <path d="M17 33h6" stroke={firstLate?"#97540d":"#216b8a"} strokeWidth="3" strokeLinecap="round"/>
       </svg>
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-extrabold">{firstLate?"Dose ainda não confirmada":pending.length?"Alarme preparado":"Doses de hoje confirmadas"} {firstLate&&<span className="ml-1 text-[10px] font-semibold">· {Math.floor(minutesLate/60)}h {String(minutesLate%60).padStart(2,"0")} de atraso</span>}</p>
+        <p className="text-[11px] font-extrabold">{firstLate?"Dose não confirmada no horário previsto":pending.length?"Alarme preparado":"Doses de hoje confirmadas"} {firstLate&&<span className="ml-1 text-[10px] font-semibold">· {Math.floor(minutesLate/60)}h {String(minutesLate%60).padStart(2,"0")} de atraso</span>}</p>
         <p className="truncate text-[10px]">{firstLate?`${firstLate.title} · prevista ${clockFormat(firstLate.scheduled_at)}`:next?`Próxima dose às ${clockFormat(next.scheduled_at)}`:"Nenhuma dose pendente"}</p>
       </div>
-      {firstLate&&<button type="button" onClick={()=>onConfirm(firstLate)} className="shrink-0 rounded-md bg-amber-900 px-2.5 py-1.5 text-[10px] font-bold text-white dark:bg-amber-300 dark:text-amber-950">Verificar / confirmar</button>}
+      {firstLate&&<span className="shrink-0 rounded-md bg-amber-200 px-2.5 py-1.5 text-[10px] font-bold text-amber-950">Não confirmado</span>}
       <button type="button" onClick={()=>void toggleAudio()} aria-pressed={audioEnabled} className="inline-flex shrink-0 items-center gap-1 rounded-md border border-current/25 px-2 py-1.5 text-[10px] font-semibold">{audioEnabled?<BellOff size={13}/>:<Bell size={13}/>} {audioEnabled?"Silenciar":"Ativar som"}</button>
       {message&&<p role="status" className="w-full text-[10px]">{message}</p>}
     </section>;
@@ -142,13 +142,13 @@ export function MedicationLateAlert({tasks,onConfirm,compact=false,now}:Props){
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2"><strong className="text-xs font-extrabold">Atenção: dose não confirmada</strong><span className="rounded-full bg-amber-200 px-2 py-0.5 text-[10px] font-bold dark:bg-amber-900/70">{Math.floor(minutesLate/60)}h {String(minutesLate%60).padStart(2,"0")}min desde o horário previsto</span></div>
         <p className="mt-1 text-xs">{firstLate.title} · prevista às <strong>{clockFormat(firstLate.scheduled_at)}</strong>{overdue.length>1?` · mais ${overdue.length-1} pendente(s)`:""}</p>
-        <p className="mt-1 text-[11px] opacity-85">A dose ainda não tem confirmação no prontuário. Não dobre doses para compensar atrasos.</p>
+        <p className="mt-1 text-[11px] opacity-85">A janela de registro dessa dose terminou sem confirmação. Consulte a equipe de saúde antes de decidir como proceder. Não dobre a dose por conta própria.</p>
       </div>
     </div>
     <div className="mt-2 flex flex-wrap gap-2">
-      <button type="button" onClick={()=>onConfirm(firstLate)} className="inline-flex items-center gap-1.5 rounded-lg bg-amber-900 px-3 py-2 text-[11px] font-bold text-white dark:bg-amber-300 dark:text-amber-950"><Pill size={15}/> Verificar / confirmar dose</button>
+      <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-200 px-3 py-2 text-[11px] font-bold text-amber-950">Não confirmado — registro encerrado</span>
       <button type="button" onClick={()=>void toggleAudio()} aria-pressed={audioEnabled} className="inline-flex items-center gap-1.5 rounded-lg border border-amber-900/30 px-3 py-2 text-[11px] font-semibold">{audioEnabled?<BellOff size={15}/>:<Bell size={15}/>} {audioEnabled?"Silenciar som":"Ativar alarme sonoro"}</button>
-      <span className="ml-auto inline-flex items-center gap-1 text-[10px] opacity-80"><Clock3 size={12}/> Alerta persistente</span>
+      <span className="ml-auto inline-flex items-center gap-1 text-[10px] opacity-80"><Clock3 size={12}/> Registro não confirmado</span>
     </div>
     {message&&<p role="status" className="mt-1 text-[11px]">{message}</p>}
   </section>;
