@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Clock3, Info, Moon, Pill, Sun, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import {canConfirmCare,careScheduleLabel} from "@/lib/care-schedule";
+import {canConfirmCare,careScheduleLabel,careScheduleBlockMessage} from "@/lib/care-schedule";
 
 type Dose = { id: string; patient_id: string; title: string; category: string; scheduled_at: string; completed_at: string | null };
 type Props = { patientId: string; ownerId: string; revision: number; onConfirm: (task: Dose) => void; dashboardMode?:boolean; onProgressChange?:(progress:{confirmed:number;total:number})=>void };
@@ -154,8 +154,9 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,da
       <div className="mt-3 rounded-xl bg-muted p-3"><div className="flex items-center gap-2 text-sm font-semibold"><Clock3 size={16}/> Horário programado</div><p className="mt-1 text-sm">{infoTask?timeText(infoTask.scheduled_at):"Nenhum horário cadastrado"}</p></div>
       {isReported&&<div className="mt-3 rounded-xl border border-amber-300/40 bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-950/25 dark:text-amber-100"><strong>Relato do paciente — 31/10:</strong> quatro comprimidos às {reportTime}.{activePill.period==="morning"?" Tomados em jejum após acordar tarde; 3h depois do previsto.":" No horário previsto."}<p className="mt-1 text-xs">Relato não equivale à confirmação auditada no banco.</p></div>}
       <p className="mt-3 text-sm">{infoTask?.completed_at?`Confirmação registrada em ${new Intl.DateTimeFormat("pt-BR",{timeZone:zone,day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new Date(infoTask.completed_at))}.`:"Ainda sem confirmação persistida para esta tomada."}</p>
+      {infoTask&&!canConfirmCare(infoTask)&&!infoTask.completed_at&&<p role="status" className="mt-2 rounded-lg bg-amber-100 p-2 text-xs text-amber-950">{careScheduleBlockMessage(infoTask)}</p>}
       <p className="mt-2 text-xs text-muted-foreground">Na primeira etapa, cada grupo de quatro comprimidos corresponde a uma confirmação. Na continuidade, cada cápsula representa uma dose diária. O horário é registrado no servidor.</p>
-      <div className="mt-4 flex gap-2"><button type="button" className="flex-1 rounded-xl border border-border p-2.5 text-sm" onClick={()=>setActivePill(null)}>Fechar</button>{infoTask&&canConfirmCare(infoTask)&&<button type="button" className="flex-1 rounded-xl bg-primary p-2.5 text-sm font-semibold text-primary-foreground" onClick={()=>{setActivePill(null);onConfirm(infoTask)}}>Confirmar agora</button>}</div>
+      <div className="mt-4 flex gap-2"><button type="button" className="flex-1 rounded-xl border border-border p-2.5 text-sm" onClick={()=>setActivePill(null)}>Fechar</button>{infoTask&&!infoTask.completed_at&&<button type="button" className="flex-1 rounded-xl bg-primary p-2.5 text-sm font-semibold text-primary-foreground" onClick={()=>{setActivePill(null);onConfirm(infoTask)}}>{canConfirmCare(infoTask)?"Confirmar agora":"Verificar horário"}</button>}</div>
     </section>
    </div>}
  </section>;
