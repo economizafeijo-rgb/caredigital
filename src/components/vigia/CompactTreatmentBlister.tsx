@@ -75,25 +75,52 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,da
  const continuationWeek=selected>=7?Math.floor((selected-7)/7):0;
  const continuationDoses=selected>=7?days.slice(7+continuationWeek*7,14+continuationWeek*7).map(d=>d.tasks[0]):[];
  const reportTime=activePill?.period==="morning"?"10:00":"19:00";
- return <section aria-label="Cartelas interativas" className={`care-blister-panel min-h-0 rounded-2xl border border-border bg-card p-2.5 shadow-sm ${dashboardMode?"care-blister-dashboard flex flex-col overflow-hidden":"overflow-y-auto"}`}>
-  <div className="flex flex-wrap items-center justify-between gap-2">
-   <div><h3 className="flex items-center gap-2 text-sm font-bold text-foreground"><Pill size={17} className="text-primary"/> Cartela interativa</h3><p className="text-[11px] text-muted-foreground">Cada tomada muda a cartela e registra data e hora.</p></div>
-   <div className="text-right"><span className="text-lg font-extrabold tabular-nums text-foreground">{verified}/84</span><p className="text-[10px] text-muted-foreground">confirmadas no sistema</p></div>
+
+ const renderPeriod=(period:"morning"|"night",task?:Dose)=>{
+   const isMorning=period==="morning";
+   const Icon=isMorning?Sun:Moon;
+   const confirmed=Boolean(task?.completed_at);
+   const scheduled=task?timeText(task.scheduled_at).slice(0,5):"—";
+   const actual=task?.completed_at?timeText(task.completed_at).slice(0,5):null;
+   return <div className={`care-blister-period ${confirmed?"is-confirmed":""}`} data-period={period}>
+     <div className="care-blister-period-heading"><Icon size={15} aria-hidden="true"/>
+       <strong>{isMorning?"Manhã":"Noite"}</strong>
+     </div>
+     <span className="care-blister-period-subtitle">4 comprimidos</span>
+     <span className={`care-blister-period-status ${confirmed?"is-confirmed":""}`}>
+       {confirmed?<Check size={13} aria-hidden="true"/>:<Clock3 size={12} aria-hidden="true"/>}
+       <span>{confirmed?"Confirmado":"Pendente"}</span>
+     </span>
+     <span className="care-blister-period-time">{confirmed?actual:scheduled}</span>
+   </div>;
+ };
+
+ return <section aria-label="Cartelas interativas" className={`care-blister-panel care-blister-refined rounded-2xl border border-border bg-card text-foreground shadow-sm ${dashboardMode?"care-blister-dashboard":"care-blister-standalone"}`}>
+  <header className="care-blister-header flex items-start justify-between gap-2">
+    <div className="min-w-0">
+      <h3 className="flex items-center gap-1.5 text-[13px] font-extrabold leading-tight text-foreground"><Pill size={16} className="shrink-0 text-primary"/> Cartela interativa</h3>
+      <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">Toque na unidade para ver o registro.</p>
+    </div>
+    <div className="care-blister-total shrink-0 text-right" aria-label={`${verified} de 84 unidades confirmadas`}>
+      <strong className="block text-lg font-extrabold leading-none tabular-nums text-foreground">{verified}<span className="text-sm text-muted-foreground">/84</span></strong>
+      <span className="text-[9px] leading-tight text-muted-foreground">confirmadas</span>
+    </div>
+  </header>
+  <div className="care-blister-progress h-[3px] shrink-0 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Progresso da medicação" aria-valuemin={0} aria-valuemax={84} aria-valuenow={verified}>
+    <div className="h-full rounded-full bg-emerald-400 transition-[width]" style={{width:`${verified/84*100}%`}}/>
   </div>
-  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-success transition-all" style={{width:`${verified/84*100}%`}}/></div>
-  <div className="mt-1 flex items-center justify-between gap-2">
-    <button type="button" disabled={selected===0} onClick={()=>setSelected(x=>Math.max(0,x-1))} className="rounded-lg border border-border p-1.5 text-foreground disabled:opacity-30" aria-label="Cartela anterior"><ArrowLeft size={16}/></button>
-    <div className="min-w-0 text-center"><p className="text-sm font-bold text-foreground">{first?`Cartela ${selected+1} de 7`:`Lansoprazol · semana ${Math.floor((selected-7)/7)+1} de 4`}</p><p className="text-[11px] text-muted-foreground">{dayLabel(day.iso)} · Dia {selected+1} de 35 · {first?"4 manhã + 4 noite":"1 cápsula diária"}</p></div>
-    <button type="button" disabled={selected===34} onClick={()=>setSelected(x=>Math.min(34,x+1))} className="rounded-lg border border-border p-1.5 text-foreground disabled:opacity-30" aria-label="Próxima cartela"><ArrowRight size={16}/></button>
-  </div>
-  <div className="mt-1 flex items-center justify-between gap-2 rounded-lg bg-muted/60 px-2 py-1.5 text-[11px]">
-   <span className="font-semibold text-foreground">{dayCompleted===dayExpected?"Dia confirmado":dayCompleted?"Tomada parcial":"Aguardando tomada"} · {dayCompleted}/{dayExpected} registros</span>
-   <span className="text-muted-foreground">{day.tasks.filter(t=>t.completed_at).map(t=>timeText(t.completed_at!)).join(" · ")||"Sem confirmação"}</span>
-  </div>
+  <nav className="care-blister-navigation grid grid-cols-[30px_minmax(0,1fr)_30px] items-center gap-1" aria-label="Navegar entre as cartelas">
+    <button type="button" disabled={selected===0} onClick={()=>setSelected(x=>Math.max(0,x-1))} className="grid size-[30px] place-items-center rounded-lg border border-border text-foreground hover:bg-muted disabled:opacity-25" aria-label="Cartela anterior"><ArrowLeft size={15}/></button>
+    <div className="min-w-0 text-center">
+      <p className="truncate text-xs font-extrabold leading-tight text-foreground">{first?`Cartela ${selected+1} de 7`:`Continuidade · semana ${Math.floor((selected-7)/7)+1} de 4`}</p>
+      <p className="truncate text-[10px] leading-tight text-muted-foreground">{dayLabel(day.iso)} · Dia {selected+1}/35 · {first?`4 manhã + 4 noite · ${dayCompleted}/${dayExpected} tomadas`:"1 cápsula diária"}</p>
+    </div>
+    <button type="button" disabled={selected===34} onClick={()=>setSelected(x=>Math.min(34,x+1))} className="grid size-[30px] place-items-center rounded-lg border border-border text-foreground hover:bg-muted disabled:opacity-25" aria-label="Próxima cartela"><ArrowRight size={15}/></button>
+  </nav>
   {loading?<p className="mt-5 text-center text-sm text-muted-foreground">Carregando tratamento…</p>:<>
-   <div className="care-blister-stage mt-1 flex min-h-0 items-center justify-center gap-2.5">
-     {first&&dashboardMode&&<div className="care-blister-side hidden w-[90px] shrink-0 flex-col items-center text-center md:flex xl:w-[102px]"><Sun size={20} className="mb-1 text-primary"/><strong className="text-xs text-foreground">Manhã</strong><span className="text-[10px] text-muted-foreground">4 comprimidos</span><div className={`mt-2 w-full rounded-xl border px-1.5 py-2 text-[10px] ${morning?.completed_at?"border-success/25 bg-success/10":"border-border bg-muted/60"}`}>{morning?.completed_at?<><strong className="block text-success">Confirmado</strong><span className="text-muted-foreground">{timeText(morning.completed_at).slice(0,5)}</span></>:<><strong className="block text-muted-foreground">{morning?careScheduleLabel(morning):"Sem horário"}</strong><span className="text-muted-foreground">{morning?timeText(morning.scheduled_at).slice(0,5):"—"}</span></>}</div></div>}
-     <div className="care-blister-graphic mx-auto w-full max-w-[165px] shrink-0 sm:max-w-[210px]">
+   <div className={`care-blister-body ${first?"is-dual":"is-continuation"}`}>
+     {first&&renderPeriod("morning",morning)}
+     <div className="care-blister-graphic min-w-0">
      <div className={`relative mx-auto overflow-hidden rounded-xl ${first?"aspect-[480/440]":"aspect-[580/430]"}`}>
        {!first&&<img className="absolute inset-0 h-full w-full object-contain" src="/images/cartela-lansoprazol-7.svg" alt="Cartela ilustrativa de sete cápsulas"/>}
        {first?<svg viewBox="0 0 480 440" role="group" aria-label="Cartela de oito unidades. Quatro unidades à esquerda são da manhã e quatro à direita são da noite" className="absolute inset-0 block h-full w-full">
@@ -132,21 +159,26 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,da
        })}
      </div>
      </div>
-     {first&&dashboardMode&&<div className="care-blister-side hidden w-[90px] shrink-0 flex-col items-center text-center md:flex xl:w-[102px]"><Moon size={20} className="mb-1 text-primary"/><strong className="text-xs text-foreground">Noite</strong><span className="text-[10px] text-muted-foreground">4 comprimidos</span><div className={`mt-2 w-full rounded-xl border px-1.5 py-2 text-[10px] ${evening?.completed_at?"border-success/25 bg-success/10":"border-border bg-muted/60"}`}>{evening?.completed_at?<><strong className="block text-success">Confirmado</strong><span className="text-muted-foreground">{timeText(evening.completed_at).slice(0,5)}</span></>:<><strong className="block text-muted-foreground">{evening?careScheduleLabel(evening):"Sem horário"}</strong><span className="text-muted-foreground">{evening?timeText(evening.scheduled_at).slice(0,5):"—"}</span></>}</div></div>}
+     {first&&renderPeriod("night",evening)}
     </div>
-    <div className="care-blister-legend mt-2 flex items-center justify-center gap-3 text-[10px] text-muted-foreground"><span><i className="mr-1 inline-block size-2 rounded-full bg-success"/>Confirmado</span><span><i className="mr-1 inline-block size-2 rounded-full bg-amber-400"/>Relatado</span><span><i className="mr-1 inline-block size-2 rounded-full border border-border"/>Aguardando / Não confirmado</span></div>
-   {first&&<div className={`care-blister-detail-cards mt-1 grid grid-cols-2 gap-1.5 text-[10px] ${dashboardMode?"md:hidden":""}`}>
-     {([["Manhã",morning],["Noite",evening]] as const).map(([label,task])=><div key={label} className={`rounded-lg border px-2 py-2 ${task?.completed_at?"border-emerald-500/30 bg-emerald-500/10":"border-border bg-muted/40"}`}><p className="font-semibold text-foreground">{label} · 4 comprimidos</p><p className="mt-0.5 text-muted-foreground">Previsto: {task?timeText(task.scheduled_at).slice(0,5):"—"}</p><p className={task?.completed_at?"font-medium text-emerald-700 dark:text-emerald-300":"text-muted-foreground"}>{task?.completed_at?"Confirmado: "+new Intl.DateTimeFormat("pt-BR",{timeZone:zone,day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}).format(new Date(task.completed_at)):"Não confirmado"}</p></div>)}
-   </div>}
-   {firstReport&&<p className="mt-2 rounded-lg border border-amber-300/40 bg-amber-50 px-2 py-1.5 text-center text-[11px] text-amber-900 dark:bg-amber-950/25 dark:text-amber-100">31/10 · 8 unidades relatadas: manhã 10h, noite 19h</p>}
-   {!first&&<p className="mt-2 text-center text-[11px] text-muted-foreground">Cada cápsula da semana representa um dia. Verde indica confirmação registrada.</p>}
-   {error&&<p role="alert" className="mt-2 text-xs text-destructive">{error}</p>}
+    <div className="care-blister-legend flex shrink-0 flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5 text-[9px] leading-tight text-muted-foreground" aria-label="Legenda da cartela">
+      <span className="inline-flex items-center gap-1"><i className="size-1.5 rounded-full bg-emerald-400"/>Confirmado</span>
+      <span className="inline-flex items-center gap-1"><i className="size-1.5 rounded-full bg-amber-400"/>Relatado</span>
+      <span className="inline-flex items-center gap-1"><i className="size-1.5 rounded-full border border-muted-foreground"/>Pendente</span>
+      {firstReport&&<span title="31/10: relato sem confirmação auditada; abra as unidades para detalhes" className="font-semibold text-amber-700 dark:text-amber-300">31/10: relato não confirmado</span>}
+    </div>
+    {!first&&<p className="care-blister-continuation-hint truncate text-center text-[9px] text-muted-foreground">Uma cápsula por dia · verde indica confirmação.</p>}
+    {error&&<p role="alert" className="care-blister-error text-[10px] text-destructive">{error}</p>}
   </>}
-  <div className="care-blister-day-selector mt-1 flex shrink-0 gap-1 overflow-x-auto pb-1" aria-label="Selecionar cartela">
-    {Array.from({length:7},(_,i)=><button type="button" key={i} onClick={()=>setSelected(i)} aria-current={selected===i?"true":undefined} className={`min-w-8 rounded-lg border px-2 py-1 text-[11px] font-semibold ${selected===i?"border-primary bg-primary/15 text-primary":days[i].tasks.length&&days[i].tasks.every(t=>t.completed_at)?"border-emerald-500/40 bg-emerald-500/10 text-emerald-600":"border-border text-muted-foreground"}`}>{days[i].tasks.length&&days[i].tasks.every(t=>t.completed_at)?"✓":i+1}</button>)}
-    <span className="my-auto whitespace-nowrap px-1 text-[10px] text-muted-foreground">Continuidade</span>
-    {Array.from({length:4},(_,i)=><button type="button" key={i+7} onClick={()=>setSelected(7+i*7)} className={`min-w-9 rounded-lg border px-2 py-1 text-[11px] ${selected>=7+i*7&&selected<14+i*7?"border-primary bg-primary/15 text-primary":"border-border text-muted-foreground"}`}>S{i+1}</button>)}
-  </div>
+  <nav className="care-blister-day-selector flex shrink-0 flex-wrap items-center justify-center gap-1 border-t border-border/60 pt-1" aria-label="Selecionar dia ou semana">
+    {Array.from({length:7},(_,i)=><button type="button" key={i} onClick={()=>setSelected(i)} aria-current={selected===i?"true":undefined} aria-label={`Cartela ${i+1}`} title={`Cartela ${i+1}`}
+      className={`care-blister-step grid size-[24px] shrink-0 place-items-center rounded-full border text-[10px] font-bold transition-colors ${selected===i?"border-primary bg-primary text-primary-foreground":days[i].tasks.length&&days[i].tasks.every(t=>t.completed_at)?"border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300":"border-border bg-muted/30 text-muted-foreground hover:border-primary/40"}`}>
+      {days[i].tasks.length&&days[i].tasks.every(t=>t.completed_at)?"✓":i+1}
+    </button>)}
+    <span className="mx-0.5 h-4 w-px bg-border" aria-hidden="true"/>
+    {Array.from({length:4},(_,i)=><button type="button" key={i+7} onClick={()=>setSelected(7+i*7)} aria-current={selected>=7+i*7&&selected<14+i*7?"true":undefined} aria-label={`Semana de continuidade ${i+1}`}
+      className={`care-blister-step min-w-[27px] shrink-0 rounded-full border px-1.5 py-1 text-[9px] font-semibold leading-tight transition-colors ${selected>=7+i*7&&selected<14+i*7?"border-primary bg-primary text-primary-foreground":"border-border bg-muted/30 text-muted-foreground hover:border-primary/40"}`}>S{i+1}</button>)}
+  </nav>
   {activePill&&<div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-3 backdrop-blur-sm" onMouseDown={e=>{if(e.target===e.currentTarget)setActivePill(null)}}>
     <section role="dialog" aria-modal="true" aria-label="Detalhes da medicação" className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-2xl">
       <div className="flex items-center justify-between gap-3"><h4 className="flex items-center gap-2 text-base font-bold"><Info size={18} className="text-primary"/> Detalhes da unidade</h4><button aria-label="Fechar" onClick={()=>setActivePill(null)} className="rounded-lg border border-border p-1.5"><X size={17}/></button></div>
