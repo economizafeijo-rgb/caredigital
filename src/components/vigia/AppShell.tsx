@@ -111,7 +111,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         <header className="relative z-30 shrink-0 border-b border-border/70 bg-background/90 backdrop-blur-xl">
-          <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-2 px-3 md:h-[68px] md:gap-2.5 md:px-5 xl:px-6">
+          <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-2 px-3 md:h-[76px] md:gap-2.5 md:px-5 xl:px-6">
             <Link to="/" className="flex shrink-0 items-center gap-2 lg:gap-2.5">
               <div className="grid size-9 place-items-center rounded-xl bg-primary font-display text-xl leading-none text-primary-foreground shadow-sm md:size-10" aria-hidden="true">C</div>
               <div className="leading-none">
@@ -120,19 +120,19 @@ export function AppShell({ children }: { children: ReactNode }) {
               </div>
             </Link>
 
-            <nav className="hidden min-w-0 items-center justify-center gap-0.5 md:flex lg:gap-1 xl:gap-1.5" aria-label="Navegação principal">
+            <nav className="hidden min-w-0 items-center justify-center gap-1 md:flex lg:gap-1.5 xl:gap-2" aria-label="Navegação principal">
               {visibleNav.map(({to,label,icon:Icon}) => (
                 <Link key={to} to={to} title={label} aria-label={label} activeOptions={{exact:to==="/"}}
-                  className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-transparent px-2 text-[12px] font-semibold text-muted-foreground transition-colors hover:border-border hover:bg-muted hover:text-foreground lg:h-10 lg:px-2.5 xl:h-11 xl:px-3"
+                  className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl border border-transparent px-3 text-[13px] font-semibold text-muted-foreground transition-all hover:border-primary/20 hover:bg-primary/5 hover:text-foreground hover:shadow-sm lg:h-12 lg:px-3.5 xl:px-4 xl:text-[14px]"
                   activeProps={{className:"!border-primary !bg-primary !text-primary-foreground shadow-sm"}}>
-                  <Icon size={16} strokeWidth={2.1}/><span className="hidden lg:inline">{label}</span>
+                  <Icon size={19} strokeWidth={2}/><span className="hidden lg:inline">{label}</span>
                 </Link>
               ))}
               {!clientOnly && extraPublicNav.map(({to,label,longLabel,icon:Icon}) => (
                 <Link key={to} to={to} title={longLabel} aria-label={longLabel}
-                  className="hidden h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-transparent px-2.5 text-[12px] font-semibold text-muted-foreground transition-colors hover:border-border hover:bg-muted hover:text-foreground xl:inline-flex"
+                  className="hidden h-12 shrink-0 items-center justify-center gap-2 rounded-xl border border-transparent px-3.5 text-[14px] font-semibold text-muted-foreground transition-all hover:border-primary/20 hover:bg-primary/5 hover:text-foreground hover:shadow-sm xl:inline-flex"
                   activeProps={{className:"!border-primary !bg-primary !text-primary-foreground shadow-sm"}}>
-                  <Icon size={16} strokeWidth={2.1}/><span>{label}</span>
+                  <Icon size={19} strokeWidth={2}/><span>{label}</span>
                 </Link>
               ))}
               {!clientOnly && <button type="button"
