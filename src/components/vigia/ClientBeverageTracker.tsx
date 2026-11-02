@@ -136,7 +136,7 @@ export function ClientBeverageTracker({
       <button type="submit" disabled={saving} className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 text-xs font-bold text-primary-foreground disabled:opacity-60">
         <Save size={16}/> {saving ? "Salvando…" : "Registrar bebida agora"}
       </button>
-      <p className="text-[10px] text-muted-foreground">Água conta na meta diária. Chás, energéticos, suplementos líquidos e shakes ficam registrados separadamente e não alteram automaticamente a meta de água. O registro não significa recomendação médica.</p>
+      <p className="text-[10px] text-muted-foreground">Água entra na meta diária; não registre novamente o mesmo copo na agenda. Chás, energéticos, suplementos líquidos e shakes ficam no histórico separadamente. O registro não significa recomendação médica.</p>
     </form>
     {error && <p role="alert" className="rounded-lg border border-destructive/30 p-2 text-xs text-destructive">{error}</p>}
     {notice && <p role="status" className="flex items-start gap-2 rounded-lg border border-success/30 bg-success/10 p-2 text-xs text-foreground"><CheckCircle2 size={15} className="shrink-0 text-success"/>{notice}</p>}
