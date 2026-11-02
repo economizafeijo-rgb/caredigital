@@ -8,6 +8,7 @@ import { PatientActivityHistory } from "./PatientActivityHistory";
 import { ClientHydrationTab } from "./ClientHydrationTab";
 import { ClientBeverageTracker } from "./ClientBeverageTracker";
 import { ClientQuickIntake } from "./ClientQuickIntake";
+import { CareTaskRecordModal } from "./CareTaskRecordModal";
 import { MedicationLateAlert } from "./MedicationLateAlert";
 import { ClientTodayTimeline } from "./ClientTodayTimeline";
 import { canConfirmCare, careScheduleBlockMessage, careScheduleLabel, getCareScheduleState } from "@/lib/care-schedule";
@@ -304,9 +305,10 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
         </section>
       </div>
 
-      <ClientTodayTimeline tasks={tasks} onConfirm={askConfirm} now={clock?.getTime()}/>
+      <ClientTodayTimeline tasks={tasks} onConfirm={askConfirm} onDetails={showTaskDetails} now={clock?.getTime()}/>
     </div>}
-    {detailTask && typeof document!=="undefined" && createPortal(<div className="fixed inset-0 z-[9998] flex items-center justify-center bg-slate-950/65 p-3 backdrop-blur-sm" onMouseDown={event=>{if(event.target===event.currentTarget)setDetailTask(null)}}><section role="dialog" aria-modal="true" aria-label="Detalhes do cuidado" className="w-full max-w-md rounded-2xl border border-border bg-card p-5 text-foreground shadow-2xl"><div className="flex items-start justify-between gap-3"><div><p className="text-[11px] font-bold uppercase tracking-wider text-primary">Detalhes da rotina</p><h3 className="mt-1 text-lg font-extrabold">{detailTask.title}</h3></div><button type="button" onClick={()=>setDetailTask(null)} aria-label="Fechar detalhes" className="rounded-lg border border-border p-2"><X size={17}/></button></div><dl className="mt-4 grid gap-3 text-sm"><div className="rounded-xl bg-muted p-3"><dt className="text-xs text-muted-foreground">Horário programado (Acre)</dt><dd className="mt-1 font-semibold">{timeInAcre(detailTask.scheduled_at)}</dd></div><div className="rounded-xl bg-muted p-3"><dt className="text-xs text-muted-foreground">Situação</dt><dd className="mt-1 font-semibold">{detailTask.completed_at?"Confirmado":careScheduleLabel(detailTask,clock?.getTime()??Date.now())}</dd></div>{detailTask.completed_at&&<div className="rounded-xl bg-muted p-3"><dt className="text-xs text-muted-foreground">Confirmação registrada às</dt><dd className="mt-1 font-semibold">{timeInAcre(detailTask.completed_at)}</dd></div>}</dl><p className="mt-3 text-xs text-muted-foreground">A confirmação de uma atividade depende da janela permitida. Visualizar detalhes não altera o registro.</p><div className="mt-4 flex gap-2"><button type="button" onClick={()=>setDetailTask(null)} className="flex-1 rounded-xl border border-border px-4 py-2.5 text-sm font-semibold">Fechar</button>{!detailTask.completed_at&&canConfirmCare(detailTask,clock?.getTime()??Date.now())&&<button type="button" onClick={()=>{const task=detailTask;setDetailTask(null);askConfirm(task)}} className="flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground">Confirmar agora</button>}</div></section></div>,document.body)}
+    <CareTaskRecordModal task={detailTask} onClose={()=>setDetailTask(null)}
+      onSaved={()=>setTick(value=>value+1)} onConfirm={task=>askConfirm(task)}/>
     {confirmationResult && typeof document!=="undefined" && createPortal(
       <div className="pointer-events-none fixed inset-0 z-[10010] flex items-start justify-center px-4 pt-20 sm:pt-24" role={confirmationResult.success?"status":"alert"} aria-live={confirmationResult.success?"polite":"assertive"}>
         <div className={`pointer-events-auto w-full max-w-md overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-[0_18px_55px_rgba(0,0,0,0.25)] ring-1 ring-black/5 dark:ring-white/10 ${confirmationResult.success?"border-emerald-400/50":"border-amber-400/60"}`}>
