@@ -77,4 +77,28 @@ describe("histórico inteligente CareDigital",()=>{
     expect(filterCareHistory(all,filters,now).some(e=>e.id==="pending-old-medicine")).toBe(false);
     expect(filterCareHistory(all,{...filters,period:"7d"},now).some(e=>e.id==="pending-old-medicine")).toBe(true);
   });
+  it("registra apenas resultados diários concluídos, por data e sem duplicar consumo",()=>{
+    const source=data();
+    source.dailyGoals=[
+      {goal_date:"2026-11-02",target_ml:2550,consumed_ml:590,status:"em_andamento",closed_at:null,updated_at:"2026-11-02T20:10:00Z"},
+      {goal_date:"2026-11-01",target_ml:2200,consumed_ml:2000,status:"nao_atingida",closed_at:"2026-11-02T04:00:00Z",updated_at:"2026-11-02T04:05:00Z"},
+      {goal_date:"2026-10-31",target_ml:2200,consumed_ml:2400,status:"atingida",closed_at:"2026-11-01T04:00:00Z",updated_at:"2026-11-01T04:05:00Z"}
+    ];
+    const entries=assembleCareHistory(source,now);
+    const goals=entries.filter(e=>e.subtype==="meta_diaria");
+    expect(goals).toHaveLength(2);
+    expect(goals.find(e=>e.status==="meta_nao_atingida")?.description).toContain("faltaram 200 ml");
+    expect(goals.find(e=>e.status==="meta_atingida")?.description).toContain("2.400 de 2.200");
+    expect(goals.every(e=>e.group==="liquidos")).toBe(true);
+    expect(entries.filter(e=>e.subtype==="agua"&&e.amountMl)).toHaveLength(2);
+  });
+  it("permite filtrar apenas os dias cuja meta não foi atingida",()=>{
+    const source=data();
+    source.dailyGoals=[{goal_date:"2026-11-01",target_ml:2550,consumed_ml:500,status:"nao_atingida",closed_at:"2026-11-02T04:00:00Z",updated_at:"2026-11-02T04:05:00Z"}];
+    const entries=assembleCareHistory(source,now);
+    const missed=filterCareHistory(entries,{...filters,group:"liquidos",subtype:"meta_diaria",status:"meta_nao_atingida",period:"7d"},now);
+    expect(missed).toHaveLength(1);
+    expect(missed[0].description).toContain("01/11/2026");
+  });
+
 });
