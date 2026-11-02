@@ -61,7 +61,7 @@ export function ClientHomeSummary(){
   if(!selected||working||!patient)return;
   if(selected.category==="medicacao"&&day(new Date(selected.scheduled_at))!==day(new Date())){setError("Medicação somente pode ser confirmada no dia previsto.");return;}
   if(!canConfirmCare(selected) && !(selected.category==="medicacao" && Date.now()>=Date.parse(selected.scheduled_at) && !selected.completed_at)){setError(careScheduleBlockMessage(selected));return;}
-  if(selected.category==="refeicao"&&(!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(mealTime)||mealDescription.trim().length<3||mealDescription.trim().length>900)){setError("Descreva a refeição consumida (3 a 1.000 caracteres).");return;}
+  if(selected.category==="refeicao"&&(!/^([01]\d|2[0-3]):[0-5]\d$/.test(mealTime)||mealDescription.trim().length<3||mealDescription.trim().length>900)){setError("Descreva a refeição consumida (3 a 1.000 caracteres).");return;}
   setWorking(true);setError("");setReceipt(null);
   const response=selected.category==="refeicao"?await (supabase as any).rpc("care_confirm_meal",{p_task_id:selected.id,p_description:`Horário informado pelo cliente (Acre): ${mealTime}. Refeição: ${mealDescription.trim()}`}):await (supabase as any).rpc("care_confirm_task",{p_task_id:selected.id,p_water_ml:selected.category==="hidratacao"?water:null});
   setWorking(false);
