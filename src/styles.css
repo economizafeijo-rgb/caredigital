@@ -2133,3 +2133,99 @@ iframe[title*="Lovable" i][title*="badge" i] {
   .care-intake-option {transition:none;}
   .care-intake-option:hover {transform:none;}
 }
+
+
+/* CareDigital — illustrated empty regions in the next-care and agenda cards.
+ * Decorative media is non-interactive and must never obscure controls or text. */
+.care-home-art-v2 .care-next-image-aura {
+  position:absolute;
+  width:62%;height:90%;right:-3%;top:7%;
+  background:radial-gradient(ellipse at 60% 55%,rgba(54,246,225,.19),transparent 68%);
+  filter:blur(10px);
+}
+.care-home-art-v2 .care-next-generated-art {
+  position:absolute;
+  z-index:0;
+  top:1%;right:-1%;
+  width:58%;height:98%;
+  object-fit:contain;
+  object-position:right center;
+  opacity:.92;
+  pointer-events:none;
+  user-select:none;
+  filter:drop-shadow(0 9px 23px rgba(0,28,37,.22));
+  -webkit-mask-image:linear-gradient(to right,transparent 0%,#000 17%,#000 91%,transparent 100%);
+  mask-image:linear-gradient(to right,transparent 0%,#000 17%,#000 91%,transparent 100%);
+}
+.care-home-art-v2 .patient-next-care .care-next-overline,
+.care-home-art-v2 .patient-next-care .care-next-time-chip,
+.care-home-art-v2 .patient-next-care .care-next-cta,
+.care-home-art-v2 .patient-next-care .care-next-secondary {
+  position:relative;
+  z-index:2;
+}
+.care-home-art-v2 .patient-next-care .care-next-copy {
+  position:relative;
+  z-index:2;
+  max-width:min(68%,490px);
+  text-shadow:0 2px 10px rgba(0,30,36,.27);
+}
+.care-home-art-v2 .patient-timeline.care-timeline-with-image {
+  position:relative;
+  isolation:isolate;
+}
+.care-home-art-v2 .care-timeline-image-layer {
+  overflow:hidden;
+  pointer-events:none;
+}
+.care-home-art-v2 .care-timeline-generated-art {
+  position:absolute;
+  width:98%;height:57%;
+  left:1%;bottom:40px;
+  object-fit:contain;
+  object-position:center bottom;
+  opacity:.90;
+  pointer-events:none;
+  user-select:none;
+  filter:drop-shadow(0 0 16px rgba(9,199,207,.09));
+  -webkit-mask-image:radial-gradient(ellipse 77% 74% at 53% 53%,#000 53%,transparent 100%);
+  mask-image:radial-gradient(ellipse 77% 74% at 53% 53%,#000 53%,transparent 100%);
+}
+.care-home-art-v2 .care-timeline-with-image > .care-timeline-image-layer ~ div,
+.care-home-art-v2 .care-timeline-with-image > .care-timeline-image-layer ~ nav {
+  position:relative;
+  z-index:1;
+}
+:root:not(.dark) .care-home-art-v2 .care-next-generated-art {
+  opacity:.54;
+  filter:drop-shadow(0 6px 16px rgba(14,93,101,.09));
+}
+:root:not(.dark) .care-home-art-v2 .patient-next-care .care-next-copy {
+  text-shadow:none;
+}
+:root:not(.dark) .care-home-art-v2 .care-timeline-generated-art {
+  opacity:.37;
+  filter:saturate(.8);
+}
+@media (max-width:1100px){
+  .care-home-art-v2 .care-next-generated-art {width:54%;right:-3%;opacity:.73;}
+  .care-home-art-v2 .care-timeline-generated-art {height:49%;bottom:43px;}
+}
+@media (max-width:767px) {
+  .care-home-art-v2 .care-next-generated-art {width:52%;height:91%;top:6%;right:-5%;opacity:.64;}
+  .care-home-art-v2 .patient-next-care .care-next-copy {max-width:72%;}
+  .care-home-art-v2 .care-timeline-generated-art {width:75%;height:53%;left:20%;bottom:42px;opacity:.66;}
+}
+@media (max-width:480px) {
+  .care-home-art-v2 .care-next-generated-art {width:55%;height:87%;top:9%;right:-7%;opacity:.39;}
+  .care-home-art-v2 .patient-next-care .care-next-copy {max-width:88%;}
+  .care-home-art-v2 .care-timeline-generated-art {opacity:.42;height:48%;bottom:39px;}
+}
+@media (max-height:680px) and (min-width:768px) {
+  .care-home-art-v2 .care-next-generated-art {height:83%;top:9%;}
+  .care-home-art-v2 .care-timeline-generated-art {height:47%;bottom:38px;opacity:.6;}
+}
+@media (prefers-reduced-motion:reduce){
+  .care-home-art-v2 .care-next-generated-art,
+  .care-home-art-v2 .care-timeline-generated-art {animation:none;transition:none;}
+}
