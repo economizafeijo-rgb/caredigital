@@ -190,40 +190,40 @@ export function HomeClientCard() {
       <p className="mt-2 text-sm text-[#456478]">Para proteger as informações de saúde, faça login antes de visualizar ou confirmar atividades do cliente.</p>
       <div className="mt-4 flex flex-wrap gap-2"><Link to="/entrar" className="rounded-xl bg-[#216083] px-5 py-3 text-sm font-semibold text-white">Ir para a tela de login</Link><button onClick={() => setLocked(false)} className="rounded-xl border border-[#b8d2df] px-4 py-3 text-sm">Fechar</button></div>
     </div>}
-    {pending?.category === "medicacao" && <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#081724]/75 px-3 py-6 backdrop-blur-sm" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget && !busy) setPending(null); }}>
-      <section role="dialog" aria-modal="true" aria-label="Confirmar tomada de medicação" className="w-full max-w-md overflow-hidden rounded-3xl border border-border bg-card text-card-foreground shadow-2xl">
-        <div className="relative bg-gradient-to-br from-[#143a55] to-[#215978] px-6 py-6 text-white">
-          <button type="button" aria-label="Fechar confirmação" disabled={busy} onClick={() => setPending(null)} className="absolute right-4 top-4 rounded-full bg-white/15 p-2 hover:bg-white/25"><X size={17}/></button>
-          <svg viewBox="0 0 320 132" className="mx-auto h-28 w-full max-w-xs" role="img" aria-label="Ilustração de cápsula e relógio, confirmação de tomada">
-            <defs><linearGradient id="capsuleFill" x1="0" x2="1"><stop offset="0" stopColor="#82d3ee"/><stop offset="1" stopColor="#3787b2"/></linearGradient></defs>
-            <circle cx="160" cy="65" r="58" fill="#ffffff" opacity=".08"/>
-            <rect x="83" y="47" width="150" height="43" rx="21" transform="rotate(-24 158 69)" fill="#fff" opacity=".96"/>
-            <path d="M 156 39 L 192 23 A 21 21 0 0 1 209 61 L 174 76 Z" fill="url(#capsuleFill)" transform="rotate(0 160 65)"/>
-            <circle cx="235" cy="89" r="25" fill="#163d58" stroke="#b5e8f5" strokeWidth="3"/>
-            <path d="M235 75 V89 L244 95" stroke="#fff" strokeWidth="3" fill="none" strokeLinecap="round"/>
-            <circle cx="235" cy="89" r="3" fill="#fff"/>
-            <path d="M61 26 l5 7 9 1 -6 6 1 9 -9 -4 -8 4 1 -9 -7 -6 9 -1z" fill="#b8e6f3" opacity=".8"/>
-          </svg>
-          <p className="text-center text-xs font-semibold uppercase tracking-[.16em] text-sky-200">Confirmação segura</p>
-          <h3 className="mt-2 text-center text-2xl font-bold">Você tomou a medicação agora?</h3>
-        </div>
-        <div className="space-y-4 p-5 sm:p-6">
-          <div className="rounded-xl bg-muted p-3 text-sm"><p className="font-semibold">{pending.title}</p><p className="mt-1 text-muted-foreground">Programada para {timeInAcre(pending.scheduled_at)} · Acre</p><p className="mt-1 text-xs text-muted-foreground">A data e a hora reais serão registradas automaticamente pelo servidor. Não é possível preenchê-las manualmente.</p></div>
-          {Math.abs(Date.now()-new Date(pending.scheduled_at).getTime()) > 15*60000 && <div className="rounded-xl border border-warning/40 bg-muted p-3 text-sm">
-            <div className="flex items-center gap-2 font-semibold text-foreground"><AlertTriangle size={17} className="text-warning"/> Tomada fora do horário previsto</div>
-            <p className="mt-1 text-muted-foreground">{Date.now()>new Date(pending.scheduled_at).getTime() ? "O horário já passou." : "O horário ainda não chegou."} Se você realmente tomou o medicamento agora, confirme abaixo. Isso não indica que deva compensar ou dobrar a dose.</p>
-            {Date.now()>new Date(pending.scheduled_at).getTime() && <label className="mt-3 block text-xs font-semibold">Motivo informado (opcional)
-              <select value={lateReason} onChange={e=>setLateReason(e.target.value)} className="mt-1 w-full rounded-lg border border-input bg-background p-2.5 text-sm text-foreground">
+    {pending?.category === "medicacao" && <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#081724]/75 p-2 backdrop-blur-sm" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget && !busy) setPending(null); }}>
+      <section role="dialog" aria-modal="true" aria-label="Confirmar tomada de medicação" className="flex max-h-[min(92dvh,580px)] w-full max-w-[405px] flex-col overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-2xl">
+        <header className="relative shrink-0 bg-gradient-to-br from-[#143a55] to-[#215978] px-4 py-3 text-white">
+          <button type="button" aria-label="Fechar confirmação" disabled={busy} onClick={() => setPending(null)} className="absolute right-3 top-3 rounded-full bg-white/15 p-1.5 hover:bg-white/25"><X size={16}/></button>
+          <div className="flex items-center gap-3 pr-7">
+            <svg viewBox="0 0 88 66" className="h-14 w-[76px] shrink-0" role="img" aria-label="Cápsula e relógio">
+              <rect x="8" y="17" width="57" height="23" rx="11.5" transform="rotate(-24 36 29)" fill="#f4fbff"/>
+              <path d="M37 8 54 1a11.5 11.5 0 0 1 9 21L47 29Z" fill="#80d3ef"/>
+              <circle cx="65" cy="42" r="18" fill="#16405d" stroke="#b5e8f5" strokeWidth="2.5"/>
+              <path d="M65 32v10l7 5" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+            </svg>
+            <div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[.14em] text-sky-200">Confirmação segura</p><h3 className="mt-1 text-lg font-bold leading-tight">Tomou a medicação agora?</h3></div>
+          </div>
+        </header>
+        <div className="min-h-0 space-y-2.5 overflow-y-auto px-4 py-3">
+          <div className="rounded-xl bg-muted px-3 py-2 text-xs"><p className="font-bold text-foreground">{pending.title}</p><p className="mt-0.5 text-muted-foreground">Previsto: <strong>{timeInAcre(pending.scheduled_at)} · Acre</strong></p><p className="mt-1 text-[11px] text-muted-foreground">O servidor registra a data e a hora desta confirmação.</p></div>
+          {Math.abs(Date.now()-new Date(pending.scheduled_at).getTime()) > 15*60000 && <div className="rounded-xl border border-warning/40 bg-warning/5 px-3 py-2 text-xs">
+            <p className="flex items-center gap-1.5 font-bold text-foreground"><AlertTriangle size={15} className="shrink-0 text-warning"/> Fora do horário previsto</p>
+            <p className="mt-1 leading-snug text-muted-foreground">{Date.now()>new Date(pending.scheduled_at).getTime()?"O horário já passou.":"O horário ainda não chegou."} Confirme apenas se tomou agora. Não dobre a dose.</p>
+            {Date.now()>new Date(pending.scheduled_at).getTime() && <label className="mt-2 block text-[11px] font-semibold text-foreground">Motivo (opcional)
+              <select value={lateReason} onChange={e=>setLateReason(e.target.value)} className="mt-1 h-9 w-full rounded-lg border border-input bg-background px-2 text-xs text-foreground">
                 <option value="acordei_tarde">Acordei mais tarde</option><option value="rotina">Mudança na rotina</option><option value="outro">Outro motivo</option>
               </select>
             </label>}
           </div>}
-          <p className="text-xs text-muted-foreground">Se tomou anteriormente e esqueceu de registrar, escolha cancelar. Não registre uma hora inventada; procure o responsável pelo acompanhamento para corrigir o histórico.</p>
-          <div className="grid grid-cols-2 gap-2"><button type="button" disabled={busy} onClick={()=>setPending(null)} className="rounded-xl border border-border px-4 py-3 text-sm font-semibold text-foreground">Cancelar</button><button type="button" disabled={busy} onClick={()=>void confirm()} className="rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-60">{busy?"Registrando…":"Sim, tomei agora"}</button></div>
+          <p className="text-[11px] leading-snug text-muted-foreground">Tomou antes e esqueceu de registrar? Cancele e procure o responsável pelo acompanhamento para corrigir o histórico.</p>
         </div>
+        <footer className="grid shrink-0 grid-cols-2 gap-2 border-t border-border px-4 py-3">
+          <button type="button" disabled={busy} onClick={() => setPending(null)} className="h-10 rounded-xl border border-border px-2 text-xs font-semibold text-foreground">Cancelar</button>
+          <button type="button" disabled={busy} onClick={()=>void confirm()} className="h-10 rounded-xl bg-primary px-2 text-xs font-bold text-primary-foreground disabled:opacity-60">{busy?"Registrando…":"Sim, tomei agora"}</button>
+        </footer>
       </section>
     </div>}
-    {pending && pending.category !== "medicacao" && <div role="dialog" aria-label="Confirmar cuidado" className="m-5 rounded-2xl border border-[#aec8d6] bg-[#eff5f8] p-5">
+        {pending && pending.category !== "medicacao" && <div role="dialog" aria-label="Confirmar cuidado" className="m-5 rounded-2xl border border-[#aec8d6] bg-[#eff5f8] p-5">
       <div className="flex items-center gap-2 font-bold text-[#163b56]"><CheckCircle2 size={19}/> Confirmação de cuidado</div>
       <p className="mt-2 text-sm">{pending.title} · {timeInAcre(pending.scheduled_at)}</p>
       {pending.category === "medicacao" && <div className="mt-3 space-y-2 text-sm"><p>Horário programado: <strong>{timeInAcre(pending.scheduled_at)}</strong>. Registro efetivo: <strong>data e hora atuais do servidor</strong>.</p>{Math.abs(Date.now()-new Date(pending.scheduled_at).getTime()) > 15*60000 && <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-amber-900">Atenção: você está fora da janela de 15 minutos do horário programado. A confirmação será registrada como adiantada ou atrasada, com horário real. Confirme somente se acabou de tomar; não tome dose extra para compensar.</p>}<p className="text-xs text-muted-foreground">Se tomou anteriormente e esqueceu de registrar, não use esta confirmação para informar uma hora passada.</p></div>}
