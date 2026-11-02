@@ -104,4 +104,26 @@ describe("histórico inteligente CareDigital",()=>{
     expect(missed[0].description).toContain("01/11/2026");
   });
 
+  it("mantém frutas, almoço avulso, shakes e energéticos nas categorias corretas",()=>{
+    const source=data();
+    source.drinks.push(
+      {id:"shake-1",kind:"shake",name:"Shake de banana e aveia",amount_ml:300,notes:"",consumed_at:"2026-11-02T19:15:00Z"},
+      {id:"energy-1",kind:"energetico",name:"Energético 250 ml",amount_ml:250,notes:"",consumed_at:"2026-11-02T19:16:00Z"}
+    );
+    source.audit.push(
+      {id:"fruit-1",category:"refeicao",event_type:"logged",source:"client_unscheduled_intake",
+        details:{kind:"fruta",description:"Banana prata, 1 unidade"},scheduled_at:null,happened_at:null,recorded_at:"2026-11-02T19:17:00Z"},
+      {id:"lunch-1",category:"refeicao",event_type:"logged",source:"client_unscheduled_intake",
+        details:{kind:"almoco",description:"Arroz e frango, 100 g"},scheduled_at:null,happened_at:null,recorded_at:"2026-11-02T19:18:00Z"}
+    );
+    const all=assembleCareHistory(source,now);
+    expect(all.find(e=>e.id==="manual-meal-fruit-1")?.title).toBe("Frutas");
+    expect(all.find(e=>e.id==="manual-meal-lunch-1")?.title).toBe("Almoço");
+    expect(all.find(e=>e.id==="drink-shake-1")?.subtype).toBe("shake");
+    expect(all.find(e=>e.id==="drink-energy-1")?.subtype).toBe("energetico");
+    expect(all.find(e=>e.id==="drink-shake-1")?.group).toBe("liquidos");
+    expect(filterCareHistory(all,{...filters,group:"refeicoes",subtype:"fruta"},now)).toHaveLength(1);
+    expect(filterCareHistory(all,{...filters,group:"liquidos",subtype:"shake"},now)).toHaveLength(1);
+  });
+
 });
