@@ -3,6 +3,8 @@ export type HistoryGroup = "liquidos" | "refeicoes" | "cuidados" | "ajustes";
 export type HistoryStatus = "confirmado" | "registrado" | "nao_confirmado" | "nao_bebi" | "corrigido" | "reprogramado" | "excluido" | "meta_atingida" | "meta_nao_atingida";
 export type HistoryEntry = {
   id: string;
+  /** Underlying scheduled task, if present; used for audited record corrections. */
+  taskId?: string;
   group: HistoryGroup;
   subtype: string;
   status: HistoryStatus;
@@ -63,7 +65,7 @@ export function assembleCareHistory(sources:HistorySources,now=Date.now()):Histo
     const skipped=skipByTask.get(task.id);
     if(task.completed_at){
       events.push({
-        id:"task-"+task.id,group,subtype:isWater?"agua":task.category==="refeicao"?/lanche|ceia/i.test(task.title)?"lanche":"refeicao":task.category,
+        id:"task-"+task.id,taskId:task.id,group,subtype:isWater?"agua":task.category==="refeicao"?/lanche|ceia/i.test(task.title)?"lanche":"refeicao":task.category,
         status:"confirmado",
         title:isWater&&water?"Água · "+water.amount_ml+" ml":task.title,
         description:description||(isWater?(water?"Consumo de água confirmado na agenda.":"Hidratação confirmada; volume não vinculado ao registro."):"Confirmação registrada no sistema."),
@@ -71,12 +73,12 @@ export function assembleCareHistory(sources:HistorySources,now=Date.now()):Histo
         scheduledAt:task.scheduled_at,occurredAt:task.completed_at
       });
     } else if(skipped){
-      events.push({id:"skip-"+task.id,group:"liquidos",subtype:"agua",status:"nao_bebi",
+      events.push({id:"skip-"+task.id,taskId:task.id,group:"liquidos",subtype:"agua",status:"nao_bebi",
         title:"Água · não bebi",description:"Resposta registrada para o horário previsto.",
         scheduledAt:task.scheduled_at,occurredAt:skipped.recorded_at});
     } else if(acreDay(task.scheduled_at)<today){
       events.push({
-        id:"pending-"+task.id,group,subtype:isWater?"agua":task.category==="refeicao"?/lanche|ceia/i.test(task.title)?"lanche":"refeicao":task.category,
+        id:"pending-"+task.id,taskId:task.id,group,subtype:isWater?"agua":task.category==="refeicao"?/lanche|ceia/i.test(task.title)?"lanche":"refeicao":task.category,
         status:"nao_confirmado",title:task.title,
         description:"Sem confirmação registrada para esse horário. Isso não comprova que o cuidado deixou de acontecer.",
         scheduledAt:task.scheduled_at,occurredAt:task.scheduled_at
@@ -86,7 +88,7 @@ export function assembleCareHistory(sources:HistorySources,now=Date.now()):Histo
   for(const water of sources.water){
     // Task-linked hydration appears once, enriched with the actual ml above.
     if(water.task_id&&checklist.has(water.task_id))continue;
-    events.push({id:"water-"+water.id,group:"liquidos",subtype:"agua",status:"registrado",
+    events.push({id:"water-"+water.id,taskId:water.task_id??undefined,group:"liquidos",subtype:"agua",status:"registrado",
       title:"Água · "+water.amount_ml+" ml",
       description:water.task_id?"Consumo de água associado a uma confirmação anterior.":"Água registrada fora da programação.",
       amountMl:water.amount_ml,occurredAt:water.recorded_at});
