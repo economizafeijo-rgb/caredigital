@@ -8,11 +8,12 @@ type PatientCare = ReminderTask & {patient_id:string};
 
 type Props = {
   tasks: PatientCare[];
+  resolved?: Record<string,string>;
   now?: number;
   onView: (task: PatientCare)=>void;
   onConfirm: (task: PatientCare)=>void;
 };
-type StatusFilter = "todos" | "confirmados" | "pendentes" | "futuros";
+type StatusFilter = "todos" | "confirmados" | "pendentes" | "resolvidos" | "futuros";
 const MAX_ITEMS=6;
 const fields=[
   {id:"todos",label:"Todas as atividades",icon:CalendarClock},
@@ -31,25 +32,27 @@ const IconFor:Record<string,typeof Pill>={
   medicacao:Pill,hidratacao:Droplets,refeicao:UtensilsCrossed,outro:Sparkles,
 };
 
-export function ClientAgendaPage({tasks,now=Date.now(),onView,onConfirm}:Props){
+export function ClientAgendaPage({tasks,resolved={},now=Date.now(),onView,onConfirm}:Props){
   const [category,setCategory]=useState<string>("todos");
   const [status,setStatus]=useState<StatusFilter>("todos");
   const [query,setQuery]=useState("");
   const [page,setPage]=useState(0);
   const confirmed=tasks.filter(task=>Boolean(task.completed_at)).length;
-  const available=tasks.filter(task=>careReminderState(task,now)==="due").length;
-  const late=tasks.filter(task=>careReminderState(task,now)==="unconfirmed").length;
+  const available=tasks.filter(task=>!resolved[task.id]&&careReminderState(task,now)==="due").length;
+  const late=tasks.filter(task=>!resolved[task.id]&&careReminderState(task,now)==="unconfirmed").length;
   const filtered=useMemo(()=>tasks
     .filter(task=>category==="todos"||task.category===category)
     .filter(task=>{
       const state=careReminderState(task,now);
+      const answered=Boolean(resolved[task.id]);
       return status==="todos"||
         status==="confirmados"&&state==="confirmed"||
-        status==="pendentes"&&(state==="due"||state==="unconfirmed")||
-        status==="futuros"&&state==="waiting";
+        status==="resolvidos"&&answered||
+        status==="pendentes"&&!answered&&(state==="due"||state==="unconfirmed")||
+        status==="futuros"&&!answered&&state==="waiting";
     })
     .filter(task=>!query.trim()||task.title.toLocaleLowerCase("pt-BR").includes(query.trim().toLocaleLowerCase("pt-BR")))
-    .sort((a,b)=>Date.parse(a.scheduled_at)-Date.parse(b.scheduled_at)),[tasks,category,status,query,now]);
+    .sort((a,b)=>Date.parse(a.scheduled_at)-Date.parse(b.scheduled_at)),[tasks,resolved,category,status,query,now]);
   const pages=Math.max(1,Math.ceil(filtered.length/MAX_ITEMS));
   const current=Math.min(page,pages-1);
   const displayed=filtered.slice(current*MAX_ITEMS,(current+1)*MAX_ITEMS);
@@ -100,7 +103,8 @@ export function ClientAgendaPage({tasks,now=Date.now(),onView,onConfirm}:Props){
             className="h-9 w-full min-w-0 rounded-lg border border-border bg-background pl-6 pr-1 text-[11px] font-semibold text-foreground">
             <option value="todos">Todas</option>
             <option value="confirmados">Confirmados</option>
-            <option value="pendentes">Sem confirmação</option>
+            <option value="pendentes">Sem resposta</option>
+            <option value="resolvidos">Já respondidos</option>
             <option value="futuros">Programados</option>
           </select>
         </label>
@@ -113,8 +117,10 @@ export function ClientAgendaPage({tasks,now=Date.now(),onView,onConfirm}:Props){
           const Icon=IconFor[task.category]??CalendarClock;
           const state=careReminderState(task,now);
           const done=state==="confirmed";
+          const response=resolved[task.id];
+          const answered=Boolean(response);
           const lateState=state==="unconfirmed";
-          const canAct=state==="due"||lateState;
+          const canAct=!answered&&(state==="due"||lateState);
           return <article key={task.id}
             className={"care-agenda-row flex min-w-0 flex-col rounded-2xl border p-3 "+(styles[task.category]??"care-agenda-other")}>
             <button type="button" onClick={()=>onView(task)} aria-label={"Consultar "+task.title}
@@ -133,8 +139,12 @@ export function ClientAgendaPage({tasks,now=Date.now(),onView,onConfirm}:Props){
             </button>
             <div className="mt-2 flex min-h-7 items-center justify-between gap-2 border-t border-current/10 pt-2">
               <span className={"min-w-0 truncate text-[10px] font-semibold "+(done?"text-emerald-700 dark:text-emerald-300":
+                answered?"text-emerald-700 dark:text-emerald-300":
                 lateState?"text-amber-700 dark:text-amber-300":"text-muted-foreground")}>
                 {done?"Confirmado às "+reminderClock(task.completed_at!):
+                  response==="cancelado"?"Cancelado · resposta registrada":
+                  response==="nao_cumprido"?"Não realizado · resposta registrada":
+                  response==="nao_bebi"?"Não bebi · resposta registrada":
                   lateState?"Sem confirmação após 10 min":state==="due"?"Aguardando confirmação":"Programado"}
               </span>
               {!done&&canAct&&<button type="button" onClick={()=>onConfirm(task)}
