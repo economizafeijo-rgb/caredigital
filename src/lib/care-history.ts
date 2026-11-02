@@ -1,6 +1,6 @@
 /** Patient history presentation only. No database record is modified here. */
 export type HistoryGroup = "liquidos" | "refeicoes" | "cuidados" | "ajustes";
-export type HistoryStatus = "confirmado" | "registrado" | "nao_confirmado" | "nao_bebi" | "corrigido" | "reprogramado" | "excluido";
+export type HistoryStatus = "confirmado" | "registrado" | "nao_confirmado" | "nao_bebi" | "corrigido" | "reprogramado" | "excluido" | "meta_atingida" | "meta_nao_atingida";
 export type HistoryEntry = {
   id: string;
   group: HistoryGroup;
@@ -24,6 +24,7 @@ export type AuditRow = {
   scheduled_at:string|null;happened_at:string|null;recorded_at:string;
 };
 export type WaterResponseRow={task_id:string;response:string;recorded_at:string};
+export type DailyHydrationGoalRow={goal_date:string;target_ml:number;consumed_ml:number;status:"em_andamento"|"atingida"|"nao_atingida";closed_at:string|null;updated_at:string};
 export type HistorySources = {
   checklist:ChecklistRow[];
   water:WaterRow[];
@@ -32,6 +33,7 @@ export type HistorySources = {
   observations:ObservationRow[];
   audit:AuditRow[];
   responses:WaterResponseRow[];
+  dailyGoals?:DailyHydrationGoalRow[];
 };
 
 const acreFormatter = new Intl.DateTimeFormat("en-CA", {
@@ -101,6 +103,21 @@ export function assembleCareHistory(sources:HistorySources,now=Date.now()):Histo
     events.push({id:"observation-"+obs.id,group:"cuidados",subtype:"observacao",status:"registrado",
       title:text(obs.observation_type,"Observação"),description:text(obs.notes),
       occurredAt:obs.recorded_at});
+  }
+
+  // One outcome per Acre date. In-progress goals do not appear as failures.
+  for(const day of sources.dailyGoals??[]){
+    if(day.status==="em_andamento")continue;
+    const reached=day.status==="atingida";
+    const rest=Math.max(0,day.target_ml-day.consumed_ml);
+    const formattedDate=day.goal_date.split("-").reverse().join("/");
+    events.push({
+      id:"goal-"+day.goal_date,group:"liquidos",subtype:"meta_diaria",
+      status:reached?"meta_atingida":"meta_nao_atingida",
+      title:reached?"Meta diária de água atingida":"Meta diária de água não atingida",
+      description:`${day.consumed_ml.toLocaleString("pt-BR")} de ${day.target_ml.toLocaleString("pt-BR")} ml · ${formattedDate}${reached?" · meta alcançada":` · faltaram ${rest.toLocaleString("pt-BR")} ml`}. A janela diária encerra às 23h (Acre).`,
+      occurredAt:day.closed_at??day.updated_at,
+    });
   }
 
   const reflow=new Map<string,{events:AuditRow[];category:string;recordedAt:string}>();
