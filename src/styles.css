@@ -753,3 +753,51 @@ iframe[title*="Lovable" i][title*="badge" i] {
     opacity: .14;
   }
 }
+
+/* Public desktop presentations: fit content in the available viewport instead of
+   creating an inner vertical scrollbar. Patient forms and mobile remain scrollable. */
+@media (min-width:1024px) and (min-height:650px) {
+  #care-content:has(.public-care-showcase) {
+    overflow-y:clip;
+    padding-top:clamp(4px,1vh,10px);
+    padding-bottom:clamp(4px,1vh,10px);
+  }
+  #care-content:has(.public-care-showcase) > .public-care-showcase {
+    height:100%;
+    min-height:0;
+    overflow:hidden;
+    justify-content:flex-start;
+    padding-block:0;
+  }
+  .public-care-showcase > :first-child {
+    flex:1 1 auto;
+    min-height:0;
+    gap:clamp(5px,.85vh,10px);
+    padding:clamp(10px,1.6vh,18px);
+    overflow:hidden;
+  }
+  .public-care-showcase > :first-child > header {
+    flex-shrink:0;
+  }
+  .public-care-showcase > :first-child > section {
+    min-height:0;
+  }
+  .public-care-showcase svg[role="img"] {
+    height:clamp(95px,19vh,170px);
+    max-height:100%;
+  }
+  .public-care-showcase > :first-child > section:last-of-type {
+    flex-shrink:0;
+  }
+  .public-care-showcase > :first-child > footer {
+    flex-shrink:0;
+  }
+}
+@media (min-width:1024px) and (min-height:650px) and (max-height:800px) {
+  .public-care-showcase > :first-child {gap:5px;padding:10px;}
+  .public-care-showcase > :first-child section {padding-block:8px;}
+  .public-care-showcase > :first-child h1 {font-size:clamp(20px,2.8vh,26px);line-height:1.1;}
+  .public-care-showcase > :first-child h2 {font-size:clamp(18px,2.6vh,23px);line-height:1.12;}
+  .public-care-showcase > :first-child p {line-height:1.35;}
+  .public-care-showcase svg[role="img"] {height:clamp(95px,17vh,135px);}
+}
