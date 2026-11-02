@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Clock3, Info, Moon, Pill, Sun, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import {canConfirmCare,careScheduleLabel} from "@/lib/care-schedule";
 
 type Dose = { id: string; patient_id: string; title: string; category: string; scheduled_at: string; completed_at: string | null };
 type Props = { patientId: string; ownerId: string; revision: number; onConfirm: (task: Dose) => void; dashboardMode?:boolean; onProgressChange?:(progress:{confirmed:number;total:number})=>void };
@@ -62,7 +63,7 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,da
  useEffect(()=>{if(!loading)onProgressChange?.({confirmed:verified,total:84});},[verified,loading,onProgressChange]);
  const dayCompleted=day.tasks.filter(t=>Boolean(t.completed_at)).length;
  const dayExpected=day.first?2:1;
- const currentDate=dateKey(new Date().toISOString());
+ 
  const getTask=(period:"morning"|"night")=>period==="morning"?morning:evening;
  const info=activePill?days[activePill.index]:null;
  const infoTask=activePill
@@ -91,7 +92,7 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,da
   </div>
   {loading?<p className="mt-5 text-center text-sm text-muted-foreground">Carregando tratamento…</p>:<>
    <div className="care-blister-stage mt-1 flex min-h-0 items-center justify-center gap-2.5">
-     {first&&dashboardMode&&<div className="care-blister-side hidden w-[90px] shrink-0 flex-col items-center text-center md:flex xl:w-[102px]"><Sun size={20} className="mb-1 text-primary"/><strong className="text-xs text-foreground">Manhã</strong><span className="text-[10px] text-muted-foreground">4 comprimidos</span><div className={`mt-2 w-full rounded-xl border px-1.5 py-2 text-[10px] ${morning?.completed_at?"border-success/25 bg-success/10":"border-border bg-muted/60"}`}>{morning?.completed_at?<><strong className="block text-success">Confirmado</strong><span className="text-muted-foreground">{timeText(morning.completed_at).slice(0,5)}</span></>:<><strong className="block text-muted-foreground">Pendente</strong><span className="text-muted-foreground">{morning?timeText(morning.scheduled_at).slice(0,5):"—"}</span></>}</div></div>}
+     {first&&dashboardMode&&<div className="care-blister-side hidden w-[90px] shrink-0 flex-col items-center text-center md:flex xl:w-[102px]"><Sun size={20} className="mb-1 text-primary"/><strong className="text-xs text-foreground">Manhã</strong><span className="text-[10px] text-muted-foreground">4 comprimidos</span><div className={`mt-2 w-full rounded-xl border px-1.5 py-2 text-[10px] ${morning?.completed_at?"border-success/25 bg-success/10":"border-border bg-muted/60"}`}>{morning?.completed_at?<><strong className="block text-success">Confirmado</strong><span className="text-muted-foreground">{timeText(morning.completed_at).slice(0,5)}</span></>:<><strong className="block text-muted-foreground">{morning?careScheduleLabel(morning):"Sem horário"}</strong><span className="text-muted-foreground">{morning?timeText(morning.scheduled_at).slice(0,5):"—"}</span></>}</div></div>}
      <div className="care-blister-graphic mx-auto w-full max-w-[165px] shrink-0 sm:max-w-[210px]">
      <div className={`relative mx-auto overflow-hidden rounded-xl ${first?"aspect-[480/440]":"aspect-[580/430]"}`}>
        {!first&&<img className="absolute inset-0 h-full w-full object-contain" src="/images/cartela-lansoprazol-7.svg" alt="Cartela ilustrativa de sete cápsulas"/>}
@@ -111,7 +112,7 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,da
            const x=period==="morning"?53:267;
            const y=32+row*91;
            const colors=row===0?["#07a8ee","#fafbfc"]:row===1?["#fafbfc","#fafbfc"]:row===2?(period==="morning"?["#ef1b93","#0737b4"]:["#0737b4","#ef1b93"]):["#0737b4","#ef1b93"];
-           return <g key={i} role="button" tabIndex={0} focusable="true" aria-label={`Dia ${dayLabel(day.iso)}, ${period==="morning"?"manhã":"noite"}, unidade ${row+1}: ${done?`confirmada em ${timeText(task!.completed_at!)}`:reported?"relatada pelo paciente":"pendente"}`} onClick={()=>setActivePill({index:selected,period,slot:row+1})} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setActivePill({index:selected,period,slot:row+1})}}} className="cursor-pointer outline-none">
+           return <g key={i} role="button" tabIndex={0} focusable="true" aria-label={`Dia ${dayLabel(day.iso)}, ${period==="morning"?"manhã":"noite"}, unidade ${row+1}: ${done?`confirmada em ${timeText(task!.completed_at!)}`:reported?"relatada pelo paciente":task?careScheduleLabel(task):"Sem horário"}`} onClick={()=>setActivePill({index:selected,period,slot:row+1})} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setActivePill({index:selected,period,slot:row+1})}}} className="cursor-pointer outline-none">
              <rect x={x-5} y={y-5} width="170" height="72" rx="35" fill="#d7e5ef" stroke="#9bb4c5" strokeWidth="2"/>
              <clipPath id={`compact-pocket-${i}`}><rect x={x} y={y} width="160" height="62" rx="31"/></clipPath>
              <g clipPath={`url(#compact-pocket-${i})`}>
@@ -120,20 +121,20 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,da
                <path d={`M${x+15} ${y+14} Q${x+80} ${y-5} ${x+144} ${y+14}`} stroke="#fff" strokeOpacity=".36" strokeWidth="5" fill="none"/>
              </g>
              <rect x={x} y={y} width="160" height="62" rx="31" fill={done?"#d7efe9":reported?"#fde7b3":"transparent"} fillOpacity={done?".78":reported?".28":"0"} stroke={done?"#159a74":"#e9f3f9"} strokeWidth={done?"3":"2"}/>
-             {(done||reported)&&<g><circle cx={x+142} cy={y+50} r="13" fill={done?"#158567":"#bd7c19"}/><path d={`M${x+136} ${y+50}l4 4 8-9`} stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/></g>}
+             {done&&<g><circle cx={x+142} cy={y+50} r="13" fill={done?"#158567":"#bd7c19"}/><path d={`M${x+136} ${y+50}l4 4 8-9`} stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/></g>}
            </g>;
          })}
          <text x="35" y="410" fontFamily="Arial,sans-serif" fontSize="15" fontWeight="700" fill="#244a68">MANHÃ</text>
          <text x="369" y="410" fontFamily="Arial,sans-serif" fontSize="15" fontWeight="700" fill="#e7f7ff">NOITE</text>
        </svg>:Array.from({length:7},(_,i)=>{
          const task=continuationDoses[i];
-         return <button key={i} type="button" onClick={()=>setActivePill({index:selected,period:"morning",slot:i+1})} aria-label={`Cápsula ${i+1}, ${dayLabel(days[7+continuationWeek*7+i].iso)}: ${task?.completed_at?`confirmada em ${timeText(task.completed_at)}`:"pendente"}`} className={`absolute rounded-full border-2 transition-colors ${task?.completed_at?"border-emerald-500 bg-emerald-500/60":"border-sky-400/30 hover:bg-sky-400/25"}`} style={{width:"30%",height:"21%",left:`${10+(i%2)*46}%`,top:`${7+Math.floor(i/2)*23}%`}}>{task?.completed_at&&<Check size={21} className="mx-auto text-white"/>}</button>;
+         return <button key={i} type="button" onClick={()=>setActivePill({index:selected,period:"morning",slot:i+1})} aria-label={`Cápsula ${i+1}, ${dayLabel(days[7+continuationWeek*7+i].iso)}: ${task?.completed_at?`confirmada em ${timeText(task.completed_at)}`:task?careScheduleLabel(task):"Sem horário"}`} className={`absolute rounded-full border-2 transition-colors ${task?.completed_at?"border-emerald-500 bg-emerald-500/60":"border-sky-400/30 hover:bg-sky-400/25"}`} style={{width:"30%",height:"21%",left:`${10+(i%2)*46}%`,top:`${7+Math.floor(i/2)*23}%`}}>{task?.completed_at&&<Check size={21} className="mx-auto text-white"/>}</button>;
        })}
      </div>
      </div>
-     {first&&dashboardMode&&<div className="care-blister-side hidden w-[90px] shrink-0 flex-col items-center text-center md:flex xl:w-[102px]"><Moon size={20} className="mb-1 text-primary"/><strong className="text-xs text-foreground">Noite</strong><span className="text-[10px] text-muted-foreground">4 comprimidos</span><div className={`mt-2 w-full rounded-xl border px-1.5 py-2 text-[10px] ${evening?.completed_at?"border-success/25 bg-success/10":"border-border bg-muted/60"}`}>{evening?.completed_at?<><strong className="block text-success">Confirmado</strong><span className="text-muted-foreground">{timeText(evening.completed_at).slice(0,5)}</span></>:<><strong className="block text-muted-foreground">Pendente</strong><span className="text-muted-foreground">{evening?timeText(evening.scheduled_at).slice(0,5):"—"}</span></>}</div></div>}
+     {first&&dashboardMode&&<div className="care-blister-side hidden w-[90px] shrink-0 flex-col items-center text-center md:flex xl:w-[102px]"><Moon size={20} className="mb-1 text-primary"/><strong className="text-xs text-foreground">Noite</strong><span className="text-[10px] text-muted-foreground">4 comprimidos</span><div className={`mt-2 w-full rounded-xl border px-1.5 py-2 text-[10px] ${evening?.completed_at?"border-success/25 bg-success/10":"border-border bg-muted/60"}`}>{evening?.completed_at?<><strong className="block text-success">Confirmado</strong><span className="text-muted-foreground">{timeText(evening.completed_at).slice(0,5)}</span></>:<><strong className="block text-muted-foreground">{evening?careScheduleLabel(evening):"Sem horário"}</strong><span className="text-muted-foreground">{evening?timeText(evening.scheduled_at).slice(0,5):"—"}</span></>}</div></div>}
     </div>
-    <div className="care-blister-legend mt-2 flex items-center justify-center gap-3 text-[10px] text-muted-foreground"><span><i className="mr-1 inline-block size-2 rounded-full bg-success"/>Confirmado</span><span><i className="mr-1 inline-block size-2 rounded-full bg-amber-400"/>Relatado</span><span><i className="mr-1 inline-block size-2 rounded-full border border-border"/>Pendente</span></div>
+    <div className="care-blister-legend mt-2 flex items-center justify-center gap-3 text-[10px] text-muted-foreground"><span><i className="mr-1 inline-block size-2 rounded-full bg-success"/>Confirmado</span><span><i className="mr-1 inline-block size-2 rounded-full bg-amber-400"/>Relatado</span><span><i className="mr-1 inline-block size-2 rounded-full border border-border"/>Aguardando / Não confirmado</span></div>
    {first&&<div className={`care-blister-detail-cards mt-1 grid grid-cols-2 gap-1.5 text-[10px] ${dashboardMode?"md:hidden":""}`}>
      {([["Manhã",morning],["Noite",evening]] as const).map(([label,task])=><div key={label} className={`rounded-lg border px-2 py-2 ${task?.completed_at?"border-emerald-500/30 bg-emerald-500/10":"border-border bg-muted/40"}`}><p className="font-semibold text-foreground">{label} · 4 comprimidos</p><p className="mt-0.5 text-muted-foreground">Previsto: {task?timeText(task.scheduled_at).slice(0,5):"—"}</p><p className={task?.completed_at?"font-medium text-emerald-700 dark:text-emerald-300":"text-muted-foreground"}>{task?.completed_at?"Confirmado: "+new Intl.DateTimeFormat("pt-BR",{timeZone:zone,day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}).format(new Date(task.completed_at)):"Não confirmado"}</p></div>)}
    </div>}
@@ -154,7 +155,7 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,da
       {isReported&&<div className="mt-3 rounded-xl border border-amber-300/40 bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-950/25 dark:text-amber-100"><strong>Relato do paciente — 31/10:</strong> quatro comprimidos às {reportTime}.{activePill.period==="morning"?" Tomados em jejum após acordar tarde; 3h depois do previsto.":" No horário previsto."}<p className="mt-1 text-xs">Relato não equivale à confirmação auditada no banco.</p></div>}
       <p className="mt-3 text-sm">{infoTask?.completed_at?`Confirmação registrada em ${new Intl.DateTimeFormat("pt-BR",{timeZone:zone,day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new Date(infoTask.completed_at))}.`:"Ainda sem confirmação persistida para esta tomada."}</p>
       <p className="mt-2 text-xs text-muted-foreground">Na primeira etapa, cada grupo de quatro comprimidos corresponde a uma confirmação. Na continuidade, cada cápsula representa uma dose diária. O horário é registrado no servidor.</p>
-      <div className="mt-4 flex gap-2"><button type="button" className="flex-1 rounded-xl border border-border p-2.5 text-sm" onClick={()=>setActivePill(null)}>Fechar</button>{infoTask&&!infoTask.completed_at&&dateKey(infoTask.scheduled_at)===currentDate&&<button type="button" className="flex-1 rounded-xl bg-primary p-2.5 text-sm font-semibold text-primary-foreground" onClick={()=>{setActivePill(null);onConfirm(infoTask)}}>Confirmar agora</button>}</div>
+      <div className="mt-4 flex gap-2"><button type="button" className="flex-1 rounded-xl border border-border p-2.5 text-sm" onClick={()=>setActivePill(null)}>Fechar</button>{infoTask&&canConfirmCare(infoTask)&&<button type="button" className="flex-1 rounded-xl bg-primary p-2.5 text-sm font-semibold text-primary-foreground" onClick={()=>{setActivePill(null);onConfirm(infoTask)}}>Confirmar agora</button>}</div>
     </section>
    </div>}
  </section>;
