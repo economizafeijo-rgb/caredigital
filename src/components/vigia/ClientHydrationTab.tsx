@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Droplets, CheckCircle2, AlertCircle, Save, SlidersHorizontal } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { ClientQuickIntake } from "./ClientQuickIntake";
 import {canConfirmCare,careScheduleBlockMessage,careScheduleLabel,getCareScheduleState} from "@/lib/care-schedule";
 
 type Task={id:string;patient_id:string;category:string;title:string;scheduled_at:string;completed_at:string|null};
@@ -118,7 +119,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
   setNotice("Resposta 'Não bebi' salva no prontuário. Nenhum volume foi contabilizado.");
  }
  return <section className="space-y-3" aria-label="Programa personalizado de hidratação">
-  <header className="flex flex-wrap items-center justify-between gap-2"><div><h3 className="flex items-center gap-2 text-sm font-bold"><Droplets size={18} className="text-primary"/> Programa de hidratação</h3><p className="text-[11px] text-muted-foreground">Cálculo individual · copos ilustrados · registros reais</p></div><button type="button" onClick={()=>setEditing(v=>!v)} className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-primary"><SlidersHorizontal size={14}/> {editing?"Ocultar dados":"Meu perfil"}</button></header>
+  <header className="flex flex-wrap items-center justify-between gap-2"><div><h3 className="flex items-center gap-2 text-sm font-bold"><Droplets size={18} className="text-primary"/> Programa de hidratação</h3><p className="text-[11px] text-muted-foreground">Cálculo individual · copos ilustrados · registros reais</p></div><div className="flex flex-wrap items-center gap-2"><ClientQuickIntake patientId={patientId} mode="water" onRecorded={()=>{setReload(n=>n+1);onRecorded();}}/><button type="button" onClick={()=>setEditing(v=>!v)} className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-primary"><SlidersHorizontal size={14}/> {editing?"Ocultar dados":"Meu perfil"}</button></div></header>
   {editing&&<div className="rounded-xl border border-border bg-muted/30 p-3">
    <p className="mb-2 text-xs font-semibold">Informações para estimar o consumo diário</p>
    <div className="grid grid-cols-2 gap-2">
