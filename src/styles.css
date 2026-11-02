@@ -592,3 +592,127 @@ iframe[title*="Lovable" i][title*="badge" i] {
     background-position: center,75% top;
   }
 }
+
+
+/* CareDigital client dashboard: functional one-viewport layout inspired by the
+   approved care-card artwork. All figures and interactions come from Supabase. */
+.care-client-route { min-width:0; }
+.care-client-dashboard {
+  background: var(--card);
+  border-color: var(--border);
+}
+.care-client-identity {
+  background-image: linear-gradient(105deg,rgba(58,146,116,.10),rgba(255,255,255,.05) 66%,rgba(47,140,128,.06));
+}
+.care-client-summary {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(107,136,133,.32) transparent;
+}
+.care-blister-dashboard .care-blister-stage { flex:1 1 auto; }
+.care-blister-dashboard .care-blister-graphic {
+  width: min(100%,clamp(130px,26dvh,210px));
+  max-width: 210px;
+}
+.care-blister-dashboard .care-blister-graphic svg {
+  display: block;
+}
+.care-blister-dashboard .care-blister-day-selector { scrollbar-width:thin; }
+.care-client-identity .care-client-dose-status { max-width: 290px; }
+:root:not(.dark) .care-client-dashboard .care-client-summary,
+:root:not(.dark) .care-client-dashboard .care-blister-panel {
+  background-color:rgba(255,255,255,.96);
+}
+:root:not(.dark) .care-client-dashboard .care-client-identity {
+  background-color:#f1f7f3;
+}
+.dark .care-client-dashboard .care-client-identity {
+  background-image:linear-gradient(115deg,rgba(39,115,103,.21),rgba(21,49,54,.07));
+}
+.care-client-dashboard :is(button,a):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+@media (min-width:768px) {
+  .care-client-route,
+  .care-client-dashboard,
+  .care-client-content { min-height:0; }
+  .care-client-content,
+  .care-client-main { overflow:hidden; }
+  .care-client-main > * { min-width:0; min-height:0; }
+  .care-blister-dashboard { overflow:hidden; }
+  .care-blister-dashboard .care-blister-graphic { flex-shrink:1; }
+  .care-client-summary { overflow-y:auto; overscroll-behavior:contain; }
+}
+@media (min-width:768px) and (max-height:800px) {
+  .care-client-content { gap:.4rem; padding:.45rem; }
+  .care-client-identity { padding-block:.45rem; }
+  .care-client-identity > div:first-child > span { width:37px; height:37px; }
+  .care-client-identity h1 { font-size:1.12rem; }
+  .care-client-dose-status { padding:.4rem .65rem; }
+  .care-client-medication-alert > section { padding:.25rem .5rem; }
+  .care-client-medication-alert > section svg { width:27px; height:27px; }
+  .care-client-tabs { padding:.175rem; }
+  .care-client-tabs button { padding-block:.48rem; }
+  .care-client-main { gap:.45rem; }
+  .care-blister-dashboard { padding:.45rem; }
+  .care-blister-dashboard .care-blister-graphic { width:min(100%,clamp(122px,24dvh,175px)); }
+  .care-blister-dashboard .care-blister-side { width:84px; }
+  .care-blister-dashboard .care-blister-side > div { margin-top:.4rem; padding-block:.3rem; }
+  .care-blister-dashboard .care-blister-legend { margin-top:.25rem; }
+  .care-blister-dashboard .care-blister-day-selector { margin-top:.3rem; }
+  .care-client-summary { padding:.65rem; }
+  .care-summary-today { gap:.55rem; }
+  .care-summary-stats > div { padding:.6rem; }
+  .care-summary-stats strong { font-size:1.4rem; margin-top:0; }
+  .care-next-care { padding:.55rem; }
+  .care-treatment-progress { padding-top:.6rem; }
+  .care-treatment-progress p { font-size:10px; line-height:1.2; }
+  .care-timeline { padding-block:.35rem; }
+  .care-timeline-item { padding-block:.35rem; }
+  .care-timeline-heading > span:first-child { width:32px; height:32px; }
+}
+@media (min-width:768px) and (max-height:660px) {
+  .care-client-identity { padding-block:.3rem; }
+  .care-client-identity > div:first-child > span { width:32px; height:32px; }
+  .care-client-identity h1 { font-size:1rem; }
+  .care-client-medication-alert > section { gap:.3rem; }
+  .care-client-medication-alert > section svg { width:24px; height:24px; }
+  .care-client-tabs button { padding-block:.35rem; }
+  .care-blister-dashboard .care-blister-graphic { width:min(100%,clamp(112px,23dvh,155px)); }
+  .care-blister-dashboard .care-blister-side { width:72px; }
+  .care-blister-dashboard .care-blister-side > svg { width:15px; height:15px; }
+  .care-blister-dashboard .care-blister-side > span { font-size:9px; }
+  .care-blister-dashboard .care-blister-legend { margin-top:.15rem; }
+  .care-client-summary { padding:.45rem; }
+  .care-summary-today { gap:.35rem; }
+  .care-summary-stats > div { padding:.4rem; }
+  .care-summary-stats strong { font-size:1.15rem; }
+  .care-next-care { padding:.45rem; }
+  .care-next-care > div:first-child > span { width:32px; height:32px; }
+  .care-treatment-progress { padding-top:.35rem; }
+  .care-treatment-progress p { display:none; }
+  .care-timeline { padding-block:.2rem; }
+  .care-timeline-item { padding-block:.25rem; }
+  .care-timeline-heading small { display:none; }
+}
+@media (max-width:767px) {
+  .care-client-route,
+  .care-client-dashboard,
+  .care-client-content { height:auto; min-height:0; overflow:visible; }
+  .care-client-main { display:flex; flex-direction:column; min-height:0; }
+  .care-client-main > * { flex:none; }
+  .care-client-tabs { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .care-client-tabs button { padding:.5rem .25rem; }
+  .care-client-dashboard .care-blister-dashboard { overflow:visible; }
+  .care-client-dashboard .care-client-summary { overflow-y:visible; max-height:none; }
+  .care-blister-dashboard .care-blister-graphic { width:min(100%,205px); }
+  .care-timeline-heading { display:none; }
+  .care-timeline > div { display:block; }
+  .care-timeline > div > div:last-child { display:grid; grid-template-columns:1fr; margin-top:.2rem; }
+}
+@media (min-width:768px) and (max-height:565px) {
+  /* Extremely short windows must remain navigable instead of hiding care data. */
+  #care-content:has(.care-client-route) { overflow-y:auto!important; }
+  .care-client-route { height:auto; min-height:630px; }
+  .care-client-dashboard { min-height:630px; }
+}
