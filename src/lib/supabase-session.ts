@@ -3,10 +3,22 @@ import type { Tables } from "@/integrations/supabase/types";
 
 export type ProfessionalProfile = Tables<"professional_profiles">;
 
+/** Checks the project identity as well as missing credentials.
+ *  Avoid reporting a wrong Supabase project as an incorrect patient password. */
+export function getSupabaseConfigurationIssue(): string | null {
+  const url = import.meta.env["VITE_SUPABASE_URL"] as string | undefined;
+  const projectId = import.meta.env["VITE_SUPABASE_PROJECT_ID"] as string | undefined;
+  const publishableKey = import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] as string | undefined;
+  if (!url || !publishableKey) return "A conexão de autenticação não está configurada. Entre em contato com o suporte.";
+  if (publishableKey.startsWith("sb_secret_")) return "Configuração de autenticação inválida. Entre em contato com o suporte.";
+  if (projectId && url.replace(/\\/$/, "") !== `https://${projectId}.supabase.co`) {
+    return "A plataforma está conectada ao projeto de autenticação errado. Entre em contato com o suporte.";
+  }
+  return null;
+}
+
 export function isSupabaseConfigured() {
-  return Boolean(
-    import.meta.env["VITE_SUPABASE_URL"] && import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"],
-  );
+  return getSupabaseConfigurationIssue() === null;
 }
 
 export async function getProfessionalSession() {
