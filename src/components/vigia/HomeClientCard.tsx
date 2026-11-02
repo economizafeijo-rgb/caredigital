@@ -343,7 +343,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
         </section>
       </div>
 
-      {activeTab==="hoje"&&<ClientTodayTimeline tasks={tasks} onConfirm={askConfirm} onDetails={showTaskDetails} now={clock?.getTime()}/>}
+      {activeTab==="hoje"&&<ClientTodayTimeline tasks={tasks} resolved={resolvedStates} onConfirm={askConfirm} onDetails={showTaskDetails} now={clock?.getTime()}/>}
     </div>}
     <CareTaskRecordModal task={detailTask} onClose={()=>setDetailTask(null)}
       onSaved={()=>setTick(value=>value+1)} onConfirm={record=>{const task=tasks.find(item=>item.id===record.id);if(task)askConfirm(task);}}/>
