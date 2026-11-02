@@ -27,9 +27,9 @@ export type ReminderSummary = {
 
 export function careReminderState(task: ReminderTask, now: number, answeredTaskIds:ReadonlySet<string>=new Set()): ReminderState {
   if (task.completed_at) return "confirmed";
-  // A client reply of "Não bebi" is an acknowledged event, never an unanswered
-  // reminder. It must remain in the patient's history, not in the live banner.
-  if (task.category === "hidratacao" && answeredTaskIds.has(task.id)) return "responded";
+  // Any explicit answer (Não bebi / Não realizado / Cancelado) resolves the
+  // alert without modifying the original appointment or fabricating completion.
+  if (answeredTaskIds.has(task.id)) return "responded";
   const scheduled = Date.parse(task.scheduled_at);
   if (!Number.isFinite(scheduled)) return "waiting";
   if (now < scheduled) return "waiting";
