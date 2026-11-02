@@ -70,7 +70,6 @@ export function ClientHomeSummary(){
  }
  const finished=tasks.filter(t=>Boolean(t.completed_at)).length;
  const completion=tasks.length?Math.round(100*finished/tasks.length):0;
- const dueNow=tasks.filter(t=>!t.completed_at&&now&&Date.parse(t.scheduled_at)<now.getTime());
  const labelFor=(category:string)=>category==="medicacao"?"Medicação":category==="hidratacao"?"Água":"Refeição";
  const hour=new Intl.DateTimeFormat("pt-BR",{timeZone:zone,hour:"2-digit",hour12:false}).format(now??new Date());
  const greeting=Number(hour)<12?"Bom dia":Number(hour)<18?"Boa tarde":"Boa noite";
