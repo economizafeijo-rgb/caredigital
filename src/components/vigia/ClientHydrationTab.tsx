@@ -38,6 +38,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
  const [editing,setEditing]=useState(false);
  const [saving,setSaving]=useState(false);
  const [drinks,setDrinks]=useState<Drink[]>([]);
+ const [volumeByTask,setVolumeByTask]=useState<Record<string,number>>({});
  const [notDrunk,setNotDrunk]=useState<Response[]>([]);
  const [action,setAction]=useState<string|null>(null);
  const [error,setError]=useState("");
@@ -97,7 +98,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
  async function confirmGlass(task:Task,volume:number){
   if(action)return;
   if(!canConfirmCare(task)){setError(careScheduleBlockMessage(task));return}
-  if(!goal||volume<10||volume>1500){onConfirm(task);return}
+  if(!Number.isFinite(volume)||volume<10||volume>1500){setError("Informe um volume real entre 10 e 1500 ml.");return}
   setAction(task.id);setError("");setNotice("");
   const res=await (supabase as any).rpc("care_confirm_task",{p_task_id:task.id,p_water_ml:volume});
   setAction(null);
@@ -144,7 +145,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
     return <article key={task.id} className={`flex items-center gap-2 rounded-xl border p-2.5 ${status==="done"?"border-emerald-500/40 bg-emerald-500/5":"border-border bg-card"}`}>
      <WaterGlass state={status}/>
      <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-1.5"><strong className="text-xs">Previsto: {time(task.scheduled_at)}</strong>{goal>0&&<span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">~{portions[i]} ml</span>}</div><p className="mt-1 text-[11px] text-muted-foreground">{status==="done"?`Bebeu · registrado em ${stamp(task.completed_at!)}`:status==="skipped"?`Não bebeu · informado em ${stamp(answered!)}`:status==="missed"?"Não confirmado · horário encerrado":careScheduleLabel(task,clock)}</p></div>
-     {status==="pending"&&available&&<div className="flex shrink-0 flex-col gap-1"><button type="button" onClick={()=>void confirmGlass(task,portions[i])} disabled={Boolean(action)} className="rounded-lg bg-primary px-2 py-1.5 text-[11px] font-bold text-primary-foreground disabled:opacity-60">{goal>0?`Bebi ${portions[i]} ml`:"Bebi"}</button><button type="button" disabled={action===task.id} onClick={()=>void markNo(task)} className="rounded-lg border border-border px-2 py-1.5 text-[11px] font-medium text-foreground disabled:opacity-60">Não bebi</button></div>}
+     {status==="pending"&&available&&<div className="flex shrink-0 flex-col gap-1"><label className="text-[10px] text-muted-foreground">Volume real (ml)<input aria-label={`Volume de água às ${time(task.scheduled_at)}`} type="number" min={10} max={1500} step={10} value={volumeByTask[task.id]??(portions[i]||200)} onChange={e=>setVolumeByTask(prev=>({...prev,[task.id]:Number(e.target.value)}))} className="mt-1 w-24 rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground" /></label><button type="button" onClick={()=>void confirmGlass(task,volumeByTask[task.id]??(portions[i]||200))} disabled={Boolean(action)} className="rounded-lg bg-primary px-2 py-1.5 text-[11px] font-bold text-primary-foreground disabled:opacity-60">{`Registrar ${volumeByTask[task.id]??(portions[i]||200)} ml`}</button><button type="button" disabled={action===task.id} onClick={()=>void markNo(task)} className="rounded-lg border border-border px-2 py-1.5 text-[11px] font-medium text-foreground disabled:opacity-60">Não bebi</button></div>}
      {status==="pending"&&!available&&<span className="text-[10px] font-semibold text-muted-foreground">Aguardando horário</span>}
       {status==="missed"&&<span className="text-[10px] font-semibold text-muted-foreground">Não confirmado</span>}
      {status==="done"&&<CheckCircle2 size={18} className="shrink-0 text-emerald-600"/>}
