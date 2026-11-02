@@ -1,8 +1,70 @@
--- CareDigital - registro avulso de refeição, lanche, água, chá, suco, café ou bebida.
--- Esta versão corresponde ao Supabase de produção. Nenhum horário agendado é modificado.
--- Execute apenas em um projeto onde as tabelas de acompanhamento já existem.
+-- CareDigital: água avulsa, refeição extra e bebidas com ID de requisição idempotente.
+-- Água avulsa atualiza o total hídrico, e posterga próximos lembretes de água
+-- somente se estiverem próximos demais (<45 min). Não altera medicamentos,
+-- tarefas confirmadas nem horários de outros dias.
+-- Arquivo espelho das funções implantadas no Supabase DIGITALCARE.
 
-CREATE UNIQUE INDEX care_manual_intake_request_unique ON public.care_activity_log USING btree (patient_id, ((details ->> 'request_id'::text))) WHERE ((source = 'client_unscheduled_intake'::text) AND (event_type = 'logged'::text));
+CREATE UNIQUE INDEX IF NOT EXISTS care_manual_intake_request_unique
+ON public.care_activity_log (patient_id, ((details ->> 'request_id')))
+WHERE source='client_unscheduled_intake' AND event_type='logged';
+
+CREATE OR REPLACE FUNCTION public.care_reflow_after_extra_water(p_patient_id uuid, p_consumed_at timestamp with time zone, p_min_gap_minutes integer DEFAULT 45)
+ RETURNS integer
+ LANGUAGE plpgsql
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+ v_next timestamptz;
+ v_last timestamptz;
+ v_end timestamptz;
+ v_shift interval;
+ v_item record;
+ v_count integer := 0;
+BEGIN
+ IF p_patient_id IS NULL OR p_consumed_at IS NULL OR p_min_gap_minutes NOT BETWEEN 15 AND 120
+ THEN RAISE EXCEPTION 'Invalid reminder recalculation'; END IF;
+ v_end := (((p_consumed_at AT TIME ZONE 'America/Rio_Branco')::date + 1)::timestamp
+              AT TIME ZONE 'America/Rio_Branco') - interval '10 minutes';
+ SELECT min(t.scheduled_at),max(t.scheduled_at) INTO v_next,v_last
+ FROM public.care_daily_checklist t
+ WHERE t.patient_id=p_patient_id AND t.category='hidratacao'
+   AND t.completed_at IS NULL AND t.scheduled_at > p_consumed_at
+   AND (t.scheduled_at AT TIME ZONE 'America/Rio_Branco')::date =
+       (p_consumed_at AT TIME ZONE 'America/Rio_Branco')::date
+   AND NOT EXISTS(SELECT 1 FROM public.care_hydration_responses r
+                  WHERE r.task_id=t.id AND r.response='not_drunk');
+ IF v_next IS NULL OR v_next >= p_consumed_at + make_interval(mins=>p_min_gap_minutes)
+ THEN RETURN 0; END IF;
+ v_shift:=LEAST(p_consumed_at+make_interval(mins=>p_min_gap_minutes)-v_next,
+                GREATEST(interval '0 minutes',v_end-v_last));
+ IF v_shift <= interval '0 minutes' THEN RETURN 0; END IF;
+ FOR v_item IN
+   SELECT t.id,t.owner_id,t.title,t.scheduled_at
+   FROM public.care_daily_checklist t
+   WHERE t.patient_id=p_patient_id AND t.category='hidratacao'
+     AND t.completed_at IS NULL AND t.scheduled_at > p_consumed_at
+     AND (t.scheduled_at AT TIME ZONE 'America/Rio_Branco')::date =
+         (p_consumed_at AT TIME ZONE 'America/Rio_Branco')::date
+     AND NOT EXISTS(SELECT 1 FROM public.care_hydration_responses r
+                    WHERE r.task_id=t.id AND r.response='not_drunk')
+   ORDER BY t.scheduled_at,t.id FOR UPDATE OF t
+ LOOP
+   UPDATE public.care_daily_checklist SET scheduled_at=v_item.scheduled_at+v_shift
+   WHERE id=v_item.id AND completed_at IS NULL;
+   INSERT INTO public.care_activity_log
+    (owner_id,patient_id,task_id,category,event_type,scheduled_at,happened_at,
+     recorded_at,actor_id,source,details)
+   VALUES(v_item.owner_id,p_patient_id,v_item.id,'hidratacao','rescheduled',
+     v_item.scheduled_at,NULL,p_consumed_at,auth.uid(),'automatic_extra_water_reflow',
+     jsonb_build_object('title',v_item.title,'previous_scheduled_at',v_item.scheduled_at,
+      'next_scheduled_at',v_item.scheduled_at+v_shift,
+      'shift_seconds',extract(epoch FROM v_shift),'reason','water_logged_outside_schedule'));
+   v_count:=v_count+1;
+ END LOOP;
+ RETURN v_count;
+END;
+$function$
+;
 
 CREATE OR REPLACE FUNCTION public.care_log_unscheduled_intake(p_patient_id uuid, p_kind text, p_description text, p_amount_ml integer, p_request_id uuid)
  RETURNS timestamp with time zone
@@ -18,6 +80,7 @@ DECLARE
   v_description text := btrim(coalesce(p_description,''));
   v_label text;
   v_category text;
+  v_shifted_slots integer := 0;
 BEGIN
   IF v_uid IS NULL THEN RAISE EXCEPTION 'Authentication required'; END IF;
   IF p_patient_id IS NULL OR p_request_id IS NULL THEN
@@ -77,6 +140,7 @@ BEGIN
     -- A água avulsa conta na meta hídrica e aparece no histórico de hidratação.
     INSERT INTO public.care_hydration(owner_id,patient_id,amount_ml,recorded_at)
     VALUES(v_owner,p_patient_id,p_amount_ml,v_now);
+    v_shifted_slots:=public.care_reflow_after_extra_water(p_patient_id,v_now,45);
   ELSIF p_kind NOT IN ('refeicao','lanche') THEN
     -- As demais bebidas ficam no cadastro de líquidos, sem duplicar o total de água.
     INSERT INTO public.care_client_beverages
@@ -95,12 +159,13 @@ BEGIN
      jsonb_build_object(
        'request_id',p_request_id::text,'kind',p_kind,'title',v_label,
        'description',v_description,'amount_ml',p_amount_ml,
-       'unscheduled',true,'time_source','server'
+       'unscheduled',true,'time_source','server','replanned_slots',v_shifted_slots
      ));
   RETURN v_now;
 END;
 $function$
 ;
 
+REVOKE ALL ON FUNCTION public.care_reflow_after_extra_water(uuid,timestamptz,integer) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.care_log_unscheduled_intake(uuid,text,text,integer,uuid) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.care_log_unscheduled_intake(uuid,text,text,integer,uuid) TO authenticated;
