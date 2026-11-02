@@ -5,6 +5,8 @@ import { Activity, Droplets, Ellipsis, Home, LogIn, LogOut, Maximize, Minimize, 
 import { fmtClock, useNow } from "./ui";
 import { HydrationProvider, HydrationReminder } from "./HydrationTracker";
 
+// Public sections are directly visible on wide desktop screens.
+// On medium screens they fold into "Mais" instead of forcing horizontal scrolling.
 const primaryNav = [
   { to: "/", label: "Início", icon: Home },
   { to: "/protocolos", label: "Protocolos", icon: Activity },
@@ -12,13 +14,15 @@ const primaryNav = [
   { to: "/hidratacao", label: "Água", icon: Droplets },
 ] as const;
 
-const moreNav = [
-  { to: "/nutricao-esportiva", label: "Nutrição esportiva", icon: Activity },
+const extraPublicNav = [
+  { to: "/nutricao-esportiva", label: "Nutrição", longLabel: "Nutrição esportiva", icon: Activity },
+  { to: "/medicamentos", label: "Medicamentos", longLabel: "Medicamentos", icon: Pill },
+] as const;
+
+const managementNav = [
   { to: "/prontuario", label: "Prontuários", icon: Users },
   { to: "/pacientes", label: "Clientes", icon: Users },
-  { to: "/medicamentos", label: "Medicamentos", icon: Pill },
   { to: "/admin", label: "Administração", icon: Ellipsis },
-  { to: "/entrar", label: "Entrar na equipe", icon: LogIn },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -94,6 +98,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     return () => { active = false; listener.subscription.unsubscribe(); };
   }, []);
   const visibleNav = clientOnly ? primaryNav.filter(item => item.to === "/" || item.to === "/hidratacao") : primaryNav;
+  const isSecondaryActive = extraPublicNav.some(item => item.to === pathname);
+  const isManagementActive = managementNav.some(item => item.to === pathname);
+  const managementLinks = adminAccess ? managementNav : [];
 
   return (
     <HydrationProvider>
@@ -104,8 +111,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         <header className="relative z-30 shrink-0 border-b border-border/70 bg-background/90 backdrop-blur-xl">
-          <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-2.5 px-3 md:h-[68px] md:gap-3 md:px-6">
-            <Link to="/" className="flex shrink-0 items-center gap-2.5">
+          <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-2 px-3 md:h-[68px] md:gap-2.5 md:px-5 xl:px-6">
+            <Link to="/" className="flex shrink-0 items-center gap-2 lg:gap-2.5">
               <div className="grid size-9 place-items-center rounded-xl bg-foreground font-display text-xl leading-none text-primary-foreground md:size-10">V</div>
               <div className="leading-none">
                 <div className="font-display text-lg tracking-tight md:text-xl">VIGIA</div>
@@ -113,22 +120,34 @@ export function AppShell({ children }: { children: ReactNode }) {
               </div>
             </Link>
 
-            <nav className="hidden items-center gap-1 md:flex lg:gap-1.5" aria-label="Navegação principal">
+            <nav className="hidden min-w-0 items-center justify-center gap-0.5 md:flex lg:gap-1 xl:gap-1.5" aria-label="Navegação principal">
               {visibleNav.map(({to,label,icon:Icon}) => (
-                <Link key={to} to={to} title={label} aria-label={label} activeOptions={{ exact: to === "/" }}
-                  className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-transparent px-3 text-xs font-bold tracking-[.015em] text-muted-foreground transition-all hover:border-border hover:bg-muted hover:text-foreground lg:h-11 lg:px-3.5 lg:text-[13px]"
-                  activeProps={{ className: "!border-primary !bg-primary !text-primary-foreground shadow-sm" }}>
-                  <Icon size={17} strokeWidth={2.2}/><span className="hidden lg:inline">{label}</span>
+                <Link key={to} to={to} title={label} aria-label={label} activeOptions={{exact:to==="/"}}
+                  className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-transparent px-2 text-[12px] font-semibold text-muted-foreground transition-colors hover:border-border hover:bg-muted hover:text-foreground lg:h-10 lg:px-2.5 xl:h-11 xl:px-3"
+                  activeProps={{className:"!border-primary !bg-primary !text-primary-foreground shadow-sm"}}>
+                  <Icon size={16} strokeWidth={2.1}/><span className="hidden lg:inline">{label}</span>
                 </Link>
               ))}
-              {!clientOnly && <button type="button" title="Mais seções" aria-label="Mais seções" onClick={() => setMoreOpen((open) => !open)} aria-expanded={moreOpen}
-                className={`inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl border px-3 text-xs font-bold transition-all lg:h-11 lg:px-3.5 lg:text-[13px] ${moreOpen ? "border-primary/30 bg-primary/10 text-primary" : "border-transparent text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground"}`}>
-                <Ellipsis size={18} strokeWidth={2.2}/><span className="hidden lg:inline">Mais</span>
+              {!clientOnly && extraPublicNav.map(({to,label,longLabel,icon:Icon}) => (
+                <Link key={to} to={to} title={longLabel} aria-label={longLabel}
+                  className="hidden h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-transparent px-2.5 text-[12px] font-semibold text-muted-foreground transition-colors hover:border-border hover:bg-muted hover:text-foreground xl:inline-flex"
+                  activeProps={{className:"!border-primary !bg-primary !text-primary-foreground shadow-sm"}}>
+                  <Icon size={16} strokeWidth={2.1}/><span>{label}</span>
+                </Link>
+              ))}
+              {!clientOnly && <button type="button"
+                title={adminAccess ? "Gestão e configurações" : "Mais seções"}
+                aria-label={adminAccess ? "Abrir menu de gestão" : "Abrir mais seções"}
+                aria-haspopup="menu" aria-controls="care-secondary-navigation" aria-expanded={moreOpen}
+                onClick={() => setMoreOpen(open => !open)}
+                className={`inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border px-2 text-[12px] font-semibold transition-colors lg:px-2.5 xl:h-11 ${adminAccess ? "" : "xl:hidden"} ${moreOpen || (adminAccess ? isManagementActive : isSecondaryActive) ? "border-primary/25 bg-primary/10 text-primary" : "border-transparent text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground"}`}>
+                <Ellipsis size={17} strokeWidth={2.1}/>
+                <span className="hidden lg:inline">{adminAccess ? "Gestão" : "Mais"}</span>
               </button>}
             </nav>
 
-            <div className="flex items-center gap-1.5 md:gap-2">
-              <div className="hidden items-center gap-2 font-mono text-[11px] text-muted-foreground xl:flex">
+            <div className="flex shrink-0 items-center gap-1.5 md:gap-2">
+              <div className="hidden items-center gap-2 whitespace-nowrap font-mono text-[11px] text-muted-foreground 2xl:flex">
                 <span className="size-1.5 rounded-full bg-success" />{fmtClock(now)}
               </div>
               {clientOnly && <Link to="/cliente" title="Abrir meu painel" className="hidden max-w-[215px] flex-col items-start rounded-xl border border-primary/20 bg-primary/10 px-3 py-1.5 sm:flex"><span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Cliente conectado</span><span className="max-w-full truncate text-sm font-bold text-foreground">{clientName || "Meu painel"}</span></Link>}
@@ -141,10 +160,30 @@ export function AppShell({ children }: { children: ReactNode }) {
         </header>
 
         {moreOpen && !clientOnly && <>
-          <button type="button" aria-label="Fechar menu" className="fixed inset-0 z-30 cursor-default" onClick={() => setMoreOpen(false)} />
-          <nav className="fixed right-4 top-[4.75rem] z-40 grid w-64 gap-1 rounded-2xl border border-border bg-background p-2 shadow-xl md:right-[max(1.5rem,calc((100vw-80rem)/2))]" aria-label="Mais seções">
-            <div className="flex items-center justify-between px-3 py-2"><span className="label-mono text-muted-foreground">Mais áreas</span><button type="button" onClick={() => setMoreOpen(false)} aria-label="Fechar"><X size={15} /></button></div>
-            {moreNav.filter(item => adminAccess || (item.to !== "/admin" && item.to !== "/prontuario" && item.to !== "/pacientes")).map(({ to, label, icon: Icon }) => <Link key={to} to={to} onClick={() => setMoreOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-muted-foreground hover:bg-foreground/5 hover:text-foreground" activeProps={{ className: "!bg-primary/10 !text-primary" }}><Icon size={17} />{label}</Link>)}
+          <button type="button" aria-label="Fechar menu" className="fixed inset-0 z-30 cursor-default" onClick={() => setMoreOpen(false)}/>
+          <nav id="care-secondary-navigation" role="menu" className="fixed right-4 top-[4.75rem] z-40 grid w-64 gap-1 rounded-2xl border border-border bg-background p-2 shadow-xl md:right-[max(1.5rem,calc((100vw-80rem)/2))]" aria-label={adminAccess ? "Gestão e outras áreas" : "Mais áreas"}>
+            <div className="flex items-center justify-between px-3 py-2">
+              <span className="label-mono text-muted-foreground">{adminAccess ? "Gestão e áreas" : "Mais áreas"}</span>
+              <button type="button" onClick={() => setMoreOpen(false)} aria-label="Fechar"><X size={15}/></button>
+            </div>
+            {extraPublicNav.map(({to,longLabel,icon:Icon}) => (
+              <Link key={to} to={to} role="menuitem" onClick={() => setMoreOpen(false)}
+                className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground xl:hidden"
+                activeProps={{className:"!bg-primary/10 !text-primary"}}>
+                <Icon size={17}/>{longLabel}
+              </Link>
+            ))}
+            {managementLinks.map(({to,label,icon:Icon}) => (
+              <Link key={to} to={to} role="menuitem" onClick={() => setMoreOpen(false)}
+                className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                activeProps={{className:"!bg-primary/10 !text-primary"}}>
+                <Icon size={17}/>{label}
+              </Link>
+            ))}
+            {!signedIn && <Link to="/entrar" role="menuitem" onClick={() => setMoreOpen(false)}
+              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-muted-foreground hover:bg-muted hover:text-foreground">
+              <LogIn size={17}/> Acesso à equipe
+            </Link>}
           </nav>
         </>}
 
