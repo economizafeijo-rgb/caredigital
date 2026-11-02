@@ -5,11 +5,11 @@ import {
 } from "lucide-react";
 import { careReminderState, reminderClock, type ReminderTask } from "@/lib/care-reminders";
 
-type Props = {
-  tasks: ReminderTask[];
+type Props<T extends ReminderTask = ReminderTask> = {
+  tasks: T[];
   now?: number;
-  onView: (task: ReminderTask)=>void;
-  onConfirm: (task: ReminderTask)=>void;
+  onView: (task: T)=>void;
+  onConfirm: (task: T)=>void;
 };
 type StatusFilter = "todos" | "confirmados" | "pendentes" | "futuros";
 const MAX_ITEMS=6;
@@ -30,7 +30,7 @@ const IconFor:Record<string,typeof Pill>={
   medicacao:Pill,hidratacao:Droplets,refeicao:UtensilsCrossed,outro:Sparkles,
 };
 
-export function ClientAgendaPage({tasks,now=Date.now(),onView,onConfirm}:Props){
+export function ClientAgendaPage<T extends ReminderTask>({tasks,now=Date.now(),onView,onConfirm}:Props<T>){
   const [category,setCategory]=useState<string>("todos");
   const [status,setStatus]=useState<StatusFilter>("todos");
   const [query,setQuery]=useState("");
