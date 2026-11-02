@@ -69,7 +69,7 @@ export function ClientTodayTimeline({tasks,onConfirm,onDetails,now=Date.now()}:P
     <div className="flex min-w-0 items-center gap-2.5">
       <div className="care-timeline-heading flex w-[125px] shrink-0 items-center gap-2 border-r border-border pr-2 sm:w-[174px]">
         <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><CalendarDays size={17}/></span>
-        <span className="min-w-0"><strong className="block text-[12px] font-extrabold text-foreground">Próximos cuidados</strong><small className="block text-[10px] leading-tight text-muted-foreground">{supplementScheduled?"Água · Refeição · Suplemento":"Água · Refeição · Cuidados"}</small></span>
+        <span className="min-w-0"><strong className="block text-[12px] font-extrabold text-foreground">Próximos cuidados</strong><small className="block text-[10px] leading-tight text-muted-foreground"><span title={supplementScheduled?"Suplementação cadastrada na agenda":"Nenhuma suplementação cadastrada hoje"}>Água · Refeições · Suplementos</span></small></span>
       </div>
       <div className="grid min-w-0 flex-1 grid-cols-1 gap-1.5 sm:grid-cols-3">
         {selected.map(task=>{
@@ -79,7 +79,7 @@ export function ClientTodayTimeline({tasks,onConfirm,onDetails,now=Date.now()}:P
           const completed=Boolean(task.completed_at);
           const upcoming=task.id===next?.id;
           const past=Date.parse(task.scheduled_at)<now;
-          const available=canConfirmCare(task,now);
+          const available=["hidratacao","refeicao","medicacao"].includes(task.category)&&canConfirmCare(task,now);
           const status=completed?"Confirmado":upcoming?"Próximo":past?(available?"Pendente · registrar":"Não confirmado"):"Programado";
           const statusClass=completed?"text-emerald-700 dark:text-emerald-300":upcoming?"text-primary font-bold":past?"text-amber-700 dark:text-amber-300":"text-muted-foreground";
           return <button key={task.id} type="button" onClick={()=>onDetails?onDetails(task):available?onConfirm(task):undefined}
