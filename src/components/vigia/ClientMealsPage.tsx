@@ -70,7 +70,7 @@ export function ClientMealsPage({patientId,ownerId,meals,revision,now=Date.now()
           {confirmed} de {meals.length} refeições confirmadas · {pending} sem confirmação
         </p>
       </div>
-      <ClientQuickIntake patientId={patientId} variant="panel" onRecorded={onRecorded}/>
+      <ClientQuickIntake patientId={patientId} variant="panel" mode="food" onRecorded={onRecorded}/>
     </div>
     <div className="care-page-meals-filters flex shrink-0 flex-wrap items-center gap-2">
       <div className="flex min-w-0 flex-1 items-center gap-1 rounded-xl border border-border bg-muted/35 p-1">
