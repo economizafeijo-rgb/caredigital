@@ -1,4 +1,6 @@
 /** Patient history presentation only. No database record is modified here. */
+import { beverageCategory,foodCategory,isBeverageKind,isFoodKind } from "./care-intake-categories";
+
 export type HistoryGroup = "liquidos" | "refeicoes" | "cuidados" | "ajustes";
 export type HistoryStatus = "confirmado" | "registrado" | "nao_confirmado" | "nao_bebi" | "corrigido" | "reprogramado" | "excluido" | "meta_atingida" | "meta_nao_atingida";
 export type HistoryEntry = {
@@ -47,7 +49,7 @@ export const acreDay=(timestamp:string)=>acreFormatter.format(new Date(timestamp
 const text=(value:unknown,fallback="")=>typeof value==="string"&&value.trim()?value.trim():fallback;
 const quantity=(value:unknown)=>typeof value==="number"&&Number.isFinite(value)?value:undefined;
 const clock=(iso:string)=>new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Rio_Branco",hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date(iso));
-const drinkType=(kind:string)=>kind==="agua"?"agua":kind==="cha"?"cha":kind==="suco"?"suco":kind==="cafe"?"cafe":"outra";
+const drinkType=(kind:string)=>isBeverageKind(kind)?kind:"outra";
 const groupOf=(category:string):HistoryGroup=>category==="hidratacao"?"liquidos":category==="refeicao"?"refeicoes":"cuidados";
 const normalize=(value:string)=>value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
 
@@ -97,7 +99,7 @@ export function assembleCareHistory(sources:HistorySources,now=Date.now()):Histo
   }
   for(const drink of sources.drinks){
     const kind=drinkType(drink.kind);
-    const label=kind==="cha"?"Chá":kind==="suco"?"Suco":kind==="cafe"?"Café":kind==="agua"?"Água":"Bebida";
+    const label=beverageCategory(kind)?.label??"Bebida";
     events.push({id:"drink-"+drink.id,group:"liquidos",subtype:kind,status:"registrado",
       title:label+" · "+drink.amount_ml+" ml",
       description:[text(drink.name),text(drink.notes)].filter(Boolean).join(" · "),
@@ -130,9 +132,9 @@ export function assembleCareHistory(sources:HistorySources,now=Date.now()):Histo
     const kind=text(details.kind);
     if(item.event_type==="confirmed")continue; // Already represented by checklist.
     if(item.source==="client_unscheduled_intake"){
-      if(kind!=="refeicao"&&kind!=="lanche")continue; // Water and drinks come from their source tables.
+      if(!isFoodKind(kind))continue; // Water and drinks come from their source tables.
       events.push({id:"manual-meal-"+item.id,group:"refeicoes",subtype:kind,status:"registrado",
-        title:kind==="lanche"?"Lanche extra":"Refeição extra",
+        title:foodCategory(kind)?.label??"Refeição extra",
         description:text(details.description,"Alimentos informados pelo paciente"),
         occurredAt:item.recorded_at});
       continue;
