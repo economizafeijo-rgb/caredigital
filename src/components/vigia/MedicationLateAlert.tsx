@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Bell, BellOff, CheckCircle2, Clock3, Pill, Volume2 } from "lucide-react";
+import { Bell, BellOff, Clock3, Pill, Volume2 } from "lucide-react";
 
 export type MedicineAlertTask = { id:string; title:string; category:string; scheduled_at:string; completed_at:string|null };
 type Props = {tasks:MedicineAlertTask[];onConfirm:(task:MedicineAlertTask)=>void;compact?:boolean;now?:Date|null};
