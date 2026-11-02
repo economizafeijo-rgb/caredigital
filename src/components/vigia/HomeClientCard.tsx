@@ -214,7 +214,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
             <span className="min-w-0"><strong className="block text-xs font-extrabold text-foreground">{medicineTasks.length && medicineConfirmed===medicineTasks.length?"Medicações de hoje confirmadas":"Tratamento em acompanhamento"}</strong>
             <small className="block text-[10px] text-muted-foreground">{medicineTasks.length?`${medicineConfirmed}/${medicineTasks.length} doses confirmadas hoje`:"Nenhuma dose prevista hoje"}</small></span>
           </div>
-          <ClientQuickIntake patientId={client.id} onRecorded={()=>setTick(value=>value+1)}/>
+          <div className="flex flex-wrap items-center gap-1.5"><ClientQuickIntake patientId={client.id} mode="water" onRecorded={()=>setTick(value=>value+1)}/><ClientQuickIntake patientId={client.id} onRecorded={()=>setTick(value=>value+1)}/></div>
         </div>
       </header>
 
