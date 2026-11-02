@@ -85,8 +85,8 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
       const until = new Date(new Date(from).getTime() + 86400000).toISOString();
       const rows = await db.from("care_daily_checklist").select("id,patient_id,title,category,scheduled_at,completed_at")
         .eq("owner_id",first.owner_id).eq("patient_id",first.id).gte("scheduled_at",from).lt("scheduled_at",until)
-        .in("category",["medicacao","hidratacao","refeicao"]).order("scheduled_at",{ascending:true}).limit(100);
-      if (active) { if (rows.error) setNotice("Não foi possível carregar a agenda de hoje."); else setTasks(rows.data ?? []); }
+        .in("category",["medicacao","hidratacao","refeicao","outro"]).order("scheduled_at",{ascending:true}).limit(120);
+      if (active) { if (rows.error) setNotice("Não foi possível carregar a agenda de hoje."); else setTasks((rows.data ?? []).filter((task:Task)=>task.category!=="outro" || /suplement|vitamin|creatina|whey|ômega|omega|minerais|magnésio|magnesio/i.test(task.title))); }
     };
     void load();
     return () => { active = false; };
