@@ -270,23 +270,23 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
             skippedWater?<><Droplets size={14}/> Você informou “Não bebi”. Nenhum ml foi contabilizado.</>:
             <><Clock3 size={14}/> Este cuidado ainda não foi confirmado.</>}
         </div>
-        {!editing && <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+        {!editing && <div className="mt-3 flex flex-wrap items-center gap-2">
           <button type="button" disabled={saving||decisionSaving} onClick={onClose}
-            className={"min-h-10 rounded-lg border border-border px-3 py-2.5 text-xs font-semibold "+(canConfirm&&canMarkNo?"col-span-2 sm:col-span-1":"")}>Fechar</button>
+            className="min-h-10 min-w-[75px] flex-1 rounded-lg border border-border px-2.5 py-2.5 text-xs font-semibold">Fechar</button>
           {canMarkNo&&!confirmNo&&<button type="button" disabled={saving||decisionSaving}
             onClick={()=>{setConfirmNo(true);setError("");setSuccess("");}}
-            className="min-h-10 rounded-lg border border-amber-500/50 bg-amber-500/10 px-3 py-2.5 text-xs font-bold text-amber-800 hover:bg-amber-500/20 dark:text-amber-200">
+            className="min-h-10 min-w-[88px] flex-1 rounded-lg border border-amber-500/50 bg-amber-500/10 px-2.5 py-2.5 text-xs font-bold text-amber-800 hover:bg-amber-500/20 dark:text-amber-200">
             Não bebi
           </button>}
           {canUndoNo&&<button type="button" disabled={saving||decisionSaving}
             onClick={()=>void changeWaterDecision("reset_not_drunk")}
-            className="min-h-10 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2.5 text-xs font-bold text-foreground hover:bg-amber-500/20">
+            className="min-h-10 min-w-[125px] flex-1 rounded-lg border border-amber-500/40 bg-amber-500/10 px-2 py-2.5 text-xs font-bold text-foreground hover:bg-amber-500/20">
             {decisionSaving?"Corrigindo…":"Desfazer “Não bebi”"}
           </button>}
           {canConfirm&&onConfirm&&!confirmNo&&<button type="button" disabled={saving||decisionSaving}
             onClick={()=>{onClose();onConfirm(task);}}
-            className="min-h-10 rounded-lg bg-primary px-3 py-2.5 text-xs font-bold text-primary-foreground">
-            Confirmar agora
+            className="min-h-10 min-w-[110px] flex-1 rounded-lg bg-primary px-2.5 py-2.5 text-xs font-bold text-primary-foreground">
+            {details?.category==="hidratacao"?"Bebi água":"Confirmar agora"}
           </button>}
         </div>
       </section>
