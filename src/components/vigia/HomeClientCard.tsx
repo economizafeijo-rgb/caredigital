@@ -26,6 +26,7 @@ export function HomeClientCard() {
   const [client, setClient] = useState<Client | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [notice, setNotice] = useState("");
+  const [confirmationResult,setConfirmationResult]=useState<{success:boolean;title:string;detail:string}|null>(null);
   const [locked, setLocked] = useState(false);
   const [pending, setPending] = useState<Task | null>(null);
   const [amount, setAmount] = useState("200");
@@ -103,6 +104,7 @@ export function HomeClientCard() {
     }
     setLateReason("acordei_tarde");
     setNotice("");
+    setConfirmationResult(null);
     setPending(task);
   }
 
@@ -121,18 +123,23 @@ export function HomeClientCard() {
       const payload = pending.category === "hidratacao" ? Number(amount) : null;
       const result = await (supabase as any).rpc("care_confirm_task", { p_task_id: pending.id, p_water_ml: payload });
       if (result.error) throw result.error;
-      setTasks(previous => previous.map(t => t.id === pending.id ? { ...t, completed_at: typeof result.data === "string" ? result.data : new Date().toISOString() } : t));
-      setTick(value => value + 1);
-      const offsetMinutes = Math.round((Date.now() - new Date(pending.scheduled_at).getTime()) / 60000);
-      setNotice(pending.category === "hidratacao" ? "Hidratação confirmada e volume registrado."
-        : pending.category === "medicacao" && offsetMinutes > 15
-        ? "Tomada registrada agora, após o horário previsto. Motivo informado: " + (lateReason === "acordei_tarde" ? "acordei mais tarde." : lateReason === "rotina" ? "mudança de rotina." : "outro motivo.") + " O horário efetivo é o da confirmação."
-        : pending.category === "medicacao" && offsetMinutes < -15
-        ? "Tomada registrada agora, antes do horário previsto."
-        : "Atividade confirmada no prontuário.");
+      if (typeof result.data !== "string" || !Number.isFinite(Date.parse(result.data))) throw new Error("Missing confirmed server timestamp");
+      const confirmedAt=result.data as string;
+      const verified=await (supabase as any).from("care_daily_checklist").select("id,completed_at")
+        .eq("id",pending.id).eq("patient_id",client.id).single();
+      if (verified.error || !verified.data?.completed_at) throw new Error("Could not verify record");
+      setTasks(previous => previous.map(t=>t.id===pending.id?{...t,completed_at:verified.data.completed_at}:t));
+      setTick(value=>value+1);
+      const actual=new Intl.DateTimeFormat("pt-BR",{timeZone:tz,day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new Date(verified.data.completed_at));
+      setConfirmationResult({success:true,title:pending.category==="medicacao"?"Medicação registrada com sucesso!":"Cuidado registrado com sucesso!",detail:`${pending.title} · ${actual} (horário do Acre). Confirmação salva no prontuário.`});
+      setNotice("");
       setPending(null);
-    } catch {
-      setNotice("Não foi possível confirmar. Consulte o prontuário antes de tentar novamente.");
+    } catch (failure) {
+      const message=failure instanceof Error?failure.message:"";
+      const detail=/already completed/i.test(message)?"Esta dose já foi confirmada. Atualize o painel para consultar o registro.":/scheduled date/i.test(message)?"Somente a dose agendada para hoje pode ser confirmada.":/task unavailable|authentication|permission|denied|401|403/i.test(message)?"Sua sessão não tem acesso a esta dose. Entre novamente e tente acessar seu próprio prontuário.":"O registro não pôde ser confirmado. Verifique a conexão e consulte o histórico antes de tentar outra vez.";
+      setConfirmationResult({success:false,title:"Não foi possível confirmar",detail});
+      setNotice(detail);
+      setTick(value=>value+1);
     } finally { setBusy(false); }
   }
 
@@ -168,6 +175,13 @@ export function HomeClientCard() {
           {activeTab==="historico"&&<div><h4 className="mb-2 text-sm font-bold">Histórico e prontuário</h4><p className="mb-2 text-xs text-muted-foreground">Confira datas, horários e registros existentes, sem alterar o histórico original.</p><PatientActivityHistory patientId={client.id} ownerId={client.owner_id} revision={tick}/></div>}
           {activeTab==="alimentacao"&&<div><h4 className="text-sm font-bold">Alimentação do dia</h4><p className="mt-1 text-xs text-muted-foreground">Sugestões orientativas; adapte aos sintomas e à prescrição.</p><div className="mt-3 max-h-[430px] space-y-2 overflow-y-auto">{meals.map(meal=><div key={meal.id} className="rounded-xl border border-border p-3"><div className="flex items-center justify-between gap-2"><p className="text-xs font-semibold">{meal.title}</p><span className="text-[10px] text-muted-foreground">{timeInAcre(meal.scheduled_at)}</span></div><p className="mt-1 text-xs text-muted-foreground">{mealGuide[meal.title]??"Alimentação leve conforme tolerância."}</p>{!meal.completed_at&&<button className="mt-2 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-semibold text-primary" onClick={()=>askConfirm(meal)}>Confirmar refeição</button>}</div>)}{meals.length===0&&<p className="text-sm text-muted-foreground">Sem refeições agendadas.</p>}</div></div>}
         </div>
+      </div>
+    </div>}
+    {confirmationResult&&<div className="fixed inset-x-3 top-16 z-[95] mx-auto max-w-lg" role={confirmationResult.success?"status":"alert"} aria-live={confirmationResult.success?"polite":"assertive"}>
+      <div className={`flex items-start gap-3 rounded-2xl border p-4 shadow-2xl backdrop-blur-lg ${confirmationResult.success?"border-emerald-400 bg-emerald-50 text-emerald-950 dark:bg-emerald-950 dark:text-emerald-50":"border-rose-400 bg-rose-50 text-rose-950 dark:bg-rose-950 dark:text-rose-50"}`}>
+        {confirmationResult.success?<CheckCircle2 className="mt-0.5 shrink-0 text-emerald-700 dark:text-emerald-300" size={24}/>:<AlertTriangle className="mt-0.5 shrink-0 text-rose-700 dark:text-rose-300" size={24}/>}
+        <div className="min-w-0 flex-1"><p className="text-sm font-bold">{confirmationResult.title}</p><p className="mt-1 text-xs leading-relaxed">{confirmationResult.detail}</p></div>
+        <button type="button" onClick={()=>setConfirmationResult(null)} aria-label="Fechar mensagem" className="rounded-lg border border-current/15 p-1"><X size={17}/></button>
       </div>
     </div>}
     {notice && <p role="status" className="mx-5 mb-4 rounded-xl bg-[#e4eff4] p-3 text-sm text-[#24526c]">{notice}</p>}
