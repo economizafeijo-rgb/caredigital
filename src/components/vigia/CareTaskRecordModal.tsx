@@ -131,7 +131,7 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
       <dd className="mt-0.5 break-words text-xs font-bold text-foreground">{value}</dd>
     </div>;
 
-  const canConfirm = Boolean(!task.completed_at && onConfirm && canConfirmCare(task));
+  const canConfirm = Boolean(details && !details.completed_at && onConfirm && canConfirmCare(details));
 
   return createPortal(
     <div className="fixed inset-0 z-[10020] flex items-center justify-center bg-slate-950/75 p-2 backdrop-blur-sm sm:p-4"
