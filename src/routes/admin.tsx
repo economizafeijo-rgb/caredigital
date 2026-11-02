@@ -4,6 +4,7 @@ import { ClipboardList, HeartPulse, ShieldCheck, Users } from "lucide-react";
 import { Btn, PageHeader, Panel } from "@/components/vigia/ui";
 import { supabase } from "@/integrations/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase-session";
+import { ProtocolAdminManager } from "@/components/vigia/ProtocolAdminManager";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Painel de gestão — CareDigital" }] }),
@@ -13,6 +14,7 @@ export const Route = createFileRoute("/admin")({
 function Admin() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
+  const [ownerId,setOwnerId] = useState("");
   const [clientCount, setClientCount] = useState<number | null>(null);
   const [checklistCount, setChecklistCount] = useState<number | null>(null);
   const [message, setMessage] = useState("");
@@ -33,6 +35,7 @@ function Admin() {
         if ((user.email ?? "").trim().toLowerCase() !== "francdenisbr@gmail.com") { setMessage("Acesso reservado ao administrador da plataforma."); return; }
         if (!active) return;
         setEmail(user.email ?? "");
+        setOwnerId(user.id);
         // These tables are protected by RLS: a user sees only records owned by them.
         const db = supabase as unknown as { from: (table: string) => any };
         const [clients, tasks] = await Promise.all([
@@ -73,6 +76,7 @@ function Admin() {
         <Link to="/prontuario" className="panel block transition-colors hover:bg-primary/5"><HeartPulse className="text-primary" /><h2 className="mt-3 text-xl font-semibold">Prontuários</h2><p className="mt-1 text-sm text-muted-foreground">Cadastre clientes, consulte a agenda e registre cuidados.</p></Link>
         <Link to="/medicamentos" className="panel block transition-colors hover:bg-primary/5"><ClipboardList className="text-primary" /><h2 className="mt-3 text-xl font-semibold">Medicamentos</h2><p className="mt-1 text-sm text-muted-foreground">Consulte a área de medicamentos; algumas funções ainda usam dados demonstrativos.</p></Link>
       </div>
+      <ProtocolAdminManager ownerId={ownerId} />
       <p className="mt-5 rounded-xl border border-warning/30 bg-warning/10 p-3 text-xs">Esta é uma visão dos seus registros, não uma autorização de administrador global. Gestão de profissionais, convites e acesso compartilhado exigem permissões específicas no backend.</p>
     </>}
   </>;
