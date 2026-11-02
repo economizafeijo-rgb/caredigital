@@ -74,7 +74,7 @@ function Admin() {
       </div>
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <Link to="/prontuario" className="panel block transition-colors hover:bg-primary/5"><HeartPulse className="text-primary" /><h2 className="mt-3 text-xl font-semibold">Prontuários</h2><p className="mt-1 text-sm text-muted-foreground">Cadastre clientes, consulte a agenda e registre cuidados.</p></Link>
-        <Link to="/medicamentos" className="panel block transition-colors hover:bg-primary/5"><ClipboardList className="text-primary" /><h2 className="mt-3 text-xl font-semibold">Medicamentos</h2><p className="mt-1 text-sm text-muted-foreground">Consulte a área de medicamentos; algumas funções ainda usam dados demonstrativos.</p></Link>
+        <Link to="/medicamentos" className="panel block transition-colors hover:bg-primary/5"><ClipboardList className="text-primary" /><h2 className="mt-3 text-xl font-semibold">Medicamentos</h2><p className="mt-1 text-sm text-muted-foreground">Conheça a apresentação pública; os medicamentos e registros reais permanecem nos prontuários protegidos.</p></Link>
       </div>
       <ProtocolAdminManager ownerId={ownerId} />
       <p className="mt-5 rounded-xl border border-warning/30 bg-warning/10 p-3 text-xs">Esta é uma visão dos seus registros, não uma autorização de administrador global. Gestão de profissionais, convites e acesso compartilhado exigem permissões específicas no backend.</p>
