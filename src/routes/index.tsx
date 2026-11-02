@@ -52,17 +52,17 @@ function Homepage() {
     </div>;
   }
 
-  return <div className="mx-auto max-w-6xl space-y-4">
+  return <div className="public-homepage mx-auto w-full max-w-[980px] space-y-3">
     <section className="relative isolate overflow-hidden rounded-3xl border border-[#9acbdc]/60 bg-gradient-to-br from-[#eaf7fc] via-[#d8f0f8] to-[#b5e4ee] text-[#102c43] shadow-[0_20px_55px_-36px_rgba(14,82,115,.4)] dark:border-[#7ec5da]/30 dark:from-[#132f44] dark:via-[#174056] dark:to-[#174f62] dark:text-white">
       <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-24 size-60 rounded-full bg-[#61c6d6]/25 blur-3xl"/>
-      <div className="relative grid min-h-[310px] items-center gap-2 sm:min-h-[340px] sm:grid-cols-[minmax(275px,1fr)_minmax(0,1.4fr)]">
+      <div className="relative grid min-h-[290px] items-center gap-2 sm:min-h-[315px] sm:grid-cols-[minmax(250px,0.95fr)_minmax(0,1.05fr)]">
         <div className="relative mx-auto flex min-h-[210px] w-full items-center justify-center overflow-hidden px-3 py-3 sm:min-h-[300px] sm:px-0 sm:py-2">
           <div aria-hidden="true" className="pointer-events-none absolute inset-6 rounded-full bg-[#56c4cf]/15 blur-3xl"/>
           <img src="/images/caredigital-health-illustration.svg" width={780} height={540} loading="eager" decoding="async" alt="Ilustração de cuidados digitais com prontuário, medicamentos, hidratação e calendário" className="relative block h-auto max-h-[235px] w-full max-w-[390px] object-contain drop-shadow-[0_10px_24px_rgba(24,76,94,.15)] sm:max-h-[310px] sm:max-w-[440px]" />
         </div>
-        <div className="relative px-5 pb-7 pt-2 sm:py-7 sm:pl-2 sm:pr-8">
+        <div className="relative px-5 pb-6 pt-2 sm:py-5 sm:pl-0 sm:pr-6">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#24627c] dark:text-[#a7e9f5]">CareDigital · rotina de cuidados</p>
-          <h1 className="mt-2 max-w-[22ch] text-balance font-display text-3xl leading-tight tracking-tight text-[#102c43] dark:text-white sm:text-4xl lg:text-5xl">Seu tratamento, organizado e sempre com você.</h1>
+          <h1 className="mt-2 max-w-[22ch] text-balance font-display text-3xl leading-tight tracking-tight text-[#102c43] dark:text-white sm:text-4xl lg:text-[2.65rem]">Seu tratamento, organizado e sempre com você.</h1>
           <p className="mt-2 max-w-[52ch] text-sm leading-relaxed text-[#385c74] dark:text-[#d7eaf5]">Medicações, alimentação, água e evolução do cuidado em um único lugar.</p>
           <div className="mt-4 flex flex-wrap gap-2">
             {access === "admin" ?
