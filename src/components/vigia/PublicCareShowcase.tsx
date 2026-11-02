@@ -1,11 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import {
   ArrowRight, CalendarClock, CheckCircle2, ClipboardCheck,
-  Droplets, HeartPulse, LockKeyhole, Pill, ShieldCheck, UserRoundCheck,
+  Droplets, Dumbbell, HeartPulse, LockKeyhole, Pill, ShieldCheck, UserRoundCheck,
 } from "lucide-react";
+import { SportsNutritionIllustration } from "./SportsNutritionIllustration";
 
 /** Explanatory-only public showcase: never read or mutate a patient's health records here. */
-type ShowcaseKind = "hydration" | "medication";
+type ShowcaseKind = "hydration" | "medication" | "sports";
 
 const copy = {
   hydration: {
@@ -26,6 +27,25 @@ const copy = {
       { name: "Registro", detail: "Histórico individual" },
     ],
     privacy: "Metas, volumes e horários pessoais são exibidos somente na área autorizada do cliente.",
+  },
+  sports: {
+    eyebrow: "CareDigital · Nutrição esportiva",
+    title: "Nutrição esportiva e rotina",
+    lead: "Alimentação, treino e acompanhamento com clareza.",
+    description: "Esta página apresenta como orientações alimentares e horários podem compor uma rotina de cuidados. Objetivos, necessidades e ajustes devem ser avaliados individualmente por profissional habilitado.",
+    cta: "Acessar meu acompanhamento",
+    benefits: [
+      { icon: UserRoundCheck, title: "Objetivos individuais", text: "O planejamento considera o contexto e as necessidades de cada pessoa." },
+      { icon: CalendarClock, title: "Refeições e rotina", text: "Horários organizados ajudam a acompanhar a alimentação do dia." },
+      { icon: ClipboardCheck, title: "Revisão e evolução", text: "Registros apoiam conversas com a equipe responsável pelo cuidado." },
+    ],
+    steps: [
+      { name: "Objetivo", detail: "Contexto individual" },
+      { name: "Orientação", detail: "Plano profissional" },
+      { name: "Rotina", detail: "Refeições e horários" },
+      { name: "Acompanhamento", detail: "Revisão individual" },
+    ],
+    privacy: "Planos alimentares, objetivos e dados de pacientes não são apresentados nesta página pública. Suplementos não substituem alimentação nem orientação profissional.",
   },
   medication: {
     eyebrow: "CareDigital · Medicamentos",
@@ -137,7 +157,7 @@ function MedicationSvg() {
 
 export function PublicCareShowcase({kind}:{kind:ShowcaseKind}) {
   const info=copy[kind];
-  const MainIcon=kind==="hydration"?Droplets:Pill;
+  const MainIcon=kind==="hydration"?Droplets:kind==="sports"?Dumbbell:Pill;
   return <div className="mx-auto flex min-h-full w-full max-w-[1080px] flex-col justify-start py-1.5 lg:justify-center" aria-label={"Demonstração pública — "+info.title}>
     <section className="flex w-full shrink-0 flex-col gap-2.5 rounded-3xl border border-border bg-card/95 p-3 shadow-[0_14px_42px_-28px_rgba(26,65,81,.4)] sm:p-4 lg:gap-3">
       <header className="flex shrink-0 flex-wrap items-center justify-between gap-2">
@@ -159,7 +179,7 @@ export function PublicCareShowcase({kind}:{kind:ShowcaseKind}) {
           </div>
         </div>
         <div className="flex min-w-0 items-center justify-center overflow-hidden">
-          {kind==="hydration"?<HydrationSvg/>:<MedicationSvg/>}
+          {kind==="hydration"?<HydrationSvg/>:kind==="sports"?<SportsNutritionIllustration/>:<MedicationSvg/>}
         </div>
       </div>
 
