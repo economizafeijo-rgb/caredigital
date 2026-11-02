@@ -7,6 +7,7 @@ import { CompactTreatmentBlister } from "./CompactTreatmentBlister";
 import { PatientActivityHistory } from "./PatientActivityHistory";
 import { ClientHydrationTab } from "./ClientHydrationTab";
 import { ClientBeverageTracker } from "./ClientBeverageTracker";
+import { ClientQuickIntake } from "./ClientQuickIntake";
 import { MedicationLateAlert } from "./MedicationLateAlert";
 import { ClientTodayTimeline } from "./ClientTodayTimeline";
 import { canConfirmCare, careScheduleBlockMessage, careScheduleLabel, getCareScheduleState } from "@/lib/care-schedule";
@@ -213,7 +214,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
             <span className="min-w-0"><strong className="block text-xs font-extrabold text-foreground">{medicineTasks.length && medicineConfirmed===medicineTasks.length?"Medicações de hoje confirmadas":"Tratamento em acompanhamento"}</strong>
             <small className="block text-[10px] text-muted-foreground">{medicineTasks.length?`${medicineConfirmed}/${medicineTasks.length} doses confirmadas hoje`:"Nenhuma dose prevista hoje"}</small></span>
           </div>
-          
+          <ClientQuickIntake patientId={client.id} onRecorded={()=>setTick(value=>value+1)}/>
         </div>
       </header>
 
