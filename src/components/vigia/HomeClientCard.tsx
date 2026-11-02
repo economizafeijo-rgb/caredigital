@@ -308,7 +308,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
       <ClientTodayTimeline tasks={tasks} onConfirm={askConfirm} onDetails={showTaskDetails} now={clock?.getTime()}/>
     </div>}
     <CareTaskRecordModal task={detailTask} onClose={()=>setDetailTask(null)}
-      onSaved={()=>setTick(value=>value+1)} onConfirm={task=>askConfirm(task)}/>
+      onSaved={()=>setTick(value=>value+1)} onConfirm={record=>{const task=tasks.find(item=>item.id===record.id);if(task)askConfirm(task);}}/>
     {confirmationResult && typeof document!=="undefined" && createPortal(
       <div className="pointer-events-none fixed inset-0 z-[10010] flex items-start justify-center px-4 pt-20 sm:pt-24" role={confirmationResult.success?"status":"alert"} aria-live={confirmationResult.success?"polite":"assertive"}>
         <div className={`pointer-events-auto w-full max-w-md overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-[0_18px_55px_rgba(0,0,0,0.25)] ring-1 ring-black/5 dark:ring-white/10 ${confirmationResult.success?"border-emerald-400/50":"border-amber-400/60"}`}>
