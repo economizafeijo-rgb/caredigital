@@ -716,3 +716,40 @@ iframe[title*="Lovable" i][title*="badge" i] {
   .care-client-route { height:auto; min-height:630px; }
   .care-client-dashboard { min-height:630px; }
 }
+
+/* CareDigital: keep the nurse portrait visible on desktop authentication screens in light mode. */
+@media (min-width: 1024px) {
+  :root:not(.dark) .care-shell:has(main[aria-label="Acesso CareDigital"]) {
+    background-color: transparent;
+    isolation: isolate;
+  }
+  :root:not(.dark) .care-shell:has(main[aria-label="Acesso CareDigital"])::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(90deg,rgba(248,251,249,.98) 0%,rgba(248,251,249,.93) 32%,rgba(248,251,249,.52) 57%,rgba(248,251,249,.08) 82%),
+      url("/images/caredigital-care-hero.webp"),
+      linear-gradient(135deg,#edf3f0,#e2eeea);
+    background-size: cover,cover,cover;
+    background-position: center,100% 18%,center;
+    background-repeat: no-repeat;
+  }
+  :root:not(.dark) .care-shell:has(main[aria-label="Acesso CareDigital"])::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(ellipse at 15% 80%,rgba(204,226,217,.18),transparent 55%);
+  }
+  :root:not(.dark) .care-shell:has(main[aria-label="Acesso CareDigital"]) main[aria-label="Acesso CareDigital"] {
+    position: relative;
+    z-index: 1;
+  }
+  :root:not(.dark) .care-shell:has(main[aria-label="Acesso CareDigital"]) > div[aria-hidden="true"] {
+    opacity: .14;
+  }
+}
