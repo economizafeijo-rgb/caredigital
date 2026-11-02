@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Clock3, Info, Pill, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Clock3, Info, Moon, Pill, Sun, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type Dose = { id: string; patient_id: string; title: string; category: string; scheduled_at: string; completed_at: string | null };
-type Props = { patientId: string; ownerId: string; revision: number; onConfirm: (task: Dose) => void };
+type Props = { patientId: string; ownerId: string; revision: number; onConfirm: (task: Dose) => void; dashboardMode?:boolean; onProgressChange?:(progress:{confirmed:number;total:number})=>void };
 const zone = "America/Rio_Branco";
 const dateKey = (iso: string) => new Intl.DateTimeFormat("en-CA", { timeZone: zone, year:"numeric",month:"2-digit",day:"2-digit" }).format(new Date(iso));
 const timeText = (iso: string) => new Intl.DateTimeFormat("pt-BR", { timeZone: zone,hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false }).format(new Date(iso));
 const dayLabel = (iso:string) => new Intl.DateTimeFormat("pt-BR",{timeZone:zone,day:"2-digit",month:"short"}).format(new Date(iso));
 const reportedPatientId = "28da9bb3-0049-4206-b1cd-e93008b87786";
 
-export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm}:Props) {
+export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,dashboardMode=false,onProgressChange}:Props) {
  const [doses,setDoses]=useState<Dose[]>([]);
  const [selected,setSelected]=useState(()=>{
   const today=new Intl.DateTimeFormat("en-CA",{timeZone:zone,year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
@@ -59,6 +59,7 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm}:P
  const evening=first?(day.tasks.find(t=>timeText(t.scheduled_at).startsWith("19:"))??day.tasks[1]):undefined;
  const firstReport=selected===0&&patientId===reportedPatientId&&day.tasks.some(t=>!t.completed_at);
  const verified=days.reduce((total,d)=>total+d.tasks.filter(t=>t.completed_at).length*(d.first?4:1),0);
+ useEffect(()=>{if(!loading)onProgressChange?.({confirmed:verified,total:84});},[verified,loading,onProgressChange]);
  const dayCompleted=day.tasks.filter(t=>Boolean(t.completed_at)).length;
  const dayExpected=day.first?2:1;
  const currentDate=dateKey(new Date().toISOString());
@@ -73,7 +74,7 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm}:P
  const continuationWeek=selected>=7?Math.floor((selected-7)/7):0;
  const continuationDoses=selected>=7?days.slice(7+continuationWeek*7,14+continuationWeek*7).map(d=>d.tasks[0]):[];
  const reportTime=activePill?.period==="morning"?"10:00":"19:00";
- return <section aria-label="Cartelas interativas" className="min-h-0 overflow-y-auto rounded-xl border border-border bg-card p-2 shadow-sm">
+ return <section aria-label="Cartelas interativas" className={`care-blister-panel min-h-0 rounded-2xl border border-border bg-card p-2.5 shadow-sm ${dashboardMode?"care-blister-dashboard flex flex-col overflow-hidden":"overflow-y-auto"}`}>
   <div className="flex flex-wrap items-center justify-between gap-2">
    <div><h3 className="flex items-center gap-2 text-sm font-bold text-foreground"><Pill size={17} className="text-primary"/> Cartela interativa</h3><p className="text-[11px] text-muted-foreground">Cada tomada muda a cartela e registra data e hora.</p></div>
    <div className="text-right"><span className="text-lg font-extrabold tabular-nums text-foreground">{verified}/84</span><p className="text-[10px] text-muted-foreground">confirmadas no sistema</p></div>
@@ -89,7 +90,9 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm}:P
    <span className="text-muted-foreground">{day.tasks.filter(t=>t.completed_at).map(t=>timeText(t.completed_at!)).join(" · ")||"Sem confirmação"}</span>
   </div>
   {loading?<p className="mt-5 text-center text-sm text-muted-foreground">Carregando tratamento…</p>:<>
-   <div className="mx-auto mt-1 w-full max-w-[145px] sm:max-w-[165px]">
+   <div className="care-blister-stage mt-1 flex min-h-0 items-center justify-center gap-2.5">
+     {first&&dashboardMode&&<div className="care-blister-side hidden w-[102px] shrink-0 flex-col items-center text-center lg:flex"><Sun size={20} className="mb-1 text-primary"/><strong className="text-xs text-foreground">Manhã</strong><span className="text-[10px] text-muted-foreground">4 comprimidos</span><div className={`mt-2 w-full rounded-xl border px-1.5 py-2 text-[10px] ${morning?.completed_at?"border-success/25 bg-success/10":"border-border bg-muted/60"}`}>{morning?.completed_at?<><strong className="block text-success">Confirmado</strong><span className="text-muted-foreground">{timeText(morning.completed_at).slice(0,5)}</span></>:<><strong className="block text-muted-foreground">Pendente</strong><span className="text-muted-foreground">{morning?timeText(morning.scheduled_at).slice(0,5):"—"}</span></>}</div></div>}
+     <div className="care-blister-graphic mx-auto w-full max-w-[165px] shrink-0 sm:max-w-[210px]">
      <div className={`relative mx-auto overflow-hidden rounded-xl ${first?"aspect-[480/440]":"aspect-[580/430]"}`}>
        {!first&&<img className="absolute inset-0 h-full w-full object-contain" src="/images/cartela-lansoprazol-7.svg" alt="Cartela ilustrativa de sete cápsulas"/>}
        {first?<svg viewBox="0 0 480 440" role="group" aria-label="Cartela de oito unidades. Quatro unidades à esquerda são da manhã e quatro à direita são da noite" className="absolute inset-0 block h-full w-full">
@@ -127,16 +130,18 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm}:P
          return <button key={i} type="button" onClick={()=>setActivePill({index:selected,period:"morning",slot:i+1})} aria-label={`Cápsula ${i+1}, ${dayLabel(days[7+continuationWeek*7+i].iso)}: ${task?.completed_at?`confirmada em ${timeText(task.completed_at)}`:"pendente"}`} className={`absolute rounded-full border-2 transition-colors ${task?.completed_at?"border-emerald-500 bg-emerald-500/60":"border-sky-400/30 hover:bg-sky-400/25"}`} style={{width:"30%",height:"21%",left:`${10+(i%2)*46}%`,top:`${7+Math.floor(i/2)*23}%`}}>{task?.completed_at&&<Check size={21} className="mx-auto text-white"/>}</button>;
        })}
      </div>
-   </div>
-   <div className="mt-2 flex items-center justify-center gap-3 text-[10px] text-muted-foreground"><span><i className="mr-1 inline-block size-2 rounded-full bg-success"/>Confirmado</span><span><i className="mr-1 inline-block size-2 rounded-full bg-amber-400"/>Relatado</span><span><i className="mr-1 inline-block size-2 rounded-full border border-border"/>Pendente</span></div>
-   {first&&<div className="mt-1 grid grid-cols-2 gap-1.5 text-[10px]">
+     </div>
+     {first&&dashboardMode&&<div className="care-blister-side hidden w-[102px] shrink-0 flex-col items-center text-center lg:flex"><Moon size={20} className="mb-1 text-primary"/><strong className="text-xs text-foreground">Noite</strong><span className="text-[10px] text-muted-foreground">4 comprimidos</span><div className={`mt-2 w-full rounded-xl border px-1.5 py-2 text-[10px] ${evening?.completed_at?"border-success/25 bg-success/10":"border-border bg-muted/60"}`}>{evening?.completed_at?<><strong className="block text-success">Confirmado</strong><span className="text-muted-foreground">{timeText(evening.completed_at).slice(0,5)}</span></>:<><strong className="block text-muted-foreground">Pendente</strong><span className="text-muted-foreground">{evening?timeText(evening.scheduled_at).slice(0,5):"—"}</span></>}</div></div>}
+    </div>
+    <div className="care-blister-legend mt-2 flex items-center justify-center gap-3 text-[10px] text-muted-foreground"><span><i className="mr-1 inline-block size-2 rounded-full bg-success"/>Confirmado</span><span><i className="mr-1 inline-block size-2 rounded-full bg-amber-400"/>Relatado</span><span><i className="mr-1 inline-block size-2 rounded-full border border-border"/>Pendente</span></div>
+   {first&&<div className={`care-blister-detail-cards mt-1 grid grid-cols-2 gap-1.5 text-[10px] ${dashboardMode?"lg:hidden":""}`}>
      {([["Manhã",morning],["Noite",evening]] as const).map(([label,task])=><div key={label} className={`rounded-lg border px-2 py-2 ${task?.completed_at?"border-emerald-500/30 bg-emerald-500/10":"border-border bg-muted/40"}`}><p className="font-semibold text-foreground">{label} · 4 comprimidos</p><p className="mt-0.5 text-muted-foreground">Previsto: {task?timeText(task.scheduled_at).slice(0,5):"—"}</p><p className={task?.completed_at?"font-medium text-emerald-700 dark:text-emerald-300":"text-muted-foreground"}>{task?.completed_at?"Confirmado: "+new Intl.DateTimeFormat("pt-BR",{timeZone:zone,day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}).format(new Date(task.completed_at)):"Não confirmado"}</p></div>)}
    </div>}
    {firstReport&&<p className="mt-2 rounded-lg border border-amber-300/40 bg-amber-50 px-2 py-1.5 text-center text-[11px] text-amber-900 dark:bg-amber-950/25 dark:text-amber-100">31/10 · 8 unidades relatadas: manhã 10h, noite 19h</p>}
    {!first&&<p className="mt-2 text-center text-[11px] text-muted-foreground">Cada cápsula da semana representa um dia. Verde indica confirmação registrada.</p>}
    {error&&<p role="alert" className="mt-2 text-xs text-destructive">{error}</p>}
   </>}
-  <div className="mt-1 flex gap-1 overflow-x-auto pb-1" aria-label="Selecionar cartela">
+  <div className="care-blister-day-selector mt-1 flex shrink-0 gap-1 overflow-x-auto pb-1" aria-label="Selecionar cartela">
     {Array.from({length:7},(_,i)=><button type="button" key={i} onClick={()=>setSelected(i)} aria-current={selected===i?"true":undefined} className={`min-w-8 rounded-lg border px-2 py-1 text-[11px] font-semibold ${selected===i?"border-primary bg-primary/15 text-primary":days[i].tasks.length&&days[i].tasks.every(t=>t.completed_at)?"border-emerald-500/40 bg-emerald-500/10 text-emerald-600":"border-border text-muted-foreground"}`}>{days[i].tasks.length&&days[i].tasks.every(t=>t.completed_at)?"✓":i+1}</button>)}
     <span className="my-auto whitespace-nowrap px-1 text-[10px] text-muted-foreground">Continuidade</span>
     {Array.from({length:4},(_,i)=><button type="button" key={i+7} onClick={()=>setSelected(7+i*7)} className={`min-w-9 rounded-lg border px-2 py-1 text-[11px] ${selected>=7+i*7&&selected<14+i*7?"border-primary bg-primary/15 text-primary":"border-border text-muted-foreground"}`}>S{i+1}</button>)}
