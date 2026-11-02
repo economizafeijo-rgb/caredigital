@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, CalendarClock, CalendarDays, CheckCircle2, Droplets, History, House, LayoutDashboard, LockKeyhole, Pill, Target, UtensilsCrossed, UserRound, AlertTriangle, X } from "lucide-react";
+import { ArrowRight, CalendarClock, CalendarDays, CheckCircle2, Droplets, History, House, LayoutDashboard, LockKeyhole, Pill, Target, UtensilsCrossed, UserRound, AlertTriangle, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CompactTreatmentBlister } from "./CompactTreatmentBlister";
 import { PatientActivityHistory } from "./PatientActivityHistory";
 import { ClientHydrationTab } from "./ClientHydrationTab";
+import { ClientBeverageTracker } from "./ClientBeverageTracker";
 import { MedicationLateAlert } from "./MedicationLateAlert";
 import { ClientTodayTimeline } from "./ClientTodayTimeline";
 
@@ -31,6 +32,9 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
   const [confirmationResult,setConfirmationResult]=useState<{success:boolean;title:string;detail:string}|null>(null);
   const [locked, setLocked] = useState(false);
   const [pending, setPending] = useState<Task | null>(null);
+  const [mealToDelete, setMealToDelete] = useState<Task | null>(null);
+  const [mealEarlyAcknowledged, setMealEarlyAcknowledged] = useState(false);
+  const [hydrationView, setHydrationView] = useState<"agua" | "bebidas">("agua");
   const [amount, setAmount] = useState("200");
   const [busy, setBusy] = useState(false);
   const [lateReason, setLateReason] = useState("acordei_tarde");
@@ -93,10 +97,19 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
   function askConfirm(task: Task) {
     if (!owner || !client) { setLocked(true); return; }
     if (task.completed_at) { setNotice("Esta atividade já foi confirmada."); return; }
-    if (task.category === "medicacao" && dayInAcre(new Date(task.scheduled_at)) !== dayInAcre(new Date())) {
-      setNotice("Por segurança, apenas tomadas programadas para hoje podem ser confirmadas. Para registrar uma dose de outro dia, procure o responsável pelo tratamento.");
-      return;
+    if (task.category === "medicacao") {
+      if (dayInAcre(new Date(task.scheduled_at)) !== dayInAcre(new Date())) {
+        setConfirmationResult({ success:false, title:"Confirmação indisponível",
+          detail:"Somente medicamentos agendados para hoje podem ser confirmados. Para registrar uma dose de outro dia, procure o responsável pelo tratamento." });
+        return;
+      }
+      if (Date.now() < Date.parse(task.scheduled_at)) {
+        setConfirmationResult({ success:false, title:"Horário da medicação ainda não atingido",
+          detail:`Esta dose está programada para ${timeInAcre(task.scheduled_at)} (horário do Acre). Por segurança, o registro só será permitido a partir desse horário. Não antecipe a medicação sem orientação profissional. Nenhuma confirmação foi salva.` });
+        return;
+      }
     }
+    setMealEarlyAcknowledged(false);
     setLateReason("acordei_tarde");
     setNotice("");
     setConfirmationResult(null);
@@ -105,8 +118,18 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
 
   async function confirm() {
     if (!pending || !owner || !client || busy) return;
-    if (pending.category === "medicacao" && dayInAcre(new Date(pending.scheduled_at)) !== dayInAcre(new Date())) {
-      setNotice("A confirmação de medicação só é permitida no dia agendado."); setPending(null); return;
+    if (pending.category === "medicacao" &&
+      (dayInAcre(new Date(pending.scheduled_at)) !== dayInAcre(new Date()) ||
+        Date.now() < Date.parse(pending.scheduled_at))) {
+      setConfirmationResult({success:false,title:"Horário da medicação ainda não atingido",
+        detail:`Confirmação disponível apenas no dia e a partir das ${timeInAcre(pending.scheduled_at)} (Acre). Nenhuma confirmação foi salva.`});
+      setPending(null);
+      return;
+    }
+    const mealIsEarly = pending.category === "refeicao" && Date.now() < Date.parse(pending.scheduled_at);
+    if (mealIsEarly && !mealEarlyAcknowledged) {
+      setNotice("Para registrar uma refeição antecipada, confirme que já a realizou.");
+      return;
     }
     if (pending.category === "hidratacao" && (!Number.isInteger(Number(amount)) || Number(amount) < 10 || Number(amount) > 1500)) {
       setNotice("Informe o volume de água realmente consumido (10 a 1.500 ml).");
@@ -116,7 +139,9 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
     try {
       // The database function performs confirmation and hydration logging atomically.
       const payload = pending.category === "hidratacao" ? Number(amount) : null;
-      const result = await (supabase as any).rpc("care_confirm_task", { p_task_id: pending.id, p_water_ml: payload });
+      const result = mealIsEarly
+        ? await (supabase as any).rpc("care_confirm_meal_early", { p_task_id: pending.id, p_verified: true })
+        : await (supabase as any).rpc("care_confirm_task", { p_task_id: pending.id, p_water_ml: payload });
       if (result.error) throw result.error;
       if (typeof result.data !== "string" || !Number.isFinite(Date.parse(result.data))) throw new Error("Missing confirmed server timestamp");
       const confirmedAt=result.data as string;
@@ -126,15 +151,41 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
       setTasks(previous => previous.map(t=>t.id===pending.id?{...t,completed_at:verified.data.completed_at}:t));
       setTick(value=>value+1);
       const actual=new Intl.DateTimeFormat("pt-BR",{timeZone:tz,day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new Date(verified.data.completed_at));
-      setConfirmationResult({success:true,title:pending.category==="medicacao"?"Medicação registrada com sucesso!":"Cuidado registrado com sucesso!",detail:`${pending.title} · ${actual} (horário do Acre). Confirmação salva no prontuário.`});
+      setConfirmationResult({success:true,title:pending.category==="medicacao"?"Medicação registrada com sucesso!":pending.category==="refeicao"?"Refeição registrada com sucesso!":"Cuidado registrado com sucesso!",detail:`${pending.title} · ${actual} (horário do Acre). ${mealIsEarly?"Confirmação antecipada verificada. ":""}Data e hora reais salvas no prontuário.`});
       setNotice("");
       setPending(null);
     } catch (failure) {
       const message=failure instanceof Error?failure.message:"";
-      const detail=/already completed/i.test(message)?"Esta dose já foi confirmada. Atualize o painel para consultar o registro.":/scheduled date/i.test(message)?"Somente a dose agendada para hoje pode ser confirmada.":/task unavailable|authentication|permission|denied|401|403/i.test(message)?"Sua sessão não tem acesso a esta dose. Entre novamente e tente acessar seu próprio prontuário.":"O registro não pôde ser confirmado. Verifique a conexão e consulte o histórico antes de tentar outra vez.";
+      const detail=/already completed/i.test(message)?"Este cuidado já foi confirmado. Atualize o painel para consultar o registro.":/scheduled time not reached/i.test(message)?"O horário programado da medicação ainda não foi atingido. Nenhum registro foi salvo.":/scheduled date/i.test(message)?"Somente a dose agendada para hoje pode ser confirmada.":/Meal early confirmation requires verification/i.test(message)?"Uma refeição antecipada exige confirmação expressa antes do registro.":/task unavailable|authentication|permission|denied|401|403/i.test(message)?"Sua sessão não tem acesso a este cuidado. Entre novamente e consulte seu prontuário.":"O registro não pôde ser confirmado. Confira sua conexão e o histórico antes de tentar novamente.";
       setConfirmationResult({success:false,title:"Não foi possível confirmar",detail});
       setNotice(detail);
       setTick(value=>value+1);
+    } finally { setBusy(false); }
+  }
+
+  async function deleteMeal() {
+    if (!mealToDelete || !owner || !client || busy) return;
+    setBusy(true);
+    setConfirmationResult(null);
+    try {
+      const result = await (supabase as any).rpc("care_delete_meal", {
+        p_task_id: mealToDelete.id, p_verified: true,
+      });
+      if (result.error) throw result.error;
+      if (typeof result.data !== "string" || !Number.isFinite(Date.parse(result.data))) throw new Error("Invalid deletion timestamp");
+      const removed = mealToDelete;
+      setTasks(previous => previous.filter(task => task.id !== removed.id));
+      setMealToDelete(null);
+      setTick(value => value + 1);
+      const actual = new Intl.DateTimeFormat("pt-BR", {
+        timeZone: tz, day:"2-digit",month:"2-digit",year:"numeric",
+        hour:"2-digit",minute:"2-digit",second:"2-digit",
+      }).format(new Date(result.data));
+      setConfirmationResult({success:true,title:"Refeição excluída com segurança",
+        detail:`${removed.title} foi retirada da agenda em ${actual} (Acre). A exclusão permanece registrada no histórico de auditoria.`});
+    } catch {
+      setConfirmationResult({success:false,title:"Não foi possível excluir a refeição",
+        detail:"Nenhuma exclusão foi confirmada. Confira sua conexão ou suas permissões."});
     } finally { setBusy(false); }
   }
 
