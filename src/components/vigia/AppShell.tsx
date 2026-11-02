@@ -29,6 +29,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const now = useNow(30000);
   const pathname = useRouterState({select: state => state.location.pathname});
   const isClientPage = pathname === "/cliente";
+  const isClientHome = pathname === "/" && clientOnly;
   const isSportsPage = pathname === "/nutricao-esportiva";
   const [moreOpen, setMoreOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -111,28 +112,28 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         <header className="relative z-30 shrink-0 border-b border-border/70 bg-background/90 backdrop-blur-xl">
-          <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-2 px-3 md:h-[76px] md:gap-2.5 md:px-5 xl:px-6">
-            <Link to="/" className="flex shrink-0 items-center gap-2 lg:gap-2.5">
-              <div className="grid size-9 place-items-center rounded-xl bg-primary font-display text-xl leading-none text-primary-foreground shadow-sm md:size-10" aria-hidden="true">C</div>
+          <div className="mx-auto flex h-12 max-w-7xl items-center justify-between gap-1.5 px-3 sm:gap-2 md:h-14 md:px-4 xl:px-5">
+            <Link to="/" className="flex min-w-0 shrink-0 items-center gap-1.5 lg:gap-2">
+              <div className="grid size-8 place-items-center rounded-lg bg-primary font-display text-lg leading-none text-primary-foreground shadow-sm md:size-9" aria-hidden="true">C</div>
               <div className="leading-none">
-                <div className="text-[17px] font-extrabold tracking-[-.035em] text-foreground md:text-[19px]">Care<span className="text-primary">Digital</span></div>
-                <div className="mt-1 hidden text-[8px] font-semibold uppercase tracking-[.13em] text-muted-foreground sm:block">Cuidado conectado</div>
+                <div className="text-[16px] font-extrabold tracking-[-.035em] text-foreground md:text-[18px]">Care<span className="text-primary">Digital</span></div>
+                <div className="mt-0.5 hidden text-[8px] font-semibold uppercase tracking-[.12em] text-muted-foreground sm:block">Cuidado conectado</div>
               </div>
             </Link>
 
-            <nav className="hidden min-w-0 items-center justify-center gap-1 md:flex lg:gap-1.5 xl:gap-2" aria-label="Navegação principal">
+            <nav className="hidden min-w-0 items-center justify-center gap-0.5 md:flex lg:gap-1 xl:gap-1.5" aria-label="Navegação principal">
               {visibleNav.map(({to,label,icon:Icon}) => (
                 <Link key={to} to={to} title={label} aria-label={label} activeOptions={{exact:to==="/"}}
-                  className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl border border-transparent px-3 text-[13px] font-semibold text-muted-foreground transition-all hover:border-primary/20 hover:bg-primary/5 hover:text-foreground hover:shadow-sm lg:h-12 lg:px-3.5 xl:px-4 xl:text-[14px]"
+                  className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-transparent px-2.5 text-[12px] font-semibold text-muted-foreground transition-all hover:border-primary/20 hover:bg-primary/5 hover:text-foreground hover:shadow-sm lg:h-10 lg:px-3 xl:px-3.5 xl:text-[13px]"
                   activeProps={{className:"!border-primary !bg-primary !text-primary-foreground shadow-sm"}}>
-                  <Icon size={19} strokeWidth={2}/><span className="hidden lg:inline">{label}</span>
+                  <Icon size={17} strokeWidth={2}/><span className="hidden lg:inline">{label}</span>
                 </Link>
               ))}
               {!clientOnly && extraPublicNav.map(({to,label,longLabel,icon:Icon}) => (
                 <Link key={to} to={to} title={longLabel} aria-label={longLabel}
-                  className="hidden h-12 shrink-0 items-center justify-center gap-2 rounded-xl border border-transparent px-3.5 text-[14px] font-semibold text-muted-foreground transition-all hover:border-primary/20 hover:bg-primary/5 hover:text-foreground hover:shadow-sm xl:inline-flex"
+                  className="hidden h-10 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-transparent px-3 text-[13px] font-semibold text-muted-foreground transition-all hover:border-primary/20 hover:bg-primary/5 hover:text-foreground hover:shadow-sm xl:inline-flex"
                   activeProps={{className:"!border-primary !bg-primary !text-primary-foreground shadow-sm"}}>
-                  <Icon size={19} strokeWidth={2}/><span>{label}</span>
+                  <Icon size={17} strokeWidth={2}/><span>{label}</span>
                 </Link>
               ))}
               {!clientOnly && <button type="button"
@@ -146,15 +147,15 @@ export function AppShell({ children }: { children: ReactNode }) {
               </button>}
             </nav>
 
-            <div className="flex shrink-0 items-center gap-1.5 md:gap-2">
+            <div className="flex min-w-0 shrink-0 items-center gap-1 md:gap-1.5">
               <div className="hidden items-center gap-2 whitespace-nowrap font-mono text-[11px] text-muted-foreground 2xl:flex">
                 <span className="size-1.5 rounded-full bg-success" />{fmtClock(now)}
               </div>
-              {clientOnly && <Link to="/cliente" title="Abrir meu painel" className="hidden max-w-[215px] flex-col items-start rounded-xl border border-primary/20 bg-primary/10 px-3 py-1.5 sm:flex"><span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Cliente conectado</span><span className="max-w-full truncate text-sm font-bold text-foreground">{clientName || "Meu painel"}</span></Link>}
-              {clientOnly && <Link to="/cliente" className="hidden rounded-lg border border-border bg-primary/10 px-3 py-2 text-xs font-semibold text-primary sm:flex sm:items-center sm:gap-1.5"><Users size={15}/> Área do cliente</Link>}
-              <button type="button" onClick={() => void toggleFullscreen()} aria-label={fullScreen ? "Sair da tela cheia" : "Ativar tela cheia"} title={fullScreen ? "Sair da tela cheia" : "Tela cheia"} aria-pressed={fullScreen} className="grid size-10 shrink-0 place-items-center rounded-xl border border-border bg-surface text-foreground transition hover:border-primary/30 hover:bg-muted">{fullScreen ? <Minimize size={18}/> : <Maximize size={18}/>}</button>
+              {clientOnly && <Link to="/cliente" title="Abrir meu painel" className="hidden max-w-[175px] flex-col items-start rounded-lg border border-primary/20 bg-primary/10 px-2.5 py-1 sm:flex lg:max-w-[185px]"><span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Cliente conectado</span><span className="max-w-full truncate text-sm font-bold text-foreground">{clientName || "Meu painel"}</span></Link>}
+              {clientOnly && <Link to="/cliente" className="hidden rounded-lg border border-border bg-primary/10 px-2.5 py-1.5 text-[11px] font-semibold text-primary sm:flex sm:items-center sm:gap-1.5"><Users size={15}/> Área do cliente</Link>}
+              <button type="button" onClick={() => void toggleFullscreen()} aria-label={fullScreen ? "Sair da tela cheia" : "Ativar tela cheia"} title={fullScreen ? "Sair da tela cheia" : "Tela cheia"} aria-pressed={fullScreen} className="grid size-9 shrink-0 place-items-center rounded-lg border border-border bg-surface text-foreground transition hover:border-primary/30 hover:bg-muted">{fullScreen ? <Minimize size={18}/> : <Maximize size={18}/>}</button>
               <button type="button" onClick={toggleTheme} aria-label={darkMode ? "Ativar tema claro" : "Ativar tema escuro"} title={darkMode ? "Modo claro" : "Modo escuro"} aria-pressed={darkMode} className="grid size-10 shrink-0 place-items-center rounded-xl border border-border bg-surface text-foreground transition-colors hover:border-primary/30 hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">{darkMode ? <Sun size={18}/> : <Moon size={18}/>}</button>
-              {signedIn ? <button type="button" onClick={() => void signOut()} disabled={signingOut} aria-label="Sair da conta" title="Sair da conta" className="flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-border bg-surface px-3 text-xs font-bold text-foreground hover:bg-muted disabled:opacity-60"><LogOut size={16}/><span className="hidden sm:inline">{signingOut ? "Saindo…" : "Sair"}</span></button> : <Link to="/entrar" aria-label="Entrar na conta" title="Entrar" className="flex h-10 shrink-0 items-center gap-2 rounded-xl bg-primary px-3.5 text-xs font-bold text-primary-foreground shadow-sm transition hover:opacity-90 lg:text-[13px]"><LogIn size={16}/><span className="hidden sm:inline">Entrar</span></Link>}
+              {signedIn ? <button type="button" onClick={() => void signOut()} disabled={signingOut} aria-label="Sair da conta" title="Sair da conta" className="flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 text-xs font-bold text-foreground hover:bg-muted disabled:opacity-60"><LogOut size={16}/><span className="hidden sm:inline">{signingOut ? "Saindo…" : "Sair"}</span></button> : <Link to="/entrar" aria-label="Entrar na conta" title="Entrar" className="flex h-9 shrink-0 items-center gap-2 rounded-lg bg-primary px-3 text-xs font-bold text-primary-foreground shadow-sm transition hover:opacity-90 lg:text-[13px]"><LogIn size={16}/><span className="hidden sm:inline">Entrar</span></Link>}
             </div>
           </div>
         </header>
@@ -189,9 +190,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         {authError && <p role="alert" className="relative z-20 mx-auto max-w-7xl px-3 py-2 text-xs text-destructive">{authError}</p>}
         {fullScreenError && <p role="alert" className="relative z-20 mx-auto max-w-7xl px-3 py-2 text-xs text-destructive">{fullScreenError}</p>}
-        <main id="care-content" className={`relative z-10 mx-auto min-h-0 w-full max-w-7xl flex-1 px-3 pt-2 sm:px-5 md:px-6 md:pt-3 ${isClientPage ? "overflow-y-auto pb-[70px] md:overflow-hidden md:pb-3" : isSportsPage ? "sports-nutrition-main overflow-y-auto overscroll-contain pb-[80px] lg:pb-2" : "overflow-y-auto overscroll-contain pb-[80px] md:pb-4"}`}>{children}</main>
+        <main id="care-content" className={`relative z-10 mx-auto min-h-0 w-full max-w-7xl flex-1 px-3 pt-2 sm:px-5 md:px-6 md:pt-3 ${isClientHome ? "overflow-x-hidden overflow-y-auto pb-[70px] md:overflow-hidden md:pb-2 md:pt-2" : isClientPage ? "overflow-y-auto pb-[70px] md:overflow-hidden md:pb-3" : isSportsPage ? "sports-nutrition-main overflow-y-auto overscroll-contain pb-[80px] lg:pb-2" : "overflow-y-auto overscroll-contain pb-[80px] md:pb-4"}`}>{children}</main>
 
-        <footer aria-label="Créditos de desenvolvimento" className="relative z-10 hidden shrink-0 items-center justify-center gap-2 border-t border-border/50 bg-background/80 px-4 py-2 text-[11px] text-muted-foreground backdrop-blur-sm md:flex">
+        <footer aria-label="Créditos de desenvolvimento" className="relative z-10 hidden shrink-0 items-center justify-center gap-2 border-t border-border/50 bg-background/80 px-4 py-1.5 text-[10px] text-muted-foreground backdrop-blur-sm md:flex">
           <span>CareDigital</span>
           <span aria-hidden="true">·</span>
           <span>Desenvolvido por <strong className="font-semibold text-foreground">Franc D&apos;nis</strong></span>
