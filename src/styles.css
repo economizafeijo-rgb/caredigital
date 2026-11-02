@@ -394,3 +394,24 @@ iframe[title*="Lovable" i][title*="badge" i] {
     max-width: min(72vw, 850px);
   }
 }
+
+
+/* Hidratação public showcase: leave the nurse portrait unobstructed on desktop.
+   This scope avoids changing client dashboards and the other public showcases. */
+@media (min-width: 1024px) {
+  .dark .care-shell:has(.public-hydration-showcase)::before {
+    background-image:
+      linear-gradient(90deg,
+        rgba(17,21,27,.97) 0%,
+        rgba(17,22,29,.83) 48%,
+        rgba(16,28,34,.17) 76%,
+        rgba(16,28,34,.20) 100%),
+      url("/images/caredigital-care-hero.webp"),
+      linear-gradient(145deg,#11151b,#202d34);
+    background-size: cover,cover,cover;
+    background-position: center,100% 20%,center;
+  }
+  .public-hydration-showcase svg[aria-labelledby^="public-water-title"] {
+    height: 170px;
+  }
+}
