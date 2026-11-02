@@ -41,7 +41,7 @@ export function CareIntakePicker(props:Props){
       {values.map(item=>{
         const chosen=props.value===item.value;
         const Icon=icons[item.value];
-        return <button type="button" key={item.value} aria-pressed={chosen}
+        return <button type="button" key={item.value} data-intake-kind={item.value} data-intake-group={props.group} aria-pressed={chosen}
           title={item.hint}
           onClick={()=>{
             if(props.group==="food")props.onChange(item.value as FoodKind);
