@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  CARE_REMINDER_WINDOW_MS, careReminderState, summarizeCareReminders,
+  CARE_REMINDER_WINDOW_MS, CARE_RECENT_UNANSWERED_MS, careReminderState, summarizeCareReminders,
   reminderCategoryLabel, reminderMmSs, type ReminderTask,
 } from "./care-reminders";
 
@@ -57,4 +57,30 @@ describe("CareDigital — lembretes de até 10 minutos",()=>{
     expect(reminderCategoryLabel("hidratacao")).toBe("Hidratação");
     expect(reminderCategoryLabel("refeicao")).toBe("Alimentação");
   });
+  it("não mostra como pendência uma água respondida com Não bebi",()=>{
+    const alreadyAnswered=task("water-0900","hidratacao");
+    const responseIds=new Set(["water-0900"]);
+    expect(careReminderState(alreadyAnswered,start+10,responseIds)).toBe("responded");
+    expect(careReminderState(alreadyAnswered,start+600000,responseIds)).toBe("responded");
+    const result=summarizeCareReminders([alreadyAnswered],start+600000,responseIds);
+    expect(result.primary).toBeNull();
+    expect(result.unconfirmedCount).toBe(0);
+    expect(result.dueCount).toBe(0);
+  });
+  it("exibe somente acontecimentos recentes que ainda não foram respondidos",()=>{
+    const old=task("old","hidratacao",-150);
+    const recent=task("recent","refeicao",-20);
+    const res=summarizeCareReminders([old,recent],start);
+    expect(res.unconfirmedCount).toBe(1);
+    expect(res.primary?.task.id).toBe("recent");
+    expect(summarizeCareReminders([old],start).primary).toBeNull();
+    expect(CARE_RECENT_UNANSWERED_MS).toBe(2*60*60*1000);
+  });
+  it("resposta Não bebi bloqueia alerta visual e áudio de um horário atual",()=>{
+    const active=task("water-now","hidratacao",0);
+    const summary=summarizeCareReminders([active],start+2000,new Set(["water-now"]));
+    expect(summary.primary).toBeNull();
+    expect(summary.dueCount).toBe(0);
+  });
+
 });
