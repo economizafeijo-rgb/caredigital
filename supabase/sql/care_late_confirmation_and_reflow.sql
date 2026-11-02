@@ -191,3 +191,36 @@ $function$
 
 
 REVOKE ALL ON FUNCTION public.care_reflow_pending_schedule(uuid,text,timestamptz,timestamptz) FROM PUBLIC, anon, authenticated;
+
+-- Crucial trigger fix: previously blocked late confirmations even after RPC changes.
+-- Existing trigger care_task_confirmation_window_guard invokes this function.
+CREATE OR REPLACE FUNCTION public.care_enforce_task_confirmation_window()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_now timestamptz := clock_timestamp();
+BEGIN
+ IF TG_OP='INSERT' THEN
+   IF NEW.completed_at IS NOT NULL THEN
+     RAISE EXCEPTION 'Task confirmation must use the server-controlled confirmation flow';
+   END IF;
+   RETURN NEW;
+ END IF;
+ IF OLD.completed_at IS NOT NULL AND (
+   NEW.completed_at IS DISTINCT FROM OLD.completed_at
+   OR NEW.scheduled_at IS DISTINCT FROM OLD.scheduled_at
+ ) THEN
+   RAISE EXCEPTION 'Confirmed care records cannot be backdated or altered';
+ END IF;
+ IF NEW.completed_at IS DISTINCT FROM OLD.completed_at THEN
+   IF NEW.completed_at IS NULL THEN RAISE EXCEPTION 'Cannot clear a care confirmation'; END IF;
+   IF v_now < OLD.scheduled_at THEN RAISE EXCEPTION 'Care window not started'; END IF;
+   -- Late meal and hydration confirmations are allowed; record the actual server time.
+   -- Medication constraints are retained in their dedicated trigger.
+   NEW.completed_at := v_now;
+ END IF;
+ RETURN NEW;
+END;
+$function$
+
