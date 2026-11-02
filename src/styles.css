@@ -2061,3 +2061,75 @@ iframe[title*="Lovable" i][title*="badge" i] {
 @media (prefers-reduced-motion:reduce) {
   .care-client-dashboard .care-client-page-nav button {transition:none;}
 }
+
+/* CareDigital — Visual categories for recorded food and beverages */
+.care-intake-picker-scroll {scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--primary) 40%,transparent) transparent;}
+.care-intake-option {
+  --intake-accent:#0c9da6;
+  min-height:59px;
+  position:relative;
+  transition:background .16s ease,border-color .16s ease,transform .16s ease,box-shadow .16s ease;
+}
+.care-intake-option svg {
+  color:var(--intake-accent);
+  filter:drop-shadow(0 2px 3px color-mix(in srgb,var(--intake-accent) 13%,transparent));
+}
+.care-intake-option:not([aria-pressed="true"]):hover {
+  transform:translateY(-1px);
+  background:color-mix(in srgb,var(--intake-accent) 10%,var(--card));
+  border-color:color-mix(in srgb,var(--intake-accent) 36%,var(--border));
+}
+.care-intake-option[aria-pressed="true"] {
+  color:var(--foreground);
+  border-color:color-mix(in srgb,var(--intake-accent) 73%,var(--border));
+  background:linear-gradient(135deg,color-mix(in srgb,var(--intake-accent) 19%,var(--card)),color-mix(in srgb,var(--intake-accent) 6%,var(--card)));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--intake-accent) 20%,transparent),0 2px 8px color-mix(in srgb,var(--intake-accent) 10%,transparent);
+}
+.care-intake-option[aria-pressed="true"]::after {
+  content:"";position:absolute;right:5px;top:5px;
+  width:5px;height:5px;border-radius:50%;background:var(--intake-accent);
+}
+.care-intake-option[data-intake-kind="agua"],
+.care-intake-option[data-intake-kind="isotonico"],
+.care-intake-option[data-intake-kind="suco"] {--intake-accent:#1685c5;}
+.care-intake-option[data-intake-kind="cha"],
+.care-intake-option[data-intake-kind="agua_coco"],
+.care-intake-option[data-intake-kind="salada"] {--intake-accent:#12956b;}
+.care-intake-option[data-intake-kind="energetico"],
+.care-intake-option[data-intake-kind="cafe"],
+.care-intake-option[data-intake-kind="cafe_manha"],
+.care-intake-option[data-intake-kind="lanche"] {--intake-accent:#ca8624;}
+.care-intake-option[data-intake-kind="shake"],
+.care-intake-option[data-intake-kind="suplemento"],
+.care-intake-option[data-intake-kind="vitamina"] {--intake-accent:#8c6ad8;}
+.care-intake-option[data-intake-kind="fruta"],
+.care-intake-option[data-intake-kind="sobremesa"] {--intake-accent:#d65b82;}
+.care-intake-option[data-intake-kind="jantar"],
+.care-intake-option[data-intake-kind="ceia"],
+.care-intake-option[data-intake-kind="leite"] {--intake-accent:#6982ca;}
+.care-intake-option[data-intake-kind="almoco"],
+.care-intake-option[data-intake-kind="sopa"],
+.care-intake-option[data-intake-kind="refeicao"] {--intake-accent:#129e89;}
+.care-meal-record[data-food-category="fruta"] > div:first-child > span:first-child {
+  color:#b73365;background:color-mix(in srgb,#e95b8a 13%,var(--card));
+}
+.care-meal-record[data-food-category="cafe_manha"] > div:first-child > span:first-child,
+.care-meal-record[data-food-category="lanche"] > div:first-child > span:first-child {
+  color:#b17616;background:color-mix(in srgb,#f5b64e 16%,var(--card));
+}
+.care-meal-record[data-food-category="jantar"] > div:first-child > span:first-child,
+.care-meal-record[data-food-category="ceia"] > div:first-child > span:first-child {
+  color:#6356c7;background:color-mix(in srgb,#998dfa 14%,var(--card));
+}
+.care-meal-record[data-food-category="almoco"] > div:first-child > span:first-child {
+  color:#0a927b;background:color-mix(in srgb,#30cba7 15%,var(--card));
+}
+@media (max-width:480px) {
+  .care-intake-choices {gap:5px;}
+  .care-intake-option {min-height:57px;padding-inline:2px;}
+  .care-intake-option span {font-size:9.5px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .care-intake-option {transition:none;}
+  .care-intake-option:hover {transform:none;}
+}
