@@ -259,7 +259,7 @@ export function ClientHomeSummary(){
    refeicao:agendaItems.filter(item=>item.category==="refeicao").length,
    medicacao:agendaItems.filter(item=>item.category==="medicacao").length};
  const chooseAgenda=(category:typeof agendaCategory)=>{setAgendaCategory(category);setAgendaPage(0);};
- return <section className="client-home-dashboard care-home-art-v2 care-home-art-reference relative flex min-h-0 min-w-0 w-full flex-col gap-2 rounded-[24px] border p-3 shadow-xl md:h-full md:max-h-full md:gap-2 md:overflow-hidden" aria-label="Painel interativo do cliente na homepage">
+ return <section className="client-home-dashboard care-home-art-v2 care-home-art-reference care-premium-v3 relative flex min-h-0 min-w-0 w-full flex-col gap-2 rounded-[24px] border p-3 shadow-xl md:h-full md:max-h-full md:gap-2 md:overflow-hidden" aria-label="Painel interativo do cliente na homepage">
   <div aria-hidden="true" className="care-home-ambient pointer-events-none absolute inset-0 overflow-hidden rounded-[24px]"><span className="care-home-glow care-home-glow-a"/><span className="care-home-glow care-home-glow-b"/></div>
   <details className="care-home-shortcuts absolute left-2 top-2 z-40">
     <summary aria-label="Abrir ações rápidas e lembretes" title="Ações rápidas e lembretes" className="care-home-shortcut-trigger">
@@ -287,7 +287,7 @@ export function ClientHomeSummary(){
       </div>
     </div>
   </details>
-  {attentionRecent.length>0&&<details className="group relative z-30 mt-9 shrink-0 md:mt-0" aria-label="Cuidados que precisam de atenção">
+  {attentionRecent.length>0&&<details className="care-premium-pending group relative z-30 shrink-0" aria-label="Cuidados que precisam de atenção">
     <summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 rounded-2xl border border-amber-200/25 bg-slate-900/55 px-3 py-2 text-white shadow-sm backdrop-blur-xl transition hover:bg-slate-800/70 [&::-webkit-details-marker]:hidden">
       <span className="grid size-6 shrink-0 place-items-center rounded-lg bg-amber-300/15 text-amber-200"><ShieldAlert size={15}/></span>
       <span className="min-w-0 flex-1 truncate text-[11px] font-semibold">Pendências recentes</span>
@@ -331,7 +331,7 @@ export function ClientHomeSummary(){
       <CareProgressVisual tasks={summaryTasks} goal={dailyGoal}
         onHydration={openHydrationCard} onFood={openFoodCard}
         onMedication={openMedicationCard} onOpen={task=>{setDetailTask(task);setError("");}}/>
-      <div className="patient-progress flex flex-wrap items-center gap-1.5 text-[10px] text-slate-300"><Check size={14} className="text-emerald-300"/>{finished} de {summaryTasks.length} cuidados concluídos
+      <div className="patient-progress care-premium-progress flex flex-wrap items-center gap-1.5 text-[10px] text-slate-300"><Check size={14} className="text-emerald-300"/>{finished} de {summaryTasks.length} cuidados concluídos
         {dailyGoal?.status==="atingida"&&<span title={`Hidratação: ${dailyGoal.consumed_ml} de ${dailyGoal.target_ml} ml até 23h.`} className="inline-flex items-center gap-1 rounded-md border border-emerald-300/25 bg-emerald-400/10 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-200"><Droplets size={11}/> Meta de água atingida</span>}
         {dailyGoal?.status==="nao_atingida"&&<span title={`Hidratação: ${dailyGoal.consumed_ml} de ${dailyGoal.target_ml} ml até 23h.`} className="inline-flex items-center gap-1 rounded-md border border-amber-300/25 bg-amber-400/10 px-1.5 py-0.5 text-[9px] font-semibold text-amber-200"><Droplets size={11}/> Meta não atingida · 23h</span>}
         <span className="ml-auto font-bold text-sky-200">{completion}%</span></div>
