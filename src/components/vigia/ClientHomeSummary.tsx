@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./care-home-reference.css";
 import { Link } from "@tanstack/react-router";
-import { CalendarClock, Check, Clock3, Droplets, Pill, Utensils, X, ArrowUpRight, ChevronRight, Plus, ListChecks } from "lucide-react";
+import { CalendarClock, Check, Clock3, Droplets, Pill, Utensils, X, ArrowUpRight, ChevronRight, Plus, ListChecks, AlertCircle, ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CareReminderBeacon } from "./CareReminderBeacon";
 import { CareProgressVisual } from "./CareProgressVisual";
@@ -241,6 +241,20 @@ export function ClientHomeSummary(){
    // If no medication is scheduled, the full treatment section still opens.
    window.location.assign("/cliente#visao-geral");
  };
+ // Mostra apenas eventos vencidos e ainda sem resposta, ou explicitamente não realizados.
+ // Eventos futuros, confirmados e corrigidos nunca aparecem como pendência.
+ const attentionItems=summaryTasks.filter(task=>{
+   if(task.completed_at)return false;
+   const status=resolvedStates[task.id];
+   if(status==="cancelado")return false;
+   if(status==="nao_cumprido"||status==="nao_bebi")return true;
+   return Boolean(now&&Date.parse(task.scheduled_at)<now.getTime()&&!status);
+ }).sort((a,b)=>Date.parse(b.scheduled_at)-Date.parse(a.scheduled_at));
+ const attentionRecent=attentionItems.slice(0,2);
+ const attentionText=(task:Care)=>{
+   const status=resolvedStates[task.id];
+   return status==="nao_bebi"?"Não bebeu":status==="nao_cumprido"?"Não realizado":"Sem confirmação";
+ };
  const categoryCounts={hidratacao:agendaItems.filter(item=>item.category==="hidratacao").length,
    refeicao:agendaItems.filter(item=>item.category==="refeicao").length,
    medicacao:agendaItems.filter(item=>item.category==="medicacao").length};
@@ -273,6 +287,33 @@ export function ClientHomeSummary(){
       </div>
     </div>
   </details>
+  {attentionRecent.length>0&&<section aria-label="Cuidados recentes sem confirmação ou não realizados"
+    className="relative z-10 mt-10 shrink-0 overflow-hidden rounded-[20px] border border-amber-200/30 bg-slate-900/65 p-3 text-white shadow-[0_12px_40px_rgba(0,0,0,.2)] backdrop-blur-2xl md:mt-0 md:p-3.5">
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-amber-400/[.12] via-white/[.035] to-cyan-400/[.08]"/>
+    <div className="relative flex flex-wrap items-center justify-between gap-2">
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="grid size-9 shrink-0 place-items-center rounded-xl border border-amber-200/25 bg-amber-300/15 text-amber-200"><ShieldAlert size={18}/></span>
+        <div className="min-w-0"><h3 className="text-[12px] font-extrabold tracking-wide text-white">Atenção aos últimos cuidados</h3>
+          <p className="text-[10px] text-white/70">{attentionItems.length} {attentionItems.length===1?"evento precisa":"eventos precisam"} de atenção</p></div>
+      </div>
+      <span className="rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-bold text-amber-100 backdrop-blur-lg">Pendências recentes</span>
+    </div>
+    <div className="relative mt-2 grid gap-2 sm:grid-cols-2">
+      {attentionRecent.map(task=>{
+        const Icon=icons[task.category as keyof typeof icons]??AlertCircle;
+        const status=resolvedStates[task.id];
+        const canOpen=Boolean(!status&&task.category!=="medicacao");
+        return <button key={task.id} type="button"
+          onClick={()=>{if(canOpen){openDueConfirmation(task)}else{setDetailTask(task);setError("");setReceipt(null);}}}
+          className="group flex min-w-0 items-center gap-2.5 rounded-xl border border-white/20 bg-white/[.09] px-3 py-2.5 text-left shadow-sm backdrop-blur-xl transition hover:border-white/45 hover:bg-white/[.16] focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-200">
+          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/15 text-cyan-100"><Icon size={18}/></span>
+          <span className="min-w-0 flex-1"><strong className="block truncate text-xs font-bold text-white">{task.title}</strong>
+            <small className="mt-0.5 block text-[10px] text-white/75">{time(task.scheduled_at)} · {attentionText(task)}</small></span>
+          <ChevronRight size={16} className="shrink-0 text-white/70 transition group-hover:translate-x-0.5"/>
+        </button>;
+      })}
+    </div>
+  </section>}
   <div className="care-home-body relative grid min-h-0 min-w-0 flex-1 gap-2.5 md:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] md:items-stretch">
     <div className="care-home-left grid min-h-0 min-w-0 grid-rows-[minmax(0,1fr)_auto_auto] gap-1.5">
       <article className="patient-next-care relative flex min-h-[210px] min-w-0 flex-col justify-between overflow-hidden rounded-[22px] border p-3 sm:p-4 md:min-h-0">
