@@ -9,17 +9,20 @@ export type Goal="equilibrio"|"emagrecimento"|"ganho_peso"|"hipertrofia";
 export type MealTime="cafe"|"almoco"|"jantar"|"lanche";
 export type Ingredient={
  id:string;name:string;group:"frutas"|"cereais"|"proteinas"|"legumes"|"bebidas";
- protein:number|null;kcal:number|null;note?:string;
+ /** Valores por 100 g de parte comestível na forma de preparo descrita. */
+ protein:number|null;carbs:number|null;fat:number|null;fiber:number|null;kcal:number|null;note?:string;
+ provenance?: "TACO"|"estimativa"|"rotulo";
  flags?:Array<"acido"|"gorduroso"|"cafeina"|"picante"|"frito"|"laticinio"|"fermentavel"|"industrializado">;
 };
 export const nutritionSources=[
  {title:"Tabela Brasileira de Composição de Alimentos (TBCA/USP)",url:"https://www.tbca.net.br/"},
+ {title:"TACO — Núcleo de Estudos e Pesquisas em Alimentação, UNICAMP (2011)",url:"https://www.unicesumar.edu.br/biblioteca/wp-content/uploads/sites/50/2018/08/Tabela-Brasileira-de-Composicao-de-Alimentos.pdf"},
  {title:"Guia Alimentar para a População Brasileira (Ministério da Saúde)",url:"https://www.gov.br/saude/pt-br/composicao/saps/promocao-da-saude/guias-alimentares/guias-alimentares"},
  {title:"NIDDK — Alimentação na gastrite",url:"https://www.niddk.nih.gov/health-information/digestive-diseases/gastritis-gastropathy/eating-diet-nutrition"},
  {title:"NHS — Gastrite: orientações de cuidado",url:"https://www.nhs.uk/conditions/gastritis/"},
  {title:"ISSN — Proteína e exercício",url:"https://pmc.ncbi.nlm.nih.gov/articles/PMC5477153/"},
 ] as const;
-export const ingredients:Ingredient[]=[
+const baseIngredients:Omit<Ingredient,"carbs"|"fat"|"fiber">[]=[
  {id:"banana_prata",name:"Banana-prata crua",group:"frutas",protein:1.3,kcal:98},
  {id:"banana_maca",name:"Banana-maçã crua",group:"frutas",protein:1.8,kcal:87},
  {id:"banana_comprida",name:"Banana-comprida (banana-da-terra) cozida",group:"frutas",protein:1.3,kcal:116,note:"Cozida, não frita."},
@@ -67,7 +70,78 @@ export const ingredients:Ingredient[]=[
  {id:"suco_maracuja",name:"Suco natural de maracujá sem açúcar",group:"bebidas",protein:.3,kcal:27,flags:["acido"]},
  {id:"cha_camomila",name:"Chá de camomila sem açúcar",group:"bebidas",protein:0,kcal:1},
  {id:"cafe",name:"Café coado sem açúcar",group:"bebidas",protein:.1,kcal:1,flags:["cafeina"]},
+ {id:"banana_nanica",name:"Banana-nanica crua",group:"frutas",protein:1.4,kcal:92,provenance:"TACO"},
+ {id:"banana_pacova",name:"Banana-pacovã crua",group:"frutas",protein:1.2,kcal:78,provenance:"TACO"},
+ {id:"manga",name:"Manga madura crua",group:"frutas",protein:.5,kcal:60},
+ {id:"goiaba",name:"Goiaba madura crua",group:"frutas",protein:.9,kcal:54},
+ {id:"acerola",name:"Acerola crua",group:"frutas",protein:.9,kcal:33,provenance:"TACO"},
+ {id:"melao",name:"Melão cru",group:"frutas",protein:.7,kcal:29},
+ {id:"uva",name:"Uva crua",group:"frutas",protein:.7,kcal:69},
+ {id:"abacate",name:"Abacate cru",group:"frutas",protein:1.2,kcal:96,provenance:"TACO",flags:["gorduroso"]},
+ {id:"mandioca_frita",name:"Macaxeira/mandioca frita",group:"cereais",protein:1.4,kcal:300,provenance:"TACO",flags:["frito","gorduroso"]},
+ {id:"farofa",name:"Farofa de mandioca temperada",group:"cereais",protein:2.1,kcal:406,provenance:"TACO",flags:["gorduroso"]},
+ {id:"feijao_preto",name:"Feijão-preto cozido",group:"proteinas",protein:4.5,kcal:77,flags:["fermentavel"]},
+ {id:"ervilha",name:"Ervilha cozida",group:"proteinas",protein:5.4,kcal:81,flags:["fermentavel"]},
+ {id:"tilapia",name:"Filé de tilápia grelhado",group:"proteinas",protein:26,kcal:128},
+ {id:"sardinha",name:"Sardinha assada",group:"proteinas",protein:29,kcal:164},
+ {id:"mingau_aveia",name:"Mingau de aveia feito com água",group:"cereais",protein:2.5,kcal:72,note:"Estimativa para receita simples sem açúcar."},
+ {id:"amendoim",name:"Amendoim torrado sem sal",group:"proteinas",protein:26,kcal:588,flags:["gorduroso"]},
+ {id:"castanha_para",name:"Castanha-do-pará crua",group:"proteinas",protein:14,kcal:656,flags:["gorduroso"]},
+ {id:"azeite",name:"Azeite de oliva",group:"cereais",protein:0,kcal:884,flags:["gorduroso"]},
+ {id:"coco",name:"Coco fresco",group:"frutas",protein:3,kcal:354,flags:["gorduroso"]},
 ];
+/* Referências TACO/UNICAMP (quando a preparação coincide) e estimativas
+   editoriais TBCA/USDA para os demais. Valores podem variar conforme receita,
+   marca, estágio de maturação e método de cocção. NÃO extrapolar rótulos. */
+const macroMap:Record<string,[number|null,number|null,number|null,Ingredient["provenance"]?]> = {
+ banana_prata:[26,.1,2,"TACO"],banana_maca:[22.3,.1,2.6,"TACO"],
+ banana_comprida:[30,.2,1.5],mamão:[10,.1,1.8],maca:[15,.2,1.3],
+ pera:[15,.1,3.1],melancia:[7.5,.2,.4],acai:[6.2,3.9,2.6,"TACO"],
+ maracuja:[12.3,.7,1.1],abacaxi:[12.3,.1,1,"TACO"],
+ laranja:[11.5,.2,.8],macaxeira:[30.1,.3,1.6,"TACO"],
+ cuscuz:[25.3,.7,2.1],aveia:[66.6,6.9,9.1],
+ arroz:[28.1,.2,1.6],arroz_integral:[25.8,1,2.7],
+ batata:[11.9,0,1.3],batata_doce:[18.4,.1,2.2],
+ inhame:[23,.2,1.7],tapioca:[54,0,.2],farinha:[89,.3,6.3],
+ granola:[null,null,null,"rotulo"],neston:[null,null,null,"rotulo"],
+ mucilon:[null,null,null,"rotulo"],frango:[0,3.2,0,"TACO"],
+ ovo:[.6,9.5,0],peixe:[0,2.5,0],carne:[0,8,0],
+ iogurte:[4.7,3.3,0],leite:[4.8,1.7,0],
+ feijao:[13.6,.5,8],lentilha:[16.3,.5,7.9],
+ cenoura:[6.7,.2,2.6],abobora:[10,.2,2],
+ chuchu:[4.8,.1,1.3],abobrinha:[4,.2,1],
+ vagem:[7,.1,3],beterraba:[7.2,.1,1.9],
+ brocolis:[4.4,.5,3.4],couve:[6.1,2,3],
+ espinafre:[3.7,.3,2.4],alface:[2.9,.1,1.3],
+ tomate:[3.1,.2,1.2,"TACO"],pepino:[2,.1,1.1,"TACO"],
+ suco_maracuja:[6,.1,.2],cha_camomila:[0,0,0],cafe:[.3,0,0],
+ banana_nanica:[23.8,.1,1.9,"TACO"],banana_pacova:[20.3,.1,2,"TACO"],
+ manga:[15,.2,1.6],goiaba:[13,.4,5.4],acerola:[8,.2,1.5,"TACO"],
+ melao:[7.5,.1,.3],uva:[18,.2,.9],abacate:[6,8.4,6.3,"TACO"],
+ mandioca_frita:[50.3,11.2,1.9,"TACO"],farofa:[80.3,9.1,7.8,"TACO"],
+ feijao_preto:[14,.5,8.4],ervilha:[14.5,.4,5],
+ tilapia:[0,2.5,0],sardinha:[0,4.7,0],
+ mingau_aveia:[12,1.6,1.2],amendoim:[20,49,9],
+ castanha_para:[12,66,7.5],azeite:[0,100,0],coco:[15,33,9],
+};
+export const ingredients:Ingredient[]=baseIngredients.map(food=>{
+ const n=macroMap[food.id];
+ if(!n)throw new Error("Faltam macronutrientes para "+food.id);
+ return {...food,carbs:n[0],fat:n[1],fiber:n[2],provenance:n[3]??food.provenance??"estimativa"};
+});
+export type FoodMacro="protein"|"carbs"|"fat"|"kcal";
+export const foodMacroLabels:Record<FoodMacro,string>={protein:"Proteína",carbs:"Carboidratos",fat:"Gorduras",kcal:"Calorias"};
+export const portionNutrition=(item:Ingredient,grams:number)=>{
+ const factor=Number.isFinite(grams)&&grams>=0&&grams<=5000?grams/100:NaN;
+ const scale=(v:number|null)=>v===null||!Number.isFinite(factor)?null:Math.round(v*factor*10)/10;
+ return {protein:scale(item.protein),carbs:scale(item.carbs),fat:scale(item.fat),
+   fiber:scale(item.fiber),kcal:scale(item.kcal)};
+};
+export const gramsForMacro=(item:Ingredient,macro:FoodMacro,remaining:number)=>{
+ const per100=item[macro];
+ if(per100===null||!Number.isFinite(per100)||per100<=0||!Number.isFinite(remaining)||remaining<0)return null;
+ return Math.ceil(remaining/per100*100/5)*5;
+};
 export type Recipe={id:string;title:string;slot:MealTime;minutes:number;ingredients:Array<[string,number]>;steps:string[];
  goals:Goal[];tags:string[];description:string};
 const R=(id:string,title:string,slot:MealTime,minutes:number,items:Array<[string,number]>,steps:string[],goals:Goal[],tags:string[],description:string):Recipe=>({id,title,slot,minutes,ingredients:items,steps,goals,tags,description});
@@ -96,13 +170,16 @@ export const recipes:Recipe[]=[
 ];
 export const ingredientById=new Map(ingredients.map(item=>[item.id,item]));
 export const recipeTotals=(recipe:Recipe)=>{
- let protein=0,kcal=0,unverified=false;
+ let protein=0,carbs=0,fat=0,fiber=0,kcal=0,unverified=false;
  for(const [id,g] of recipe.ingredients){
   const item=ingredientById.get(id);
   if(!item||item.protein===null||item.kcal===null){unverified=true;continue;}
-  protein+=item.protein*g/100;kcal+=item.kcal*g/100;
+  const n=portionNutrition(item,g);
+  protein+=n.protein??0;carbs+=n.carbs??0;fat+=n.fat??0;fiber+=n.fiber??0;kcal+=n.kcal??0;
+  if(n.carbs===null||n.fat===null)unverified=true;
  }
- return {protein:Math.round(protein*10)/10,kcal:Math.round(kcal),unverified};
+ return {protein:Math.round(protein*10)/10,carbs:Math.round(carbs*10)/10,
+  fat:Math.round(fat*10)/10,fiber:Math.round(fiber*10)/10,kcal:Math.round(kcal),unverified};
 };
 export const triggerNames={
  acido:"ácidos",gorduroso:"mais gordurosos",cafeina:"cafeína",picante:"pimenta",
