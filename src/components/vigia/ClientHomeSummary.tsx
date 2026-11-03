@@ -357,7 +357,7 @@ export function ClientHomeSummary(){
           {category.label} <span className="tabular-nums opacity-80">{category.count}</span>
         </button>)}
       </div>
-      <div className="relative z-10 mt-1.5 min-h-0 flex-1 space-y-1 overflow-hidden" aria-live="polite">
+      <div className="care-timeline-scroll relative z-10 mt-2 min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pr-1" aria-live="polite">
         {visibleAgenda.map(item=>{const Icon=icons[item.category]??CalendarClock;return <button key={item.key} type="button"
           data-care-category={item.category} data-care-state={item.completed?"done":item.resolved?"resolved":item.overdue?"overdue":"scheduled"}
           title={item.task?"Ver ou corrigir cuidado programado":"Abrir o histórico completo deste consumo"}
@@ -373,11 +373,12 @@ export function ClientHomeSummary(){
         {filteredAgenda.length===0&&<p className="rounded-lg p-4 text-sm text-slate-200">Nenhum registro nesta categoria para hoje.</p>}
         {extraError&&<p role="alert" className="rounded-lg border border-amber-300/40 bg-amber-950/60 p-2 text-[11px] text-amber-100">Não foi possível consultar todos os registros de {extraError}. O prontuário pode conter outros lançamentos.</p>}
       </div>
-      {filteredAgenda.length>agendaPageSize&&<nav aria-label="Páginas da agenda" className="relative z-10 mt-1.5 flex shrink-0 items-center justify-between border-t border-white/10 pt-1.5">
+      <nav aria-label="Páginas da agenda" className="care-timeline-navigation relative z-20 mt-2 flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-white/15 pt-2">
         <button type="button" onClick={()=>setAgendaPage(p=>Math.max(0,p-1))} disabled={agendaPage===0} className="rounded-lg border border-white/15 px-2.5 py-1 text-[11px] font-semibold disabled:opacity-35">Anterior</button>
         <span className="text-[11px] text-slate-300">Página {agendaIndex+1} de {agendaPageCount}</span>
         <button type="button" onClick={()=>setAgendaPage(p=>Math.min(agendaPageCount-1,p+1))} disabled={agendaPage>=agendaPageCount-1} className="rounded-lg border border-white/15 px-3 py-1.5 text-xs font-semibold disabled:opacity-35">Próxima</button>
-      </nav>}
+        <Link to="/cliente" className="care-timeline-all-link" title="Abrir a área do cliente e consultar o histórico completo">Ver todos os registros <ChevronRight size={14}/></Link>
+      </nav>
     </div>
   </div>
   {receipt&&<div role={receipt.success?"status":"alert"} className={`fixed inset-x-3 top-16 z-[95] mx-auto flex max-w-lg items-start gap-3 rounded-2xl border p-4 text-sm font-semibold shadow-xl ${receipt.success?"border-emerald-400 bg-emerald-50 text-emerald-950 dark:bg-emerald-950 dark:text-emerald-50":"border-rose-400 bg-rose-50 text-rose-950 dark:bg-rose-950 dark:text-rose-50"}`}><span className="flex-1">{receipt.success?"✓ Registro confirmado. ":"Atenção. "}{receipt.message}</span><button aria-label="Fechar aviso" type="button" onClick={()=>setReceipt(null)}><X size={17}/></button></div>}
