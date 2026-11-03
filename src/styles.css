@@ -2604,3 +2604,37 @@ iframe[title*="Lovable" i][title*="badge" i] {
  #care-content .care-client-page-content {overflow-y:auto;overscroll-behavior:contain}
  #care-content :is(.care-page-agenda,.care-page-meals,.nutrition-studio,.patient-history-workspace,.care-food-macro-library) {min-width:0}
 }
+
+
+/* Photographic nurse hero: restore original photo, never the temporary vector.
+   Position photo as a separate contained panel to avoid cropping the face. */
+:root .client-home-dashboard.care-reference-2026 .care-reference-hero {
+ min-height:clamp(205px,22vw,285px);
+ padding:clamp(18px,2.7vw,36px);
+ padding-right:44%;
+ background-image:
+   linear-gradient(90deg,#051e2d 0%,rgba(5,30,45,.98) 37%,rgba(5,30,45,.65) 55%,rgba(5,30,45,.08) 100%),
+   url('/images/caredigital-care-hero.webp')!important;
+ background-size:100% 100%,auto 100%!important;
+ background-position:center,right top!important;
+ background-repeat:no-repeat!important;
+ background-color:#052b3c;
+}
+:root .client-home-dashboard.care-reference-2026 .care-reference-hero::after {
+ content:"";
+ position:absolute;
+ inset:0;
+ z-index:0;
+ pointer-events:none;
+ border-radius:inherit;
+ background:linear-gradient(90deg,rgba(3,24,36,.34),transparent 72%);
+}
+:root .client-home-dashboard.care-reference-2026 .care-reference-hero > * {position:relative;z-index:1}
+@media(max-width:767px){
+ :root .client-home-dashboard.care-reference-2026 .care-reference-hero {
+  min-height:190px;
+  padding:16px 42% 16px 15px;
+  background-size:100% 100%,auto 100%!important;
+  background-position:center,right top!important;
+ }
+}
