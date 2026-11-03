@@ -59,7 +59,7 @@ export function ClientAgendaPage({tasks,resolved={},now=Date.now(),onView,onConf
   function changeCategory(newCategory:string){setCategory(newCategory);setPage(0);}
   function changeStatus(newStatus:StatusFilter){setStatus(newStatus);setPage(0);}
 
-  return <div className="care-page-agenda flex h-full min-h-0 min-w-0 flex-col gap-3">
+  return <div className="care-page-agenda care-premium-agenda flex h-full min-h-0 min-w-0 flex-col gap-3">
     <div className="care-page-agenda-insights grid shrink-0 grid-cols-3 gap-2">
       <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/[.075] px-3 py-2">
         <span className="block text-[10px] font-semibold text-muted-foreground">Confirmados</span>
@@ -122,7 +122,7 @@ export function ClientAgendaPage({tasks,resolved={},now=Date.now(),onView,onConf
           const lateState=state==="unconfirmed";
           const canAct=!answered&&(state==="due"||lateState);
           return <article key={task.id}
-            className={"care-agenda-row flex min-w-0 flex-col rounded-2xl border p-3 "+(styles[task.category]??"care-agenda-other")}>
+            className={"care-agenda-row care-premium-agenda-event flex min-w-0 flex-col rounded-2xl border p-3 "+(styles[task.category]??"care-agenda-other")}>
             <button type="button" onClick={()=>onView(task)} aria-label={"Consultar "+task.title}
               className="flex min-w-0 flex-1 items-start gap-2.5 text-left">
               <span className="care-agenda-row-icon grid size-9 shrink-0 place-items-center rounded-xl bg-background/70">
