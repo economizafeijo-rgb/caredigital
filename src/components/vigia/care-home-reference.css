@@ -242,6 +242,30 @@
   padding: 9px 14px;
   font-size: clamp(10px,.92vw,15px);
 }
+:root .client-home-dashboard.care-home-art-v2.care-home-art-reference .care-timeline-filters {
+  gap: 5px;
+  padding-top: 8px;
+  padding-bottom: 2px;
+}
+:root .client-home-dashboard.care-home-art-v2.care-home-art-reference .care-timeline-filter {
+  min-height: 30px;
+  border-color: rgba(117,211,220,.37);
+  background: rgba(9,64,78,.82);
+  color: #d7f6f8;
+  font-size: clamp(10px,.74vw,12px);
+  white-space: nowrap;
+}
+:root .client-home-dashboard.care-home-art-v2.care-home-art-reference .care-timeline-filter[aria-pressed="true"] {
+  border-color: #75f4e7;
+  color: #00383b;
+  background: #93f5e8;
+  box-shadow: 0 0 0 1px rgba(117,244,231,.2);
+}
+:root .client-home-dashboard.care-home-art-v2.care-home-art-reference .care-timeline-filter:focus-visible,
+:root .client-home-dashboard.care-home-art-v2.care-home-art-reference .patient-timeline-item:focus-visible {
+  outline: 2px solid #bafff6;
+  outline-offset: 2px;
+}
 :root .client-home-dashboard.care-home-art-v2.care-home-art-reference .patient-timeline-item {
   min-height: clamp(48px,6.8vh,68px);
   border-radius: 999px;
