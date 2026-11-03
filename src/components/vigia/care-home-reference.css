@@ -1239,3 +1239,14 @@
 :root .client-home-dashboard.care-reference-2026 .care-wellness-disclaimer{font-size:10px;opacity:.8}
 @media(max-width:900px){:root .client-home-dashboard.care-reference-2026 .care-wellness-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:420px){:root .client-home-dashboard.care-reference-2026 .care-wellness-metrics>div{padding:5px}:root .client-home-dashboard.care-reference-2026 .care-wellness-metrics strong{font-size:13px}}
+
+
+/* Clear BMI assessment and macro provenance. */
+:root .client-home-dashboard.care-reference-2026 .care-wellness-metrics>div[data-health-tone="good"]{border:1px solid rgba(75,224,170,.65)}
+:root .client-home-dashboard.care-reference-2026 .care-wellness-metrics>div[data-health-tone="attention"]{border:1px solid rgba(250,193,85,.75)}
+:root .client-home-dashboard.care-reference-2026 .care-wellness-metrics>div[data-health-tone="alert"]{border:1px solid rgba(252,139,128,.75)}
+:root .client-home-dashboard.care-reference-2026 .care-wellness-metrics .care-imc-status{font-size:11px;font-weight:800;line-height:1.25;color:#f3fcfc}
+:root .client-home-dashboard.care-reference-2026 .care-wellness-metrics>div[data-health-tone="good"] .care-imc-status{color:#92f3c8}
+:root .client-home-dashboard.care-reference-2026 .care-wellness-metrics>div[data-health-tone="attention"] .care-imc-status{color:#ffe19c}
+:root .client-home-dashboard.care-reference-2026 .care-wellness-metrics>div[data-health-tone="alert"] .care-imc-status{color:#ffb6ac}
+:root .client-home-dashboard.care-reference-2026 .care-wellness-metrics small{overflow-wrap:anywhere}
