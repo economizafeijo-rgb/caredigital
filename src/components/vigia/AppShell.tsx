@@ -15,6 +15,7 @@ const primaryNav = [
 ] as const;
 
 const extraPublicNav = [
+  { to: "/biblioteca-alimentar", label: "Alimentos", longLabel: "Biblioteca alimentar", icon: Utensils },
   { to: "/nutricao-esportiva", label: "Nutrição", longLabel: "Nutrição esportiva", icon: Activity },
   { to: "/medicamentos", label: "Medicamentos", longLabel: "Medicamentos", icon: Pill },
 ] as const;
@@ -99,6 +100,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     return () => { active = false; listener.subscription.unsubscribe(); };
   }, []);
   const visibleNav = signedIn ? primaryNav.filter(item => item.to === "/") : primaryNav;
+  const nutritionLink = <Link to="/biblioteca-alimentar" className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/10 px-2.5 text-xs font-bold text-primary hover:bg-primary/20"><Utensils size={15}/> Biblioteca alimentar</Link>;
   const isSecondaryActive = extraPublicNav.some(item => item.to === pathname);
   const isManagementActive = managementNav.some(item => item.to === pathname);
   const managementLinks = adminAccess ? managementNav : [];
@@ -151,8 +153,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div className="hidden items-center gap-2 whitespace-nowrap font-mono text-[11px] text-muted-foreground 2xl:flex">
                 <span className="size-1.5 rounded-full bg-success" />{fmtClock(now)}
               </div>
+              {signedIn && <div className="hidden xl:block">{nutritionLink}</div>}
               {clientOnly && <div role="status" aria-label={`Cliente conectado: ${clientName || "Meu acompanhamento"}`} className="hidden max-w-[175px] flex-col items-start rounded-lg border border-primary/20 bg-primary/10 px-2.5 py-1 sm:flex lg:max-w-[185px]"><span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Cliente conectado</span><span className="max-w-full truncate text-sm font-bold text-foreground">{clientName || "Meu acompanhamento"}</span></div>}
-              {clientOnly && !isClientPage && <Link to="/cliente" className="hidden rounded-lg border border-border bg-primary/10 px-2.5 py-1.5 text-[11px] font-semibold text-primary sm:flex sm:items-center sm:gap-1.5"><Users size={15}/> Área do cliente</Link>}
+              {signedIn && <Link to="/biblioteca-alimentar" className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-primary"><Utensils size={19}/><span className="text-[10px] font-semibold">Alimentos</span></Link>}
+          {clientOnly && !isClientPage && <Link to="/cliente" className="hidden rounded-lg border border-border bg-primary/10 px-2.5 py-1.5 text-[11px] font-semibold text-primary sm:flex sm:items-center sm:gap-1.5"><Users size={15}/> Área do cliente</Link>}
               <button type="button" onClick={() => void toggleFullscreen()} aria-label={fullScreen ? "Sair da tela cheia" : "Ativar tela cheia"} title={fullScreen ? "Sair da tela cheia" : "Tela cheia"} aria-pressed={fullScreen} className="grid size-9 shrink-0 place-items-center rounded-lg border border-border bg-surface text-foreground transition hover:border-primary/30 hover:bg-muted">{fullScreen ? <Minimize size={18}/> : <Maximize size={18}/>}</button>
               <button type="button" onClick={toggleTheme} aria-label={darkMode ? "Ativar tema claro" : "Ativar tema escuro"} title={darkMode ? "Modo claro" : "Modo escuro"} aria-pressed={darkMode} className="grid size-10 shrink-0 place-items-center rounded-xl border border-border bg-surface text-foreground transition-colors hover:border-primary/30 hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">{darkMode ? <Sun size={18}/> : <Moon size={18}/>}</button>
               {signedIn ? <button type="button" onClick={() => void signOut()} disabled={signingOut} aria-label="Sair da conta" title="Sair da conta" className="flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 text-xs font-bold text-foreground hover:bg-muted disabled:opacity-60"><LogOut size={16}/><span className="hidden sm:inline">{signingOut ? "Saindo…" : "Sair"}</span></button> : <Link to="/entrar" aria-label="Entrar na conta" title="Entrar" className="flex h-9 shrink-0 items-center gap-2 rounded-lg bg-primary px-3 text-xs font-bold text-primary-foreground shadow-sm transition hover:opacity-90 lg:text-[13px]"><LogIn size={16}/><span className="hidden sm:inline">Entrar</span></Link>}
