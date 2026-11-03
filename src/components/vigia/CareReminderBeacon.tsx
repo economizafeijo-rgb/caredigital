@@ -273,6 +273,13 @@ export function CareReminderBeacon({tasks,patientId,ownerId,refreshKey=0,onOpen,
       {soundNotice&&<p role="status" className="care-reminder-subtitle mt-0.5 text-[10px]">{soundNotice}</p>}
     </div>
     <div className="care-reminder-actions flex shrink-0 flex-col items-end justify-center gap-1.5">
+      {due&&task&&!showClockAlert&&<button type="button"
+        onClick={()=>{
+          setDismissedClockIds(previous=>{const updated=new Set(previous);updated.delete(task.id);return updated;});
+          setSnoozedClock(null);
+        }} className="care-reminder-open inline-flex min-h-8 items-center gap-1 rounded-full px-2.5 text-[10px] font-extrabold sm:text-[11px]">
+        <Clock3 size={13}/> Ver alerta
+      </button>}
       {task&&<button type="button" onClick={()=>onOpen(task)}
         className="care-reminder-open inline-flex min-h-8 items-center gap-1 rounded-full px-2.5 text-[10px] font-extrabold sm:text-[11px]">
         Resolver pendência <ChevronRight size={14}/>
