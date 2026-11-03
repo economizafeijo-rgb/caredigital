@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
-import { CheckCircle2, Clock3, Droplets, Pencil, X } from "lucide-react";
+import { CheckCircle2, Clock3, Droplets, Pencil, X, UtensilsCrossed, Pill, CalendarClock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { canConfirmCare, careScheduleLabel } from "@/lib/care-schedule";
 import { CareTaskResolutionPanel, type CareResolution } from "./CareTaskResolutionPanel";
@@ -198,10 +198,12 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
   }
 
   const row = (title: string, value: string) =>
-    <div className="rounded-xl bg-muted/60 px-3 py-2">
-      <dt className="text-[11px] font-medium text-muted-foreground">{title}</dt>
-      <dd className="mt-0.5 break-words text-xs font-bold text-foreground">{value}</dd>
+    <div className="rounded-2xl border border-border/60 bg-background/65 px-4 py-3 shadow-sm backdrop-blur-sm">
+      <dt className="text-[11px] font-semibold tracking-wide text-muted-foreground">{title}</dt>
+      <dd className="mt-1 break-words text-sm font-semibold leading-relaxed text-foreground">{value}</dd>
     </div>;
+  const categoryPhoto=task?.category==="refeicao"?"https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1100&q=80":task?.category==="hidratacao"?"https://images.unsplash.com/photo-1433086966358-54859d0ed716?auto=format&fit=crop&w=1100&q=80":"https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1100&q=80";
+  const CategoryIcon=task?.category==="refeicao"?UtensilsCrossed:task?.category==="hidratacao"?Droplets:Pill;
 
   const skippedWater=details?.category==="hidratacao"&&waterResponse?.response==="not_drunk";
   const canMarkNo=Boolean(details&&details.category==="hidratacao"&&!details.completed_at&&responseReady&&resolutionReady&&!resolution&&!skippedWater&&canConfirmCare(details));
@@ -214,24 +216,33 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
     <div className="fixed inset-0 z-[10020] flex items-center justify-center bg-slate-950/75 p-2 backdrop-blur-sm sm:p-4"
       onMouseDown={event => { if (event.target === event.currentTarget && !saving && !decisionSaving) onClose(); }}>
       <section role="dialog" aria-modal="true" aria-labelledby="care-task-record-title"
-        className="flex max-h-[calc(100dvh-1rem)] w-full max-w-md flex-col overflow-y-auto rounded-2xl border border-border bg-card p-3 text-card-foreground shadow-2xl sm:p-4">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <p className="text-[10px] font-extrabold uppercase tracking-widest text-primary">Detalhes do registro · {label(task.category)}</p>
-            <h2 id="care-task-record-title" className="mt-1 text-base font-extrabold">{task.title}</h2>
+        className="flex max-h-[min(92dvh,800px)] w-full max-w-lg flex-col overflow-hidden rounded-[28px] border border-border/70 bg-card text-card-foreground shadow-[0_28px_100px_rgba(0,0,0,.35)]">
+        <div className="relative isolate min-h-[174px] shrink-0 overflow-hidden p-5 sm:min-h-[195px] sm:p-6">
+          <div className="absolute inset-0 -z-20 bg-cover bg-center" style={{backgroundImage:`url("${categoryPhoto}")`}} aria-hidden="true"/>
+          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-950/95 via-slate-950/80 to-slate-950/30" aria-hidden="true"/>
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[.12em] text-white backdrop-blur-md">
+                <CategoryIcon size={15}/> {label(task.category)} · Detalhes
+              </div>
+              <h2 id="care-task-record-title" className="text-2xl font-extrabold leading-tight tracking-tight text-white sm:text-[28px]">{task.title}</h2>
+              <p className="mt-2 max-w-[290px] text-xs leading-relaxed text-white/80">Acompanhe o horário planejado e o consumo realmente registrado.</p>
+            </div>
+            <button type="button" aria-label="Fechar detalhes" disabled={saving||decisionSaving} onClick={onClose}
+              className="grid size-10 shrink-0 place-items-center rounded-full border border-white/30 bg-black/25 text-white backdrop-blur-md transition hover:bg-white/20 disabled:opacity-50">
+              <X size={19}/>
+            </button>
           </div>
-          <button type="button" aria-label="Fechar detalhes" disabled={saving||decisionSaving} onClick={onClose}
-            className="grid size-8 shrink-0 place-items-center rounded-lg border border-border hover:bg-muted disabled:opacity-50">
-            <X size={17}/>
-          </button>
         </div>
+        <div className="min-h-0 overflow-y-auto px-4 pb-4 pt-4 sm:px-6 sm:pb-6">
+          {details?.completed_at && <div className="mb-4 flex items-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-foreground"><CheckCircle2 size={17} className="shrink-0 text-emerald-500"/> Registro realizado com sucesso</div>}
 
-        {loading ? <p role="status" className="mt-3 text-xs text-muted-foreground">Consultando o prontuário…</p> :
-          details && <dl className="mt-3 grid gap-2">
-            {row("Horário previsto (Acre)", stamp(details.scheduled_at))}
+        {loading ? <p role="status" className="mt-3 text-sm text-muted-foreground">Consultando o prontuário…</p> :
+          details && <dl className="grid gap-2.5">
+            {row("Horário planejado · Acre", stamp(details.scheduled_at))}
             {row("Situação", details.completed_at?"Confirmado":resolution?.status==="cancelado"?"Cancelado · informado pelo cliente":resolution?.status==="nao_cumprido"?"Não realizado · informado pelo cliente":skippedWater?"Não bebi · resposta registrada":careScheduleLabel(details))}
             {skippedWater&&waterResponse?.recorded_at&&row("Resposta registrada em (Acre)",stamp(waterResponse.recorded_at))}
-            {details.completed_at && row("Confirmação registrada em (Acre)", stamp(details.completed_at))}
+            {details.completed_at && row("Horário real do consumo · Acre", stamp(details.completed_at))}
             {details.category === "refeicao" && row("Alimentos informados", details.description || "Sem descrição detalhada registrada")}
             {details.category === "hidratacao" && details.completed_at && row(
               "Quantidade registrada",
@@ -281,7 +292,7 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
           <CheckCircle2 size={16} className="shrink-0 text-success"/>{success}
         </p>}
         {error && <p role="alert" className="mt-3 rounded-lg border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive">{error}</p>}
-        <div className="mt-3 flex items-center gap-2 text-[11px] text-muted-foreground">
+        <div className="mt-4 flex items-center gap-2 text-xs leading-relaxed text-muted-foreground">
           {details?.completed_at?<><CheckCircle2 size={14}/> Registro confirmado; consulta não altera o consumo.</>:
             resolution?<><CheckCircle2 size={14}/> Esta pendência já recebeu uma resposta. Confira ou corrija no prontuário.</>:
             skippedWater?<><Droplets size={14}/> Você informou “Não bebi”. Nenhum ml foi contabilizado.</>:
@@ -292,7 +303,7 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
           onChange={setResolution} onSaved={()=>onSaved?.()} onClose={onClose}/>}
         {!editing && <div className="mt-3 flex flex-wrap items-center gap-2">
           <button type="button" disabled={saving||decisionSaving} onClick={onClose}
-            className="min-h-10 min-w-[75px] flex-1 rounded-lg border border-border px-2.5 py-2.5 text-xs font-semibold">Fechar</button>
+            className="min-h-11 min-w-[75px] flex-1 rounded-xl border border-border bg-background/50 px-3 py-2.5 text-sm font-semibold transition hover:bg-muted">Fechar</button>
           {canMarkNo&&!confirmNo&&<button type="button" disabled={saving||decisionSaving}
             onClick={()=>{setConfirmNo(true);setError("");setSuccess("");}}
             className="min-h-10 min-w-[88px] flex-1 rounded-lg border border-amber-500/50 bg-amber-500/10 px-2.5 py-2.5 text-xs font-bold text-amber-800 hover:bg-amber-500/20 dark:text-amber-200">
@@ -309,6 +320,7 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
             {details?.category==="hidratacao"?"Bebi água":"Confirmar agora"}
           </button>}
         </div>}
+        </div>
       </section>
     </div>, document.body
   );
