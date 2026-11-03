@@ -1,4 +1,5 @@
 import { useId } from "react";
+import { Droplets, Utensils, Pill } from "lucide-react";
 import type { HydrationGoalSnapshot } from "@/lib/hydration-goal";
 import type { ReminderTask } from "@/lib/care-reminders";
 
@@ -108,7 +109,7 @@ export function CareProgressVisual({tasks,goal,onOpen,onHydration,onFood,onMedic
       onClick={()=>open("hidratacao")}
       title="Registrar água ou conferir hidratação" aria-label="Hidratação. Abrir registro de água."
       className="care-visual-tile care-visual-action relative flex min-w-0 items-center gap-1.5 overflow-hidden rounded-2xl border px-1.5 py-1.5 text-left sm:gap-2 sm:px-2.5">
-      <WaterVessel amount={water} target={waterTarget}/>
+      <div className="care-reference-tile-top"><Droplets size={24}/><span className="care-reference-ring" style={{"--care-ratio":`${Math.round(waterRatio*100)}%`} as React.CSSProperties}>{Math.round(waterRatio*100)}%</span></div><WaterVessel amount={water} target={waterTarget}/>
       <div className="min-w-0 flex-1">
         <p className="care-visual-title truncate text-[10px] font-extrabold sm:text-xs">Hidratação</p>
         <strong className="care-visual-value block text-[13px] font-extrabold tabular-nums sm:text-base">{fmt(water)}<span className="text-[9px]"> ml</span></strong>
@@ -120,7 +121,7 @@ export function CareProgressVisual({tasks,goal,onOpen,onHydration,onFood,onMedic
       onClick={()=>open("refeicao")}
       title="Registrar uma refeição ou alimento" aria-label="Alimentação. Abrir registro de refeição ou alimento."
       className="care-visual-tile care-visual-action relative flex min-w-0 items-center gap-1.5 overflow-hidden rounded-2xl border px-1.5 py-1.5 text-left sm:gap-2 sm:px-2.5">
-      <MealPlate ratio={pct(completedMeals,meals.length)}/>
+      <div className="care-reference-tile-top"><Utensils size={24}/><span className="care-reference-ring" style={{"--care-ratio":`${Math.round(pct(completedMeals,meals.length)*100)}%`} as React.CSSProperties}>{Math.round(pct(completedMeals,meals.length)*100)}%</span></div><MealPlate ratio={pct(completedMeals,meals.length)}/>
       <span className="min-w-0 flex-1">
         <span className="care-visual-title block truncate text-[10px] font-extrabold sm:text-xs">Alimentação</span>
         <strong className="care-visual-value block text-[13px] font-extrabold tabular-nums sm:text-base">{completedMeals}<span className="text-[10px]">/{meals.length}</span></strong>
@@ -132,7 +133,7 @@ export function CareProgressVisual({tasks,goal,onOpen,onHydration,onFood,onMedic
       onClick={()=>open("medicacao")}
       title="Abrir registro ou histórico de medicação" aria-label="Medicação. Abrir registro de medicação ou detalhes das doses."
       className="care-visual-tile care-visual-action relative flex min-w-0 items-center gap-1.5 overflow-hidden rounded-2xl border px-1.5 py-1.5 text-left sm:gap-2 sm:px-2.5">
-      <MedicationCapsule ratio={pct(completedMeds,meds.length)}/>
+      <div className="care-reference-tile-top"><Pill size={24}/><span className="care-reference-ring" style={{"--care-ratio":`${Math.round(pct(completedMeds,meds.length)*100)}%`} as React.CSSProperties}>{Math.round(pct(completedMeds,meds.length)*100)}%</span></div><MedicationCapsule ratio={pct(completedMeds,meds.length)}/>
       <span className="min-w-0 flex-1">
         <span className="care-visual-title block truncate text-[10px] font-extrabold sm:text-xs">Medicação</span>
         <strong className="care-visual-value block text-[13px] font-extrabold tabular-nums sm:text-base">{completedMeds}<span className="text-[10px]">/{meds.length}</span></strong>
