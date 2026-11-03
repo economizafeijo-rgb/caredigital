@@ -230,7 +230,7 @@ export function ClientHomeSummary(){
    if(task){openDueConfirmation(task);return;}
    const medications=summaryTasks.filter(t=>t.category==="medicacao")
      .sort((a,b)=>Date.parse(a.scheduled_at)-Date.parse(b.scheduled_at));
-   const nextMedication=medications.find(t=>!t.completed_at&&!resolvedStates[t.id])??medications.at(-1);
+   const nextMedication=medications.find(t=>!t.completed_at&&!resolvedStates[t.id])??medications[medications.length-1];
    if(nextMedication){setSelected(null);setDetailTask(nextMedication);setError("");setReceipt(null);return;}
    // If no medication is scheduled, the full treatment section still opens.
    window.location.assign("/cliente#visao-geral");
