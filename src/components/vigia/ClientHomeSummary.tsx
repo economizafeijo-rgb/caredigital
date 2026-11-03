@@ -14,7 +14,7 @@ type Care = {id:string;title:string;category:string;scheduled_at:string;complete
 type WaterEntry = {id:string;task_id:string|null;amount_ml:number;recorded_at:string};
 type BeverageEntry = {id:string;kind:string;name:string;amount_ml:number;consumed_at:string};
 type MealEntry = {id:string;recorded_at:string;details:{title?:string;description?:string;kind?:string}|null};
-type AgendaRow = {key:string;at:string;title:string;subtitle:string;category:"medicacao"|"hidratacao"|"refeicao";task:Care|null;completed:boolean;overdue:boolean};
+type AgendaRow = {key:string;at:string;title:string;subtitle:string;category:"medicacao"|"hidratacao"|"refeicao";task:Care|null;completed:boolean;resolved:boolean;overdue:boolean};
 type Person = {id:string;owner_id:string;full_name:string};
 const zone="America/Rio_Branco";
 const day=(t:Date)=>new Intl.DateTimeFormat("en-CA",{timeZone:zone,year:"numeric",month:"2-digit",day:"2-digit"}).format(t);
@@ -140,20 +140,20 @@ export function ClientHomeSummary(){
  const agendaItems:AgendaRow[]=[
    ...tasks.map(task=>{const resolved=resolvedStates[task.id];const completed=Boolean(task.completed_at);const overdue=Boolean(now&&!completed&&!resolved&&Date.parse(task.scheduled_at)<now.getTime());return {
      key:"task:"+task.id,at:task.scheduled_at,title:task.title,category:task.category as AgendaRow["category"],task,
-     completed:completed||Boolean(resolved),overdue,
+     completed,resolved:Boolean(resolved),overdue,
      subtitle:(completed?"Confirmado":resolved==="cancelado"?"Cancelado":resolved==="nao_cumprido"?"Não realizado":resolved==="nao_bebi"?"Não bebi":overdue?"Aguardando confirmação":"Programado")+" · "+labelFor(task.category)
    };}),
    ...extraWater.filter(item=>!item.task_id||!knownTaskIds.has(item.task_id)).map(item=>({
      key:"water:"+item.id,at:item.recorded_at,title:"Água registrada · "+item.amount_ml+" ml",
-     category:"hidratacao" as const,task:null,completed:true,overdue:false,subtitle:"Consumo realizado · Água"
+     category:"hidratacao" as const,task:null,completed:true,resolved:false,overdue:false,subtitle:"Consumo realizado · Água"
    })),
    ...extraBeverages.map(item=>({
      key:"beverage:"+item.id,at:item.consumed_at,title:(item.name||"Bebida")+" · "+item.amount_ml+" ml",
-     category:"hidratacao" as const,task:null,completed:true,overdue:false,subtitle:"Consumo realizado · Bebida"
+     category:"hidratacao" as const,task:null,completed:true,resolved:false,overdue:false,subtitle:"Consumo realizado · Bebida"
    })),
    ...extraMeals.map(item=>({
      key:"meal:"+item.id,at:item.recorded_at,title:item.details?.title||"Refeição registrada",
-     category:"refeicao" as const,task:null,completed:true,overdue:false,
+     category:"refeicao" as const,task:null,completed:true,resolved:false,overdue:false,
      subtitle:item.details?.description?"Registrado · "+item.details.description:"Consumo realizado · Refeição"
    }))
  ].sort((a,b)=>Date.parse(a.at)-Date.parse(b.at)||a.key.localeCompare(b.key));
@@ -217,7 +217,7 @@ export function ClientHomeSummary(){
       </div>
       <div className="relative z-10 mt-1.5 min-h-0 flex-1 space-y-1 overflow-hidden" aria-live="polite">
         {visibleAgenda.map(item=>{const Icon=icons[item.category]??CalendarClock;return <button key={item.key} type="button"
-          data-care-category={item.category} data-care-state={item.completed?"done":item.overdue?"overdue":"scheduled"}
+          data-care-category={item.category} data-care-state={item.completed?"done":item.resolved?"resolved":item.overdue?"overdue":"scheduled"}
           title={item.task?"Ver ou corrigir cuidado programado":"Abrir o histórico completo deste consumo"}
           aria-label={item.title+" às "+time(item.at)+". "+item.subtitle}
           onClick={()=>{if(item.task){setDetailTask(item.task);setError("");}else{window.location.assign("/cliente#historico");}}}
