@@ -213,10 +213,10 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
     resolutionReady&&!resolution&&(details.category!=="hidratacao"||(responseReady&&!skippedWater)));
 
   return createPortal(
-    <div className="fixed inset-0 z-[10020] flex items-center justify-center bg-slate-950/75 p-2 backdrop-blur-sm sm:p-4"
+    <div className="care-record-modal-overlay fixed inset-0 z-[10020] flex items-center justify-center overflow-y-auto bg-slate-950/75 p-2 backdrop-blur-sm sm:p-4"
       onMouseDown={event => { if (event.target === event.currentTarget && !saving && !decisionSaving) onClose(); }}>
       <section role="dialog" aria-modal="true" aria-labelledby="care-task-record-title"
-        className="flex max-h-[min(92dvh,800px)] w-full max-w-lg flex-col overflow-hidden rounded-[28px] border border-border/70 bg-card text-card-foreground shadow-[0_28px_100px_rgba(0,0,0,.35)]">
+        className="care-record-modal-dialog flex max-h-[min(92dvh,800px)] w-full max-w-lg flex-col overflow-hidden rounded-[28px] border border-border/70 bg-card text-card-foreground shadow-[0_28px_100px_rgba(0,0,0,.35)]">
         <div className="relative isolate min-h-[174px] shrink-0 overflow-hidden p-5 sm:min-h-[195px] sm:p-6">
           <div className="absolute inset-0 -z-20 bg-cover bg-center" style={{backgroundImage:`url("${categoryPhoto}")`}} aria-hidden="true"/>
           <div className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-950/95 via-slate-950/80 to-slate-950/30" aria-hidden="true"/>
