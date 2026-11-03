@@ -122,7 +122,7 @@ export function ClientNutritionStudio({patientId,ownerId,onLogged}:Props){
  }
  const isIgnored=(item:Ingredient)=>avoided.includes(item.id);
  const sourceLink=(url:string,title:string)=><a href={url} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary underline decoration-primary/35 underline-offset-2">{title}</a>;
- return <section className="nutrition-studio flex h-full min-h-0 min-w-0 flex-col gap-2 text-foreground" aria-label="Cardápios e dietas com orientação educativa">
+ return <section className="nutrition-studio care-nutrition-responsive flex h-full min-h-0 min-w-0 flex-col gap-2 text-foreground" aria-label="Cardápios e dietas com orientação educativa">
    <header className="nutrition-studio-toolbar flex shrink-0 flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-500/25 bg-gradient-to-r from-emerald-500/[.08] to-sky-500/[.05] px-3 py-2.5">
      <div className="flex min-w-0 items-center gap-2"><Leaf size={20} className="shrink-0 text-emerald-600 dark:text-emerald-300"/>
        <div><h3 className="text-sm font-extrabold">Alimentos, cardápios e macronutrientes</h3><p className="text-[10px] text-muted-foreground">Receitas regionais, combinações de alimentos e referências nutricionais</p></div>
