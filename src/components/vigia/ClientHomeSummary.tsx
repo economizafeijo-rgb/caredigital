@@ -42,6 +42,8 @@ export function ClientHomeSummary(){
  const [water,setWater]=useState(200);
  const [mealTime,setMealTime]=useState("");
  const [mealDescription,setMealDescription]=useState("");
+ const [waterOpenSignal,setWaterOpenSignal]=useState(0);
+ const [foodOpenSignal,setFoodOpenSignal]=useState(0);
  const [working,setWorking]=useState(false);
  const [error,setError]=useState("");
  const [receipt,setReceipt]=useState<{success:boolean;message:string}|null>(null);
@@ -198,6 +200,41 @@ export function ClientHomeSummary(){
  const agendaPageCount=Math.max(1,Math.ceil(filteredAgenda.length/agendaPageSize));
  const agendaIndex=Math.min(agendaPage,agendaPageCount-1);
  const visibleAgenda=filteredAgenda.slice(agendaIndex*agendaPageSize,(agendaIndex+1)*agendaPageSize);
+ // Every progress card remains actionable even if today's goal was completed.
+ // A due and unanswered task opens its existing verified confirmation workflow;
+ // otherwise open a real, unscheduled intake form (never auto-confirm a task).
+ const duePending=(category:"hidratacao"|"refeicao"|"medicacao")=>
+   summaryTasks.find(task=>task.category===category&&!task.completed_at&&!resolvedStates[task.id]
+     &&Date.now()>=Date.parse(task.scheduled_at) &&
+     (category!=="medicacao"||day(new Date(task.scheduled_at))===day(new Date())));
+ const openDueConfirmation=(task:Care)=>{
+   setSelected(task);setDetailTask(null);setError("");setReceipt(null);
+   setMealTime(currentAcreTime());setMealDescription("");
+   if(task.category==="hidratacao"){
+     const suggested=hydrationPlan[task.id]?.suggested_ml;
+     setWater(suggested&&suggested>=10?Math.min(suggested,350):200);
+   }
+ };
+ const openHydrationCard=()=>{
+   const task=duePending("hidratacao");
+   if(task)openDueConfirmation(task);
+   else setWaterOpenSignal(value=>value+1);
+ };
+ const openFoodCard=()=>{
+   const task=duePending("refeicao");
+   if(task)openDueConfirmation(task);
+   else setFoodOpenSignal(value=>value+1);
+ };
+ const openMedicationCard=()=>{
+   const task=duePending("medicacao");
+   if(task){openDueConfirmation(task);return;}
+   const medications=summaryTasks.filter(t=>t.category==="medicacao")
+     .sort((a,b)=>Date.parse(a.scheduled_at)-Date.parse(b.scheduled_at));
+   const nextMedication=medications.find(t=>!t.completed_at&&!resolvedStates[t.id])??medications.at(-1);
+   if(nextMedication){setSelected(null);setDetailTask(nextMedication);setError("");setReceipt(null);return;}
+   // If no medication is scheduled, the full treatment section still opens.
+   window.location.assign("/cliente#visao-geral");
+ };
  const categoryCounts={hidratacao:agendaItems.filter(item=>item.category==="hidratacao").length,
    refeicao:agendaItems.filter(item=>item.category==="refeicao").length,
    medicacao:agendaItems.filter(item=>item.category==="medicacao").length};
@@ -212,8 +249,10 @@ export function ClientHomeSummary(){
       <p className="care-home-shortcuts-title">Ações rápidas</p>
       <p className="care-home-shortcuts-subtitle">Olá, {patient?.full_name?.split(" ")[0] ?? "bem-vindo"}. Acompanhe e registre seus cuidados.</p>
       <div className="patient-home-actions flex flex-wrap gap-2">
-        <ClientQuickIntake patientId={patient?.id ?? ""} variant="home" mode="water" onRecorded={()=>setRefresh(value=>value+1)}/>
-        <ClientQuickIntake patientId={patient?.id ?? ""} variant="home" onRecorded={()=>setRefresh(value=>value+1)}/>
+        <ClientQuickIntake patientId={patient?.id ?? ""} variant="home" mode="water"
+          openSignal={waterOpenSignal} onRecorded={()=>setRefresh(value=>value+1)}/>
+        <ClientQuickIntake patientId={patient?.id ?? ""} variant="home"
+          openSignal={foodOpenSignal} onRecorded={()=>setRefresh(value=>value+1)}/>
         <Link to="/cliente" className="care-home-chart-link inline-flex min-h-9 items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[11px] font-bold">Meu prontuário <ArrowUpRight size={15}/></Link>
         <a href="/cliente#cardapios" className="care-home-chart-link inline-flex min-h-9 items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[11px] font-bold">Cardápios e dietas <ArrowUpRight size={15}/></a>
       </div>
@@ -245,7 +284,9 @@ export function ClientHomeSummary(){
         </p>}
         <div className="relative z-10 mt-2 flex shrink-0 flex-wrap gap-1.5">{next&&<button type="button" onClick={()=>{setSelected(next);setError("");setMealTime(currentAcreTime());setMealDescription("");}} className="care-next-cta inline-flex min-h-9 items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-extrabold transition">Verificar / confirmar <ChevronRight size={15}/></button>}<Link to="/cliente" className="care-next-secondary inline-flex min-h-9 items-center rounded-full border px-3 py-1.5 text-[11px] font-bold transition">Ver tratamento completo</Link></div>
       </article>
-      <CareProgressVisual tasks={summaryTasks} goal={dailyGoal} onOpen={task=>{setDetailTask(task);setError("");}}/>
+      <CareProgressVisual tasks={summaryTasks} goal={dailyGoal}
+        onHydration={openHydrationCard} onFood={openFoodCard}
+        onMedication={openMedicationCard} onOpen={task=>{setDetailTask(task);setError("");}}/>
       <div className="patient-progress flex flex-wrap items-center gap-1.5 text-[10px] text-slate-300"><Check size={14} className="text-emerald-300"/>{finished} de {summaryTasks.length} cuidados concluídos
         {dailyGoal?.status==="atingida"&&<span title={`Hidratação: ${dailyGoal.consumed_ml} de ${dailyGoal.target_ml} ml até 23h.`} className="inline-flex items-center gap-1 rounded-md border border-emerald-300/25 bg-emerald-400/10 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-200"><Droplets size={11}/> Meta de água atingida</span>}
         {dailyGoal?.status==="nao_atingida"&&<span title={`Hidratação: ${dailyGoal.consumed_ml} de ${dailyGoal.target_ml} ml até 23h.`} className="inline-flex items-center gap-1 rounded-md border border-amber-300/25 bg-amber-400/10 px-1.5 py-0.5 text-[9px] font-semibold text-amber-200"><Droplets size={11}/> Meta não atingida · 23h</span>}
