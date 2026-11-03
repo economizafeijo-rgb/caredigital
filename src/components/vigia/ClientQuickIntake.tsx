@@ -1,18 +1,18 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { CheckCircle2, Droplets, Plus, Save, UtensilsCrossed, X } from "lucide-react";
 import { CareIntakePicker, CareIntakeIcon } from "./CareIntakePicker";
 import { foodCategory,beverageCategory,isFoodKind,type IntakeKind,type FoodKind,type BeverageKind } from "@/lib/care-intake-categories";
 import { supabase } from "@/integrations/supabase/client";
 
-type Props = { patientId: string; onRecorded?: () => void; variant?: "home" | "panel"; mode?: "all" | "water" | "food" | "drink" };
+type Props = { patientId: string; onRecorded?: () => void; variant?: "home" | "panel"; mode?: "all" | "water" | "food" | "drink"; /** Increment to open the existing form from a dashboard card. */ openSignal?: number };
 const zone = "America/Rio_Branco";
 const formatTime = (date: string) => new Intl.DateTimeFormat("pt-BR", {
   timeZone: zone, day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",
 }).format(new Date(date));
 
 /** Registros avulsos não criam tarefas e não confirmam horários da programação. */
-export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mode = "all" }: Props) {
+export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mode = "all", openSignal = 0 }: Props) {
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<IntakeKind>("lanche");
   const [group,setGroup]=useState<"food"|"beverage">("food");
@@ -44,6 +44,14 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
     setNotice("");
     setOpen(true);
   }
+  // A home card may open this same form without creating an extra intake
+  // instance or bypassing the server's idempotent save/confirmation rules.
+  useEffect(() => {
+    if (openSignal > 0 && patientId) openForm();
+    // openSignal is an explicit user click counter, not a timer or page-load action.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openSignal, patientId]);
+
   function closeForm() {
     if (!saving) {
       setOpen(false);
