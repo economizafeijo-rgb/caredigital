@@ -174,7 +174,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
   setNotice("Resposta anterior desfeita; este horário está novamente sem confirmação.");
   onRecorded();setReload(n=>n+1);
  }
- return <section className="care-premium-hydration flex min-h-0 w-full min-w-0 flex-col gap-2" aria-label="Programa personalizado de hidratação">
+ return <section className="care-premium-hydration care-hydration-responsive flex min-h-0 w-full min-w-0 flex-col gap-2" aria-label="Programa personalizado de hidratação">
   <header className="flex flex-wrap items-center justify-between gap-2">
     <div className="min-w-0">
       <h3 className="flex items-center gap-1.5 text-sm font-extrabold"><Droplets size={18} className="text-sky-600 dark:text-sky-300"/> Minha hidratação</h3>
