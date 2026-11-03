@@ -2407,3 +2407,44 @@ iframe[title*="Lovable" i][title*="badge" i] {
 @media(prefers-reduced-motion:reduce) {
  .care-client-route :is(.care-premium-hydration-event,.care-premium-meal-card,.care-premium-agenda-event) {transition:none}
 }
+
+
+/* Premium interior v3 — history and nutrition, with existing functionality intact */
+.care-client-route .patient-history-workspace,
+.care-client-route .nutrition-studio {min-width:0;gap:clamp(8px,1vw,14px)}
+.care-client-route .patient-history-header,
+.care-client-route .nutrition-studio > header {
+  border:1px solid rgba(113,228,218,.28);
+  border-radius:18px;
+  padding:clamp(10px,1.2vw,16px);
+  background:radial-gradient(ellipse at 90% 0%,rgba(42,201,180,.2),transparent 55%),linear-gradient(115deg,rgba(12,77,83,.85),rgba(7,40,55,.9));
+  box-shadow:inset 0 1px rgba(255,255,255,.1);
+}
+.care-client-route .patient-history-categories {gap:clamp(3px,.7vw,9px)}
+.care-client-route .patient-history-categories > button {
+  min-width:0;
+  border-radius:15px;
+  border:1px solid rgba(115,226,219,.3);
+  background:linear-gradient(135deg,rgba(22,88,96,.75),rgba(7,43,56,.8));
+  box-shadow:inset 0 1px rgba(255,255,255,.07);
+  transition:border-color .15s ease,background .15s ease;
+}
+.care-client-route .patient-history-categories > button:hover {border-color:rgba(148,251,237,.65);background:rgba(30,118,122,.8)}
+.care-client-route .patient-history-detail {background:linear-gradient(160deg,#092c3b,#062532);border:1px solid rgba(113,229,220,.38)}
+.care-client-route .patient-history-detail-scroll :is(dt,small) {letter-spacing:.005em}
+.care-client-route .nutrition-studio :is(input,select,textarea) {
+  border-radius:12px;
+  border-color:rgba(124,227,221,.36);
+  background:rgba(3,32,45,.65);
+  color:#f2ffff;
+}
+.care-client-route .nutrition-studio :is(button,a):focus-visible,
+.care-client-route .patient-history-workspace :is(button,a):focus-visible {outline:2px solid #8af6e8;outline-offset:2px}
+.care-client-route .nutrition-studio :is(.rounded-lg,.rounded-xl,.rounded-2xl).border {
+  border-color:rgba(118,225,216,.28);
+}
+@media(max-width:767px) {
+ .care-client-route .patient-history-header,
+ .care-client-route .nutrition-studio > header {border-radius:15px;padding:10px}
+ .care-client-route .patient-history-categories > button {border-radius:12px}
+}
