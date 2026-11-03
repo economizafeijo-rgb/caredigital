@@ -297,7 +297,7 @@ export function ClientHomeSummary(){
     </div>
     <img src="/images/care-next-wellness.svg" alt="" aria-hidden="true" className="hidden h-[76px] w-[150px] shrink-0 object-contain opacity-80 sm:block" loading="lazy"/>
   </div>
-  <section className="care-patient-marquee relative z-10" aria-label="Painel digital de acompanhamento do cliente">
+  <section className="care-patient-marquee relative z-10" aria-label="Letreiro digital de acompanhamento do cliente">
     <div className="care-patient-marquee-heading"><span className="care-patient-live-dot" aria-hidden="true"/> <span>PAINEL DIGITAL DO CLIENTE</span><span className="care-patient-marquee-date">{now ? new Intl.DateTimeFormat("pt-BR",{day:"2-digit",month:"short",timeZone:"America/Rio_Branco"}).format(now) : "Hoje"}</span></div>
     <div className="care-patient-marquee-stats" aria-live="off">
       <div className="care-patient-marquee-stat"><span>CLIENTE</span><strong>{patient?.full_name?.split(" ").slice(0,2).join(" ") ?? "Bem-vindo"}</strong></div>
@@ -305,6 +305,17 @@ export function ClientHomeSummary(){
       <div className="care-patient-marquee-stat"><span>EVOLUÇÃO DO DIA</span><strong>{completion}<small>%</small></strong></div>
       <div className="care-patient-marquee-stat"><span>PENDÊNCIAS</span><strong>{pending.length}</strong></div>
       <div className="care-patient-marquee-stat"><span>PRÓXIMO CUIDADO</span><strong>{next ? time(next.scheduled_at) : "Em dia"}</strong></div>
+    </div>
+    <div className="care-patient-ticker" aria-label="Resumo contínuo dos cuidados">
+      <div className="care-patient-ticker-track" aria-hidden="true">
+        {[0,1].map(copy=><div key={copy} className="care-patient-ticker-set">
+          <span><b>CLIENTE</b> {patient?.full_name?.split(" ").slice(0,2).join(" ") ?? "Bem-vindo"}</span>
+          <span><b>CONCLUÍDOS</b> {finished} de {summaryTasks.length}</span>
+          <span><b>PROGRESSO</b> {completion}%</span>
+          <span><b>PENDÊNCIAS</b> {pending.length}</span>
+          <span><b>PRÓXIMO CUIDADO</b> {next ? time(next.scheduled_at) : "Em dia"}</span>
+        </div>)}
+      </div>
     </div>
   </section>
   {attentionRecent.length>0&&<details className="care-premium-pending group relative z-30 shrink-0" aria-label="Cuidados que precisam de atenção">
