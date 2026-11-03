@@ -344,7 +344,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
             onView={showTaskDetails} onConfirm={askConfirm}
             onDelete={meal=>{const item=tasks.find(task=>task.id===meal.id);if(item){setPending(null);setMealToDelete(item);}}}
             onRecorded={()=>setTick(value=>value+1)}/>}
-          {activeTab==="cardapios"&&<ClientNutritionStudio patientId={client.id} ownerId={client.owner_id}/>}
+          {activeTab==="cardapios"&&<ClientNutritionStudio patientId={client.id} ownerId={client.owner_id} onLogged={()=>setTick(v=>v+1)}/>}
         </section>
       </div>
 
