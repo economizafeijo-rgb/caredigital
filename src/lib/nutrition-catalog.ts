@@ -128,10 +128,21 @@ export const proteinRange=(weight:number,goal:Goal)=>{
 };
 export const mealSlots=[{id:"cafe",label:"Café da manhã"},{id:"almoco",label:"Almoço"},{id:"jantar",label:"Jantar"},{id:"lanche",label:"Lanche"}] as const;
 /** Plano rotativo apenas ilustrativo: não fixa calorias nem substitui prescrição. */
-export function menuForDay(dayIndex:number,allRecipes:Recipe[],rotation=0){
+export function menuForDay(dayIndex:number,allRecipes:Recipe[],rotation=0,goal:Goal="equilibrio"){
  return mealSlots.map((slot,slotIndex)=>{
- const options=allRecipes.filter(r=>r.slot===slot.id);
- const chosen=options.length?options[(dayIndex+rotation+slotIndex)%options.length]:null;
- return {slot,recipe:chosen};
+  const options=allRecipes.filter(r=>r.slot===slot.id);
+  // Ordena pelo objetivo sem criar receitas nem inventar valores clínicos.
+  const score=(r:Recipe)=>{
+   const {protein,kcal}=recipeTotals(r);
+   if(goal==="hipertrofia")return protein*10+kcal*.01;
+   if(goal==="ganho_peso")return kcal+protein;
+   if(goal==="emagrecimento")return protein*5-kcal*.12;
+   return 0;
+  };
+  if(goal!=="equilibrio")options.sort((a,b)=>score(b)-score(a)||a.id.localeCompare(b.id));
+  // Rotação por dia com variedade entre as quatro refeições; sem repetição
+  // artificial no mesmo tipo de refeição e sem incluir ceia obrigatória.
+  const chosen=options.length?options[(dayIndex+rotation+slotIndex)%options.length]:null;
+  return {slot,recipe:chosen};
  });
 }
