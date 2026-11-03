@@ -194,7 +194,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         {authError && <p role="alert" className="relative z-20 mx-auto max-w-7xl px-3 py-2 text-xs text-destructive">{authError}</p>}
         {fullScreenError && <p role="alert" className="relative z-20 mx-auto max-w-7xl px-3 py-2 text-xs text-destructive">{fullScreenError}</p>}
-        <main id="care-content" className={`relative z-10 mx-auto min-h-0 w-full max-w-7xl flex-1 px-3 pt-2 sm:px-5 md:px-6 md:pt-3 ${isClientHome ? "overflow-x-hidden overflow-y-auto pb-[70px] md:overflow-hidden md:pb-2 md:pt-2" : isClientPage ? "overflow-y-auto pb-[70px] md:overflow-hidden md:pb-3" : isSportsPage ? "sports-nutrition-main overflow-y-auto overscroll-contain pb-[80px] lg:pb-2" : "overflow-y-auto overscroll-contain pb-[80px] md:pb-4"}`}>{children}</main>
+        <main id="care-content" className={`relative z-10 mx-auto min-h-0 w-full max-w-7xl flex-1 px-3 pt-2 sm:px-5 md:px-6 md:pt-3 ${isClientHome ? "overflow-x-hidden overflow-y-auto overscroll-contain pb-[70px] md:pb-3 md:pt-2" : isClientPage ? "overflow-y-auto overscroll-contain pb-[70px] md:pb-3" : isSportsPage ? "sports-nutrition-main overflow-y-auto overscroll-contain pb-[80px] lg:pb-2" : "overflow-y-auto overscroll-contain pb-[80px] md:pb-4"}`}>{children}</main>
 
         <footer aria-label="Créditos de desenvolvimento" className="relative z-10 hidden shrink-0 items-center justify-center gap-2 border-t border-border/50 bg-background/80 px-4 py-1.5 text-[10px] text-muted-foreground backdrop-blur-sm md:flex">
           <span>CareDigital</span>
