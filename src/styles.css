@@ -2540,3 +2540,38 @@ iframe[title*="Lovable" i][title*="badge" i] {
    background-position:center,right center;
  }
 }
+
+
+/* Welcome banner v2: nurse face is drawn entirely within the new asset.
+   Contain the whole illustration vertically instead of cropping with cover. */
+:root .client-home-dashboard.care-reference-2026 .care-reference-hero {
+ min-height:clamp(190px,20vw,260px);
+ padding-right:clamp(160px,40%,430px);
+ background-image:linear-gradient(90deg,#061f2e 0%,rgba(6,31,46,.98) 28%,rgba(6,31,46,.78) 49%,rgba(6,31,46,.04) 100%),url('/images/caredigital-nurse-portrait-v2.svg')!important;
+ background-size:100% 100%,auto 100%!important;
+ background-position:center,right center!important;
+ background-repeat:no-repeat!important;
+ background-color:#062d3c;
+ overflow:hidden;
+}
+:root .client-home-dashboard.care-reference-2026 .care-reference-hero > div {position:relative;z-index:1}
+:root .client-home-dashboard.care-reference-2026 .care-reference-hero h2 {white-space:normal}
+.dark .care-shell:has(.client-home-dashboard.care-reference-2026)::before,
+.care-shell:has(.client-home-dashboard.care-reference-2026)::before {
+ background-image:linear-gradient(110deg,rgba(4,23,35,.98),rgba(6,50,62,.94)),url('/images/caredigital-health-illustration.svg')!important;
+ background-size:100% 100%,min(38vw,460px) auto!important;
+ background-position:center,right 7% bottom 8%!important;
+ background-repeat:no-repeat!important;
+}
+@media(max-width:767px){
+ :root .client-home-dashboard.care-reference-2026 .care-reference-hero {
+   min-height:164px;
+   padding:15px 42% 15px 15px;
+   background-size:100% 100%,auto 100%!important;
+   background-position:center,right center!important;
+ }
+ :root .client-home-dashboard.care-reference-2026 .care-reference-hero h2 {font-size:clamp(17px,4.6vw,24px)}
+}
+@media(max-width:390px){
+ :root .client-home-dashboard.care-reference-2026 .care-reference-hero {padding-right:40%}
+}
