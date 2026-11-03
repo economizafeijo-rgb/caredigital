@@ -259,7 +259,7 @@ export function ClientHomeSummary(){
    refeicao:agendaItems.filter(item=>item.category==="refeicao").length,
    medicacao:agendaItems.filter(item=>item.category==="medicacao").length};
  const chooseAgenda=(category:typeof agendaCategory)=>{setAgendaCategory(category);setAgendaPage(0);};
- return <section className="client-home-dashboard care-home-art-v2 care-home-art-reference care-premium-v3 relative flex min-h-0 min-w-0 w-full flex-col gap-2 rounded-[24px] border p-3 shadow-xl md:h-full md:max-h-full md:gap-2 md:overflow-hidden" aria-label="Painel interativo do cliente na homepage">
+ return <section className="client-home-dashboard care-home-art-v2 care-home-art-reference care-premium-v3 care-reference-2026 relative flex min-h-0 min-w-0 w-full flex-col gap-2 rounded-[24px] border p-3 shadow-xl md:h-full md:max-h-full md:gap-2 md:overflow-hidden" aria-label="Painel interativo do cliente na homepage">
   <div aria-hidden="true" className="care-home-ambient pointer-events-none absolute inset-0 overflow-hidden rounded-[24px]"><span className="care-home-glow care-home-glow-a"/><span className="care-home-glow care-home-glow-b"/></div>
   <details className="care-home-shortcuts absolute left-2 top-2 z-40">
     <summary aria-label="Abrir ações rápidas e lembretes" title="Ações rápidas e lembretes" className="care-home-shortcut-trigger">
@@ -287,7 +287,7 @@ export function ClientHomeSummary(){
       </div>
     </div>
   </details>
-  <div className="care-premium-welcome relative z-10 flex items-center justify-between gap-3 overflow-hidden rounded-[20px] border border-cyan-200/10 bg-gradient-to-r from-slate-950/55 to-teal-900/30 px-4 py-3 pr-14 sm:px-5 sm:pr-16">
+  <div className="care-premium-welcome care-reference-hero relative z-10 flex items-center justify-between gap-3 overflow-hidden rounded-[20px] border border-cyan-200/10 bg-gradient-to-r from-slate-950/55 to-teal-900/30 px-4 py-3 pr-14 sm:px-5 sm:pr-16">
     <div className="min-w-0">
       <p className="text-[10px] font-bold uppercase tracking-[.16em] text-teal-200/80">Saúde · Rotina · Evolução</p>
       <h2 className="mt-1 truncate text-lg font-extrabold tracking-tight text-white sm:text-2xl">Olá, <span className="text-teal-200">{patient?.full_name?.split(" ").slice(0,2).join(" ")??"bem-vindo"}</span></h2>
@@ -319,9 +319,9 @@ export function ClientHomeSummary(){
       {attentionItems.length>2&&<p className="px-2 text-[10px] text-white/60">Mais {attentionItems.length-2} eventos na linha do tempo.</p>}
     </div>
   </details>}
-  <div className="care-home-body relative grid min-h-0 min-w-0 flex-1 gap-2.5 md:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] md:items-stretch">
-    <div className="care-home-left grid min-h-0 min-w-0 grid-rows-[minmax(0,1fr)_auto_auto] gap-1.5">
-      <article className="patient-next-care relative flex min-h-[210px] min-w-0 flex-col justify-between overflow-hidden rounded-[22px] border p-3 sm:p-4 md:min-h-0">
+  <div className="care-home-body care-reference-grid relative grid min-h-0 min-w-0 flex-1 gap-2.5 md:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] md:items-stretch">
+    <div className="care-home-left care-reference-primary grid min-h-0 min-w-0 grid-rows-[minmax(0,1fr)_auto_auto] gap-1.5">
+      <article className="patient-next-care care-reference-next relative flex min-h-[210px] min-w-0 flex-col justify-between overflow-hidden rounded-[22px] border p-3 sm:p-4 md:min-h-0">
         <div aria-hidden="true" className="care-next-art pointer-events-none absolute inset-0 overflow-hidden">
           <span className="care-next-image-aura"/>
           <img src="/images/care-next-wellness.svg" alt="" loading="eager" decoding="async"
@@ -344,7 +344,7 @@ export function ClientHomeSummary(){
         {dailyGoal?.status==="nao_atingida"&&<span title={`Hidratação: ${dailyGoal.consumed_ml} de ${dailyGoal.target_ml} ml até 23h.`} className="inline-flex items-center gap-1 rounded-md border border-amber-300/25 bg-amber-400/10 px-1.5 py-0.5 text-[9px] font-semibold text-amber-200"><Droplets size={11}/> Meta não atingida · 23h</span>}
         <span className="ml-auto font-bold text-sky-200">{completion}%</span></div>
     </div>
-    <div className="patient-timeline care-timeline-with-image relative isolate flex min-h-[260px] min-w-0 flex-col overflow-hidden rounded-[22px] border p-3 md:min-h-0">
+    <div className="patient-timeline care-reference-timeline care-timeline-with-image relative isolate flex min-h-[260px] min-w-0 flex-col overflow-hidden rounded-[22px] border p-3 md:min-h-0">
       <div aria-hidden="true" className="care-timeline-image-layer pointer-events-none absolute inset-0 z-0">
         <img src="/images/care-agenda-wellness.svg" alt="" loading="eager" decoding="async"
           className="care-timeline-generated-art" draggable={false}/>
