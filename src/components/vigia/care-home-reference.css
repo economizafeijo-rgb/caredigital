@@ -1040,3 +1040,111 @@
 @media(prefers-reduced-motion:reduce){
  :root .client-home-dashboard.care-reference-2026 .care-patient-live-dot {box-shadow:none}
 }
+
+
+/* Homepage v6: compact header, real LED-style ticker, and viewport-safe quick actions. */
+:root .client-home-dashboard.care-reference-2026 .care-reference-hero {
+ min-height:96px!important;
+ max-height:118px!important;
+ padding:12px clamp(18px,2vw,26px)!important;
+ padding-left:clamp(54px,5vw,74px)!important;
+ padding-right:40%!important;
+ border-radius:16px!important;
+ background-position:right 32%!important;
+}
+:root .client-home-dashboard.care-reference-2026 .care-reference-hero h2 {
+ font-size:clamp(18px,1.9vw,26px)!important;
+ line-height:1.12!important;
+}
+:root .client-home-dashboard.care-reference-2026 .care-patient-marquee {
+ padding:7px 12px!important;
+ gap:4px!important;
+ border-radius:12px!important;
+}
+:root .client-home-dashboard.care-reference-2026 .care-patient-marquee-stats {display:none!important}
+:root .client-home-dashboard.care-reference-2026 .care-patient-marquee-heading {
+ font-size:9px!important;
+ line-height:1.15!important;
+ letter-spacing:.12em!important;
+}
+:root .client-home-dashboard.care-reference-2026 .care-patient-ticker {
+ position:relative;
+ width:100%;
+ min-width:0;
+ overflow:hidden;
+ white-space:nowrap;
+ border-top:1px solid rgba(117,228,223,.18);
+ padding-top:5px;
+ mask-image:linear-gradient(to right,transparent,#000 3%,#000 97%,transparent);
+}
+:root .client-home-dashboard.care-reference-2026 .care-patient-ticker-track {
+ display:flex;
+ width:max-content;
+ animation:care-patient-scroll 29s linear infinite;
+ will-change:transform;
+}
+:root .client-home-dashboard.care-reference-2026 .care-patient-ticker-set {
+ display:flex;
+ align-items:center;
+ flex:none;
+ gap:clamp(24px,3vw,55px);
+ padding-right:clamp(24px,3vw,55px);
+}
+:root .client-home-dashboard.care-reference-2026 .care-patient-ticker-set span {
+ font-size:clamp(12px,1.1vw,15px);
+ font-weight:800;
+ letter-spacing:.025em;
+ color:#ecfffc;
+ font-variant-numeric:tabular-nums;
+}
+:root .client-home-dashboard.care-reference-2026 .care-patient-ticker-set b {
+ color:#55f7dd;
+ font-size:.76em;
+ letter-spacing:.1em;
+ margin-right:7px;
+}
+@keyframes care-patient-scroll {to{transform:translateX(-50%)}}
+:root .client-home-dashboard.care-reference-2026 .care-patient-ticker:hover .care-patient-ticker-track {animation-play-state:paused}
+:root .client-home-dashboard.care-reference-2026 .care-home-shortcuts {
+ left:clamp(8px,1vw,16px)!important;
+ right:auto!important;
+ top:clamp(8px,1vw,12px)!important;
+}
+:root .client-home-dashboard.care-reference-2026 .care-home-shortcuts-content {
+ position:fixed!important;
+ left:clamp(8px,1.5vw,22px)!important;
+ right:auto!important;
+ top:clamp(70px,11dvh,100px)!important;
+ width:min(455px,calc(100vw - 16px))!important;
+ max-width:calc(100vw - 16px)!important;
+ max-height:calc(100dvh - 95px)!important;
+ overflow-x:hidden!important;
+ overflow-y:auto!important;
+ box-sizing:border-box!important;
+ z-index:9999!important;
+ padding:clamp(12px,1.5vw,18px)!important;
+}
+:root .client-home-dashboard.care-reference-2026 .care-home-shortcuts-content .patient-home-actions > * {
+ max-width:100%;min-width:0;
+}
+@media(max-width:767px){
+ :root .client-home-dashboard.care-reference-2026 .care-reference-hero {
+  min-height:96px!important;
+  max-height:112px!important;
+  padding:12px 38% 12px 50px!important;
+  background-position:65% 35%!important;
+ }
+ :root .client-home-dashboard.care-reference-2026 .care-reference-hero h2 {font-size:18px!important}
+ :root .client-home-dashboard.care-reference-2026 .care-home-shortcuts-content {
+  left:8px!important;
+  right:8px!important;
+  top:60px!important;
+  width:calc(100vw - 16px)!important;
+  max-height:calc(100dvh - 78px)!important;
+ }
+ :root .client-home-dashboard.care-reference-2026 .care-patient-marquee {padding:7px 9px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ :root .client-home-dashboard.care-reference-2026 .care-patient-ticker-track {animation:none!important}
+ :root .client-home-dashboard.care-reference-2026 .care-patient-ticker {overflow-x:auto}
+}
