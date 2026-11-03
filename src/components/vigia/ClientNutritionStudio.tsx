@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, BookOpen, Calculator, Check, ChevronLeft, ChevronRight, ClipboardList, HeartPulse, Leaf, RotateCcw, Save, Search, ShieldAlert, UtensilsCrossed } from "lucide-react";
+import { AlertTriangle, BookOpen, Calculator, ClipboardList, HeartPulse, Leaf, RotateCcw, Save, Search, ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
  ingredientById,ingredients,mealSlots,menuForDay,nutritionSources,proteinRange,recipeFits,
@@ -67,7 +67,7 @@ export function ClientNutritionStudio({patientId,ownerId}:Props){
    (!search.trim()||norm(r.title+" "+r.description+" "+r.ingredients.map(([id])=>ingredientById.get(id)?.name??"").join(" ")).includes(norm(search.trim())))
  ),[goal,sensitive,avoided,mealFilter,search]);
  const selectableRecipes=useMemo(()=>recipes.filter(r=>recipeFits(r,goal,sensitive,avoided)),[goal,sensitive,avoided]);
- const plan=useMemo(()=>menuForDay(day,selectableRecipes,rotation),[day,selectableRecipes,rotation]);
+ const plan=useMemo(()=>menuForDay(day,selectableRecipes,rotation,goal),[day,selectableRecipes,rotation,goal]);
  const planNutrition=plan.reduce((acc,{recipe})=>{
   if(recipe){const info=recipeTotals(recipe);acc.protein+=info.protein;acc.kcal+=info.kcal;}
   return acc;
