@@ -39,7 +39,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
     requestId.current = crypto.randomUUID();
     const initialGroup=mode==="water"||mode==="drink"?"beverage":"food";
     setGroup(initialGroup);
-    setKind(mode==="water"?"agua":mode==="drink"?"cha":"lanche");
+    setKind(mode==="water"?"agua":mode==="drink"?"cha":mode==="food"?"almoco":"lanche");
     setDescription("");
     setPortion("");
     setAmount("200");
@@ -151,7 +151,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
           <form className="mt-3 grid min-h-0 gap-2.5" onSubmit={event => void save(event)}>
             {mode==="all"&&<div role="group" aria-label="Selecionar tipo de consumo" className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-muted/35 p-1">
               <button type="button" aria-pressed={group==="food"}
-                onClick={()=>{setGroup("food");setKind("lanche");setDescription("");setPortion("");setError("");}}
+                onClick={()=>{setGroup("food");setKind("almoco");setDescription("");setPortion("");setError("");}}
                 className={"flex min-h-9 items-center justify-center gap-1.5 rounded-lg px-2 text-[11px] font-extrabold "+(group==="food"?"bg-primary text-primary-foreground":"text-muted-foreground hover:bg-card")}>
                 <UtensilsCrossed size={15}/> Alimentos e refeições
               </button>
@@ -208,7 +208,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
               O consumo será salvo com o horário informado (ou o horário atual) e a data do lançamento.
               {isWater
                 ? "Água e outras bebidas entram no total diário de líquidos. Este registro não confirma horários programados; não registre o mesmo copo novamente na agenda."
-                : isFood?"Frutas, lanches e refeições completas são salvos no histórico de alimentação, sem confirmar uma refeição programada.":"Chás, energéticos, suplementos líquidos e shakes ficam no histórico, e entram no total de líquidos consumidos."}
+                : isFood?"Selecione o tipo correto (Almoço, Jantar etc.). O registro aparece no histórico e será conciliado com a programação correspondente quando houver.":"Chás, energéticos, suplementos líquidos e shakes ficam no histórico, e entram no total de líquidos consumidos."}
             </p>
             {error && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive">{error}</p>}
             <div className="grid grid-cols-2 gap-2">
