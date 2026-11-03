@@ -287,33 +287,30 @@ export function ClientHomeSummary(){
       </div>
     </div>
   </details>
-  {attentionRecent.length>0&&<section aria-label="Cuidados recentes sem confirmação ou não realizados"
-    className="relative z-10 mt-10 shrink-0 overflow-hidden rounded-[20px] border border-amber-200/30 bg-slate-900/65 p-3 text-white shadow-[0_12px_40px_rgba(0,0,0,.2)] backdrop-blur-2xl md:mt-0 md:p-3.5">
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-amber-400/[.12] via-white/[.035] to-cyan-400/[.08]"/>
-    <div className="relative flex flex-wrap items-center justify-between gap-2">
-      <div className="flex min-w-0 items-center gap-2">
-        <span className="grid size-9 shrink-0 place-items-center rounded-xl border border-amber-200/25 bg-amber-300/15 text-amber-200"><ShieldAlert size={18}/></span>
-        <div className="min-w-0"><h3 className="text-[12px] font-extrabold tracking-wide text-white">Atenção aos últimos cuidados</h3>
-          <p className="text-[10px] text-white/70">{attentionItems.length} {attentionItems.length===1?"evento precisa":"eventos precisam"} de atenção</p></div>
-      </div>
-      <span className="rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-bold text-amber-100 backdrop-blur-lg">Pendências recentes</span>
-    </div>
-    <div className="relative mt-2 grid gap-2 sm:grid-cols-2">
+  {attentionRecent.length>0&&<details className="group relative z-30 mt-9 shrink-0 md:mt-0" aria-label="Cuidados que precisam de atenção">
+    <summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 rounded-2xl border border-amber-200/25 bg-slate-900/55 px-3 py-2 text-white shadow-sm backdrop-blur-xl transition hover:bg-slate-800/70 [&::-webkit-details-marker]:hidden">
+      <span className="grid size-6 shrink-0 place-items-center rounded-lg bg-amber-300/15 text-amber-200"><ShieldAlert size={15}/></span>
+      <span className="min-w-0 flex-1 truncate text-[11px] font-semibold">Pendências recentes</span>
+      <span className="shrink-0 rounded-full bg-amber-200/15 px-2 py-0.5 text-[10px] font-bold tabular-nums text-amber-100">{attentionItems.length}</span>
+      <span className="hidden min-w-0 max-w-[42%] truncate text-[10px] text-white/70 sm:block">{attentionRecent[0]?.title} · {time(attentionRecent[0].scheduled_at)}</span>
+      <ChevronRight size={15} className="shrink-0 text-white/70 transition-transform group-open:rotate-90"/>
+    </summary>
+    <div className="absolute left-0 right-0 top-full z-50 mt-1.5 max-h-[240px] space-y-1.5 overflow-y-auto rounded-2xl border border-white/20 bg-slate-900/95 p-2.5 text-white shadow-[0_18px_45px_rgba(0,0,0,.35)] backdrop-blur-2xl">
       {attentionRecent.map(task=>{
         const Icon=icons[task.category as keyof typeof icons]??AlertCircle;
         const status=resolvedStates[task.id];
         const canOpen=Boolean(!status&&task.category!=="medicacao");
         return <button key={task.id} type="button"
           onClick={()=>{if(canOpen){openDueConfirmation(task)}else{setDetailTask(task);setError("");setReceipt(null);}}}
-          className="group flex min-w-0 items-center gap-2.5 rounded-xl border border-white/20 bg-white/[.09] px-3 py-2.5 text-left shadow-sm backdrop-blur-xl transition hover:border-white/45 hover:bg-white/[.16] focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-200">
-          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/15 text-cyan-100"><Icon size={18}/></span>
-          <span className="min-w-0 flex-1"><strong className="block truncate text-xs font-bold text-white">{task.title}</strong>
-            <small className="mt-0.5 block text-[10px] text-white/75">{time(task.scheduled_at)} · {attentionText(task)}</small></span>
-          <ChevronRight size={16} className="shrink-0 text-white/70 transition group-hover:translate-x-0.5"/>
+          className="flex min-h-11 w-full items-center gap-2 rounded-xl border border-white/10 bg-white/[.06] px-3 py-2 text-left transition hover:bg-white/[.13]">
+          <Icon size={16} className="shrink-0 text-amber-100"/>
+          <span className="min-w-0 flex-1"><strong className="block truncate text-xs font-semibold">{task.title}</strong><small className="block text-[10px] text-white/65">{time(task.scheduled_at)} · {attentionText(task)}</small></span>
+          <ChevronRight size={14} className="shrink-0 text-white/60"/>
         </button>;
       })}
+      {attentionItems.length>2&&<p className="px-2 text-[10px] text-white/60">Mais {attentionItems.length-2} eventos na linha do tempo.</p>}
     </div>
-  </section>}
+  </details>}
   <div className="care-home-body relative grid min-h-0 min-w-0 flex-1 gap-2.5 md:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] md:items-stretch">
     <div className="care-home-left grid min-h-0 min-w-0 grid-rows-[minmax(0,1fr)_auto_auto] gap-1.5">
       <article className="patient-next-care relative flex min-h-[210px] min-w-0 flex-col justify-between overflow-hidden rounded-[22px] border p-3 sm:p-4 md:min-h-0">
