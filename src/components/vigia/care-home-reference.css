@@ -1148,3 +1148,75 @@
  :root .client-home-dashboard.care-reference-2026 .care-patient-ticker-track {animation:none!important}
  :root .client-home-dashboard.care-reference-2026 .care-patient-ticker {overflow-x:auto}
 }
+
+
+/* Fix card collision: keep a single clear pictogram and the progress ring. */
+:root .client-home-dashboard.care-reference-2026 .care-visual-progress {
+ grid-template-columns:repeat(3,minmax(0,1fr));
+ align-items:stretch;
+}
+:root .client-home-dashboard.care-reference-2026 .care-visual-tile {
+ display:flex!important;
+ flex-direction:column!important;
+ align-items:stretch!important;
+ justify-content:flex-start!important;
+ gap:8px!important;
+ min-width:0!important;
+ min-height:145px!important;
+ padding:clamp(9px,1.1vw,15px)!important;
+}
+:root .client-home-dashboard.care-reference-2026 .care-visual-tile > .care-progress-svg {
+ display:none!important;
+}
+:root .client-home-dashboard.care-reference-2026 .care-visual-tile .care-reference-tile-top {
+ position:relative!important;
+ inset:auto!important;
+ display:flex!important;
+ align-items:center!important;
+ justify-content:space-between!important;
+ width:100%!important;
+ min-height:38px!important;
+ padding:0!important;
+ margin:0!important;
+}
+:root .client-home-dashboard.care-reference-2026 .care-visual-tile .care-reference-tile-top > svg {
+ display:block;
+ flex:0 0 23px!important;
+ width:23px!important;
+ height:23px!important;
+}
+:root .client-home-dashboard.care-reference-2026 .care-visual-tile .care-reference-ring {
+ flex:0 0 38px!important;
+ width:38px!important;
+ height:38px!important;
+ min-width:38px!important;
+ font-size:10px!important;
+}
+:root .client-home-dashboard.care-reference-2026 .care-visual-tile > :is(div,span):not(.care-reference-tile-top) {
+ position:relative!important;
+ z-index:2!important;
+ width:100%!important;
+ min-width:0!important;
+ margin:0!important;
+ padding:0!important;
+}
+:root .client-home-dashboard.care-reference-2026 .care-visual-tile .care-visual-title {
+ overflow-wrap:anywhere;
+ white-space:normal!important;
+ line-height:1.2!important;
+ font-size:clamp(10px,1.15vw,15px)!important;
+}
+:root .client-home-dashboard.care-reference-2026 .care-visual-tile .care-visual-value {
+ font-size:clamp(15px,1.7vw,23px)!important;
+ overflow-wrap:anywhere;
+}
+@media(max-width:480px){
+ :root .client-home-dashboard.care-reference-2026 .care-visual-progress {gap:5px!important}
+ :root .client-home-dashboard.care-reference-2026 .care-visual-tile {padding:7px!important;gap:5px!important}
+ :root .client-home-dashboard.care-reference-2026 .care-visual-tile .care-reference-ring {
+  flex-basis:30px!important;width:30px!important;height:30px!important;min-width:30px!important;font-size:8px!important
+ }
+ :root .client-home-dashboard.care-reference-2026 .care-visual-tile .care-reference-tile-top > svg {
+  flex-basis:18px!important;width:18px!important;height:18px!important
+ }
+}
