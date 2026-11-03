@@ -24,6 +24,8 @@ type Props={
 };
 
 type MealDetail={task_id:string;description:string;recorded_at:string|null};
+type UnscheduledMeal={id:string;happened_at:string;details:{kind?:string;title?:string;description?:string}|null};
+const foodKinds=new Set(["refeicao","lanche","fruta","cafe_manha","almoco","jantar","ceia","sobremesa","salada","sopa"]);
 const PAGE_SIZE=4;
 const mealKind=(title:string):FoodKind=>{
   if(/café da manhã|cafe da manha/i.test(title))return "cafe_manha";
@@ -42,6 +44,8 @@ const foodIcon=(title:string)=>getCareIntakeIcon(mealKind(title))??UtensilsCross
 export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,now=Date.now(),onView,onConfirm,onDelete,onRecorded}:Props){
   const [details,setDetails]=useState<MealDetail[]>([]);
   const [detailsError,setDetailsError]=useState(false);
+  const [extraMeals,setExtraMeals]=useState<UnscheduledMeal[]>([]);
+  const [extraError,setExtraError]=useState(false);
   const [filter,setFilter]=useState<"todos"|"confirmados"|"pendentes">("todos");
   const [query,setQuery]=useState("");
   const [page,setPage]=useState(0);
@@ -59,6 +63,24 @@ export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,no
     })();
     return()=>{active=false};
   },[patientId,ownerId,revision]);
+  useEffect(()=>{
+    if(!patientId||!ownerId){setExtraMeals([]);return;}
+    let active=true;
+    void (async()=>{
+      const day=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Rio_Branco",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(now));
+      const start=new Date(day+"T00:00:00-05:00").toISOString();
+      const end=new Date(new Date(day+"T00:00:00-05:00").getTime()+86400000).toISOString();
+      const result=await (supabase as any).from("care_activity_log")
+        .select("id,happened_at,details")
+        .eq("patient_id",patientId).eq("owner_id",ownerId)
+        .eq("category","refeicao").eq("event_type","logged")
+        .eq("source","client_unscheduled_intake")
+        .gte("happened_at",start).lt("happened_at",end)
+        .order("happened_at",{ascending:false}).limit(100);
+      if(active){setExtraMeals(result.error?[]:(result.data??[]).filter((entry:UnscheduledMeal)=>foodKinds.has(entry.details?.kind??"")));setExtraError(Boolean(result.error));}
+    })();
+    return()=>{active=false};
+  },[patientId,ownerId,revision,now && new Intl.DateTimeFormat("en-CA",{timeZone:"America/Rio_Branco",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(now))]);
   const byTask=useMemo(()=>new Map(details.map(m=>[m.task_id,m])),[details]);
   const confirmed=meals.filter(m=>Boolean(m.completed_at)).length;
   const pending=meals.filter(meal=>!meal.completed_at&&!resolved[meal.id]).length;
@@ -69,6 +91,11 @@ export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,no
     const haystack=(meal.title+" "+(mealDetail?.description??"")).toLocaleLowerCase("pt-BR");
     return !query.trim()||haystack.includes(query.trim().toLocaleLowerCase("pt-BR"));
   }).sort((a,b)=>Date.parse(a.scheduled_at)-Date.parse(b.scheduled_at)),[meals,byTask,filter,query]);
+  const filteredExtras=extraMeals.filter(entry=>{
+    if(filter==="pendentes")return false;
+    const search=(entry.details?.title??"")+" "+(entry.details?.description??"");
+    return !query.trim()||search.toLocaleLowerCase("pt-BR").includes(query.trim().toLocaleLowerCase("pt-BR"));
+  });
   const count=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));
   const current=Math.min(page,count-1);
   const visible=filtered.slice(current*PAGE_SIZE,(current+1)*PAGE_SIZE);
@@ -81,7 +108,7 @@ export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,no
           <UtensilsCrossed size={17} className="text-emerald-600 dark:text-emerald-300"/> Alimentação de hoje
         </h3>
         <p className="mt-0.5 text-[11px] text-muted-foreground">
-          {confirmed} de {meals.length} refeições confirmadas · {pending} sem confirmação
+          {confirmed} de {meals.length} refeições programadas confirmadas · {extraMeals.length} registros avulsos · {pending} pendentes
         </p>
       </div>
       <ClientQuickIntake patientId={patientId} variant="panel" mode="food" onRecorded={onRecorded}/>
@@ -111,6 +138,19 @@ export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,no
       A agenda foi carregada, mas as descrições das refeições não estão disponíveis no momento.
     </div>}
     <div className="care-page-meals-list min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
+      {filteredExtras.length>0&&<section className="mb-3" aria-label="Refeições e lanches registrados fora da programação">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><h4 className="text-xs font-extrabold text-foreground">Consumos registrados hoje</h4><span className="rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">{filteredExtras.length} registros avulsos</span></div>
+        <div className="grid min-w-0 grid-cols-1 gap-2 md:grid-cols-2">
+          {filteredExtras.map(entry=>{const Icon=foodIcon(entry.details?.title??"Refeição");return <article key={entry.id} className="flex min-w-0 items-start gap-3 rounded-2xl border border-emerald-500/25 bg-emerald-500/[.055] p-3">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"><Icon size={20}/></span>
+            <div className="min-w-0 flex-1"><h5 className="text-xs font-extrabold text-foreground">{entry.details?.title??"Consumo avulso"}</h5>
+              <p className="mt-1 text-[11px] text-muted-foreground">{reminderClock(entry.happened_at)} · Registrado fora da programação</p>
+              <p className="mt-1 break-words text-xs text-foreground">{entry.details?.description??"Descrição não informada"}</p>
+            </div><CheckCircle2 size={17} className="shrink-0 text-emerald-600"/>
+          </article>})}
+        </div>
+      </section>}
+      {extraError&&<p role="status" className="mb-2 rounded-lg border border-amber-500/25 p-2 text-xs text-muted-foreground">Não foi possível carregar os consumos avulsos. Consulte o histórico completo.</p>}
       <div className="grid min-w-0 grid-cols-1 gap-2 md:grid-cols-2">
         {visible.map(meal=>{
           const Icon=foodIcon(meal.title);
