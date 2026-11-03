@@ -183,9 +183,9 @@ export function ClientHomeSummary(){
  const knownTaskIds=new Set(tasks.map(task=>task.id));
  const agendaItems:AgendaRow[]=[
    ...tasks.map(task=>{const matched=matchedMealIds.has(task.id);const resolved=resolvedStates[task.id];const completed=Boolean(task.completed_at)||matched;const overdue=Boolean(now&&!completed&&!resolved&&Date.parse(task.scheduled_at)<now.getTime());return {
-     key:"task:"+task.id,at:matched?(loggedMealsByKind.get(plannedMealKind(task.title)!)??task.scheduled_at):task.scheduled_at,title:task.title,category:task.category as AgendaRow["category"],task:matched?null:task,
+     key:"task:"+task.id,at:task.completed_at??(matched?(loggedMealsByKind.get(plannedMealKind(task.title)!)??task.scheduled_at):task.scheduled_at),title:task.title,category:task.category as AgendaRow["category"],task:matched?null:task,
      completed,resolved:Boolean(resolved),overdue,
-     subtitle:(matched?"Registrado no diário":completed?"Confirmado":resolved==="cancelado"?"Cancelado":resolved==="nao_cumprido"?"Não realizado":resolved==="nao_bebi"?"Não bebi":overdue?"Aguardando confirmação":"Programado")+" · "+labelFor(task.category)
+     subtitle:(matched?"Registrado no diário":completed?"Realizado no horário informado":resolved==="cancelado"?"Cancelado":resolved==="nao_cumprido"?"Não realizado":resolved==="nao_bebi"?"Não bebi":overdue?"Aguardando confirmação":"Programado")+" · "+labelFor(task.category)
        +(!completed&&!resolved&&task.category==="hidratacao"&&hydrationPlan[task.id]?.suggested_ml>0?" · sug. "+hydrationPlan[task.id].suggested_ml+" ml":"")
    };}),
    ...extraWater.filter(item=>!item.task_id||!knownTaskIds.has(item.task_id)).map(item=>({
