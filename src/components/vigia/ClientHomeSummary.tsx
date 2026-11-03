@@ -287,6 +287,14 @@ export function ClientHomeSummary(){
       </div>
     </div>
   </details>
+  <div className="care-premium-welcome relative z-10 flex items-center justify-between gap-3 overflow-hidden rounded-[20px] border border-cyan-200/10 bg-gradient-to-r from-slate-950/55 to-teal-900/30 px-4 py-3 pr-14 sm:px-5 sm:pr-16">
+    <div className="min-w-0">
+      <p className="text-[10px] font-bold uppercase tracking-[.16em] text-teal-200/80">Saúde · Rotina · Evolução</p>
+      <h2 className="mt-1 truncate text-lg font-extrabold tracking-tight text-white sm:text-2xl">Olá, <span className="text-teal-200">{patient?.full_name?.split(" ").slice(0,2).join(" ")??"bem-vindo"}</span></h2>
+      <p className="mt-1 text-[11px] text-slate-200">Acompanhe seus cuidados e sua evolução.</p>
+    </div>
+    <img src="/images/care-next-wellness.svg" alt="" aria-hidden="true" className="hidden h-[76px] w-[150px] shrink-0 object-contain opacity-80 sm:block" loading="lazy"/>
+  </div>
   {attentionRecent.length>0&&<details className="care-premium-pending group relative z-30 shrink-0" aria-label="Cuidados que precisam de atenção">
     <summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 rounded-2xl border border-amber-200/25 bg-slate-900/55 px-3 py-2 text-white shadow-sm backdrop-blur-xl transition hover:bg-slate-800/70 [&::-webkit-details-marker]:hidden">
       <span className="grid size-6 shrink-0 place-items-center rounded-lg bg-amber-300/15 text-amber-200"><ShieldAlert size={15}/></span>
