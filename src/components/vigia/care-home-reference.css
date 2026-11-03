@@ -574,3 +574,172 @@
   :root .client-home-dashboard.care-premium-v3 .care-visual-value {font-size:16px}
   :root .client-home-dashboard.care-premium-v3 .care-visual-subtitle {font-size:9px}
 }
+
+
+/* Reference 2026 — composition aligned to the approved mobile screenshot.
+   Uses real client state and bundled photography; no mocked health records. */
+:root .client-home-dashboard.care-reference-2026 {
+ --reference-cyan:#22f4e4;
+ --reference-border:rgba(91,241,230,.57);
+ color:#f5ffff;
+ background:radial-gradient(ellipse at 68% 0%,rgba(0,218,209,.17),transparent 40%),linear-gradient(150deg,#041823 0%,#062d3a 54%,#031e2d 100%);
+ border:1px solid rgba(77,218,222,.48);
+ box-shadow:0 22px 70px rgba(0,15,26,.32),inset 0 1px rgba(220,255,255,.12);
+ padding:clamp(10px,1.5vw,22px);
+ gap:clamp(12px,1.5vw,19px);
+}
+:root .client-home-dashboard.care-reference-2026 .care-reference-hero {
+ position:relative;
+ min-height:clamp(120px,17vw,205px);
+ display:flex;
+ align-items:center;
+ border:0;
+ border-radius:20px;
+ padding:clamp(16px,3vw,35px);
+ padding-right:42%;
+ background:linear-gradient(90deg,rgba(2,25,35,.96) 0%,rgba(4,39,48,.84) 42%,rgba(4,39,48,.05) 100%),url('/images/caredigital-care-hero.webp') center right / cover no-repeat;
+ box-shadow:inset 0 -1px rgba(80,241,230,.2);
+}
+:root .client-home-dashboard.care-reference-2026 .care-reference-hero h2 {
+ font-size:clamp(22px,3.2vw,38px);
+ line-height:1.12;
+ font-weight:850;
+ letter-spacing:-.045em;
+}
+:root .client-home-dashboard.care-reference-2026 .care-reference-hero h2 span {color:#a6fff0}
+:root .client-home-dashboard.care-reference-2026 .care-reference-hero > img {display:none}
+:root .client-home-dashboard.care-reference-2026 .care-premium-pending {
+ border:1px solid rgba(153,247,238,.62);
+ border-radius:22px;
+ background:linear-gradient(105deg,rgba(66,91,89,.65),rgba(5,65,76,.83));
+ box-shadow:inset 0 1px rgba(255,255,255,.18),0 7px 28px rgba(0,25,32,.26);
+}
+:root .client-home-dashboard.care-reference-2026 .care-reference-grid {
+ grid-template-columns:minmax(0,1fr);
+ align-content:start;
+ gap:clamp(13px,1.7vw,22px);
+ overflow:visible;
+}
+:root .client-home-dashboard.care-reference-2026 .care-reference-primary {
+ grid-template-rows:auto auto auto;
+ gap:clamp(12px,1.5vw,19px);
+}
+:root .client-home-dashboard.care-reference-2026 .care-reference-next {
+ min-height:clamp(255px,28vw,365px);
+ border:1px solid var(--reference-border);
+ border-radius:30px;
+ padding:clamp(18px,3vw,34px);
+ background:radial-gradient(ellipse at 85% 95%,rgba(9,224,211,.23),transparent 44%),linear-gradient(120deg,#07535b,#062e3d 75%);
+ box-shadow:inset 0 1px rgba(238,255,255,.17),0 14px 34px rgba(0,19,27,.3);
+}
+:root .client-home-dashboard.care-reference-2026 .care-reference-next .care-next-generated-art {
+ width:55%;height:100%;right:0;left:auto;object-fit:contain;object-position:right center;
+}
+:root .client-home-dashboard.care-reference-2026 .care-reference-next h3 {
+ font-size:clamp(23px,3vw,36px);
+ max-width:55%;
+ letter-spacing:-.045em;
+ line-height:1.12;
+}
+:root .client-home-dashboard.care-reference-2026 .care-reference-next .care-next-countdown {
+ font-size:clamp(27px,4vw,48px);
+ color:var(--reference-cyan);
+ letter-spacing:-.05em;
+}
+:root .client-home-dashboard.care-reference-2026 .care-next-cta {
+ color:#04313b;
+ background:linear-gradient(180deg,#b1fff4,#22e9db 66%,#04bdbd);
+ border:1px solid #a5fff5;
+ box-shadow:0 0 18px rgba(28,245,224,.35),inset 0 2px rgba(255,255,255,.58);
+ font-weight:850;
+}
+:root .client-home-dashboard.care-reference-2026 .care-next-secondary {
+ border:1px solid rgba(137,255,245,.82);
+ background:rgba(4,43,55,.62);
+ color:#eaffff;
+}
+:root .client-home-dashboard.care-reference-2026 .care-visual-progress {
+ display:grid;
+ grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:clamp(8px,1.4vw,17px);
+}
+:root .client-home-dashboard.care-reference-2026 .care-visual-tile {
+ position:relative;
+ display:flex;
+ flex-direction:column;
+ align-items:flex-start;
+ justify-content:space-between;
+ min-height:clamp(165px,18vw,245px);
+ padding:clamp(12px,1.7vw,23px);
+ border-radius:25px;
+ border:1px solid rgba(133,236,240,.65);
+ overflow:hidden;
+ isolation:isolate;
+ box-shadow:inset 0 1px rgba(255,255,255,.2),0 12px 28px rgba(0,14,25,.22);
+}
+:root .client-home-dashboard.care-reference-2026 .care-visual-tile[data-visual="water"] {
+ background:radial-gradient(ellipse at 50% 115%,rgba(5,205,243,.45),transparent 62%),linear-gradient(150deg,#145b79,#05354c);
+}
+:root .client-home-dashboard.care-reference-2026 .care-visual-tile[data-visual="meals"] {
+ background:radial-gradient(ellipse at 90% 110%,rgba(95,229,108,.4),transparent 62%),linear-gradient(150deg,#2c7148,#073b35);
+ border-color:rgba(153,255,174,.6);
+}
+:root .client-home-dashboard.care-reference-2026 .care-visual-tile[data-visual="medication"] {
+ background:radial-gradient(ellipse at 85% 110%,rgba(180,110,255,.42),transparent 65%),linear-gradient(150deg,#564985,#24214e);
+ border-color:rgba(203,172,255,.67);
+}
+:root .client-home-dashboard.care-reference-2026 .care-visual-tile .care-progress-svg {
+ position:absolute;
+ right:-7%;
+ bottom:-18%;
+ width:50%;
+ height:68%;
+ opacity:.72;
+ filter:drop-shadow(0 5px 12px rgba(0,0,0,.25));
+}
+:root .client-home-dashboard.care-reference-2026 .care-visual-tile > :not(svg) {position:relative;z-index:1;width:100%}
+:root .client-home-dashboard.care-reference-2026 .care-visual-title {font-size:clamp(12px,1.4vw,19px);color:#efffff}
+:root .client-home-dashboard.care-reference-2026 .care-visual-value {font-size:clamp(20px,2.5vw,33px);color:#fff}
+:root .client-home-dashboard.care-reference-2026 .care-visual-subtitle {color:#d5ebee}
+:root .client-home-dashboard.care-reference-2026 .care-premium-progress {
+ border:1px solid rgba(108,240,226,.48);
+ border-radius:23px;
+ background:linear-gradient(115deg,rgba(9,78,84,.93),rgba(4,59,73,.85));
+ padding:clamp(12px,1.7vw,19px);
+ min-height:65px;
+}
+:root .client-home-dashboard.care-reference-2026 .care-reference-timeline {
+ border:1px solid rgba(105,234,227,.48);
+ border-radius:29px;
+ background:radial-gradient(ellipse at 90% 100%,rgba(0,187,194,.14),transparent 50%),linear-gradient(140deg,#0b4755,#062636);
+ min-height:290px;
+ padding:clamp(14px,2vw,24px);
+}
+:root .client-home-dashboard.care-reference-2026 .patient-timeline-item {
+ min-height:59px;
+ border-radius:17px;
+ border:1px solid rgba(138,215,220,.35);
+ background:linear-gradient(105deg,rgba(35,91,101,.73),rgba(8,52,67,.9));
+ box-shadow:inset 0 1px rgba(255,255,255,.09);
+}
+@media(max-width:767px){
+ :root .client-home-dashboard.care-reference-2026 {padding:9px;gap:11px;overflow-x:hidden}
+ :root .client-home-dashboard.care-reference-2026 .care-reference-hero {min-height:145px;padding:17px 40% 17px 15px;border-radius:17px;background-position:60% center}
+ :root .client-home-dashboard.care-reference-2026 .care-reference-hero h2 {font-size:23px;white-space:normal}
+ :root .client-home-dashboard.care-reference-2026 .care-reference-next {min-height:285px;padding:16px;border-radius:24px}
+ :root .client-home-dashboard.care-reference-2026 .care-reference-next h3 {font-size:24px;max-width:68%}
+ :root .client-home-dashboard.care-reference-2026 .care-reference-next .care-next-generated-art {width:54%;opacity:.82}
+ :root .client-home-dashboard.care-reference-2026 .care-visual-progress {gap:7px}
+ :root .client-home-dashboard.care-reference-2026 .care-visual-tile {min-height:150px;border-radius:19px;padding:9px}
+ :root .client-home-dashboard.care-reference-2026 .care-visual-tile .care-progress-svg {width:55%;height:53%;right:-11%;bottom:-9%}
+ :root .client-home-dashboard.care-reference-2026 .care-visual-title {font-size:11px}
+ :root .client-home-dashboard.care-reference-2026 .care-visual-value {font-size:19px}
+ :root .client-home-dashboard.care-reference-2026 .care-visual-subtitle {font-size:9px;white-space:normal}
+ :root .client-home-dashboard.care-reference-2026 .care-reference-timeline {min-height:270px;border-radius:23px}
+}
+@media(min-width:768px){
+ :root .client-home-dashboard.care-reference-2026 {height:auto;max-height:none;overflow:visible}
+ :root .client-home-dashboard.care-reference-2026 .care-reference-grid {grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);align-items:start}
+ :root .client-home-dashboard.care-reference-2026 .care-reference-primary {grid-column:1}
+ :root .client-home-dashboard.care-reference-2026 .care-reference-timeline {grid-column:2;grid-row:1;min-height:100%}
+}
