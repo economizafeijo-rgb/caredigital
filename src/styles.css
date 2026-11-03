@@ -2696,3 +2696,39 @@ iframe[title*="Lovable" i][title*="badge" i] {
  .care-record-modal-dialog {border-radius:18px!important}
  .care-premium-intake-dialog {border-radius:18px!important}
 }
+
+
+/* Hydration and meals: responsive forms, accessible filters and reachable records. */
+.care-hydration-responsive,.care-meals-responsive {min-width:0;max-width:100%}
+.care-hydration-responsive :is(input,select,textarea),
+.care-meals-responsive :is(input,select,textarea) {min-width:0;max-width:100%}
+.care-hydration-responsive :is(input,select,button):focus-visible,
+.care-meals-responsive :is(input,select,button):focus-visible {
+ outline:2px solid #20d7c7;outline-offset:2px;
+}
+.care-hydration-responsive .grid,.care-meals-responsive .grid {min-width:0}
+.care-hydration-responsive .grid > *,.care-meals-responsive .grid > * {min-width:0}
+.care-meals-responsive .care-page-meals-list {
+ min-height:180px;
+ overflow-y:auto;
+ overflow-x:hidden;
+ overscroll-behavior:contain;
+ scrollbar-width:thin;
+ scrollbar-color:rgba(41,202,178,.65) transparent;
+}
+.care-meals-responsive .care-page-meals-filters {min-width:0}
+.care-meals-responsive .care-page-meals-filters button {min-height:38px;white-space:normal;line-height:1.2}
+.care-meals-responsive .care-premium-meal-card {overflow-wrap:anywhere}
+@media(max-width:600px){
+ .care-hydration-responsive .grid.grid-cols-2 {grid-template-columns:repeat(2,minmax(0,1fr))}
+ .care-hydration-responsive label {min-width:0;overflow-wrap:anywhere}
+ .care-hydration-responsive .field {width:100%;min-width:0}
+ .care-meals-responsive .care-page-meals-filters {flex-direction:column;align-items:stretch}
+ .care-meals-responsive .care-page-meals-filters > * {width:100%;max-width:none;min-width:0}
+ .care-meals-responsive .care-page-meals-filters button {padding-inline:5px}
+ .care-meals-responsive .care-meals-actions {align-items:stretch}
+}
+@media(min-width:768px) and (max-height:800px){
+ .care-hydration-responsive,.care-meals-responsive {height:auto;min-height:0}
+ .care-meals-responsive .care-page-meals-list {max-height:65dvh;min-height:260px}
+}
