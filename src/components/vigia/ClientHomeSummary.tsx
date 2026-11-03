@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./care-home-reference.css";
 import { Link } from "@tanstack/react-router";
 import { CalendarClock, Check, Clock3, Droplets, Pill, Utensils, X, ArrowUpRight, ChevronRight, Plus, ListChecks, AlertCircle, ShieldAlert } from "lucide-react";
@@ -58,7 +58,9 @@ export function ClientHomeSummary(){
  const [extraError,setExtraError]=useState("");
  const [agendaCategory,setAgendaCategory]=useState<"todos"|"hidratacao"|"refeicao"|"medicacao">("todos");
  const [agendaPage,setAgendaPage]=useState(0);
- const agendaPageSize=4;
+ const agendaPageSize=6;
+ const agendaScrollRef=useRef<HTMLDivElement|null>(null);
+ useEffect(()=>{if(agendaScrollRef.current)agendaScrollRef.current.scrollTop=0},[agendaPage,agendaCategory]);
  useEffect(()=>{setNow(new Date());const id=window.setInterval(()=>setNow(new Date()),1000);return()=>window.clearInterval(id)},[]);
  useEffect(()=>{const timer=window.setInterval(()=>setRefresh(v=>v+1),45000);const refreshAgenda=()=>setRefresh(v=>v+1);const visible=()=>{if(document.visibilityState==="visible")refreshAgenda()};window.addEventListener("focus",refreshAgenda);document.addEventListener("visibilitychange",visible);const channel=supabase.channel("client-home-care-changes")
  .on("postgres_changes",{event:"*",schema:"public",table:"care_daily_checklist"},refreshAgenda)
@@ -359,7 +361,7 @@ export function ClientHomeSummary(){
         <img src="/images/care-agenda-wellness.svg" alt="" loading="eager" decoding="async"
           className="care-timeline-generated-art" draggable={false}/>
       </div>
-      <div className="relative z-10 flex shrink-0 items-center justify-between gap-2 border-b border-white/10 pb-2"><div><p className="care-timeline-eyebrow text-[10px] font-extrabold uppercase tracking-widest">Linha do tempo</p><h3 className="mt-0.5 text-sm font-extrabold">Agenda de hoje</h3></div><span className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-2 py-1 text-[10px] text-slate-200"><ListChecks size={13}/>{agendaItems.length} registros</span></div>
+      <div className="relative z-10 flex shrink-0 items-center justify-between gap-2 border-b border-white/10 pb-2"><div><p className="care-timeline-eyebrow text-[10px] font-extrabold uppercase tracking-widest">Linha do tempo</p><h3 className="mt-0.5 text-sm font-extrabold">Agenda de hoje</h3><p className="care-timeline-helper">Role para explorar os registros · Use os filtros abaixo</p></div><span className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-2 py-1 text-[10px] text-slate-200"><ListChecks size={13}/>{agendaItems.length} registros</span></div>
       <div className="care-timeline-filters relative z-10 flex shrink-0 flex-wrap gap-1.5 pt-2" role="group" aria-label="Filtrar registros da agenda">
         {([{key:"todos",label:"Todos",count:agendaItems.length},{key:"hidratacao",label:"Líquidos",count:categoryCounts.hidratacao},{key:"refeicao",label:"Refeições",count:categoryCounts.refeicao},{key:"medicacao",label:"Medicamentos",count:categoryCounts.medicacao}] as const).map(category=><button
           key={category.key} type="button" aria-pressed={agendaCategory===category.key}
@@ -367,7 +369,7 @@ export function ClientHomeSummary(){
           {category.label} <span className="tabular-nums opacity-80">{category.count}</span>
         </button>)}
       </div>
-      <div className="care-timeline-scroll relative z-10 mt-2 min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pr-1" aria-live="polite">
+      <div ref={agendaScrollRef} tabIndex={0} role="region" aria-label="Registros da agenda, role para ver mais" className="care-timeline-scroll relative z-10 mt-2 min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pr-1" aria-live="polite">
         {visibleAgenda.map(item=>{const Icon=icons[item.category]??CalendarClock;return <button key={item.key} type="button"
           data-care-category={item.category} data-care-state={item.completed?"done":item.resolved?"resolved":item.overdue?"overdue":"scheduled"}
           title={item.task?"Ver ou corrigir cuidado programado":"Abrir o histórico completo deste consumo"}
@@ -385,7 +387,7 @@ export function ClientHomeSummary(){
       </div>
       <nav aria-label="Páginas da agenda" className="care-timeline-navigation relative z-20 mt-2 flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-white/15 pt-2">
         <button type="button" onClick={()=>setAgendaPage(p=>Math.max(0,p-1))} disabled={agendaPage===0} className="rounded-lg border border-white/15 px-2.5 py-1 text-[11px] font-semibold disabled:opacity-35">Anterior</button>
-        <span className="text-[11px] text-slate-300">Página {agendaIndex+1} de {agendaPageCount}</span>
+        <span className="care-timeline-page-count text-[11px] text-slate-300">Página {agendaIndex+1} de {agendaPageCount} · {filteredAgenda.length} registros</span>
         <button type="button" onClick={()=>setAgendaPage(p=>Math.min(agendaPageCount-1,p+1))} disabled={agendaPage>=agendaPageCount-1} className="rounded-lg border border-white/15 px-3 py-1.5 text-xs font-semibold disabled:opacity-35">Próxima</button>
         <Link to="/cliente" hash="historico" className="care-timeline-all-link" title="Abrir a área do cliente e consultar o histórico completo">Ver todos os registros <ChevronRight size={14}/></Link>
       </nav>
