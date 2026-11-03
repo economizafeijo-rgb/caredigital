@@ -204,7 +204,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <span>Feijó, Acre</span>
         </footer>
 
-        <nav className={`fixed inset-x-0 bottom-0 z-50 grid ${clientOnly ? (isClientPage ? "grid-cols-1" : "grid-cols-2") : signedIn ? "grid-cols-2" : "grid-cols-5"} border-t border-border/80 bg-background/95 px-1 pb-[max(.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden`} aria-label="Navegação do app">
+        <nav className={`fixed inset-x-0 bottom-0 z-50 grid ${clientOnly ? (isClientPage ? "grid-cols-2" : "grid-cols-3") : signedIn ? "grid-cols-3" : "grid-cols-5"} border-t border-border/80 bg-background/95 px-1 pb-[max(.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden`} aria-label="Navegação do app">
           {visibleNav.map(({ to, label, icon: Icon }) => <Link key={to} to={to} activeOptions={{ exact: to === "/" }} className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-muted-foreground" activeProps={{ className: "!text-primary" }}><Icon size={19} strokeWidth={2} /><span className="text-[10px] font-semibold">{label}</span></Link>)}
           {clientOnly && !isClientPage && <Link to="/cliente" className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-primary"><Users size={19}/><span className="text-[10px] font-semibold">Meu painel</span></Link>}
           {!clientOnly && <button type="button" onClick={() => setMoreOpen((open) => !open)} aria-expanded={moreOpen} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl ${moreOpen ? "text-primary" : "text-muted-foreground"}`}><Ellipsis size={20} /><span className="text-[10px] font-semibold">Mais</span></button>}
