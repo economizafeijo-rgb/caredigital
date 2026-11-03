@@ -74,22 +74,38 @@ function PulseClock({now}:{now:number}) {
 
 export function CareClockAlert({task,now,remainingMs,onDetails,onConfirm,onSnooze,onDismiss}:Props) {
   const firstButton=useRef<HTMLButtonElement|null>(null);
+  const dialogRef=useRef<HTMLElement|null>(null);
+  const dismissRef=useRef(onDismiss);
+  dismissRef.current=onDismiss;
   useEffect(()=>{
     const previous=document.activeElement instanceof HTMLElement?document.activeElement:null;
+    const previousOverflow=document.body.style.overflow;
+    document.body.style.overflow="hidden";
     firstButton.current?.focus();
     const onKey=(event:KeyboardEvent)=>{
       if(event.key==="Escape"){
         event.preventDefault();
-        onDismiss();
+        dismissRef.current();
+      }
+      if(event.key==="Tab"){
+        const focusable=dialogRef.current?.querySelectorAll<HTMLButtonElement>("button:not([disabled])");
+        if(!focusable?.length)return;
+        const first=focusable[0],last=focusable[focusable.length-1];
+        if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+        if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
       }
     };
     window.addEventListener("keydown",onKey);
-    return()=>{window.removeEventListener("keydown",onKey);previous?.focus();};
-  },[task.id,onDismiss]);
+    return()=>{
+      document.body.style.overflow=previousOverflow;
+      window.removeEventListener("keydown",onKey);
+      previous?.focus();
+    };
+  },[task.id]);
   if(typeof document==="undefined")return null;
   const Icon=categoryIcon[task.category as keyof typeof categoryIcon]??CalendarCheck2;
   return createPortal(<div className="care-clock-alert-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)onDismiss();}}>
-    <section role="dialog" aria-modal="true" aria-label="Lembrete de cuidado no horário"
+    <section ref={dialogRef} role="dialog" aria-modal="true" aria-label="Lembrete de cuidado no horário"
       aria-describedby="care-clock-alert-description"
       className="care-clock-alert-window" data-category={task.category}>
       <div className="care-clock-background-glow" aria-hidden="true"/>
