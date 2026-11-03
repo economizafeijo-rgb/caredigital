@@ -14,7 +14,7 @@ export const foodKinds=[
 ] as const;
 
 export const beverageKinds=[
-  {value:"agua",label:"Água",example:"Água",hint:"Conta para a meta de água",amount:200},
+  {value:"agua",label:"Água",example:"Água",hint:"Conta para a meta de líquidos",amount:200},
   {value:"cha",label:"Chá",example:"Ex.: chá de camomila",hint:"Infusão ou chá preparado",amount:200},
   {value:"suco",label:"Suco",example:"Ex.: suco natural de maçã",hint:"Suco natural ou industrializado",amount:200},
   {value:"cafe",label:"Café",example:"Ex.: café coado",hint:"Café, expresso ou com leite",amount:100},
@@ -24,7 +24,7 @@ export const beverageKinds=[
   {value:"isotonico",label:"Isotônico",example:"Ex.: bebida esportiva",hint:"Isotônico ou bebida eletrolítica",amount:500},
   {value:"vitamina",label:"Vitamina / smoothie",example:"Ex.: vitamina de mamão e aveia",hint:"Frutas batidas e smoothies",amount:250},
   {value:"leite",label:"Leite / derivado",example:"Ex.: leite sem lactose",hint:"Leite ou bebida semelhante",amount:200},
-  {value:"agua_coco",label:"Água de coco",example:"Água de coco natural",hint:"Bebida de coco",amount:250},
+  {value:"agua_coco",label:"Água de coco",example:"Água de coco natural",hint:"Conta para a hidratação diária",amount:250},
   {value:"refrigerante",label:"Refrigerante",example:"Ex.: refrigerante sem açúcar",hint:"Bebida gaseificada",amount:250},
   {value:"outra",label:"Outra bebida",example:"Descreva a bebida que tomou",hint:"Outra opção não listada",amount:200},
 ] as const;
