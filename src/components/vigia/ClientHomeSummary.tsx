@@ -328,19 +328,27 @@ export function ClientHomeSummary(){
       const protein=wellness.protein??(validWeight?Math.round(weight*(wellness.objective==="hipertrofia"?1.6:1.0)):null);
       const fat=wellness.fat??(validWeight?Math.round(weight*.8):null);
       const carbs=wellness.carbs??(wellness.kcal&&protein&&fat?Math.max(0,Math.round((wellness.kcal-protein*4-fat*9)/4)):null);
+      const adult=wellness.age===null||wellness.age>=20;
+      const bmiStatus=!bmi?"Dados insuficientes":!adult?"Avaliação por idade necessária":bmi<18.5?"Abaixo do peso":bmi<25?"Peso adequado":bmi<30?"Sobrepeso":bmi<35?"Obesidade grau I":bmi<40?"Obesidade grau II":"Obesidade grau III";
+      const bmiTone=!bmi||!adult?"neutral":bmi>=18.5&&bmi<25?"good":bmi<18.5||bmi<30?"attention":"alert";
+      const waterLabel=wellness.fluid_restriction?"Restrição registrada":wellness.target_ml?"Meta individual cadastrada":"Estimativa de 30 ml/kg";
+      const proteinLabel=wellness.protein?"Meta individual cadastrada":wellness.objective==="hipertrofia"?"Referência de 1,6 g/kg":"Referência de 1 g/kg";
+      const fatLabel=wellness.fat?"Meta individual cadastrada":"Referência de 0,8 g/kg";
+      const calorieBalance=protein!==null&&fat!==null&&carbs!==null?protein*4+fat*9+carbs*4:null;
+      const remainingCalories=wellness.kcal&&calorieBalance!==null?Math.round(wellness.kcal-calorieBalance):null;
       const tips=wellness.fluid_restriction?"Há restrição de líquidos registrada: siga a orientação profissional para hidratação.":wellness.gastritis_sensitive?"Prefira refeições menores e observe os alimentos que provocam desconforto.":"Distribua proteínas entre refeições e priorize alimentos variados, frutas, verduras e fontes de fibras.";
       return <>
         <div className="care-wellness-metrics">
-          <div><span>IMC</span><strong>{bmi?bmi.toFixed(1).replace(".",","):"—"}</strong><small>{bmi?"Indicador de referência":"Informe peso e altura"}</small></div>
-          <div><span>ÁGUA / DIA</span><strong>{waterGoal&&!wellness.fluid_restriction?(waterGoal/1000).toLocaleString("pt-BR",{maximumFractionDigits:2})+" L":"—"}</strong><small>{wellness.fluid_restriction?"Requer orientação individual":wellness.target_ml?"Meta cadastrada":"Estimativa inicial"}</small></div>
-          <div><span>PROTEÍNAS</span><strong>{protein?protein+" g":"—"}</strong><small>{wellness.protein?"Meta cadastrada":"Estimativa diária"}</small></div>
-          <div><span>CARBOIDRATOS</span><strong>{carbs!==null?carbs+" g":"—"}</strong><small>{wellness.carbs?"Meta cadastrada":"Configure calorias para estimar"}</small></div>
-          <div><span>GORDURAS</span><strong>{fat?fat+" g":"—"}</strong><small>{wellness.fat?"Meta cadastrada":"Estimativa diária"}</small></div>
-          <div><span>ENERGIA</span><strong>{wellness.kcal?wellness.kcal+" kcal":"—"}</strong><small>{wellness.kcal?"Meta cadastrada":"Defina a meta nutricional"}</small></div>
+          <div data-health-tone={bmiTone}><span>IMC</span><strong>{bmi?bmi.toFixed(1).replace(".",","):"—"}</strong><small className="care-imc-status">{bmiStatus}</small><small>{bmi&&adult?"Classificação de referência para adultos":"Informe idade, peso e altura"}</small></div>
+          <div><span>ÁGUA / DIA</span><strong>{waterGoal&&!wellness.fluid_restriction?(waterGoal/1000).toLocaleString("pt-BR",{maximumFractionDigits:2})+" L":"—"}</strong><small>{waterLabel}</small></div>
+          <div><span>PROTEÍNAS</span><strong>{protein?protein+" g":"—"}</strong><small>{proteinLabel}</small></div>
+          <div><span>CARBOIDRATOS</span><strong>{carbs!==null?carbs+" g":"—"}</strong><small>{wellness.carbs?"Meta individual cadastrada":wellness.kcal?"Saldo energético estimado":"Cadastre a meta calórica"}</small></div>
+          <div><span>GORDURAS</span><strong>{fat?fat+" g":"—"}</strong><small>{fatLabel}</small></div>
+          <div><span>ENERGIA</span><strong>{wellness.kcal?wellness.kcal+" kcal":"—"}</strong><small>{wellness.kcal?"Meta individual cadastrada":"Requer dados para estimativa"}</small></div>
         </div>
         <details className="care-wellness-tips"><summary>Orientações para seus objetivos <span>Ver dicas</span></summary>
           <p>{tips} {wellness.objective==="hipertrofia"?"Para ganho muscular, combine alimentação suficiente com treinamento e recuperação.":wellness.objective==="emagrecimento"?"Para controle de peso, priorize refeições regulares e porções adequadas.":"Ajuste quantidades conforme rotina, atividade e objetivos."}</p>
-          <p className="care-wellness-disclaimer">IMC é um indicador limitado; estimativas não substituem avaliação nutricional. Metas de água e macros devem ser individualizadas.</p>
+          <p className="care-wellness-disclaimer">{remainingCalories!==null&&Math.abs(remainingCalories)>100?"Atenção: a soma energética dos macronutrientes difere da meta calórica em "+Math.abs(remainingCalories)+" kcal. Revise as metas cadastradas. ":""}{bmi&&adult?"Faixas de IMC em adultos: abaixo de 18,5 (baixo peso), 18,5–24,9 (adequado), 25–29,9 (sobrepeso), 30 ou mais (obesidade). ":""}</p><p className="care-wellness-disclaimer">IMC é um indicador limitado; estimativas não substituem avaliação nutricional. Metas de água e macros devem ser individualizadas.</p>
         </details>
       </>;
     })()}
