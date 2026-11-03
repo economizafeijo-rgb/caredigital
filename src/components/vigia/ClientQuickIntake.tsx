@@ -99,8 +99,8 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
         throw new Error("O servidor não confirmou o horário de registro.");
       }
       setNotice(isWater
-        ? `Água registrada em ${formatTime(data)} (Acre). Meta e histórico atualizados.`
-        : `Consumo (${label.toLowerCase()}) registrado em ${formatTime(data)} (Acre). Veja o histórico no prontuário.`);
+        ? `Água registrada em ${formatTime(consumed.toISOString())} (Acre). Meta e histórico atualizados.`
+        : `Consumo (${label.toLowerCase()}) registrado em ${formatTime(consumed.toISOString())} (Acre). Veja o histórico no prontuário.`);
       setOpen(false);
       requestId.current = null;
       onRecorded?.();
