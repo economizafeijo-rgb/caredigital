@@ -2507,3 +2507,36 @@ iframe[title*="Lovable" i][title*="badge" i] {
 @media(prefers-reduced-motion:reduce){
   .care-premium-medication-dialog button,.care-premium-intake-dialog button {transition:none}
 }
+
+
+/* 2026-11-03: avoid duplicated/misframed medical photo behind the homepage.
+   The photo belongs to the welcome hero only, not the full viewport shell. */
+.dark .care-shell:has(.client-home-dashboard.care-reference-2026),
+.care-shell:has(.client-home-dashboard.care-reference-2026) {
+  background-color:#061f2c;
+  background-image:none;
+}
+.dark .care-shell:has(.client-home-dashboard.care-reference-2026)::before,
+.care-shell:has(.client-home-dashboard.care-reference-2026)::before {
+  background-image:none!important;
+  background:radial-gradient(ellipse at 80% 0%,rgba(12,127,128,.18),transparent 50%),linear-gradient(155deg,#051a26,#082d3b)!important;
+  background-size:cover;
+  background-position:center;
+}
+.dark .care-shell:has(.client-home-dashboard.care-reference-2026)::after,
+.care-shell:has(.client-home-dashboard.care-reference-2026)::after {
+  background:radial-gradient(ellipse at 95% 15%,rgba(36,220,201,.08),transparent 55%);
+}
+:root .client-home-dashboard.care-reference-2026 .care-reference-hero {
+  background-image:linear-gradient(90deg,rgba(2,24,36,.99) 0%,rgba(3,29,40,.96) 32%,rgba(4,35,44,.66) 57%,rgba(4,35,44,.1) 100%),url('/images/caredigital-care-hero.webp');
+  background-size:100% 100%,auto 100%;
+  background-position:center,right center;
+  background-repeat:no-repeat;
+  background-color:#061f2d;
+}
+@media(max-width:767px) {
+ :root .client-home-dashboard.care-reference-2026 .care-reference-hero {
+   background-size:100% 100%,auto 100%;
+   background-position:center,right center;
+ }
+}
