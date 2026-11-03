@@ -1,5 +1,5 @@
 import { describe,expect,it } from "vitest";
-import { ingredients,menuForDay,proteinRange,recipeFits,recipes,recipeTotals } from "./nutrition-catalog";
+import { gramsForMacro,ingredients,menuForDay,portionNutrition,proteinRange,recipeFits,recipes,recipeTotals } from "./nutrition-catalog";
 
 describe("CareDigital nutrition safety and planning",()=>{
  it("keeps common regional foods and branded products distinct",()=>{
@@ -30,4 +30,31 @@ describe("CareDigital nutrition safety and planning",()=>{
   expect(p.every(item=>item.recipe!==null)).toBe(true);
   for(const item of p){expect(recipeTotals(item.recipe!).protein).toBeGreaterThanOrEqual(0);}
  });
+ it("offers all four macros plus fiber for regional foods with sources",()=>{
+  const chicken=ingredients.find(x=>x.id==="frango")!;
+  expect(chicken.protein).toBe(31.5);
+  expect(chicken.carbs).toBe(0);
+  expect(chicken.fat).toBe(3.2);
+  expect(chicken.kcal).toBe(163);
+  expect(chicken.provenance).toBe("TACO");
+  expect(ingredients).toHaveLength(66);
+  expect(ingredients.filter(x=>x.protein!==null&&x.carbs!==null&&x.fat!==null).length).toBe(63);
+ });
+ it("converts 100g and calculated portions without pretending labels are verified",()=>{
+  const chicken=ingredients.find(x=>x.id==="frango")!;
+  expect(gramsForMacro(chicken,"protein",31.5)).toBe(100);
+  expect(portionNutrition(chicken,200)).toMatchObject({protein:63,carbs:0,fat:6.4,kcal:326});
+  const banana=ingredients.find(x=>x.id==="banana_prata")!;
+  expect(gramsForMacro(banana,"carbs",26)).toBe(100);
+  const neston=ingredients.find(x=>x.id==="neston")!;
+  expect(gramsForMacro(neston,"protein",20)).toBeNull();
+  expect(portionNutrition(neston,100).protein).toBeNull();
+ });
+ it("does not calculate an unfeasible target when food nutrient is zero",()=>{
+  const waterLike=ingredients.find(x=>x.id==="cha_camomila")!;
+  expect(gramsForMacro(waterLike,"protein",15)).toBeNull();
+  expect(gramsForMacro(waterLike,"fat",15)).toBeNull();
+  expect(gramsForMacro(waterLike,"carbs",-1)).toBeNull();
+ });
+
 });
