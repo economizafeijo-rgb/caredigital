@@ -2638,3 +2638,33 @@ iframe[title*="Lovable" i][title*="badge" i] {
   background-position:center,right top!important;
  }
 }
+
+
+/* CareDigital treatment calendar: safe viewport behavior for windowed desktop and mobile.
+   Scope exclusively to the treatment calendar; do not alter dose rules or confirmations. */
+.care-premium-treatment-calendar {
+ max-width:100%;
+ overflow-x:hidden;
+ scrollbar-width:thin;
+ scrollbar-color:rgba(37,186,177,.55) transparent;
+}
+.care-premium-treatment-calendar :is(button,input,select) {touch-action:manipulation}
+.care-premium-treatment-calendar button:focus-visible {
+ outline:3px solid #0fbaa9;
+ outline-offset:2px;
+}
+.care-premium-treatment-calendar .grid {min-width:0}
+.care-premium-treatment-calendar .grid > * {min-width:0}
+.care-premium-treatment-calendar :is(p,h3,h4,span) {overflow-wrap:anywhere}
+.care-premium-treatment-calendar img {max-width:100%;height:auto}
+@media(max-width:767px){
+ .care-premium-treatment-calendar {padding:12px;border-radius:18px}
+ .care-premium-treatment-calendar .grid {gap:8px}
+ .care-premium-treatment-calendar button {min-height:36px}
+ .care-premium-treatment-calendar .grid.grid-cols-4 {gap:5px}
+}
+@media(min-width:768px) and (max-height:800px){
+ .care-premium-treatment-calendar {max-height:none;overflow-y:visible}
+ .patient-history-workspace {min-height:480px}
+ .patient-history-list-scroll,.patient-history-detail-scroll {scrollbar-width:thin;scrollbar-color:rgba(43,197,183,.6) transparent}
+}
