@@ -2668,3 +2668,31 @@ iframe[title*="Lovable" i][title*="badge" i] {
  .patient-history-workspace {min-height:480px}
  .patient-history-list-scroll,.patient-history-detail-scroll {scrollbar-width:thin;scrollbar-color:rgba(43,197,183,.6) transparent}
 }
+
+
+/* Dialog accessibility in browser windows and mobile keyboards. */
+.care-record-modal-overlay,.care-intake-modal-overlay {
+ overscroll-behavior:contain;
+ scrollbar-width:thin;
+ scrollbar-color:rgba(75,223,212,.55) transparent;
+}
+.care-record-modal-dialog {min-width:0;max-width:min(100%,34rem)}
+.care-record-modal-dialog > div {min-width:0}
+.care-record-modal-dialog button:focus-visible,
+.care-premium-intake-dialog button:focus-visible,
+.care-premium-intake-dialog input:focus-visible,
+.care-premium-intake-dialog textarea:focus-visible {
+ outline:2px solid #24d9c8;
+ outline-offset:2px;
+}
+@media(max-height:650px) {
+ .care-record-modal-overlay,.care-intake-modal-overlay {align-items:flex-start!important}
+ .care-record-modal-dialog {max-height:calc(100dvh - 16px)!important}
+ .care-record-modal-dialog > div:first-child {min-height:105px!important;padding:12px!important}
+ .care-premium-intake-dialog {max-height:calc(100dvh - 16px)!important}
+}
+@media(max-width:420px) {
+ .care-record-modal-overlay,.care-intake-modal-overlay {padding:8px!important}
+ .care-record-modal-dialog {border-radius:18px!important}
+ .care-premium-intake-dialog {border-radius:18px!important}
+}
