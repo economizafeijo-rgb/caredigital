@@ -22,6 +22,16 @@ const canConfirmMealToday=(task:Care)=>!task.completed_at && Date.now()>=Date.pa
 const currentAcreTime=()=>new Intl.DateTimeFormat("en-GB",{timeZone:zone,hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date());
 const time=(iso:string)=>new Intl.DateTimeFormat("pt-BR",{timeZone:zone,hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date(iso));
 const icons={medicacao:Pill,refeicao:Utensils,hidratacao:Droplets} as const;
+// Só associa refeições de tipos inequívocos. Um lanche avulso não deve
+// cumprir automaticamente um lanche programado diferente.
+const plannedMealKind=(title:string):string|null=>{
+ const normalized=title.normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLowerCase();
+ if(/^jantar\b/.test(normalized))return "jantar";
+ if(/^almoco\b/.test(normalized))return "almoco";
+ if(/^cafe da manha\b/.test(normalized))return "cafe_manha";
+ if(/^ceia\b/.test(normalized))return "ceia";
+ return null;
+};
 
 export function ClientHomeSummary(){
  const [patient,setPatient]=useState<Person|null>(null);
@@ -106,7 +116,26 @@ export function ClientHomeSummary(){
     setExtraError([waterEntries.error&&"água",beverages.error&&"bebidas",mealEntries.error&&"refeições"].filter(Boolean).join(", "));
     setError("");
  })();return()=>{active=false}},[revision,refresh]);
- const pending=tasks.filter(t=>!t.completed_at&&!resolvedStates[t.id]);
+ // Se uma refeição já foi registrada no diário, o mesmo horário planejado
+ // não reaparece como uma segunda refeição pendente. Mantém a tarefa original
+ // intacta no servidor e preserva o consumo real em seu histórico.
+ const loggedMealsByKind=new Map<string,string>();
+ for(const meal of extraMeals){
+   const kind=meal.details?.kind;
+   if(kind&&["jantar","almoco","cafe_manha","ceia"].includes(kind)&&!loggedMealsByKind.has(kind)){
+     loggedMealsByKind.set(kind,meal.recorded_at);
+   }
+ }
+ const matchedMealIds=new Set(tasks.filter(task=>
+   task.category==="refeicao"&&!task.completed_at&&!resolvedStates[task.id]&&
+   Boolean(plannedMealKind(task.title)&&loggedMealsByKind.has(plannedMealKind(task.title)!))
+ ).map(task=>task.id));
+ const summaryTasks=tasks.map(task=>{
+   if(!matchedMealIds.has(task.id))return task;
+   const kind=plannedMealKind(task.title);
+   return {...task,completed_at:(kind&&loggedMealsByKind.get(kind))||task.completed_at};
+ });
+ const pending=summaryTasks.filter(t=>!t.completed_at&&!resolvedStates[t.id]);
  const next=now?pending.filter(t=>new Date(t.scheduled_at).getTime()>=now.getTime())[0]??pending[0]:pending[0];
  const seconds=next&&now?Math.max(0,Math.round((new Date(next.scheduled_at).getTime()-now.getTime())/1000)):null;
  const countdown=seconds===null?"--:--:--":[Math.floor(seconds/3600),Math.floor(seconds%3600/60),seconds%60].map(x=>String(x).padStart(2,"0")).join(":");
@@ -131,14 +160,14 @@ export function ClientHomeSummary(){
   setReceipt({success:true,message:`${selected.title} confirmado em ${when} (Acre). Registro salvo no prontuário; próximos horários elegíveis são atualizados automaticamente.`});
   setSelected(null);setMealDescription("");setMealTime("");setRevision(v=>v+1);
  }
- const finished=tasks.filter(t=>Boolean(t.completed_at)).length;
- const completion=tasks.length?Math.round(100*finished/tasks.length):0;
+ const finished=summaryTasks.filter(t=>Boolean(t.completed_at)).length;
+ const completion=summaryTasks.length?Math.round(100*finished/summaryTasks.length):0;
  const labelFor=(category:string)=>category==="medicacao"?"Medicação":category==="hidratacao"?"Água":"Refeição";
  // A programação não contém consumos avulsos. As fontes extras são lidas sem
  // criar tarefas fictícias nem contar o mesmo copo duas vezes.
  const knownTaskIds=new Set(tasks.map(task=>task.id));
  const agendaItems:AgendaRow[]=[
-   ...tasks.map(task=>{const resolved=resolvedStates[task.id];const completed=Boolean(task.completed_at);const overdue=Boolean(now&&!completed&&!resolved&&Date.parse(task.scheduled_at)<now.getTime());return {
+   ...tasks.filter(task=>!matchedMealIds.has(task.id)).map(task=>{const resolved=resolvedStates[task.id];const completed=Boolean(task.completed_at);const overdue=Boolean(now&&!completed&&!resolved&&Date.parse(task.scheduled_at)<now.getTime());return {
      key:"task:"+task.id,at:task.scheduled_at,title:task.title,category:task.category as AgendaRow["category"],task,
      completed,resolved:Boolean(resolved),overdue,
      subtitle:(completed?"Confirmado":resolved==="cancelado"?"Cancelado":resolved==="nao_cumprido"?"Não realizado":resolved==="nao_bebi"?"Não bebi":overdue?"Aguardando confirmação":"Programado")+" · "+labelFor(task.category)
@@ -180,7 +209,7 @@ export function ClientHomeSummary(){
         <Link to="/cliente" className="care-home-chart-link inline-flex min-h-9 items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[11px] font-bold">Meu prontuário <ArrowUpRight size={15}/></Link>
       </div>
       <div className="care-home-medication mt-3">
-        <CareReminderBeacon tasks={tasks} patientId={patient?.id??""} ownerId={patient?.owner_id??""} refreshKey={refresh+revision} onOpen={task=>{setDetailTask(task);setError("");}} compact/>
+        <CareReminderBeacon tasks={summaryTasks} patientId={patient?.id??""} ownerId={patient?.owner_id??""} refreshKey={refresh+revision} onOpen={task=>{setDetailTask(task);setError("");}} compact/>
       </div>
     </div>
   </details>
@@ -196,8 +225,8 @@ export function ClientHomeSummary(){
         <div className="care-next-copy relative z-10 mt-2"><h3 className="max-w-[26ch] text-xl font-extrabold leading-tight md:text-2xl">{next?next.title:"Nenhum cuidado aguardando resposta"}</h3><div className="mt-2 flex flex-wrap items-baseline gap-2"><strong className="care-next-countdown font-mono text-2xl font-extrabold tabular-nums md:text-[30px]">{next?countdown:"✓"}</strong><span className="care-next-countdown-label text-xs">{next?(seconds===0?"Horário previsto já passou":"até o horário previsto"):"Nenhuma atividade pendente"}</span></div></div>
         <div className="relative z-10 mt-2 flex shrink-0 flex-wrap gap-1.5">{next&&<button type="button" onClick={()=>{setSelected(next);setError("");setMealTime(currentAcreTime());setMealDescription("");}} className="care-next-cta inline-flex min-h-9 items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-extrabold transition">Verificar / confirmar <ChevronRight size={15}/></button>}<Link to="/cliente" className="care-next-secondary inline-flex min-h-9 items-center rounded-full border px-3 py-1.5 text-[11px] font-bold transition">Ver tratamento completo</Link></div>
       </article>
-      <CareProgressVisual tasks={tasks} goal={dailyGoal} onOpen={task=>{setDetailTask(task);setError("");}}/>
-      <div className="patient-progress flex flex-wrap items-center gap-1.5 text-[10px] text-slate-300"><Check size={14} className="text-emerald-300"/>{finished} de {tasks.length} cuidados concluídos
+      <CareProgressVisual tasks={summaryTasks} goal={dailyGoal} onOpen={task=>{setDetailTask(task);setError("");}}/>
+      <div className="patient-progress flex flex-wrap items-center gap-1.5 text-[10px] text-slate-300"><Check size={14} className="text-emerald-300"/>{finished} de {summaryTasks.length} cuidados concluídos
         {dailyGoal?.status==="atingida"&&<span title={`Hidratação: ${dailyGoal.consumed_ml} de ${dailyGoal.target_ml} ml até 23h.`} className="inline-flex items-center gap-1 rounded-md border border-emerald-300/25 bg-emerald-400/10 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-200"><Droplets size={11}/> Meta de água atingida</span>}
         {dailyGoal?.status==="nao_atingida"&&<span title={`Hidratação: ${dailyGoal.consumed_ml} de ${dailyGoal.target_ml} ml até 23h.`} className="inline-flex items-center gap-1 rounded-md border border-amber-300/25 bg-amber-400/10 px-1.5 py-0.5 text-[9px] font-semibold text-amber-200"><Droplets size={11}/> Meta não atingida · 23h</span>}
         <span className="ml-auto font-bold text-sky-200">{completion}%</span></div>
