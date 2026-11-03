@@ -11,6 +11,10 @@ const fmt=(value:number)=>value.toLocaleString("pt-BR",{maximumFractionDigits:1}
 function BibliotecaAlimentar(){
  const [foods,setFoods]=useState<Food[]>([]);
  const [goals,setGoals]=useState<Goals|null>(null);
+ const [patientId,setPatientId]=useState<string|null>(null);
+ const [consumed,setConsumed]=useState<{kcal:number;protein_g:number;carbs_g:number;fat_g:number}[]>([]);
+ const [saving,setSaving]=useState(false);
+ const [feedback,setFeedback]=useState("");
  const [search,setSearch]=useState("");
  const [group,setGroup]=useState("Todos");
  const [selected,setSelected]=useState<string>("");
@@ -27,8 +31,14 @@ function BibliotecaAlimentar(){
   else {setFoods(catalog.data??[]);setSelected(catalog.data?.[0]?.id??"");}
   if(user.user){
    const grant=await (supabase as any).from("care_patient_access").select("patient_id").eq("user_id",user.user.id).limit(1);
-   const patientId=grant.data?.[0]?.patient_id;
-   if(patientId){const preferences=await (supabase as any).from("care_nutrition_preferences").select("target_kcal,target_protein_g,target_carbs_g,target_fat_g,weight_kg").eq("patient_id",patientId).maybeSingle();if(active&&!preferences.error)setGoals(preferences.data);}
+   const own=await (supabase as any).from("care_patients").select("id").eq("owner_id",user.user.id).limit(1);
+   const patientId=grant.data?.[0]?.patient_id??own.data?.[0]?.id;
+   if(active)setPatientId(patientId??null);
+   if(patientId){const preferences=await (supabase as any).from("care_nutrition_preferences").select("target_kcal,target_protein_g,target_carbs_g,target_fat_g,weight_kg").eq("patient_id",patientId).maybeSingle();if(active&&!preferences.error)setGoals(preferences.data);
+    const start=new Date();start.setHours(0,0,0,0);
+    const end=new Date(start);end.setDate(end.getDate()+1);
+    const logs=await (supabase as any).from("care_food_consumptions").select("kcal,protein_g,carbs_g,fat_g").eq("patient_id",patientId).gte("recorded_at",start.toISOString()).lt("recorded_at",end.toISOString());
+    if(active&&!logs.error)setConsumed(logs.data??[]);}
   }
   if(active)setLoading(false);
  })();return()=>{active=false}},[]);
@@ -40,6 +50,18 @@ function BibliotecaAlimentar(){
  const unit=nutrient==="kcal"?"kcal":"g";
  const per100=food?n(food[nutrient]):0;
  const required=per100>0?target/per100*100:null;
+ const totals=consumed.reduce((acc,x)=>({kcal:acc.kcal+n(x.kcal),protein_g:acc.protein_g+n(x.protein_g),carbs_g:acc.carbs_g+n(x.carbs_g),fat_g:acc.fat_g+n(x.fat_g)}),{kcal:0,protein_g:0,carbs_g:0,fat_g:0});
+ async function registerPortion(){
+  if(!food||!patientId||!Number.isFinite(grams)||grams<=0||grams>10000)return;
+  setSaving(true);setFeedback("");
+  const requestId=crypto.randomUUID();
+  const {error:saveError}=await (supabase as any).rpc("care_log_food_portion",{p_patient_id:patientId,p_food_id:food.id,p_grams:grams,p_request_id:requestId});
+  if(saveError){setFeedback("Não foi possível registrar a porção: "+saveError.message);setSaving(false);return;}
+  const start=new Date();start.setHours(0,0,0,0);const end=new Date(start);end.setDate(end.getDate()+1);
+  const logs=await (supabase as any).from("care_food_consumptions").select("kcal,protein_g,carbs_g,fat_g").eq("patient_id",patientId).gte("recorded_at",start.toISOString()).lt("recorded_at",end.toISOString());
+  if(!logs.error)setConsumed(logs.data??[]);
+  setFeedback("Porção registrada no histórico alimentar.");setSaving(false);
+ }
  const goalEntries=[{label:"Energia",value:goals?.target_kcal,unit:"kcal"},{label:"Proteína",value:goals?.target_protein_g,unit:"g"},{label:"Carboidratos",value:goals?.target_carbs_g,unit:"g"},{label:"Gorduras",value:goals?.target_fat_g,unit:"g"}];
  return <section className="mx-auto flex h-full max-w-6xl flex-col gap-4 pb-8 text-foreground" aria-label="Biblioteca alimentar">
   <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
@@ -62,6 +84,8 @@ function BibliotecaAlimentar(){
      {food?<><h3 className="text-lg font-extrabold">{food.name}</h3><p className="mb-3 text-xs text-muted-foreground">Valores proporcionais aos dados cadastrados por 100 g.</p>
       <label className="mb-3 block text-xs font-bold">Quantidade consumida (gramas)<input type="number" min="1" max="10000" value={grams} onChange={e=>setGrams(Math.max(0,Number(e.target.value)))} className="field mt-1 w-full"/></label>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{nutrients.map(v=><div key={v.key} className="rounded-xl bg-muted/50 p-3"><p className="text-[11px] text-muted-foreground">{v.label}</p><strong className="text-lg">{fmt(n(food[v.key])*factor)} <span className="text-xs">{v.unit}</span></strong></div>)}</div>
+      {patientId&&<button type="button" onClick={()=>void registerPortion()} disabled={saving||grams<=0||grams>10000} className="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground disabled:opacity-50">{saving?"Registrando...":"Registrar porção no histórico"}</button>}
+      {feedback&&<p role="status" className="mt-2 text-xs">{feedback}</p>}
       <p className="mt-3 text-[11px] text-muted-foreground">Fonte informada: {food.provenance||"não especificada"}. {food.note||""}</p>
      </>:<p className="text-sm text-muted-foreground">Selecione um alimento no catálogo.</p>}
     </article>
@@ -72,7 +96,7 @@ function BibliotecaAlimentar(){
     </article>
     <article className="rounded-2xl border border-border bg-card p-4 shadow-sm">
      <h2 className="mb-3 flex items-center gap-2 font-extrabold"><Target size={18} className="text-primary"/> Metas nutricionais do cliente</h2>
-     {goals?<><div className="grid grid-cols-2 gap-2">{goalEntries.map(x=><div key={x.label} className="rounded-xl border border-border p-3"><p className="text-xs text-muted-foreground">{x.label}</p><strong>{x.value==null?"Não definida":fmt(n(x.value))+" "+x.unit}</strong></div>)}</div><p className="mt-2 text-xs text-muted-foreground">Peso cadastrado: {goals.weight_kg?fmt(n(goals.weight_kg))+" kg":"não informado"}. Metas configuradas no prontuário, não prescritas automaticamente.</p></>:<p className="text-sm text-muted-foreground">Entre com uma conta de cliente vinculada e configure as metas nutricionais no prontuário para consultar seus objetivos aqui.</p>}
+     {goals?<><div className="grid grid-cols-2 gap-2">{goalEntries.map((x,i)=><div key={x.label} className="rounded-xl border border-border p-3"><p className="text-xs text-muted-foreground">{x.label}</p><strong>{x.value==null?"Não definida":fmt(n(x.value))+" "+x.unit}</strong><p className="mt-1 text-xs text-muted-foreground">Consumido hoje: {fmt(i===0?totals.kcal:i===1?totals.protein_g:i===2?totals.carbs_g:totals.fat_g)} {x.unit}</p>{x.value!=null&&n(x.value)>0&&<><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{width:Math.min(100,(i===0?totals.kcal:i===1?totals.protein_g:i===2?totals.carbs_g:totals.fat_g)/n(x.value)*100)+"%"}}/></div><p className="mt-1 text-[11px] text-muted-foreground">Restante: {fmt(Math.max(0,n(x.value)-(i===0?totals.kcal:i===1?totals.protein_g:i===2?totals.carbs_g:totals.fat_g)))} {x.unit}</p></>}</div>)}</div><p className="mt-2 text-xs text-muted-foreground">Peso cadastrado: {goals.weight_kg?fmt(n(goals.weight_kg))+" kg":"não informado"}. Metas configuradas no prontuário, não prescritas automaticamente.</p></>:<p className="text-sm text-muted-foreground">Entre com uma conta de cliente vinculada e configure as metas nutricionais no prontuário para consultar seus objetivos aqui.</p>}
     </article>
    </div>
   </div>
