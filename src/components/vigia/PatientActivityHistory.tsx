@@ -226,7 +226,7 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
   }
 
   return <section aria-label="Histórico de consumos e cuidados"
-    className="patient-history-workspace flex h-full min-h-0 min-w-0 flex-col gap-2 overflow-hidden text-foreground">
+    className="patient-history-workspace care-history-responsive flex h-full min-h-0 min-w-0 flex-col gap-2 overflow-hidden text-foreground">
     <header className="patient-history-header flex shrink-0 flex-wrap items-center justify-between gap-2">
       <div className="flex min-w-0 items-center gap-2">
         <History size={21} className="shrink-0 text-primary" aria-hidden="true"/>
