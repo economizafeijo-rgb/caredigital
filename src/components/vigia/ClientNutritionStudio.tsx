@@ -6,9 +6,10 @@ import {
  recipeTotals,recipeTriggers,recipes,triggerNames,
  type Goal,type Ingredient,type MealTime,type Recipe
 } from "@/lib/nutrition-catalog";
+import { ClientFoodMacroLibrary,type MacroTargets } from "./ClientFoodMacroLibrary";
 import "./nutrition-studio.css";
 
-type Props={patientId:string;ownerId:string};
+type Props={patientId:string;ownerId:string;onLogged?:()=>void};
 type View="cardapio"|"receitas"|"alimentos"|"proteina";
 const goalOptions:{value:Goal;label:string;description:string}[]=[
  {value:"equilibrio",label:"Alimentação equilibrada",description:"Variedade de refeições e alimentos in natura"},
@@ -18,18 +19,19 @@ const goalOptions:{value:Goal;label:string;description:string}[]=[
 ];
 const timeLabels:Record<MealTime,string>={cafe:"Café da manhã",almoco:"Almoço",jantar:"Jantar",lanche:"Lanche"};
 const viewOptions:{key:View;label:string}[]=[
- {key:"cardapio",label:"Cardápio semanal"},{key:"receitas",label:"Receitas"},{key:"alimentos",label:"Alimentos"},{key:"proteina",label:"Proteína"}
+ {key:"cardapio",label:"Cardápio semanal"},{key:"receitas",label:"Receitas"},{key:"alimentos",label:"Biblioteca + macros"},{key:"proteina",label:"Proteína"}
 ];
 const week=["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"];
 const safeNumber=(n:number)=>n.toLocaleString("pt-BR",{maximumFractionDigits:1});
 const norm=(value:string)=>value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("pt-BR");
 const navButton=(selected:boolean)=>"rounded-lg px-3 py-2 text-xs font-bold transition-colors "+(selected?"bg-primary text-primary-foreground shadow":"text-muted-foreground hover:bg-muted");
-export function ClientNutritionStudio({patientId,ownerId}:Props){
- const [view,setView]=useState<View>("cardapio");
+export function ClientNutritionStudio({patientId,ownerId,onLogged}:Props){
+ const [view,setView]=useState<View>("alimentos");
  const [goal,setGoal]=useState<Goal>("equilibrio");
  const [sensitive,setSensitive]=useState(false);
  const [avoided,setAvoided]=useState<string[]>([]);
  const [weight,setWeight]=useState("");
+ const [macroTargets,setMacroTargets]=useState<MacroTargets>({protein:"",carbs:"",fat:"",kcal:""});
  const [mealFilter,setMealFilter]=useState<"todos"|MealTime>("todos");
  const [search,setSearch]=useState("");
  const [foodGroup,setFoodGroup]=useState<"todos"|Ingredient["group"]>("todos");
@@ -46,7 +48,7 @@ export function ClientNutritionStudio({patientId,ownerId}:Props){
    let alive=true;
    void (async()=>{
      const r=await (supabase as any).from("care_nutrition_preferences")
-       .select("objective,gastritis_sensitive,avoided_ingredients,weight_kg")
+       .select("objective,gastritis_sensitive,avoided_ingredients,weight_kg,target_protein_g,target_carbs_g,target_fat_g,target_kcal")
        .eq("patient_id",patientId).eq("owner_id",ownerId).maybeSingle();
      if(!alive)return;
      if(r.error)setLoadError("Preferências não carregadas. É possível consultar receitas, mas o salvamento exige a atualização do banco de dados.");
@@ -55,6 +57,10 @@ export function ClientNutritionStudio({patientId,ownerId}:Props){
        setSensitive(Boolean(r.data.gastritis_sensitive));
        setAvoided((Array.isArray(r.data.avoided_ingredients)?r.data.avoided_ingredients:[]).filter((id:unknown)=>typeof id==="string" && ingredientById.has(id)));
        if(Number.isFinite(Number(r.data.weight_kg))&&r.data.weight_kg!==null)setWeight(String(r.data.weight_kg));
+       setMacroTargets({protein:r.data.target_protein_g==null?"":String(r.data.target_protein_g),
+         carbs:r.data.target_carbs_g==null?"":String(r.data.target_carbs_g),
+         fat:r.data.target_fat_g==null?"":String(r.data.target_fat_g),
+         kcal:r.data.target_kcal==null?"":String(r.data.target_kcal)});
      }
      setLoaded(true);
    })();
@@ -86,13 +92,26 @@ export function ClientNutritionStudio({patientId,ownerId}:Props){
    if(!patientId||!ownerId||saving)return;
    const kg=weight.trim()?Number(weight.replace(",",".")):null;
    if(kg!==null&&(!Number.isFinite(kg)||kg<30||kg>300)){setNotice("Informe peso entre 30 e 300 kg, ou deixe em branco.");return;}
+   const limits:Record<keyof MacroTargets,[number,number]>={protein:[1,500],carbs:[1,1200],fat:[1,350],kcal:[500,7000]};
+   const values=Object.fromEntries((Object.keys(limits) as (keyof MacroTargets)[]).map(key=>{
+     const raw=macroTargets[key].trim();
+     return [key,raw?Number(raw.replace(",",".")):null];
+   })) as Record<keyof MacroTargets,number|null>;
+   for(const key of Object.keys(limits) as (keyof MacroTargets)[]){
+     const n=values[key];const [min,max]=limits[key];
+     if(n!==null&&(!Number.isFinite(n)||n<min||n>max)){
+       setNotice("Revise a meta de "+key+": intervalo aceito "+min+"–"+max+".");return;
+     }
+   }
    setSaving(true);setNotice("");
    try{
      const {data:user,error:authError}=await supabase.auth.getUser();
      if(authError||!user.user)throw new Error("Entre novamente para salvar suas preferências.");
      const r=await (supabase as any).from("care_nutrition_preferences").upsert({
        patient_id:patientId,owner_id:ownerId,objective:goal,gastritis_sensitive:sensitive,
-       avoided_ingredients:avoided,weight_kg:kg,updated_by:user.user.id,
+       avoided_ingredients:avoided,weight_kg:kg,
+       target_protein_g:values.protein,target_carbs_g:values.carbs,
+       target_fat_g:values.fat,target_kcal:values.kcal,updated_by:user.user.id,
        updated_at:new Date().toISOString()
      },{onConflict:"patient_id"}).select("patient_id").single();
      if(r.error||r.data?.patient_id!==patientId)throw new Error(r.error?.message??"O banco não confirmou o salvamento.");
@@ -106,7 +125,7 @@ export function ClientNutritionStudio({patientId,ownerId}:Props){
  return <section className="nutrition-studio flex h-full min-h-0 min-w-0 flex-col gap-2 text-foreground" aria-label="Cardápios e dietas com orientação educativa">
    <header className="nutrition-studio-toolbar flex shrink-0 flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-500/25 bg-gradient-to-r from-emerald-500/[.08] to-sky-500/[.05] px-3 py-2.5">
      <div className="flex min-w-0 items-center gap-2"><Leaf size={20} className="shrink-0 text-emerald-600 dark:text-emerald-300"/>
-       <div><h3 className="text-sm font-extrabold">Meu cardápio inteligente</h3><p className="text-[10px] text-muted-foreground">Receitas regionais, combinações de alimentos e referências nutricionais</p></div>
+       <div><h3 className="text-sm font-extrabold">Alimentos, cardápios e macronutrientes</h3><p className="text-[10px] text-muted-foreground">Receitas regionais, combinações de alimentos e referências nutricionais</p></div>
      </div>
      <button type="button" disabled={!loaded||saving} onClick={()=>void save()}
        className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-[11px] font-extrabold text-primary-foreground disabled:opacity-50"><Save size={14}/>{saving?"Salvando…":"Salvar preferências"}</button>
@@ -136,8 +155,8 @@ export function ClientNutritionStudio({patientId,ownerId}:Props){
    </nav>
    {(notice||loadError)&&<p role="status" className="shrink-0 rounded-lg border border-amber-500/20 bg-amber-500/[.06] px-3 py-2 text-[11px]">{notice||loadError}</p>}
    {sensitive&&<p className="shrink-0 rounded-lg border border-amber-500/20 bg-amber-500/[.06] px-3 py-2 text-[10px] leading-snug text-foreground"><ShieldAlert size={13} className="mr-1 inline text-amber-600"/> Gastrite e H. pylori: refeições não substituem tratamento. Evite seus gatilhos pessoais; acidez, cafeína, fritura e excesso de gordura podem incomodar. Feijão, aveia e laticínios dependem da tolerância individual.</p>}
-   <div className="nutrition-studio-body grid min-h-0 flex-1 gap-2 lg:grid-cols-[minmax(0,1.25fr)_minmax(250px,.75fr)]">
-     <div className="nutrition-studio-primary min-h-0 min-w-0 overflow-y-auto overscroll-contain rounded-xl border border-border bg-card/80 p-3">
+   <div className={"nutrition-studio-body grid min-h-0 flex-1 gap-2 "+(view==="alimentos"?"lg:grid-cols-1":"lg:grid-cols-[minmax(0,1.25fr)_minmax(250px,.75fr)]")}>
+     <div className={"nutrition-studio-primary min-h-0 min-w-0 overscroll-contain rounded-xl border border-border bg-card/80 p-3 "+(view==="alimentos"?"overflow-hidden":"overflow-y-auto")}>
        {view==="cardapio"&&<>
          <div className="flex flex-wrap items-center justify-between gap-2"><div><h4 className="flex items-center gap-1.5 text-sm font-extrabold"><ClipboardList size={16} className="text-primary"/> Sugestões para 7 dias</h4><p className="mt-0.5 text-[10px] text-muted-foreground">{selectedGoal.description}. As porções são exemplos, não uma prescrição.</p></div>
            <button type="button" onClick={()=>{setRotation(n=>n+1);setSelectedId(null);}} className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-2 text-[11px] font-bold hover:bg-muted"><RotateCcw size={14}/> Variar menu</button>
@@ -176,19 +195,9 @@ export function ClientNutritionStudio({patientId,ownerId}:Props){
          })}</div>
          {!filteredRecipes.length&&<p className="mt-3 rounded-xl border border-dashed border-border p-4 text-xs text-muted-foreground">Não há receitas com esses filtros. Revise restrições ou consulte profissional de nutrição.</p>}
        </>}
-       {view==="alimentos"&&<>
-         <div className="flex items-center justify-between gap-2"><h4 className="text-sm font-extrabold">Biblioteca de alimentos brasileiros</h4><span className="text-[10px] text-muted-foreground">{visibleFoods.length} de {ingredients.length}</span></div>
-         <div className="mt-2 flex gap-2"><label className="relative min-w-0 flex-1"><Search size={14} className="absolute left-2.5 top-2.5 text-muted-foreground"/><input type="search" value={search} onChange={e=>setSearch(e.target.value)} className="h-9 w-full rounded-lg border border-border bg-background pl-8 pr-2 text-xs" placeholder="Buscar alimento…" aria-label="Buscar alimento"/></label>
-         <select value={foodGroup} onChange={e=>setFoodGroup(e.target.value as typeof foodGroup)} className="max-w-[125px] rounded-lg border border-border bg-background px-2 text-xs" aria-label="Grupo alimentar">
-           <option value="todos">Todos</option><option value="frutas">Frutas</option><option value="cereais">Cereais/raízes</option><option value="proteinas">Proteínas</option><option value="legumes">Verduras/legumes</option><option value="bebidas">Bebidas</option>
-         </select></div>
-         <div className="mt-2 grid gap-1.5">{visibleFoods.map(f=><div key={f.id} className="flex items-center gap-2 rounded-lg border border-border bg-background/65 p-2">
-           <div className="min-w-0 flex-1"><p className="truncate text-xs font-bold">{f.name}</p><p className="text-[10px] text-muted-foreground">{f.protein===null?"Consultar rótulo":`${safeNumber(f.protein)} g proteína / 100 g · ~${f.kcal} kcal`}{f.flags?.length?" · Atenção: "+f.flags.map(flag=>triggerNames[flag]).join(", "):""}</p>{f.note&&<p className="text-[10px] text-muted-foreground">{f.note}</p>}</div>
-           <button type="button" onClick={()=>setAvoided(prev=>prev.includes(f.id)?prev.filter(x=>x!==f.id):[...prev,f.id])}
-             aria-label={isIgnored(f)?"Permitir "+f.name:"Excluir "+f.name+" das sugestões"}
-             aria-pressed={isIgnored(f)} className={"shrink-0 rounded-lg border px-2 py-1 text-[10px] font-bold "+(isIgnored(f)?"border-rose-500/40 text-rose-600 dark:text-rose-300":"border-border text-muted-foreground")}>{isIgnored(f)?"Excluído":"Excluir"}</button>
-         </div>)}</div>
-       </>}
+       {view==="alimentos"&&<ClientFoodMacroLibrary patientId={patientId} ownerId={ownerId}
+         goal={goal} weight={weight} sensitive={sensitive} avoided={avoided}
+         targets={macroTargets} onTargetsChange={setMacroTargets} onLogged={onLogged}/>}
        {view==="proteina"&&<div className="space-y-3">
          <h4 className="flex items-center gap-2 text-sm font-extrabold"><Calculator size={17} className="text-primary"/> Calculadora de proteína por peso</h4>
          <p className="text-xs text-muted-foreground">Estimativa educativa para adultos, com objetivo alimentar selecionado acima. Não se aplica automaticamente a crianças, gestantes ou pessoas com doença renal/hepática, restrição proteica ou dieta clínica.</p>
@@ -203,9 +212,10 @@ export function ClientNutritionStudio({patientId,ownerId}:Props){
            <p className="mt-2 text-[11px]">Exemplo de distribuição em 4 refeições: ~{Math.round(protein.low/4)}–{Math.round(protein.high/4)} g por refeição. Não é obrigação consumir doses iguais.</p>
          </div>:<p className="rounded-lg border border-border bg-muted/40 p-3 text-xs text-muted-foreground">Informe um peso válido entre 30 e 300 kg para calcular.</p>}
          <p className="text-xs text-muted-foreground">Para adultos saudáveis sem treino, referência de ~0,8 g/kg/dia; para praticantes de exercícios, a ISSN descreve 1,4–2,0 g/kg/dia. As outras faixas são estimativas orientativas, não prescrição individual.</p>
+         <button type="button" onClick={()=>chooseView("alimentos")} className="rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground">Calcular porções de alimentos e macros</button>
        </div>}
      </div>
-     <aside className="nutrition-studio-side min-h-0 min-w-0 overflow-y-auto overscroll-contain rounded-xl border border-border bg-muted/[.24] p-3">
+     {view!=="alimentos"&&<aside className="nutrition-studio-side min-h-0 min-w-0 overflow-y-auto overscroll-contain rounded-xl border border-border bg-muted/[.24] p-3">
        {chosen?<div>
          <button type="button" onClick={()=>setSelectedId(null)} className="text-[11px] font-semibold text-primary underline">Voltar às sugestões</button>
          <h4 className="mt-2 text-base font-extrabold">{chosen.title}</h4>
@@ -233,7 +243,7 @@ export function ClientNutritionStudio({patientId,ownerId}:Props){
          <div className="mt-2 space-y-1.5">{nutritionSources.map(item=><p key={item.url} className="text-[10px] leading-snug">{sourceLink(item.url,item.title)}</p>)}</div>
          <p className="mt-2 text-[10px] text-muted-foreground">Catálogo editorial local; não faz busca médica automática nem verifica continuamente o conteúdo externo. Informações revisáveis por profissional.</p>
        </div>
-     </aside>
+     </aside>}
    </div>
  </section>;
 }
