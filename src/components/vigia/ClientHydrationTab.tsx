@@ -174,7 +174,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
   setNotice("Resposta anterior desfeita; este horário está novamente sem confirmação.");
   onRecorded();setReload(n=>n+1);
  }
- return <section className="flex min-h-0 w-full min-w-0 flex-col gap-2" aria-label="Programa personalizado de hidratação">
+ return <section className="care-premium-hydration flex min-h-0 w-full min-w-0 flex-col gap-2" aria-label="Programa personalizado de hidratação">
   <header className="flex flex-wrap items-center justify-between gap-2">
     <div className="min-w-0">
       <h3 className="flex items-center gap-1.5 text-sm font-extrabold"><Droplets size={18} className="text-sky-600 dark:text-sky-300"/> Minha hidratação</h3>
@@ -251,7 +251,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
         const backend=suggestedByTask[task.id];
         const suggested=backend?.suggested_ml??(portions[i]||0);
         const defaultVolume=volumeByTask[task.id]??(suggested>0?suggested:200);
-        return <article key={task.id} className={`flex min-w-0 flex-col gap-1.5 rounded-lg border px-2 py-1.5 ${status==="done"?"border-emerald-500/25 bg-emerald-500/[.055]":status==="skipped"?"border-amber-500/30 bg-amber-500/[.04]":"border-border/75 bg-muted/25"}`}>
+        return <article key={task.id} className={`care-premium-hydration-event flex min-w-0 flex-col gap-1.5 rounded-lg border px-2 py-1.5 ${status==="done"?"border-emerald-500/25 bg-emerald-500/[.055]":status==="skipped"?"border-amber-500/30 bg-amber-500/[.04]":"border-border/75 bg-muted/25"}`}>
           <div className="flex min-w-0 items-center gap-2"><span className={`grid size-7 shrink-0 place-items-center rounded-lg ${status==="done"?"bg-emerald-500/10 text-emerald-600 dark:text-emerald-300":"bg-sky-500/10 text-sky-600 dark:text-sky-300"}`}>{status==="done"?<CheckCircle2 size={16}/>:<Droplets size={16}/>}</span>
           <div className="min-w-0 flex-1">
             <p className="flex flex-wrap items-center gap-1 text-[11px] font-bold text-foreground"><span className="tabular-nums">{time(task.scheduled_at)}</span><span>· Água</span>{suggested>0&&!task.completed_at&&<span className="rounded bg-sky-500/10 px-1 text-[10px] text-sky-700 dark:text-sky-300">~{suggested} ml</span>}</p>
