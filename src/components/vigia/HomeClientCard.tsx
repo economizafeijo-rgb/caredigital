@@ -270,7 +270,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
         <CareReminderBeacon tasks={tasks} patientId={client.id} ownerId={client.owner_id} refreshKey={tick} onOpen={alertTask=>{const task=tasks.find(t=>t.id===alertTask.id);if(task)showTaskDetails(task)}} compact/>
       </div>
 
-      <div className="care-client-tabs care-client-page-nav flex shrink-0 gap-1 rounded-xl border border-border bg-muted/55 p-1" role="tablist" aria-label="Páginas do acompanhamento">
+      <div className="care-client-tabs care-client-page-nav grid shrink-0 grid-cols-3 gap-1 rounded-xl border border-border bg-muted/55 p-1 sm:grid-cols-6" role="tablist" aria-label="Páginas do acompanhamento">
         {tabs.map(tab=>{
           const Icon=tab.icon;
           return <button type="button" role="tab" key={tab.key} aria-selected={activeTab===tab.key} aria-controls="care-client-tab-panel"
