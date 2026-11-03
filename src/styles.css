@@ -2448,3 +2448,62 @@ iframe[title*="Lovable" i][title*="badge" i] {
  .care-client-route .nutrition-studio > header {border-radius:15px;padding:10px}
  .care-client-route .patient-history-categories > button {border-radius:12px}
 }
+
+
+/* CareDigital premium v4 — medication, intake and portal dialogs.
+   Dialogs are rendered into document.body; selectors must not depend on .care-client-route. */
+.care-premium-medication-dialog,
+.care-premium-intake-dialog {
+  --care-dialog-edge:rgba(112,230,220,.35);
+  color:#f1fffe;
+  border-color:var(--care-dialog-edge);
+  background:radial-gradient(ellipse at 90% 0%,rgba(27,180,160,.24),transparent 47%),linear-gradient(150deg,#082b39,#071f2e 72%,#092c38);
+  box-shadow:0 30px 95px rgba(0,12,23,.58),inset 0 1px rgba(231,255,255,.14);
+  scrollbar-color:rgba(111,229,218,.4) transparent;
+}
+.care-premium-medication-dialog-header,
+.care-premium-intake-header {
+  margin:-16px -16px 13px;
+  padding:16px;
+  min-height:75px;
+  background:radial-gradient(ellipse at 85% 5%,rgba(77,221,202,.2),transparent 60%),linear-gradient(100deg,rgba(9,90,93,.85),rgba(5,47,62,.8));
+  border-bottom:1px solid rgba(118,228,219,.26);
+}
+.care-premium-medication-dialog :is(h2,h3,h4),
+.care-premium-intake-dialog :is(h2,h3,h4) {color:#f6ffff;letter-spacing:-.025em}
+.care-premium-medication-dialog .text-muted-foreground,
+.care-premium-intake-dialog .text-muted-foreground {color:#b5d8df}
+.care-premium-medication-dialog :is(.bg-muted,.bg-card),
+.care-premium-intake-dialog :is(.bg-muted,.bg-card) {background:rgba(19,73,83,.5)}
+.care-premium-medication-dialog :is(.border-border,.border-border\/60),
+.care-premium-intake-dialog :is(.border-border,.border-border\/60) {border-color:rgba(118,219,215,.32)}
+.care-premium-medication-dialog :is(input,select,textarea),
+.care-premium-intake-dialog :is(input,select,textarea) {
+  border-color:rgba(133,230,223,.4);
+  background:rgba(2,28,42,.72);
+  color:#f2ffff;
+  border-radius:12px;
+  min-height:39px;
+}
+.care-premium-intake-dialog :is(input,textarea)::placeholder {color:rgba(205,234,236,.6)}
+.care-premium-medication-dialog :is(button,input,select):focus-visible,
+.care-premium-intake-dialog :is(button,input,select,textarea):focus-visible {outline:2px solid #80f7e5;outline-offset:2px}
+.care-premium-medication-dialog button,
+.care-premium-intake-dialog button {transition:background-color .16s ease,border-color .16s ease}
+.care-client-route .care-blister-header {
+  border-radius:17px;
+  padding:clamp(9px,1vw,15px);
+  border:1px solid rgba(121,225,220,.28);
+  background:linear-gradient(120deg,rgba(15,85,91,.8),rgba(6,47,62,.84));
+}
+.care-client-route .care-blister-progress {height:6px;background:rgba(171,238,232,.18)}
+.care-client-route .care-blister-step {border-color:rgba(123,227,220,.38);border-radius:12px;min-height:29px}
+.care-client-route .care-blister-step[aria-current="true"] {border-color:#70f4de;box-shadow:0 0 0 2px rgba(80,234,214,.14)}
+.care-client-route .care-blister-graphic {border-radius:20px;overflow:hidden}
+@media(max-width:767px){
+  .care-premium-medication-dialog-header,.care-premium-intake-header {margin:-16px -16px 11px;padding:13px;min-height:67px}
+  .care-premium-medication-dialog,.care-premium-intake-dialog {border-radius:19px}
+}
+@media(prefers-reduced-motion:reduce){
+  .care-premium-medication-dialog button,.care-premium-intake-dialog button {transition:none}
+}
