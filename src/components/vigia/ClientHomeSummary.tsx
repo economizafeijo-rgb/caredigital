@@ -377,7 +377,7 @@ export function ClientHomeSummary(){
         <button type="button" onClick={()=>setAgendaPage(p=>Math.max(0,p-1))} disabled={agendaPage===0} className="rounded-lg border border-white/15 px-2.5 py-1 text-[11px] font-semibold disabled:opacity-35">Anterior</button>
         <span className="text-[11px] text-slate-300">Página {agendaIndex+1} de {agendaPageCount}</span>
         <button type="button" onClick={()=>setAgendaPage(p=>Math.min(agendaPageCount-1,p+1))} disabled={agendaPage>=agendaPageCount-1} className="rounded-lg border border-white/15 px-3 py-1.5 text-xs font-semibold disabled:opacity-35">Próxima</button>
-        <Link to="/cliente" className="care-timeline-all-link" title="Abrir a área do cliente e consultar o histórico completo">Ver todos os registros <ChevronRight size={14}/></Link>
+        <Link to="/cliente" hash="historico" className="care-timeline-all-link" title="Abrir a área do cliente e consultar o histórico completo">Ver todos os registros <ChevronRight size={14}/></Link>
       </nav>
     </div>
   </div>
