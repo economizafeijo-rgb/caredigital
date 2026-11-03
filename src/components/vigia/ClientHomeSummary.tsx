@@ -15,7 +15,8 @@ type WaterEntry = {id:string;task_id:string|null;amount_ml:number;recorded_at:st
 type BeverageEntry = {id:string;kind:string;name:string;amount_ml:number;consumed_at:string};
 type MealEntry = {id:string;recorded_at:string;details:{title?:string;description?:string;kind?:string}|null};
 type AgendaRow = {key:string;at:string;title:string;subtitle:string;category:"medicacao"|"hidratacao"|"refeicao";task:Care|null;completed:boolean;resolved:boolean;overdue:boolean};
-type Person = {id:string;owner_id:string;full_name:string};
+type Person = {id:string;owner_id:string;full_name:string;height_cm:number|null;weight_kg:number|null;care_goal:string|null};
+type WellnessProfile={weight_kg:number|null;age:number|null;activity_minutes:number;fluid_restriction:boolean;target_ml:number|null;objective:string|null;protein:number|null;carbs:number|null;fat:number|null;kcal:number|null;gastritis_sensitive:boolean};
 const zone="America/Rio_Branco";
 const day=(t:Date)=>new Intl.DateTimeFormat("en-CA",{timeZone:zone,year:"numeric",month:"2-digit",day:"2-digit"}).format(t);
 const canConfirmMealToday=(task:Care)=>!task.completed_at && Date.now()>=Date.parse(task.scheduled_at) && day(new Date(task.scheduled_at))===day(new Date());
@@ -35,6 +36,7 @@ const plannedMealKind=(title:string):string|null=>{
 
 export function ClientHomeSummary(){
  const [patient,setPatient]=useState<Person|null>(null);
+ const [wellness,setWellness]=useState<WellnessProfile|null>(null);
  const [tasks,setTasks]=useState<Care[]>([]);
  const [selected,setSelected]=useState<Care|null>(null);
  const [detailTask,setDetailTask]=useState<Care|null>(null);
@@ -74,11 +76,30 @@ export function ClientHomeSummary(){
     if(!uid){if(active)setError("Entre para acessar sua rotina.");return;}
     const grant=await (supabase as any).from("care_patient_access").select("patient_id").eq("user_id",uid).limit(1);
     if(grant.error||!grant.data?.length){if(active)setError("Não há um prontuário vinculado à sua conta.");return;}
-    const detail=await (supabase as any).from("care_patients").select("id,owner_id,full_name").eq("id",grant.data[0].patient_id).limit(1);
+    const detail=await (supabase as any).from("care_patients").select("id,owner_id,full_name,height_cm,weight_kg,care_goal").eq("id",grant.data[0].patient_id).limit(1);
     if(!active)return;
     if(detail.error||!detail.data?.length){setError("Não foi possível abrir o acompanhamento.");return;}
     const person=detail.data[0] as Person;
     setPatient(person);
+    const [hydrationProfile,nutritionProfile]=await Promise.all([
+      (supabase as any).from("care_hydration_profiles").select("age,weight_kg,activity_minutes,fluid_restriction,target_ml").eq("patient_id",person.id).eq("owner_id",person.owner_id).maybeSingle(),
+      (supabase as any).from("care_nutrition_preferences").select("weight_kg,objective,target_protein_g,target_carbs_g,target_fat_g,target_kcal,gastritis_sensitive").eq("patient_id",person.id).eq("owner_id",person.owner_id).maybeSingle()
+    ]);
+    if(!active)return;
+    const hp=hydrationProfile.data,np=nutritionProfile.data;
+    setWellness({
+      weight_kg:Number(np?.weight_kg||hp?.weight_kg||person.weight_kg)||null,
+      age:Number(hp?.age)||null,
+      activity_minutes:Number(hp?.activity_minutes)||0,
+      fluid_restriction:Boolean(hp?.fluid_restriction),
+      target_ml:Number(hp?.target_ml)||null,
+      objective:np?.objective??person.care_goal??null,
+      protein:Number(np?.target_protein_g)||null,
+      carbs:Number(np?.target_carbs_g)||null,
+      fat:Number(np?.target_fat_g)||null,
+      kcal:Number(np?.target_kcal)||null,
+      gastritis_sensitive:Boolean(np?.gastritis_sensitive)
+    });
     const from=new Date(day(new Date())+"T00:00:00-05:00");
     const finish=new Date(from.getTime()+86400000);
     const [res,goalResult,resolutions,waterAnswers,waterEntries,beverages,mealEntries,waterSuggestions]=await Promise.all([
@@ -297,6 +318,33 @@ export function ClientHomeSummary(){
     </div>
     <img src="/images/care-next-wellness.svg" alt="" aria-hidden="true" className="hidden h-[76px] w-[150px] shrink-0 object-contain opacity-80 sm:block" loading="lazy"/>
   </div>
+  {wellness&&<section className="care-wellness-insights relative z-10" aria-label="Indicadores e orientações de saúde e nutrição">
+    {(()=>{
+      const weight=wellness.weight_kg;
+      const height=Number(patient?.height_cm);
+      const bmi=weight&&height>=100&&height<=230?weight/((height/100)**2):null;
+      const validWeight=weight&&weight>=30&&weight<=250;
+      const waterGoal=wellness.target_ml??(validWeight&&!wellness.fluid_restriction?Math.round(weight*30/50)*50:null);
+      const protein=wellness.protein??(validWeight?Math.round(weight*(wellness.objective==="hipertrofia"?1.6:1.0)):null);
+      const fat=wellness.fat??(validWeight?Math.round(weight*.8):null);
+      const carbs=wellness.carbs??(wellness.kcal&&protein&&fat?Math.max(0,Math.round((wellness.kcal-protein*4-fat*9)/4)):null);
+      const tips=wellness.fluid_restriction?"Há restrição de líquidos registrada: siga a orientação profissional para hidratação.":wellness.gastritis_sensitive?"Prefira refeições menores e observe os alimentos que provocam desconforto.":"Distribua proteínas entre refeições e priorize alimentos variados, frutas, verduras e fontes de fibras.";
+      return <>
+        <div className="care-wellness-metrics">
+          <div><span>IMC</span><strong>{bmi?bmi.toFixed(1).replace(".",","):"—"}</strong><small>{bmi?"Indicador de referência":"Informe peso e altura"}</small></div>
+          <div><span>ÁGUA / DIA</span><strong>{waterGoal&&!wellness.fluid_restriction?(waterGoal/1000).toLocaleString("pt-BR",{maximumFractionDigits:2})+" L":"—"}</strong><small>{wellness.fluid_restriction?"Requer orientação individual":wellness.target_ml?"Meta cadastrada":"Estimativa inicial"}</small></div>
+          <div><span>PROTEÍNAS</span><strong>{protein?protein+" g":"—"}</strong><small>{wellness.protein?"Meta cadastrada":"Estimativa diária"}</small></div>
+          <div><span>CARBOIDRATOS</span><strong>{carbs!==null?carbs+" g":"—"}</strong><small>{wellness.carbs?"Meta cadastrada":"Configure calorias para estimar"}</small></div>
+          <div><span>GORDURAS</span><strong>{fat?fat+" g":"—"}</strong><small>{wellness.fat?"Meta cadastrada":"Estimativa diária"}</small></div>
+          <div><span>ENERGIA</span><strong>{wellness.kcal?wellness.kcal+" kcal":"—"}</strong><small>{wellness.kcal?"Meta cadastrada":"Defina a meta nutricional"}</small></div>
+        </div>
+        <details className="care-wellness-tips"><summary>Orientações para seus objetivos <span>Ver dicas</span></summary>
+          <p>{tips} {wellness.objective==="hipertrofia"?"Para ganho muscular, combine alimentação suficiente com treinamento e recuperação.":wellness.objective==="emagrecimento"?"Para controle de peso, priorize refeições regulares e porções adequadas.":"Ajuste quantidades conforme rotina, atividade e objetivos."}</p>
+          <p className="care-wellness-disclaimer">IMC é um indicador limitado; estimativas não substituem avaliação nutricional. Metas de água e macros devem ser individualizadas.</p>
+        </details>
+      </>;
+    })()}
+  </section>}
   <section className="care-patient-marquee relative z-10" aria-label="Letreiro digital de acompanhamento do cliente">
     <div className="care-patient-marquee-heading"><span className="care-patient-live-dot" aria-hidden="true"/> <span>PAINEL DIGITAL DO CLIENTE</span><span className="care-patient-marquee-date">{now ? new Intl.DateTimeFormat("pt-BR",{day:"2-digit",month:"short",timeZone:"America/Rio_Branco"}).format(now) : "Hoje"}</span></div>
     <div className="care-patient-marquee-stats" aria-live="off">
