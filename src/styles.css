@@ -2328,3 +2328,82 @@ iframe[title*="Lovable" i][title*="badge" i] {
 @media (prefers-reduced-motion:reduce) {
   .care-client-route .care-client-page-nav [role="tab"],.care-client-route .care-client-page-content :is(button,a) {transition:none}
 }
+
+
+/* CareDigital premium interiors v2: real cards, not only page shells */
+.care-client-route .care-premium-hydration,
+.care-client-route .care-premium-meals,
+.care-client-route .care-premium-agenda {
+  --care-panel-line:rgba(105,231,222,.27);
+  --care-panel-highlight:rgba(153,255,240,.12);
+  min-width:0;
+  color:#eefcfb;
+}
+.care-client-route :is(.care-premium-hydration,.care-premium-meals,.care-premium-agenda) > header,
+.care-client-route .care-meals-actions {
+  border:1px solid rgba(107,236,217,.3);
+  border-radius:20px;
+  padding:clamp(11px,1.2vw,18px);
+  background:radial-gradient(ellipse at 95% 0%,rgba(45,220,189,.17),transparent 52%),linear-gradient(110deg,rgba(11,81,85,.87),rgba(6,41,56,.91));
+  box-shadow:inset 0 1px rgba(255,255,255,.11),0 8px 25px rgba(0,18,29,.2);
+}
+.care-client-route :is(.care-premium-hydration,.care-premium-meals,.care-premium-agenda) :is(h3,h4,strong) {
+  letter-spacing:-.025em;
+}
+.care-client-route .care-premium-hydration-event,
+.care-client-route .care-premium-meal-card,
+.care-client-route .care-premium-agenda-event {
+  position:relative;
+  min-width:0;
+  border-radius:19px;
+  border:1px solid var(--care-panel-line);
+  background:linear-gradient(130deg,rgba(18,78,88,.74),rgba(5,38,54,.88));
+  box-shadow:inset 0 1px rgba(235,255,255,.1),0 7px 20px rgba(0,16,28,.18);
+  padding:clamp(11px,1vw,16px);
+  transition:border-color .16s ease,background .16s ease,transform .16s ease;
+}
+.care-client-route :is(.care-premium-hydration-event,.care-premium-meal-card,.care-premium-agenda-event):hover {
+  border-color:rgba(137,251,236,.58);
+  background:linear-gradient(130deg,rgba(21,95,100,.85),rgba(6,46,61,.92));
+}
+.care-client-route .care-premium-meal-card[data-food-category="almoco"] {border-left:3px solid #7ee9b9}
+.care-client-route .care-premium-meal-card[data-food-category="jantar"] {border-left:3px solid #b4a4f9}
+.care-client-route .care-premium-meal-card[data-food-category="cafe_manha"] {border-left:3px solid #f2ce87}
+.care-client-route .care-premium-meal-card[data-food-category="lanche"] {border-left:3px solid #8bd7f1}
+.care-client-route .care-premium-agenda-event.care-agenda-water {border-left:3px solid #6ddcf1}
+.care-client-route .care-premium-agenda-event.care-agenda-meals {border-left:3px solid #7ce5af}
+.care-client-route .care-premium-agenda-event.care-agenda-medicine {border-left:3px solid #b3a3fa}
+.care-client-route .care-premium-agenda-event.care-agenda-supplements {border-left:3px solid #e9c986}
+.care-client-route :is(.care-premium-hydration,.care-premium-meals,.care-premium-agenda) :is(input,select,textarea) {
+  min-height:38px;
+  border-radius:12px;
+  border-color:rgba(143,233,226,.32);
+  background:rgba(2,25,39,.4);
+  color:#f2ffff;
+}
+.care-client-route :is(.care-premium-hydration,.care-premium-meals,.care-premium-agenda) input::placeholder {color:rgba(206,236,236,.55)}
+.care-client-route :is(.care-premium-hydration,.care-premium-meals,.care-premium-agenda) button:not(:disabled):active {transform:scale(.99)}
+.care-client-route :is(.care-premium-hydration,.care-premium-meals,.care-premium-agenda) button:focus-visible {outline:2px solid #87f8e8;outline-offset:2px}
+.care-client-route .care-page-agenda-insights > div {
+  border-radius:16px;
+  border:1px solid rgba(118,222,213,.3);
+  background:linear-gradient(145deg,rgba(17,81,89,.82),rgba(7,46,62,.9));
+  box-shadow:inset 0 1px rgba(255,255,255,.12);
+  padding:clamp(9px,1vw,14px);
+}
+.care-client-route .care-premium-meals .care-meals-actions {gap:10px}
+.care-client-route .care-premium-hydration details {
+  border-radius:15px;
+  border-color:rgba(111,211,208,.25);
+  background:rgba(9,49,63,.55);
+}
+@media(max-width:767px) {
+ .care-client-route :is(.care-premium-hydration,.care-premium-meals,.care-premium-agenda) > header {padding:11px;border-radius:16px}
+ .care-client-route .care-meals-actions {padding:11px;border-radius:16px}
+ .care-client-route :is(.care-premium-hydration-event,.care-premium-meal-card,.care-premium-agenda-event) {border-radius:16px;padding:10px}
+ .care-client-route .care-page-agenda-insights {gap:5px}
+ .care-client-route .care-page-agenda-insights > div {padding:8px;border-radius:12px}
+}
+@media(prefers-reduced-motion:reduce) {
+ .care-client-route :is(.care-premium-hydration-event,.care-premium-meal-card,.care-premium-agenda-event) {transition:none}
+}
