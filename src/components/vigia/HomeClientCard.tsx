@@ -25,6 +25,23 @@ const tz = "America/Rio_Branco";
 const dayInAcre = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
 const dateInAcre = (d: Date) => new Intl.DateTimeFormat("pt-BR", { timeZone: tz, weekday:"long", day:"2-digit", month:"long" }).format(d);
 const timeInAcre = (iso: string) => new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: tz }).format(new Date(iso));
+function LiveCareCountdown({scheduledAt}:{scheduledAt:string}){
+ const [now,setNow]=useState(()=>Date.now());
+ useEffect(()=>{
+  const update=()=>setNow(Date.now());
+  const id=window.setInterval(update,1000);
+  window.addEventListener("focus",update);
+  return()=>{window.clearInterval(id);window.removeEventListener("focus",update);};
+ },[]);
+ const ms=Math.max(0,Date.parse(scheduledAt)-now);
+ const seconds=Math.ceil(ms/1000);
+ const display=[Math.floor(seconds/3600),Math.floor(seconds%3600/60),seconds%60]
+  .map(value=>String(value).padStart(2,"0")).join(":");
+ return <span className="mt-1 block text-[11px] font-semibold text-primary" aria-label="Tempo restante para o próximo cuidado">
+  {seconds?"Faltam "+display:"Horário previsto já chegou"}
+ </span>;
+}
+
 const categoryInfo: Record<string, { label: string; icon: typeof Pill }> = {
   medicacao: { label: "Medicação", icon: Pill },
   hidratacao: { label: "Hidratação", icon: Droplets },
@@ -306,7 +323,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
                 <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><CalendarClock size={21}/></span>
                 <div className="min-w-0">
                   <p className="text-xs font-extrabold text-foreground">Próximo cuidado pendente</p>
-                  {nextCare?<><strong className="mt-1 block text-base font-extrabold tabular-nums text-foreground">{timeInAcre(nextCare.scheduled_at)} · {categoryInfo[nextCare.category]?.label??"Atividade"}</strong><p className="truncate text-xs text-muted-foreground">{nextCare.title}</p></>:<p className="mt-1 text-xs text-muted-foreground">Não há novos horários disponíveis. Consulte a agenda para ver os cuidados não confirmados.</p>}
+                  {nextCare?<><strong className="mt-1 block text-base font-extrabold tabular-nums text-foreground">{timeInAcre(nextCare.scheduled_at)} · {categoryInfo[nextCare.category]?.label??"Atividade"}</strong><p className="truncate text-xs text-muted-foreground">{nextCare.title}</p><LiveCareCountdown scheduledAt={nextCare.scheduled_at}/></>:<p className="mt-1 text-xs text-muted-foreground">Não há novos horários disponíveis. Consulte a agenda para ver os cuidados não confirmados.</p>}
                 </div>
               </div>
               {nextCare&&<button type="button" onClick={()=>askConfirm(nextCare)} className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-primary px-3 text-[11px] font-extrabold text-primary-foreground transition hover:opacity-90">Consultar / confirmar <ArrowRight size={15}/></button>}
