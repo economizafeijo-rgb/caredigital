@@ -52,7 +52,7 @@ function BibliotecaAlimentar(){
  const required=per100>0?target/per100*100:null;
  const totals=consumed.reduce((acc,x)=>({kcal:acc.kcal+n(x.kcal),protein_g:acc.protein_g+n(x.protein_g),carbs_g:acc.carbs_g+n(x.carbs_g),fat_g:acc.fat_g+n(x.fat_g)}),{kcal:0,protein_g:0,carbs_g:0,fat_g:0});
  async function registerPortion(){
-  if(!food||!patientId||!Number.isFinite(grams)||grams<=0||grams>10000)return;
+  if(!food||!patientId||!Number.isFinite(grams)||grams<=0||grams>2000)return;
   setSaving(true);setFeedback("");
   const requestId=crypto.randomUUID();
   const {error:saveError}=await (supabase as any).rpc("care_log_food_portion",{p_patient_id:patientId,p_food_id:food.id,p_grams:grams,p_request_id:requestId});
@@ -82,9 +82,9 @@ function BibliotecaAlimentar(){
     <article className="rounded-2xl border border-border bg-card p-4 shadow-sm">
      <h2 className="mb-2 flex items-center gap-2 font-extrabold"><Utensils size={18} className="text-primary"/> Composição da porção</h2>
      {food?<><h3 className="text-lg font-extrabold">{food.name}</h3><p className="mb-3 text-xs text-muted-foreground">Valores proporcionais aos dados cadastrados por 100 g.</p>
-      <label className="mb-3 block text-xs font-bold">Quantidade consumida (gramas)<input type="number" min="1" max="10000" value={grams} onChange={e=>setGrams(Math.max(0,Number(e.target.value)))} className="field mt-1 w-full"/></label>
+      <label className="mb-3 block text-xs font-bold">Quantidade consumida (gramas)<input type="number" min="1" max="2000" value={grams} onChange={e=>setGrams(Math.max(0,Number(e.target.value)))} className="field mt-1 w-full"/></label>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{nutrients.map(v=><div key={v.key} className="rounded-xl bg-muted/50 p-3"><p className="text-[11px] text-muted-foreground">{v.label}</p><strong className="text-lg">{fmt(n(food[v.key])*factor)} <span className="text-xs">{v.unit}</span></strong></div>)}</div>
-      {patientId&&<button type="button" onClick={()=>void registerPortion()} disabled={saving||grams<=0||grams>10000} className="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground disabled:opacity-50">{saving?"Registrando...":"Registrar porção no histórico"}</button>}
+      {patientId&&<button type="button" onClick={()=>void registerPortion()} disabled={saving||grams<=0||grams>2000} className="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground disabled:opacity-50">{saving?"Registrando...":"Registrar porção no histórico"}</button>}
       {feedback&&<p role="status" className="mt-2 text-xs">{feedback}</p>}
       <p className="mt-3 text-[11px] text-muted-foreground">Fonte informada: {food.provenance||"não especificada"}. {food.note||""}</p>
      </>:<p className="text-sm text-muted-foreground">Selecione um alimento no catálogo.</p>}
