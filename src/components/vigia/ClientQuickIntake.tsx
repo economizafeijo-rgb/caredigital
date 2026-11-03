@@ -134,8 +134,8 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
       <div className="fixed inset-0 z-[150] flex items-center justify-center bg-slate-950/75 p-3 backdrop-blur-sm"
         onMouseDown={event => { if (event.target === event.currentTarget) closeForm(); }}>
         <section role="dialog" aria-modal="true" aria-labelledby="quick-intake-title"
-          className="flex max-h-[calc(100dvh-1.5rem)] w-full max-w-md flex-col overflow-y-auto rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-2xl sm:p-5">
-          <div className="flex shrink-0 items-center justify-between gap-3">
+          className="care-premium-intake-dialog flex max-h-[calc(100dvh-1.5rem)] w-full max-w-md flex-col overflow-y-auto rounded-[24px] border border-border bg-card p-4 text-card-foreground shadow-2xl sm:p-5">
+          <div className="care-premium-intake-header flex shrink-0 items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <span className="grid size-9 place-items-center rounded-xl bg-primary/10 text-primary">
                 <CareIntakeIcon kind={kind} size={20}/>
