@@ -30,6 +30,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
  const [editing,setEditing]=useState(false);
  const [saving,setSaving]=useState(false);
  const [drinks,setDrinks]=useState<Drink[]>([]);
+ const [suggestedByTask,setSuggestedByTask]=useState<Record<string,{suggested_ml:number;reason:string;remaining_ml:number}>>({});
  const [volumeByTask,setVolumeByTask]=useState<Record<string,number>>({});
  const [detailTask,setDetailTask]=useState<Task|null>(null);
  const [page,setPage]=useState(0);
@@ -43,7 +44,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
  const [dailyGoal,setDailyGoal]=useState<HydrationGoalSnapshot|null>(null);
  const lastDeadlineRefresh=useRef<string>("");
  const [clock,setClock]=useState(()=>Date.now());
- useEffect(()=>{const timer=window.setInterval(()=>setClock(Date.now()),10000);return()=>window.clearInterval(timer)},[]);
+ useEffect(()=>{const timer=window.setInterval(()=>setClock(Date.now()),1000);return()=>window.clearInterval(timer)},[]);
  // Force a final server read when the 23:00 deadline passes or the Acre date changes.
  useEffect(()=>{
    const day=acreCalendarDay(clock);
@@ -60,11 +61,14 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
    const start=new Date(now+"T00:00:00-05:00");
    const end=new Date(start.getTime()+86400000);
    const db=supabase as any;
-   const [saved,water,responses,goalSummary]=await Promise.all([
+   const [saved,water,responses,goalSummary,recommended]=await Promise.all([
     db.from("care_hydration_profiles").select("sex,age,weight_kg,objective,activity_minutes,sweat,fluid_restriction,target_ml").eq("patient_id",patientId).maybeSingle(),
     db.from("care_hydration").select("id,amount_ml,recorded_at").eq("patient_id",patientId).eq("owner_id",ownerId).gte("recorded_at",start.toISOString()).lt("recorded_at",end.toISOString()).order("recorded_at",{ascending:true}).limit(200),
     db.from("care_hydration_responses").select("task_id,recorded_at").eq("patient_id",patientId).eq("owner_id",ownerId).limit(100),
-    db.rpc("care_sync_hydration_goal",{p_patient_id:patientId})
+    db.rpc("care_sync_hydration_goal",{p_patient_id:patientId}),
+    db.from("care_hydration_suggested_portions")
+      .select("task_id,suggested_ml,reason,remaining_ml")
+      .eq("patient_id",patientId).eq("owner_id",ownerId).limit(120)
    ]);
    if(!active)return;
    if(saved.error||water.error||responses.error||goalSummary.error)setError("Não foi possível consultar todos os registros de hidratação ou o fechamento da meta. Confira as permissões.");
@@ -74,6 +78,9 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
    setDailyGoal(goalSummary.error?null:goalSummary.data as HydrationGoalSnapshot);
    setDrinks(water.data??[]);
    setNotDrunk(responses.data??[]);
+   if(recommended.error){setSuggestedByTask({});setNotice("Sugestões dinâmicas de volume indisponíveis; confira a meta e os registros.");}
+   else setSuggestedByTask(Object.fromEntries((recommended.data??[]).map((row:{task_id:string;suggested_ml:number;reason:string;remaining_ml:number})=>
+     [row.task_id,{suggested_ml:Number(row.suggested_ml),reason:row.reason,remaining_ml:Number(row.remaining_ml)}])));
    setLoading(false);
   })();
   return()=>{active=false};
@@ -100,12 +107,13 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
    let left=remaining;
    upcoming.forEach(({index},position)=>{
      const slotsLeft=upcoming.length-position;
-     const suggestion=Math.min(1500,Math.max(0,Math.round((left/slotsLeft)/10)*10));
+     const suggestion=Math.min(350,Math.max(0,Math.round((left/slotsLeft)/10)*10));
      values[index]=suggestion>=10?suggestion:0;
      left=Math.max(0,left-values[index]);
    });
    return values;
  },[schedule,goal,remaining,skipped,clock,dayClosed,cutoffUtc]);
+ const fmtCountdown=(ms:number)=>{const sec=Math.max(0,Math.ceil(ms/1000));return [Math.floor(sec/3600),Math.floor(sec%3600/60),sec%60].map(v=>String(v).padStart(2,"0")).join(":");};
  const next=dayClosed||remaining===0?undefined:
    schedule.find(item=>!item.completed_at&&!skipped.has(item.id)&&Date.parse(item.scheduled_at)>=clock&&Date.parse(item.scheduled_at)<cutoffUtc)
    ?? (dayClosed?undefined:schedule.find(item=>!item.completed_at&&!skipped.has(item.id)&&getCareScheduleState(item,clock)==="available"&&Date.parse(item.scheduled_at)<cutoffUtc));
@@ -211,6 +219,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
       <p className="mt-0.5 truncate text-sm font-extrabold tabular-nums text-foreground">{item.value}</p>
     </div>)}
   </div>
+  {next&&remaining>0&&!dayClosed&&<p aria-live="off" className="rounded-lg border border-sky-500/20 bg-sky-500/[.05] px-2.5 py-2 text-[11px] font-semibold">Próxima verificação de água em <strong className="font-mono tabular-nums">{fmtCountdown(Date.parse(next.scheduled_at)-clock)}</strong> · horário recalculado automaticamente após cada consumo, quando necessário.</p>}
   <div className="flex items-center gap-2.5">
     <div className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-muted" role="progressbar"
       aria-label="Progresso da meta de hidratação" aria-valuemin={0} aria-valuemax={goal||1} aria-valuenow={goal?Math.min(intake,goal):0}>
@@ -239,12 +248,14 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
         const status=task.completed_at?"done":answered?"skipped":getCareScheduleState(task,clock)==="missed"?"missed":"pending";
         const available=canConfirmCare(task,clock);
         const correcting=correctingTaskId===task.id;
-        const suggested=portions[i]||0;
+        const backend=suggestedByTask[task.id];
+        const suggested=backend?.suggested_ml??(portions[i]||0);
         const defaultVolume=volumeByTask[task.id]??(suggested>0?suggested:200);
         return <article key={task.id} className={`flex min-w-0 flex-col gap-1.5 rounded-lg border px-2 py-1.5 ${status==="done"?"border-emerald-500/25 bg-emerald-500/[.055]":status==="skipped"?"border-amber-500/30 bg-amber-500/[.04]":"border-border/75 bg-muted/25"}`}>
           <div className="flex min-w-0 items-center gap-2"><span className={`grid size-7 shrink-0 place-items-center rounded-lg ${status==="done"?"bg-emerald-500/10 text-emerald-600 dark:text-emerald-300":"bg-sky-500/10 text-sky-600 dark:text-sky-300"}`}>{status==="done"?<CheckCircle2 size={16}/>:<Droplets size={16}/>}</span>
           <div className="min-w-0 flex-1">
             <p className="flex flex-wrap items-center gap-1 text-[11px] font-bold text-foreground"><span className="tabular-nums">{time(task.scheduled_at)}</span><span>· Água</span>{suggested>0&&!task.completed_at&&<span className="rounded bg-sky-500/10 px-1 text-[10px] text-sky-700 dark:text-sky-300">~{suggested} ml</span>}</p>
+            {backend?.reason==="restante_supera_capacidade"&&!task.completed_at&&<p className="text-[10px] text-amber-700 dark:text-amber-300">Meta restante exige fracionamento adicional; não tente beber tudo de uma vez.</p>}
             <p className="truncate text-[10px] text-muted-foreground">{status==="done"?`Bebi · confirmado em ${time(task.completed_at!)}`:status==="skipped"?`Não bebi · resposta às ${time(answered!)}`:available?"Informe se bebeu ou não bebeu":`Programado · disponível a partir de ${time(task.scheduled_at)}`}</p>
           </div>
           {status==="done"?<button type="button" onClick={()=>setDetailTask(task)} title="Consultar e corrigir volume" className="shrink-0 rounded-lg border border-emerald-500/35 bg-emerald-500/10 px-2 py-1.5 text-[11px] font-bold text-emerald-700 hover:bg-emerald-500/15 dark:text-emerald-300">Ver registro</button>
