@@ -74,7 +74,7 @@ export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,no
   const visible=filtered.slice(current*PAGE_SIZE,(current+1)*PAGE_SIZE);
   function setStatus(value:typeof filter){setFilter(value);setPage(0);}
 
-  return <div className="care-page-meals flex h-full min-h-0 min-w-0 flex-col gap-3">
+  return <div className="care-page-meals care-premium-meals flex h-full min-h-0 min-w-0 flex-col gap-3">
     <div className="care-meals-actions flex shrink-0 flex-wrap items-center justify-between gap-2 rounded-2xl border border-emerald-500/25 bg-emerald-500/[.06] p-3">
       <div className="min-w-0">
         <h3 className="flex items-center gap-2 text-sm font-extrabold text-foreground">
@@ -119,7 +119,7 @@ export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,no
           const confirmedMeal=Boolean(meal.completed_at);
           const response=resolved[meal.id];
           return <article key={meal.id} data-food-category={mealKind(meal.title)}
-            className={"care-meal-record flex min-w-0 flex-col gap-2 rounded-2xl border p-3 "+
+            className={"care-meal-record care-premium-meal-card flex min-w-0 flex-col gap-2 rounded-2xl border p-3 "+
               (confirmedMeal?"border-emerald-500/25 bg-emerald-500/[.05]":"border-border bg-card/90")}>
             <div className="flex min-w-0 items-start gap-2">
               <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"><Icon size={20}/></span>
