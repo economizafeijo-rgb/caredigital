@@ -131,7 +131,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
       </div>, document.body
     )}
     {open && typeof document !== "undefined" && createPortal(
-      <div className="fixed inset-0 z-[150] flex items-center justify-center bg-slate-950/75 p-3 backdrop-blur-sm"
+      <div className="care-intake-modal-overlay fixed inset-0 z-[150] flex items-center justify-center overflow-y-auto bg-slate-950/75 p-3 backdrop-blur-sm"
         onMouseDown={event => { if (event.target === event.currentTarget) closeForm(); }}>
         <section role="dialog" aria-modal="true" aria-labelledby="quick-intake-title"
           className="care-premium-intake-dialog flex max-h-[calc(100dvh-1.5rem)] w-full max-w-md flex-col overflow-y-auto rounded-[24px] border border-border bg-card p-4 text-card-foreground shadow-2xl sm:p-5">
