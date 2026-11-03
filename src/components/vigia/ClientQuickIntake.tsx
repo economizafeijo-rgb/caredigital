@@ -23,6 +23,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const requestId = useRef<string | null>(null);
+  const openedBySignal = useRef(0);
 
   const isFood = isFoodKind(kind);
   const isWater = kind === "agua";
@@ -47,8 +48,12 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
   // A home card may open this same form without creating an extra intake
   // instance or bypassing the server's idempotent save/confirmation rules.
   useEffect(() => {
-    if (openSignal > 0 && patientId) openForm();
-    // openSignal is an explicit user click counter, not a timer or page-load action.
+    if (openSignal > openedBySignal.current && patientId) {
+      openedBySignal.current = openSignal;
+      openForm();
+    }
+    // Only a new click signal opens the form; changing patient data alone cannot
+    // reopen a form unexpectedly or duplicate an earlier registration.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openSignal, patientId]);
 
