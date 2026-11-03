@@ -207,8 +207,8 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
             <p className="rounded-lg bg-muted/60 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
               O consumo será salvo com o horário informado (ou o horário atual) e a data do lançamento.
               {isWater
-                ? "Apenas água entra na meta diária. Este registro não confirma horários programados; não registre o mesmo copo novamente na agenda."
-                : isFood?"Frutas, lanches e refeições completas são salvos no histórico de alimentação, sem confirmar uma refeição programada.":"Chás, energéticos, suplementos líquidos e shakes ficam no histórico, sem somar à meta exclusiva de água."}
+                ? "Água e outras bebidas entram no total diário de líquidos. Este registro não confirma horários programados; não registre o mesmo copo novamente na agenda."
+                : isFood?"Frutas, lanches e refeições completas são salvos no histórico de alimentação, sem confirmar uma refeição programada.":"Chás, energéticos, suplementos líquidos e shakes ficam no histórico, e entram no total de líquidos consumidos."}
             </p>
             {error && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive">{error}</p>}
             <div className="grid grid-cols-2 gap-2">
