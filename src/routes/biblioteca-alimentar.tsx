@@ -84,17 +84,13 @@ function BibliotecaAlimentar(){
  async function registerMeal(){
   if(!patientId||saving||mealItems.length===0)return;
   setSaving(true);setFeedback("");
-  let completed=0;
-  for(const item of mealItems){
-   if(item.grams<1||item.grams>2000){setFeedback("Revise as quantidades: cada item deve ter de 1 a 2.000 g.");setSaving(false);return;}
-   const {error:err}=await (supabase as any).rpc("care_log_food_portion",{p_patient_id:patientId,p_food_id:item.food.id,p_grams:item.grams,p_request_id:crypto.randomUUID()});
-   if(err){setFeedback(`Foram registrados ${completed} de ${mealItems.length} itens. Erro: ${err.message}. Confira o histórico antes de tentar novamente.`);setSaving(false);return;}
-   completed++;
-  }
+  const requestId=crypto.randomUUID();
+  const {error:mealError}=await (supabase as any).rpc("care_log_nutrition_meal",{p_patient_id:patientId,p_meal_name:mealName,p_items:mealItems.map(item=>({food_id:item.food.id,grams:item.grams})),p_request_id:requestId});
+  if(mealError){setFeedback("Não foi possível registrar a refeição: "+mealError.message);setSaving(false);return;}
   const start=new Date();start.setHours(0,0,0,0);const end=new Date(start);end.setDate(end.getDate()+1);const week=new Date(start);week.setDate(week.getDate()-6);
   const [daily,recent]=await Promise.all([(supabase as any).from("care_food_consumptions").select("kcal,protein_g,carbs_g,fat_g").eq("patient_id",patientId).gte("recorded_at",start.toISOString()).lt("recorded_at",end.toISOString()),(supabase as any).from("care_food_consumptions").select("kcal,protein_g,carbs_g,fat_g,recorded_at").eq("patient_id",patientId).gte("recorded_at",week.toISOString()).order("recorded_at",{ascending:true}).limit(1000)]);
   if(!daily.error)setConsumed(daily.data??[]);if(!recent.error)setHistory(recent.data??[]);
-  setMeal([]);setFeedback(`${mealName}: ${completed} alimentos registrados individualmente no histórico.`);setSaving(false);
+  setMeal([]);setFeedback(`${mealName}: ${mealItems.length} alimentos salvos como uma única refeição no histórico.`);setSaving(false);
  }
  const goalEntries=[{label:"Energia",value:goals?.target_kcal,unit:"kcal"},{label:"Proteína",value:goals?.target_protein_g,unit:"g"},{label:"Carboidratos",value:goals?.target_carbs_g,unit:"g"},{label:"Gorduras",value:goals?.target_fat_g,unit:"g"}];
  return <section className="mx-auto flex h-full max-w-6xl flex-col gap-4 pb-8 text-foreground" aria-label="Biblioteca alimentar">
@@ -137,7 +133,7 @@ function BibliotecaAlimentar(){
   <div className="grid gap-4 lg:grid-cols-2">
    <article className="rounded-2xl border border-border bg-card p-4 shadow-sm">
     <h2 className="mb-3 text-lg font-extrabold">Montador de refeições</h2>
-    <p className="mb-3 text-xs text-muted-foreground">Selecione um alimento no catálogo e adicione sua porção. Os ingredientes são registrados individualmente no histórico.</p>
+    <p className="mb-3 text-xs text-muted-foreground">Selecione um alimento no catálogo e adicione sua porção. Os ingredientes são agrupados em uma refeição e seus nutrientes são registrados no histórico.</p>
     <div className="flex flex-wrap gap-2"><select aria-label="Tipo de refeição" value={mealName} onChange={e=>setMealName(e.target.value)} className="rounded-lg border border-border bg-background p-2 text-sm">{["Café da manhã","Almoço","Jantar","Lanche","Ceia"].map(x=><option key={x}>{x}</option>)}</select><button type="button" disabled={!food||grams<1||grams>2000} onClick={()=>food&&setMeal(m=>[...m,{id:food.id,grams}])} className="rounded-lg bg-primary px-3 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50">Adicionar alimento</button></div>
     <div className="mt-3 space-y-2">{mealItems.map((item,i)=><div key={i} className="flex items-center gap-2 rounded-xl border border-border p-2"><span className="min-w-0 flex-1 text-sm">{item.food.name}</span><input aria-label={`Gramas de ${item.food.name}`} type="number" min="1" max="2000" className="w-20 rounded-lg border border-border bg-background p-2 text-sm" value={item.grams} onChange={e=>setMeal(m=>m.map((x,j)=>j===i?{...x,grams:Number(e.target.value)}:x))}/><span className="text-xs">g</span><button type="button" className="rounded-lg border border-border px-2 py-1 text-xs" onClick={()=>setMeal(m=>m.filter((_,j)=>j!==i))}>Remover</button></div>)}</div>
     <div className="mt-3 rounded-xl bg-muted/50 p-3 text-sm"><strong>{fmt(mealTotals.kcal)} kcal</strong><p className="text-xs text-muted-foreground">Proteínas {fmt(mealTotals.protein)} g · Carboidratos {fmt(mealTotals.carbs)} g · Gorduras {fmt(mealTotals.fat)} g</p></div>
