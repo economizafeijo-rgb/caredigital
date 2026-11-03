@@ -1,0 +1,401 @@
+
+/* CareDigital — painel vivo baseado na arte aprovada.
+   A ilustração é decorativa; textos, horários, confirmações e paginação são dados reais. */
+:root .client-home-dashboard.care-home-art-v2.care-home-art-reference {
+  --art-white: #efffff;
+  --art-muted: #c8e8ef;
+  --art-turquoise: #8ffcf2;
+  color: var(--art-white);
+  background: radial-gradient(ellipse 58% 75% at 33% 93%, #07515a 0, transparent 80%),
+              radial-gradient(ellipse 48% 82% at 78% 0%, #044653 0, transparent 78%),
+              linear-gradient(132deg, #031d2a 0%, #002e3c 49%, #032b3b 100%);
+  border: 1px solid #075767;
+  box-shadow: inset 0 1px 0 #50e9e724, 0 16px 50px #00151d52;
+  padding: clamp(7px,1vw,14px);
+  gap: 0;
+  overflow: hidden;
+  isolation: isolate;
+  min-height: 0;
+}
+:root .care-home-art-v2.care-home-art-reference .care-home-ambient {
+  pointer-events: none;
+  opacity: .38;
+}
+:root .care-home-art-v2.care-home-art-reference .care-home-body {
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0,1.3fr) minmax(0,1fr);
+  min-height: 0;
+  grid-auto-rows: minmax(0,1fr);
+  align-items: stretch;
+  gap: clamp(8px,1vw,15px);
+}
+:root .care-home-art-v2.care-home-art-reference .care-home-left {
+  grid-template-rows: minmax(0,1fr) clamp(112px,16vh,145px) auto;
+  gap: clamp(6px,.7vw,11px);
+  min-width: 0;
+  min-height: 0;
+}
+:root .care-home-art-v2.care-home-art-reference .patient-next-care {
+  min-width: 0;
+  min-height: 0;
+  padding: clamp(19px,2vw,31px);
+  padding-top: clamp(23px,2vw,33px);
+  border: 1px solid rgba(17,233,225,.51);
+  border-radius: 32px;
+  color: #fff;
+  background: radial-gradient(ellipse at 78% 70%,rgba(9,146,139,.53),transparent 62%),
+              radial-gradient(ellipse at 38% 6%,rgba(3,113,132,.62),transparent 49%),
+              linear-gradient(125deg,#00232b 0%,#003944 55%,#006569 100%);
+  box-shadow: inset 0 1px 0 rgba(176,255,255,.20),0 18px 34px rgba(0,11,22,.29);
+}
+:root .care-home-art-v2.care-home-art-reference .patient-next-care::after {
+  content:"";
+  position:absolute;
+  inset:auto 0 0;
+  height:19%;
+  background:linear-gradient(0deg,rgba(18,175,176,.20),transparent);
+  box-shadow: inset 0 -1px 0 #9dffff16;
+  pointer-events:none;
+}
+:root .care-home-art-v2.care-home-art-reference .care-next-image-aura {opacity:1;filter:blur(22px);}
+:root .care-home-art-v2.care-home-art-reference .care-next-generated-art {
+  width: 66%;
+  height: 90%;
+  top: 6%;
+  right: -1.5%;
+  opacity: 1;
+  object-fit: contain;
+  object-position: right bottom;
+  filter: drop-shadow(0 22px 20px #00141b60) saturate(1.16);
+  -webkit-mask-image: linear-gradient(to right,transparent 0%,black 19%,black 100%);
+  mask-image: linear-gradient(to right,transparent 0%,black 19%,black 100%);
+}
+:root .care-home-art-v2.care-home-art-reference .patient-next-care > div:nth-child(2) {
+  padding-left: clamp(12px,1vw,17px);
+}
+:root .care-home-art-v2.care-home-art-reference .care-next-overline {
+  color: #f1ffff;
+  font-size: clamp(13px,1.35vw,21px);
+  letter-spacing: -.025em;
+  font-weight: 850;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+:root .care-home-art-v2.care-home-art-reference .care-next-overline svg {
+  width: clamp(18px,1.8vw,28px);
+  height: clamp(18px,1.8vw,28px);
+  color: #94ffff;
+}
+:root .care-home-art-v2.care-home-art-reference .care-next-time-chip {
+  padding: 7px 16px;
+  border: 0;
+  border-radius: 999px;
+  color: #f0ffff;
+  font-size: clamp(12px,1.2vw,18px);
+  font-weight: 800;
+  background: linear-gradient(110deg,#055e62,#0a5558);
+  box-shadow: inset 0 1px 0 #73fff21c;
+  white-space: nowrap;
+}
+:root .care-home-art-v2.care-home-art-reference .care-next-copy {
+  z-index: 2;
+  max-width: min(64%,570px);
+  margin-top: 0;
+  margin-bottom: min(2vw,20px);
+  text-shadow: 0 4px 16px #002732a1;
+}
+:root .care-home-art-v2.care-home-art-reference .care-next-copy h3 {
+  color: #f7ffff;
+  font-size: clamp(22px,2.2vw,38px);
+  font-weight: 850;
+  letter-spacing: -.045em;
+  line-height: 1.16;
+  text-wrap: balance;
+}
+:root .care-home-art-v2.care-home-art-reference .care-next-countdown {
+  color: #8dfaf1;
+  font-size: clamp(28px,3vw,51px);
+  letter-spacing: -.04em;
+  line-height: 1.15;
+  text-shadow: 0 0 22px #35fff733;
+}
+:root .care-home-art-v2.care-home-art-reference .care-next-countdown-label {
+  color: #eaf5fa;
+  font-size: clamp(10px,.85vw,15px);
+}
+:root .care-home-art-v2.care-home-art-reference .care-next-cta,
+:root .care-home-art-v2.care-home-art-reference .care-next-secondary {
+  min-height: clamp(36px,3.5vw,54px);
+  padding: 10px clamp(12px,1.35vw,22px);
+  border: 1px solid rgba(169,255,255,.85);
+  border-radius: 999px;
+  color: #f6ffff;
+  background: linear-gradient(135deg,rgba(15,106,123,.72),rgba(16,99,108,.39));
+  box-shadow: inset 0 1px 0 #e1ffff33, 0 0 14px #1bf4ef19;
+  font-size: clamp(10px,1vw,15px);
+  font-weight: 750;
+  backdrop-filter: blur(12px);
+  transition: transform .15s ease,background .15s ease;
+}
+:root .care-home-art-v2.care-home-art-reference .care-next-secondary {
+  color: #f3ffff;
+  border-color: rgba(178,236,246,.54);
+  background: rgba(167,229,237,.16);
+}
+:root .care-home-art-v2.care-home-art-reference :is(.care-next-cta,.care-next-secondary):hover {
+  transform: translateY(-2px);
+  background: rgba(48,157,168,.54);
+}
+:root .care-home-art-v2.care-home-art-reference .care-visual-progress {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: clamp(7px,.9vw,13px);
+  min-height: 0;
+}
+:root .care-home-art-v2.care-home-art-reference .care-visual-tile {
+  min-width: 0;
+  min-height: 0;
+  padding: clamp(7px,1.1vw,16px);
+  border: 1px solid #89e7e7a0;
+  border-radius: 28px;
+  color: #f4ffff;
+  background: linear-gradient(123deg,#005066,#08677a);
+  box-shadow: inset 0 1px 0 #f6ffff24;
+}
+:root .care-home-art-v2.care-home-art-reference .care-visual-tile[data-visual="meals"] {
+  border-color: #a4ebce;
+  background: linear-gradient(120deg,#07583f,#087956);
+}
+:root .care-home-art-v2.care-home-art-reference .care-visual-tile[data-visual="medicine"] {
+  border-color: #b7b0ff;
+  background: linear-gradient(125deg,#2d365f,#494571);
+}
+:root .care-home-art-v2.care-home-art-reference .care-visual-tile .care-progress-svg {
+  flex-shrink: 0;
+  width: clamp(51px,6vw,107px);
+  height: min(95%,112px);
+}
+:root .care-home-art-v2.care-home-art-reference .care-visual-title {
+  font-size: clamp(10px,1vw,17px);
+  color: #d6f7f7;
+  line-height: 1.2;
+}
+:root .care-home-art-v2.care-home-art-reference .care-visual-value {
+  color: #fff;
+  font-size: clamp(14px,1.4vw,25px);
+  line-height: 1.18;
+}
+:root .care-home-art-v2.care-home-art-reference .care-visual-subtitle {
+  color: #e2f9f9;
+  font-size: clamp(9px,.78vw,12px);
+}
+:root .care-home-art-v2.care-home-art-reference .care-visual-track {
+  height: 9px;
+  margin-top: 9px;
+  background: #bce5f645;
+}
+:root .care-home-art-v2.care-home-art-reference .patient-progress {
+  padding: 0 5px;
+  color: #d9eef3;
+  font-size: clamp(10px,.95vw,16px);
+  line-height: 1.4;
+}
+:root .care-home-art-v2.care-home-art-reference .patient-progress > span:last-child {
+  color: #76f7ef;
+  font-size: 1.3em;
+  font-weight: 850;
+}
+:root .care-home-art-v2.care-home-art-reference .patient-timeline {
+  min-width: 0;
+  min-height: 0;
+  padding: clamp(13px,1.3vw,19px);
+  border: 1px solid #3a97a8aa;
+  border-radius: 32px;
+  color: #efffff;
+  background: radial-gradient(ellipse at 77% 68%,rgba(4,135,140,.22),transparent 62%),
+              linear-gradient(145deg,#032232,#002b3b 70%,#023b48);
+  box-shadow: inset 0 1px 0 #b0ffff25,0 14px 30px #00151e45;
+}
+:root .care-home-art-v2.care-home-art-reference .patient-timeline > div:nth-child(2) {
+  min-height: clamp(66px,6.6vw,90px);
+  border-color: #a4e5eb29;
+  padding-bottom: clamp(9px,.85vw,13px);
+}
+:root .care-home-art-v2.care-home-art-reference .care-timeline-eyebrow {
+  color: #3fe0d7;
+  font-size: clamp(11px,1vw,16px);
+  letter-spacing: .02em;
+}
+:root .care-home-art-v2.care-home-art-reference .patient-timeline > div:nth-child(2) h3 {
+  color: #f5ffff;
+  font-size: clamp(17px,1.6vw,28px);
+  line-height: 1.15;
+  margin-top: 5px;
+}
+:root .care-home-art-v2.care-home-art-reference .patient-timeline > div:nth-child(2) > span {
+  align-self: flex-start;
+  margin-top: 7px;
+  border-radius: 999px;
+  background: #155064;
+  color: #e5f8fb;
+  padding: 9px 14px;
+  font-size: clamp(10px,.92vw,15px);
+}
+:root .care-home-art-v2.care-home-art-reference .patient-timeline-item {
+  min-height: clamp(48px,6.8vh,68px);
+  border-radius: 999px;
+  border: 1px solid #43d9a290;
+  padding: 8px clamp(9px,1.1vw,19px);
+  color: #f7ffff;
+  background: linear-gradient(95deg,#095c4d,#107e64);
+  box-shadow: inset 0 1px 0 #ffffff22;
+}
+:root .care-home-art-v2.care-home-art-reference .patient-timeline-item[data-care-state="done"] {
+  background: linear-gradient(95deg,#075a48,#0e735f);
+  border-color: #26cc9b;
+  color: #f5ffff;
+}
+:root .care-home-art-v2.care-home-art-reference .patient-timeline-item[data-care-state="overdue"] {
+  background: linear-gradient(95deg,#725027,#65562e);
+  border-color: #deb86a;
+}
+:root .care-home-art-v2.care-home-art-reference .patient-timeline-item[data-care-state="scheduled"] {
+  background:linear-gradient(95deg,#124c5a,#0b5960);
+  border-color:#77dae04b;
+}
+:root .care-home-art-v2.care-home-art-reference .patient-timeline-item > span:first-child {
+  width: clamp(44px,4vw,63px);
+  color: #f1ffff;
+  font-size: clamp(11px,1vw,17px);
+}
+:root .care-home-art-v2.care-home-art-reference .patient-timeline-item > span:nth-child(2) {
+  width: clamp(29px,2.9vw,44px);
+  height: clamp(29px,2.9vw,44px);
+  border-radius: 50%;
+  background: #003d3c90;
+  color: #9bfff4;
+}
+:root .care-home-art-v2.care-home-art-reference .patient-timeline-item > span:nth-child(3) > span:first-child {
+  color: #fff;
+  font-size: clamp(11px,1vw,17px);
+  font-weight: 800;
+}
+:root .care-home-art-v2.care-home-art-reference .patient-timeline-item > span:nth-child(3) > span:last-child {
+  color: #d4f4ee;
+  font-size: clamp(10px,.85vw,14px);
+}
+:root .care-home-art-v2.care-home-art-reference .patient-timeline-item :is(.text-emerald-300,.text-slate-400,.text-amber-300) {
+  color: #e0fffa;
+}
+:root .care-home-art-v2.care-home-art-reference .care-timeline-generated-art {
+  left: 1%;
+  width: 98%;
+  height: 65%;
+  bottom: 50px;
+  opacity: 1;
+  object-position: center bottom;
+  filter: drop-shadow(0 7px 30px #00d7df3b);
+  -webkit-mask-image: radial-gradient(ellipse 81% 78% at 54% 54%,black 53%,transparent 100%);
+  mask-image: radial-gradient(ellipse 81% 78% at 54% 54%,black 53%,transparent 100%);
+}
+:root .care-home-art-v2.care-home-art-reference .patient-timeline nav {
+  margin-top: auto;
+  padding-top: 9px;
+  border-top: 1px solid #86d1e331;
+}
+:root .care-home-art-v2.care-home-art-reference .patient-timeline nav button {
+  min-height: 40px;
+  padding: 8px 18px;
+  color: #f5ffff;
+  background: #0c3748ab;
+  border: 1px solid #71c2d366;
+  border-radius: 999px;
+  font-size: clamp(10px,.9vw,15px);
+}
+:root .care-home-art-v2.care-home-art-reference .patient-timeline nav span {
+  color: #c5e6ee;
+  font-size: clamp(10px,.98vw,17px);
+}
+:root .care-home-art-v2.care-home-art-reference .care-home-shortcuts {
+  color: #fff;
+  z-index: 45;
+}
+:root .care-home-art-v2.care-home-art-reference .care-home-shortcut-trigger {
+  display: grid;
+  place-items: center;
+  width: 31px;
+  height: 31px;
+  list-style: none;
+  cursor: pointer;
+  color: #e1ffff;
+  border-radius: 50%;
+  background: #003744ad;
+  border: 1px solid #68e1e45c;
+  box-shadow: 0 4px 14px #00121d58;
+}
+:root .care-home-art-v2.care-home-art-reference .care-home-shortcut-trigger::-webkit-details-marker {display:none;}
+:root .care-home-art-v2.care-home-art-reference .care-home-shortcuts[open] .care-home-shortcut-trigger {background:#136b73;}
+:root .care-home-art-v2.care-home-art-reference .care-home-shortcuts-content {
+  position: absolute;
+  top: 37px;
+  left: 0;
+  width: min(455px,calc(100vw - 40px));
+  max-height: min(68dvh,550px);
+  overflow: auto;
+  padding: 18px;
+  border: 1px solid #71dfe5a3;
+  border-radius: 22px;
+  color: #f1ffff;
+  background: linear-gradient(125deg,#063447f5,#0a5c60f7);
+  box-shadow: 0 18px 48px #00192690;
+  backdrop-filter: blur(24px);
+}
+:root .care-home-art-v2.care-home-art-reference .care-home-shortcuts-title {font-size:17px;font-weight:800;}
+:root .care-home-art-v2.care-home-art-reference .care-home-shortcuts-subtitle {margin:5px 0 12px;color:#cfebef;font-size:12px;}
+:root .care-home-art-v2.care-home-art-reference .care-home-chart-link {border-color:#7bbdc6;color:#f7ffff;background:#164a5c;}
+:root .care-home-art-v2.care-home-art-reference .patient-home-actions > button {
+  min-height:36px;
+  color:#f2ffff;
+  background:#13606aa9;
+  border:1px solid #96e7ec81;
+}
+@media (max-width: 1000px) {
+  :root .care-home-art-v2.care-home-art-reference .care-next-generated-art {width:65%;opacity:.88;}
+  :root .care-home-art-v2.care-home-art-reference .care-next-copy {max-width:71%;}
+  :root .care-home-art-v2.care-home-art-reference .care-visual-tile {padding:7px;}
+  :root .care-home-art-v2.care-home-art-reference .care-visual-tile .care-progress-svg {width:53px;}
+}
+@media (max-width: 767px) {
+  :root .client-home-dashboard.care-home-art-v2.care-home-art-reference {
+    min-height:auto;max-height:none;overflow:visible;
+  }
+  :root .care-home-art-v2.care-home-art-reference .care-home-body {
+    grid-template-columns:minmax(0,1fr);
+    grid-auto-rows:auto;
+  }
+  :root .care-home-art-v2.care-home-art-reference .care-home-left {
+    grid-template-rows:minmax(285px,auto) minmax(100px,auto) auto;
+  }
+  :root .care-home-art-v2.care-home-art-reference .patient-next-care {min-height:315px;padding:20px 15px;}
+  :root .care-home-art-v2.care-home-art-reference .care-next-copy {max-width:80%;}
+  :root .care-home-art-v2.care-home-art-reference .care-next-copy h3 {font-size:23px;}
+  :root .care-home-art-v2.care-home-art-reference .care-next-generated-art {width:68%;height:84%;top:13%;right:-5%;opacity:.7;}
+  :root .care-home-art-v2.care-home-art-reference .care-visual-tile {border-radius:19px;}
+  :root .care-home-art-v2.care-home-art-reference .care-visual-title {font-size:10px;}
+  :root .care-home-art-v2.care-home-art-reference .care-visual-value {font-size:14px;}
+  :root .care-home-art-v2.care-home-art-reference .care-visual-subtitle {font-size:9px;}
+  :root .care-home-art-v2.care-home-art-reference .patient-timeline {min-height:375px;}
+  :root .care-home-art-v2.care-home-art-reference .care-timeline-generated-art {height:57%;bottom:47px;}
+}
+@media (max-width: 430px) {
+  :root .care-home-art-v2.care-home-art-reference .care-next-copy {max-width:93%;}
+  :root .care-home-art-v2.care-home-art-reference .care-next-generated-art {width:60%;opacity:.43;}
+  :root .care-home-art-v2.care-home-art-reference .care-visual-tile .care-progress-svg {width:37px;height:62px;}
+  :root .care-home-art-v2.care-home-art-reference .care-visual-tile {gap:2px;padding:5px;}
+  :root .care-home-art-v2.care-home-art-reference .patient-timeline-item {padding:8px 10px;}
+}
+@media (prefers-reduced-motion: reduce) {
+  :root .care-home-art-v2.care-home-art-reference :is(.care-next-cta,.care-next-secondary) {transition:none;}
+  :root .care-home-art-v2.care-home-art-reference :is(.care-next-cta,.care-next-secondary):hover {transform:none;}
+}

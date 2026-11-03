@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import "./care-home-reference.css";
 import { Link } from "@tanstack/react-router";
-import { CalendarClock, Check, Clock3, Droplets, Pill, Utensils, X, ArrowUpRight, ChevronRight, Activity, ListChecks } from "lucide-react";
+import { CalendarClock, Check, Clock3, Droplets, Pill, Utensils, X, ArrowUpRight, ChevronRight, Plus, ListChecks } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CareReminderBeacon } from "./CareReminderBeacon";
 import { CareProgressVisual } from "./CareProgressVisual";
@@ -106,18 +107,27 @@ export function ClientHomeSummary(){
  const labelFor=(category:string)=>category==="medicacao"?"Medicação":category==="hidratacao"?"Água":"Refeição";
  const hour=new Intl.DateTimeFormat("pt-BR",{timeZone:zone,hour:"2-digit",hour12:false}).format(now??new Date());
  const greeting=Number(hour)<12?"Bom dia":Number(hour)<18?"Boa tarde":"Boa noite";
- return <section className="client-home-dashboard care-home-art-v2 relative flex min-h-0 min-w-0 w-full flex-col gap-2 rounded-[24px] border p-3 shadow-xl md:h-full md:max-h-full md:gap-2 md:overflow-hidden" aria-label="Painel interativo do cliente na homepage">
+ return <section className="client-home-dashboard care-home-art-v2 care-home-art-reference relative flex min-h-0 min-w-0 w-full flex-col gap-2 rounded-[24px] border p-3 shadow-xl md:h-full md:max-h-full md:gap-2 md:overflow-hidden" aria-label="Painel interativo do cliente na homepage">
   <div aria-hidden="true" className="care-home-ambient pointer-events-none absolute inset-0 overflow-hidden rounded-[24px]"><span className="care-home-glow care-home-glow-a"/><span className="care-home-glow care-home-glow-b"/></div>
-  <div className="patient-header relative flex min-w-0 shrink-0 flex-wrap items-center justify-between gap-2 border-b pb-2">
-    <div className="flex min-w-0 items-center gap-3">
-      <span className="care-home-pulse-icon grid size-10 shrink-0 place-items-center rounded-2xl border"><Activity size={21}/></span>
-      <div className="min-w-0"><p className="care-home-eyebrow text-[10px] font-extrabold uppercase tracking-[.19em]">Meu painel de cuidados</p><h2 className="truncate text-lg font-extrabold tracking-tight md:text-xl">{greeting}, {patient?.full_name?.split(" ")[0]??"bem-vindo"}</h2><p className="text-[11px] text-slate-300">Sua rotina de hoje · {new Intl.DateTimeFormat("pt-BR",{timeZone:zone,weekday:"long",day:"2-digit",month:"long"}).format(now??new Date())}</p></div>
+  <details className="care-home-shortcuts absolute left-2 top-2 z-40">
+    <summary aria-label="Abrir ações rápidas e lembretes" title="Ações rápidas e lembretes" className="care-home-shortcut-trigger">
+      <Plus size={20} aria-hidden="true" />
+    </summary>
+    <div className="care-home-shortcuts-content">
+      <p className="care-home-shortcuts-title">Ações rápidas</p>
+      <p className="care-home-shortcuts-subtitle">Olá, {patient?.full_name?.split(" ")[0] ?? "bem-vindo"}. Acompanhe e registre seus cuidados.</p>
+      <div className="patient-home-actions flex flex-wrap gap-2">
+        <ClientQuickIntake patientId={patient?.id ?? ""} variant="home" mode="water" onRecorded={()=>setRefresh(value=>value+1)}/>
+        <ClientQuickIntake patientId={patient?.id ?? ""} variant="home" onRecorded={()=>setRefresh(value=>value+1)}/>
+        <Link to="/cliente" className="care-home-chart-link inline-flex min-h-9 items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[11px] font-bold">Meu prontuário <ArrowUpRight size={15}/></Link>
+      </div>
+      <div className="care-home-medication mt-3">
+        <CareReminderBeacon tasks={tasks} patientId={patient?.id??""} ownerId={patient?.owner_id??""} refreshKey={refresh+revision} onOpen={task=>{setDetailTask(task);setError("");}} compact/>
+      </div>
     </div>
-    <div className="patient-home-actions flex min-w-0 shrink-0 flex-wrap items-center justify-end gap-2"><ClientQuickIntake patientId={patient?.id ?? ""} variant="home" mode="water" onRecorded={()=>setRefresh(value=>value+1)}/><ClientQuickIntake patientId={patient?.id ?? ""} variant="home" onRecorded={()=>setRefresh(value=>value+1)}/><Link to="/cliente" className="care-home-chart-link inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-[11px] font-extrabold transition">Meu prontuário <ArrowUpRight size={15}/></Link></div>
-  </div>
-  <div className="care-home-medication relative shrink-0"><CareReminderBeacon tasks={tasks} patientId={patient?.id??""} ownerId={patient?.owner_id??""} refreshKey={refresh+revision} onOpen={task=>{setDetailTask(task);setError("");}} compact/></div>
+  </details>
   <div className="care-home-body relative grid min-h-0 min-w-0 flex-1 gap-2.5 md:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] md:items-stretch">
-    <div className="grid min-h-0 min-w-0 grid-rows-[minmax(0,1fr)_auto_auto] gap-1.5">
+    <div className="care-home-left grid min-h-0 min-w-0 grid-rows-[minmax(0,1fr)_auto_auto] gap-1.5">
       <article className="patient-next-care relative flex min-h-[210px] min-w-0 flex-col justify-between overflow-hidden rounded-[22px] border p-3 sm:p-4 md:min-h-0">
         <div aria-hidden="true" className="care-next-art pointer-events-none absolute inset-0 overflow-hidden">
           <span className="care-next-image-aura"/>

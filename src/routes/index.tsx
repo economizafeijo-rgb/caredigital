@@ -47,7 +47,7 @@ function Homepage() {
   }
 
   if (access === "client") {
-    return <div className="mx-auto flex min-h-0 w-full max-w-[1380px] flex-col overflow-x-hidden md:h-full md:overflow-hidden">
+    return <div className="mx-auto flex min-h-0 w-full max-w-[1800px] flex-col overflow-x-hidden md:h-full md:overflow-hidden">
       <ClientHomeSummary />
     </div>;
   }
