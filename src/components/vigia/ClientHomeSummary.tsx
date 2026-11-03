@@ -295,6 +295,16 @@ export function ClientHomeSummary(){
     </div>
     <img src="/images/care-next-wellness.svg" alt="" aria-hidden="true" className="hidden h-[76px] w-[150px] shrink-0 object-contain opacity-80 sm:block" loading="lazy"/>
   </div>
+  <section className="care-patient-marquee relative z-10" aria-label="Painel digital de acompanhamento do cliente">
+    <div className="care-patient-marquee-heading"><span className="care-patient-live-dot" aria-hidden="true"/> <span>PAINEL DIGITAL DO CLIENTE</span><span className="care-patient-marquee-date">{now ? new Intl.DateTimeFormat("pt-BR",{day:"2-digit",month:"short",timeZone:"America/Rio_Branco"}).format(now) : "Hoje"}</span></div>
+    <div className="care-patient-marquee-stats" aria-live="off">
+      <div className="care-patient-marquee-stat"><span>CLIENTE</span><strong>{patient?.full_name?.split(" ").slice(0,2).join(" ") ?? "Bem-vindo"}</strong></div>
+      <div className="care-patient-marquee-stat"><span>CUIDADOS CONCLUÍDOS</span><strong>{finished}<small> / {summaryTasks.length}</small></strong></div>
+      <div className="care-patient-marquee-stat"><span>EVOLUÇÃO DO DIA</span><strong>{completion}<small>%</small></strong></div>
+      <div className="care-patient-marquee-stat"><span>PENDÊNCIAS</span><strong>{pending.length}</strong></div>
+      <div className="care-patient-marquee-stat"><span>PRÓXIMO CUIDADO</span><strong>{next ? time(next.scheduled_at) : "Em dia"}</strong></div>
+    </div>
+  </section>
   {attentionRecent.length>0&&<details className="care-premium-pending group relative z-30 shrink-0" aria-label="Cuidados que precisam de atenção">
     <summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 rounded-2xl border border-amber-200/25 bg-slate-900/55 px-3 py-2 text-white shadow-sm backdrop-blur-xl transition hover:bg-slate-800/70 [&::-webkit-details-marker]:hidden">
       <span className="grid size-6 shrink-0 place-items-center rounded-lg bg-amber-300/15 text-amber-200"><ShieldAlert size={15}/></span>
