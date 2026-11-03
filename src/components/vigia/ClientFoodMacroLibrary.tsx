@@ -153,7 +153,7 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
   setRefresh(v=>v+1);onLogged?.();
  }
  const changeTarget=(key:FoodMacro,value:string)=>onTargetsChange({...targets,[key]:value});
- return <div className="care-food-macro-library flex h-full min-h-0 min-w-0 flex-col gap-2" aria-label="Biblioteca de alimentos e calculadora de macros">
+ return <div className="care-food-macro-library care-macro-responsive flex h-full min-h-0 min-w-0 flex-col gap-2" aria-label="Biblioteca de alimentos e calculadora de macros">
   <div className="grid shrink-0 grid-cols-2 gap-1.5 sm:grid-cols-4">
    {MACROS.map(key=>{
     const total=totals[key],daily=currentTarget(key);
