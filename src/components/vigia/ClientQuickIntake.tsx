@@ -19,6 +19,8 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
   const [portion,setPortion]=useState("");
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("200");
+  const [consumedAt,setConsumedAt]=useState("");
+  const [manualTime,setManualTime]=useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -41,6 +43,8 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
     setDescription("");
     setPortion("");
     setAmount("200");
+    setConsumedAt(new Date(Date.now()-5*3600000).toISOString().slice(0,16));
+    setManualTime(false);
     setError("");
     setNotice("");
     setOpen(true);
@@ -77,6 +81,8 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
       setError("Informe um volume entre 10 e 1.500 ml.");
       return;
     }
+    const consumed = manualTime ? new Date(consumedAt+"-05:00") : new Date();
+    if(!Number.isFinite(consumed.getTime()) || consumed.getTime()>Date.now() || consumed.getTime()<Date.now()-7*86400000){setError("Informe um horário válido nos últimos 7 dias, sem antecipar o consumo.");return;}
     setError("");
     setSaving(true);
     try {
@@ -86,6 +92,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
         p_description: formDescription,
         p_amount_ml: volume,
         p_request_id: requestId.current,
+        p_consumed_at: consumed.toISOString(),
       });
       if (failure) throw failure;
       if (typeof data !== "string" || !Number.isFinite(Date.parse(data))) {
@@ -135,7 +142,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
               </span>
               <div>
                 <h2 id="quick-intake-title" className="text-base font-extrabold">{mode==="water"?"Registrar água":isFood?"Registrar alimento ou refeição":"Registrar líquido"}</h2>
-                <p className="text-[11px] text-muted-foreground">Consumo informado agora · horário real do Acre</p>
+                <p className="text-[11px] text-muted-foreground">Informe o horário do consumo · fuso horário do Acre</p>
               </div>
             </div>
             <button type="button" aria-label="Fechar" disabled={saving} onClick={closeForm}
@@ -190,8 +197,15 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
                   className="field mt-1 w-full" value={amount}
                   onChange={event => setAmount(event.target.value)}/>
               </label>}
+            <div className="rounded-xl border border-border p-3 space-y-2">
+              <label className="flex items-center gap-2 text-xs font-semibold"><input type="checkbox" checked={manualTime} onChange={event=>setManualTime(event.target.checked)}/> Informar manualmente o horário em que consumi</label>
+              {manualTime && <label className="block text-xs font-semibold">Data e hora do consumo (Acre)
+                <input type="datetime-local" required value={consumedAt} onChange={event=>setConsumedAt(event.target.value)} className="field mt-1 w-full"/>
+              </label>}
+              <p className="text-[11px] text-muted-foreground">O prontuário preserva o horário do consumo e a data em que você registrou a informação.</p>
+            </div>
             <p className="rounded-lg bg-muted/60 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
-              O horário real do registro será salvo automaticamente (Acre).
+              O consumo será salvo com o horário informado (ou o horário atual) e a data do lançamento.
               {isWater
                 ? "Apenas água entra na meta diária. Este registro não confirma horários programados; não registre o mesmo copo novamente na agenda."
                 : isFood?"Frutas, lanches e refeições completas são salvos no histórico de alimentação, sem confirmar uma refeição programada.":"Chás, energéticos, suplementos líquidos e shakes ficam no histórico, sem somar à meta exclusiva de água."}
