@@ -11,6 +11,10 @@ import type { HydrationGoalSnapshot } from "@/lib/hydration-goal";
 import { canConfirmCare, careScheduleBlockMessage } from "@/lib/care-schedule";
 
 type Care = {id:string;title:string;category:string;scheduled_at:string;completed_at:string|null};
+type WaterEntry = {id:string;task_id:string|null;amount_ml:number;recorded_at:string};
+type BeverageEntry = {id:string;kind:string;name:string;amount_ml:number;consumed_at:string};
+type MealEntry = {id:string;recorded_at:string;details:{title?:string;description?:string;kind?:string}|null};
+type AgendaRow = {key:string;at:string;title:string;subtitle:string;category:"medicacao"|"hidratacao"|"refeicao";task:Care|null;completed:boolean;overdue:boolean};
 type Person = {id:string;owner_id:string;full_name:string};
 const zone="America/Rio_Branco";
 const day=(t:Date)=>new Intl.DateTimeFormat("en-CA",{timeZone:zone,year:"numeric",month:"2-digit",day:"2-digit"}).format(t);
@@ -35,12 +39,19 @@ export function ClientHomeSummary(){
  const [refresh,setRefresh]=useState(0);
  const [dailyGoal,setDailyGoal]=useState<HydrationGoalSnapshot|null>(null);
  const [resolvedStates,setResolvedStates]=useState<Record<string,string>>({});
+ const [extraWater,setExtraWater]=useState<WaterEntry[]>([]);
+ const [extraBeverages,setExtraBeverages]=useState<BeverageEntry[]>([]);
+ const [extraMeals,setExtraMeals]=useState<MealEntry[]>([]);
+ const [extraError,setExtraError]=useState("");
+ const [agendaCategory,setAgendaCategory]=useState<"todos"|"hidratacao"|"refeicao"|"medicacao">("todos");
  const [agendaPage,setAgendaPage]=useState(0);
- const agendaPageSize=3;
- const agendaPageCount=Math.max(1,Math.ceil(tasks.length/agendaPageSize));
- const visibleAgenda=tasks.slice(Math.min(agendaPage,agendaPageCount-1)*agendaPageSize,(Math.min(agendaPage,agendaPageCount-1)+1)*agendaPageSize);
+ const agendaPageSize=4;
  useEffect(()=>{setNow(new Date());const id=window.setInterval(()=>setNow(new Date()),1000);return()=>window.clearInterval(id)},[]);
- useEffect(()=>{const timer=window.setInterval(()=>setRefresh(v=>v+1),45000);const refreshAgenda=()=>setRefresh(v=>v+1);const visible=()=>{if(document.visibilityState==="visible")refreshAgenda()};window.addEventListener("focus",refreshAgenda);document.addEventListener("visibilitychange",visible);const channel=supabase.channel("client-home-care-changes").on("postgres_changes",{event:"*",schema:"public",table:"care_daily_checklist"},refreshAgenda).subscribe();return()=>{window.clearInterval(timer);window.removeEventListener("focus",refreshAgenda);document.removeEventListener("visibilitychange",visible);void supabase.removeChannel(channel)}},[]);
+ useEffect(()=>{const timer=window.setInterval(()=>setRefresh(v=>v+1),45000);const refreshAgenda=()=>setRefresh(v=>v+1);const visible=()=>{if(document.visibilityState==="visible")refreshAgenda()};window.addEventListener("focus",refreshAgenda);document.addEventListener("visibilitychange",visible);const channel=supabase.channel("client-home-care-changes")
+ .on("postgres_changes",{event:"*",schema:"public",table:"care_daily_checklist"},refreshAgenda)
+ .on("postgres_changes",{event:"*",schema:"public",table:"care_hydration"},refreshAgenda)
+ .on("postgres_changes",{event:"*",schema:"public",table:"care_client_beverages"},refreshAgenda)
+ .on("postgres_changes",{event:"*",schema:"public",table:"care_activity_log"},refreshAgenda).subscribe();return()=>{window.clearInterval(timer);window.removeEventListener("focus",refreshAgenda);document.removeEventListener("visibilitychange",visible);void supabase.removeChannel(channel)}},[]);
  useEffect(()=>{let active=true;void (async()=>{
     const session=await supabase.auth.getUser();
     const uid=session.data.user?.id;
@@ -54,7 +65,7 @@ export function ClientHomeSummary(){
     setPatient(person);
     const from=new Date(day(new Date())+"T00:00:00-05:00");
     const finish=new Date(from.getTime()+86400000);
-    const [res,goalResult,resolutions,waterAnswers]=await Promise.all([
+    const [res,goalResult,resolutions,waterAnswers,waterEntries,beverages,mealEntries]=await Promise.all([
       (supabase as any).from("care_daily_checklist").select("id,title,category,scheduled_at,completed_at")
       .eq("owner_id",person.owner_id).eq("patient_id",person.id)
       .gte("scheduled_at",from.toISOString()).lt("scheduled_at",finish.toISOString())
@@ -65,16 +76,34 @@ export function ClientHomeSummary(){
         .gte("scheduled_at",from.toISOString()).lt("scheduled_at",finish.toISOString()).limit(120),
       (supabase as any).from("care_hydration_responses").select("task_id,response")
         .eq("patient_id",person.id).eq("owner_id",person.owner_id)
-        .gte("recorded_at",from.toISOString()).limit(120)
+        .gte("recorded_at",from.toISOString()).lt("recorded_at",finish.toISOString()).eq("response","not_drunk").limit(120),
+      (supabase as any).from("care_hydration").select("id,task_id,amount_ml,recorded_at")
+        .eq("patient_id",person.id).eq("owner_id",person.owner_id)
+        .gte("recorded_at",from.toISOString()).lt("recorded_at",finish.toISOString())
+        .order("recorded_at",{ascending:true}).limit(300),
+      (supabase as any).from("care_client_beverages").select("id,kind,name,amount_ml,consumed_at")
+        .eq("patient_id",person.id).eq("owner_id",person.owner_id)
+        .gte("consumed_at",from.toISOString()).lt("consumed_at",finish.toISOString())
+        .order("consumed_at",{ascending:true}).limit(300),
+      (supabase as any).from("care_activity_log").select("id,recorded_at,details")
+        .eq("patient_id",person.id).eq("owner_id",person.owner_id)
+        .eq("source","client_unscheduled_intake").eq("event_type","logged")
+        .eq("category","refeicao").is("task_id",null)
+        .gte("recorded_at",from.toISOString()).lt("recorded_at",finish.toISOString())
+        .order("recorded_at",{ascending:true}).limit(300)
     ]);
     if(!active)return;
     if(res.error){setError("Não foi possível carregar sua agenda.");return;}
     setTasks(res.data??[]);
     const resolutionMap:Record<string,string>={};
     if(!resolutions.error)for(const row of resolutions.data??[])resolutionMap[row.task_id]=row.status;
-    if(!waterAnswers.error)for(const row of waterAnswers.data??[])resolutionMap[row.task_id]="nao_bebi";
+    if(!waterAnswers.error)for(const row of waterAnswers.data??[])if(row.response==="not_drunk")resolutionMap[row.task_id]="nao_bebi";
     setResolvedStates(resolutionMap);
     setDailyGoal(goalResult.error?null:goalResult.data as HydrationGoalSnapshot);
+    setExtraWater(waterEntries.error?[]:waterEntries.data??[]);
+    setExtraBeverages(beverages.error?[]:beverages.data??[]);
+    setExtraMeals(mealEntries.error?[]:mealEntries.data??[]);
+    setExtraError([waterEntries.error&&"água",beverages.error&&"bebidas",mealEntries.error&&"refeições"].filter(Boolean).join(", "));
     setError("");
  })();return()=>{active=false}},[revision,refresh]);
  const pending=tasks.filter(t=>!t.completed_at&&!resolvedStates[t.id]);
@@ -105,6 +134,37 @@ export function ClientHomeSummary(){
  const finished=tasks.filter(t=>Boolean(t.completed_at)).length;
  const completion=tasks.length?Math.round(100*finished/tasks.length):0;
  const labelFor=(category:string)=>category==="medicacao"?"Medicação":category==="hidratacao"?"Água":"Refeição";
+ // A programação não contém consumos avulsos. As fontes extras são lidas sem
+ // criar tarefas fictícias nem contar o mesmo copo duas vezes.
+ const knownTaskIds=new Set(tasks.map(task=>task.id));
+ const agendaItems:AgendaRow[]=[
+   ...tasks.map(task=>{const resolved=resolvedStates[task.id];const completed=Boolean(task.completed_at);const overdue=Boolean(now&&!completed&&!resolved&&Date.parse(task.scheduled_at)<now.getTime());return {
+     key:"task:"+task.id,at:task.scheduled_at,title:task.title,category:task.category as AgendaRow["category"],task,
+     completed:completed||Boolean(resolved),overdue,
+     subtitle:(completed?"Confirmado":resolved==="cancelado"?"Cancelado":resolved==="nao_cumprido"?"Não realizado":resolved==="nao_bebi"?"Não bebi":overdue?"Aguardando confirmação":"Programado")+" · "+labelFor(task.category)
+   };}),
+   ...extraWater.filter(item=>!item.task_id||!knownTaskIds.has(item.task_id)).map(item=>({
+     key:"water:"+item.id,at:item.recorded_at,title:"Água registrada · "+item.amount_ml+" ml",
+     category:"hidratacao" as const,task:null,completed:true,overdue:false,subtitle:"Consumo realizado · Água"
+   })),
+   ...extraBeverages.map(item=>({
+     key:"beverage:"+item.id,at:item.consumed_at,title:(item.name||"Bebida")+" · "+item.amount_ml+" ml",
+     category:"hidratacao" as const,task:null,completed:true,overdue:false,subtitle:"Consumo realizado · Bebida"
+   })),
+   ...extraMeals.map(item=>({
+     key:"meal:"+item.id,at:item.recorded_at,title:item.details?.title||"Refeição registrada",
+     category:"refeicao" as const,task:null,completed:true,overdue:false,
+     subtitle:item.details?.description?"Registrado · "+item.details.description:"Consumo realizado · Refeição"
+   }))
+ ].sort((a,b)=>Date.parse(a.at)-Date.parse(b.at)||a.key.localeCompare(b.key));
+ const filteredAgenda=agendaCategory==="todos"?agendaItems:agendaItems.filter(item=>item.category===agendaCategory);
+ const agendaPageCount=Math.max(1,Math.ceil(filteredAgenda.length/agendaPageSize));
+ const agendaIndex=Math.min(agendaPage,agendaPageCount-1);
+ const visibleAgenda=filteredAgenda.slice(agendaIndex*agendaPageSize,(agendaIndex+1)*agendaPageSize);
+ const categoryCounts={hidratacao:agendaItems.filter(item=>item.category==="hidratacao").length,
+   refeicao:agendaItems.filter(item=>item.category==="refeicao").length,
+   medicacao:agendaItems.filter(item=>item.category==="medicacao").length};
+ const chooseAgenda=(category:typeof agendaCategory)=>{setAgendaCategory(category);setAgendaPage(0);};
  return <section className="client-home-dashboard care-home-art-v2 care-home-art-reference relative flex min-h-0 min-w-0 w-full flex-col gap-2 rounded-[24px] border p-3 shadow-xl md:h-full md:max-h-full md:gap-2 md:overflow-hidden" aria-label="Painel interativo do cliente na homepage">
   <div aria-hidden="true" className="care-home-ambient pointer-events-none absolute inset-0 overflow-hidden rounded-[24px]"><span className="care-home-glow care-home-glow-a"/><span className="care-home-glow care-home-glow-b"/></div>
   <details className="care-home-shortcuts absolute left-2 top-2 z-40">
@@ -147,11 +207,33 @@ export function ClientHomeSummary(){
         <img src="/images/care-agenda-wellness.svg" alt="" loading="eager" decoding="async"
           className="care-timeline-generated-art" draggable={false}/>
       </div>
-      <div className="relative z-10 flex shrink-0 items-center justify-between gap-2 border-b border-white/10 pb-2"><div><p className="care-timeline-eyebrow text-[10px] font-extrabold uppercase tracking-widest">Linha do tempo</p><h3 className="mt-0.5 text-sm font-extrabold">Agenda de hoje</h3></div><span className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-2 py-1 text-[10px] text-slate-200"><ListChecks size={13}/>{tasks.length} itens</span></div>
-      <div className="relative z-10 mt-1.5 min-h-0 flex-1 space-y-1 overflow-hidden">{visibleAgenda.map(t=>{const Icon=icons[t.category as keyof typeof icons]??CalendarClock;const finished=Boolean(t.completed_at);const response=resolvedStates[t.id];const overdue=Boolean(now&&!finished&&!response&&Date.parse(t.scheduled_at)<now.getTime());return <button key={t.id} type="button" data-care-category={t.category} data-care-state={finished?"done":response?"done":overdue?"overdue":"scheduled"} title={finished?"Ver registro e corrigir quantidade, se necessário":"Ver detalhes deste cuidado"} aria-label={`${t.title} às ${time(t.scheduled_at)} — ${finished?"confirmado, abrir detalhes":"abrir detalhes"}`} onClick={()=>{setDetailTask(t);setError("");}} className={`patient-timeline-item flex w-full min-w-0 items-center gap-2 rounded-xl border px-2.5 py-1.5 text-left transition ${finished?"border-emerald-500/15 bg-emerald-500/10":"border-white/10 bg-white/[.045] hover:border-sky-300/40 hover:bg-white/10"}`}><span className="w-11 shrink-0 font-mono text-[11px] font-bold tabular-nums text-sky-200">{time(t.scheduled_at)}</span><span className={`grid size-7 shrink-0 place-items-center rounded-lg ${finished?"bg-emerald-500/15 text-emerald-300":"bg-sky-300/10 text-sky-300"}`}><Icon size={16}/></span><span className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold">{t.title}</span><span className={`block text-[10px] ${overdue?"text-amber-300":"text-slate-400"}`}>{finished?"Confirmado":response==="cancelado"?"Cancelado":response==="nao_cumprido"?"Não realizado":response==="nao_bebi"?"Não bebi":overdue?"Aguardando confirmação":"Programado"} · {labelFor(t.category)}</span></span>{finished?<span className="flex shrink-0 items-center gap-1 text-emerald-300"><Check size={14}/><ChevronRight size={14}/></span>:<ChevronRight size={15} className="shrink-0 text-slate-400"/>}</button>})}{tasks.length===0&&<p className="rounded-lg p-4 text-sm text-slate-300">Nenhum cuidado programado para hoje.</p>}</div>
-      {tasks.length>agendaPageSize&&<nav aria-label="Páginas da agenda" className="relative z-10 mt-1.5 flex shrink-0 items-center justify-between border-t border-white/10 pt-1.5">
+      <div className="relative z-10 flex shrink-0 items-center justify-between gap-2 border-b border-white/10 pb-2"><div><p className="care-timeline-eyebrow text-[10px] font-extrabold uppercase tracking-widest">Linha do tempo</p><h3 className="mt-0.5 text-sm font-extrabold">Agenda de hoje</h3></div><span className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-2 py-1 text-[10px] text-slate-200"><ListChecks size={13}/>{agendaItems.length} registros</span></div>
+      <div className="care-timeline-filters relative z-10 flex shrink-0 flex-wrap gap-1.5 pt-2" role="group" aria-label="Filtrar registros da agenda">
+        {([{key:"todos",label:"Todos",count:agendaItems.length},{key:"hidratacao",label:"Líquidos",count:categoryCounts.hidratacao},{key:"refeicao",label:"Refeições",count:categoryCounts.refeicao},{key:"medicacao",label:"Medicamentos",count:categoryCounts.medicacao}] as const).map(category=><button
+          key={category.key} type="button" aria-pressed={agendaCategory===category.key}
+          onClick={()=>chooseAgenda(category.key)} className="care-timeline-filter inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-bold transition">
+          {category.label} <span className="tabular-nums opacity-80">{category.count}</span>
+        </button>)}
+      </div>
+      <div className="relative z-10 mt-1.5 min-h-0 flex-1 space-y-1 overflow-hidden" aria-live="polite">
+        {visibleAgenda.map(item=>{const Icon=icons[item.category]??CalendarClock;return <button key={item.key} type="button"
+          data-care-category={item.category} data-care-state={item.completed?"done":item.overdue?"overdue":"scheduled"}
+          title={item.task?"Ver ou corrigir cuidado programado":"Abrir o histórico completo deste consumo"}
+          aria-label={item.title+" às "+time(item.at)+". "+item.subtitle}
+          onClick={()=>{if(item.task){setDetailTask(item.task);setError("");}else{window.location.assign("/cliente#historico");}}}
+          className="patient-timeline-item flex w-full min-w-0 items-center gap-2 rounded-xl border px-2.5 py-1.5 text-left transition">
+          <span className="w-11 shrink-0 font-mono text-[11px] font-bold tabular-nums">{time(item.at)}</span>
+          <span className="grid size-7 shrink-0 place-items-center rounded-lg"><Icon size={16}/></span>
+          <span className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold">{item.title}</span>
+            <span className="block truncate text-[10px]">{item.subtitle}</span></span>
+          {item.completed&&<Check size={14} className="shrink-0 text-emerald-200"/>}<ChevronRight size={15} className="shrink-0"/>
+        </button>})}
+        {filteredAgenda.length===0&&<p className="rounded-lg p-4 text-sm text-slate-200">Nenhum registro nesta categoria para hoje.</p>}
+        {extraError&&<p role="alert" className="rounded-lg border border-amber-300/40 bg-amber-950/60 p-2 text-[11px] text-amber-100">Não foi possível consultar todos os registros de {extraError}. O prontuário pode conter outros lançamentos.</p>}
+      </div>
+      {filteredAgenda.length>agendaPageSize&&<nav aria-label="Páginas da agenda" className="relative z-10 mt-1.5 flex shrink-0 items-center justify-between border-t border-white/10 pt-1.5">
         <button type="button" onClick={()=>setAgendaPage(p=>Math.max(0,p-1))} disabled={agendaPage===0} className="rounded-lg border border-white/15 px-2.5 py-1 text-[11px] font-semibold disabled:opacity-35">Anterior</button>
-        <span className="text-[11px] text-slate-300">Página {Math.min(agendaPage,agendaPageCount-1)+1} de {agendaPageCount}</span>
+        <span className="text-[11px] text-slate-300">Página {agendaIndex+1} de {agendaPageCount}</span>
         <button type="button" onClick={()=>setAgendaPage(p=>Math.min(agendaPageCount-1,p+1))} disabled={agendaPage>=agendaPageCount-1} className="rounded-lg border border-white/15 px-3 py-1.5 text-xs font-semibold disabled:opacity-35">Próxima</button>
       </nav>}
     </div>
