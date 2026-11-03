@@ -105,8 +105,6 @@ export function ClientHomeSummary(){
  const finished=tasks.filter(t=>Boolean(t.completed_at)).length;
  const completion=tasks.length?Math.round(100*finished/tasks.length):0;
  const labelFor=(category:string)=>category==="medicacao"?"Medicação":category==="hidratacao"?"Água":"Refeição";
- const hour=new Intl.DateTimeFormat("pt-BR",{timeZone:zone,hour:"2-digit",hour12:false}).format(now??new Date());
- const greeting=Number(hour)<12?"Bom dia":Number(hour)<18?"Boa tarde":"Boa noite";
  return <section className="client-home-dashboard care-home-art-v2 care-home-art-reference relative flex min-h-0 min-w-0 w-full flex-col gap-2 rounded-[24px] border p-3 shadow-xl md:h-full md:max-h-full md:gap-2 md:overflow-hidden" aria-label="Painel interativo do cliente na homepage">
   <div aria-hidden="true" className="care-home-ambient pointer-events-none absolute inset-0 overflow-hidden rounded-[24px]"><span className="care-home-glow care-home-glow-a"/><span className="care-home-glow care-home-glow-b"/></div>
   <details className="care-home-shortcuts absolute left-2 top-2 z-40">
