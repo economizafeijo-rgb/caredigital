@@ -74,7 +74,7 @@ export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,no
   const visible=filtered.slice(current*PAGE_SIZE,(current+1)*PAGE_SIZE);
   function setStatus(value:typeof filter){setFilter(value);setPage(0);}
 
-  return <div className="care-page-meals care-premium-meals flex h-full min-h-0 min-w-0 flex-col gap-3">
+  return <div className="care-page-meals care-premium-meals care-meals-responsive flex h-full min-h-0 min-w-0 flex-col gap-3">
     <div className="care-meals-actions flex shrink-0 flex-wrap items-center justify-between gap-2 rounded-2xl border border-emerald-500/25 bg-emerald-500/[.06] p-3">
       <div className="min-w-0">
         <h3 className="flex items-center gap-2 text-sm font-extrabold text-foreground">
