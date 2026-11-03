@@ -280,6 +280,11 @@
   border-color: #26cc9b;
   color: #f5ffff;
 }
+:root .client-home-dashboard.care-home-art-v2.care-home-art-reference .patient-timeline-item[data-care-state="resolved"] {
+  background: linear-gradient(95deg,#59432a,#654b30);
+  border-color: rgba(255,204,124,.72);
+  color: #fff6e8;
+}
 :root .client-home-dashboard.care-home-art-v2.care-home-art-reference .patient-timeline-item[data-care-state="overdue"] {
   background: linear-gradient(95deg,#725027,#65562e);
   border-color: #deb86a;
