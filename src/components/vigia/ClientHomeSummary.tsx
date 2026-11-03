@@ -130,9 +130,13 @@ export function ClientHomeSummary(){
  // intacta no servidor e preserva o consumo real em seu histórico.
  const loggedMealsByKind=new Map<string,string>();
  for(const meal of extraMeals){
-   const kind=meal.details?.kind;
-   if(kind&&["jantar","almoco","cafe_manha","ceia"].includes(kind)&&!loggedMealsByKind.has(kind)){
-     loggedMealsByKind.set(kind,meal.recorded_at);
+   const rawKind=meal.details?.kind ?? "";
+   const kind=rawKind === "refeicao" ? plannedMealKind(meal.details?.title ?? "") : rawKind;
+   if(kind&&["jantar","almoco","cafe_manha","ceia"].includes(kind)){
+     const previous=loggedMealsByKind.get(kind);
+     if(!previous || Date.parse(meal.recorded_at)>Date.parse(previous)){
+       loggedMealsByKind.set(kind,meal.recorded_at);
+     }
    }
  }
  const matchedMealIds=new Set(tasks.filter(task=>
