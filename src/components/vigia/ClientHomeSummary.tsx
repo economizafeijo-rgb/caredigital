@@ -210,7 +210,13 @@ export function ClientHomeSummary(){
         <a href="/cliente#cardapios" className="care-home-chart-link inline-flex min-h-9 items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[11px] font-bold">Cardápios e dietas <ArrowUpRight size={15}/></a>
       </div>
       <div className="care-home-medication mt-3">
-        <CareReminderBeacon tasks={summaryTasks} patientId={patient?.id??""} ownerId={patient?.owner_id??""} refreshKey={refresh+revision} onOpen={task=>{setDetailTask(task);setError("");}} compact/>
+        <CareReminderBeacon tasks={summaryTasks} patientId={patient?.id??""} ownerId={patient?.owner_id??""}
+          refreshKey={refresh+revision}
+          onOpen={task=>{setDetailTask(task);setError("");}}
+          onConfirm={task=>{
+            setSelected(task);setError("");setReceipt(null);
+            setMealTime(currentAcreTime());setMealDescription("");
+          }} compact/>
       </div>
     </div>
   </details>
