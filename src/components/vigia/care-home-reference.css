@@ -743,3 +743,59 @@
  :root .client-home-dashboard.care-reference-2026 .care-reference-primary {grid-column:1}
  :root .client-home-dashboard.care-reference-2026 .care-reference-timeline {grid-column:2;grid-row:1;min-height:100%}
 }
+
+
+/* Screenshot-specific card composition: icon, percentage ring, stats, art */
+:root .client-home-dashboard.care-reference-2026 .care-visual-tile {
+ display:flex;
+ flex-direction:column;
+ justify-content:flex-end;
+ align-items:stretch;
+ gap:6px;
+}
+:root .client-home-dashboard.care-reference-2026 .care-reference-tile-top {
+ position:absolute!important;
+ z-index:3!important;
+ top:clamp(10px,1.6vw,20px);
+ left:clamp(10px,1.6vw,20px);
+ right:clamp(10px,1.6vw,20px);
+ width:auto!important;
+ display:flex;
+ align-items:flex-start;
+ justify-content:space-between;
+ color:#67fff3;
+}
+:root .client-home-dashboard.care-reference-2026 .care-visual-tile[data-visual="meals"] .care-reference-tile-top {color:#a7ffd1}
+:root .client-home-dashboard.care-reference-2026 .care-visual-tile[data-visual="medicine"] .care-reference-tile-top {color:#dbb4ff}
+:root .client-home-dashboard.care-reference-2026 .care-reference-ring {
+ --care-ratio:0%;
+ display:grid;
+ place-items:center;
+ width:clamp(38px,5.1vw,63px);
+ aspect-ratio:1;
+ flex-shrink:0;
+ border-radius:50%;
+ color:#fff;
+ font-size:clamp(10px,1.2vw,14px);
+ font-weight:850;
+ font-variant-numeric:tabular-nums;
+ background:radial-gradient(circle closest-side,#143e52 77%,transparent 80%),conic-gradient(currentColor var(--care-ratio),rgba(255,255,255,.22) 0);
+ box-shadow:0 3px 14px rgba(0,15,28,.18);
+}
+:root .client-home-dashboard.care-reference-2026 .care-visual-tile[data-visual="meals"] .care-reference-ring {background:radial-gradient(circle closest-side,#19543b 77%,transparent 80%),conic-gradient(currentColor var(--care-ratio),rgba(255,255,255,.22) 0)}
+:root .client-home-dashboard.care-reference-2026 .care-visual-tile[data-visual="medicine"] .care-reference-ring {background:radial-gradient(circle closest-side,#3a315c 77%,transparent 80%),conic-gradient(currentColor var(--care-ratio),rgba(255,255,255,.22) 0)}
+:root .client-home-dashboard.care-reference-2026 .care-visual-tile > :is(div,span):not(.care-reference-tile-top) {
+ z-index:2;
+ width:100%;
+ margin-top:auto;
+ padding-top:clamp(45px,5vw,74px);
+}
+:root .client-home-dashboard.care-reference-2026 .care-visual-tile .care-progress-svg {z-index:1;pointer-events:none}
+:root .client-home-dashboard.care-reference-2026 .care-visual-track {height:5px;background:rgba(255,255,255,.22)}
+:root .client-home-dashboard.care-reference-2026 .care-visual-track i {background:#54fbe7}
+@media(max-width:767px){
+ :root .client-home-dashboard.care-reference-2026 .care-reference-tile-top {top:9px;left:9px;right:9px}
+ :root .client-home-dashboard.care-reference-2026 .care-reference-tile-top svg {width:20px;height:20px}
+ :root .client-home-dashboard.care-reference-2026 .care-reference-ring {width:34px;font-size:9px}
+ :root .client-home-dashboard.care-reference-2026 .care-visual-tile > :is(div,span):not(.care-reference-tile-top) {padding-top:41px}
+}
