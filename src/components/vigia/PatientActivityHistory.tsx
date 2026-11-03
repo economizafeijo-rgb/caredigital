@@ -360,30 +360,41 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
         </nav>
       </section>
 
-      <section aria-label="Detalhes do registro selecionado" className={"patient-history-detail flex min-h-0 min-w-0 flex-col rounded-2xl border border-border bg-card/90 p-3 sm:p-4 "+(showMobileDetail?"flex":"hidden lg:flex")}>
-        <div className="flex shrink-0 items-center gap-2">
-          <button type="button" onClick={()=>setShowMobileDetail(false)}
-            className="grid size-8 shrink-0 place-items-center rounded-lg border border-border text-foreground lg:hidden" aria-label="Voltar aos registros"><ChevronLeft size={17}/></button>
-          <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">Detalhes do registro</h3>
-        </div>
-        {selected?<>
-          <div className="mt-2 flex min-w-0 shrink-0 items-center gap-3 border-b border-border/60 pb-3">
-            <span className={"grid size-12 shrink-0 place-items-center rounded-xl "+
-              (selected.group==="liquidos"?"bg-sky-500/15 text-sky-700 dark:text-sky-300":selected.group==="refeicoes"?"bg-emerald-500/15 text-emerald-700 dark:text-emerald-300":selected.group==="ajustes"?"bg-violet-500/15 text-violet-700 dark:text-violet-300":"bg-amber-500/15 text-amber-800 dark:text-amber-300")}>
-              <SelectedIcon size={25}/>
+      <section aria-label="Detalhes do registro selecionado" className={"patient-history-detail relative isolate flex min-h-0 min-w-0 flex-col overflow-hidden rounded-[24px] border border-border/70 bg-card shadow-xl "+(showMobileDetail?"flex":"hidden lg:flex")}>
+        <div className="relative isolate min-h-[185px] shrink-0 overflow-hidden p-4 sm:min-h-[205px] sm:p-5">
+          <div aria-hidden="true" className="absolute inset-0 -z-20 bg-cover bg-center" style={{backgroundImage:`url("${selected?.group==="refeicoes"?"https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1100&q=80":selected?.group==="liquidos"?"https://images.unsplash.com/photo-1433086966358-54859d0ed716?auto=format&fit=crop&w=1100&q=80":selected?.group==="cuidados"?"https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1100&q=80":"https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=1100&q=80"}")`}}/>
+          <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-950/95 via-slate-950/80 to-slate-950/40"/>
+          <div className="flex items-center justify-between gap-3">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[.13em] text-white backdrop-blur-md">
+              <History size={14}/> Prontuário · Detalhes
             </span>
-            <div className="min-w-0">
-              <h4 className="break-words text-base font-extrabold text-foreground sm:text-lg">{selected.title}</h4>
-              <p className="text-[11px] text-muted-foreground">{acreStamp(selected.occurredAt)} · Horário do Acre</p>
-            </div>
+            <button type="button" onClick={()=>setShowMobileDetail(false)}
+              className="grid size-9 shrink-0 place-items-center rounded-full border border-white/30 bg-slate-950/30 text-white backdrop-blur-md lg:hidden" aria-label="Voltar aos registros"><ChevronLeft size={19}/></button>
           </div>
-          <div className="patient-history-detail-scroll mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pr-1">
+          {selected?<div className="mt-6 flex min-w-0 items-center gap-3">
+            <span className="grid size-12 shrink-0 place-items-center rounded-2xl border border-white/25 bg-white/15 text-white backdrop-blur-md"><SelectedIcon size={24}/></span>
+            <div className="min-w-0">
+              <h4 className="break-words text-xl font-extrabold leading-tight tracking-tight text-white sm:text-2xl">{selected.title}</h4>
+              <p className="mt-1 text-xs font-medium text-white/80">{acreStamp(selected.occurredAt)} · Fuso do Acre</p>
+            </div>
+          </div>:<h3 className="mt-6 text-xl font-extrabold text-white">Selecione um registro</h3>}
+        </div>
+        <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-3 sm:px-5 sm:pb-5">
+        {selected?<>
+          <div className="mb-3 flex shrink-0 flex-wrap items-center justify-between gap-2 rounded-xl border border-border/70 bg-muted/35 px-3 py-2">
+            <span className="text-[11px] font-semibold text-muted-foreground">Registro do histórico</span>
+            <span className={"inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-extrabold "+(selected.status==="confirmado"||selected.status==="registrado"||selected.status==="meta_atingida"?"bg-emerald-500/15 text-emerald-700 dark:text-emerald-300":"bg-primary/10 text-primary")}>
+              {(selected.status==="confirmado"||selected.status==="registrado")&&<CheckCircle2 size={14}/>}
+              {statusLabel[selected.status]}
+            </span>
+          </div>
+          <div className="patient-history-detail-scroll min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain pr-1">
             <dl className="grid grid-cols-2 gap-2">
-              <div className="min-w-0 rounded-xl border border-border bg-muted/25 p-2.5">
+              <div className="min-w-0 rounded-2xl border border-border/70 bg-muted/30 p-3 shadow-sm">
                 <dt className="text-[10px] font-semibold text-muted-foreground">Categoria</dt>
                 <dd className="mt-1.5 break-words text-xs font-extrabold text-foreground">{selected.group==="liquidos"?"Líquidos":selected.group==="refeicoes"?"Refeições":selected.group==="ajustes"?"Ajustes":"Cuidados"}</dd>
               </div>
-              <div className="min-w-0 rounded-xl border border-border bg-muted/25 p-2.5">
+              <div className="min-w-0 rounded-2xl border border-border/70 bg-muted/30 p-3 shadow-sm">
                 <dt className="text-[10px] font-semibold text-muted-foreground">Situação</dt>
                 <dd className={"mt-1.5 inline-flex max-w-full items-center gap-1 break-words rounded-full px-2 py-1 text-[11px] font-bold "+
                   (selected.status==="confirmado"||selected.status==="meta_atingida"?"bg-emerald-500/15 text-emerald-700 dark:text-emerald-300":
@@ -392,22 +403,22 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
                     {statusLabel[selected.status]}
                 </dd>
               </div>
-              <div className="min-w-0 rounded-xl border border-border bg-muted/25 p-2.5">
+              <div className="min-w-0 rounded-2xl border border-border/70 bg-muted/30 p-3 shadow-sm">
                 <dt className="text-[10px] font-semibold text-muted-foreground">Horário previsto</dt>
                 <dd className="mt-1.5 break-words text-xs font-semibold tabular-nums text-foreground">
                   {selected.scheduledAt?acreStamp(selected.scheduledAt):"Não programado"}
                 </dd>
               </div>
-              <div className="min-w-0 rounded-xl border border-border bg-muted/25 p-2.5">
+              <div className="min-w-0 rounded-2xl border border-border/70 bg-muted/30 p-3 shadow-sm">
                 <dt className="text-[10px] font-semibold text-muted-foreground">{selected.status==="nao_confirmado"?"Confirmação":"Horário registrado"}</dt>
                 <dd className="mt-1.5 break-words text-xs font-semibold tabular-nums text-foreground">
                   {selected.status==="nao_confirmado"?"Não confirmada":acreStamp(selected.occurredAt)}
                 </dd>
               </div>
             </dl>
-            <div className="rounded-xl border border-border bg-muted/25 p-3">
+            <div className="rounded-2xl border border-border/70 bg-muted/30 p-4 shadow-sm">
               <h5 className="text-[11px] font-semibold text-muted-foreground">Descrição / Observações</h5>
-              <p className="mt-1 break-words text-xs leading-relaxed text-foreground">{selected.description||"Sem observações adicionais registradas."}</p>
+              <p className="mt-2 break-words text-sm leading-relaxed text-foreground">{selected.description||"Sem observações adicionais registradas."}</p>
               {typeof selected.amountMl==="number"&&<p className="mt-1 text-xs font-bold text-sky-700 dark:text-sky-300">Quantidade: {selected.amountMl} ml</p>}
             </div>
             {editingWater&&editableWater&&<form onSubmit={event=>void saveWaterCorrection(event)} className="space-y-2 rounded-xl border border-primary/35 bg-primary/[.055] p-3">
@@ -443,6 +454,7 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
           <History size={25}/>
           <p className="text-xs font-semibold">Selecione um registro na lista para ver seus detalhes.</p>
         </div>}
+        </div>
       </section>
     </div>
     <p className="shrink-0 text-[10px] leading-tight text-muted-foreground">
