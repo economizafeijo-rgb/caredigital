@@ -2,7 +2,10 @@ import { useId } from "react";
 import type { HydrationGoalSnapshot } from "@/lib/hydration-goal";
 import type { ReminderTask } from "@/lib/care-reminders";
 
-type Props={tasks:ReminderTask[];goal:HydrationGoalSnapshot|null;onOpen?:(task:ReminderTask)=>void;};
+type Props={tasks:ReminderTask[];goal:HydrationGoalSnapshot|null;
+  onOpen?:(task:ReminderTask)=>void;
+  onHydration?:()=>void;onFood?:()=>void;onMedication?:()=>void;
+};
 
 const pct=(numerator:number,denominator:number)=>denominator>0?
   Math.max(0,Math.min(1,numerator/denominator)):0;
@@ -81,7 +84,7 @@ function MedicationCapsule({ratio}: {ratio:number}){
   </svg>;
 }
 
-export function CareProgressVisual({tasks,goal,onOpen}:Props){
+export function CareProgressVisual({tasks,goal,onOpen,onHydration,onFood,onMedication}:Props){
   const meds=tasks.filter(t=>t.category==="medicacao");
   const meals=tasks.filter(t=>t.category==="refeicao");
   const completedMeds=meds.filter(t=>Boolean(t.completed_at)).length;
@@ -89,14 +92,22 @@ export function CareProgressVisual({tasks,goal,onOpen}:Props){
   const waterTarget=goal?.target_ml??0, water=goal?.consumed_ml??0;
   const waterRatio=pct(water,waterTarget);
   const fmt=(value:number)=>value.toLocaleString("pt-BR");
-  const open=(category:string)=>{
+  const open=(category:"hidratacao"|"refeicao"|"medicacao")=>{
+    // Existing confirmed events are never modified by clicking a summary.
+    // Prefer the owning page's verified registration flow; retain a fallback
+    // for other callers using the older onOpen API.
+    const direct={hidratacao:onHydration,refeicao:onFood,medicacao:onMedication}[category];
+    if(direct){direct();return;}
     const first=tasks.find(t=>t.category===category&&!t.completed_at);
     if(first)onOpen?.(first);
   };
 
   return <section aria-label="Progresso ilustrado do cuidado de hoje"
     className="care-visual-progress grid min-w-0 grid-cols-3 gap-1.5 sm:gap-2">
-    <article data-visual="water" className="care-visual-tile relative flex min-w-0 items-center gap-1.5 overflow-hidden rounded-2xl border px-1.5 py-1.5 sm:gap-2 sm:px-2.5">
+    <button type="button" data-visual="water" data-action="register-hydration"
+      onClick={()=>open("hidratacao")}
+      title="Registrar água ou conferir hidratação" aria-label="Hidratação. Abrir registro de água."
+      className="care-visual-tile care-visual-action relative flex min-w-0 items-center gap-1.5 overflow-hidden rounded-2xl border px-1.5 py-1.5 text-left sm:gap-2 sm:px-2.5">
       <WaterVessel amount={water} target={waterTarget}/>
       <div className="min-w-0 flex-1">
         <p className="care-visual-title truncate text-[10px] font-extrabold sm:text-xs">Hidratação</p>
@@ -104,11 +115,11 @@ export function CareProgressVisual({tasks,goal,onOpen}:Props){
         <p className="care-visual-subtitle truncate text-[9px]">{waterTarget? `de ${fmt(waterTarget)} ml`:"Sem meta definida"}</p>
         <div className="care-visual-track mt-1 h-1 overflow-hidden rounded-full"><i style={{width:(waterRatio*100)+"%"}}/></div>
       </div>
-    </article>
-    <button type="button" data-visual="meals" onClick={()=>open("refeicao")}
-      disabled={!meals.some(t=>!t.completed_at)}
-      title="Consultar a próxima refeição programada"
-      className="care-visual-tile relative flex min-w-0 items-center gap-1.5 overflow-hidden rounded-2xl border px-1.5 py-1.5 text-left sm:gap-2 sm:px-2.5 disabled:cursor-default">
+    </button>
+    <button type="button" data-visual="meals" data-action="register-food"
+      onClick={()=>open("refeicao")}
+      title="Registrar uma refeição ou alimento" aria-label="Alimentação. Abrir registro de refeição ou alimento."
+      className="care-visual-tile care-visual-action relative flex min-w-0 items-center gap-1.5 overflow-hidden rounded-2xl border px-1.5 py-1.5 text-left sm:gap-2 sm:px-2.5">
       <MealPlate ratio={pct(completedMeals,meals.length)}/>
       <span className="min-w-0 flex-1">
         <span className="care-visual-title block truncate text-[10px] font-extrabold sm:text-xs">Alimentação</span>
@@ -117,10 +128,10 @@ export function CareProgressVisual({tasks,goal,onOpen}:Props){
         <span className="care-visual-track mt-1 block h-1 overflow-hidden rounded-full"><i style={{width:(pct(completedMeals,meals.length)*100)+"%"}}/></span>
       </span>
     </button>
-    <button type="button" data-visual="medicine" onClick={()=>open("medicacao")}
-      disabled={!meds.some(t=>!t.completed_at)}
-      title="Consultar a próxima medicação programada"
-      className="care-visual-tile relative flex min-w-0 items-center gap-1.5 overflow-hidden rounded-2xl border px-1.5 py-1.5 text-left sm:gap-2 sm:px-2.5 disabled:cursor-default">
+    <button type="button" data-visual="medicine" data-action="register-medication"
+      onClick={()=>open("medicacao")}
+      title="Abrir registro ou histórico de medicação" aria-label="Medicação. Abrir registro de medicação ou detalhes das doses."
+      className="care-visual-tile care-visual-action relative flex min-w-0 items-center gap-1.5 overflow-hidden rounded-2xl border px-1.5 py-1.5 text-left sm:gap-2 sm:px-2.5">
       <MedicationCapsule ratio={pct(completedMeds,meds.length)}/>
       <span className="min-w-0 flex-1">
         <span className="care-visual-title block truncate text-[10px] font-extrabold sm:text-xs">Medicação</span>
