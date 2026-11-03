@@ -799,3 +799,82 @@
  :root .client-home-dashboard.care-reference-2026 .care-reference-ring {width:34px;font-size:9px}
  :root .client-home-dashboard.care-reference-2026 .care-visual-tile > :is(div,span):not(.care-reference-tile-top) {padding-top:41px}
 }
+
+
+/* Timeline fix for desktop browser window (not fullscreen).
+   Keep the filters and page navigation visible while records scroll. */
+:root .client-home-dashboard.care-reference-2026 .care-reference-grid {
+ grid-auto-rows:minmax(0,auto);
+ align-items:start;
+}
+:root .client-home-dashboard.care-reference-2026 .care-reference-timeline {
+ display:flex;
+ flex-direction:column;
+ min-height:0!important;
+ height:clamp(340px,48dvh,560px);
+ max-height:560px;
+ overflow:hidden;
+ isolation:isolate;
+}
+:root .client-home-dashboard.care-reference-2026 .care-timeline-image-layer {opacity:.09}
+:root .client-home-dashboard.care-reference-2026 .care-timeline-scroll {
+ min-height:0;
+ flex:1 1 auto;
+ overflow-y:auto!important;
+ overflow-x:hidden;
+ overscroll-behavior:contain;
+ scrollbar-width:thin;
+ scrollbar-color:#45d9d0 rgba(7,45,58,.5);
+ padding-bottom:9px;
+}
+:root .client-home-dashboard.care-reference-2026 .care-timeline-scroll::-webkit-scrollbar {width:7px}
+:root .client-home-dashboard.care-reference-2026 .care-timeline-scroll::-webkit-scrollbar-thumb {background:#4eddd3;border-radius:12px}
+:root .client-home-dashboard.care-reference-2026 .care-timeline-scroll::-webkit-scrollbar-track {background:rgba(6,48,61,.5);border-radius:12px}
+:root .client-home-dashboard.care-reference-2026 .care-timeline-navigation {
+ position:relative;
+ z-index:5;
+ flex:0 0 auto;
+ margin-top:8px;
+ padding-top:10px;
+ border-top:1px solid rgba(130,231,226,.35);
+ background:rgba(6,41,56,.96);
+ border-radius:0 0 12px 12px;
+}
+:root .client-home-dashboard.care-reference-2026 .care-timeline-navigation button {
+ min-height:35px;
+ padding:7px 12px;
+ border-radius:12px;
+ border:1px solid rgba(126,235,227,.55);
+ color:#efffff;
+ background:rgba(19,99,112,.65);
+}
+:root .client-home-dashboard.care-reference-2026 .care-timeline-navigation button:disabled {opacity:.4}
+:root .client-home-dashboard.care-reference-2026 .care-timeline-all-link {
+ display:inline-flex;
+ align-items:center;
+ gap:4px;
+ width:100%;
+ justify-content:center;
+ min-height:31px;
+ margin-top:1px;
+ color:#8cfff0;
+ font-size:11px;
+ font-weight:800;
+ text-decoration:underline;
+ text-underline-offset:3px;
+}
+:root .client-home-dashboard.care-reference-2026 .care-timeline-filters {flex:0 0 auto}
+:root .client-home-dashboard.care-reference-2026 .patient-timeline-item {min-height:62px;flex-shrink:0}
+@media(min-width:768px) {
+ :root .client-home-dashboard.care-reference-2026 .care-reference-timeline {
+   grid-column:2;
+   grid-row:1;
+   height:clamp(340px,48dvh,560px);
+   min-height:0!important;
+   align-self:start;
+ }
+}
+@media(max-width:767px) {
+ :root .client-home-dashboard.care-reference-2026 .care-reference-timeline {height:clamp(350px,52dvh,520px)}
+ :root .client-home-dashboard.care-reference-2026 .care-timeline-navigation {gap:5px}
+}
