@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, CalendarClock, CalendarDays, CheckCircle2, Droplets, History, LayoutDashboard, LockKeyhole, Pill, Target, UtensilsCrossed, UserRound, AlertTriangle, Trash2, X } from "lucide-react";
+import { ArrowRight, CalendarClock, CalendarDays, CheckCircle2, Droplets, History, LayoutDashboard, LockKeyhole, Pill, Target, UtensilsCrossed, BookOpen, UserRound, AlertTriangle, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CompactTreatmentBlister } from "./CompactTreatmentBlister";
 import { PatientActivityHistory } from "./PatientActivityHistory";
 import { ClientHydrationTab } from "./ClientHydrationTab";
 import { ClientAgendaPage } from "./ClientAgendaPage";
 import { ClientMealsPage } from "./ClientMealsPage";
+import { ClientNutritionStudio } from "./ClientNutritionStudio";
 import { ClientSectionHeader } from "./ClientSectionHeader";
 import { clientSectionFromHash, clientSectionHash, type ClientSection } from "@/lib/client-pages";
 import { ClientBeverageTracker } from "./ClientBeverageTracker";
@@ -237,6 +238,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
     {key:"hidratacao",label:"Minha hidratação",icon:Droplets},
     {key:"historico",label:"Histórico",icon:History},
     {key:"alimentacao",label:"Alimentação",icon:UtensilsCrossed},
+    {key:"cardapios",label:"Cardápios e dietas",icon:BookOpen},
   ] as const;
 
   return <section aria-label="Painel de acompanhamento individual do cliente" className="care-client-dashboard flex h-full min-h-0 w-full flex-col overflow-hidden rounded-[22px] border border-border bg-card/95 shadow-[0_20px_60px_-44px_rgba(25,65,54,.45)]">
@@ -340,6 +342,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
             onView={showTaskDetails} onConfirm={askConfirm}
             onDelete={meal=>{const item=tasks.find(task=>task.id===meal.id);if(item){setPending(null);setMealToDelete(item);}}}
             onRecorded={()=>setTick(value=>value+1)}/>}
+          {activeTab==="cardapios"&&<ClientNutritionStudio patientId={client.id} ownerId={client.owner_id}/>}
         </section>
       </div>
 
