@@ -258,7 +258,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
     {key:"cardapios",label:"Cardápios e dietas",icon:BookOpen},
   ] as const;
 
-  return <section aria-label="Painel de acompanhamento individual do cliente" className="care-client-dashboard care-client-route flex h-full min-h-0 w-full flex-col overflow-hidden rounded-[22px] border border-border bg-card/95 shadow-[0_20px_60px_-44px_rgba(25,65,54,.45)]">
+  return <section aria-label="Painel de acompanhamento individual do cliente" className="care-client-dashboard care-client-route flex h-full min-h-0 w-full flex-col overflow-x-hidden overflow-y-auto rounded-[22px] border border-border bg-card/95 shadow-[0_20px_60px_-44px_rgba(25,65,54,.45)]">
     {loading ? <p role="status" className="p-6 text-sm text-muted-foreground">Verificando acesso seguro…</p> : !owner ? <div className="grid gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-center">
       <div><div className="flex items-center gap-2 font-semibold"><LockKeyhole size={19} className="text-primary"/> Acesso protegido</div><p className="mt-2 max-w-2xl text-sm text-muted-foreground">Entre com sua conta para consultar somente seu acompanhamento e confirmar os cuidados realizados.</p></div>
       <button onClick={() => setLocked(true)} className="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground">Consultar programação</button>
@@ -305,7 +305,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
         data-client-page={activeTab}
         className={"care-client-main care-client-page-main grid min-h-0 min-w-0 flex-1 items-stretch gap-2 "+(activeTab==="hoje"?"md:grid-cols-[minmax(0,1.06fr)_minmax(0,.94fr)]":"grid-cols-1")}>
         {activeTab==="hoje"&&<CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm} dashboardMode onProgressChange={setTreatmentProgress}/>}
-        <section data-page={activeTab} className={"care-client-summary care-client-page-content min-h-0 min-w-0 rounded-2xl border border-border bg-card "+(activeTab==="hoje"?"overflow-y-auto p-3 sm:p-4":"overflow-hidden p-2 sm:p-3")} aria-label={"Página "+tabs.find(tab=>tab.key===activeTab)?.label}>
+        <section data-page={activeTab} className={"care-client-summary care-client-page-content min-h-0 min-w-0 rounded-2xl border border-border bg-card "+(activeTab==="hoje"?"overflow-y-auto p-3 sm:p-4":"overflow-y-auto overscroll-contain p-2 sm:p-3")} aria-label={"Página "+tabs.find(tab=>tab.key===activeTab)?.label}>
           {activeTab==="hoje"&&<div className="care-summary-today flex h-full min-h-0 flex-col gap-3">
             <div className="flex shrink-0 items-center justify-between gap-2">
               <h2 className="inline-flex items-center gap-2 text-sm font-extrabold text-foreground"><LayoutDashboard size={18} className="text-primary"/> Resumo do dia</h2>
