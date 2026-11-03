@@ -48,6 +48,7 @@ export function ClientHomeSummary(){
  const [revision,setRevision]=useState(0);
  const [refresh,setRefresh]=useState(0);
  const [dailyGoal,setDailyGoal]=useState<HydrationGoalSnapshot|null>(null);
+ const [hydrationPlan,setHydrationPlan]=useState<Record<string,{suggested_ml:number;reason:string;remaining_ml:number}>>({});
  const [resolvedStates,setResolvedStates]=useState<Record<string,string>>({});
  const [extraWater,setExtraWater]=useState<WaterEntry[]>([]);
  const [extraBeverages,setExtraBeverages]=useState<BeverageEntry[]>([]);
@@ -61,7 +62,8 @@ export function ClientHomeSummary(){
  .on("postgres_changes",{event:"*",schema:"public",table:"care_daily_checklist"},refreshAgenda)
  .on("postgres_changes",{event:"*",schema:"public",table:"care_hydration"},refreshAgenda)
  .on("postgres_changes",{event:"*",schema:"public",table:"care_client_beverages"},refreshAgenda)
- .on("postgres_changes",{event:"*",schema:"public",table:"care_activity_log"},refreshAgenda).subscribe();return()=>{window.clearInterval(timer);window.removeEventListener("focus",refreshAgenda);document.removeEventListener("visibilitychange",visible);void supabase.removeChannel(channel)}},[]);
+ .on("postgres_changes",{event:"*",schema:"public",table:"care_activity_log"},refreshAgenda)
+ .on("postgres_changes",{event:"*",schema:"public",table:"care_hydration_suggested_portions"},refreshAgenda).subscribe();return()=>{window.clearInterval(timer);window.removeEventListener("focus",refreshAgenda);document.removeEventListener("visibilitychange",visible);void supabase.removeChannel(channel)}},[]);
  useEffect(()=>{let active=true;void (async()=>{
     const session=await supabase.auth.getUser();
     const uid=session.data.user?.id;
@@ -75,7 +77,7 @@ export function ClientHomeSummary(){
     setPatient(person);
     const from=new Date(day(new Date())+"T00:00:00-05:00");
     const finish=new Date(from.getTime()+86400000);
-    const [res,goalResult,resolutions,waterAnswers,waterEntries,beverages,mealEntries]=await Promise.all([
+    const [res,goalResult,resolutions,waterAnswers,waterEntries,beverages,mealEntries,waterSuggestions]=await Promise.all([
       (supabase as any).from("care_daily_checklist").select("id,title,category,scheduled_at,completed_at")
       .eq("owner_id",person.owner_id).eq("patient_id",person.id)
       .gte("scheduled_at",from.toISOString()).lt("scheduled_at",finish.toISOString())
@@ -100,7 +102,10 @@ export function ClientHomeSummary(){
         .eq("source","client_unscheduled_intake").eq("event_type","logged")
         .eq("category","refeicao").is("task_id",null)
         .gte("recorded_at",from.toISOString()).lt("recorded_at",finish.toISOString())
-        .order("recorded_at",{ascending:true}).limit(300)
+        .order("recorded_at",{ascending:true}).limit(300),
+      (supabase as any).from("care_hydration_suggested_portions")
+        .select("task_id,suggested_ml,reason,remaining_ml")
+        .eq("patient_id",person.id).eq("owner_id",person.owner_id).limit(120)
     ]);
     if(!active)return;
     if(res.error){setError("Não foi possível carregar sua agenda.");return;}
@@ -113,6 +118,8 @@ export function ClientHomeSummary(){
     setExtraWater(waterEntries.error?[]:waterEntries.data??[]);
     setExtraBeverages(beverages.error?[]:beverages.data??[]);
     setExtraMeals(mealEntries.error?[]:mealEntries.data??[]);
+    setHydrationPlan(waterSuggestions.error?{}:Object.fromEntries((waterSuggestions.data??[]).map((row:{task_id:string;suggested_ml:number;reason:string;remaining_ml:number})=>
+      [row.task_id,{suggested_ml:Number(row.suggested_ml),reason:row.reason,remaining_ml:Number(row.remaining_ml)}])));
     setExtraError([waterEntries.error&&"água",beverages.error&&"bebidas",mealEntries.error&&"refeições"].filter(Boolean).join(", "));
     setError("");
  })();return()=>{active=false}},[revision,refresh]);
@@ -171,6 +178,7 @@ export function ClientHomeSummary(){
      key:"task:"+task.id,at:task.scheduled_at,title:task.title,category:task.category as AgendaRow["category"],task,
      completed,resolved:Boolean(resolved),overdue,
      subtitle:(completed?"Confirmado":resolved==="cancelado"?"Cancelado":resolved==="nao_cumprido"?"Não realizado":resolved==="nao_bebi"?"Não bebi":overdue?"Aguardando confirmação":"Programado")+" · "+labelFor(task.category)
+       +(!completed&&!resolved&&task.category==="hidratacao"&&hydrationPlan[task.id]?.suggested_ml>0?" · sug. "+hydrationPlan[task.id].suggested_ml+" ml":"")
    };}),
    ...extraWater.filter(item=>!item.task_id||!knownTaskIds.has(item.task_id)).map(item=>({
      key:"water:"+item.id,at:item.recorded_at,title:"Água registrada · "+item.amount_ml+" ml",
@@ -230,6 +238,11 @@ export function ClientHomeSummary(){
         </div>
         <div className="relative flex items-center justify-between gap-2"><span className="care-next-overline inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-widest"><Clock3 size={17}/> Próximo cuidado</span><span className="care-next-time-chip rounded-full px-2.5 py-1 text-[10px] font-bold">{next?time(next.scheduled_at):"Agenda concluída"}</span></div>
         <div className="care-next-copy relative z-10 mt-2"><h3 className="max-w-[26ch] text-xl font-extrabold leading-tight md:text-2xl">{next?next.title:"Nenhum cuidado aguardando resposta"}</h3><div className="mt-2 flex flex-wrap items-baseline gap-2"><strong className="care-next-countdown font-mono text-2xl font-extrabold tabular-nums md:text-[30px]">{next?countdown:"✓"}</strong><span className="care-next-countdown-label text-xs">{next?(seconds===0?"Horário previsto já passou":"até o horário previsto"):"Nenhuma atividade pendente"}</span></div></div>
+        {next?.category==="hidratacao"&&hydrationPlan[next.id]&&<p className="relative z-10 text-[11px] font-semibold text-cyan-100">
+          {hydrationPlan[next.id].suggested_ml===0?"Meta de água atingida; lembrete opcional.":
+           "Volume orientativo atualizado: até "+hydrationPlan[next.id].suggested_ml+" ml por lembrete."}
+          {hydrationPlan[next.id].reason==="restante_supera_capacidade"&&" Meta restante exige mais fracionamento."}
+        </p>}
         <div className="relative z-10 mt-2 flex shrink-0 flex-wrap gap-1.5">{next&&<button type="button" onClick={()=>{setSelected(next);setError("");setMealTime(currentAcreTime());setMealDescription("");}} className="care-next-cta inline-flex min-h-9 items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-extrabold transition">Verificar / confirmar <ChevronRight size={15}/></button>}<Link to="/cliente" className="care-next-secondary inline-flex min-h-9 items-center rounded-full border px-3 py-1.5 text-[11px] font-bold transition">Ver tratamento completo</Link></div>
       </article>
       <CareProgressVisual tasks={summaryTasks} goal={dailyGoal} onOpen={task=>{setDetailTask(task);setError("");}}/>
