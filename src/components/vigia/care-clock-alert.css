@@ -1,0 +1,154 @@
+/* CareDigital — actionable clock animation based on approved turquoise/glass reference.
+   No external media, patient details or tracking scripts. */
+.care-clock-alert-backdrop {
+  position:fixed;inset:0;z-index:10030;
+  display:flex;align-items:center;justify-content:center;
+  padding:16px;overflow-y:auto;
+  background:rgba(0,16,29,.76);backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  animation:care-clock-backdrop-arrive .36s ease-out both;
+}
+.care-clock-alert-window {
+  --clock-cyan:#64f7f0; --clock-white:#f0ffff;
+  position:relative;isolation:isolate;
+  display:flex;flex-direction:column;gap:15px;
+  width:min(100%,660px);max-height:min(94dvh,740px);
+  overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;
+  margin:auto;padding:clamp(18px,3.3vw,30px);
+  border:1.5px solid rgba(128,255,244,.77);border-radius:32px;
+  color:var(--clock-white);
+  background:linear-gradient(126deg,rgba(5,49,72,.97),rgba(6,101,111,.93) 51%,rgba(7,50,78,.98));
+  box-shadow:0 0 0 1px rgba(255,255,255,.14) inset,0 0 44px rgba(0,226,217,.27),0 38px 110px rgba(0,9,20,.67);
+  animation:care-clock-dialog-arrive .47s cubic-bezier(.2,.75,.15,1) both;
+  scrollbar-width:thin;scrollbar-color:#42b7bd transparent;
+}
+.care-clock-alert-window::before {
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(135deg,rgba(255,255,255,.13),transparent 28%,rgba(29,230,209,.1) 77%,rgba(255,255,255,.09));
+}
+.care-clock-background-glow {
+  position:absolute;left:10%;right:10%;top:16%;height:210px;z-index:-1;
+  background:radial-gradient(ellipse at center,rgba(6,239,228,.27),rgba(0,215,211,.06) 52%,transparent 75%);
+  filter:blur(24px);pointer-events:none;
+}
+.care-clock-background-line {
+  position:absolute;left:0;right:0;top:47%;height:65px;color:#39e7e4;
+  opacity:.2;pointer-events:none;z-index:-1;
+}
+.care-clock-background-line svg {width:100%;height:100%;}
+.care-clock-close {
+  position:absolute;top:15px;right:15px;z-index:10;
+  display:grid;place-items:center;
+  width:36px;height:36px;border:1px solid rgba(190,255,252,.32);border-radius:12px;
+  color:#f3ffff;background:rgba(6,49,70,.46);
+  cursor:pointer;transition:background .2s,transform .2s;
+}
+.care-clock-close:hover {background:rgba(71,180,187,.42);transform:scale(1.04);}
+.care-clock-alert-head {display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;}
+.care-clock-alert-eyebrow {
+  display:inline-flex;align-items:center;gap:7px;
+  padding:6px 13px;border-radius:999px;border:1px solid rgba(104,245,237,.34);
+  background:rgba(2,150,154,.2);color:#b8fff8;
+  font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+}
+.care-clock-alert-head h2 {
+  margin:0;max-width:560px;
+  color:#f7ffff;font-size:clamp(22px,4.15vw,35px);
+  font-weight:900;letter-spacing:-.045em;line-height:1.1;
+  text-wrap:balance;text-shadow:0 3px 20px rgba(0,0,0,.3);
+}
+.care-clock-alert-head p {
+  margin:0;max-width:480px;color:#c5eef1;
+  font-size:clamp(11px,1.5vw,13px);line-height:1.5;
+}
+.care-clock-alert-category {
+  display:inline-flex;align-items:center;gap:6px;
+  margin-top:-4px;padding:4px 11px;border-radius:999px;
+  background:rgba(5,188,180,.18);color:#d6fffc;font-size:11px;font-weight:700;
+}
+.care-clock-visual {position:relative;display:grid;place-items:center;width:192px;height:192px;margin:0 auto;}
+.care-clock-face {
+  position:relative;z-index:4;width:164px;height:164px;
+  filter:drop-shadow(0 0 14px rgba(29,250,231,.51));
+}
+.care-clock-visual-halo {
+  position:absolute;inset:17px;border-radius:50%;
+  background:radial-gradient(circle,rgba(19,215,206,.38) 20%,rgba(0,232,218,.14) 59%,transparent 75%);
+  box-shadow:0 0 52px 12px rgba(20,236,225,.15);
+  animation:care-clock-pulse 2.6s ease-in-out infinite;
+}
+.care-clock-visual-wave {
+  position:absolute;inset:14px;border-radius:50%;
+  border:2px solid rgba(79,253,234,.66);
+  box-shadow:0 0 19px rgba(10,243,225,.28);
+  animation:care-clock-ripple 3.2s ease-out infinite;
+}
+.care-clock-visual-wave-two {animation-delay:1.55s;}
+.care-clock-ring-orbit {
+  position:absolute;inset:0;border-radius:50%;
+  border:4px solid transparent;border-top-color:#40f8ec;border-left-color:rgba(64,248,236,.48);
+  filter:drop-shadow(0 0 8px rgba(26,250,236,.7));
+  animation:care-clock-orbit 8s linear infinite;
+}
+.care-clock-ring-orbit-two {inset:9px;border-width:2px;border-left-color:transparent;border-top-color:#85fff9;animation-duration:5.5s;animation-direction:reverse;}
+.care-clock-alert-task {
+  position:relative;display:flex;align-items:center;gap:13px;
+  padding:13px;border-radius:17px;
+  border:1px solid rgba(153,250,243,.34);
+  background:rgba(2,34,56,.49);box-shadow:inset 0 1px 0 rgba(239,255,255,.13);
+}
+.care-clock-alert-task-symbol {display:grid;place-items:center;flex-shrink:0;width:43px;height:43px;border-radius:12px;color:#a9fff9;background:rgba(1,188,183,.19);}
+.care-clock-alert-task-details {display:flex;flex:1;flex-direction:column;gap:2px;min-width:0;}
+.care-clock-alert-task-details strong {font-size:15px;color:#fff;overflow-wrap:anywhere;}
+.care-clock-alert-task-label {font-size:10px;color:#8cf6ef;font-weight:800;letter-spacing:.045em;text-transform:uppercase;}
+.care-clock-alert-task-details > span:last-child {font-size:11px;color:#c9eff3;}
+.care-clock-alert-countdown {
+  display:inline-flex;align-items:center;gap:5px;white-space:nowrap;
+  padding:8px 10px;border-radius:10px;background:rgba(23,180,179,.22);
+  color:#a9fff7;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;
+}
+.care-clock-alert-actions {display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.care-clock-button {
+  display:flex;justify-content:center;align-items:center;gap:8px;
+  min-height:47px;padding:10px;border-radius:15px;
+  font-size:13px;font-weight:850;line-height:1.25;
+  cursor:pointer;transition:transform .18s,filter .18s,background .18s;
+}
+.care-clock-button:hover {transform:translateY(-1px);filter:brightness(1.07);}
+.care-clock-button-primary {
+  color:#002b38;background:linear-gradient(120deg,#53fff1,#0dc9c4);
+  border:1px solid #86fff5;box-shadow:0 8px 24px rgba(4,227,211,.23);
+}
+.care-clock-button-secondary {color:#f1ffff;border:1.5px solid rgba(191,252,254,.78);background:rgba(82,162,195,.18);}
+.care-clock-alert-footer {display:flex;align-items:center;justify-content:space-between;gap:9px;}
+.care-clock-alert-footer p {margin:0;max-width:395px;color:#b2d9e2;font-size:10px;line-height:1.4;}
+.care-clock-alert-footer button {
+  flex-shrink:0;padding:7px 8px;border:1px solid rgba(151,243,242,.37);
+  border-radius:10px;background:rgba(13,146,155,.16);color:#bdfffa;
+  font-size:11px;font-weight:750;cursor:pointer;
+}
+.care-clock-alert-footer button:hover {background:rgba(13,200,190,.25);}
+.care-clock-alert-window button:focus-visible {outline:3px solid #b7fff7;outline-offset:3px;}
+@keyframes care-clock-pulse {0%,100%{transform:scale(.94);opacity:.65;}50%{transform:scale(1.08);opacity:1;}}
+@keyframes care-clock-ripple {0%{transform:scale(.74);opacity:.8;}82%,100%{transform:scale(1.23);opacity:0;}}
+@keyframes care-clock-orbit {to{transform:rotate(360deg);}}
+@keyframes care-clock-backdrop-arrive {from{opacity:0;}to{opacity:1;}}
+@keyframes care-clock-dialog-arrive {from{opacity:0;transform:translateY(15px) scale(.965);}to{opacity:1;transform:translateY(0) scale(1);}}
+@media (max-width:540px) {
+  .care-clock-alert-backdrop {padding:10px;}
+  .care-clock-alert-window {padding:16px;border-radius:22px;gap:11px;}
+  .care-clock-visual {width:145px;height:145px;}
+  .care-clock-face {width:125px;height:125px;}
+  .care-clock-alert-actions {gap:7px;}
+  .care-clock-button {min-height:45px;padding:8px;font-size:11px;gap:5px;}
+  .care-clock-alert-task {gap:8px;padding:9px;}
+  .care-clock-alert-task-symbol {width:34px;height:34px;}
+  .care-clock-alert-task-details strong {font-size:12px;}
+  .care-clock-alert-countdown {font-size:10px;padding:7px;}
+  .care-clock-alert-footer {flex-direction:column;align-items:stretch;text-align:center;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .care-clock-alert-backdrop,.care-clock-alert-window,
+  .care-clock-visual-halo,.care-clock-visual-wave,.care-clock-ring-orbit {animation:none!important;}
+  .care-clock-button,.care-clock-close {transition:none;}
+}
