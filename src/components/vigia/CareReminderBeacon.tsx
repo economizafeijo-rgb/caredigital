@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Bell, BellOff, ChevronRight, Clock3, Volume2 } from "lucide-react";
+import { CareClockAlert } from "./CareClockAlert";
 import { supabase } from "@/integrations/supabase/client";
 import {
   CARE_REMINDER_WINDOW_MS, reminderCategoryLabel, reminderClock,
@@ -12,6 +13,8 @@ type Props = {
   ownerId: string;
   refreshKey?: number;
   onOpen: (task: ReminderTask) => void;
+  /** Opens the existing verified workflow; does not directly save a task. */
+  onConfirm?: (task: ReminderTask) => void;
   compact?: boolean;
 };
 
@@ -79,10 +82,13 @@ function chime(context:AudioContext) {
   });
 }
 
-export function CareReminderBeacon({tasks,patientId,ownerId,refreshKey=0,onOpen,compact=false}:Props) {
+export function CareReminderBeacon({tasks,patientId,ownerId,refreshKey=0,onOpen,onConfirm,compact=false}:Props) {
   const [now,setNow]=useState(()=>Date.now());
   const [soundEnabled,setSoundEnabled]=useState(false);
   const [soundNotice,setSoundNotice]=useState("");
+  // Only transient UI state; clinical data stays in Supabase. No storage of task IDs.
+  const [dismissedClockIds,setDismissedClockIds]=useState<ReadonlySet<string>>(()=>new Set());
+  const [snoozedClock,setSnoozedClock]=useState<{taskId:string;until:number}|null>(null);
   const [answeredTaskIds,setAnsweredTaskIds]=useState<ReadonlySet<string>>(()=>new Set());
   const [answersStatus,setAnswersStatus]=useState<"loading"|"ready"|"error">("loading");
   const [answersRevision,setAnswersRevision]=useState(0);
@@ -92,6 +98,7 @@ export function CareReminderBeacon({tasks,patientId,ownerId,refreshKey=0,onOpen,
     [tasks]
   );
   const contextRef=useRef<AudioContext|null>(null);
+  useEffect(()=>{setDismissedClockIds(new Set());setSnoozedClock(null);},[patientId]);
   const lastPlayed=useRef<{id:string;time:number}|null>(null);
   useEffect(()=>{
     const tick=()=>setNow(Date.now());
@@ -169,6 +176,17 @@ export function CareReminderBeacon({tasks,patientId,ownerId,refreshKey=0,onOpen,
   const due=stage==="due";
   const late=stage==="unconfirmed";
   const focusId=due?task?.id:null;
+  // A client-visible modal only exists while the actual task is due and
+  // unresolved. A dismissal never modifies the patient's care record.
+  const showClockAlert=Boolean(due&&task&&answersStatus==="ready"&&
+    !dismissedClockIds.has(task.id)&&
+    !(snoozedClock?.taskId===task.id&&now<snoozedClock.until));
+  function closeClock(taskId:string){
+    setDismissedClockIds(previous=>new Set([...previous,taskId]));
+  }
+  function snoozeClock(taskId:string){
+    setSnoozedClock({taskId,until:Date.now()+3*60_000});
+  }
   // Sound is only generated after explicit user activation. A newly due task
   // receives periodic short reminders while its 10-minute window is open.
   useEffect(()=>{
@@ -219,7 +237,13 @@ export function CareReminderBeacon({tasks,patientId,ownerId,refreshKey=0,onOpen,
   // for old missing confirmations already visible in the historical agenda.
   if(!primary)return null;
 
-  return <section aria-label="Central de lembretes de cuidados"
+  return <>
+   {showClockAlert&&task&&<CareClockAlert task={task} now={now} remainingMs={primary!.remainingMs}
+      onDetails={()=>{closeClock(task.id);onOpen(task);}}
+      onConfirm={()=>{closeClock(task.id);(onConfirm??onOpen)(task);}}
+      onSnooze={()=>snoozeClock(task.id)}
+      onDismiss={()=>closeClock(task.id)}/>}
+   <section aria-label="Central de lembretes de cuidados"
     data-reminder-status={stage} data-reminder-category={task?.category??"nenhuma"}
     className={"care-reminder-beacon relative flex w-full min-w-0 items-center gap-2.5 overflow-hidden rounded-2xl border p-2.5 shadow-sm sm:gap-3 sm:px-3.5 "+(compact?"care-reminder-compact":"")}>
     <ReminderArtwork category={task?.category??"medicacao"}
@@ -260,5 +284,6 @@ export function CareReminderBeacon({tasks,patientId,ownerId,refreshKey=0,onOpen,
         {soundEnabled?"Silenciar":"Ativar som"}
       </button>
     </div>
-  </section>;
+  </section>
+  </>;
 }
