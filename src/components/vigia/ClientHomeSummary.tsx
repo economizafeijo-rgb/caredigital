@@ -1,4 +1,4 @@
-import { estimateObjectiveNutrition, objectiveLabel } from "@/lib/objective-nutrition";
+import { estimateActivityFactor, estimateObjectiveNutrition, objectiveLabel } from "@/lib/objective-nutrition";
 import { useEffect, useRef, useState } from "react";
 import "./care-home-reference.css";
 import { Link } from "@tanstack/react-router";
@@ -399,7 +399,7 @@ export function ClientHomeSummary(){
       const bmi=weight&&height!==null&&height>=100&&height<=230?weight/((height/100)**2):null;
       const validWeight=weight&&weight>=30&&weight<=250;
       const waterGoal=wellness.target_ml??(validWeight&&!wellness.fluid_restriction?Math.round(weight*30/50)*50:null);
-      const objectiveEstimate=estimateObjectiveNutrition({weight:validWeight?weight:null,age:wellness.age,heightCm:height,sex:wellness.sex,objective:wellness.objective});
+      const objectiveEstimate=estimateObjectiveNutrition({weight:validWeight?weight:null,age:wellness.age,heightCm:height,sex:wellness.sex,objective:wellness.objective,activityFactor:estimateActivityFactor(wellness.activity_minutes)});
       const proteinFactor=wellness.objective==="hipertrofia"?1.6:wellness.objective==="emagrecimento"?1.5:wellness.objective==="ganho_peso"?1.3:1.0;
       const protein=wellness.protein??objectiveEstimate.protein;
       const fat=wellness.fat??objectiveEstimate.fat;
@@ -443,7 +443,7 @@ export function ClientHomeSummary(){
           <div><span className="block text-[10px] text-teal-200">META ENERGÉTICA</span><strong>{goalKcal!==null?goalKcal.toLocaleString("pt-BR")+" kcal":"Não calculada"}</strong></div>
           <div><span className="block text-[10px] text-teal-200">DIFERENÇA DA MANUTENÇÃO</span><strong>{objectiveEstimate.maintenance!==null&&goalKcal!==null?(goalKcal-objectiveEstimate.maintenance>0?"+":"")+(goalKcal-objectiveEstimate.maintenance).toLocaleString("pt-BR")+" kcal":"—"}</strong></div>
         </div>
-        <p className="mb-2 text-[10px] text-slate-300">Estimativa educativa com atividade sedentária (×1,2). Sem meta cadastrada, usa ±10% da manutenção conforme objetivo; a atividade real e condições clínicas podem alterar a necessidade. Metas individuais têm prioridade.</p>
+        <p className="mb-2 text-[10px] text-slate-300">Estimativa educativa por idade, peso, altura, sexo e atividade informada (fator ×{objectiveEstimate.activityFactor.toLocaleString("pt-BR")}). Sem meta cadastrada, usa ±10% da manutenção conforme objetivo; a atividade real e condições clínicas podem alterar a necessidade. Metas individuais têm prioridade.</p>
         <section className="mb-2 rounded-xl border border-white/15 bg-slate-950/30 p-3" aria-label="Consumo de macronutrientes registrado hoje">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><strong className="text-xs">Consumido hoje × meta</strong><span className="text-[10px] text-slate-300">{consumedError?"Não foi possível consultar os registros":consumedMacros?consumedMacros.count+" lançamentos nutricionais":"Carregando registros"}</span></div>
           {consumedMacros&&<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
