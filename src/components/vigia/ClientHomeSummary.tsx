@@ -449,6 +449,7 @@ export function ClientHomeSummary(){
         <div className="relative z-10 mt-2 flex shrink-0 flex-wrap gap-1.5">{next&&<button type="button" onClick={()=>{setSelected(next);setError("");setMealTime(currentAcreTime());setMealDescription("");setMealType(mealTypeFromTitle(next.title));}} className="care-next-cta inline-flex min-h-9 items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-extrabold transition">Verificar / confirmar <ChevronRight size={15}/></button>}<Link to="/cliente" className="care-next-secondary inline-flex min-h-9 items-center rounded-full border px-3 py-1.5 text-[11px] font-bold transition">Ver tratamento completo</Link></div>
       </article>
       <CareProgressVisual tasks={summaryTasks} goal={dailyGoal}
+        alertCategories={Array.from(new Set(attentionItems.map(task=>task.category))) as Array<"hidratacao"|"refeicao"|"medicacao">}
         onHydration={openHydrationCard} onFood={openFoodCard}
         onMedication={openMedicationCard} onOpen={task=>{setDetailTask(task);setError("");}}/>
       <div className="patient-progress care-premium-progress flex flex-wrap items-center gap-1.5 text-[10px] text-slate-300"><Check size={14} className="text-emerald-300"/>{finished} de {summaryTasks.length} cuidados concluídos
