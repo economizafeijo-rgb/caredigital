@@ -358,6 +358,7 @@ export function ClientHomeSummary(){
       <div className="care-home-medication mt-3">
         <CareReminderBeacon tasks={summaryTasks} patientId={patient?.id??""} ownerId={patient?.owner_id??""}
           refreshKey={refresh+revision}
+          onChanged={()=>setRefresh(value=>value+1)}
           onOpen={task=>{setDetailTask(task);setError("");}}
           onConfirm={task=>{
             setSelected(task);setError("");setReceipt(null);
