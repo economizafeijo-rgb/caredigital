@@ -82,25 +82,33 @@ export function ClientHomeSummary(){
     if(detail.error||!detail.data?.length){setError("Não foi possível abrir o acompanhamento.");return;}
     const person=detail.data[0] as Person;
     setPatient(person);
-    const [hydrationProfile,nutritionProfile]=await Promise.all([
+    // Indicadores complementares não podem bloquear o carregamento da agenda.
+    // Cada consulta falha de modo independente e mantém a homepage funcional.
+    void Promise.allSettled([
       (supabase as any).from("care_hydration_profiles").select("age,weight_kg,activity_minutes,fluid_restriction,target_ml").eq("patient_id",person.id).eq("owner_id",person.owner_id).maybeSingle(),
       (supabase as any).from("care_nutrition_preferences").select("weight_kg,objective,target_protein_g,target_carbs_g,target_fat_g,target_kcal,gastritis_sensitive").eq("patient_id",person.id).eq("owner_id",person.owner_id).maybeSingle()
-    ]);
-    if(!active)return;
-    const hp=hydrationProfile.data,np=nutritionProfile.data;
-    setWellness({
-      weight_kg:Number(np?.weight_kg||hp?.weight_kg||person.weight_kg)||null,
-      age:Number(hp?.age)||null,
-      activity_minutes:Number(hp?.activity_minutes)||0,
-      fluid_restriction:Boolean(hp?.fluid_restriction),
-      target_ml:Number(hp?.target_ml)||null,
-      objective:np?.objective??person.care_goal??null,
-      protein:Number(np?.target_protein_g)||null,
-      carbs:Number(np?.target_carbs_g)||null,
-      fat:Number(np?.target_fat_g)||null,
-      kcal:Number(np?.target_kcal)||null,
-      gastritis_sensitive:Boolean(np?.gastritis_sensitive)
-    });
+    ]).then(results=>{
+      if(!active)return;
+      const hp=results[0].status==="fulfilled"&&!results[0].value.error?results[0].value.data:null;
+      const np=results[1].status==="fulfilled"&&!results[1].value.error?results[1].value.data:null;
+      const numeric=(value:unknown):number|null=>{
+        if(value===null||value===undefined||value==="")return null;
+        const n=Number(value);return Number.isFinite(n)&&n>0?n:null;
+      };
+      setWellness({
+        weight_kg:numeric(np?.weight_kg)??numeric(hp?.weight_kg)??numeric(person.weight_kg),
+        age:numeric(hp?.age),
+        activity_minutes:numeric(hp?.activity_minutes)??0,
+        fluid_restriction:Boolean(hp?.fluid_restriction),
+        target_ml:numeric(hp?.target_ml),
+        objective:np?.objective??person.care_goal??null,
+        protein:numeric(np?.target_protein_g),
+        carbs:numeric(np?.target_carbs_g),
+        fat:numeric(np?.target_fat_g),
+        kcal:numeric(np?.target_kcal),
+        gastritis_sensitive:Boolean(np?.gastritis_sensitive)
+      });
+    }).catch(()=>{if(active)setWellness(null)});
     const from=new Date(day(new Date())+"T00:00:00-05:00");
     const finish=new Date(from.getTime()+86400000);
     const [res,goalResult,resolutions,waterAnswers,waterEntries,beverages,mealEntries,waterSuggestions]=await Promise.all([
