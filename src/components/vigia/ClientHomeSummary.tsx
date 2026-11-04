@@ -5,6 +5,7 @@ import { CalendarClock, Check, Clock3, Droplets, Pill, Utensils, X, ArrowUpRight
 import { supabase } from "@/integrations/supabase/client";
 import { CareReminderBeacon } from "./CareReminderBeacon";
 import { CareProgressVisual } from "./CareProgressVisual";
+import { ClientHealthProfile } from "./ClientHealthProfile";
 import { ClientQuickIntake } from "./ClientQuickIntake";
 import { CareTaskRecordModal } from "./CareTaskRecordModal";
 import type { HydrationGoalSnapshot } from "@/lib/hydration-goal";
@@ -48,6 +49,7 @@ const plannedMealKind=(title:string):string|null=>{
 export function ClientHomeSummary(){
  const [patient,setPatient]=useState<Person|null>(null);
  const [wellness,setWellness]=useState<WellnessProfile|null>(null);
+ const [showHealthProfile,setShowHealthProfile]=useState(false);
  const [tasks,setTasks]=useState<Care[]>([]);
  const [selected,setSelected]=useState<Care|null>(null);
  const [detailTask,setDetailTask]=useState<Care|null>(null);
@@ -352,6 +354,8 @@ export function ClientHomeSummary(){
     </div>
     <img src="/images/care-next-wellness.svg" alt="" aria-hidden="true" className="hidden h-[42px] w-[90px] shrink-0 object-contain opacity-65 lg:block" loading="lazy"/>
   </div>
+  {patient&&wellness&&<div className="relative z-10 flex justify-end"><button type="button" onClick={()=>setShowHealthProfile(v=>!v)} className="rounded-lg border border-teal-300/40 bg-teal-900/60 px-3 py-1.5 text-xs font-bold text-teal-100 hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300">{showHealthProfile?"Ocultar perfil":"Editar meu perfil de saúde"}</button></div>}
+  {patient&&wellness&&showHealthProfile&&<ClientHealthProfile patientId={patient.id} ownerId={patient.owner_id} initial={{weight:wellness.weight_kg,height:patient.height_cm,age:wellness.age,objective:wellness.objective,protein:wellness.protein,carbs:wellness.carbs,fat:wellness.fat,kcal:wellness.kcal}} onClose={()=>setShowHealthProfile(false)} onSaved={()=>setRevision(v=>v+1)}/>}
   {wellness&&<section className="care-wellness-insights relative z-10" aria-label="Indicadores e orientações de saúde e nutrição">
     {(()=>{
       const weight=wellness.weight_kg;
