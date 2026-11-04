@@ -1,4 +1,3 @@
-import { estimateObjectiveNutrition } from "@/lib/objective-nutrition";
 import { useEffect, useState } from "react";
 import { Activity, Save, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,7 +36,6 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
   equilibrio:{protein:1,fat:.8,carbs:3,label:"Manutenção do peso",advice:["Mantenha variedade de alimentos e horários compatíveis com sua rotina.","Inclua fontes de proteína, vegetais, frutas e carboidratos.","Use o histórico para observar consistência e ajustar hábitos."]}
  };
  const selectedGoal=goalFactors[objective]??goalFactors.equilibrio;
- const objectiveEstimate=estimateObjectiveNutrition({weight:currentKg>0?currentKg:null,age:Number(age)||null,heightCm:initial.height??null,sex:null,objective});
 
  const suggestedProtein=currentKg>0?Math.round(currentKg*selectedGoal.protein):null;
  const suggestedFat=currentKg>0?Math.round(currentKg*selectedGoal.fat):null;
