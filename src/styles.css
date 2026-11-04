@@ -2780,3 +2780,53 @@ iframe[title*="Lovable" i][title*="badge" i] {
  .care-history-responsive .patient-history-list-scroll,
  .care-history-responsive .patient-history-detail-scroll {min-height:220px;max-height:60dvh;overflow-y:auto}
 }
+
+/* CareDigital — dashboard do cliente, visão única compacta */
+@media (min-width: 1024px) {
+  .care-dashboard-oneview {
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
+    display: flex;
+    gap: .45rem;
+    padding: .55rem;
+  }
+  .care-dashboard-oneview .care-premium-welcome { min-height: 0; padding-block: .35rem; }
+  .care-dashboard-oneview .care-wellness-insights { flex: 0 0 auto; min-height: 0; }
+  .care-dashboard-oneview .care-wellness-metrics {
+    display: grid;
+    grid-template-columns: repeat(6,minmax(0,1fr));
+    gap: .4rem;
+    margin: 0;
+  }
+  .care-dashboard-oneview .care-wellness-metrics > div {
+    min-width: 0;
+    min-height: 0;
+    padding: .55rem .65rem;
+    border-radius: .75rem;
+  }
+  .care-dashboard-oneview .care-wellness-metrics strong { font-size: clamp(.95rem,1.35vw,1.4rem); line-height: 1.15; }
+  .care-dashboard-oneview .care-wellness-metrics small { font-size: 9px; line-height: 1.2; }
+  .care-dashboard-oneview .care-wellness-tips { margin-top: .2rem; }
+  .care-dashboard-oneview .care-patient-marquee { flex: 0 0 auto; min-height: 0; }
+  .care-dashboard-oneview .care-patient-marquee-heading { padding-block: .15rem; }
+  .care-dashboard-oneview .care-patient-marquee-stats { min-height: 0; padding-block: .25rem; }
+  .care-dashboard-oneview .care-patient-marquee-stat { min-height: 0; padding-block: .1rem; }
+  .care-dashboard-oneview .care-home-body { min-height: 0; flex: 1 1 0%; }
+  .care-dashboard-oneview .care-home-left,
+  .care-dashboard-oneview .patient-timeline { min-height: 0; overflow: hidden; }
+  .care-dashboard-oneview .care-reference-next { min-height: 0; }
+  .care-dashboard-oneview .care-next-generated-art { max-height: 85%; }
+  .care-dashboard-oneview .care-timeline-navigation { margin-top: .25rem; padding-top: .25rem; }
+  .care-dashboard-oneview .care-timeline-filters { padding-top: .3rem; }
+  .care-dashboard-oneview .care-timeline-scroll { scrollbar-width: thin; }
+}
+@media (max-width: 1023px) {
+  .care-dashboard-oneview { overflow: visible; }
+  .care-dashboard-oneview .care-wellness-metrics { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .4rem; }
+  .care-dashboard-oneview .care-wellness-metrics > div { min-width: 0; padding: .55rem; }
+  .care-dashboard-oneview .care-home-body { grid-template-columns: minmax(0,1fr); }
+}
+@media (max-width: 520px) {
+  .care-dashboard-oneview .care-wellness-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
