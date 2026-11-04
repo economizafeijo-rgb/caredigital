@@ -65,12 +65,12 @@ export function ClientHomeSummary(){
  const agendaScrollRef=useRef<HTMLDivElement|null>(null);
  useEffect(()=>{if(agendaScrollRef.current)agendaScrollRef.current.scrollTop=0},[agendaPage,agendaCategory]);
  useEffect(()=>{setNow(new Date());const id=window.setInterval(()=>setNow(new Date()),1000);return()=>window.clearInterval(id)},[]);
- useEffect(()=>{const timer=window.setInterval(()=>setRefresh(v=>v+1),45000);const refreshAgenda=()=>setRefresh(v=>v+1);const visible=()=>{if(document.visibilityState==="visible")refreshAgenda()};window.addEventListener("focus",refreshAgenda);document.addEventListener("visibilitychange",visible);const channel=supabase.channel("client-home-care-changes")
+ useEffect(()=>{const timer=window.setInterval(()=>setRefresh(v=>v+1),180000);const refreshAgenda=()=>setRefresh(v=>v+1);const visible=()=>{if(document.visibilityState==="visible")refreshAgenda()};window.addEventListener("focus",refreshAgenda);document.addEventListener("visibilitychange",visible);const channel=supabase.channel("client-home-care-changes")
  .on("postgres_changes",{event:"*",schema:"public",table:"care_daily_checklist"},refreshAgenda)
  .on("postgres_changes",{event:"*",schema:"public",table:"care_hydration"},refreshAgenda)
  .on("postgres_changes",{event:"*",schema:"public",table:"care_client_beverages"},refreshAgenda)
  .on("postgres_changes",{event:"*",schema:"public",table:"care_activity_log"},refreshAgenda)
- .on("postgres_changes",{event:"*",schema:"public",table:"care_hydration_suggested_portions"},refreshAgenda).subscribe();return()=>{window.clearInterval(timer);window.removeEventListener("focus",refreshAgenda);document.removeEventListener("visibilitychange",visible);void supabase.removeChannel(channel)}},[]);
+ .subscribe();return()=>{window.clearInterval(timer);window.removeEventListener("focus",refreshAgenda);document.removeEventListener("visibilitychange",visible);void supabase.removeChannel(channel)}},[]);
  useEffect(()=>{let active=true;void (async()=>{
     const session=await supabase.auth.getUser();
     const uid=session.data.user?.id;
