@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Activity, Save, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { ClientBodyHistory } from "./ClientBodyHistory";
 
 type Props={
  patientId:string;ownerId:string;
@@ -113,6 +114,7 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
   </div>
   <p className="mt-3 text-xs leading-relaxed text-slate-300">Campos de metas vazios usam referências educativas. Metas calóricas e restrições de líquidos exigem avaliação individual. A altura e a prescrição de água permanecem sob controle do prontuário.</p>
   {message&&<p role="status" className="mt-3 rounded-lg border border-teal-300/25 bg-slate-900/50 p-2 text-xs">{message}</p>}
+  <ClientBodyHistory patientId={patientId} ownerId={ownerId} currentWeight={initial.weight} height={initial.height}/>
   <div className="mt-3 flex flex-wrap justify-end gap-2"><button type="button" onClick={onClose} className="rounded-lg border border-white/25 px-4 py-2 text-sm">Fechar</button><button type="button" disabled={saving} onClick={()=>void save()} className="inline-flex items-center gap-2 rounded-lg bg-teal-300 px-4 py-2 text-sm font-bold text-slate-950 disabled:opacity-50"><Save size={15}/>{saving?"Salvando…":confirmMismatch?"Confirmar e salvar":"Salvar perfil"}</button></div>
  </section>;
 }
