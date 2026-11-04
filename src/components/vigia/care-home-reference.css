@@ -1361,3 +1361,66 @@
 .client-home-dashboard .care-history-more{margin-top:10px;width:100%;padding:8px;border-radius:9px;border:1px solid rgba(157,225,219,.26);font-size:12px;font-weight:700;color:#a6f0e3}
 .client-home-dashboard .care-history-footnote{margin-top:10px;font-size:10px;line-height:1.5;color:#93b6c0}
 @media(max-width:640px){.client-home-dashboard .care-reference-timeline{padding:11px!important}.client-home-dashboard .care-history-entry{flex-wrap:wrap}.client-home-dashboard .care-history-entry time{margin-left:38px}}
+
+
+/* Desktop browser: do not clip the agenda when the browser viewport is short.
+   Prefer document scrolling over a compressed/hidden timeline. */
+@media(min-width:768px){
+ :root .client-home-dashboard.care-dashboard-oneview.care-reference-2026{
+  height:auto!important;
+  max-height:none!important;
+  min-height:0!important;
+  overflow:visible!important;
+ }
+ :root .client-home-dashboard.care-dashboard-oneview.care-reference-2026 .care-home-body{
+  flex:initial!important;
+  min-height:0!important;
+  height:auto!important;
+  overflow:visible!important;
+ }
+ :root .client-home-dashboard.care-dashboard-oneview.care-reference-2026 .care-reference-grid{
+  grid-template-columns:minmax(0,1fr) minmax(350px,.95fr)!important;
+  grid-template-rows:auto!important;
+  align-items:start!important;
+  overflow:visible!important;
+ }
+ :root .client-home-dashboard.care-dashboard-oneview.care-reference-2026 .care-reference-primary{
+  grid-template-rows:auto auto auto!important;
+  min-height:0!important;
+  align-content:start!important;
+ }
+ :root .client-home-dashboard.care-dashboard-oneview.care-reference-2026 .care-reference-next{
+  min-height:155px!important;
+  height:auto!important;
+ }
+ :root .client-home-dashboard.care-dashboard-oneview.care-reference-2026 .care-reference-timeline{
+  grid-column:2;
+  grid-row:1;
+  height:clamp(370px,55dvh,590px)!important;
+  min-height:370px!important;
+  max-height:590px!important;
+  align-self:start!important;
+  overflow:hidden!important;
+ }
+ :root .client-home-dashboard.care-dashboard-oneview.care-reference-2026 .care-timeline-scroll{
+  min-height:90px!important;
+  overflow-y:auto!important;
+ }
+}
+@media(min-width:768px) and (max-width:1050px){
+ :root .client-home-dashboard.care-dashboard-oneview.care-reference-2026 .care-reference-grid{
+  grid-template-columns:minmax(0,1fr)!important;
+ }
+ :root .client-home-dashboard.care-dashboard-oneview.care-reference-2026 .care-reference-timeline{
+  grid-column:1!important;
+  grid-row:2!important;
+  height:440px!important;
+  max-height:440px!important;
+ }
+}
+@media(max-height:740px) and (min-width:768px){
+ :root .client-home-dashboard.care-dashboard-oneview.care-reference-2026 .care-reference-timeline{
+  height:420px!important;
+  min-height:420px!important;
+ }
+}
