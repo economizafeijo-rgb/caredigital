@@ -3075,3 +3075,81 @@ iframe[title*="Lovable" i][title*="badge" i] {
  max-width:100%;
  overflow:hidden;
 }
+
+
+/* Responsive containment audit: prevent clipped controls in intake and care dialogs. */
+.care-intake-modal-overlay{
+ box-sizing:border-box;
+ min-width:0;
+ padding:max(8px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom));
+}
+.care-premium-intake-dialog.care-intake-responsive-v2{
+ box-sizing:border-box;
+ width:min(100%,520px);
+ min-width:0;
+ max-height:calc(100dvh - 20px - env(safe-area-inset-bottom,0px));
+ overflow-x:hidden;
+ overflow-y:auto;
+ overscroll-behavior:contain;
+ scrollbar-width:thin;
+}
+.care-intake-responsive-v2 .care-intake-picker-visible{
+ display:block;
+ height:auto;
+ max-height:none!important;
+ overflow:visible!important;
+ contain:none;
+}
+.care-intake-responsive-v2 .care-intake-picker-visible fieldset{
+ display:block;
+ min-width:0;
+ width:100%;
+}
+.care-intake-responsive-v2 .care-intake-choices{
+ display:grid;
+ grid-template-columns:repeat(3,minmax(0,1fr));
+ min-width:0;
+ width:100%;
+ gap:6px;
+}
+.care-intake-responsive-v2 .care-intake-option{
+ min-width:0;
+ width:100%;
+ min-height:62px;
+ padding:7px 4px;
+ overflow-wrap:anywhere;
+}
+.care-intake-responsive-v2 :is(form,label,textarea,input,select,fieldset){
+ min-width:0;
+ max-width:100%;
+ box-sizing:border-box;
+}
+.care-intake-responsive-v2 form{display:grid;grid-template-columns:minmax(0,1fr)}
+.care-intake-responsive-v2 .care-premium-intake-header>div:first-child{min-width:0;flex:1}
+.care-intake-responsive-v2 .care-premium-intake-header>div:first-child>div:last-child{min-width:0}
+.care-intake-responsive-v2 .care-premium-intake-header h2{overflow-wrap:anywhere}
+.care-intake-responsive-v2 .care-premium-intake-header button{flex-shrink:0}
+@media(min-width:640px){
+ .care-intake-responsive-v2 .care-intake-choices{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(max-width:360px){
+ .care-intake-responsive-v2 .care-intake-choices{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .care-intake-responsive-v2 .care-intake-option{min-height:56px}
+}
+@media(max-height:620px){
+ .care-premium-intake-dialog.care-intake-responsive-v2{max-height:calc(100dvh - 12px)}
+}
+/* Other modal surfaces: keep native inputs and their content inside viewport. */
+.care-record-modal-dialog,
+.care-premium-intake-dialog,
+.care-quick-intake-modal,
+.care-detail-dialog-v4{
+ min-width:0;
+ max-width:calc(100vw - 16px);
+}
+.care-record-modal-dialog :is(input,select,textarea),
+.care-premium-intake-dialog :is(input,select,textarea){
+ box-sizing:border-box;
+ min-width:0;
+ max-width:100%;
+}
