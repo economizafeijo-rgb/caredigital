@@ -197,14 +197,14 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
                   className="field mt-1 w-full" value={amount}
                   onChange={event => setAmount(event.target.value)}/>
               </label>}
-            <div className="rounded-xl border border-border p-3 space-y-2">
-              <label className="flex items-center gap-2 text-xs font-semibold"><input type="checkbox" checked={manualTime} onChange={event=>setManualTime(event.target.checked)}/> Informar manualmente o horário em que consumi</label>
+            <div className="rounded-xl border border-border/70 bg-card/80 p-3 space-y-2 text-foreground">
+              <label className="flex items-center gap-2 text-xs font-semibold text-foreground"><input type="checkbox" checked={manualTime} onChange={event=>setManualTime(event.target.checked)}/> Informar manualmente o horário em que consumi</label>
               {manualTime && <label className="block text-xs font-semibold">Data e hora do consumo (Acre)
                 <input type="datetime-local" required value={consumedAt} onChange={event=>setConsumedAt(event.target.value)} className="field mt-1 w-full"/>
               </label>}
-              <p className="text-[11px] text-muted-foreground">O prontuário preserva o horário do consumo e a data em que você registrou a informação.</p>
+              <p className="text-[11px] text-foreground/80">O prontuário preserva o horário do consumo e a data em que você registrou a informação.</p>
             </div>
-            <p className="rounded-lg bg-muted/60 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
+            <p className="rounded-lg border border-cyan-400/25 bg-slate-900/75 px-3 py-2 text-[11px] font-medium leading-relaxed text-slate-100 dark:bg-slate-900/85 dark:text-slate-100">
               O consumo será salvo com o horário informado (ou o horário atual) e a data do lançamento.
               {isWater
                 ? "Água e outras bebidas entram no total diário de líquidos. Este registro não confirma horários programados; não registre o mesmo copo novamente na agenda."
@@ -213,9 +213,9 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
             {error && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive">{error}</p>}
             <div className="grid grid-cols-2 gap-2">
               <button type="button" disabled={saving} onClick={closeForm}
-                className="rounded-lg border border-border px-3 py-2.5 text-xs font-semibold disabled:opacity-50">Cancelar</button>
+                className="rounded-lg border border-cyan-400/35 bg-slate-950/75 px-3 py-2.5 text-xs font-semibold text-white disabled:opacity-50">Cancelar</button>
               <button type="submit" disabled={saving}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2.5 text-xs font-extrabold text-primary-foreground disabled:opacity-50">
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-cyan-400 px-3 py-2.5 text-xs font-extrabold text-slate-950 transition hover:bg-cyan-300 disabled:opacity-50">
                 <Save size={15}/>{saving ? "Salvando..." : "Registrar agora"}
               </button>
             </div>
