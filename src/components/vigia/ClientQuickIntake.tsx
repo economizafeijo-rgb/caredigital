@@ -136,10 +136,10 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
       </div>, document.body
     )}
     {open && typeof document !== "undefined" && createPortal(
-      <div className="care-intake-modal-overlay fixed inset-0 z-[150] flex items-center justify-center overflow-y-auto bg-slate-950/75 p-3 backdrop-blur-sm"
+      <div className="care-intake-modal-overlay fixed inset-0 z-[150] flex items-center justify-center overflow-hidden bg-slate-950/75 p-3 backdrop-blur-sm"
         onMouseDown={event => { if (event.target === event.currentTarget) closeForm(); }}>
         <section role="dialog" aria-modal="true" aria-labelledby="quick-intake-title"
-          className="care-premium-intake-dialog care-intake-responsive-v2 flex max-h-[calc(100dvh-1.5rem)] w-full max-w-md min-w-0 flex-col overflow-y-auto rounded-[24px] border border-border bg-card p-4 text-card-foreground shadow-2xl sm:p-5">
+          className="care-premium-intake-dialog care-intake-responsive-v2 care-intake-oneview flex h-[min(94dvh,710px)] max-h-[94dvh] w-full max-w-[720px] min-w-0 flex-col overflow-hidden rounded-[24px] border border-border bg-card p-4 text-card-foreground shadow-2xl sm:p-5">
           <div className="care-premium-intake-header flex shrink-0 items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <span className="grid size-9 place-items-center rounded-xl bg-primary/10 text-primary">
@@ -154,7 +154,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
               className="grid size-8 place-items-center rounded-lg border border-border"><X size={18}/></button>
           </div>
           <button type="button" onClick={()=>setReportOpen(true)} className="mt-3 inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-teal-400/40 bg-teal-400/10 px-3 py-2.5 text-xs font-extrabold text-teal-100 hover:bg-teal-400/20"><BarChart3 size={17}/> Relatório diário, mensal e anual</button>
-          <form className="mt-3 grid min-h-0 gap-2.5" onSubmit={event => void save(event)}>
+          <form className="care-intake-oneview-form mt-2 grid min-h-0 flex-1 content-start gap-2 overflow-y-auto overscroll-contain pr-1" onSubmit={event => void save(event)}>
             {mode==="all"&&<div role="group" aria-label="Selecionar tipo de consumo" className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-muted/35 p-1">
               <button type="button" aria-pressed={group==="food"}
                 onClick={()=>{setGroup("food");setKind("almoco");setDescription("");setPortion("");setError("");}}
