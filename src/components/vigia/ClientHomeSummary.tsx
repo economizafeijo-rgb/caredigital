@@ -13,7 +13,7 @@ import { canConfirmCare, careScheduleBlockMessage } from "@/lib/care-schedule";
 type Care = {id:string;title:string;category:string;scheduled_at:string;completed_at:string|null};
 type WaterEntry = {id:string;task_id:string|null;amount_ml:number;recorded_at:string};
 type BeverageEntry = {id:string;kind:string;name:string;amount_ml:number;consumed_at:string};
-type MealEntry = {id:string;recorded_at:string;details:{title?:string;description?:string;kind?:string}|null};
+type MealEntry = {id:string;recorded_at:string;details:{title?:string;description?:string;kind?:string;linked_task_id?:string;superseded?:boolean}|null};
 type AgendaRow = {key:string;at:string;title:string;subtitle:string;category:"medicacao"|"hidratacao"|"refeicao";task:Care|null;completed:boolean;resolved:boolean;overdue:boolean;amountMl?:number;consumptionType?:string};
 type Person = {id:string;owner_id:string;full_name:string;height_cm:number|null;weight_kg:number|null;care_goal:string|null};
 type WellnessProfile={weight_kg:number|null;age:number|null;activity_minutes:number;fluid_restriction:boolean;target_ml:number|null;objective:string|null;protein:number|null;carbs:number|null;fat:number|null;kcal:number|null;gastritis_sensitive:boolean};
@@ -194,29 +194,10 @@ export function ClientHomeSummary(){
     setExtraError([waterEntries.error&&"água",beverages.error&&"bebidas",mealEntries.error&&"refeições"].filter(Boolean).join(", "));
     setError("");
  })();return()=>{active=false}},[revision,refresh]);
- // Se uma refeição já foi registrada no diário, o mesmo horário planejado
- // não reaparece como uma segunda refeição pendente. Mantém a tarefa original
- // intacta no servidor e preserva o consumo real em seu histórico.
- const loggedMealsByKind=new Map<string,string>();
- for(const meal of extraMeals){
-   const rawKind=meal.details?.kind ?? "";
-   const kind=rawKind === "refeicao" ? plannedMealKind(meal.details?.title ?? "") : rawKind;
-   if(kind&&["jantar","almoco","cafe_manha","ceia"].includes(kind)){
-     const previous=loggedMealsByKind.get(kind);
-     if(!previous || Date.parse(meal.recorded_at)>Date.parse(previous)){
-       loggedMealsByKind.set(kind,meal.recorded_at);
-     }
-   }
- }
- const matchedMealIds=new Set(tasks.filter(task=>
-   task.category==="refeicao"&&!task.completed_at&&!resolvedStates[task.id]&&
-   Boolean(plannedMealKind(task.title)&&loggedMealsByKind.has(plannedMealKind(task.title)!))
- ).map(task=>task.id));
- const summaryTasks=tasks.map(task=>{
-   if(!matchedMealIds.has(task.id))return task;
-   const kind=plannedMealKind(task.title);
-   return {...task,completed_at:(kind&&loggedMealsByKind.get(kind))||task.completed_at};
- });
+ // A agenda deve refletir exclusivamente o estado confirmado no Supabase.
+ // Não simular conclusão por correspondência de título: a classificação real
+ // e a remarcação agora são feitas no banco, de forma auditável.
+ const summaryTasks=tasks;
  const pending=summaryTasks.filter(t=>!t.completed_at&&!resolvedStates[t.id]);
  const next=now?pending.filter(t=>new Date(t.scheduled_at).getTime()>=now.getTime())[0]??pending[0]:pending[0];
  const seconds=next&&now?Math.max(0,Math.round((new Date(next.scheduled_at).getTime()-now.getTime())/1000)):null;
@@ -259,12 +240,12 @@ export function ClientHomeSummary(){
  }
  const knownTaskIds=new Set(tasks.map(task=>task.id));
  const agendaItems:AgendaRow[]=[
-   ...tasks.map(task=>{const matched=matchedMealIds.has(task.id);const resolved=resolvedStates[task.id];const completed=Boolean(task.completed_at)||matched;const overdue=Boolean(now&&!completed&&!resolved&&Date.parse(task.scheduled_at)<now.getTime());return {
-     key:"task:"+task.id,at:task.completed_at??(matched?(loggedMealsByKind.get(plannedMealKind(task.title)!)??task.scheduled_at):task.scheduled_at),title:task.title,category:task.category as AgendaRow["category"],task:matched?null:task,
+   ...tasks.map(task=>{const resolved=resolvedStates[task.id];const completed=Boolean(task.completed_at);const overdue=Boolean(now&&!completed&&!resolved&&Date.parse(task.scheduled_at)<now.getTime());return {
+     key:"task:"+task.id,at:task.completed_at??task.scheduled_at,title:task.title,category:task.category as AgendaRow["category"],task,
      completed,resolved:Boolean(resolved),overdue,
       amountMl:task.category==="hidratacao"&&task.completed_at?waterByTask.get(task.id)?.amount_ml:undefined,
       consumptionType:task.category==="hidratacao"?"Água":undefined,
-     subtitle:(matched?"Registrado no diário":completed?"Realizado no horário informado":resolved==="cancelado"?"Cancelado":resolved==="nao_cumprido"?"Não realizado":resolved==="nao_bebi"?"Não bebi":overdue?"Aguardando confirmação":"Programado")+" · "+labelFor(task.category)
+     subtitle:(completed?"Realizado no horário informado":resolved==="cancelado"?"Cancelado":resolved==="nao_cumprido"?"Não realizado":resolved==="nao_bebi"?"Não bebi":overdue?"Aguardando confirmação":"Programado")+" · "+labelFor(task.category)
        +(!completed&&!resolved&&task.category==="hidratacao"&&hydrationPlan[task.id]?.suggested_ml>0?" · sug. "+hydrationPlan[task.id].suggested_ml+" ml":"")
    };}),
    ...extraWater.filter(item=>!item.task_id||!knownTaskIds.has(item.task_id)).map(item=>({
@@ -275,7 +256,7 @@ export function ClientHomeSummary(){
      key:"beverage:"+item.id,at:item.consumed_at,title:(item.name||"Bebida")+" · "+item.amount_ml+" ml",
      category:"hidratacao" as const,task:null,completed:true,resolved:false,overdue:false,amountMl:item.amount_ml,consumptionType:item.name||"Bebida",subtitle:"Consumo realizado · Bebida"
    })),
-   ...extraMeals.filter(item=>!(item.details as any)?.superseded).filter(item=>!matchedMealIds.size || !matchedMealIds.has(tasks.find(task=>task.category==="refeicao" && plannedMealKind(task.title)===item.details?.kind && loggedMealsByKind.get(item.details?.kind??"")===item.recorded_at)?.id??"")).map(item=>({
+   ...extraMeals.filter(item=>!item.details?.superseded && !(item.details?.linked_task_id && tasks.some(task=>task.id===item.details?.linked_task_id && Boolean(task.completed_at)))).map(item=>({
      key:"meal:"+item.id,at:item.recorded_at,title:item.details?.title||"Refeição registrada",
      category:"refeicao" as const,task:null,completed:true,resolved:false,overdue:false,
      subtitle:item.details?.description?"Registrado · "+item.details.description:"Consumo realizado · Refeição"
