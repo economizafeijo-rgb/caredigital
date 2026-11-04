@@ -182,7 +182,7 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
     if(!task||!details||details.category!=="refeicao"||details.completed_at||saving||!canConfirmCare(details)||!resolutionReady||resolution)return;
     const description=mealDescription.trim();
     if(description.length<3||description.length>900){setError("Informe os alimentos consumidos (3 a 900 caracteres).");return;}
-    if(!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(mealTime)){setError("Informe um horário válido.");return;}
+    if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(mealTime)){setError("Informe um horário válido.");return;}
     const scheduledDay=acreDay(new Date(details.scheduled_at));
     const actual=new Date(scheduledDay+"T"+mealTime+":00-05:00");
     if(!Number.isFinite(actual.getTime())||actual.getTime()>Date.now()){setError("Esse horário ainda não ocorreu no Acre. Confira a hora informada.");return;}
@@ -204,7 +204,7 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
     if(!task||!details||details.category!=="refeicao"||!details.completed_at||saving)return;
     const description=mealDescription.trim();
     if(description.length<3||description.length>900){setError("Descreva o que foi consumido (3 a 900 caracteres).");return;}
-    if(!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(mealTime)){setError("Informe um horário válido no Acre.");return;}
+    if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(mealTime)){setError("Informe um horário válido no Acre.");return;}
     const dateAcre=acreDay(new Date(details.completed_at));
     const consumedAt=new Date(dateAcre+"T"+mealTime+":00-05:00");
     if(!Number.isFinite(consumedAt.getTime())||consumedAt.getTime()>Date.now()){setError("O horário informado não pode estar no futuro.");return;}
