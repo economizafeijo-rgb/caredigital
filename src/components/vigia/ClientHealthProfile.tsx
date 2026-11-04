@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Activity, Save, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { estimateActivityFactor, estimateObjectiveNutrition } from "@/lib/objective-nutrition";
+import { estimateActivityFactor } from "@/lib/objective-nutrition";
 import { ClientBodyHistory } from "./ClientBodyHistory";
 
 type Props={
@@ -43,7 +43,6 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
  const suggestedProtein=currentKg>0?Math.round(currentKg*selectedGoal.protein):null;
  const suggestedFat=currentKg>0?Math.round(currentKg*selectedGoal.fat):null;
  const suggestedCarbs=currentKg>0?Math.round(currentKg*selectedGoal.carbs):null;
- const energyEstimate=estimateObjectiveNutrition({weight:currentKg>0?currentKg:null,age:Number(age)||null,heightCm:initial.height,sex:null,objective,activityFactor});
  const suggestedKcal=suggestedProtein!==null&&suggestedCarbs!==null&&suggestedFat!==null?suggestedProtein*4+suggestedCarbs*4+suggestedFat*9:null;
  const previewProtein=Number(protein.replace(",","."))||null;
  const previewCarbs=Number(carbs.replace(",","."))||null;
