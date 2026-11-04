@@ -17,11 +17,18 @@ const goals=[
 export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:Props){
  const [weight,setWeight]=useState(initial.weight?.toString()??"");
  const [age,setAge]=useState(initial.age?.toString()??"");
+ const [targetWeight,setTargetWeight]=useState("");
+ const [targetLoading,setTargetLoading]=useState(true);
  const [objective,setObjective]=useState(goals.some(([v])=>v===initial.objective)?initial.objective!:"equilibrio");
  const [protein,setProtein]=useState(initial.protein?.toString()??"");
  const [carbs,setCarbs]=useState(initial.carbs?.toString()??"");
  const [fat,setFat]=useState(initial.fat?.toString()??"");
  const [kcal,setKcal]=useState(initial.kcal?.toString()??"");
+ const currentKg=Number(weight.replace(",","."));
+ const goalKg=Number(targetWeight.replace(",","."));
+ const weightGap=Number.isFinite(currentKg)&&currentKg>0&&Number.isFinite(goalKg)&&goalKg>0?goalKg-currentKg:null;
+ const currentBmi=initial.height&&currentKg>0?currentKg/((initial.height/100)**2):null;
+ const targetBmi=initial.height&&goalKg>0?goalKg/((initial.height/100)**2):null;
  const previewProtein=Number(protein.replace(",","."))||null;
  const previewCarbs=Number(carbs.replace(",","."))||null;
  const previewFat=Number(fat.replace(",","."))||null;
@@ -33,6 +40,17 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
  const [confirmMismatch,setConfirmMismatch]=useState(false);
  const [message,setMessage]=useState("");
  useEffect(()=>{setWeight(initial.weight?.toString()??"");setAge(initial.age?.toString()??"");setObjective(goals.some(([v])=>v===initial.objective)?initial.objective!:"equilibrio");setProtein(initial.protein?.toString()??"");setCarbs(initial.carbs?.toString()??"");setFat(initial.fat?.toString()??"");setKcal(initial.kcal?.toString()??"")},[initial.weight,initial.age,initial.objective,initial.protein,initial.carbs,initial.fat,initial.kcal]);
+ useEffect(()=>{
+  let active=true;
+  setTargetLoading(true);
+  void (supabase as any).from("care_nutrition_preferences").select("target_weight_kg")
+   .eq("patient_id",patientId).eq("owner_id",ownerId).maybeSingle()
+   .then(({data,error}:any)=>{if(!active)return;setTargetLoading(false);
+    if(error)setMessage("Não foi possível consultar o objetivo de peso.");
+    else setTargetWeight(data?.target_weight_kg?.toString()??"");
+   });
+  return()=>{active=false};
+ },[patientId,ownerId]);
  const parse=(s:string,min:number,max:number)=>{
   if(!s.trim())return null;
   const n=Number(s.replace(",","."));
@@ -42,9 +60,9 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
  async function save(){
   if(saving)return;
   setMessage("");
-  let kg:number|null,years:number|null,p:number|null,c:number|null,f:number|null,k:number|null;
+  let kg:number|null,years:number|null,p:number|null,c:number|null,f:number|null,k:number|null,goal:number|null;
   try{
-   kg=parse(weight,30,300);years=parse(age,18,120);
+   kg=parse(weight,30,300);years=parse(age,18,120);goal=parse(targetWeight,30,300);
    p=parse(protein,1,500);c=parse(carbs,1,1200);f=parse(fat,1,350);k=parse(kcal,500,7000);
   }catch(e){setMessage(e instanceof Error?e.message:"Revise os dados.");return;}
   if(kg===null){setMessage("Informe o peso atual para atualizar seu perfil.");return;}
@@ -62,7 +80,7 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
    if(existing.error)throw Error("Não foi possível consultar as preferências atuais.");
    const nutrition=await db.from("care_nutrition_preferences").upsert({
     patient_id:patientId,owner_id:ownerId,updated_by:auth.data.user.id,updated_at:new Date().toISOString(),
-    objective,weight_kg:kg,target_protein_g:p,target_carbs_g:c,target_fat_g:f,target_kcal:k,
+    objective,weight_kg:kg,target_weight_kg:goal,target_protein_g:p,target_carbs_g:c,target_fat_g:f,target_kcal:k,
     avoided_ingredients:existing.data?.avoided_ingredients??[],
     gastritis_sensitive:existing.data?.gastritis_sensitive??false
    },{onConflict:"patient_id"});
@@ -94,6 +112,7 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
   <div className="mb-3 flex items-start justify-between gap-2"><div className="min-w-0"><h3 className="flex items-center gap-2 text-lg font-extrabold"><Activity size={19}/> Meu Perfil de Saúde</h3><p className="mt-1 text-xs text-slate-300">Dados usados nos indicadores da homepage. Metas personalizadas têm prioridade sobre estimativas.</p></div><button type="button" onClick={onClose} aria-label="Fechar perfil" className="shrink-0 rounded-lg border border-white/20 p-2"><X size={17}/></button></div>
   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
    {input("Peso atual (kg)",weight,setWeight,"Ex.: 75")}
+   {input("Objetivo de peso (kg) · opcional",targetWeight,setTargetWeight,"Ex.: 70")}
    <label className="text-xs font-semibold text-slate-100">Altura cadastrada (cm)<div className="mt-1 flex min-h-10 items-center rounded-lg border border-white/15 bg-slate-900/40 px-3 text-sm">{initial.height??"Não informada"}</div><small className="text-slate-300">Alteração pelo cadastro do prontuário.</small></label>
    {input("Idade (anos)",age,setAge,"Ex.: 30")}
    <label className="text-xs font-semibold text-slate-100">Objetivo alimentar<select value={objective} onChange={e=>{setObjective(e.target.value);setConfirmMismatch(false);}} className="mt-1 block min-h-10 w-full min-w-0 rounded-lg border border-white/20 bg-slate-900 px-2 text-base text-white">{goals.map(([v,label])=><option key={v} value={v}>{label}</option>)}</select></label>
@@ -101,6 +120,13 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
    {input("Meta de carboidratos (g/dia) · opcional",carbs,setCarbs,"Automática")}
    {input("Meta de gorduras (g/dia) · opcional",fat,setFat,"Automática")}
    {input("Meta energética (kcal/dia) · opcional",kcal,setKcal,"Não definida")}
+  </div>
+  <div className="mt-3 rounded-xl border border-teal-300/25 bg-slate-950/35 p-3" aria-label="Métricas de peso corporal">
+   <div className="flex flex-wrap items-center justify-between gap-2"><strong className="text-sm">Peso e evolução corporal</strong><span className="text-xs text-slate-300">{targetLoading?"Carregando objetivo…":weightGap===null?"Informe seu objetivo de peso":Math.abs(weightGap)<0.05?"Objetivo atingido":`${Math.abs(weightGap).toFixed(1).replace(".",",")} kg ${weightGap<0?"para reduzir":"para ganhar"}`}</span></div>
+   <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+    {([["Peso atual",currentKg>0?`${currentKg.toLocaleString("pt-BR")} kg`:"—"],["Peso desejado",goalKg>0?`${goalKg.toLocaleString("pt-BR")} kg`:"—"],["IMC atual",currentBmi?.toFixed(1).replace(".",",")??"—"],["IMC no objetivo",targetBmi?.toFixed(1).replace(".",",")??"—"]] as const).map(([label,value])=><div key={label} className="rounded-lg border border-white/10 bg-white/5 p-2"><span className="block text-[11px] text-slate-300">{label}</span><strong className="mt-1 block text-base">{value}</strong></div>)}
+   </div>
+   <p className="mt-2 text-xs leading-relaxed text-slate-300">O objetivo é uma referência pessoal, não uma recomendação clínica. O IMC é um indicador limitado e não avalia composição corporal.</p>
   </div>
   <div className="mt-3 rounded-xl border border-white/15 bg-slate-950/35 p-3" aria-label="Conferência das metas nutricionais">
    <div className="flex flex-wrap items-center justify-between gap-2"><strong className="text-sm">Conferência das metas</strong><span className="text-xs text-slate-300">{previewTotal!==null?previewTotal.toLocaleString("pt-BR")+" kcal pelos macros":"Preencha os três macros para calcular a energia"}</span></div>
