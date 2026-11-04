@@ -56,7 +56,10 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
    const hydration=await db.from("care_hydration_profiles").select("patient_id").eq("patient_id",patientId).eq("owner_id",ownerId).maybeSingle();
    if(hydration.error)throw Error("Metas nutricionais salvas, mas não foi possível consultar a hidratação.");
    if(hydration.data){
-    const updated=await db.from("care_hydration_profiles").update({weight_kg:kg,age:years}).eq("patient_id",patientId).eq("owner_id",ownerId);
+    const patch:Record<string,number>={};
+    if(kg!==null)patch.weight_kg=kg;
+    if(years!==null)patch.age=years;
+    const updated=Object.keys(patch).length?await db.from("care_hydration_profiles").update(patch).eq("patient_id",patientId).eq("owner_id",ownerId):{error:null};
     if(updated.error)throw Error("Metas nutricionais salvas, mas idade e peso da hidratação não foram atualizados.");
    }else if(years!==null){
     setMessage("Metas salvas. Para registrar a idade, configure também o perfil de hidratação.");
