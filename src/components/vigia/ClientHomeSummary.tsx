@@ -97,7 +97,6 @@ export function ClientHomeSummary(){
   },[agendaDetail,extraMeals]);
 
  const [agendaCategory,setAgendaCategory]=useState<"todos"|"hidratacao"|"refeicao"|"medicacao">("todos");
- const [recentHistoryCategory,setRecentHistoryCategory]=useState<"hidratacao"|"refeicao"|"medicacao"|null>(null);
  const [timelineView,setTimelineView]=useState<"agenda"|"historico">("agenda");
  const [agendaPage,setAgendaPage]=useState(0);
  const agendaPageSize=6;
@@ -359,7 +358,7 @@ export function ClientHomeSummary(){
     <img src="/images/care-next-wellness.svg" alt="" aria-hidden="true" className="hidden h-[42px] w-[90px] shrink-0 object-contain opacity-65 lg:block" loading="lazy"/>
   </div>
   {patient&&wellness&&<div className="relative z-10 flex justify-end"><button type="button" onClick={()=>setShowHealthProfile(v=>!v)} className="rounded-lg border border-teal-300/40 bg-teal-900/60 px-3 py-1.5 text-xs font-bold text-teal-100 hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300">{showHealthProfile?"Ocultar perfil":"Editar meu perfil de saúde"}</button></div>}
-  {patient&&wellness&&showHealthProfile&&<ClientHealthProfile patientId={patient.id} ownerId={patient.owner_id} initial={{weight:wellness.weight_kg,height:patient.height_cm,age:wellness.age,objective:wellness.objective,protein:wellness.protein,carbs:wellness.carbs,fat:wellness.fat,kcal:wellness.kcal}} onClose={()=>setShowHealthProfile(false)} onSaved={()=>setRevision(v=>v+1)}/>}
+  {patient&&wellness&&showHealthProfile&&<div className="care-health-profile-overlay fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/80 p-3 backdrop-blur-sm" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget)setShowHealthProfile(false)}}><div className="w-full max-w-[1000px] max-h-[90dvh] overflow-y-auto overscroll-contain rounded-2xl" role="dialog" aria-modal="true" aria-label="Painel completo de saúde do cliente"><ClientHealthProfile patientId={patient.id} ownerId={patient.owner_id} initial={{weight:wellness.weight_kg,height:patient.height_cm,age:wellness.age,objective:wellness.objective,protein:wellness.protein,carbs:wellness.carbs,fat:wellness.fat,kcal:wellness.kcal}} onClose={()=>setShowHealthProfile(false)} onSaved={()=>setRevision(v=>v+1)}/></div></div>}
   {wellness&&<section className="care-wellness-insights relative z-10" aria-label="Indicadores e orientações de saúde e nutrição">
     {(()=>{
       const weight=wellness.weight_kg;
@@ -493,9 +492,9 @@ export function ClientHomeSummary(){
       </article>
       <CareProgressVisual tasks={summaryTasks} goal={dailyGoal}
         alertCategories={Array.from(new Set(attentionItems.map(task=>task.category))) as Array<"hidratacao"|"refeicao"|"medicacao">}
-        onHydration={()=>{setRecentHistoryCategory("hidratacao");openHydrationCard();}} onFood={()=>{setRecentHistoryCategory("refeicao");openFoodCard();}}
-        onMedication={()=>{setRecentHistoryCategory("medicacao");openMedicationCard();}} onOpen={task=>{setDetailTask(task);setError("");}}/>
-      {patient&&recentHistoryCategory&&<CareRecentHistory patientId={patient.id} ownerId={patient.owner_id} category={recentHistoryCategory} onClose={()=>setRecentHistoryCategory(null)}/>}
+        onHydration={()=>{setAgendaCategory("hidratacao");setTimelineView("historico");openHydrationCard();}} onFood={()=>{setAgendaCategory("refeicao");setTimelineView("historico");openFoodCard();}}
+        onMedication={()=>{setAgendaCategory("medicacao");setTimelineView("historico");openMedicationCard();}} onOpen={task=>{setDetailTask(task);setError("");}}/>
+      
       <div className="patient-progress care-premium-progress flex flex-wrap items-center gap-1.5 text-[10px] text-slate-300"><Check size={14} className="text-emerald-300"/>{finished} de {summaryTasks.length} cuidados concluídos
         {dailyGoal?.status==="atingida"&&<span title={`Hidratação: ${dailyGoal.consumed_ml} de ${dailyGoal.target_ml} ml até 23h.`} className="inline-flex items-center gap-1 rounded-md border border-emerald-300/25 bg-emerald-400/10 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-200"><Droplets size={11}/> Meta de água atingida</span>}
         {dailyGoal?.status==="nao_atingida"&&<span title={`Hidratação: ${dailyGoal.consumed_ml} de ${dailyGoal.target_ml} ml até 23h.`} className="inline-flex items-center gap-1 rounded-md border border-amber-300/25 bg-amber-400/10 px-1.5 py-0.5 text-[9px] font-semibold text-amber-200"><Droplets size={11}/> Meta não atingida · 23h</span>}
