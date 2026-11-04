@@ -35,6 +35,9 @@ type Props = {
   onConfirm?: (task: CareTaskRecord) => void;
 };
 
+const acreDay=(date:Date)=>new Intl.DateTimeFormat("en-CA",{timeZone:"America/Rio_Branco",year:"numeric",month:"2-digit",day:"2-digit"}).format(date);
+const acreTime=()=>new Intl.DateTimeFormat("en-GB",{timeZone:"America/Rio_Branco",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(new Date());
+
 const stamp = (date: string) => new Intl.DateTimeFormat("pt-BR", {
   timeZone: "America/Rio_Branco",
   day: "2-digit", month: "2-digit", year: "numeric",
@@ -108,7 +111,7 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
         setAmount(String(response.data.amount_ml ?? ""));
         setMealDescription(response.data.description ?? "");
         const mealStamp=response.data.completed_at ?? response.data.scheduled_at;
-        setMealTime(new Intl.DateTimeFormat("en-GB",{timeZone:"America/Rio_Branco",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(new Date(mealStamp)));
+        setMealTime(response.data.completed_at ? new Intl.DateTimeFormat("en-GB",{timeZone:"America/Rio_Branco",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(new Date(mealStamp)) : acreTime());
       } else {
         setError("Registro não encontrado no prontuário.");
       }
@@ -172,6 +175,29 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
     } finally {
       setSaving(false);
     }
+  }
+
+  async function confirmPendingMeal(event:FormEvent<HTMLFormElement>){
+    event.preventDefault();
+    if(!task||!details||details.category!=="refeicao"||details.completed_at||saving||!canConfirmCare(details)||!resolutionReady||resolution)return;
+    const description=mealDescription.trim();
+    if(description.length<3||description.length>900){setError("Informe os alimentos consumidos (3 a 900 caracteres).");return;}
+    if(!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(mealTime)){setError("Informe um horário válido.");return;}
+    const scheduledDay=acreDay(new Date(details.scheduled_at));
+    if(scheduledDay!==acreDay(new Date())){setError("A confirmação nesta tela está disponível apenas para refeições programadas para hoje.");return;}
+    const actual=new Date(scheduledDay+"T"+mealTime+":00-05:00");
+    if(!Number.isFinite(actual.getTime())||actual.getTime()>Date.now()){setError("Informe um horário que já ocorreu.");return;}
+    setSaving(true);setError("");setSuccess("");
+    try{
+      const response=await (supabase as any).rpc("care_replace_meal",{p_task_id:task.id,p_description:description,p_consumed_at:actual.toISOString()});
+      if(response.error)throw response.error;
+      const verified=await (supabase as any).rpc("care_get_task_record",{p_task_id:task.id});
+      if(verified.error||!verified.data||verified.data.task_id!==task.id)throw new Error("Registro enviado, mas não foi possível conferir a confirmação. Consulte o prontuário antes de repetir.");
+      const saved=verified.data as TaskDetails;
+      if(!saved.completed_at||saved.description?.trim()!==description||Math.abs(Date.parse(saved.completed_at)-actual.getTime())>61000)throw new Error("O servidor não confirmou os dados informados. Consulte o prontuário antes de repetir.");
+      setDetails(saved);setSuccess("Refeição confirmada com os alimentos e o horário informados.");onSaved?.();
+    }catch(failure){setError(failure instanceof Error?failure.message:"Não foi possível confirmar a refeição.");}
+    finally{setSaving(false);}
   }
 
   async function saveMealCorrection(event:FormEvent<HTMLFormElement>){
@@ -281,6 +307,8 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
             {details.last_corrected_at && row("Última correção (Acre)", stamp(details.last_corrected_at))}
           </dl>}
 
+        {details?.category==="refeicao"&&!details.completed_at&&resolutionReady&&!resolution&&canConfirmCare(details)&&<form onSubmit={event=>void confirmPendingMeal(event)} className="mt-3 space-y-3 rounded-2xl border border-primary/30 bg-primary/[.045] p-4"><div><p className="text-sm font-extrabold">Informar consumo antes de confirmar</p><p className="mt-1 text-xs text-muted-foreground">Preencha os alimentos e o horário em que realmente comeu. Nada será registrado até selecionar Confirmar refeição.</p></div><label className="block text-xs font-semibold">O que você consumiu?<textarea required minLength={3} maxLength={900} rows={3} value={mealDescription} onChange={event=>setMealDescription(event.target.value)} placeholder="Ex.: pão, ovo, banana e café; inclua as quantidades se desejar." className="mt-1 w-full resize-y rounded-xl border border-border bg-background p-3 text-sm text-foreground"/></label><label className="block text-xs font-semibold">Horário real da refeição · Acre<input required type="time" value={mealTime} onChange={event=>setMealTime(event.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background p-3 text-sm text-foreground"/></label><button type="submit" disabled={saving||mealDescription.trim().length<3||!mealTime} className="min-h-11 w-full rounded-xl bg-primary px-4 py-2 text-sm font-extrabold text-primary-foreground disabled:opacity-50">{saving?"Confirmando…":"Confirmar refeição com estes dados"}</button></form>}
+
         {details?.category==="refeicao"&&details.completed_at&&!editingMeal&&<button type="button" onClick={()=>{setEditingMeal(true);setError("");setSuccess("");}} className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-xl border border-primary/35 bg-primary/10 px-3 text-xs font-bold text-primary transition hover:bg-primary/15"><Pencil size={15}/> Editar alimentos e horário real</button>}
         {editingMeal&&details?.category==="refeicao"&&details.completed_at&&<form onSubmit={event=>void saveMealCorrection(event)} className="mt-3 space-y-3 rounded-2xl border border-primary/25 bg-muted/20 p-4"><p className="text-sm font-extrabold">Corrigir refeição registrada</p><label className="block text-xs font-semibold">O que foi consumido?<textarea required minLength={3} maxLength={900} rows={3} value={mealDescription} onChange={event=>setMealDescription(event.target.value)} className="mt-1 w-full resize-y rounded-xl border border-border bg-background p-3 text-sm text-foreground" placeholder="Alimentos, bebidas e quantidades consumidas"/></label><label className="block text-xs font-semibold">Horário real do consumo · Acre<input required type="time" value={mealTime} onChange={event=>setMealTime(event.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background p-3 text-sm text-foreground"/></label><p className="text-[11px] leading-relaxed text-muted-foreground">A data da refeição é mantida. O horário planejado não será modificado.</p><div className="grid grid-cols-2 gap-2"><button type="button" disabled={saving} onClick={()=>{setEditingMeal(false);setError("");}} className="rounded-xl border border-border px-3 py-2 text-xs font-semibold">Cancelar</button><button type="submit" disabled={saving||mealDescription.trim().length<3||!mealTime} className="rounded-xl bg-primary px-3 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50">{saving?"Salvando…":"Salvar alterações"}</button></div></form>}
 
@@ -347,7 +375,7 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
             className="min-h-10 min-w-[125px] flex-1 rounded-lg border border-amber-500/40 bg-amber-500/10 px-2 py-2.5 text-xs font-bold text-foreground hover:bg-amber-500/20">
             {decisionSaving?"Corrigindo…":"Desfazer “Não bebi”"}
           </button>}
-          {canConfirm&&onConfirm&&!confirmNo&&<button type="button" disabled={saving||decisionSaving}
+          {canConfirm&&onConfirm&&!confirmNo&&details?.category!=="refeicao"&&<button type="button" disabled={saving||decisionSaving}
             onClick={()=>{onClose();onConfirm(task);}}
             className="min-h-10 min-w-[110px] flex-1 rounded-lg bg-primary px-2.5 py-2.5 text-xs font-bold text-primary-foreground">
             {details?.category==="hidratacao"?"Bebi água":"Confirmar agora"}
