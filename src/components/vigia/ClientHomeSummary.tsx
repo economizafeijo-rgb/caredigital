@@ -43,24 +43,6 @@ export function ClientHomeSummary(){
   const [agendaDetail,setAgendaDetail]=useState<AgendaRow|null>(null);
   const [agendaMealDescription,setAgendaMealDescription]=useState<string|null>(null);
   const [agendaMealLoading,setAgendaMealLoading]=useState(false);
-  useEffect(()=>{
-    if(!agendaDetail||agendaDetail.category!=="refeicao"){
-      setAgendaMealDescription(null);setAgendaMealLoading(false);return;
-    }
-    const current=agendaDetail;
-    const localMeal=current.key.startsWith("meal:")?
-      extraMeals.find(item=>"meal:"+item.id===current.key)?.details?.description?.trim():null;
-    if(localMeal){setAgendaMealDescription(localMeal);setAgendaMealLoading(false);return;}
-    if(!current.task?.id){setAgendaMealDescription(null);setAgendaMealLoading(false);return;}
-    let active=true;
-    setAgendaMealDescription(null);
-    setAgendaMealLoading(true);
-    void (supabase as any).from("care_meal_details").select("description")
-      .eq("task_id",current.task.id).maybeSingle().then((result:any)=>{
-        if(active){setAgendaMealDescription(typeof result.data?.description==="string"?result.data.description.trim()||null:null);setAgendaMealLoading(false);}
-      },()=>{if(active){setAgendaMealDescription(null);setAgendaMealLoading(false);}});
-    return()=>{active=false};
-  },[agendaDetail,extraMeals]);
 
  const [now,setNow]=useState<Date|null>(null);
  const [water,setWater]=useState(200);
@@ -80,6 +62,25 @@ export function ClientHomeSummary(){
  const [extraBeverages,setExtraBeverages]=useState<BeverageEntry[]>([]);
  const [extraMeals,setExtraMeals]=useState<MealEntry[]>([]);
  const [extraError,setExtraError]=useState("");
+  useEffect(()=>{
+    if(!agendaDetail||agendaDetail.category!=="refeicao"){
+      setAgendaMealDescription(null);setAgendaMealLoading(false);return;
+    }
+    const current=agendaDetail;
+    const localMeal=current.key.startsWith("meal:")?
+      extraMeals.find(item=>"meal:"+item.id===current.key)?.details?.description?.trim():null;
+    if(localMeal){setAgendaMealDescription(localMeal);setAgendaMealLoading(false);return;}
+    if(!current.task?.id){setAgendaMealDescription(null);setAgendaMealLoading(false);return;}
+    let active=true;
+    setAgendaMealDescription(null);
+    setAgendaMealLoading(true);
+    void (supabase as any).from("care_meal_details").select("description")
+      .eq("task_id",current.task.id).maybeSingle().then((result:any)=>{
+        if(active){setAgendaMealDescription(typeof result.data?.description==="string"?result.data.description.trim()||null:null);setAgendaMealLoading(false);}
+      },()=>{if(active){setAgendaMealDescription(null);setAgendaMealLoading(false);}});
+    return()=>{active=false};
+  },[agendaDetail,extraMeals]);
+
  const [agendaCategory,setAgendaCategory]=useState<"todos"|"hidratacao"|"refeicao"|"medicacao">("todos");
  const [agendaPage,setAgendaPage]=useState(0);
  const agendaPageSize=6;
