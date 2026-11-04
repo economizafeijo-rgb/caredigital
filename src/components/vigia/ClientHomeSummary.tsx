@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CareReminderBeacon } from "./CareReminderBeacon";
 import { CareProgressVisual } from "./CareProgressVisual";
 import { ClientHealthProfile } from "./ClientHealthProfile";
+import { CareRecentHistory } from "./CareRecentHistory";
 import { ClientQuickIntake } from "./ClientQuickIntake";
 import { CareTaskRecordModal } from "./CareTaskRecordModal";
 import type { HydrationGoalSnapshot } from "@/lib/hydration-goal";
@@ -96,6 +97,8 @@ export function ClientHomeSummary(){
   },[agendaDetail,extraMeals]);
 
  const [agendaCategory,setAgendaCategory]=useState<"todos"|"hidratacao"|"refeicao"|"medicacao">("todos");
+ const [recentHistoryCategory,setRecentHistoryCategory]=useState<"hidratacao"|"refeicao"|"medicacao"|null>(null);
+ const [timelineView,setTimelineView]=useState<"agenda"|"historico">("agenda");
  const [agendaPage,setAgendaPage]=useState(0);
  const agendaPageSize=6;
  const agendaScrollRef=useRef<HTMLDivElement|null>(null);
@@ -490,8 +493,9 @@ export function ClientHomeSummary(){
       </article>
       <CareProgressVisual tasks={summaryTasks} goal={dailyGoal}
         alertCategories={Array.from(new Set(attentionItems.map(task=>task.category))) as Array<"hidratacao"|"refeicao"|"medicacao">}
-        onHydration={openHydrationCard} onFood={openFoodCard}
-        onMedication={openMedicationCard} onOpen={task=>{setDetailTask(task);setError("");}}/>
+        onHydration={()=>{setRecentHistoryCategory("hidratacao");openHydrationCard();}} onFood={()=>{setRecentHistoryCategory("refeicao");openFoodCard();}}
+        onMedication={()=>{setRecentHistoryCategory("medicacao");openMedicationCard();}} onOpen={task=>{setDetailTask(task);setError("");}}/>
+      {patient&&recentHistoryCategory&&<CareRecentHistory patientId={patient.id} ownerId={patient.owner_id} category={recentHistoryCategory} onClose={()=>setRecentHistoryCategory(null)}/>}
       <div className="patient-progress care-premium-progress flex flex-wrap items-center gap-1.5 text-[10px] text-slate-300"><Check size={14} className="text-emerald-300"/>{finished} de {summaryTasks.length} cuidados concluídos
         {dailyGoal?.status==="atingida"&&<span title={`Hidratação: ${dailyGoal.consumed_ml} de ${dailyGoal.target_ml} ml até 23h.`} className="inline-flex items-center gap-1 rounded-md border border-emerald-300/25 bg-emerald-400/10 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-200"><Droplets size={11}/> Meta de água atingida</span>}
         {dailyGoal?.status==="nao_atingida"&&<span title={`Hidratação: ${dailyGoal.consumed_ml} de ${dailyGoal.target_ml} ml até 23h.`} className="inline-flex items-center gap-1 rounded-md border border-amber-300/25 bg-amber-400/10 px-1.5 py-0.5 text-[9px] font-semibold text-amber-200"><Droplets size={11}/> Meta não atingida · 23h</span>}
@@ -503,6 +507,12 @@ export function ClientHomeSummary(){
           className="care-timeline-generated-art" draggable={false}/>
       </div>
       <div className="relative z-10 flex shrink-0 items-center justify-between gap-2 border-b border-white/10 pb-2"><div><p className="care-timeline-eyebrow text-[10px] font-extrabold uppercase tracking-widest">Linha do tempo</p><h3 className="mt-0.5 text-lg font-extrabold tracking-tight">Agenda de hoje</h3></div><span className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-2 py-1 text-[10px] text-slate-200"><ListChecks size={13}/>{agendaItems.length} registros</span></div>
+      <div className="care-timeline-view-switch relative z-10 mt-2" role="group" aria-label="Alternar agenda e histórico">
+        <button type="button" aria-pressed={timelineView==="agenda"} onClick={()=>setTimelineView("agenda")}>Agenda de hoje</button>
+        <button type="button" aria-pressed={timelineView==="historico"} onClick={()=>setTimelineView("historico")}>Histórico recente</button>
+      </div>
+      {timelineView==="historico"&&patient&&<div className="relative z-10 mt-2 min-h-0 flex-1 overflow-y-auto"><CareRecentHistory patientId={patient.id} ownerId={patient.owner_id} category={agendaCategory}/></div>}
+      {timelineView==="agenda"&&<>
       <div className="care-timeline-filters relative z-10 flex shrink-0 flex-wrap gap-1.5 pt-2" role="group" aria-label="Filtrar registros da agenda">
         {([{key:"todos",label:"Todos",count:agendaItems.length},{key:"hidratacao",label:"Líquidos",count:categoryCounts.hidratacao},{key:"refeicao",label:"Refeições",count:categoryCounts.refeicao},{key:"medicacao",label:"Medicamentos",count:categoryCounts.medicacao}] as const).map(category=><button
           key={category.key} type="button" aria-pressed={agendaCategory===category.key}
@@ -532,6 +542,7 @@ export function ClientHomeSummary(){
         <button type="button" onClick={()=>setAgendaPage(p=>Math.min(agendaPageCount-1,p+1))} disabled={agendaPage>=agendaPageCount-1} className="rounded-lg border border-white/15 px-3 py-1.5 text-xs font-semibold disabled:opacity-35">Próxima</button>
         <Link to="/cliente" hash="historico" className="care-timeline-all-link" title="Abrir a área do cliente e consultar o histórico completo">Ver todos os registros <ChevronRight size={14}/></Link>
       </nav>
+      </>}
     </div>
   </div>
   {receipt&&<div role={receipt.success?"status":"alert"} className={`fixed inset-x-3 top-16 z-[95] mx-auto flex max-w-lg items-start gap-3 rounded-2xl border p-4 text-sm font-semibold shadow-xl ${receipt.success?"border-emerald-400 bg-emerald-50 text-emerald-950 dark:bg-emerald-950 dark:text-emerald-50":"border-rose-400 bg-rose-50 text-rose-950 dark:bg-rose-950 dark:text-rose-50"}`}><span className="flex-1">{receipt.success?"✓ Registro confirmado. ":"Atenção. "}{receipt.message}</span><button aria-label="Fechar aviso" type="button" onClick={()=>setReceipt(null)}><X size={17}/></button></div>}
