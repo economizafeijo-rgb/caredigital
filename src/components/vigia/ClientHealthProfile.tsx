@@ -139,14 +139,14 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
    {input("Meta de carboidratos (g/dia) · opcional",carbs,setCarbs,"Automática")}
    {input("Meta de gorduras (g/dia) · opcional",fat,setFat,"Automática")}
    {input("Meta energética (kcal/dia) · opcional",kcal,setKcal,"Não definida")}
-  </div>
+  </div>}
   {tab==="dados"&&<div className="mt-3 rounded-xl border border-teal-300/25 bg-slate-950/35 p-3" aria-label="Métricas de peso corporal">
    <div className="flex flex-wrap items-center justify-between gap-2"><strong className="text-sm">Peso e evolução corporal</strong><span className="text-xs text-slate-300">{targetLoading?"Carregando objetivo…":weightGap===null?"Informe seu objetivo de peso":Math.abs(weightGap)<0.05?"Objetivo atingido":`${Math.abs(weightGap).toFixed(1).replace(".",",")} kg ${weightGap<0?"para reduzir":"para ganhar"}`}</span></div>
    <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
     {([["Peso atual",currentKg>0?`${currentKg.toLocaleString("pt-BR")} kg`:"—"],["Peso desejado",goalKg>0?`${goalKg.toLocaleString("pt-BR")} kg`:"—"],["IMC atual",currentBmi?.toFixed(1).replace(".",",")??"—"],["IMC no objetivo",targetBmi?.toFixed(1).replace(".",",")??"—"]] as const).map(([label,value])=><div key={label} className="rounded-lg border border-white/10 bg-white/5 p-2"><span className="block text-[11px] text-slate-300">{label}</span><strong className="mt-1 block text-base">{value}</strong></div>)}
    </div>
    <p className="mt-2 text-xs leading-relaxed text-slate-300">O objetivo é uma referência pessoal, não uma recomendação clínica. O IMC é um indicador limitado e não avalia composição corporal.</p>
-  </div>
+  </div>}
   {tab==="metas"&&<div className="mt-3 rounded-xl border border-white/15 bg-slate-950/35 p-3" aria-label="Conferência das metas nutricionais">
    <div className="flex flex-wrap items-center justify-between gap-2"><strong className="text-sm">Conferência das metas</strong><span className="text-xs text-slate-300">{previewTotal!==null?previewTotal.toLocaleString("pt-BR")+" kcal pelos macros":"Preencha os três macros para calcular a energia"}</span></div>
    {previewTotal!==null&&<div className="mt-3 flex h-2.5 w-full overflow-hidden rounded-full bg-slate-700" role="img" aria-label="Distribuição das calorias entre proteínas, carboidratos e gorduras">
@@ -156,7 +156,7 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
    </div>}
    {previewDifference!==null&&Math.abs(previewDifference)>100&&<p role="status" className="mt-2 rounded-lg border border-amber-300/40 bg-amber-400/10 p-2 text-xs text-amber-100">A soma dos macros está {Math.abs(previewDifference).toLocaleString("pt-BR")} kcal {previewDifference>0?"acima":"abaixo"} da meta energética. Confira antes de salvar.</p>}
    <p className="mt-2 text-xs text-slate-300">Prévia calculada a partir das metas digitadas; não representa consumo real.</p>
-  </div>
+  </div>}
   {tab==="metas"&&<p className="mt-3 text-xs leading-relaxed text-slate-300">Campos de metas vazios usam referências educativas. Metas calóricas e restrições de líquidos exigem avaliação individual. A altura e a prescrição de água permanecem sob controle do prontuário.</p>}
   {message&&<p role="status" className="mt-3 rounded-lg border border-teal-300/25 bg-slate-900/50 p-2 text-xs">{message}</p>}
   {tab==="historico"&&<ClientBodyHistory patientId={patientId} ownerId={ownerId} currentWeight={initial.weight} height={initial.height}/>}
