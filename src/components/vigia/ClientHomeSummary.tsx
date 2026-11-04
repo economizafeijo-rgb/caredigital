@@ -52,8 +52,39 @@ const plannedMealKind=(title:string):string|null=>{
 export function ClientHomeSummary(){
  const [patient,setPatient]=useState<Person|null>(null);
  const [wellness,setWellness]=useState<WellnessProfile|null>(null);
+ const [consumedMacros,setConsumedMacros]=useState<{kcal:number;protein:number;carbs:number;fat:number;count:number}|null>(null);
+ const [consumedError,setConsumedError]=useState(false);
+
  const [showHealthProfile,setShowHealthProfile]=useState(false);
  const [tasks,setTasks]=useState<Care[]>([]);
+ useEffect(()=>{
+  if(!patient?.id){setConsumedMacros(null);return;}
+  let active=true;
+  const today=day(new Date());
+  const start=new Date(today+"T00:00:00-05:00").toISOString();
+  const end=new Date(new Date(today+"T00:00:00-05:00").getTime()+86400000).toISOString();
+  const db=supabase as any;
+  void Promise.all([
+   db.from("care_food_consumptions").select("id,request_id,kcal,protein_g,carbs_g,fat_g").eq("patient_id",patient.id).eq("owner_id",patient.owner_id).gte("recorded_at",start).lt("recorded_at",end).limit(500),
+   db.from("care_nutrition_meal_logs").select("id,request_id,kcal,protein_g,carbs_g,fat_g").eq("patient_id",patient.id).eq("owner_id",patient.owner_id).gte("recorded_at",start).lt("recorded_at",end).limit(500)
+  ]).then(([food,meals]:any[])=>{
+   if(!active)return;
+   if(food.error||meals.error){setConsumedError(true);setConsumedMacros(null);return;}
+   const seen=new Set<string>();
+   const rows=[...(food.data??[]),...(meals.data??[])].filter((item:any)=>{
+    // Same request can be logged in both sources; avoid counting it twice.
+    const key=item.request_id?String(item.request_id):null;
+    if(key&&seen.has(key))return false;
+    if(key)seen.add(key);
+    return true;
+   });
+   const sum=(field:string)=>Math.round(rows.reduce((total:number,item:any)=>total+(Number(item[field])||0),0));
+   setConsumedMacros({kcal:sum("kcal"),protein:sum("protein_g"),carbs:sum("carbs_g"),fat:sum("fat_g"),count:rows.length});
+   setConsumedError(false);
+  }).catch(()=>{if(active){setConsumedError(true);setConsumedMacros(null);}});
+  return()=>{active=false};
+ },[patient?.id,patient?.owner_id,revision,refresh]);
+
  const [selected,setSelected]=useState<Care|null>(null);
  const [detailTask,setDetailTask]=useState<Care|null>(null);
   const [agendaDetail,setAgendaDetail]=useState<AgendaRow|null>(null);
@@ -416,6 +447,17 @@ export function ClientHomeSummary(){
           <div><span className="block text-[10px] text-teal-200">DIFERENÇA DA MANUTENÇÃO</span><strong>{objectiveEstimate.maintenance!==null&&goalKcal!==null?(goalKcal-objectiveEstimate.maintenance>0?"+":"")+(goalKcal-objectiveEstimate.maintenance).toLocaleString("pt-BR")+" kcal":"—"}</strong></div>
         </div>
         <p className="mb-2 text-[10px] text-slate-300">Estimativa educativa com atividade sedentária (×1,2). Sem meta cadastrada, usa ±10% da manutenção conforme objetivo; a atividade real e condições clínicas podem alterar a necessidade. Metas individuais têm prioridade.</p>
+        <section className="mb-2 rounded-xl border border-white/15 bg-slate-950/30 p-3" aria-label="Consumo de macronutrientes registrado hoje">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><strong className="text-xs">Consumido hoje × meta</strong><span className="text-[10px] text-slate-300">{consumedError?"Não foi possível consultar os registros":consumedMacros?consumedMacros.count+" lançamentos nutricionais":"Carregando registros"}</span></div>
+          {consumedMacros&&<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {([{label:"Proteínas",actual:consumedMacros.protein,target:protein,unit:"g"},{label:"Carboidratos",actual:consumedMacros.carbs,target:carbs,unit:"g"},{label:"Gorduras",actual:consumedMacros.fat,target:fat,unit:"g"},{label:"Energia",actual:consumedMacros.kcal,target:goalKcal,unit:"kcal"}] as const).map(metric=><div key={metric.label} className="min-w-0 rounded-lg bg-white/5 p-2">
+              <span className="block text-[10px] text-slate-300">{metric.label}</span><strong className="text-sm">{metric.actual.toLocaleString("pt-BR")} / {metric.target?.toLocaleString("pt-BR")??"—"} {metric.unit}</strong>
+              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/15"><div className="h-full rounded-full bg-teal-300" style={{width:metric.target&&metric.target>0?Math.min(100,metric.actual/metric.target*100)+"%":"0%"}}/></div>
+              <span className="text-[10px] text-slate-300">{metric.target!==null?metric.actual>=metric.target?"Meta atingida":Math.round(metric.target-metric.actual).toLocaleString("pt-BR")+" "+metric.unit+" restantes":"Meta não definida"}</span>
+            </div>)}
+          </div>}
+          <p className="mt-2 text-[10px] text-slate-300">Somente lançamentos com valores nutricionais registrados; refeições descritas sem quantificação não entram nos totais. Valores ausentes não significam consumo zero. Atualiza após novos registros.</p>
+        </section>
         <div className="care-wellness-metrics">
           <div data-health-tone={bmiTone}><span>IMC</span><strong>{bmi?bmi.toFixed(1).replace(".",","):"—"}</strong><small className="care-imc-status">{bmiStatus}</small><small>{bmi&&adult?"Classificação de referência para adultos":"Informe idade, peso e altura"}</small></div>
           <div><span>ÁGUA / DIA</span><strong>{waterGoal&&!wellness.fluid_restriction?(waterGoal/1000).toLocaleString("pt-BR",{maximumFractionDigits:2})+" L":"—"}</strong><small>{waterLabel}</small></div>
