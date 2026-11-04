@@ -6,6 +6,7 @@ import type { ReminderTask } from "@/lib/care-reminders";
 type Props={tasks:ReminderTask[];goal:HydrationGoalSnapshot|null;
   alertCategories?:Array<"hidratacao"|"refeicao"|"medicacao">;
   nowMs?:number;
+  resolvedTaskIds?:string[];
   onOpen?:(task:ReminderTask)=>void;
   onHydration?:()=>void;onFood?:()=>void;onMedication?:()=>void;
 };
@@ -87,13 +88,13 @@ function MedicationCapsule({ratio}: {ratio:number}){
   </svg>;
 }
 
-export function CareProgressVisual({tasks,goal,onOpen,onHydration,onFood,onMedication,alertCategories=[],nowMs}:Props){
+export function CareProgressVisual({tasks,goal,onOpen,onHydration,onFood,onMedication,alertCategories=[],nowMs,resolvedTaskIds=[]}:Props){
   const alertWater=alertCategories.includes("hidratacao");
   const alertFood=alertCategories.includes("refeicao");
   const alertMedicine=alertCategories.includes("medicacao");
   const urgency=(category:"hidratacao"|"refeicao"|"medicacao")=>{
     if(nowMs===undefined)return "idle";
-    const pending=tasks.filter(t=>t.category===category&&!t.completed_at);
+    const pending=tasks.filter(t=>t.category===category&&!t.completed_at&&!resolvedTaskIds.includes(t.id));
     if(pending.some(t=>Date.parse(t.scheduled_at)<=nowMs))return "due";
     if(pending.some(t=>{const remaining=Date.parse(t.scheduled_at)-nowMs;return remaining>0&&remaining<=15*60*1000;}))return "soon";
     return "idle";
