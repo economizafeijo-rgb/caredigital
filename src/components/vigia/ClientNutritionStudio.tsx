@@ -19,7 +19,7 @@ const goalOptions:{value:Goal;label:string;description:string}[]=[
 ];
 const timeLabels:Record<MealTime,string>={cafe:"Café da manhã",almoco:"Almoço",jantar:"Jantar",lanche:"Lanche"};
 const viewOptions:{key:View;label:string}[]=[
- {key:"cardapio",label:"Cardápio semanal"},{key:"receitas",label:"Receitas"},{key:"alimentos",label:"Biblioteca + macros"},{key:"proteina",label:"Proteína"}
+ {key:"alimentos",label:"Registrar refeições"},{key:"cardapio",label:"Planejamento"},{key:"receitas",label:"Receitas"},{key:"proteina",label:"Metas e proteína"}
 ];
 const week=["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"];
 const safeNumber=(n:number)=>n.toLocaleString("pt-BR",{maximumFractionDigits:1});
@@ -125,12 +125,17 @@ export function ClientNutritionStudio({patientId,ownerId,onLogged}:Props){
  return <section className="nutrition-studio care-nutrition-responsive flex h-full min-h-0 min-w-0 flex-col gap-2 text-foreground" aria-label="Cardápios e dietas com orientação educativa">
    <header className="nutrition-studio-toolbar flex shrink-0 flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-500/25 bg-gradient-to-r from-emerald-500/[.08] to-sky-500/[.05] px-3 py-2.5">
      <div className="flex min-w-0 items-center gap-2"><Leaf size={20} className="shrink-0 text-emerald-600 dark:text-emerald-300"/>
-       <div><h3 className="text-sm font-extrabold">Alimentos, cardápios e macronutrientes</h3><p className="text-[10px] text-muted-foreground">Receitas regionais, combinações de alimentos e referências nutricionais</p></div>
+       <div><h3 className="text-sm font-extrabold">Central de Nutrição</h3><p className="text-[10px] text-muted-foreground">Seu hub alimentar · registre refeições, acompanhe metas e organize seu cardápio</p></div>
      </div>
      <button type="button" disabled={!loaded||saving} onClick={()=>void save()}
        className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-[11px] font-extrabold text-primary-foreground disabled:opacity-50"><Save size={14}/>{saving?"Salvando…":"Salvar preferências"}</button>
    </header>
 
+   <div className="grid shrink-0 grid-cols-2 gap-2 lg:grid-cols-4" aria-label="Acesso rápido à nutrição">
+     {[{key:"alimentos" as View,title:"Diário alimentar",description:"Porções e consumo",icon:"🥗"},{key:"cardapio" as View,title:"Plano semanal",description:"Organize 7 dias",icon:"📅"},{key:"receitas" as View,title:"Receitas",description:"Ideias e combinações",icon:"🍲"},{key:"proteina" as View,title:"Metas nutricionais",description:"Cálculo e objetivos",icon:"📊"}].map(item=><button type="button" key={item.key} onClick={()=>chooseView(item.key)} aria-pressed={view===item.key} className={"min-w-0 rounded-xl border p-3 text-left transition-colors "+(view===item.key?"border-emerald-500/60 bg-emerald-500/10 shadow-sm":"border-border bg-card hover:bg-muted/60")}>
+       <span className="text-xl" aria-hidden="true">{item.icon}</span><strong className="mt-1 block text-xs sm:text-sm">{item.title}</strong><span className="block text-[10px] text-muted-foreground">{item.description}</span>
+     </button>)}
+   </div>
    <div className="nutrition-studio-filters grid shrink-0 grid-cols-1 gap-2 rounded-xl border border-border bg-muted/25 p-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto]">
      <label className="min-w-0 text-[10px] font-bold">Objetivo alimentar
        <select value={goal} onChange={e=>{setGoal(e.target.value as Goal);setSelectedId(null);}} className="mt-1 h-9 w-full rounded-lg border border-border bg-background px-2 text-xs text-foreground">
