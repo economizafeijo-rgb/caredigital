@@ -17,7 +17,7 @@ type BeverageEntry = {id:string;kind:string;name:string;amount_ml:number;consume
 type MealEntry = {id:string;recorded_at:string;details:{title?:string;description?:string;kind?:string;linked_task_id?:string;superseded?:boolean}|null};
 type AgendaRow = {key:string;at:string;title:string;subtitle:string;category:"medicacao"|"hidratacao"|"refeicao";task:Care|null;completed:boolean;resolved:boolean;overdue:boolean;amountMl?:number;consumptionType?:string};
 type Person = {id:string;owner_id:string;full_name:string;height_cm:number|null;weight_kg:number|null;care_goal:string|null};
-type WellnessProfile={weight_kg:number|null;age:number|null;activity_minutes:number;fluid_restriction:boolean;target_ml:number|null;objective:string|null;protein:number|null;carbs:number|null;fat:number|null;kcal:number|null;gastritis_sensitive:boolean};
+type WellnessProfile={weight_kg:number|null;age:number|null;sex:string|null;activity_minutes:number;fluid_restriction:boolean;target_ml:number|null;objective:string|null;protein:number|null;carbs:number|null;fat:number|null;kcal:number|null;gastritis_sensitive:boolean};
 const zone="America/Rio_Branco";
 const day=(t:Date)=>new Intl.DateTimeFormat("en-CA",{timeZone:zone,year:"numeric",month:"2-digit",day:"2-digit"}).format(t);
 const canConfirmMealToday=(task:Care)=>!task.completed_at && Date.now()>=Date.parse(task.scheduled_at) && day(new Date(task.scheduled_at))===day(new Date());
@@ -121,7 +121,7 @@ export function ClientHomeSummary(){
     // Indicadores complementares não podem bloquear o carregamento da agenda.
     // Cada consulta falha de modo independente e mantém a homepage funcional.
     void Promise.allSettled([
-      (supabase as any).from("care_hydration_profiles").select("age,weight_kg,activity_minutes,fluid_restriction,target_ml").eq("patient_id",person.id).eq("owner_id",person.owner_id).maybeSingle(),
+      (supabase as any).from("care_hydration_profiles").select("age,sex,weight_kg,activity_minutes,fluid_restriction,target_ml").eq("patient_id",person.id).eq("owner_id",person.owner_id).maybeSingle(),
       (supabase as any).from("care_nutrition_preferences").select("weight_kg,objective,target_protein_g,target_carbs_g,target_fat_g,target_kcal,gastritis_sensitive").eq("patient_id",person.id).eq("owner_id",person.owner_id).maybeSingle()
     ]).then(results=>{
       if(!active)return;
@@ -134,6 +134,7 @@ export function ClientHomeSummary(){
       setWellness({
         weight_kg:numeric(np?.weight_kg)??numeric(hp?.weight_kg)??numeric(person.weight_kg),
         age:numeric(hp?.age),
+        sex:typeof hp?.sex==="string"?hp.sex:null,
         activity_minutes:numeric(hp?.activity_minutes)??0,
         fluid_restriction:Boolean(hp?.fluid_restriction),
         target_ml:numeric(hp?.target_ml),
@@ -386,6 +387,13 @@ export function ClientHomeSummary(){
       const fatLabel=wellness.fat?"Meta individual cadastrada":"Referência de 0,8 g/kg";
       const calorieBalance=protein!==null&&fat!==null&&carbs!==null?protein*4+fat*9+carbs*4:null;
       const remainingCalories=wellness.kcal&&calorieBalance!==null?Math.round(wellness.kcal-calorieBalance):null;
+      // Mifflin-St Jeor, with conservative sedentary multiplier. Exercise
+      // minutes alone cannot establish a reliable activity factor.
+      const sex=wellness.sex?.toLowerCase();
+      const sexOffset=sex==="male"||sex==="masculino"||sex==="m"?5:sex==="female"||sex==="feminino"||sex==="f"?-161:null;
+      const basal=validWeight&&height>=100&&height<=230&&wellness.age!==null&&wellness.age>=18&&wellness.age<=100&&sexOffset!==null
+        ?Math.round(10*weight+6.25*height-5*wellness.age+sexOffset):null;
+      const estimatedEnergy=basal!==null?Math.round(basal*1.2):null;
       const tips=wellness.fluid_restriction?"Há restrição de líquidos registrada: siga a orientação profissional para hidratação.":wellness.gastritis_sensitive?"Prefira refeições menores e observe os alimentos que provocam desconforto.":"Distribua proteínas entre refeições e priorize alimentos variados, frutas, verduras e fontes de fibras.";
       return <>
         <div className="care-wellness-metrics">
@@ -394,7 +402,7 @@ export function ClientHomeSummary(){
           <div><span>PROTEÍNAS</span><strong>{protein?protein+" g":"—"}</strong><small>{proteinLabel}</small></div>
           <div><span>CARBOIDRATOS</span><strong>{carbs!==null?carbs+" g":"—"}</strong><small>{carbLabel}</small></div>
           <div><span>GORDURAS</span><strong>{fat?fat+" g":"—"}</strong><small>{fatLabel}</small></div>
-          <div><span>ENERGIA</span><strong>{wellness.kcal?wellness.kcal+" kcal":"—"}</strong><small>{wellness.kcal?"Meta individual cadastrada":"Requer dados para estimativa"}</small></div>
+          <div><span>ENERGIA</span><strong>{wellness.kcal?wellness.kcal+" kcal":estimatedEnergy!==null?estimatedEnergy+" kcal":"—"}</strong><small>{wellness.kcal?"Meta individual cadastrada":estimatedEnergy!==null?"Estimativa basal × 1,2 (sedentário)":"Informe idade, peso, altura e sexo no perfil de hidratação"}</small></div>
         </div>
         <details className="care-wellness-tips"><summary>Orientações para seus objetivos <span>Ver dicas</span></summary>
           <p>{tips} {wellness.objective==="hipertrofia"?"Para ganho muscular, combine alimentação suficiente com treinamento e recuperação.":wellness.objective==="emagrecimento"?"Para controle de peso, priorize refeições regulares e porções adequadas.":"Ajuste quantidades conforme rotina, atividade e objetivos."}</p>
