@@ -506,7 +506,11 @@ export function ClientHomeSummary(){
         <img src="/images/care-agenda-wellness.svg" alt="" loading="eager" decoding="async"
           className="care-timeline-generated-art" draggable={false}/>
       </div>
-      <div className="relative z-10 flex shrink-0 items-center justify-between gap-2 border-b border-white/10 pb-2"><div><p className="care-timeline-eyebrow text-[10px] font-extrabold uppercase tracking-widest">Linha do tempo</p><h3 className="mt-0.5 text-lg font-extrabold tracking-tight">Agenda de hoje</h3></div><span className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-2 py-1 text-[10px] text-slate-200"><ListChecks size={13}/>{agendaItems.length} registros</span></div>
+      <div id="care-home-timeline" className="relative z-10 flex shrink-0 items-center justify-between gap-2 border-b border-white/10 pb-2"><div><p className="care-timeline-eyebrow text-[10px] font-extrabold uppercase tracking-widest">Linha do tempo</p><h3 className="mt-0.5 text-lg font-extrabold tracking-tight">Agenda de hoje</h3></div><span className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-2 py-1 text-[10px] text-slate-200"><ListChecks size={13}/>{agendaItems.length} registros</span></div>
+      <div className="relative z-10 mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-300">
+        <span>Consulte os cuidados e os registros anteriores.</span>
+        <Link to="/cliente" hash="historico" className="rounded-lg border border-teal-300/30 px-2.5 py-1.5 font-bold text-teal-100 hover:bg-teal-400/10">Histórico completo <ChevronRight size={12} className="inline"/></Link>
+      </div>
       <div className="care-timeline-view-switch relative z-10 mt-2" role="group" aria-label="Alternar agenda e histórico">
         <button type="button" aria-pressed={timelineView==="agenda"} onClick={()=>setTimelineView("agenda")}>Agenda de hoje</button>
         <button type="button" aria-pressed={timelineView==="historico"} onClick={()=>setTimelineView("historico")}>Histórico recente</button>
