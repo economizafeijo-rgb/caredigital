@@ -360,7 +360,7 @@ export function ClientHomeSummary(){
     <img src="/images/care-next-wellness.svg" alt="" aria-hidden="true" className="hidden h-[42px] w-[90px] shrink-0 object-contain opacity-65 lg:block" loading="lazy"/>
   </div>
   {patient&&wellness&&<div className="relative z-10 flex justify-end"><button type="button" onClick={()=>setShowHealthProfile(v=>!v)} className="rounded-lg border border-teal-300/40 bg-teal-900/60 px-3 py-1.5 text-xs font-bold text-teal-100 hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300">{showHealthProfile?"Ocultar perfil":"Editar meu perfil de saúde"}</button></div>}
-  {patient&&wellness&&showHealthProfile&&<div className="care-health-profile-overlay fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/80 p-3 backdrop-blur-sm" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget)setShowHealthProfile(false)}}><div className="w-full max-w-[1000px] max-h-[90dvh] overflow-y-auto overscroll-contain rounded-2xl" role="dialog" aria-modal="true" aria-label="Painel completo de saúde do cliente"><ClientHealthProfile patientId={patient.id} ownerId={patient.owner_id} initial={{weight:wellness.weight_kg,height:patient.height_cm,age:wellness.age,objective:wellness.objective,protein:wellness.protein,carbs:wellness.carbs,fat:wellness.fat,kcal:wellness.kcal}} onClose={()=>setShowHealthProfile(false)} onSaved={()=>setRevision(v=>v+1)}/></div></div>}
+  {patient&&wellness&&showHealthProfile&&<div className="care-health-profile-overlay fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/80 p-3 backdrop-blur-sm" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget)setShowHealthProfile(false)}}><div className="w-full h-[min(88dvh,690px)] max-h-[88dvh] max-w-[1000px] overflow-hidden rounded-2xl" role="dialog" aria-modal="true" aria-label="Painel completo de saúde do cliente"><ClientHealthProfile patientId={patient.id} ownerId={patient.owner_id} initial={{weight:wellness.weight_kg,height:patient.height_cm,age:wellness.age,objective:wellness.objective,protein:wellness.protein,carbs:wellness.carbs,fat:wellness.fat,kcal:wellness.kcal}} onClose={()=>setShowHealthProfile(false)} onSaved={()=>setRevision(v=>v+1)}/></div></div>}
   {wellness&&<details className="care-home-health-disclosure relative z-10">
    <summary className="care-home-health-trigger"><span className="care-health-trigger-icon"><Activity size={17}/></span><span className="care-health-trigger-copy"><strong>Indicadores de saúde e metas</strong><small>IMC · água · proteínas · carboidratos · gorduras · energia</small></span><span className="care-health-trigger-action">Ver indicadores <ChevronRight size={15}/></span></summary>
    <section className="care-wellness-insights relative z-10" aria-label="Indicadores e orientações de saúde e nutrição">
@@ -370,12 +370,12 @@ export function ClientHomeSummary(){
       const bmi=weight&&height!==null&&height>=100&&height<=230?weight/((height/100)**2):null;
       const validWeight=weight&&weight>=30&&weight<=250;
       const waterGoal=wellness.target_ml??(validWeight&&!wellness.fluid_restriction?Math.round(weight*30/50)*50:null);
-      const protein=wellness.protein??(validWeight?Math.round(weight*(wellness.objective==="hipertrofia"?1.6:1.0)):null);
-      const fat=wellness.fat??(validWeight?Math.round(weight*.8):null);
+      const proteinFactor=wellness.objective==="hipertrofia"?1.6:wellness.objective==="emagrecimento"?1.5:wellness.objective==="ganho_peso"?1.3:1.0;\n      const protein=wellness.protein??(validWeight?Math.round(weight*proteinFactor):null);
+      const fat=wellness.fat??(validWeight?Math.round(weight*(wellness.objective==="ganho_peso"?1:wellness.objective==="hipertrofia"?.9:.8)):null);
       // If no calorie target exists, provide a transparent weight-based starting
       // reference instead of leaving carbohydrates blank. This is not a
       // clinical prescription or an estimate of energy expenditure.
-      const carbFactor=wellness.objective==="hipertrofia"?4:wellness.objective==="emagrecimento"?2.5:3;
+      const carbFactor=wellness.objective==="hipertrofia"||wellness.objective==="ganho_peso"?4:wellness.objective==="emagrecimento"?2.5:3;
       const carbEnergy=wellness.kcal!==null&&protein!==null&&fat!==null
         ?wellness.kcal-protein*4-fat*9:null;
       const carbs=wellness.carbs??(carbEnergy!==null&&carbEnergy>0
