@@ -394,6 +394,13 @@ export function ClientHomeSummary(){
       const basal=validWeight&&height!==null&&height>=100&&height<=230&&wellness.age!==null&&wellness.age>=18&&wellness.age<=100&&sexOffset!==null
         ?Math.round(10*weight+6.25*height-5*wellness.age+sexOffset):null;
       const estimatedEnergy=basal!==null?Math.round(basal*1.2):null;
+      const macroEnergy=protein!==null&&carbs!==null&&fat!==null?Math.round(protein*4+carbs*4+fat*9):null;
+      const macroParts=macroEnergy!==null&&macroEnergy>0?[
+        {label:"Proteínas",kcal:protein!*4,color:"#8ce8df"},
+        {label:"Carboidratos",kcal:carbs!*4,color:"#f7d38b"},
+        {label:"Gorduras",kcal:fat!*9,color:"#c5b3f6"}
+      ]:null;
+      const energyGap=wellness.kcal!==null&&macroEnergy!==null?macroEnergy-wellness.kcal:null;
       const tips=wellness.fluid_restriction?"Há restrição de líquidos registrada: siga a orientação profissional para hidratação.":wellness.gastritis_sensitive?"Prefira refeições menores e observe os alimentos que provocam desconforto.":"Distribua proteínas entre refeições e priorize alimentos variados, frutas, verduras e fontes de fibras.";
       return <>
         <div className="care-wellness-metrics">
@@ -404,6 +411,15 @@ export function ClientHomeSummary(){
           <div><span>GORDURAS</span><strong>{fat?fat+" g":"—"}</strong><small>{fatLabel}</small></div>
           <div><span>ENERGIA</span><strong>{wellness.kcal?wellness.kcal+" kcal":estimatedEnergy!==null?estimatedEnergy+" kcal":"—"}</strong><small>{wellness.kcal?"Meta individual cadastrada":estimatedEnergy!==null?"Estimativa basal × 1,2 (sedentário)":"Informe idade, peso, altura e sexo no perfil de hidratação"}</small></div>
         </div>
+        {macroParts&&<div className="care-macro-energy-summary" aria-label="Distribuição energética dos macronutrientes">
+          <div className="care-macro-energy-heading"><strong>Distribuição dos macronutrientes</strong><span>{macroEnergy?.toLocaleString("pt-BR")} kcal em macros</span></div>
+          <div className="care-macro-energy-bar" role="img" aria-label={macroParts.map(item=>item.label+": "+Math.round(item.kcal/macroEnergy!*100)+"%").join("; ")}>
+            {macroParts.map(item=><span key={item.label} style={{width:(item.kcal/macroEnergy!*100)+"%",background:item.color}}/>)}
+          </div>
+          <div className="care-macro-energy-legend">{macroParts.map(item=><span key={item.label}><i style={{background:item.color}}/>{item.label} <b>{Math.round(item.kcal/macroEnergy!*100)}%</b></span>)}</div>
+          <p className="care-macro-energy-note">Estimativa energética: 4 kcal/g de proteínas e carboidratos; 9 kcal/g de gorduras. Não representa o consumo realizado.</p>
+          {energyGap!==null&&Math.abs(energyGap)>100&&<p className="care-macro-energy-warning" role="status">As metas de macronutrientes somam {Math.abs(energyGap).toLocaleString("pt-BR")} kcal {energyGap>0?"acima":"abaixo"} da meta energética cadastrada. Revise as metas para evitar orientações contraditórias.</p>}
+        </div>}
         <details className="care-wellness-tips"><summary>Orientações para seus objetivos <span>Ver dicas</span></summary>
           <p>{tips} {wellness.objective==="hipertrofia"?"Para ganho muscular, combine alimentação suficiente com treinamento e recuperação.":wellness.objective==="emagrecimento"?"Para controle de peso, priorize refeições regulares e porções adequadas.":"Ajuste quantidades conforme rotina, atividade e objetivos."}</p>
           <p className="care-wellness-disclaimer">{remainingCalories!==null&&Math.abs(remainingCalories)>100?"Atenção: a soma energética dos macronutrientes difere da meta calórica em "+Math.abs(remainingCalories)+" kcal. Revise as metas cadastradas. ":""}{bmi&&adult?"Faixas de IMC em adultos: abaixo de 18,5 (baixo peso), 18,5–24,9 (adequado), 25–29,9 (sobrepeso), 30 ou mais (obesidade). ":""}</p><p className="care-wellness-disclaimer">Quando não há meta calórica cadastrada, os carboidratos exibidos são apenas uma referência inicial por peso e objetivo, não uma prescrição individual. IMC é um indicador limitado; estimativas não substituem avaliação nutricional. Metas de água e macros devem ser individualizadas.</p>
