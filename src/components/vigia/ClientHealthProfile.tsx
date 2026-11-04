@@ -29,6 +29,7 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
   ?Math.round(previewProtein*4+previewCarbs*4+previewFat*9):null;
  const previewDifference=previewTotal!==null&&previewCalories!==null?previewTotal-previewCalories:null;
  const [saving,setSaving]=useState(false);
+ const [confirmMismatch,setConfirmMismatch]=useState(false);
  const [message,setMessage]=useState("");
  useEffect(()=>{setWeight(initial.weight?.toString()??"");setAge(initial.age?.toString()??"");setObjective(goals.some(([v])=>v===initial.objective)?initial.objective!:"equilibrio");setProtein(initial.protein?.toString()??"");setCarbs(initial.carbs?.toString()??"");setFat(initial.fat?.toString()??"");setKcal(initial.kcal?.toString()??"")},[initial.weight,initial.age,initial.objective,initial.protein,initial.carbs,initial.fat,initial.kcal]);
  const parse=(s:string,min:number,max:number)=>{
@@ -45,6 +46,12 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
    kg=parse(weight,30,300);years=parse(age,18,120);
    p=parse(protein,1,500);c=parse(carbs,1,1200);f=parse(fat,1,350);k=parse(kcal,500,7000);
   }catch(e){setMessage(e instanceof Error?e.message:"Revise os dados.");return;}
+  if(kg===null){setMessage("Informe o peso atual para atualizar seu perfil.");return;}
+  if(k!==null&&p!==null&&c!==null&&f!==null&&Math.abs(p*4+c*4+f*9-k)>100&&!confirmMismatch){
+   setConfirmMismatch(true);
+   setMessage("As metas energéticas não coincidem. Confira os valores e clique novamente em Confirmar e salvar, se desejar mantê-los.");
+   return;
+  }
   setSaving(true);
   try{
    const auth=await supabase.auth.getUser();
@@ -79,7 +86,7 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
  }
  const input=(label:string,value:string,set:(v:string)=>void,placeholder:string)=>(
   <label className="min-w-0 text-xs font-semibold text-slate-100">{label}
-   <input inputMode="decimal" value={value} onChange={e=>set(e.target.value)} placeholder={placeholder}
+   <input inputMode="decimal" value={value} onChange={e=>{set(e.target.value);setConfirmMismatch(false);}} placeholder={placeholder}
     className="mt-1 block min-h-10 w-full min-w-0 max-w-full rounded-lg border border-white/20 bg-slate-900/70 px-3 text-base text-white outline-offset-2 focus:border-teal-300"/>
   </label>);
  return <section className="care-health-profile relative z-20 min-w-0 rounded-2xl border border-teal-300/35 bg-[#12313c] p-4 text-white shadow-xl" aria-label="Meu perfil de saúde">
@@ -88,7 +95,7 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
    {input("Peso atual (kg)",weight,setWeight,"Ex.: 75")}
    <label className="text-xs font-semibold text-slate-100">Altura cadastrada (cm)<div className="mt-1 flex min-h-10 items-center rounded-lg border border-white/15 bg-slate-900/40 px-3 text-sm">{initial.height??"Não informada"}</div><small className="text-slate-300">Alteração pelo cadastro do prontuário.</small></label>
    {input("Idade (anos)",age,setAge,"Ex.: 30")}
-   <label className="text-xs font-semibold text-slate-100">Objetivo alimentar<select value={objective} onChange={e=>setObjective(e.target.value)} className="mt-1 block min-h-10 w-full min-w-0 rounded-lg border border-white/20 bg-slate-900 px-2 text-base text-white">{goals.map(([v,label])=><option key={v} value={v}>{label}</option>)}</select></label>
+   <label className="text-xs font-semibold text-slate-100">Objetivo alimentar<select value={objective} onChange={e=>{setObjective(e.target.value);setConfirmMismatch(false);}} className="mt-1 block min-h-10 w-full min-w-0 rounded-lg border border-white/20 bg-slate-900 px-2 text-base text-white">{goals.map(([v,label])=><option key={v} value={v}>{label}</option>)}</select></label>
    {input("Meta de proteína (g/dia) · opcional",protein,setProtein,"Automática")}
    {input("Meta de carboidratos (g/dia) · opcional",carbs,setCarbs,"Automática")}
    {input("Meta de gorduras (g/dia) · opcional",fat,setFat,"Automática")}
@@ -106,6 +113,6 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
   </div>
   <p className="mt-3 text-xs leading-relaxed text-slate-300">Campos de metas vazios usam referências educativas. Metas calóricas e restrições de líquidos exigem avaliação individual. A altura e a prescrição de água permanecem sob controle do prontuário.</p>
   {message&&<p role="status" className="mt-3 rounded-lg border border-teal-300/25 bg-slate-900/50 p-2 text-xs">{message}</p>}
-  <div className="mt-3 flex flex-wrap justify-end gap-2"><button type="button" onClick={onClose} className="rounded-lg border border-white/25 px-4 py-2 text-sm">Fechar</button><button type="button" disabled={saving} onClick={()=>void save()} className="inline-flex items-center gap-2 rounded-lg bg-teal-300 px-4 py-2 text-sm font-bold text-slate-950 disabled:opacity-50"><Save size={15}/>{saving?"Salvando…":"Salvar perfil"}</button></div>
+  <div className="mt-3 flex flex-wrap justify-end gap-2"><button type="button" onClick={onClose} className="rounded-lg border border-white/25 px-4 py-2 text-sm">Fechar</button><button type="button" disabled={saving} onClick={()=>void save()} className="inline-flex items-center gap-2 rounded-lg bg-teal-300 px-4 py-2 text-sm font-bold text-slate-950 disabled:opacity-50"><Save size={15}/>{saving?"Salvando…":confirmMismatch?"Confirmar e salvar":"Salvar perfil"}</button></div>
  </section>;
 }
