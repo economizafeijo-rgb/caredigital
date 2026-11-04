@@ -111,7 +111,8 @@ export function ClientHomeSummary(){
     }).catch(()=>{if(active)setWellness(null)});
     const from=new Date(day(new Date())+"T00:00:00-05:00");
     const finish=new Date(from.getTime()+86400000);
-    const [res,goalResult,resolutions,waterAnswers,waterEntries,beverages,mealEntries,waterSuggestions]=await Promise.all([
+    const [res,goalResult,resolutions,waterAnswers,waterEntries,beverages,mealEntries,waterSuggestions]=await Promise.race([
+      Promise.all([
       (supabase as any).from("care_daily_checklist").select("id,title,category,scheduled_at,completed_at")
       .eq("owner_id",person.owner_id).eq("patient_id",person.id)
       .gte("scheduled_at",from.toISOString()).lt("scheduled_at",finish.toISOString())
@@ -140,6 +141,8 @@ export function ClientHomeSummary(){
       (supabase as any).from("care_hydration_suggested_portions")
         .select("task_id,suggested_ml,reason,remaining_ml")
         .eq("patient_id",person.id).eq("owner_id",person.owner_id).limit(120)
+      ]),
+      new Promise<any[]>((resolve)=>window.setTimeout(()=>resolve(Array.from({length:8},()=>({data:null,error:null}))),12000))
     ]);
     if(!active)return;
     if(res.error){setError("Não foi possível carregar sua agenda.");return;}
