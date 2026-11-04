@@ -1326,3 +1326,38 @@
 .client-home-dashboard .care-macro-energy-note{margin:10px 0 0;font-size:11px;line-height:1.5;color:#a9c6c9}
 .client-home-dashboard .care-macro-energy-warning{margin:9px 0 0;padding:9px 10px;border:1px solid rgba(252,211,119,.4);border-radius:10px;background:rgba(103,70,25,.35);font-size:12px;line-height:1.5;color:#ffe6a5}
 @media(max-width:480px){.client-home-dashboard .care-macro-energy-summary{padding:11px}.client-home-dashboard .care-macro-energy-legend{gap:6px 10px;font-size:11px}}
+
+
+/* CareDigital 2026: quieter, legible care history and timeline */
+.client-home-dashboard.care-dashboard-oneview{background:linear-gradient(145deg,#0e2432 0%,#112c3c 62%,#0c2230 100%);border-color:rgba(140,220,217,.2)}
+.client-home-dashboard .care-home-ambient{opacity:.18!important}
+.client-home-dashboard .care-reference-grid{gap:12px}
+.client-home-dashboard .care-reference-primary{gap:9px}
+.client-home-dashboard .care-reference-next{border-color:rgba(147,206,214,.2);background:linear-gradient(125deg,rgba(21,56,69,.94),rgba(16,44,58,.94))}
+.client-home-dashboard .care-visual-tile{box-shadow:none!important;border-color:rgba(173,223,229,.22)!important}
+.client-home-dashboard .care-reference-timeline{background:#102b39!important;border:1px solid rgba(149,213,216,.24)!important;box-shadow:none!important;padding:15px!important}
+.client-home-dashboard .care-timeline-image-layer{opacity:.09}
+.client-home-dashboard .care-timeline-view-switch{display:flex;gap:4px;padding:4px;border-radius:12px;background:rgba(2,17,27,.55);border:1px solid rgba(156,214,219,.15)}
+.client-home-dashboard .care-timeline-view-switch button{flex:1;min-height:36px;padding:7px 10px;border-radius:9px;color:#a9c8d1;font-size:12px;font-weight:750;transition:background .15s,color .15s}
+.client-home-dashboard .care-timeline-view-switch button[aria-pressed="true"]{background:#1c5261;color:#efffff;box-shadow:0 2px 9px rgba(0,0,0,.16)}
+.client-home-dashboard .care-timeline-filter{background:rgba(255,255,255,.045);border-color:rgba(180,224,227,.2);color:#c8e0e5}
+.client-home-dashboard .care-timeline-filter[aria-pressed="true"]{background:#b2eee5;border-color:#b2eee5;color:#123743}
+.client-home-dashboard .patient-timeline-item{background:rgba(255,255,255,.035)!important;border-color:rgba(174,222,226,.14)!important;padding:11px!important}
+.client-home-dashboard .patient-timeline-item:hover{background:rgba(124,222,218,.12)!important}
+.client-home-dashboard .care-history-panel{min-width:0;padding:13px;border-radius:15px;border:1px solid rgba(143,214,213,.25);background:linear-gradient(135deg,rgba(17,52,65,.98),rgba(12,38,51,.98));color:#effafa}
+.client-home-dashboard .care-history-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.client-home-dashboard .care-history-head h4{font-size:15px;line-height:1.3;font-weight:800;margin:4px 0}
+.client-home-dashboard .care-history-head p{font-size:11px;line-height:1.5;color:#a7c4cc}
+.client-home-dashboard .care-history-eyebrow{display:inline-flex;align-items:center;gap:6px;color:#83e5d8;font-size:10px;font-weight:800;letter-spacing:.08em}
+.client-home-dashboard .care-history-close{display:grid;place-items:center;flex-shrink:0;width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.08)}
+.client-home-dashboard .care-history-list{display:grid;gap:6px;margin-top:12px}
+.client-home-dashboard .care-history-entry{display:flex;align-items:center;gap:9px;min-width:0;padding:10px;border-radius:11px;background:rgba(255,255,255,.045);border:1px solid rgba(173,222,221,.11)}
+.client-home-dashboard .care-history-entry-icon{display:grid;place-items:center;flex-shrink:0;width:29px;height:29px;border-radius:9px;color:#90e8cb;background:rgba(85,204,169,.11)}
+.client-home-dashboard .care-history-entry-copy{flex:1;min-width:0}
+.client-home-dashboard .care-history-entry-copy strong{display:block;overflow-wrap:anywhere;font-size:12px;line-height:1.4}
+.client-home-dashboard .care-history-entry-copy span{display:block;color:#9ebdc5;font-size:10px;margin-top:2px}
+.client-home-dashboard .care-history-entry time{display:inline-flex;align-items:center;gap:4px;flex-shrink:0;font-size:10px;color:#b6d4dc;white-space:nowrap}
+.client-home-dashboard .care-history-empty{margin-top:10px;font-size:12px;color:#b9d3d8;line-height:1.6}
+.client-home-dashboard .care-history-more{margin-top:10px;width:100%;padding:8px;border-radius:9px;border:1px solid rgba(157,225,219,.26);font-size:12px;font-weight:700;color:#a6f0e3}
+.client-home-dashboard .care-history-footnote{margin-top:10px;font-size:10px;line-height:1.5;color:#93b6c0}
+@media(max-width:640px){.client-home-dashboard .care-reference-timeline{padding:11px!important}.client-home-dashboard .care-history-entry{flex-wrap:wrap}.client-home-dashboard .care-history-entry time{margin-left:38px}}
