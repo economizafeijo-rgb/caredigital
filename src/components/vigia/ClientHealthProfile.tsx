@@ -1,3 +1,4 @@
+import { estimateObjectiveNutrition } from "@/lib/objective-nutrition";
 import { useEffect, useState } from "react";
 import { Activity, Save, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,6 +37,8 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
   equilibrio:{protein:1,fat:.8,carbs:3,label:"Manutenção do peso",advice:["Mantenha variedade de alimentos e horários compatíveis com sua rotina.","Inclua fontes de proteína, vegetais, frutas e carboidratos.","Use o histórico para observar consistência e ajustar hábitos."]}
  };
  const selectedGoal=goalFactors[objective]??goalFactors.equilibrio;
+ const objectiveEstimate=estimateObjectiveNutrition({weight:currentKg>0?currentKg:null,age:Number(age)||null,heightCm:initial.height??null,sex:null,objective});
+
  const suggestedProtein=currentKg>0?Math.round(currentKg*selectedGoal.protein):null;
  const suggestedFat=currentKg>0?Math.round(currentKg*selectedGoal.fat):null;
  const suggestedCarbs=currentKg>0?Math.round(currentKg*selectedGoal.carbs):null;
@@ -134,7 +137,7 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
    <label className="text-xs font-semibold text-slate-100">Objetivo alimentar<select value={objective} onChange={e=>{setObjective(e.target.value);setConfirmMismatch(false);}} className="mt-1 block min-h-10 w-full min-w-0 rounded-lg border border-white/20 bg-slate-900 px-2 text-base text-white">{goals.map(([v,label])=><option key={v} value={v}>{label}</option>)}</select></label>
   </div>}
   {tab==="metas"&&<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-   <div className="col-span-full rounded-lg border border-teal-300/20 bg-teal-300/10 p-3 text-xs">Referências educativas para {selectedGoal.label.toLowerCase()}: proteína {suggestedProtein??"—"} g · carboidratos {suggestedCarbs??"—"} g · gorduras {suggestedFat??"—"} g · energia correspondente {suggestedKcal?.toLocaleString("pt-BR")??"—"} kcal. Não são uma prescrição clínica. Campos preenchidos manualmente têm prioridade.</div>
+   <div className="col-span-full rounded-lg border border-teal-300/20 bg-teal-300/10 p-3 text-xs">Referências iniciais por peso para {selectedGoal.label.toLowerCase()}: proteína {suggestedProtein??"—"} g · carboidratos {suggestedCarbs??"—"} g · gorduras {suggestedFat??"—"} g · energia correspondente {suggestedKcal?.toLocaleString("pt-BR")??"—"} kcal. Não representam necessariamente déficit ou superávit energético: para isso é preciso estimar manutenção com sexo, idade, altura e atividade. Campos preenchidos manualmente têm prioridade.</div>
    {input("Meta de proteína (g/dia) · opcional",protein,setProtein,"Automática")}
    {input("Meta de carboidratos (g/dia) · opcional",carbs,setCarbs,"Automática")}
    {input("Meta de gorduras (g/dia) · opcional",fat,setFat,"Automática")}
