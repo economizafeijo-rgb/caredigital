@@ -215,6 +215,14 @@ export function ClientHomeSummary(){
  const labelFor=(category:string)=>category==="medicacao"?"Medicação":category==="hidratacao"?"Água":"Refeição";
  // A programação não contém consumos avulsos. As fontes extras são lidas sem
  // criar tarefas fictícias nem contar o mesmo copo duas vezes.
+ const waterByTask=new Map<string,WaterEntry>();
+ for(const entry of extraWater){
+   if(!entry.task_id)continue;
+   const existing=waterByTask.get(entry.task_id);
+   if(!existing||Date.parse(entry.recorded_at)>Date.parse(existing.recorded_at)){
+     waterByTask.set(entry.task_id,entry);
+   }
+ }
  const knownTaskIds=new Set(tasks.map(task=>task.id));
  const agendaItems:AgendaRow[]=[
    ...tasks.map(task=>{const matched=matchedMealIds.has(task.id);const resolved=resolvedStates[task.id];const completed=Boolean(task.completed_at)||matched;const overdue=Boolean(now&&!completed&&!resolved&&Date.parse(task.scheduled_at)<now.getTime());return {
