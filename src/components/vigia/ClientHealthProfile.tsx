@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Activity, Save, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { estimateActivityFactor, estimateObjectiveNutrition } from "@/lib/objective-nutrition";
 import { ClientBodyHistory } from "./ClientBodyHistory";
 
 type Props={
  patientId:string;ownerId:string;
- initial:{weight:number|null;height:number|null;age:number|null;objective:string|null;protein:number|null;carbs:number|null;fat:number|null;kcal:number|null};
+ initial:{weight:number|null;height:number|null;age:number|null;objective:string|null;protein:number|null;carbs:number|null;fat:number|null;kcal:number|null;activityMinutes:number};
  onSaved:()=>void;onClose:()=>void;
 };
 const goals=[
@@ -17,6 +18,7 @@ const goals=[
 export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:Props){
  const [weight,setWeight]=useState(initial.weight?.toString()??"");
  const [age,setAge]=useState(initial.age?.toString()??"");
+ const [activityMinutes,setActivityMinutes]=useState(String(initial.activityMinutes??0));
  const [targetWeight,setTargetWeight]=useState("");
  const [targetLoading,setTargetLoading]=useState(true);
  const [objective,setObjective]=useState(goals.some(([v])=>v===initial.objective)?initial.objective!:"equilibrio");
@@ -36,10 +38,12 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
   equilibrio:{protein:1,fat:.8,carbs:3,label:"Manutenção do peso",advice:["Mantenha variedade de alimentos e horários compatíveis com sua rotina.","Inclua fontes de proteína, vegetais, frutas e carboidratos.","Use o histórico para observar consistência e ajustar hábitos."]}
  };
  const selectedGoal=goalFactors[objective]??goalFactors.equilibrio;
+ const activityFactor=estimateActivityFactor(Number(activityMinutes));
 
  const suggestedProtein=currentKg>0?Math.round(currentKg*selectedGoal.protein):null;
  const suggestedFat=currentKg>0?Math.round(currentKg*selectedGoal.fat):null;
  const suggestedCarbs=currentKg>0?Math.round(currentKg*selectedGoal.carbs):null;
+ const energyEstimate=estimateObjectiveNutrition({weight:currentKg>0?currentKg:null,age:Number(age)||null,heightCm:initial.height,sex:null,objective,activityFactor});
  const suggestedKcal=suggestedProtein!==null&&suggestedCarbs!==null&&suggestedFat!==null?suggestedProtein*4+suggestedCarbs*4+suggestedFat*9:null;
  const previewProtein=Number(protein.replace(",","."))||null;
  const previewCarbs=Number(carbs.replace(",","."))||null;
@@ -75,7 +79,9 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
   setMessage("");
   let kg:number|null,years:number|null,p:number|null,c:number|null,f:number|null,k:number|null,goal:number|null;
   try{
-   kg=parse(weight,30,300);years=parse(age,18,120);goal=parse(targetWeight,30,300);
+   kg=parse(weight,30,250);years=parse(age,18,110);goal=parse(targetWeight,30,250);
+   const minutes=Number(activityMinutes);
+   if(!Number.isInteger(minutes)||minutes<0||minutes>240)throw Error("Informe atividade diária entre 0 e 240 minutos.");
    p=parse(protein,1,500);c=parse(carbs,1,1200);f=parse(fat,1,350);k=parse(kcal,500,7000);
   }catch(e){setMessage(e instanceof Error?e.message:"Revise os dados.");return;}
   if(kg===null){setMessage("Informe o peso atual para atualizar seu perfil.");return;}
@@ -105,10 +111,11 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
     const patch:Record<string,number>={};
     if(kg!==null)patch.weight_kg=kg;
     if(years!==null)patch.age=years;
+    patch.activity_minutes=Number(activityMinutes);
     const updated=Object.keys(patch).length?await db.from("care_hydration_profiles").update(patch).eq("patient_id",patientId).eq("owner_id",ownerId):{error:null};
     if(updated.error)throw Error("Metas nutricionais salvas, mas idade e peso da hidratação não foram atualizados.");
-   }else if(years!==null){
-    setMessage("Metas salvas. Para registrar a idade, configure também o perfil de hidratação.");
+   }else{
+    setMessage("Metas salvas, mas a atividade diária precisa ser configurada no perfil de hidratação.");
     onSaved();return;
    }
    setMessage("Perfil atualizado. Indicadores recalculados.");
@@ -132,6 +139,12 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
    {input("Objetivo de peso (kg) · opcional",targetWeight,setTargetWeight,"Ex.: 70")}
    <label className="text-xs font-semibold text-slate-100">Altura cadastrada (cm)<div className="mt-1 flex min-h-10 items-center rounded-lg border border-white/15 bg-slate-900/40 px-3 text-sm">{initial.height??"Não informada"}</div><small className="text-slate-300">Alteração pelo cadastro do prontuário.</small></label>
    {input("Idade (anos)",age,setAge,"Ex.: 30")}
+   <label className="text-xs font-semibold text-slate-100">Atividade física diária estimada
+    <select value={activityMinutes} onChange={e=>setActivityMinutes(e.target.value)} className="mt-1 block min-h-10 w-full min-w-0 rounded-lg border border-white/20 bg-slate-900 px-2 text-sm text-white">
+     {[{value:"0",label:"Baixa · menos de 20 min/dia"},{value:"30",label:"Leve · 20–44 min/dia"},{value:"60",label:"Moderada · 45–89 min/dia"},{value:"100",label:"Alta · 90 min ou mais/dia"}].map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
+    </select>
+    <small className="text-slate-300">Fator energético aproximado: ×{activityFactor.toLocaleString("pt-BR")}. Atividade diária não substitui avaliação profissional.</small>
+   </label>
    <label className="text-xs font-semibold text-slate-100">Objetivo alimentar<select value={objective} onChange={e=>{setObjective(e.target.value);setConfirmMismatch(false);}} className="mt-1 block min-h-10 w-full min-w-0 rounded-lg border border-white/20 bg-slate-900 px-2 text-base text-white">{goals.map(([v,label])=><option key={v} value={v}>{label}</option>)}</select></label>
   </div>}
   {tab==="metas"&&<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
