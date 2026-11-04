@@ -370,7 +370,8 @@ export function ClientHomeSummary(){
       const bmi=weight&&height!==null&&height>=100&&height<=230?weight/((height/100)**2):null;
       const validWeight=weight&&weight>=30&&weight<=250;
       const waterGoal=wellness.target_ml??(validWeight&&!wellness.fluid_restriction?Math.round(weight*30/50)*50:null);
-      const proteinFactor=wellness.objective==="hipertrofia"?1.6:wellness.objective==="emagrecimento"?1.5:wellness.objective==="ganho_peso"?1.3:1.0;\n      const protein=wellness.protein??(validWeight?Math.round(weight*proteinFactor):null);
+      const proteinFactor=wellness.objective==="hipertrofia"?1.6:wellness.objective==="emagrecimento"?1.5:wellness.objective==="ganho_peso"?1.3:1.0;
+      const protein=wellness.protein??(validWeight?Math.round(weight*proteinFactor):null);
       const fat=wellness.fat??(validWeight?Math.round(weight*(wellness.objective==="ganho_peso"?1:wellness.objective==="hipertrofia"?.9:.8)):null);
       // If no calorie target exists, provide a transparent weight-based starting
       // reference instead of leaving carbohydrates blank. This is not a

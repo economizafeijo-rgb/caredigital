@@ -14,7 +14,7 @@ function mount(overrides:Partial<ReminderTask>={}){
   const onDetails=vi.fn(),onConfirm=vi.fn(),onSnooze=vi.fn(),onDismiss=vi.fn();
   render(<CareClockAlert task={{...task,...overrides}} now={Date.parse(task.scheduled_at)+30000}
     remainingMs={CARE_REMINDER_WINDOW_MS-30000}
-    onDetails={onDetails} onConfirm={onConfirm} onSnooze={onSnooze} onDismiss={onDismiss}/>);
+    onDetails={onDetails} onConfirm={onConfirm} onSnooze={onSnooze} onDismiss={onDismiss} onChanged={vi.fn()}/>);
   return {onDetails,onConfirm,onSnooze,onDismiss};
 }
 

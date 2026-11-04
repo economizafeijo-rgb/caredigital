@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as BibliotecaAlimentarRouteImport } from './routes/biblioteca-alimentar'
 import { Route as ClienteRouteImport } from './routes/cliente'
 import { Route as DietasRouteImport } from './routes/dietas'
 import { Route as EntrarRouteImport } from './routes/entrar'
@@ -29,6 +30,11 @@ const IndexRoute = IndexRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BibliotecaAlimentarRoute = BibliotecaAlimentarRouteImport.update({
+  id: '/biblioteca-alimentar',
+  path: '/biblioteca-alimentar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClienteRoute = ClienteRouteImport.update({
@@ -80,6 +86,7 @@ const ProtocolosRoute = ProtocolosRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/biblioteca-alimentar': typeof BibliotecaAlimentarRoute
   '/cliente': typeof ClienteRoute
   '/dietas': typeof DietasRoute
   '/entrar': typeof EntrarRoute
@@ -93,6 +100,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/biblioteca-alimentar': typeof BibliotecaAlimentarRoute
   '/cliente': typeof ClienteRoute
   '/dietas': typeof DietasRoute
   '/entrar': typeof EntrarRoute
@@ -107,6 +115,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/biblioteca-alimentar': typeof BibliotecaAlimentarRoute
   '/cliente': typeof ClienteRoute
   '/dietas': typeof DietasRoute
   '/entrar': typeof EntrarRoute
@@ -122,6 +131,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/biblioteca-alimentar'
     | '/cliente'
     | '/dietas'
     | '/entrar'
@@ -135,6 +145,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/biblioteca-alimentar'
     | '/cliente'
     | '/dietas'
     | '/entrar'
@@ -148,6 +159,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/biblioteca-alimentar'
     | '/cliente'
     | '/dietas'
     | '/entrar'
@@ -162,6 +174,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  BibliotecaAlimentarRoute: typeof BibliotecaAlimentarRoute
   ClienteRoute: typeof ClienteRoute
   DietasRoute: typeof DietasRoute
   EntrarRoute: typeof EntrarRoute
@@ -187,6 +200,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/biblioteca-alimentar': {
+      id: '/biblioteca-alimentar'
+      path: '/biblioteca-alimentar'
+      fullPath: '/biblioteca-alimentar'
+      preLoaderRoute: typeof BibliotecaAlimentarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cliente': {
@@ -258,6 +278,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  BibliotecaAlimentarRoute: BibliotecaAlimentarRoute,
   ClienteRoute: ClienteRoute,
   DietasRoute: DietasRoute,
   EntrarRoute: EntrarRoute,
