@@ -57,6 +57,25 @@ export function ClientHomeSummary(){
 
  const [showHealthProfile,setShowHealthProfile]=useState(false);
  const [tasks,setTasks]=useState<Care[]>([]);
+
+ const [selected,setSelected]=useState<Care|null>(null);
+ const [detailTask,setDetailTask]=useState<Care|null>(null);
+  const [agendaDetail,setAgendaDetail]=useState<AgendaRow|null>(null);
+  const [agendaMealDescription,setAgendaMealDescription]=useState<string|null>(null);
+  const [agendaMealLoading,setAgendaMealLoading]=useState(false);
+
+ const [now,setNow]=useState<Date|null>(null);
+ const [water,setWater]=useState(200);
+ const [mealTime,setMealTime]=useState("");
+ const [mealDescription,setMealDescription]=useState("");
+ const [mealType,setMealType]=useState("Outro");
+ const [waterOpenSignal,setWaterOpenSignal]=useState(0);
+ const [foodOpenSignal,setFoodOpenSignal]=useState(0);
+ const [working,setWorking]=useState(false);
+ const [error,setError]=useState("");
+ const [receipt,setReceipt]=useState<{success:boolean;message:string}|null>(null);
+ const [revision,setRevision]=useState(0);
+ const [refresh,setRefresh]=useState(0);
  useEffect(()=>{
   if(!patient?.id){setConsumedMacros(null);return;}
   let active=true;
@@ -82,24 +101,6 @@ export function ClientHomeSummary(){
   return()=>{active=false};
  },[patient?.id,patient?.owner_id,revision,refresh]);
 
- const [selected,setSelected]=useState<Care|null>(null);
- const [detailTask,setDetailTask]=useState<Care|null>(null);
-  const [agendaDetail,setAgendaDetail]=useState<AgendaRow|null>(null);
-  const [agendaMealDescription,setAgendaMealDescription]=useState<string|null>(null);
-  const [agendaMealLoading,setAgendaMealLoading]=useState(false);
-
- const [now,setNow]=useState<Date|null>(null);
- const [water,setWater]=useState(200);
- const [mealTime,setMealTime]=useState("");
- const [mealDescription,setMealDescription]=useState("");
- const [mealType,setMealType]=useState("Outro");
- const [waterOpenSignal,setWaterOpenSignal]=useState(0);
- const [foodOpenSignal,setFoodOpenSignal]=useState(0);
- const [working,setWorking]=useState(false);
- const [error,setError]=useState("");
- const [receipt,setReceipt]=useState<{success:boolean;message:string}|null>(null);
- const [revision,setRevision]=useState(0);
- const [refresh,setRefresh]=useState(0);
  const [dailyGoal,setDailyGoal]=useState<HydrationGoalSnapshot|null>(null);
  const [hydrationPlan,setHydrationPlan]=useState<Record<string,{suggested_ml:number;reason:string;remaining_ml:number}>>({});
  const [resolvedStates,setResolvedStates]=useState<Record<string,string>>({});
