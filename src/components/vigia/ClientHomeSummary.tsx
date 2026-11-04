@@ -70,14 +70,11 @@ export function ClientHomeSummary(){
   ]).then(([food,meals]:any[])=>{
    if(!active)return;
    if(food.error||meals.error){setConsumedError(true);setConsumedMacros(null);return;}
-   const seen=new Set<string>();
-   const rows=[...(food.data??[]),...(meals.data??[])].filter((item:any)=>{
-    // Same request can be logged in both sources; avoid counting it twice.
-    const key=item.request_id?String(item.request_id):null;
-    if(key&&seen.has(key))return false;
-    if(key)seen.add(key);
-    return true;
-   });
+   const foodRows=food.data??[];
+   const foodRequests=new Set(foodRows.map((item:any)=>item.request_id).filter(Boolean));
+   // Keep every food item in a request; exclude only an aggregate meal log
+   // when its request already has individual food records.
+   const rows=[...foodRows,...(meals.data??[]).filter((item:any)=>!item.request_id||!foodRequests.has(item.request_id))];
    const sum=(field:string)=>Math.round(rows.reduce((total:number,item:any)=>total+(Number(item[field])||0),0));
    setConsumedMacros({kcal:sum("kcal"),protein:sum("protein_g"),carbs:sum("carbs_g"),fat:sum("fat_g"),count:rows.length});
    setConsumedError(false);
