@@ -67,7 +67,7 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
    ]);
    if(!active)return;
    if(lib.error){
-     setSourceError("A biblioteca do servidor não respondeu. Mostrando catálogo editorial local.");
+     setSourceError("Catálogo online indisponível: exibindo referências locais. O registro só é permitido para alimentos disponíveis no servidor.");
      setFoods(ingredients);
    }else{
      setSourceError("");
@@ -79,6 +79,7 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
        provenance:String(r.provenance).startsWith("TACO")?"TACO":String(r.provenance).startsWith("Rótulo")?"rotulo":"estimativa",
      }));
      setFoods(rows.length?rows:ingredients);
+     if(!rows.length)setSourceError("Catálogo online vazio. Exibindo referências locais; o registro depende do catálogo do servidor.");
    }
    if(!groups.error)setSavedMeals(groups.data??[]);
    if(consumed.error){
