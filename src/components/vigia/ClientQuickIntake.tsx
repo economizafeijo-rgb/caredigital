@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { CheckCircle2, Droplets, Plus, Save, UtensilsCrossed, X } from "lucide-react";
+import { CareCategoryReport } from "./CareCategoryReport";
+import { BarChart3 } from "lucide-react";
 import { CareIntakePicker, CareIntakeIcon } from "./CareIntakePicker";
 import { foodCategory,beverageCategory,isFoodKind,type IntakeKind,type FoodKind,type BeverageKind } from "@/lib/care-intake-categories";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +16,7 @@ const formatTime = (date: string) => new Intl.DateTimeFormat("pt-BR", {
 /** Registros avulsos não criam tarefas e não confirmam horários da programação. */
 export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mode = "all", openSignal = 0 }: Props) {
   const [open, setOpen] = useState(false);
+  const [reportOpen,setReportOpen]=useState(false);
   const [kind, setKind] = useState<IntakeKind>("lanche");
   const [group,setGroup]=useState<"food"|"beverage">("food");
   const [portion,setPortion]=useState("");
@@ -115,6 +118,8 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
   }
 
   return <>
+    {reportOpen&&<CareCategoryReport patientId={patientId} category={mode==="water"||mode==="drink"?"hidratacao":"refeicao"} onClose={()=>setReportOpen(false)}/>}
+
     <button type="button" onClick={openForm} disabled={!patientId}
       className={variant === "home"
         ? "inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-sky-300/40 bg-sky-300/15 px-2.5 text-[11px] font-bold text-slate-900 transition hover:bg-sky-300/25 dark:text-sky-100 disabled:opacity-50"
@@ -148,6 +153,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
             <button type="button" aria-label="Fechar" disabled={saving} onClick={closeForm}
               className="grid size-8 place-items-center rounded-lg border border-border"><X size={18}/></button>
           </div>
+          <button type="button" onClick={()=>setReportOpen(true)} className="mt-3 inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-teal-400/40 bg-teal-400/10 px-3 py-2.5 text-xs font-extrabold text-teal-100 hover:bg-teal-400/20"><BarChart3 size={17}/> Relatório diário, mensal e anual</button>
           <form className="mt-3 grid min-h-0 gap-2.5" onSubmit={event => void save(event)}>
             {mode==="all"&&<div role="group" aria-label="Selecionar tipo de consumo" className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-muted/35 p-1">
               <button type="button" aria-pressed={group==="food"}
