@@ -5,7 +5,7 @@ import { foodMacroLabels,gramsForMacro,ingredients,portionNutrition,proteinRange
   type FoodMacro,type Goal,type Ingredient } from "@/lib/nutrition-catalog";
 
 export type MacroTargets={protein:string;carbs:string;fat:string;kcal:string};
-type FoodLog={id:string;food_id:string;grams:number;protein_g:number;carbs_g:number;fat_g:number;kcal:number;recorded_at:string};
+type FoodLog={id:string;food_id:string;grams:number;protein_g:number;carbs_g:number;fat_g:number;fiber_g:number;kcal:number;recorded_at:string};
 type Props={
  patientId:string;ownerId:string;goal:Goal;weight:string;sensitive:boolean;avoided:string[];
  targets:MacroTargets;onTargetsChange:(next:MacroTargets)=>void;onLogged?:()=>void;
@@ -34,6 +34,8 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
  const [page,setPage]=useState(0);
  const [selected,setSelected]=useState("frango");
  const [portion,setPortion]=useState("100");
+ const [mealName,setMealName]=useState("Almoço");
+ const [mealBasket,setMealBasket]=useState<Array<{id:string;name:string;grams:number;nutrition:{protein:number;carbs:number;fat:number;fiber:number;kcal:number}}>>([]);
  const [macro,setMacro]=useState<FoodMacro>("protein");
  const [desired,setDesired]=useState("30");
  const [useRemaining,setUseRemaining]=useState(true);
@@ -41,6 +43,7 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
  const [notice,setNotice]=useState("");
  const [toDelete,setToDelete]=useState<FoodLog|null>(null);
  const requestId=useRef<string|null>(null);
+ const mealRequestIds=useRef<string[]>([]);
  const pageSize=8;
 
  useEffect(()=>{
@@ -54,7 +57,7 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
       .select("id,name,food_group,kcal,protein_g,carbs_g,fat_g,fiber_g,provenance,note,flags")
       .order("name",{ascending:true}).limit(500),
     (supabase as any).from("care_food_consumptions")
-      .select("id,food_id,grams,kcal,protein_g,carbs_g,fat_g,recorded_at")
+      .select("id,food_id,grams,kcal,protein_g,carbs_g,fat_g,fiber_g,recorded_at")
       .eq("patient_id",patientId).eq("owner_id",ownerId)
       .gte("recorded_at",from.toISOString()).lt("recorded_at",until.toISOString())
       .order("recorded_at",{ascending:false}).limit(250),
@@ -80,7 +83,7 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
    }else{
     setLogs((consumed.data??[]).map((r:any)=>({
       id:r.id,food_id:r.food_id,grams:Number(r.grams),kcal:Number(r.kcal),
-      protein_g:Number(r.protein_g),carbs_g:Number(r.carbs_g),fat_g:Number(r.fat_g),recorded_at:r.recorded_at,
+      protein_g:Number(r.protein_g),carbs_g:Number(r.carbs_g),fat_g:Number(r.fat_g),fiber_g:Number(r.fiber_g??0),recorded_at:r.recorded_at,
     })));
    }
   };
@@ -105,9 +108,9 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
  const enteredGrams=parsePositive(portion);
  const perPortion=food&&enteredGrams?portionNutrition(food,enteredGrams):null;
  const totals=useMemo(()=>logs.reduce((acc,l)=>{
-  acc.protein+=l.protein_g;acc.carbs+=l.carbs_g;acc.fat+=l.fat_g;acc.kcal+=l.kcal;
+  acc.protein+=l.protein_g;acc.carbs+=l.carbs_g;acc.fat+=l.fat_g;acc.fiber+=l.fiber_g;acc.kcal+=l.kcal;
   return acc;
- },{protein:0,carbs:0,fat:0,kcal:0}),[logs]);
+ },{protein:0,carbs:0,fat:0,fiber:0,kcal:0}),[logs]);
  const proteinEstimate=proteinRange(Number(weight.replace(",",".")),goal);
  const currentTarget=(m:FoodMacro)=>{
   const override=parsePositive(targets[m]);
@@ -141,6 +144,34 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
   }catch(err){setNotice("Falha ao registrar: "+(err instanceof Error?err.message:"consulte o prontuário antes de repetir."));}
   finally{setSaving(false);}
  }
+ const basketTotals=mealBasket.reduce((a,item)=>({protein:a.protein+item.nutrition.protein,carbs:a.carbs+item.nutrition.carbs,fat:a.fat+item.nutrition.fat,fiber:a.fiber+item.nutrition.fiber,kcal:a.kcal+item.nutrition.kcal}),{protein:0,carbs:0,fat:0,fiber:0,kcal:0});
+ function addToMeal(){
+  if(!food||!enteredGrams||enteredGrams<1||enteredGrams>2000||!perPortion){setNotice("Escolha um alimento e uma porção válida.");return;}
+  if([food.protein,food.carbs,food.fat,food.kcal].some(value=>value===null)){setNotice("Este alimento não possui informação nutricional suficiente.");return;}
+  setMealBasket(items=>[...items,{id:food.id,name:food.name,grams:enteredGrams,nutrition:{protein:perPortion.protein??0,carbs:perPortion.carbs??0,fat:perPortion.fat??0,fiber:perPortion.fiber??0,kcal:perPortion.kcal??0}}]);
+  setNotice("");
+ }
+ async function recordMeal(){
+  if(saving||!mealBasket.length)return;
+  setSaving(true);setNotice("");
+  let done=0;
+  try{
+   // Each food uses the existing audited RPC. Stable request ids protect retries.
+   for(const [index,item] of mealBasket.entries()){
+    const result=await (supabase as any).rpc("care_log_food_portion",{p_patient_id:patientId,p_food_id:item.id,p_grams:item.grams,p_request_id:mealRequestIds.current[index]??(mealRequestIds.current[index]=crypto.randomUUID())});
+    if(result.error||!result.data?.id)throw Error(result.error?.message??"Falha na confirmação do servidor.");
+    done++;
+   }
+   setMealBasket([]);mealRequestIds.current=[];
+   setNotice(mealName+" registrada com "+done+" alimentos. Os totais diários foram atualizados.");
+   setRefresh(v=>v+1);onLogged?.();
+  }catch(error){
+   // Remove only entries confirmed by the server. Keep pending ids for safe retry.
+   setMealBasket(items=>items.slice(done));mealRequestIds.current=mealRequestIds.current.slice(done);
+   if(done){setRefresh(v=>v+1);onLogged?.();}
+   setNotice(done+" alimento(s) confirmado(s). Restantes preservados para tentar novamente. "+(error instanceof Error?error.message:"Erro de registro."));
+  }finally{setSaving(false);}
+ }
  async function deleteFood(){
   if(!toDelete||saving)return;
   setSaving(true);setNotice("");
@@ -166,6 +197,18 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
     </div>;
    })}
   </div>
+  <section className="shrink-0 rounded-xl border border-emerald-500/30 bg-emerald-500/[.06] p-3" aria-label="Montar e registrar refeição">
+   <div className="flex flex-wrap items-center justify-between gap-2"><div><h4 className="text-sm font-extrabold">Montar minha refeição</h4><p className="text-[10px] text-muted-foreground">Escolha alimentos na biblioteca, informe as gramas e adicione à refeição.</p></div>
+    <select aria-label="Tipo de refeição" value={mealName} onChange={e=>setMealName(e.target.value)} className="rounded-lg border border-border bg-background p-2 text-xs">{["Café da manhã","Lanche da manhã","Almoço","Lanche da tarde","Jantar","Ceia","Outra refeição"].map(x=><option key={x}>{x}</option>)}</select>
+   </div>
+   <div className="mt-2 flex flex-wrap gap-2">
+    <button type="button" onClick={addToMeal} disabled={saving||!food||!perPortion} className="rounded-lg border border-emerald-500/40 px-3 py-2 text-xs font-bold disabled:opacity-50">+ Adicionar alimento e porção</button>
+    <button type="button" onClick={()=>void recordMeal()} disabled={saving||!mealBasket.length} className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-50">{saving?"Registrando…":"Confirmar refeição consumida"}</button>
+   </div>
+   {mealBasket.length>0&&<div className="mt-2 space-y-1">{mealBasket.map((item,index)=><div key={index} className="flex items-center justify-between gap-2 rounded-lg bg-background/60 px-2 py-1 text-xs"><span>{item.name} · {format(item.grams)} g</span><button type="button" disabled={saving} onClick={()=>{setMealBasket(items=>items.filter((_,i)=>i!==index));mealRequestIds.current.splice(index,1);}} className="font-bold text-red-500" aria-label={"Remover "+item.name}>Remover</button></div>)}</div>}
+   <p className="mt-2 text-xs font-semibold">Prévia da refeição: {format(basketTotals.kcal)} kcal · Proteínas {format(basketTotals.protein)} g · Carboidratos {format(basketTotals.carbs)} g · Gorduras {format(basketTotals.fat)} g · Fibras {format(basketTotals.fiber)} g</p>
+   <p className="text-[10px] text-muted-foreground">Apenas alimentos efetivamente consumidos são registrados. Não confirma automaticamente tarefas agendadas.</p>
+  </section>
   <div className="grid min-h-0 flex-1 gap-2 lg:grid-cols-[minmax(0,1.12fr)_minmax(300px,.88fr)]">
    <section className="min-h-0 min-w-0 overflow-y-auto rounded-xl border border-border bg-card/70 p-3">
     <div className="flex items-center justify-between gap-2">
