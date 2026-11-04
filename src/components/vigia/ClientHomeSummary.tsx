@@ -511,7 +511,12 @@ export function ClientHomeSummary(){
         <button type="button" aria-pressed={timelineView==="agenda"} onClick={()=>setTimelineView("agenda")}>Agenda de hoje</button>
         <button type="button" aria-pressed={timelineView==="historico"} onClick={()=>setTimelineView("historico")}>Histórico recente</button>
       </div>
-      {timelineView==="historico"&&patient&&<div className="relative z-10 mt-2 min-h-0 flex-1 overflow-y-auto"><CareRecentHistory patientId={patient.id} ownerId={patient.owner_id} category={agendaCategory}/></div>}
+      {timelineView==="historico"&&patient&&<div className="relative z-10 mt-2 min-h-0 flex-1 overflow-y-auto">
+        <div className="care-timeline-filters mb-2 flex flex-wrap gap-1.5" role="group" aria-label="Filtrar histórico">
+          {([{key:"todos",label:"Todos"},{key:"hidratacao",label:"Água"},{key:"refeicao",label:"Refeições"},{key:"medicacao",label:"Medicação"}] as const).map(item=><button key={item.key} type="button" aria-pressed={agendaCategory===item.key} onClick={()=>chooseAgenda(item.key)} className="care-timeline-filter min-h-9 rounded-xl border px-3 py-1.5 text-xs font-bold">{item.label}</button>)}
+        </div>
+        <CareRecentHistory patientId={patient.id} ownerId={patient.owner_id} category={agendaCategory}/>
+      </div>}
       {timelineView==="agenda"&&<>
       <div className="care-timeline-filters relative z-10 flex shrink-0 flex-wrap gap-1.5 pt-2" role="group" aria-label="Filtrar registros da agenda">
         {([{key:"todos",label:"Todos",count:agendaItems.length},{key:"hidratacao",label:"Líquidos",count:categoryCounts.hidratacao},{key:"refeicao",label:"Refeições",count:categoryCounts.refeicao},{key:"medicacao",label:"Medicamentos",count:categoryCounts.medicacao}] as const).map(category=><button
