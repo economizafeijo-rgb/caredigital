@@ -197,10 +197,10 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
                   className="field mt-1 w-full" value={amount}
                   onChange={event => setAmount(event.target.value)}/>
               </label>}
-            <div className="rounded-xl border border-border/70 bg-card/80 p-3 space-y-2 text-foreground">
+            <div className="min-w-0 max-w-full overflow-hidden rounded-xl border border-border/70 bg-card/80 p-3 space-y-2 text-foreground">
               <label className="flex items-center gap-2 text-xs font-semibold text-foreground"><input type="checkbox" checked={manualTime} onChange={event=>setManualTime(event.target.checked)}/> Informar manualmente o horário em que consumi</label>
-              {manualTime && <label className="block text-xs font-semibold">Data e hora do consumo (Acre)
-                <input type="datetime-local" required value={consumedAt} onChange={event=>setConsumedAt(event.target.value)} className="field mt-1 w-full"/>
+              {manualTime && <label className="block min-w-0 max-w-full text-xs font-semibold">Data e hora do consumo (Acre)
+                <input type="datetime-local" required value={consumedAt} onChange={event=>setConsumedAt(event.target.value)} className="field care-intake-datetime mt-1 block w-full min-w-0 max-w-full" style={{boxSizing:"border-box",minWidth:0,maxWidth:"100%"}}/>
               </label>}
               <p className="text-[11px] text-foreground/80">O prontuário preserva o horário do consumo e a data em que você registrou a informação.</p>
             </div>
