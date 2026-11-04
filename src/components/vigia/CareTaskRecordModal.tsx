@@ -184,9 +184,8 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
     if(description.length<3||description.length>900){setError("Informe os alimentos consumidos (3 a 900 caracteres).");return;}
     if(!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(mealTime)){setError("Informe um horário válido.");return;}
     const scheduledDay=acreDay(new Date(details.scheduled_at));
-    if(scheduledDay!==acreDay(new Date())){setError("A confirmação nesta tela está disponível apenas para refeições programadas para hoje.");return;}
     const actual=new Date(scheduledDay+"T"+mealTime+":00-05:00");
-    if(!Number.isFinite(actual.getTime())||actual.getTime()>Date.now()){setError("Informe um horário que já ocorreu.");return;}
+    if(!Number.isFinite(actual.getTime())||actual.getTime()>Date.now()){setError("Esse horário ainda não ocorreu no Acre. Confira a hora informada.");return;}
     setSaving(true);setError("");setSuccess("");
     try{
       const response=await (supabase as any).rpc("care_replace_meal",{p_task_id:task.id,p_description:description,p_consumed_at:actual.toISOString()});
@@ -206,7 +205,7 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
     const description=mealDescription.trim();
     if(description.length<3||description.length>900){setError("Descreva o que foi consumido (3 a 900 caracteres).");return;}
     if(!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(mealTime)){setError("Informe um horário válido no Acre.");return;}
-    const dateAcre=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Rio_Branco",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(details.completed_at));
+    const dateAcre=acreDay(new Date(details.completed_at));
     const consumedAt=new Date(dateAcre+"T"+mealTime+":00-05:00");
     if(!Number.isFinite(consumedAt.getTime())||consumedAt.getTime()>Date.now()){setError("O horário informado não pode estar no futuro.");return;}
     setSaving(true);setError("");setSuccess("");
