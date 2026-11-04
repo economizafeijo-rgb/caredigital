@@ -1595,3 +1595,33 @@
  :root .client-home-dashboard.care-home-redesign-v7 .care-health-trigger-action{font-size:0}
  :root .client-home-dashboard.care-home-redesign-v7 .care-health-trigger-action svg{width:18px;height:18px}
 }
+
+
+/* Next-care action buttons: fit within the card without covering the progress tiles. */
+:root .client-home-dashboard .care-reference-next .care-next-cta,
+:root .client-home-dashboard .care-reference-next .care-next-secondary{
+ min-height:32px!important;
+ min-width:0!important;
+ max-width:100%!important;
+ padding:6px 11px!important;
+ font-size:11px!important;
+ line-height:1.2!important;
+ white-space:normal!important;
+ text-align:center!important;
+ justify-content:center!important;
+ flex:1 1 0!important;
+ border-radius:10px!important;
+}
+:root .client-home-dashboard .care-reference-next .care-next-cta svg{
+ width:13px!important;height:13px!important;flex:none!important;
+}
+:root .client-home-dashboard .care-reference-next .care-next-cta,
+:root .client-home-dashboard .care-reference-next .care-next-secondary{
+ overflow-wrap:anywhere!important;
+}
+@media(max-width:1150px){
+ :root .client-home-dashboard .care-reference-next .care-next-cta,
+ :root .client-home-dashboard .care-reference-next .care-next-secondary{
+  font-size:10px!important;padding:5px 7px!important;
+ }
+}
