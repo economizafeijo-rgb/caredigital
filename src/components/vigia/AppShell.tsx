@@ -32,10 +32,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   const isClientPage = pathname === "/cliente";
   const isSportsPage = pathname === "/nutricao-esportiva";
   const [moreOpen, setMoreOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
   useEffect(() => {
     const stored = window.localStorage.getItem("caredigital-theme");
-    const enabled = stored === "dark" || (stored !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    const enabled = stored !== "light";
     document.documentElement.classList.toggle("dark", enabled);
     document.documentElement.style.colorScheme = enabled ? "dark" : "light";
     setDarkMode(enabled);
