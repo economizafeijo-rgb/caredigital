@@ -2830,3 +2830,54 @@ iframe[title*="Lovable" i][title*="badge" i] {
 @media (max-width: 520px) {
   .care-dashboard-oneview .care-wellness-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
+
+/* Histórico e prontuário — painel de trabalho único, revisão visual 2026 */
+@media (min-width: 1024px) {
+  .care-client-main:has(.patient-history-workspace) { min-height:0; height:100%; overflow:hidden; }
+  .care-client-summary:has(.patient-history-workspace) { height:100%; max-height:100%; overflow:hidden; }
+  .care-history-responsive:has(.patient-history-workspace) { height:100%; min-height:0; overflow:hidden; }
+  .patient-history-workspace {
+    height:100%; min-height:0; max-height:100%;
+    display:flex; flex-direction:column; gap:.45rem;
+    padding:.65rem; border-radius:1.15rem;
+    background:linear-gradient(145deg,rgba(13,37,52,.96),rgba(9,27,43,.98));
+    border:1px solid rgba(60,210,208,.18);
+    box-shadow:0 20px 48px -32px rgba(0,0,0,.55);
+  }
+  .patient-history-workspace .patient-history-header {flex:0 0 auto; min-height:0; padding:.45rem .7rem; border-radius:.75rem; }
+  .patient-history-workspace .patient-history-header h2 {font-size:1rem;line-height:1.2}
+  .patient-history-workspace .patient-history-categories {flex:0 0 auto;gap:.35rem;}
+  .patient-history-workspace .patient-history-categories button {min-height:33px;padding:.4rem .55rem;border-radius:.65rem;font-size:.75rem;}
+  .patient-history-workspace .patient-history-controls {flex:0 0 auto;gap:.4rem;}
+  .patient-history-workspace .patient-history-controls :is(input,select,button) {min-height:34px;height:34px;border-radius:.6rem;}
+  .patient-history-workspace .patient-history-content {
+    flex:1 1 0%; min-height:0; overflow:hidden;
+    display:grid; grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr); gap:.55rem;
+  }
+  .patient-history-workspace .patient-history-list,
+  .patient-history-workspace .patient-history-detail {
+    min-height:0; overflow:hidden; border-radius:.9rem; padding:.65rem;
+    background:rgba(8,30,44,.55); border:1px solid rgba(87,190,200,.16);
+  }
+  .patient-history-workspace .patient-history-list-scroll,
+  .patient-history-workspace .patient-history-detail-scroll {min-height:0;max-height:100%;overflow-y:auto;scrollbar-width:thin;}
+  .patient-history-workspace .patient-history-list button {border-radius:.65rem;}
+  .patient-history-workspace .patient-history-list button[aria-pressed="true"] {background:rgba(31,192,178,.13);border-color:rgba(31,192,178,.45);}
+}
+@media (min-width: 1024px) and (max-height: 760px) {
+  .patient-history-workspace {padding:.4rem;gap:.3rem;}
+  .patient-history-workspace .patient-history-header {padding:.3rem .55rem;}
+  .patient-history-workspace .patient-history-categories button {min-height:29px;padding:.25rem .4rem;}
+  .patient-history-workspace .patient-history-controls :is(input,select,button) {height:30px;min-height:30px;}
+  .patient-history-workspace .patient-history-list,
+  .patient-history-workspace .patient-history-detail {padding:.45rem;}
+}
+@media (max-width:1023px) {
+  .patient-history-workspace {min-width:0;padding:.6rem;gap:.55rem;border-radius:1rem;}
+  .patient-history-workspace .patient-history-header {padding:.55rem;border-radius:.7rem;}
+  .patient-history-workspace .patient-history-categories {gap:.3rem;}
+  .patient-history-workspace .patient-history-categories button {min-height:34px;padding:.4rem .45rem;font-size:.72rem;}
+  .patient-history-workspace .patient-history-content {grid-template-columns:minmax(0,1fr);gap:.6rem;}
+  .patient-history-workspace .patient-history-list,
+  .patient-history-workspace .patient-history-detail {min-width:0;border-radius:.8rem;padding:.6rem;}
+}
