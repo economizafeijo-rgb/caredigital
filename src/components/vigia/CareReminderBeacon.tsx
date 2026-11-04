@@ -15,6 +15,7 @@ type Props = {
   onOpen: (task: ReminderTask) => void;
   /** Opens the existing verified workflow; does not directly save a task. */
   onConfirm?: (task: ReminderTask) => void;
+  onChanged?: () => void;
   compact?: boolean;
 };
 
@@ -82,7 +83,7 @@ function chime(context:AudioContext) {
   });
 }
 
-export function CareReminderBeacon({tasks,patientId,ownerId,refreshKey=0,onOpen,onConfirm,compact=false}:Props) {
+export function CareReminderBeacon({tasks,patientId,ownerId,refreshKey=0,onOpen,onConfirm,onChanged,compact=false}:Props) {
   const [now,setNow]=useState(()=>Date.now());
   const [soundEnabled,setSoundEnabled]=useState(false);
   const [soundNotice,setSoundNotice]=useState("");
@@ -184,8 +185,8 @@ export function CareReminderBeacon({tasks,patientId,ownerId,refreshKey=0,onOpen,
   function closeClock(taskId:string){
     setDismissedClockIds(previous=>new Set([...previous,taskId]));
   }
-  function snoozeClock(taskId:string){
-    setSnoozedClock({taskId,until:Date.now()+3*60_000});
+  function snoozeClock(taskId:string,minutes=3){
+    setSnoozedClock({taskId,until:Date.now()+minutes*60_000});
   }
   // Sound is only generated after explicit user activation. A newly due task
   // receives periodic short reminders while its 10-minute window is open.
@@ -241,7 +242,8 @@ export function CareReminderBeacon({tasks,patientId,ownerId,refreshKey=0,onOpen,
    {showClockAlert&&task&&<CareClockAlert task={task} now={now} remainingMs={primary!.remainingMs}
       onDetails={()=>{closeClock(task.id);onOpen(task);}}
       onConfirm={()=>{closeClock(task.id);(onConfirm??onOpen)(task);}}
-      onSnooze={()=>snoozeClock(task.id)}
+      onSnooze={minutes=>snoozeClock(task.id,minutes)}
+      onChanged={()=>{setAnswersRevision(v=>v+1);onChanged?.();}}
       onDismiss={()=>closeClock(task.id)}/>}
    <section aria-label="Central de lembretes de cuidados"
     data-reminder-status={stage} data-reminder-category={task?.category??"nenhuma"}
