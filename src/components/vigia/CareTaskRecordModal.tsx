@@ -306,6 +306,11 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
             {details.last_corrected_at && row("Última correção (Acre)", stamp(details.last_corrected_at))}
           </dl>}
 
+        {!editing&&!editingMeal&&details&&!details.completed_at&&resolutionReady&&(!skippedWater||Boolean(resolution))&&<div className="care-record-pending-actions rounded-xl border border-primary/30 bg-primary/[.045] px-3 pb-3 pt-1">
+          <p className="mt-2 text-xs font-extrabold text-foreground">Como deseja resolver esta pendência?</p>
+          <CareTaskResolutionPanel key={task.id} task={task} resolution={resolution} waterAnswered={Boolean(skippedWater)}
+            onChange={setResolution} onSaved={()=>onSaved?.()} onClose={onClose}/>
+        </div>}
         {details?.category==="refeicao"&&!details.completed_at&&resolutionReady&&!resolution&&canConfirmCare(details)&&<form onSubmit={event=>void confirmPendingMeal(event)} className="mt-2 grid grid-cols-1 gap-2 rounded-xl border border-primary/30 bg-primary/[.045] p-2.5 sm:grid-cols-[minmax(0,1fr)_150px]"><div className="sm:col-span-2"><p className="text-xs font-extrabold">Informar consumo antes de confirmar</p></div><label className="block text-xs font-semibold">O que você consumiu?<textarea required minLength={3} maxLength={900} rows={2} value={mealDescription} onChange={event=>setMealDescription(event.target.value)} placeholder="Ex.: pão, ovo, banana e café; inclua as quantidades se desejar." className="mt-1 w-full resize-y rounded-lg border border-border bg-background p-2 text-sm text-foreground"/></label><label className="block text-xs font-semibold">Horário real da refeição · Acre<input required type="time" value={mealTime} onChange={event=>setMealTime(event.target.value)} className="mt-1 w-full rounded-lg border border-border bg-background p-2 text-sm text-foreground"/></label><button type="submit" disabled={saving||mealDescription.trim().length<3||!mealTime} className="min-h-9 w-full rounded-lg bg-primary px-3 py-2 text-xs font-extrabold text-primary-foreground disabled:opacity-50 sm:col-span-2">{saving?"Confirmando…":"Confirmar refeição com estes dados"}</button></form>}
 
         {details?.category==="refeicao"&&details.completed_at&&!editingMeal&&<button type="button" onClick={()=>{setEditingMeal(true);setError("");setSuccess("");}} className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-xl border border-primary/35 bg-primary/10 px-3 text-xs font-bold text-primary transition hover:bg-primary/15"><Pencil size={15}/> Editar alimentos e horário real</button>}
@@ -359,9 +364,7 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
             skippedWater?<><Droplets size={14}/> Você informou “Não bebi”. Nenhum ml foi contabilizado.</>:
             <><Clock3 size={14}/> Este cuidado ainda não foi confirmado.</>}
         </div>
-        {!editing&&!editingMeal&&details&&!details.completed_at&&resolutionReady&&(!skippedWater||Boolean(resolution))&&<CareTaskResolutionPanel
-          key={task.id} task={task} resolution={resolution} waterAnswered={Boolean(skippedWater)}
-          onChange={setResolution} onSaved={()=>onSaved?.()} onClose={onClose}/>}
+
         {!editing&&!editingMeal && <div className="mt-2 flex flex-wrap items-center gap-2">
           <button type="button" disabled={saving||decisionSaving} onClick={onClose}
             className="min-h-11 min-w-[75px] flex-1 rounded-xl border border-border bg-background/50 px-3 py-2.5 text-sm font-semibold transition hover:bg-muted">Fechar</button>
