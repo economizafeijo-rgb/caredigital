@@ -35,6 +35,8 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
  const [selected,setSelected]=useState("frango");
  const [portion,setPortion]=useState("100");
  const [mealName,setMealName]=useState("Almoço");
+ const [savedMeals,setSavedMeals]=useState<Array<{id:string;name:string;recorded_at:string}>>([]);
+ const [editingMeal,setEditingMeal]=useState<string|null>(null);
  const [mealBasket,setMealBasket]=useState<Array<{id:string;name:string;grams:number;nutrition:{protein:number;carbs:number;fat:number;fiber:number;kcal:number}}>>([]);
  const [macro,setMacro]=useState<FoodMacro>("protein");
  const [desired,setDesired]=useState("30");
@@ -52,7 +54,7 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
    const day=today();
    const from=new Date(day+"T00:00:00-05:00");
    const until=new Date(from.getTime()+86_400_000);
-   const [lib,consumed]=await Promise.all([
+   const [lib,consumed,groups]=await Promise.all([
     (supabase as any).from("care_food_catalog")
       .select("id,name,food_group,kcal,protein_g,carbs_g,fat_g,fiber_g,provenance,note,flags")
       .order("name",{ascending:true}).limit(500),
@@ -61,6 +63,7 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
       .eq("patient_id",patientId).eq("owner_id",ownerId)
       .gte("recorded_at",from.toISOString()).lt("recorded_at",until.toISOString())
       .order("recorded_at",{ascending:false}).limit(250),
+    (supabase as any).from("care_food_meal_groups").select("id,name,recorded_at").eq("patient_id",patientId).eq("owner_id",ownerId).gte("recorded_at",from.toISOString()).lt("recorded_at",until.toISOString()).order("recorded_at",{ascending:false}).limit(100),
    ]);
    if(!active)return;
    if(lib.error){
@@ -77,6 +80,7 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
      }));
      setFoods(rows.length?rows:ingredients);
    }
+   if(!groups.error)setSavedMeals(groups.data??[]);
    if(consumed.error){
     setNotice("Não foi possível consultar os macros consumidos hoje. Nenhum valor será presumido.");
     setLogs([]);
@@ -148,30 +152,49 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
  function addToMeal(){
   if(!food||!enteredGrams||enteredGrams<1||enteredGrams>2000||!perPortion){setNotice("Escolha um alimento e uma porção válida.");return;}
   if([food.protein,food.carbs,food.fat,food.kcal].some(value=>value===null)){setNotice("Este alimento não possui informação nutricional suficiente.");return;}
+  mealRequestIds.current=[];
   setMealBasket(items=>[...items,{id:food.id,name:food.name,grams:enteredGrams,nutrition:{protein:perPortion.protein??0,carbs:perPortion.carbs??0,fat:perPortion.fat??0,fiber:perPortion.fiber??0,kcal:perPortion.kcal??0}}]);
   setNotice("");
  }
  async function recordMeal(){
   if(saving||!mealBasket.length)return;
   setSaving(true);setNotice("");
-  let done=0;
   try{
-   // Each food uses the existing audited RPC. Stable request ids protect retries.
-   for(const [index,item] of mealBasket.entries()){
-    const result=await (supabase as any).rpc("care_log_food_portion",{p_patient_id:patientId,p_food_id:item.id,p_grams:item.grams,p_request_id:mealRequestIds.current[index]??(mealRequestIds.current[index]=crypto.randomUUID())});
-    if(result.error||!result.data?.id)throw Error(result.error?.message??"Falha na confirmação do servidor.");
-    done++;
-   }
-   setMealBasket([]);mealRequestIds.current=[];
-   setNotice(mealName+" registrada com "+done+" alimentos. Os totais diários foram atualizados.");
+   const request=mealRequestIds.current[0]??(mealRequestIds.current[0]=crypto.randomUUID());
+   const result=await (supabase as any).rpc("care_save_food_meal",{
+    p_patient_id:patientId,p_name:mealName,p_items:mealBasket.map(item=>({id:item.id,grams:item.grams})),
+    p_request_id:request,p_replace_id:editingMeal
+   });
+   if(result.error||!result.data?.id)throw Error(result.error?.message??"Falha ao salvar a refeição.");
+   setMealBasket([]);mealRequestIds.current=[];setEditingMeal(null);
+   setNotice(mealName+" salva como uma refeição completa. "+mealBasket.length+" alimentos contabilizados.");
    setRefresh(v=>v+1);onLogged?.();
-  }catch(error){
-   // Remove only entries confirmed by the server. Keep pending ids for safe retry.
-   setMealBasket(items=>items.slice(done));mealRequestIds.current=mealRequestIds.current.slice(done);
-   if(done){setRefresh(v=>v+1);onLogged?.();}
-   setNotice(done+" alimento(s) confirmado(s). Restantes preservados para tentar novamente. "+(error instanceof Error?error.message:"Erro de registro."));
-  }finally{setSaving(false);}
+  }catch(error){setNotice("Não foi possível salvar a refeição: "+(error instanceof Error?error.message:"erro desconhecido")+". Nenhum alimento foi confirmado parcialmente.");}
+  finally{setSaving(false);}
  }
+ async function editMeal(group:{id:string;name:string}){
+  if(saving)return;
+  const res=await (supabase as any).from("care_food_consumptions").select("food_id,grams").eq("meal_group_id",group.id).eq("patient_id",patientId).eq("owner_id",ownerId);
+  if(res.error){setNotice("Não foi possível carregar os alimentos desta refeição.");return;}
+  const items=(res.data??[]).map((r:any)=>{
+   const found=foods.find(x=>x.id===r.food_id);const grams=Number(r.grams);
+   const n=found?portionNutrition(found,grams):null;
+   return found&&n?{id:found.id,name:found.name,grams,nutrition:{protein:n.protein??0,carbs:n.carbs??0,fat:n.fat??0,fiber:n.fiber??0,kcal:n.kcal??0}}:null;
+  });
+  if(items.some((x:any)=>!x)){setNotice("Existem alimentos não disponíveis no catálogo. Não é possível editar sem perder informações.");return;}
+  setMealBasket(items as typeof mealBasket);setMealName(group.name);setEditingMeal(group.id);mealRequestIds.current=[];
+  setNotice("Refeição carregada. Ajuste as porções e confirme para substituir o registro anterior.");
+ }
+ async function deleteMeal(group:{id:string;name:string}){
+  if(saving||!window.confirm("Excluir a refeição "+group.name+" e todos os seus alimentos?"))return;
+  setSaving(true);
+  const result=await (supabase as any).rpc("care_delete_food_meal",{p_group_id:group.id,p_verified:true});
+  setSaving(false);
+  if(result.error||result.data?.deleted_id!==group.id){setNotice("Falha ao excluir a refeição.");return;}
+  if(editingMeal===group.id){setEditingMeal(null);setMealBasket([]);mealRequestIds.current=[];}
+  setNotice("Refeição excluída. Totais nutricionais atualizados.");setRefresh(v=>v+1);onLogged?.();
+ }
+
  async function deleteFood(){
   if(!toDelete||saving)return;
   setSaving(true);setNotice("");
@@ -203,10 +226,12 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
    </div>
    <div className="mt-2 flex flex-wrap gap-2">
     <button type="button" onClick={addToMeal} disabled={saving||!food||!perPortion} className="rounded-lg border border-emerald-500/40 px-3 py-2 text-xs font-bold disabled:opacity-50">+ Adicionar alimento e porção</button>
-    <button type="button" onClick={()=>void recordMeal()} disabled={saving||!mealBasket.length} className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-50">{saving?"Registrando…":"Confirmar refeição consumida"}</button>
+    <button type="button" onClick={()=>void recordMeal()} disabled={saving||!mealBasket.length} className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-50">{saving?"Registrando…":editingMeal?"Salvar alterações da refeição":"Confirmar refeição consumida"}</button>
    </div>
-   {mealBasket.length>0&&<div className="mt-2 space-y-1">{mealBasket.map((item,index)=><div key={index} className="flex items-center justify-between gap-2 rounded-lg bg-background/60 px-2 py-1 text-xs"><span>{item.name} · {format(item.grams)} g</span><button type="button" disabled={saving} onClick={()=>{setMealBasket(items=>items.filter((_,i)=>i!==index));mealRequestIds.current.splice(index,1);}} className="font-bold text-red-500" aria-label={"Remover "+item.name}>Remover</button></div>)}</div>}
+   {mealBasket.length>0&&<div className="mt-2 space-y-1">{mealBasket.map((item,index)=><div key={index} className="flex items-center justify-between gap-2 rounded-lg bg-background/60 px-2 py-1 text-xs"><span>{item.name} · {format(item.grams)} g</span><button type="button" disabled={saving} onClick={()=>{setMealBasket(items=>items.filter((_,i)=>i!==index));mealRequestIds.current=[];}} className="font-bold text-red-500" aria-label={"Remover "+item.name}>Remover</button></div>)}</div>}
    <p className="mt-2 text-xs font-semibold">Prévia da refeição: {format(basketTotals.kcal)} kcal · Proteínas {format(basketTotals.protein)} g · Carboidratos {format(basketTotals.carbs)} g · Gorduras {format(basketTotals.fat)} g · Fibras {format(basketTotals.fiber)} g</p>
+   {editingMeal&&<button type="button" disabled={saving} onClick={()=>{setEditingMeal(null);setMealBasket([]);mealRequestIds.current=[];}} className="mt-1 text-xs font-bold underline">Cancelar edição</button>}
+   {savedMeals.length>0&&<div className="mt-3 border-t border-border pt-2"><h5 className="text-xs font-bold">Refeições registradas hoje</h5><div className="mt-1 max-h-32 space-y-1 overflow-y-auto">{savedMeals.map(group=><div key={group.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-background/60 px-2 py-1 text-xs"><span>{group.name} · {stamp(group.recorded_at)}</span><div className="flex gap-2"><button type="button" disabled={saving} onClick={()=>void editMeal(group)} className="font-bold text-emerald-600">Editar</button><button type="button" disabled={saving} onClick={()=>void deleteMeal(group)} className="font-bold text-red-500">Excluir</button></div></div>)}</div></div>}
    <p className="text-[10px] text-muted-foreground">Apenas alimentos efetivamente consumidos são registrados. Não confirma automaticamente tarefas agendadas.</p>
   </section>
   <div className="grid min-h-0 flex-1 gap-2 lg:grid-cols-[minmax(0,1.12fr)_minmax(300px,.88fr)]">
