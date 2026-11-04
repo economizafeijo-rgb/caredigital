@@ -320,7 +320,7 @@ export function ClientHomeSummary(){
    refeicao:agendaItems.filter(item=>item.category==="refeicao").length,
    medicacao:agendaItems.filter(item=>item.category==="medicacao").length};
  const chooseAgenda=(category:typeof agendaCategory)=>{setAgendaCategory(category);setAgendaPage(0);};
- return <section className="client-home-dashboard care-home-art-v2 care-home-art-reference care-premium-v3 care-reference-2026 care-dashboard-oneview relative flex min-h-0 min-w-0 w-full flex-col gap-2 rounded-[20px] border p-2.5 shadow-xl md:h-full md:max-h-full md:overflow-hidden" aria-label="Painel interativo do cliente na homepage">
+ return <section className="client-home-dashboard care-home-art-v2 care-home-art-reference care-premium-v3 care-reference-2026 care-dashboard-oneview care-home-redesign-v7 relative flex min-h-0 min-w-0 w-full flex-col gap-2 rounded-[20px] border p-2.5 shadow-xl md:h-full md:max-h-full md:overflow-hidden" aria-label="Painel interativo do cliente na homepage">
   <div aria-hidden="true" className="care-home-ambient pointer-events-none absolute inset-0 overflow-hidden rounded-[24px]" style={{opacity:0.76}}><img src="/images/caredigital-ambient-background.svg" alt="" loading="eager" decoding="async" className="absolute inset-0 h-full w-full object-cover object-center opacity-85" /><span className="care-home-glow care-home-glow-a"/><span className="care-home-glow care-home-glow-b"/></div>
   <details className="care-home-shortcuts absolute left-2 top-2 z-40">
     <summary aria-label="Abrir ações rápidas e lembretes" title="Ações rápidas e lembretes" className="care-home-shortcut-trigger">
@@ -359,7 +359,9 @@ export function ClientHomeSummary(){
   </div>
   {patient&&wellness&&<div className="relative z-10 flex justify-end"><button type="button" onClick={()=>setShowHealthProfile(v=>!v)} className="rounded-lg border border-teal-300/40 bg-teal-900/60 px-3 py-1.5 text-xs font-bold text-teal-100 hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300">{showHealthProfile?"Ocultar perfil":"Editar meu perfil de saúde"}</button></div>}
   {patient&&wellness&&showHealthProfile&&<div className="care-health-profile-overlay fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/80 p-3 backdrop-blur-sm" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget)setShowHealthProfile(false)}}><div className="w-full max-w-[1000px] max-h-[90dvh] overflow-y-auto overscroll-contain rounded-2xl" role="dialog" aria-modal="true" aria-label="Painel completo de saúde do cliente"><ClientHealthProfile patientId={patient.id} ownerId={patient.owner_id} initial={{weight:wellness.weight_kg,height:patient.height_cm,age:wellness.age,objective:wellness.objective,protein:wellness.protein,carbs:wellness.carbs,fat:wellness.fat,kcal:wellness.kcal}} onClose={()=>setShowHealthProfile(false)} onSaved={()=>setRevision(v=>v+1)}/></div></div>}
-  {wellness&&<section className="care-wellness-insights relative z-10" aria-label="Indicadores e orientações de saúde e nutrição">
+  {wellness&&<details className="care-home-health-disclosure relative z-10">
+   <summary className="care-home-health-trigger"><span className="care-health-trigger-icon"><Activity size={17}/></span><span className="care-health-trigger-copy"><strong>Indicadores de saúde e metas</strong><small>IMC · água · proteínas · carboidratos · gorduras · energia</small></span><span className="care-health-trigger-action">Ver indicadores <ChevronRight size={15}/></span></summary>
+   <section className="care-wellness-insights relative z-10" aria-label="Indicadores e orientações de saúde e nutrição">
     {(()=>{
       const weight=wellness.weight_kg;
       const height=patient?.height_cm==null?null:Number(patient.height_cm);
@@ -428,7 +430,7 @@ export function ClientHomeSummary(){
         </details>
       </>;
     })()}
-  </section>}
+  </section></details>}
   <section className="care-patient-marquee relative z-10" aria-label="Letreiro digital de acompanhamento do cliente">
     <div className="care-patient-marquee-heading"><span className="care-patient-live-dot" aria-hidden="true"/> <span>PAINEL DIGITAL DO CLIENTE</span><span className="care-patient-marquee-date">{now ? new Intl.DateTimeFormat("pt-BR",{day:"2-digit",month:"short",timeZone:"America/Rio_Branco"}).format(now) : "Hoje"}</span></div>
     <div className="care-patient-marquee-stats" aria-live="off">
