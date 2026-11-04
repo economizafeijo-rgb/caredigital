@@ -3054,3 +3054,24 @@ iframe[title*="Lovable" i][title*="badge" i] {
  .care-detail-v4 .care-detail-footer{flex-direction:column}
  .care-detail-v4 .care-detail-footer button{width:100%;flex:none}
 }
+
+
+/* Prevent the native iOS date/time control from expanding past the intake card. */
+.care-intake-datetime{
+ display:block;
+ width:100%;
+ min-width:0;
+ max-width:100%;
+ box-sizing:border-box;
+ font-size:16px;
+}
+.care-intake-datetime::-webkit-date-and-time-value{
+ min-width:0;
+ max-width:100%;
+ text-align:left;
+}
+.care-intake-datetime::-webkit-datetime-edit{
+ min-width:0;
+ max-width:100%;
+ overflow:hidden;
+}
