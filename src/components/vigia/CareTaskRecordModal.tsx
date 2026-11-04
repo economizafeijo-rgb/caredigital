@@ -268,11 +268,11 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
     resolutionReady&&!resolution&&(details.category!=="hidratacao"||(responseReady&&!skippedWater)));
 
   return createPortal(
-    <div className="care-record-modal-overlay fixed inset-0 z-[10020] flex items-center justify-center overflow-hidden bg-slate-950/75 p-2 backdrop-blur-sm sm:p-3"
+    <div className="care-record-modal-overlay care-detail-v4 fixed inset-0 z-[10020] flex items-center justify-center overflow-hidden bg-slate-950/75 p-2 backdrop-blur-sm sm:p-3"
       onMouseDown={event => { if (event.target === event.currentTarget && !saving && !decisionSaving) onClose(); }}>
       <section role="dialog" aria-modal="true" aria-labelledby="care-task-record-title"
-        className="care-record-modal-dialog flex max-h-[min(90dvh,620px)] w-full max-w-[680px] flex-col overflow-hidden rounded-[20px] sm:max-h-[min(86dvh,620px)] border border-border/70 bg-card text-card-foreground shadow-[0_28px_100px_rgba(0,0,0,.35)]">
-        <div className="relative isolate shrink-0 overflow-hidden px-4 py-4 sm:px-5 sm:py-5">
+        data-care-type={task.category} className="care-record-modal-dialog care-detail-dialog-v4 flex w-full max-w-[680px] flex-col overflow-hidden rounded-[20px] border border-border/70 bg-card text-card-foreground shadow-[0_28px_100px_rgba(0,0,0,.35)]">
+        <header className="care-detail-header relative isolate shrink-0 overflow-hidden px-4 py-4 sm:px-5 sm:py-5">
           <div className="absolute inset-0 -z-20 bg-cover bg-center" style={{backgroundImage:`url("${categoryPhoto}")`}} aria-hidden="true"/>
           <div className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-950/95 via-slate-950/85 to-slate-950/45" aria-hidden="true"/>
           <div className="flex items-start justify-between gap-4">
@@ -281,6 +281,7 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
                 <CategoryIcon size={15}/> {label(task.category)} · Detalhes
               </div>
               <h2 id="care-task-record-title" className="text-xl font-extrabold leading-tight tracking-tight text-white sm:text-2xl">{task.title}</h2>
+              <p className="care-detail-description mt-1 text-xs text-slate-200">Confira os dados e escolha como deseja prosseguir.</p>
     
             </div>
             <button type="button" aria-label="Fechar detalhes" disabled={saving||decisionSaving} onClick={onClose}
@@ -288,12 +289,12 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
               <X size={19}/>
             </button>
           </div>
-        </div>
-        <div className="min-h-0 overflow-y-auto overscroll-contain px-4 pb-4 pt-3 sm:px-5 sm:pb-5 [scrollbar-width:thin]">
+        </header>
+        <div className="care-detail-content min-h-0 overflow-y-auto overscroll-contain px-4 pb-4 pt-3 sm:px-5 sm:pb-5 [scrollbar-width:thin]">
           {details?.completed_at && <div className="mb-2 flex items-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-foreground"><CheckCircle2 size={17} className="shrink-0 text-emerald-500"/> Registro realizado com sucesso</div>}
 
         {loading ? <p role="status" className="mt-3 text-sm text-muted-foreground">Consultando o prontuário…</p> :
-          details && <dl className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          details && <dl className="care-detail-facts grid grid-cols-1 gap-2 sm:grid-cols-2">
             {row("Horário planejado · Acre", stamp(details.scheduled_at))}
             {row("Situação", details.completed_at?"Confirmado":resolution?.status==="cancelado"?"Cancelado · informado pelo cliente":resolution?.status==="nao_cumprido"?"Não realizado · informado pelo cliente":skippedWater?"Não bebi · resposta registrada":careScheduleLabel(details))}
             {skippedWater&&waterResponse?.recorded_at&&row("Resposta registrada em (Acre)",stamp(waterResponse.recorded_at))}
@@ -307,7 +308,7 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
           </dl>}
 
         {!editing&&!editingMeal&&details&&!details.completed_at&&resolutionReady&&(!skippedWater||Boolean(resolution))&&<div className="care-record-pending-actions rounded-xl border border-primary/30 bg-primary/[.045] px-3 pb-3 pt-1">
-          <p className="mt-2 text-xs font-extrabold text-foreground">Como deseja resolver esta pendência?</p>
+          <p className="mt-2 text-xs font-extrabold text-foreground">Registrar uma decisão</p>
           <CareTaskResolutionPanel key={task.id} task={task} resolution={resolution} waterAnswered={Boolean(skippedWater)}
             onChange={setResolution} onSaved={()=>onSaved?.()} onClose={onClose}/>
         </div>}
@@ -316,7 +317,7 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
         {details?.category==="refeicao"&&details.completed_at&&!editingMeal&&<button type="button" onClick={()=>{setEditingMeal(true);setError("");setSuccess("");}} className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-xl border border-primary/35 bg-primary/10 px-3 text-xs font-bold text-primary transition hover:bg-primary/15"><Pencil size={15}/> Editar alimentos e horário real</button>}
         {editingMeal&&details?.category==="refeicao"&&details.completed_at&&<form onSubmit={event=>void saveMealCorrection(event)} className="mt-2 grid grid-cols-1 gap-2 rounded-xl border border-primary/25 bg-muted/20 p-2.5 sm:grid-cols-[minmax(0,1fr)_150px]"><p className="text-sm font-extrabold">Corrigir refeição registrada</p><label className="block text-xs font-semibold">O que foi consumido?<textarea required minLength={3} maxLength={900} rows={3} value={mealDescription} onChange={event=>setMealDescription(event.target.value)} className="mt-1 w-full resize-y rounded-xl border border-border bg-background p-3 text-sm text-foreground" placeholder="Alimentos, bebidas e quantidades consumidas"/></label><label className="block text-xs font-semibold">Horário real do consumo · Acre<input required type="time" value={mealTime} onChange={event=>setMealTime(event.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background p-3 text-sm text-foreground"/></label><p className="text-[11px] leading-relaxed text-muted-foreground">A data da refeição é mantida. O horário planejado não será modificado.</p><div className="grid grid-cols-2 gap-2"><button type="button" disabled={saving} onClick={()=>{setEditingMeal(false);setError("");}} className="rounded-xl border border-border px-3 py-2 text-xs font-semibold">Cancelar</button><button type="submit" disabled={saving||mealDescription.trim().length<3||!mealTime} className="rounded-xl bg-primary px-3 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50">{saving?"Salvando…":"Salvar alterações"}</button></div></form>}
 
-        {details?.category==="hidratacao"&&!details.completed_at&&!resolution&&<div className="mt-3 rounded-xl border border-cyan-400/25 bg-cyan-400/[.06] px-3 py-2.5"><div className="flex items-center gap-2 text-xs font-bold text-foreground"><Pencil size={15} className="text-cyan-500"/> Ajustar o cuidado programado</div><p className="mt-1 text-xs leading-relaxed text-muted-foreground">Para alterar o horário previsto, selecione <strong>Remarcar</strong> abaixo. Para registrar a quantidade, o horário real e o tipo de bebida consumida, use a confirmação de consumo. Essas informações não serão consideradas realizadas antes da confirmação.</p></div>}
+        {details?.category==="hidratacao"&&!details.completed_at&&!resolution&&<p className="care-detail-hint mt-3 text-xs text-muted-foreground">Para alterar o horário, utilize Remarcar. Para registrar o volume realmente consumido, selecione Bebi água.</p>}
         {details?.can_edit_water && !editing && <button type="button" onClick={() => { setEditing(true); setError(""); setSuccess(""); }}
           className="mt-3 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-3 text-xs font-extrabold text-primary hover:bg-primary/15">
           <Pencil size={15}/> Corrigir quantidade de água
@@ -365,14 +366,9 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
             <><Clock3 size={14}/> Este cuidado ainda não foi confirmado.</>}
         </div>
 
-        {!editing&&!editingMeal && <div className="mt-2 flex flex-wrap items-center gap-2">
+        {!editing&&!editingMeal && <div className="care-detail-footer mt-2 flex flex-wrap items-center gap-2">
           <button type="button" disabled={saving||decisionSaving} onClick={onClose}
             className="min-h-11 min-w-[75px] flex-1 rounded-xl border border-border bg-background/50 px-3 py-2.5 text-sm font-semibold transition hover:bg-muted">Fechar</button>
-          {canMarkNo&&!confirmNo&&<button type="button" disabled={saving||decisionSaving}
-            onClick={()=>{setConfirmNo(true);setError("");setSuccess("");}}
-            className="min-h-10 min-w-[88px] flex-1 rounded-lg border border-amber-500/50 bg-amber-500/10 px-2.5 py-2.5 text-xs font-bold text-amber-800 hover:bg-amber-500/20 dark:text-amber-200">
-            Não bebi
-          </button>}
           {canUndoNo&&<button type="button" disabled={saving||decisionSaving}
             onClick={()=>void changeWaterDecision("reset_not_drunk")}
             className="min-h-10 min-w-[125px] flex-1 rounded-lg border border-amber-500/40 bg-amber-500/10 px-2 py-2.5 text-xs font-bold text-foreground hover:bg-amber-500/20">
