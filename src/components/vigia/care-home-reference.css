@@ -1250,3 +1250,64 @@
 :root .client-home-dashboard.care-reference-2026 .care-wellness-metrics>div[data-health-tone="attention"] .care-imc-status{color:#ffe19c}
 :root .client-home-dashboard.care-reference-2026 .care-wellness-metrics>div[data-health-tone="alert"] .care-imc-status{color:#ffb6ac}
 :root .client-home-dashboard.care-reference-2026 .care-wellness-metrics small{overflow-wrap:anywhere}
+
+
+/* Quiet attention system: only overdue, unanswered scheduled care pulses. */
+.client-home-dashboard .care-visual-tile[data-care-alert="due"]{
+ position:relative;
+ isolation:isolate;
+ overflow:hidden;
+ border-color:rgba(255,218,124,.82)!important;
+ box-shadow:inset 0 0 0 1px rgba(255,218,124,.22),0 0 0 1px rgba(255,218,124,.14);
+ animation:care-card-attention 4.8s ease-in-out infinite;
+}
+.client-home-dashboard .care-visual-tile[data-care-alert="due"]::after{
+ content:"";
+ position:absolute;
+ inset:0;
+ border-radius:inherit;
+ border:2px solid rgba(255,221,137,.58);
+ pointer-events:none;
+ opacity:0;
+ animation:care-card-outline 4.8s ease-in-out infinite;
+}
+.client-home-dashboard .care-tile-alert-label{
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ gap:5px;
+ align-self:flex-start;
+ max-width:100%;
+ margin-top:7px;
+ padding:4px 8px;
+ border:1px solid rgba(255,223,152,.5);
+ border-radius:999px;
+ background:rgba(68,47,16,.58);
+ color:#fff0bd;
+ font-size:10px;
+ line-height:1.2;
+ font-weight:800;
+ letter-spacing:.015em;
+ white-space:nowrap;
+}
+.client-home-dashboard .care-visual-tile[data-care-alert="due"]:focus-visible{
+ outline:3px solid #ffe0a0;
+ outline-offset:3px;
+}
+@keyframes care-card-attention{
+ 0%,20%,55%,100%{filter:brightness(1);box-shadow:inset 0 0 0 1px rgba(255,218,124,.22),0 0 0 1px rgba(255,218,124,.14)}
+ 28%,39%{filter:brightness(1.12);box-shadow:inset 0 0 0 1px rgba(255,218,124,.4),0 0 18px 2px rgba(255,218,124,.24)}
+}
+@keyframes care-card-outline{
+ 0%,20%,55%,100%{opacity:0}
+ 28%,39%{opacity:1}
+}
+@media(max-width:440px){
+ .client-home-dashboard .care-tile-alert-label{font-size:8px;padding:4px 5px;gap:3px}
+ .client-home-dashboard .care-tile-alert-label svg{width:10px;height:10px}
+}
+@media(prefers-reduced-motion:reduce){
+ .client-home-dashboard .care-visual-tile[data-care-alert="due"],
+ .client-home-dashboard .care-visual-tile[data-care-alert="due"]::after{animation:none!important}
+ .client-home-dashboard .care-visual-tile[data-care-alert="due"]::after{opacity:1}
+}
