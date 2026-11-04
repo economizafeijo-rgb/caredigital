@@ -67,7 +67,7 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
    ]);
    if(!active)return;
    if(lib.error){
-     setSourceError("Catálogo online indisponível: exibindo referências locais. O registro só é permitido para alimentos disponíveis no servidor.");
+     setSourceError("Não foi possível sincronizar o catálogo online ("+String(lib.error.code??"conexão")+" ). Exibindo referências locais. Atualize para tentar novamente.");
      setFoods(ingredients);
    }else{
      setSourceError("");
@@ -82,6 +82,7 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
      if(!rows.length)setSourceError("Catálogo online vazio. Exibindo referências locais; o registro depende do catálogo do servidor.");
    }
    if(!groups.error)setSavedMeals(groups.data??[]);
+   else setNotice("O histórico de refeições não foi carregado ("+String(groups.error.code??"conexão")+"). Os registros existentes não foram alterados.");
    if(consumed.error){
     setNotice("Não foi possível consultar os macros consumidos hoje. Nenhum valor será presumido.");
     setLogs([]);
@@ -241,7 +242,7 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
      <div><h4 className="text-sm font-extrabold">Biblioteca de alimentos e nutrientes</h4><p className="text-[10px] text-muted-foreground">Valores aproximados por 100 g da porção comestível e preparo especificado</p></div>
      <span className="shrink-0 rounded-full bg-primary/10 px-2 py-1 text-[10px] font-bold text-primary">{foods.length} alimentos</span>
     </div>
-    {sourceError&&<p role="status" className="mt-1 text-[10px] text-amber-600">{sourceError}</p>}
+    {sourceError&&<div role="status" className="mt-1 flex items-center justify-between gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 p-2 text-[10px] text-amber-600"><span>{sourceError}</span><button type="button" onClick={()=>setRefresh(v=>v+1)} className="shrink-0 rounded-md border border-amber-500/30 px-2 py-1 font-bold">Tentar novamente</button></div>}
     <div className="mt-2 flex flex-wrap gap-1.5">
      <label className="relative flex min-w-[150px] flex-1"><Search size={14} className="absolute left-2.5 top-2.5 text-muted-foreground"/><input
        value={search} onChange={e=>{setSearch(e.target.value);setPage(0);}} type="search"
