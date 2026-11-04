@@ -282,7 +282,7 @@ export function ClientHomeSummary(){
    refeicao:agendaItems.filter(item=>item.category==="refeicao").length,
    medicacao:agendaItems.filter(item=>item.category==="medicacao").length};
  const chooseAgenda=(category:typeof agendaCategory)=>{setAgendaCategory(category);setAgendaPage(0);};
- return <section className="client-home-dashboard care-home-art-v2 care-home-art-reference care-premium-v3 care-reference-2026 relative flex min-h-0 min-w-0 w-full flex-col gap-2 rounded-[24px] border p-3 shadow-xl md:h-full md:max-h-full md:gap-2 md:overflow-hidden" aria-label="Painel interativo do cliente na homepage">
+ return <section className="client-home-dashboard care-home-art-v2 care-home-art-reference care-premium-v3 care-reference-2026 care-dashboard-oneview relative flex min-h-0 min-w-0 w-full flex-col gap-2 rounded-[20px] border p-2.5 shadow-xl md:h-full md:max-h-full md:overflow-hidden" aria-label="Painel interativo do cliente na homepage">
   <div aria-hidden="true" className="care-home-ambient pointer-events-none absolute inset-0 overflow-hidden rounded-[24px]" style={{opacity:0.76}}><img src="/images/caredigital-ambient-background.svg" alt="" loading="eager" decoding="async" className="absolute inset-0 h-full w-full object-cover object-center opacity-85" /><span className="care-home-glow care-home-glow-a"/><span className="care-home-glow care-home-glow-b"/></div>
   <details className="care-home-shortcuts absolute left-2 top-2 z-40">
     <summary aria-label="Abrir ações rápidas e lembretes" title="Ações rápidas e lembretes" className="care-home-shortcut-trigger">
@@ -310,13 +310,13 @@ export function ClientHomeSummary(){
       </div>
     </div>
   </details>
-  <div className="care-premium-welcome care-reference-hero relative z-10 flex items-center justify-between gap-3 overflow-hidden rounded-[20px] border border-cyan-200/10 bg-gradient-to-r from-slate-950/55 to-teal-900/30 px-4 py-3 pr-14 sm:px-5 sm:pr-16">
+  <div className="care-premium-welcome care-reference-hero relative z-10 flex items-center justify-between gap-3 overflow-hidden rounded-[16px] border border-cyan-200/10 bg-gradient-to-r from-slate-950/55 to-teal-900/30 px-3 py-2 pr-14 sm:px-4 sm:pr-16">
     <div className="min-w-0">
       <p className="text-[10px] font-bold uppercase tracking-[.16em] text-teal-200/80">Saúde · Rotina · Evolução</p>
       <h2 className="mt-1 truncate text-lg font-extrabold tracking-tight text-white sm:text-2xl">Olá, <span className="text-teal-200">{patient?.full_name?.split(" ").slice(0,2).join(" ")??"bem-vindo"}</span></h2>
       <p className="mt-1 text-[11px] text-slate-200">Acompanhe seus cuidados e sua evolução.</p>
     </div>
-    <img src="/images/care-next-wellness.svg" alt="" aria-hidden="true" className="hidden h-[76px] w-[150px] shrink-0 object-contain opacity-80 sm:block" loading="lazy"/>
+    <img src="/images/care-next-wellness.svg" alt="" aria-hidden="true" className="hidden h-[42px] w-[90px] shrink-0 object-contain opacity-65 lg:block" loading="lazy"/>
   </div>
   {wellness&&<section className="care-wellness-insights relative z-10" aria-label="Indicadores e orientações de saúde e nutrição">
     {(()=>{
@@ -362,7 +362,7 @@ export function ClientHomeSummary(){
       <div className="care-patient-marquee-stat"><span>PENDÊNCIAS</span><strong>{pending.length}</strong></div>
       <div className="care-patient-marquee-stat"><span>PRÓXIMO CUIDADO</span><strong>{next ? time(next.scheduled_at) : "Em dia"}</strong></div>
     </div>
-    <div className="care-patient-ticker" aria-label="Resumo contínuo dos cuidados">
+    <div className="care-patient-ticker hidden" aria-label="Resumo contínuo dos cuidados">
       <div className="care-patient-ticker-track" aria-hidden="true">
         {[0,1].map(copy=><div key={copy} className="care-patient-ticker-set">
           <span><b>CLIENTE</b> {patient?.full_name?.split(" ").slice(0,2).join(" ") ?? "Bem-vindo"}</span>
@@ -398,16 +398,16 @@ export function ClientHomeSummary(){
       {attentionItems.length>2&&<p className="px-2 text-[10px] text-white/60">Mais {attentionItems.length-2} eventos na linha do tempo.</p>}
     </div>
   </details>}
-  <div className="care-home-body care-reference-grid relative grid min-h-0 min-w-0 flex-1 gap-2.5 md:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] md:items-stretch">
-    <div className="care-home-left care-reference-primary grid min-h-0 min-w-0 grid-rows-[minmax(0,1fr)_auto_auto] gap-1.5">
-      <article className="patient-next-care care-reference-next relative flex min-h-[210px] min-w-0 flex-col justify-between overflow-hidden rounded-[22px] border p-3 sm:p-4 md:min-h-0">
+  <div className="care-home-body care-reference-grid relative grid min-h-0 min-w-0 flex-1 gap-2 lg:grid-cols-[minmax(0,1.25fr)_minmax(340px,0.75fr)] md:items-stretch">
+    <div className="care-home-left care-reference-primary grid min-h-0 min-w-0 grid-rows-[minmax(0,1fr)_auto_auto] gap-1">
+      <article className="patient-next-care care-reference-next relative flex min-h-[145px] min-w-0 flex-col justify-between overflow-hidden rounded-[16px] border p-2.5 sm:p-3 lg:min-h-0">
         <div aria-hidden="true" className="care-next-art pointer-events-none absolute inset-0 overflow-hidden">
           <span className="care-next-image-aura"/>
           <img src="/images/care-next-wellness.svg" alt="" loading="eager" decoding="async"
             className="care-next-generated-art" draggable={false}/>
         </div>
         <div className="relative flex items-center justify-between gap-2"><span className="care-next-overline inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-widest"><Clock3 size={17}/> Próximo cuidado</span><span className="care-next-time-chip rounded-full px-2.5 py-1 text-[10px] font-bold">{next?time(next.scheduled_at):"Agenda concluída"}</span></div>
-        <div className="care-next-copy relative z-10 mt-2"><h3 className="max-w-[26ch] text-xl font-extrabold leading-tight md:text-2xl">{next?next.title:"Nenhum cuidado aguardando resposta"}</h3><div className="mt-2 flex flex-wrap items-baseline gap-2"><strong className="care-next-countdown font-mono text-2xl font-extrabold tabular-nums md:text-[30px]">{next?countdown:"✓"}</strong><span className="care-next-countdown-label text-xs">{next?(seconds===0?"Horário previsto já passou":"até o horário previsto"):"Nenhuma atividade pendente"}</span></div></div>
+        <div className="care-next-copy relative z-10 mt-2"><h3 className="max-w-[26ch] text-lg font-extrabold leading-tight lg:text-xl">{next?next.title:"Nenhum cuidado aguardando resposta"}</h3><div className="mt-2 flex flex-wrap items-baseline gap-2"><strong className="care-next-countdown font-mono text-xl font-extrabold tabular-nums lg:text-2xl">{next?countdown:"✓"}</strong><span className="care-next-countdown-label text-xs">{next?(seconds===0?"Horário previsto já passou":"até o horário previsto"):"Nenhuma atividade pendente"}</span></div></div>
         {next?.category==="hidratacao"&&hydrationPlan[next.id]&&<p className="relative z-10 text-[11px] font-semibold text-cyan-100">
           {hydrationPlan[next.id].suggested_ml===0?"Meta de água atingida; lembrete opcional.":
            "Volume orientativo atualizado: até "+hydrationPlan[next.id].suggested_ml+" ml por lembrete."}
@@ -423,12 +423,12 @@ export function ClientHomeSummary(){
         {dailyGoal?.status==="nao_atingida"&&<span title={`Hidratação: ${dailyGoal.consumed_ml} de ${dailyGoal.target_ml} ml até 23h.`} className="inline-flex items-center gap-1 rounded-md border border-amber-300/25 bg-amber-400/10 px-1.5 py-0.5 text-[9px] font-semibold text-amber-200"><Droplets size={11}/> Meta não atingida · 23h</span>}
         <span className="ml-auto font-bold text-sky-200">{completion}%</span></div>
     </div>
-    <div className="patient-timeline care-reference-timeline care-timeline-with-image relative isolate flex min-h-[260px] min-w-0 flex-col overflow-hidden rounded-[22px] border p-3 md:min-h-0">
+    <div className="patient-timeline care-reference-timeline care-timeline-with-image relative isolate flex min-h-[220px] min-w-0 flex-col overflow-hidden rounded-[16px] border p-2.5 lg:min-h-0">
       <div aria-hidden="true" className="care-timeline-image-layer pointer-events-none absolute inset-0 z-0">
         <img src="/images/care-agenda-wellness.svg" alt="" loading="eager" decoding="async"
           className="care-timeline-generated-art" draggable={false}/>
       </div>
-      <div className="relative z-10 flex shrink-0 items-center justify-between gap-2 border-b border-white/10 pb-2"><div><p className="care-timeline-eyebrow text-[10px] font-extrabold uppercase tracking-widest">Linha do tempo</p><h3 className="mt-0.5 text-sm font-extrabold">Agenda de hoje</h3><p className="care-timeline-helper">Role para explorar os registros · Use os filtros abaixo</p></div><span className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-2 py-1 text-[10px] text-slate-200"><ListChecks size={13}/>{agendaItems.length} registros</span></div>
+      <div className="relative z-10 flex shrink-0 items-center justify-between gap-2 border-b border-white/10 pb-2"><div><p className="care-timeline-eyebrow text-[10px] font-extrabold uppercase tracking-widest">Linha do tempo</p><h3 className="mt-0.5 text-sm font-extrabold">Agenda de hoje</h3></div><span className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-2 py-1 text-[10px] text-slate-200"><ListChecks size={13}/>{agendaItems.length} registros</span></div>
       <div className="care-timeline-filters relative z-10 flex shrink-0 flex-wrap gap-1.5 pt-2" role="group" aria-label="Filtrar registros da agenda">
         {([{key:"todos",label:"Todos",count:agendaItems.length},{key:"hidratacao",label:"Líquidos",count:categoryCounts.hidratacao},{key:"refeicao",label:"Refeições",count:categoryCounts.refeicao},{key:"medicacao",label:"Medicamentos",count:categoryCounts.medicacao}] as const).map(category=><button
           key={category.key} type="button" aria-pressed={agendaCategory===category.key}
@@ -436,13 +436,13 @@ export function ClientHomeSummary(){
           {category.label} <span className="tabular-nums opacity-80">{category.count}</span>
         </button>)}
       </div>
-      <div ref={agendaScrollRef} tabIndex={0} role="region" aria-label="Registros da agenda, role para ver mais" className="care-timeline-scroll relative z-10 mt-2 min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pr-1" aria-live="polite">
+      <div ref={agendaScrollRef} tabIndex={0} role="region" aria-label="Registros da agenda, role para ver mais" className="care-timeline-scroll relative z-10 mt-1.5 min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain pr-1 [scrollbar-width:thin]" aria-live="polite">
         {visibleAgenda.map(item=>{const Icon=icons[item.category]??CalendarClock;return <button key={item.key} type="button"
           data-care-category={item.category} data-care-state={item.completed?"done":item.resolved?"resolved":item.overdue?"overdue":"scheduled"}
           title={item.task?"Ver ou corrigir cuidado programado":"Abrir o histórico completo deste consumo"}
           aria-label={item.title+" às "+time(item.at)+". "+item.subtitle}
           onClick={()=>{if(item.task){setDetailTask(item.task);setError("");}else{window.location.assign("/cliente#historico");}}}
-          className="patient-timeline-item flex w-full min-w-0 items-center gap-2 rounded-xl border px-2.5 py-1.5 text-left transition">
+          className="patient-timeline-item flex w-full min-w-0 items-center gap-2 rounded-lg border px-2.5 py-1 text-left transition">
           <span className="w-11 shrink-0 font-mono text-[11px] font-bold tabular-nums">{time(item.at)}</span>
           <span className="grid size-7 shrink-0 place-items-center rounded-lg"><Icon size={16}/></span>
           <span className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold">{item.title}</span>
