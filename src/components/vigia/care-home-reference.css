@@ -1311,3 +1311,18 @@
  .client-home-dashboard .care-visual-tile[data-care-alert="due"]::after{animation:none!important}
  .client-home-dashboard .care-visual-tile[data-care-alert="due"]::after{opacity:1}
 }
+
+
+/* Energy reconciliation: clear, responsive macro breakdown. */
+.client-home-dashboard .care-macro-energy-summary{min-width:0;margin:12px 0;padding:13px 15px;border:1px solid rgba(133,222,215,.25);border-radius:16px;background:rgba(6,35,46,.54);color:#e5faf8}
+.client-home-dashboard .care-macro-energy-heading{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:5px 12px;font-size:13px}
+.client-home-dashboard .care-macro-energy-heading span{font-size:12px;color:#bbd8da}
+.client-home-dashboard .care-macro-energy-bar{display:flex;width:100%;height:11px;overflow:hidden;border-radius:99px;margin:11px 0 9px;background:#254852}
+.client-home-dashboard .care-macro-energy-bar span{display:block;min-width:0;height:100%}
+.client-home-dashboard .care-macro-energy-legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:12px;color:#d9e9eb}
+.client-home-dashboard .care-macro-energy-legend span{display:inline-flex;align-items:center;gap:5px}
+.client-home-dashboard .care-macro-energy-legend i{display:inline-block;width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.client-home-dashboard .care-macro-energy-legend b{font-weight:800;color:white}
+.client-home-dashboard .care-macro-energy-note{margin:10px 0 0;font-size:11px;line-height:1.5;color:#a9c6c9}
+.client-home-dashboard .care-macro-energy-warning{margin:9px 0 0;padding:9px 10px;border:1px solid rgba(252,211,119,.4);border-radius:10px;background:rgba(103,70,25,.35);font-size:12px;line-height:1.5;color:#ffe6a5}
+@media(max-width:480px){.client-home-dashboard .care-macro-energy-summary{padding:11px}.client-home-dashboard .care-macro-energy-legend{gap:6px 10px;font-size:11px}}
