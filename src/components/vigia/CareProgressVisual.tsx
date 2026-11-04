@@ -1,9 +1,10 @@
 import { useId } from "react";
-import { Droplets, Utensils, Pill } from "lucide-react";
+import { Droplets, Utensils, Pill, BellRing } from "lucide-react";
 import type { HydrationGoalSnapshot } from "@/lib/hydration-goal";
 import type { ReminderTask } from "@/lib/care-reminders";
 
 type Props={tasks:ReminderTask[];goal:HydrationGoalSnapshot|null;
+  alertCategories?:Array<"hidratacao"|"refeicao"|"medicacao">;
   onOpen?:(task:ReminderTask)=>void;
   onHydration?:()=>void;onFood?:()=>void;onMedication?:()=>void;
 };
@@ -85,7 +86,10 @@ function MedicationCapsule({ratio}: {ratio:number}){
   </svg>;
 }
 
-export function CareProgressVisual({tasks,goal,onOpen,onHydration,onFood,onMedication}:Props){
+export function CareProgressVisual({tasks,goal,onOpen,onHydration,onFood,onMedication,alertCategories=[]}:Props){
+  const alertWater=alertCategories.includes("hidratacao");
+  const alertFood=alertCategories.includes("refeicao");
+  const alertMedicine=alertCategories.includes("medicacao");
   const meds=tasks.filter(t=>t.category==="medicacao");
   const meals=tasks.filter(t=>t.category==="refeicao");
   const completedMeds=meds.filter(t=>Boolean(t.completed_at)).length;
@@ -105,9 +109,9 @@ export function CareProgressVisual({tasks,goal,onOpen,onHydration,onFood,onMedic
 
   return <section aria-label="Progresso ilustrado do cuidado de hoje"
     className="care-visual-progress grid min-w-0 grid-cols-3 gap-1.5 sm:gap-2">
-    <button type="button" data-visual="water" data-action="register-hydration"
+    <button type="button" data-visual="water" data-care-alert={alertWater?"due":undefined} data-action="register-hydration"
       onClick={()=>open("hidratacao")}
-      title="Registrar água ou conferir hidratação" aria-label="Hidratação. Abrir registro de água."
+      title="Registrar água ou conferir hidratação" aria-label={alertWater?"Hidratação. Cuidado programado pendente. Abrir registro.":"Hidratação. Abrir registro de água."}
       className="care-visual-tile care-visual-action relative flex min-w-0 items-center gap-1.5 overflow-hidden rounded-2xl border px-1.5 py-1.5 text-left sm:gap-2 sm:px-2.5">
       <div className="care-reference-tile-top"><Droplets size={24}/><span className="care-reference-ring" style={{"--care-ratio":`${Math.round(waterRatio*100)}%`} as React.CSSProperties}>{Math.round(waterRatio*100)}%</span></div><WaterVessel amount={water} target={waterTarget}/>
       <div className="min-w-0 flex-1">
@@ -116,10 +120,10 @@ export function CareProgressVisual({tasks,goal,onOpen,onHydration,onFood,onMedic
         <p className="care-visual-subtitle truncate text-[9px]">{waterTarget? `de ${fmt(waterTarget)} ml`:"Sem meta definida"}</p>
         <div className="care-visual-track mt-1 h-1 overflow-hidden rounded-full"><i style={{width:(waterRatio*100)+"%"}}/></div>
       </div>
-    </button>
-    <button type="button" data-visual="meals" data-action="register-food"
+    {alertWater&&<span className="care-tile-alert-label" aria-label="Cuidado programado aguardando confirmação"><BellRing size={12} aria-hidden="true"/> Ação pendente</span>}</button>
+    <button type="button" data-visual="meals" data-care-alert={alertFood?"due":undefined} data-action="register-food"
       onClick={()=>open("refeicao")}
-      title="Registrar uma refeição ou alimento" aria-label="Alimentação. Abrir registro de refeição ou alimento."
+      title="Registrar uma refeição ou alimento" aria-label={alertFood?"Alimentação. Cuidado programado pendente. Abrir registro.":"Alimentação. Abrir registro de refeição ou alimento."}
       className="care-visual-tile care-visual-action relative flex min-w-0 items-center gap-1.5 overflow-hidden rounded-2xl border px-1.5 py-1.5 text-left sm:gap-2 sm:px-2.5">
       <div className="care-reference-tile-top"><Utensils size={24}/><span className="care-reference-ring" style={{"--care-ratio":`${Math.round(pct(completedMeals,meals.length)*100)}%`} as React.CSSProperties}>{Math.round(pct(completedMeals,meals.length)*100)}%</span></div><MealPlate ratio={pct(completedMeals,meals.length)}/>
       <span className="min-w-0 flex-1">
@@ -128,10 +132,10 @@ export function CareProgressVisual({tasks,goal,onOpen,onHydration,onFood,onMedic
         <span className="care-visual-subtitle block truncate text-[9px]">refeições confirmadas</span>
         <span className="care-visual-track mt-1 block h-1 overflow-hidden rounded-full"><i style={{width:(pct(completedMeals,meals.length)*100)+"%"}}/></span>
       </span>
-    </button>
-    <button type="button" data-visual="medicine" data-action="register-medication"
+    {alertFood&&<span className="care-tile-alert-label" aria-label="Cuidado programado aguardando confirmação"><BellRing size={12} aria-hidden="true"/> Ação pendente</span>}</button>
+    <button type="button" data-visual="medicine" data-care-alert={alertMedicine?"due":undefined} data-action="register-medication"
       onClick={()=>open("medicacao")}
-      title="Abrir registro ou histórico de medicação" aria-label="Medicação. Abrir registro de medicação ou detalhes das doses."
+      title="Abrir registro ou histórico de medicação" aria-label={alertMedicine?"Medicação. Cuidado programado pendente. Abrir registro.":"Medicação. Abrir registro de medicação ou detalhes das doses."}
       className="care-visual-tile care-visual-action relative flex min-w-0 items-center gap-1.5 overflow-hidden rounded-2xl border px-1.5 py-1.5 text-left sm:gap-2 sm:px-2.5">
       <div className="care-reference-tile-top"><Pill size={24}/><span className="care-reference-ring" style={{"--care-ratio":`${Math.round(pct(completedMeds,meds.length)*100)}%`} as React.CSSProperties}>{Math.round(pct(completedMeds,meds.length)*100)}%</span></div><MedicationCapsule ratio={pct(completedMeds,meds.length)}/>
       <span className="min-w-0 flex-1">
@@ -140,6 +144,6 @@ export function CareProgressVisual({tasks,goal,onOpen,onHydration,onFood,onMedic
         <span className="care-visual-subtitle block truncate text-[9px]">doses confirmadas</span>
         <span className="care-visual-track mt-1 block h-1 overflow-hidden rounded-full"><i style={{width:(pct(completedMeds,meds.length)*100)+"%"}}/></span>
       </span>
-    </button>
+    {alertMedicine&&<span className="care-tile-alert-label" aria-label="Cuidado programado aguardando confirmação"><BellRing size={12} aria-hidden="true"/> Ação pendente</span>}</button>
   </section>;
 }
