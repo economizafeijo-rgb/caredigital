@@ -495,7 +495,7 @@ export function ClientHomeSummary(){
         </p>}
         <div className="relative z-10 mt-2 flex shrink-0 flex-wrap gap-1.5">{next&&<button type="button" onClick={()=>{setSelected(next);setError("");setMealTime(currentAcreTime());setMealDescription("");setMealType(mealTypeFromTitle(next.title));}} className="care-next-cta inline-flex min-h-9 items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-extrabold transition">Verificar / confirmar <ChevronRight size={15}/></button>}<Link to="/cliente" className="care-next-secondary inline-flex min-h-9 items-center rounded-full border px-3 py-1.5 text-[11px] font-bold transition">Ver tratamento completo</Link></div>
       </article>
-      <CareProgressVisual tasks={summaryTasks} goal={dailyGoal}
+      <CareProgressVisual tasks={summaryTasks} goal={dailyGoal} nowMs={now?.getTime()}
         alertCategories={Array.from(new Set(attentionItems.map(task=>task.category))) as Array<"hidratacao"|"refeicao"|"medicacao">}
         onHydration={()=>{setAgendaCategory("hidratacao");setTimelineView("historico");openHydrationCard();}} onFood={()=>{setAgendaCategory("refeicao");setTimelineView("historico");openFoodCard();}}
         onMedication={()=>{setAgendaCategory("medicacao");setTimelineView("historico");openMedicationCard();}} onOpen={task=>{setDetailTask(task);setError("");}}/>
