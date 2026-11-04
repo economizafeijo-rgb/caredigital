@@ -21,6 +21,13 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
  const [carbs,setCarbs]=useState(initial.carbs?.toString()??"");
  const [fat,setFat]=useState(initial.fat?.toString()??"");
  const [kcal,setKcal]=useState(initial.kcal?.toString()??"");
+ const previewProtein=Number(protein.replace(",","."))||null;
+ const previewCarbs=Number(carbs.replace(",","."))||null;
+ const previewFat=Number(fat.replace(",","."))||null;
+ const previewCalories=Number(kcal.replace(",","."))||null;
+ const previewTotal=previewProtein!==null&&previewCarbs!==null&&previewFat!==null
+  ?Math.round(previewProtein*4+previewCarbs*4+previewFat*9):null;
+ const previewDifference=previewTotal!==null&&previewCalories!==null?previewTotal-previewCalories:null;
  const [saving,setSaving]=useState(false);
  const [message,setMessage]=useState("");
  useEffect(()=>{setWeight(initial.weight?.toString()??"");setAge(initial.age?.toString()??"");setObjective(goals.some(([v])=>v===initial.objective)?initial.objective!:"equilibrio");setProtein(initial.protein?.toString()??"");setCarbs(initial.carbs?.toString()??"");setFat(initial.fat?.toString()??"");setKcal(initial.kcal?.toString()??"")},[initial.weight,initial.age,initial.objective,initial.protein,initial.carbs,initial.fat,initial.kcal]);
@@ -86,6 +93,16 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
    {input("Meta de carboidratos (g/dia) · opcional",carbs,setCarbs,"Automática")}
    {input("Meta de gorduras (g/dia) · opcional",fat,setFat,"Automática")}
    {input("Meta energética (kcal/dia) · opcional",kcal,setKcal,"Não definida")}
+  </div>
+  <div className="mt-3 rounded-xl border border-white/15 bg-slate-950/35 p-3" aria-label="Conferência das metas nutricionais">
+   <div className="flex flex-wrap items-center justify-between gap-2"><strong className="text-sm">Conferência das metas</strong><span className="text-xs text-slate-300">{previewTotal!==null?previewTotal.toLocaleString("pt-BR")+" kcal pelos macros":"Preencha os três macros para calcular a energia"}</span></div>
+   {previewTotal!==null&&<div className="mt-3 flex h-2.5 w-full overflow-hidden rounded-full bg-slate-700" role="img" aria-label="Distribuição das calorias entre proteínas, carboidratos e gorduras">
+    <span style={{width:(previewProtein!*4/previewTotal*100)+"%",background:"#8ce8df"}}/>
+    <span style={{width:(previewCarbs!*4/previewTotal*100)+"%",background:"#f7d38b"}}/>
+    <span style={{width:(previewFat!*9/previewTotal*100)+"%",background:"#c5b3f6"}}/>
+   </div>}
+   {previewDifference!==null&&Math.abs(previewDifference)>100&&<p role="status" className="mt-2 rounded-lg border border-amber-300/40 bg-amber-400/10 p-2 text-xs text-amber-100">A soma dos macros está {Math.abs(previewDifference).toLocaleString("pt-BR")} kcal {previewDifference>0?"acima":"abaixo"} da meta energética. Confira antes de salvar.</p>}
+   <p className="mt-2 text-xs text-slate-300">Prévia calculada a partir das metas digitadas; não representa consumo real.</p>
   </div>
   <p className="mt-3 text-xs leading-relaxed text-slate-300">Campos de metas vazios usam referências educativas. Metas calóricas e restrições de líquidos exigem avaliação individual. A altura e a prescrição de água permanecem sob controle do prontuário.</p>
   {message&&<p role="status" className="mt-3 rounded-lg border border-teal-300/25 bg-slate-900/50 p-2 text-xs">{message}</p>}
