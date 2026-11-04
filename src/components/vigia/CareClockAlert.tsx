@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
-import { BellRing, CalendarCheck2, CheckCircle2, Clock3, Droplets, Pill, UtensilsCrossed, X } from "lucide-react";
+import { BellRing, CalendarCheck2, CheckCircle2, Clock3, Droplets, Pill, UtensilsCrossed, X, CircleX, CalendarClock, Info, ArrowLeft, Ban } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { reminderCategoryLabel, reminderClock, reminderMmSs, type ReminderTask } from "@/lib/care-reminders";
 import "./care-clock-alert.css";
 
@@ -10,8 +11,9 @@ type Props = {
   remainingMs: number;
   onDetails: () => void;
   onConfirm: () => void;
-  onSnooze: () => void;
+  onSnooze: (minutes:number) => void;
   onDismiss: () => void;
+  onChanged: () => void;
 };
 
 const zone = "America/Rio_Branco";
@@ -72,7 +74,56 @@ function PulseClock({now}:{now:number}) {
   </div>;
 }
 
-export function CareClockAlert({task,now,remainingMs,onDetails,onConfirm,onSnooze,onDismiss}:Props) {
+export function CareClockAlert({task,now,remainingMs,onDetails,onConfirm,onSnooze,onDismiss,onChanged}:Props) {
+  const [view,setView]=useState<"main"|"notdone"|"postpone"|"cancel">("main");
+  const [reason,setReason]=useState("");
+  const [delay,setDelay]=useState("10");
+  const [customTime,setCustomTime]=useState("");
+  const [saving,setSaving]=useState(false);
+  const [error,setError]=useState("");
+  const isMedication=task.category==="medicacao";
+  const canReschedule=task.category==="refeicao"||task.category==="hidratacao";
+  async function saveDecision(event:FormEvent<HTMLFormElement>){
+    event.preventDefault();
+    if(saving)return;
+    setSaving(true);setError("");
+    try{
+      let result:any;
+      if(view==="postpone"){
+        if(isMedication){
+          onSnooze(3);
+          return;
+        }
+        const minutes=Number(delay);
+        let next:Date;
+        if(delay==="custom"){
+          if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(customTime))throw Error("Informe um horário válido.");
+          const parts=new Intl.DateTimeFormat("en-CA",{timeZone:zone,year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
+          const get=(type:string)=>parts.find(p=>p.type===type)?.value;
+          next=new Date(`${get("year")}-${get("month")}-${get("day")}T${customTime}:00-05:00`);
+        }else{
+          if(![10,20,30].includes(minutes))throw Error("Selecione o tempo de adiamento.");
+          next=new Date(Date.now()+minutes*60000);
+        }
+        if(!Number.isFinite(next.getTime())||next.getTime()<=Date.now())throw Error("Escolha um horário futuro.");
+        result=await (supabase as any).rpc("care_reschedule_pending_task",{
+          p_task_id:task.id,p_new_scheduled_at:next.toISOString(),p_reason:"Adiado pelo cliente no lembrete de cuidado"
+        });
+        if(result.error)throw result.error;
+        if(result.data?.task_id!==task.id||result.data?.status!=="remarcado")throw Error("A remarcação não foi confirmada.");
+      }else if(view==="notdone"||view==="cancel"){
+        result=await (supabase as any).rpc("care_resolve_pending_task",{
+          p_task_id:task.id,p_status:view==="notdone"?"nao_cumprido":"cancelado",p_reason:reason.trim()
+        });
+        if(result.error)throw result.error;
+        const expected=view==="notdone"?"nao_cumprido":"cancelado";
+        if(result.data?.task_id!==task.id||result.data?.status!==expected)throw Error("O registro não foi confirmado pelo servidor.");
+      }else return;
+      onChanged();
+      onDismiss();
+    }catch(e){setError(e instanceof Error?e.message:"Não foi possível salvar a decisão.");}
+    finally{setSaving(false);}
+  }
   const firstButton=useRef<HTMLButtonElement|null>(null);
   const dialogRef=useRef<HTMLElement|null>(null);
   const dismissRef=useRef(onDismiss);
@@ -114,33 +165,66 @@ export function CareClockAlert({task,now,remainingMs,onDetails,onConfirm,onSnooz
       </div>
       <button type="button" className="care-clock-close" aria-label="Fechar lembrete sem confirmar" onClick={onDismiss}><X size={21}/></button>
       <div className="care-clock-alert-head">
-        <span className="care-clock-alert-eyebrow"><BellRing size={15}/> Lembrete de cuidado ativo</span>
-        <PulseClock now={now}/>
-        <div className="care-clock-alert-category"><Icon size={16}/>{reminderCategoryLabel(task.category)}</div>
-        <h2>Está na hora do compromisso</h2>
-        <p id="care-clock-alert-description">Seu cuidado programado está no horário. Confira o que foi previsto antes de registrar qualquer realização.</p>
+        <span className="care-clock-alert-eyebrow"><BellRing size={15}/> Lembrete de cuidado</span>
+        <div className="care-clock-alert-mini-art"><PulseClock now={now}/></div>
+        <h2>Seu cuidado está no horário</h2>
+        <p id="care-clock-alert-description">Confira o compromisso e escolha como deseja prosseguir.</p>
       </div>
       <div className="care-clock-alert-task">
-        <span className="care-clock-alert-task-symbol"><Icon size={23}/></span>
+        <span className="care-clock-alert-task-symbol"><Icon size={22}/></span>
         <div className="care-clock-alert-task-details">
-          <span className="care-clock-alert-task-label">Compromisso programado</span>
+          <span className="care-clock-alert-task-label">{reminderCategoryLabel(task.category)}</span>
           <strong>{task.title}</strong>
-          <span>Horário {reminderClock(task.scheduled_at)} · fuso do Acre</span>
+          <span>Previsto para {reminderClock(task.scheduled_at)} · Acre</span>
         </div>
-        <span className="care-clock-alert-countdown"><Clock3 size={14}/>{reminderMmSs(remainingMs)}</span>
+        <span className="care-clock-alert-countdown" title="Tempo restante para este aviso"><Clock3 size={14}/>{reminderMmSs(remainingMs)}</span>
       </div>
-      <div className="care-clock-alert-actions">
-        <button ref={firstButton} type="button" className="care-clock-button care-clock-button-primary" onClick={onDetails}>
-          <CalendarCheck2 size={18}/> Ver detalhes
+      {view==="main"?<>
+        <button ref={firstButton} type="button" className="care-clock-button care-clock-button-primary care-clock-main-action" onClick={onConfirm}>
+          <CheckCircle2 size={18}/> Confirmar realização
         </button>
-        <button type="button" className="care-clock-button care-clock-button-secondary" onClick={onConfirm}>
-          <CheckCircle2 size={18}/> Abrir confirmação
+        <div className="care-clock-alert-actions">
+          <button type="button" className="care-clock-button care-clock-button-secondary" onClick={()=>{setView("notdone");setError("");}}>
+            <CircleX size={17}/> Não fiz
+          </button>
+          <button type="button" className="care-clock-button care-clock-button-secondary" onClick={()=>{setView("postpone");setError("");}}>
+            <CalendarClock size={17}/> Deixar para depois
+          </button>
+        </div>
+        <div className="care-clock-alert-tertiary">
+          <button type="button" onClick={onDetails}><Info size={15}/> Ver detalhes</button>
+          <button type="button" onClick={()=>{setView("cancel");setError("");}}><Ban size={15}/> Cancelar cuidado</button>
+        </div>
+        <p className="care-clock-alert-note">Fechar este aviso não confirma nem cancela o cuidado.</p>
+      </>:<form onSubmit={event=>void saveDecision(event)} className="care-clock-decision-form">
+        <div className="care-clock-decision-heading">
+          <strong>{view==="notdone"?"Registrar como não realizado":view==="cancel"?"Cancelar o cuidado de hoje":"Escolher novo horário"}</strong>
+          <button type="button" onClick={()=>{setView("main");setError("");}} disabled={saving}><ArrowLeft size={15}/> Voltar</button>
+        </div>
+        {view==="postpone"?<>
+          {canReschedule?<><p>O cuidado será remarcado no prontuário. O horário original permanecerá no histórico.</p>
+            <div className="care-clock-delay-options">
+              {["10","20","30","custom"].map(value=><label key={value}><input type="radio" name="care-delay" value={value} checked={delay===value} onChange={()=>setDelay(value)}/>{value==="custom"?"Outro horário":value+" minutos"}</label>)}
+            </div>
+            {delay==="custom"&&<label className="care-clock-field">Novo horário (Acre)<input type="time" required value={customTime} onChange={event=>setCustomTime(event.target.value)}/></label>}
+          </>:<p>O horário da medicação não pode ser alterado por este aviso. É possível apenas lembrar novamente em 3 minutos, sem modificar a prescrição.</p>}
+        </>:<>
+          <p>{view==="notdone"?"O cuidado será registrado como não realizado.":"O cuidado de hoje será registrado como cancelado, sem apagar o histórico."} {isMedication?"Isso não altera a prescrição médica.":""}</p>
+          <label className="care-clock-field">Motivo (opcional)
+            <select value={reason} onChange={event=>setReason(event.target.value)}>
+              <option value="">Não informar</option>
+              <option value="Esqueci">Esqueci</option>
+              <option value="Não consegui realizar">Não consegui realizar</option>
+              {task.category==="refeicao"&&<option value="Não senti fome">Não senti fome</option>}
+              <option value="Outro motivo">Outro motivo</option>
+            </select>
+          </label>
+        </>}
+        {error&&<p className="care-clock-form-error" role="alert">{error}</p>}
+        <button type="submit" disabled={saving} className="care-clock-button care-clock-button-primary">
+          {saving?"Salvando…":view==="notdone"?"Salvar como não realizado":view==="cancel"?"Confirmar cancelamento":canReschedule?"Salvar novo horário":"Lembrar em 3 minutos"}
         </button>
-      </div>
-      <div className="care-clock-alert-footer">
-        <p>O cuidado só será confirmado após você declarar que realmente o realizou.</p>
-        <button type="button" onClick={onSnooze}>Lembrar em 3 min</button>
-      </div>
+      </form>}
     </section>
   </div>,document.body);
 }
