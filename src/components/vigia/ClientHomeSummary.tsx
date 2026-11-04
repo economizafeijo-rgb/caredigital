@@ -1,3 +1,4 @@
+import { estimateObjectiveNutrition, objectiveLabel } from "@/lib/objective-nutrition";
 import { useEffect, useRef, useState } from "react";
 import "./care-home-reference.css";
 import { Link } from "@tanstack/react-router";
@@ -370,20 +371,22 @@ export function ClientHomeSummary(){
       const bmi=weight&&height!==null&&height>=100&&height<=230?weight/((height/100)**2):null;
       const validWeight=weight&&weight>=30&&weight<=250;
       const waterGoal=wellness.target_ml??(validWeight&&!wellness.fluid_restriction?Math.round(weight*30/50)*50:null);
+      const objectiveEstimate=estimateObjectiveNutrition({weight:validWeight?weight:null,age:wellness.age,heightCm:height,sex:wellness.sex,objective:wellness.objective});
       const proteinFactor=wellness.objective==="hipertrofia"?1.6:wellness.objective==="emagrecimento"?1.5:wellness.objective==="ganho_peso"?1.3:1.0;
-      const protein=wellness.protein??(validWeight?Math.round(weight*proteinFactor):null);
-      const fat=wellness.fat??(validWeight?Math.round(weight*(wellness.objective==="ganho_peso"?1:wellness.objective==="hipertrofia"?.9:.8)):null);
+      const protein=wellness.protein??objectiveEstimate.protein;
+      const fat=wellness.fat??objectiveEstimate.fat;
       // If no calorie target exists, provide a transparent weight-based starting
       // reference instead of leaving carbohydrates blank. This is not a
       // clinical prescription or an estimate of energy expenditure.
       const carbFactor=wellness.objective==="hipertrofia"||wellness.objective==="ganho_peso"?4:wellness.objective==="emagrecimento"?2.5:3;
-      const carbEnergy=wellness.kcal!==null&&protein!==null&&fat!==null
-        ?wellness.kcal-protein*4-fat*9:null;
+      const goalKcal=wellness.kcal??objectiveEstimate.target;
+      const carbEnergy=goalKcal!==null&&protein!==null&&fat!==null
+        ?goalKcal-protein*4-fat*9:null;
       const carbs=wellness.carbs??(carbEnergy!==null&&carbEnergy>0
         ?Math.round(carbEnergy/4)
-        :validWeight?Math.round(weight*carbFactor):null);
+        :objectiveEstimate.carbs??(validWeight?Math.round(weight*carbFactor):null));
       const carbLabel=wellness.carbs!==null?"Meta individual cadastrada"
-        :carbEnergy!==null&&carbEnergy>0?"Calculado pela meta calórica"
+        :carbEnergy!==null&&carbEnergy>0?"Calculado pela energia do objetivo"
         :validWeight?`Referência inicial: ${carbFactor.toLocaleString("pt-BR")} g/kg`
         :"Informe o peso para estimativa";
       const adult=wellness.age===null||wellness.age>=20;
@@ -396,11 +399,7 @@ export function ClientHomeSummary(){
       const remainingCalories=wellness.kcal&&calorieBalance!==null?Math.round(wellness.kcal-calorieBalance):null;
       // Mifflin-St Jeor, with conservative sedentary multiplier. Exercise
       // minutes alone cannot establish a reliable activity factor.
-      const sex=wellness.sex?.toLowerCase();
-      const sexOffset=sex==="male"||sex==="masculino"||sex==="m"?5:sex==="female"||sex==="feminino"||sex==="f"?-161:null;
-      const basal=validWeight&&height!==null&&height>=100&&height<=230&&wellness.age!==null&&wellness.age>=18&&wellness.age<=100&&sexOffset!==null
-        ?Math.round(10*weight+6.25*height-5*wellness.age+sexOffset):null;
-      const estimatedEnergy=basal!==null?Math.round(basal*1.2):null;
+      const estimatedEnergy=objectiveEstimate.maintenance;
       const macroEnergy=protein!==null&&carbs!==null&&fat!==null?Math.round(protein*4+carbs*4+fat*9):null;
       const macroParts=macroEnergy!==null&&macroEnergy>0?[
         {label:"Proteínas",kcal:protein!*4,color:"#8ce8df"},
@@ -410,13 +409,20 @@ export function ClientHomeSummary(){
       const energyGap=wellness.kcal!==null&&macroEnergy!==null?macroEnergy-wellness.kcal:null;
       const tips=wellness.fluid_restriction?"Há restrição de líquidos registrada: siga a orientação profissional para hidratação.":wellness.gastritis_sensitive?"Prefira refeições menores e observe os alimentos que provocam desconforto.":"Distribua proteínas entre refeições e priorize alimentos variados, frutas, verduras e fontes de fibras.";
       return <>
+        <div className="mb-2 grid grid-cols-2 gap-2 rounded-xl border border-teal-300/25 bg-teal-300/10 p-3 text-xs sm:grid-cols-4">
+          <div><span className="block text-[10px] text-teal-200">OBJETIVO</span><strong>{objectiveLabel(wellness.objective)}</strong></div>
+          <div><span className="block text-[10px] text-teal-200">MANUTENÇÃO ESTIMADA</span><strong>{objectiveEstimate.maintenance!==null?objectiveEstimate.maintenance.toLocaleString("pt-BR")+" kcal":"Dados insuficientes"}</strong></div>
+          <div><span className="block text-[10px] text-teal-200">META ENERGÉTICA</span><strong>{goalKcal!==null?goalKcal.toLocaleString("pt-BR")+" kcal":"Não calculada"}</strong></div>
+          <div><span className="block text-[10px] text-teal-200">DIFERENÇA DA MANUTENÇÃO</span><strong>{objectiveEstimate.maintenance!==null&&goalKcal!==null?(goalKcal-objectiveEstimate.maintenance>0?"+":"")+(goalKcal-objectiveEstimate.maintenance).toLocaleString("pt-BR")+" kcal":"—"}</strong></div>
+        </div>
+        <p className="mb-2 text-[10px] text-slate-300">Estimativa educativa com atividade sedentária (×1,2). Sem meta cadastrada, usa ±10% da manutenção conforme objetivo; a atividade real e condições clínicas podem alterar a necessidade. Metas individuais têm prioridade.</p>
         <div className="care-wellness-metrics">
           <div data-health-tone={bmiTone}><span>IMC</span><strong>{bmi?bmi.toFixed(1).replace(".",","):"—"}</strong><small className="care-imc-status">{bmiStatus}</small><small>{bmi&&adult?"Classificação de referência para adultos":"Informe idade, peso e altura"}</small></div>
           <div><span>ÁGUA / DIA</span><strong>{waterGoal&&!wellness.fluid_restriction?(waterGoal/1000).toLocaleString("pt-BR",{maximumFractionDigits:2})+" L":"—"}</strong><small>{waterLabel}</small></div>
           <div><span>PROTEÍNAS</span><strong>{protein?protein+" g":"—"}</strong><small>{proteinLabel}</small></div>
           <div><span>CARBOIDRATOS</span><strong>{carbs!==null?carbs+" g":"—"}</strong><small>{carbLabel}</small></div>
           <div><span>GORDURAS</span><strong>{fat?fat+" g":"—"}</strong><small>{fatLabel}</small></div>
-          <div><span>ENERGIA</span><strong>{wellness.kcal?wellness.kcal+" kcal":estimatedEnergy!==null?estimatedEnergy+" kcal":"—"}</strong><small>{wellness.kcal?"Meta individual cadastrada":estimatedEnergy!==null?"Estimativa basal × 1,2 (sedentário)":"Informe idade, peso, altura e sexo no perfil de hidratação"}</small></div>
+          <div><span>ENERGIA</span><strong>{goalKcal!==null?goalKcal+" kcal":"—"}</strong><small>{wellness.kcal?"Meta individual cadastrada":goalKcal!==null?"Referência por objetivo · atividade sedentária":"Informe idade, peso, altura e sexo no perfil de hidratação"}</small></div>
         </div>
         {macroParts&&<div className="care-macro-energy-summary" aria-label="Distribuição energética dos macronutrientes">
           <div className="care-macro-energy-heading"><strong>Distribuição dos macronutrientes</strong><span>{macroEnergy?.toLocaleString("pt-BR")} kcal em macros</span></div>
