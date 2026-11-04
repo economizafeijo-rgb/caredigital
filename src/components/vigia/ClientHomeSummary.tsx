@@ -301,20 +301,16 @@ export function ClientHomeSummary(){
    // If no medication is scheduled, the full treatment section still opens.
    window.location.assign("/cliente#visao-geral");
  };
- // Mostra apenas eventos vencidos e ainda sem resposta, ou explicitamente não realizados.
- // Eventos futuros, confirmados e corrigidos nunca aparecem como pendência.
- const attentionItems=summaryTasks.filter(task=>{
-   if(task.completed_at)return false;
-   const status=resolvedStates[task.id];
-   if(status==="cancelado")return false;
-   if(status==="nao_cumprido"||status==="nao_bebi")return true;
-   return Boolean(now&&Date.parse(task.scheduled_at)<now.getTime()&&!status);
- }).sort((a,b)=>Date.parse(b.scheduled_at)-Date.parse(a.scheduled_at));
+ // Pendências recentes: apenas cuidados vencidos SEM qualquer resposta.
+ // Confirmações, cancelamentos e declarações "não fiz/não bebi" já estão
+ // resolvidos e continuam no histórico, mas não devem ser cobrados novamente.
+ const attentionItems=summaryTasks.filter(task=>
+   !task.completed_at &&
+   !resolvedStates[task.id] &&
+   Boolean(now && Date.parse(task.scheduled_at)<now.getTime())
+ ).sort((a,b)=>Date.parse(b.scheduled_at)-Date.parse(a.scheduled_at));
  const attentionRecent=attentionItems.slice(0,2);
- const attentionText=(task:Care)=>{
-   const status=resolvedStates[task.id];
-   return status==="nao_bebi"?"Não bebeu":status==="nao_cumprido"?"Não realizado":"Sem confirmação";
- };
+ const attentionText=(_task:Care)=>"Sem confirmação";
  const categoryCounts={hidratacao:agendaItems.filter(item=>item.category==="hidratacao").length,
    refeicao:agendaItems.filter(item=>item.category==="refeicao").length,
    medicacao:agendaItems.filter(item=>item.category==="medicacao").length};
