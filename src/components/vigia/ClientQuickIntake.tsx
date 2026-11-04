@@ -134,7 +134,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
       <div className="care-intake-modal-overlay fixed inset-0 z-[150] flex items-center justify-center overflow-y-auto bg-slate-950/75 p-3 backdrop-blur-sm"
         onMouseDown={event => { if (event.target === event.currentTarget) closeForm(); }}>
         <section role="dialog" aria-modal="true" aria-labelledby="quick-intake-title"
-          className="care-premium-intake-dialog flex max-h-[calc(100dvh-1.5rem)] w-full max-w-md flex-col overflow-y-auto rounded-[24px] border border-border bg-card p-4 text-card-foreground shadow-2xl sm:p-5">
+          className="care-premium-intake-dialog care-intake-responsive-v2 flex max-h-[calc(100dvh-1.5rem)] w-full max-w-md min-w-0 flex-col overflow-y-auto rounded-[24px] border border-border bg-card p-4 text-card-foreground shadow-2xl sm:p-5">
           <div className="care-premium-intake-header flex shrink-0 items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <span className="grid size-9 place-items-center rounded-xl bg-primary/10 text-primary">
@@ -161,7 +161,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
                 <Droplets size={15}/> Líquidos e shakes
               </button>
             </div>}
-            {mode!=="water"&&<div className="care-intake-picker-scroll max-h-[193px] overflow-y-auto overscroll-contain rounded-xl border border-border/60 bg-muted/[.13] p-2">
+            {mode!=="water"&&<div className="care-intake-picker-scroll care-intake-picker-visible min-w-0 rounded-xl border border-border/60 bg-muted/[.13] p-2">
               {group==="food"?
                 <CareIntakePicker group="food" value={isFoodKind(kind)?kind:"lanche"}
                   onChange={(selected:FoodKind)=>{setKind(selected);setDescription("");setPortion("");setError("");}} compact/>:
