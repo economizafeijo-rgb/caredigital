@@ -361,7 +361,19 @@ export function ClientHomeSummary(){
       const waterGoal=wellness.target_ml??(validWeight&&!wellness.fluid_restriction?Math.round(weight*30/50)*50:null);
       const protein=wellness.protein??(validWeight?Math.round(weight*(wellness.objective==="hipertrofia"?1.6:1.0)):null);
       const fat=wellness.fat??(validWeight?Math.round(weight*.8):null);
-      const carbs=wellness.carbs??(wellness.kcal&&protein&&fat?Math.max(0,Math.round((wellness.kcal-protein*4-fat*9)/4)):null);
+      // If no calorie target exists, provide a transparent weight-based starting
+      // reference instead of leaving carbohydrates blank. This is not a
+      // clinical prescription or an estimate of energy expenditure.
+      const carbFactor=wellness.objective==="hipertrofia"?4:wellness.objective==="emagrecimento"?2.5:3;
+      const carbEnergy=wellness.kcal!==null&&protein!==null&&fat!==null
+        ?wellness.kcal-protein*4-fat*9:null;
+      const carbs=wellness.carbs??(carbEnergy!==null&&carbEnergy>0
+        ?Math.round(carbEnergy/4)
+        :validWeight?Math.round(weight*carbFactor):null);
+      const carbLabel=wellness.carbs!==null?"Meta individual cadastrada"
+        :carbEnergy!==null&&carbEnergy>0?"Calculado pela meta calórica"
+        :validWeight?`Referência inicial: ${carbFactor.toLocaleString("pt-BR")} g/kg`
+        :"Informe o peso para estimativa";
       const adult=wellness.age===null||wellness.age>=20;
       const bmiStatus=!bmi?"Dados insuficientes":!adult?"Avaliação por idade necessária":bmi<18.5?"Abaixo do peso":bmi<25?"Peso adequado":bmi<30?"Sobrepeso":bmi<35?"Obesidade grau I":bmi<40?"Obesidade grau II":"Obesidade grau III";
       const bmiTone=!bmi||!adult?"neutral":bmi>=18.5&&bmi<25?"good":bmi<18.5||bmi<30?"attention":"alert";
@@ -376,13 +388,13 @@ export function ClientHomeSummary(){
           <div data-health-tone={bmiTone}><span>IMC</span><strong>{bmi?bmi.toFixed(1).replace(".",","):"—"}</strong><small className="care-imc-status">{bmiStatus}</small><small>{bmi&&adult?"Classificação de referência para adultos":"Informe idade, peso e altura"}</small></div>
           <div><span>ÁGUA / DIA</span><strong>{waterGoal&&!wellness.fluid_restriction?(waterGoal/1000).toLocaleString("pt-BR",{maximumFractionDigits:2})+" L":"—"}</strong><small>{waterLabel}</small></div>
           <div><span>PROTEÍNAS</span><strong>{protein?protein+" g":"—"}</strong><small>{proteinLabel}</small></div>
-          <div><span>CARBOIDRATOS</span><strong>{carbs!==null?carbs+" g":"—"}</strong><small>{wellness.carbs?"Meta individual cadastrada":wellness.kcal?"Saldo energético estimado":"Cadastre a meta calórica"}</small></div>
+          <div><span>CARBOIDRATOS</span><strong>{carbs!==null?carbs+" g":"—"}</strong><small>{carbLabel}</small></div>
           <div><span>GORDURAS</span><strong>{fat?fat+" g":"—"}</strong><small>{fatLabel}</small></div>
           <div><span>ENERGIA</span><strong>{wellness.kcal?wellness.kcal+" kcal":"—"}</strong><small>{wellness.kcal?"Meta individual cadastrada":"Requer dados para estimativa"}</small></div>
         </div>
         <details className="care-wellness-tips"><summary>Orientações para seus objetivos <span>Ver dicas</span></summary>
           <p>{tips} {wellness.objective==="hipertrofia"?"Para ganho muscular, combine alimentação suficiente com treinamento e recuperação.":wellness.objective==="emagrecimento"?"Para controle de peso, priorize refeições regulares e porções adequadas.":"Ajuste quantidades conforme rotina, atividade e objetivos."}</p>
-          <p className="care-wellness-disclaimer">{remainingCalories!==null&&Math.abs(remainingCalories)>100?"Atenção: a soma energética dos macronutrientes difere da meta calórica em "+Math.abs(remainingCalories)+" kcal. Revise as metas cadastradas. ":""}{bmi&&adult?"Faixas de IMC em adultos: abaixo de 18,5 (baixo peso), 18,5–24,9 (adequado), 25–29,9 (sobrepeso), 30 ou mais (obesidade). ":""}</p><p className="care-wellness-disclaimer">IMC é um indicador limitado; estimativas não substituem avaliação nutricional. Metas de água e macros devem ser individualizadas.</p>
+          <p className="care-wellness-disclaimer">{remainingCalories!==null&&Math.abs(remainingCalories)>100?"Atenção: a soma energética dos macronutrientes difere da meta calórica em "+Math.abs(remainingCalories)+" kcal. Revise as metas cadastradas. ":""}{bmi&&adult?"Faixas de IMC em adultos: abaixo de 18,5 (baixo peso), 18,5–24,9 (adequado), 25–29,9 (sobrepeso), 30 ou mais (obesidade). ":""}</p><p className="care-wellness-disclaimer">Quando não há meta calórica cadastrada, os carboidratos exibidos são apenas uma referência inicial por peso e objetivo, não uma prescrição individual. IMC é um indicador limitado; estimativas não substituem avaliação nutricional. Metas de água e macros devem ser individualizadas.</p>
         </details>
       </>;
     })()}
