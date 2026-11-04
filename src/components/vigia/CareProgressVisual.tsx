@@ -5,6 +5,7 @@ import type { ReminderTask } from "@/lib/care-reminders";
 
 type Props={tasks:ReminderTask[];goal:HydrationGoalSnapshot|null;
   alertCategories?:Array<"hidratacao"|"refeicao"|"medicacao">;
+  nowMs?:number;
   onOpen?:(task:ReminderTask)=>void;
   onHydration?:()=>void;onFood?:()=>void;onMedication?:()=>void;
 };
@@ -86,10 +87,20 @@ function MedicationCapsule({ratio}: {ratio:number}){
   </svg>;
 }
 
-export function CareProgressVisual({tasks,goal,onOpen,onHydration,onFood,onMedication,alertCategories=[]}:Props){
+export function CareProgressVisual({tasks,goal,onOpen,onHydration,onFood,onMedication,alertCategories=[],nowMs}:Props){
   const alertWater=alertCategories.includes("hidratacao");
   const alertFood=alertCategories.includes("refeicao");
   const alertMedicine=alertCategories.includes("medicacao");
+  const urgency=(category:"hidratacao"|"refeicao"|"medicacao")=>{
+    if(nowMs===undefined)return "idle";
+    const pending=tasks.filter(t=>t.category===category&&!t.completed_at);
+    if(pending.some(t=>Date.parse(t.scheduled_at)<=nowMs))return "due";
+    if(pending.some(t=>{const remaining=Date.parse(t.scheduled_at)-nowMs;return remaining>0&&remaining<=15*60*1000;}))return "soon";
+    return "idle";
+  };
+  const waterUrgency=alertWater?"due":urgency("hidratacao");
+  const foodUrgency=alertFood?"due":urgency("refeicao");
+  const medicineUrgency=alertMedicine?"due":urgency("medicacao");
   const meds=tasks.filter(t=>t.category==="medicacao");
   const meals=tasks.filter(t=>t.category==="refeicao");
   const completedMeds=meds.filter(t=>Boolean(t.completed_at)).length;
@@ -109,7 +120,7 @@ export function CareProgressVisual({tasks,goal,onOpen,onHydration,onFood,onMedic
 
   return <section aria-label="Progresso ilustrado do cuidado de hoje"
     className="care-visual-progress grid min-w-0 grid-cols-3 gap-1.5 sm:gap-2">
-    <button type="button" data-visual="water" data-care-alert={alertWater?"due":undefined} data-action="register-hydration"
+    <button type="button" data-visual="water" data-care-alert={waterUrgency==="idle"?undefined:waterUrgency} data-action="register-hydration"
       onClick={()=>open("hidratacao")}
       title="Registrar água ou conferir hidratação" aria-label={alertWater?"Hidratação. Cuidado programado pendente. Abrir registro.":"Hidratação. Abrir registro de água."}
       className="care-visual-tile care-visual-action relative flex min-w-0 items-center gap-1.5 overflow-hidden rounded-2xl border px-1.5 py-1.5 text-left sm:gap-2 sm:px-2.5">
@@ -120,8 +131,8 @@ export function CareProgressVisual({tasks,goal,onOpen,onHydration,onFood,onMedic
         <p className="care-visual-subtitle truncate text-[9px]">{waterTarget? `de ${fmt(waterTarget)} ml`:"Sem meta definida"}</p>
         <div className="care-visual-track mt-1 h-1 overflow-hidden rounded-full"><i style={{width:(waterRatio*100)+"%"}}/></div>
       </div>
-    {alertWater&&<span className="care-tile-alert-label" aria-label="Cuidado programado aguardando confirmação"><BellRing size={12} aria-hidden="true"/> Ação pendente</span>}</button>
-    <button type="button" data-visual="meals" data-care-alert={alertFood?"due":undefined} data-action="register-food"
+    {waterUrgency!=="idle"&&<span className="care-tile-alert-label" aria-label="Cuidado programado aguardando confirmação"><BellRing size={12} aria-hidden="true"/> {waterUrgency==="soon"?"Em breve":"Ação pendente"}</span>}</button>
+    <button type="button" data-visual="meals" data-care-alert={foodUrgency==="idle"?undefined:foodUrgency} data-action="register-food"
       onClick={()=>open("refeicao")}
       title="Registrar uma refeição ou alimento" aria-label={alertFood?"Alimentação. Cuidado programado pendente. Abrir registro.":"Alimentação. Abrir registro de refeição ou alimento."}
       className="care-visual-tile care-visual-action relative flex min-w-0 items-center gap-1.5 overflow-hidden rounded-2xl border px-1.5 py-1.5 text-left sm:gap-2 sm:px-2.5">
@@ -132,8 +143,8 @@ export function CareProgressVisual({tasks,goal,onOpen,onHydration,onFood,onMedic
         <span className="care-visual-subtitle block truncate text-[9px]">refeições confirmadas</span>
         <span className="care-visual-track mt-1 block h-1 overflow-hidden rounded-full"><i style={{width:(pct(completedMeals,meals.length)*100)+"%"}}/></span>
       </span>
-    {alertFood&&<span className="care-tile-alert-label" aria-label="Cuidado programado aguardando confirmação"><BellRing size={12} aria-hidden="true"/> Ação pendente</span>}</button>
-    <button type="button" data-visual="medicine" data-care-alert={alertMedicine?"due":undefined} data-action="register-medication"
+    {foodUrgency!=="idle"&&<span className="care-tile-alert-label" aria-label="Cuidado programado aguardando confirmação"><BellRing size={12} aria-hidden="true"/> {waterUrgency==="soon"?"Em breve":"Ação pendente"}</span>}</button>
+    <button type="button" data-visual="medicine" data-care-alert={medicineUrgency==="idle"?undefined:medicineUrgency} data-action="register-medication"
       onClick={()=>open("medicacao")}
       title="Abrir registro ou histórico de medicação" aria-label={alertMedicine?"Medicação. Cuidado programado pendente. Abrir registro.":"Medicação. Abrir registro de medicação ou detalhes das doses."}
       className="care-visual-tile care-visual-action relative flex min-w-0 items-center gap-1.5 overflow-hidden rounded-2xl border px-1.5 py-1.5 text-left sm:gap-2 sm:px-2.5">
@@ -144,6 +155,6 @@ export function CareProgressVisual({tasks,goal,onOpen,onHydration,onFood,onMedic
         <span className="care-visual-subtitle block truncate text-[9px]">doses confirmadas</span>
         <span className="care-visual-track mt-1 block h-1 overflow-hidden rounded-full"><i style={{width:(pct(completedMeds,meds.length)*100)+"%"}}/></span>
       </span>
-    {alertMedicine&&<span className="care-tile-alert-label" aria-label="Cuidado programado aguardando confirmação"><BellRing size={12} aria-hidden="true"/> Ação pendente</span>}</button>
+    {medicineUrgency!=="idle"&&<span className="care-tile-alert-label" aria-label="Cuidado programado aguardando confirmação"><BellRing size={12} aria-hidden="true"/> {waterUrgency==="soon"?"Em breve":"Ação pendente"}</span>}</button>
   </section>;
 }
