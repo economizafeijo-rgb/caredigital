@@ -52,7 +52,7 @@ const plannedMealKind=(title:string):string|null=>{
 export function ClientHomeSummary(){
  const [patient,setPatient]=useState<Person|null>(null);
  const [wellness,setWellness]=useState<WellnessProfile|null>(null);
- const [consumedMacros,setConsumedMacros]=useState<{kcal:number;protein:number;carbs:number;fat:number;count:number}|null>(null);
+ const [consumedMacros,setConsumedMacros]=useState<{kcal:number;protein:number;carbs:number;fat:number;fiber:number;count:number}|null>(null);
  const [consumedError,setConsumedError]=useState(false);
 
  const [showHealthProfile,setShowHealthProfile]=useState(false);
@@ -84,7 +84,7 @@ export function ClientHomeSummary(){
   const end=new Date(new Date(today+"T00:00:00-05:00").getTime()+86400000).toISOString();
   const db=supabase as any;
   void Promise.all([
-   db.from("care_food_consumptions").select("id,request_id,kcal,protein_g,carbs_g,fat_g").eq("patient_id",patient.id).eq("owner_id",patient.owner_id).gte("recorded_at",start).lt("recorded_at",end).limit(500),
+   db.from("care_food_consumptions").select("id,request_id,kcal,protein_g,carbs_g,fat_g,fiber_g").eq("patient_id",patient.id).eq("owner_id",patient.owner_id).gte("recorded_at",start).lt("recorded_at",end).limit(500),
    db.from("care_nutrition_meal_logs").select("id,request_id,kcal,protein_g,carbs_g,fat_g").eq("patient_id",patient.id).eq("owner_id",patient.owner_id).gte("recorded_at",start).lt("recorded_at",end).limit(500)
   ]).then(([food,meals]:any[])=>{
    if(!active)return;
@@ -95,7 +95,7 @@ export function ClientHomeSummary(){
    // when its request already has individual food records.
    const rows=[...foodRows,...(meals.data??[]).filter((item:any)=>!item.request_id||!foodRequests.has(item.request_id))];
    const sum=(field:string)=>Math.round(rows.reduce((total:number,item:any)=>total+(Number(item[field])||0),0));
-   setConsumedMacros({kcal:sum("kcal"),protein:sum("protein_g"),carbs:sum("carbs_g"),fat:sum("fat_g"),count:rows.length});
+   setConsumedMacros({kcal:sum("kcal"),protein:sum("protein_g"),carbs:sum("carbs_g"),fat:sum("fat_g"),fiber:sum("fiber_g"),count:rows.length});
    setConsumedError(false);
   }).catch(()=>{if(active){setConsumedError(true);setConsumedMacros(null);}});
   return()=>{active=false};
@@ -448,10 +448,10 @@ export function ClientHomeSummary(){
         <section className="mb-2 rounded-xl border border-white/15 bg-slate-950/30 p-3" aria-label="Consumo de macronutrientes registrado hoje">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><strong className="text-xs">Consumido hoje × meta</strong><span className="text-[10px] text-slate-300">{consumedError?"Não foi possível consultar os registros":consumedMacros?consumedMacros.count+" lançamentos nutricionais":"Carregando registros"}</span></div>
           {consumedMacros&&<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {([{label:"Proteínas",actual:consumedMacros.protein,target:protein,unit:"g"},{label:"Carboidratos",actual:consumedMacros.carbs,target:carbs,unit:"g"},{label:"Gorduras",actual:consumedMacros.fat,target:fat,unit:"g"},{label:"Energia",actual:consumedMacros.kcal,target:goalKcal,unit:"kcal"}] as const).map(metric=><div key={metric.label} className="min-w-0 rounded-lg bg-white/5 p-2">
+            {([{label:"Proteínas",actual:consumedMacros.protein,target:protein,unit:"g"},{label:"Carboidratos",actual:consumedMacros.carbs,target:carbs,unit:"g"},{label:"Gorduras",actual:consumedMacros.fat,target:fat,unit:"g"},{label:"Energia",actual:consumedMacros.kcal,target:goalKcal,unit:"kcal"},{label:"Fibras",actual:consumedMacros.fiber,target:null,unit:"g"}] as const).map(metric=><div key={metric.label} className="min-w-0 rounded-lg bg-white/5 p-2">
               <span className="block text-[10px] text-slate-300">{metric.label}</span><strong className="text-sm">{metric.actual.toLocaleString("pt-BR")} / {metric.target?.toLocaleString("pt-BR")??"—"} {metric.unit}</strong>
               <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/15"><div className="h-full rounded-full bg-teal-300" style={{width:metric.target&&metric.target>0?Math.min(100,metric.actual/metric.target*100)+"%":"0%"}}/></div>
-              <span className="text-[10px] text-slate-300">{metric.target!==null?metric.actual>=metric.target?"Meta atingida":Math.round(metric.target-metric.actual).toLocaleString("pt-BR")+" "+metric.unit+" restantes":"Meta não definida"}</span>
+              <span className="text-[10px] text-slate-300">{metric.target!==null?metric.actual>=metric.target?"Meta atingida":Math.round(metric.target-metric.actual).toLocaleString("pt-BR")+" "+metric.unit+" restantes":metric.label==="Fibras"?"Total registrado; sem meta individual":"Meta não definida"}</span>
             </div>)}
           </div>}
           <p className="mt-2 text-[10px] text-slate-300">Somente lançamentos com valores nutricionais registrados; refeições descritas sem quantificação não entram nos totais. Valores ausentes não significam consumo zero. Atualiza após novos registros.</p>
