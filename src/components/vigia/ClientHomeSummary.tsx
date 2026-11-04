@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import "./care-home-reference.css";
 import { Link } from "@tanstack/react-router";
-import { CalendarClock, Check, Clock3, Droplets, Pill, Utensils, X, ArrowUpRight, ChevronRight, Plus, ListChecks, AlertCircle, ShieldAlert } from "lucide-react";
+import { CalendarClock, Check, Clock3, Droplets, Pill, Utensils, X, ArrowUpRight, ChevronRight, Plus, ListChecks, AlertCircle, ShieldAlert, Activity } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CareReminderBeacon } from "./CareReminderBeacon";
 import { CareProgressVisual } from "./CareProgressVisual";
