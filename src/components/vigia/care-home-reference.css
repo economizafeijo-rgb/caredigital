@@ -1424,3 +1424,56 @@
   min-height:420px!important;
  }
 }
+
+
+/* One-window desktop dashboard. Detail content lives in dialogs, timeline scrolls internally. */
+@media(min-width:1051px) and (min-height:650px){
+ :root .client-home-dashboard.care-dashboard-oneview.care-reference-2026{
+  height:100%!important;max-height:100%!important;min-height:0!important;
+  overflow:hidden!important;gap:5px!important;padding:7px 10px!important;
+ }
+ :root .client-home-dashboard.care-dashboard-oneview.care-reference-2026 .care-home-body{
+  flex:1 1 0!important;min-height:0!important;height:auto!important;overflow:hidden!important;
+ }
+ :root .client-home-dashboard.care-dashboard-oneview.care-reference-2026 .care-reference-grid{
+  grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr)!important;
+  grid-template-rows:minmax(0,1fr)!important;
+  align-items:stretch!important;overflow:hidden!important;gap:9px!important;
+ }
+ :root .client-home-dashboard.care-dashboard-oneview.care-reference-2026 .care-reference-primary{
+  grid-template-rows:minmax(0,1fr) auto auto!important;
+  min-height:0!important;overflow:hidden!important;gap:6px!important;
+ }
+ :root .client-home-dashboard.care-dashboard-oneview.care-reference-2026 .care-reference-next{
+  min-height:0!important;height:100%!important;padding:10px 14px!important;overflow:hidden!important;
+ }
+ :root .client-home-dashboard.care-dashboard-oneview.care-reference-2026 .care-reference-timeline{
+  height:100%!important;min-height:0!important;max-height:none!important;
+  align-self:stretch!important;overflow:hidden!important;
+ }
+ :root .client-home-dashboard.care-dashboard-oneview.care-reference-2026 .care-timeline-scroll{
+  flex:1 1 0!important;min-height:0!important;overflow-y:auto!important;
+ }
+ :root .client-home-dashboard.care-dashboard-oneview.care-reference-2026 .care-reference-hero{
+  min-height:62px!important;max-height:76px!important;padding-block:7px!important;
+ }
+ :root .client-home-dashboard.care-dashboard-oneview.care-reference-2026 .care-wellness-insights{
+  padding:5px 8px!important;
+ }
+ :root .client-home-dashboard.care-dashboard-oneview.care-reference-2026 .care-patient-marquee{
+  padding:3px 8px!important;min-height:0!important;
+ }
+}
+@media(min-width:1051px) and (min-height:650px) and (max-height:820px){
+ :root .client-home-dashboard.care-dashboard-oneview.care-reference-2026 .care-wellness-insights{
+  font-size:11px!important;
+ }
+ :root .client-home-dashboard.care-dashboard-oneview.care-reference-2026 .care-reference-next h3{
+  font-size:clamp(17px,1.7vw,25px)!important;
+ }
+}
+/* Short or narrow desktop viewports: avoid clipped information rather than shrink text illegibly. */
+@media(min-width:768px) and (max-height:649px){
+ :root .client-home-dashboard.care-dashboard-oneview.care-reference-2026{overflow:visible!important;height:auto!important;max-height:none!important}
+ :root .client-home-dashboard.care-dashboard-oneview.care-reference-2026 .care-home-body{overflow:visible!important;height:auto!important}
+}
