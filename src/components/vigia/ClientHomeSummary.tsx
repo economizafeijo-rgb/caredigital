@@ -360,8 +360,8 @@ export function ClientHomeSummary(){
   {wellness&&<section className="care-wellness-insights relative z-10" aria-label="Indicadores e orientações de saúde e nutrição">
     {(()=>{
       const weight=wellness.weight_kg;
-      const height=Number(patient?.height_cm);
-      const bmi=weight&&height>=100&&height<=230?weight/((height/100)**2):null;
+      const height=patient?.height_cm==null?null:Number(patient.height_cm);
+      const bmi=weight&&height!==null&&height>=100&&height<=230?weight/((height/100)**2):null;
       const validWeight=weight&&weight>=30&&weight<=250;
       const waterGoal=wellness.target_ml??(validWeight&&!wellness.fluid_restriction?Math.round(weight*30/50)*50:null);
       const protein=wellness.protein??(validWeight?Math.round(weight*(wellness.objective==="hipertrofia"?1.6:1.0)):null);
@@ -391,7 +391,7 @@ export function ClientHomeSummary(){
       // minutes alone cannot establish a reliable activity factor.
       const sex=wellness.sex?.toLowerCase();
       const sexOffset=sex==="male"||sex==="masculino"||sex==="m"?5:sex==="female"||sex==="feminino"||sex==="f"?-161:null;
-      const basal=validWeight&&height>=100&&height<=230&&wellness.age!==null&&wellness.age>=18&&wellness.age<=100&&sexOffset!==null
+      const basal=validWeight&&height!==null&&height>=100&&height<=230&&wellness.age!==null&&wellness.age>=18&&wellness.age<=100&&sexOffset!==null
         ?Math.round(10*weight+6.25*height-5*wellness.age+sexOffset):null;
       const estimatedEnergy=basal!==null?Math.round(basal*1.2):null;
       const tips=wellness.fluid_restriction?"Há restrição de líquidos registrada: siga a orientação profissional para hidratação.":wellness.gastritis_sensitive?"Prefira refeições menores e observe os alimentos que provocam desconforto.":"Distribua proteínas entre refeições e priorize alimentos variados, frutas, verduras e fontes de fibras.";
