@@ -2937,3 +2937,120 @@ iframe[title*="Lovable" i][title*="badge" i] {
  .patient-history-workspace .patient-history-detail img,
  .patient-history-workspace .patient-history-detail video {max-width:100%;height:auto;object-fit:contain}
 }
+
+
+/* CareDigital — unified adaptive detail modal for hydration, food and medication. */
+.care-record-modal-overlay.care-detail-v4{
+ padding:max(10px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));
+ align-items:center;
+}
+.care-detail-v4 .care-detail-dialog-v4{
+ --care-detail-accent:#42d7d3;
+ width:min(100%,700px);
+ max-height:min(90dvh,760px);
+ min-height:0;
+ border-radius:22px;
+ border:1px solid rgba(111,207,205,.24);
+ background:linear-gradient(155deg,#112a37,#142f3a);
+ color:#eaf8f7;
+ box-shadow:0 25px 85px rgba(0,12,22,.55);
+}
+.care-detail-v4 [data-care-type="refeicao"]{--care-detail-accent:#8de4b4}
+.care-detail-v4 [data-care-type="medicacao"]{--care-detail-accent:#c3acff}
+.care-detail-v4 .care-detail-header{
+ padding:16px 20px;
+ border-bottom:1px solid rgba(255,255,255,.12);
+}
+.care-detail-v4 .care-detail-header h2{
+ font-size:clamp(1.25rem,2.4vw,1.65rem);
+ line-height:1.17;
+ letter-spacing:-.025em;
+}
+.care-detail-v4 .care-detail-header>div>div:first-child>div:first-child{
+ border-color:color-mix(in srgb,var(--care-detail-accent) 40%,transparent);
+ color:var(--care-detail-accent);
+}
+.care-detail-v4 .care-detail-description{max-width:54ch;line-height:1.4}
+.care-detail-v4 .care-detail-content{
+ flex:1;
+ min-height:0;
+ padding:14px 20px 16px;
+ scrollbar-gutter:stable;
+ scrollbar-width:thin;
+ overscroll-behavior:contain;
+}
+.care-detail-v4 .care-detail-facts{
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:8px;
+}
+.care-detail-v4 .care-detail-facts>div{
+ padding:12px;
+ border:1px solid rgba(139,214,213,.15);
+ border-radius:12px;
+ background:rgba(6,33,45,.48);
+ box-shadow:none;
+}
+.care-detail-v4 .care-detail-facts dt{color:#a9cbd0;font-size:11px}
+.care-detail-v4 .care-detail-facts dd{color:#f2fffe;font-size:clamp(12px,1.5vw,15px);line-height:1.4}
+.care-detail-v4 .care-record-pending-actions{
+ margin-top:12px;
+ padding:10px 12px 12px;
+ border-color:rgba(122,212,203,.25);
+ border-radius:14px;
+ background:rgba(19,70,76,.24);
+}
+.care-detail-v4 .care-resolution-panel{
+ margin-top:6px;
+ padding-top:8px;
+ border-color:rgba(174,230,226,.13);
+}
+.care-detail-v4 .care-resolution-panel>div>p:first-child{margin-bottom:8px}
+.care-detail-v4 .care-resolution-panel button{
+ min-height:43px;
+ border-radius:11px;
+ font-size:12px;
+}
+.care-detail-v4 .care-detail-hint{
+ padding:10px 12px;
+ border-radius:11px;
+ border:1px solid rgba(124,202,209,.2);
+ background:rgba(19,81,96,.15);
+ line-height:1.5;
+}
+.care-detail-v4 .care-detail-footer{
+ position:sticky;
+ bottom:-16px;
+ z-index:5;
+ margin:14px -20px -16px;
+ padding:12px 20px calc(12px + env(safe-area-inset-bottom,0px));
+ background:linear-gradient(180deg,rgba(17,42,55,.98),#112b38);
+ border-top:1px solid rgba(137,211,207,.18);
+}
+.care-detail-v4 .care-detail-footer button{
+ min-height:44px;
+ border-radius:12px;
+}
+.care-detail-v4 .care-detail-footer button:last-child:not(:first-child){
+ background:var(--care-detail-accent);
+ color:#092431;
+}
+.care-detail-v4 :is(input,textarea,select){max-width:100%}
+.care-detail-v4 button:focus-visible{outline:2px solid var(--care-detail-accent);outline-offset:2px}
+@media(max-width:600px){
+ .care-record-modal-overlay.care-detail-v4{padding:6px 8px max(8px,env(safe-area-inset-bottom))}
+ .care-detail-v4 .care-detail-dialog-v4{width:100%;max-height:calc(100dvh - 18px - env(safe-area-inset-bottom,0px));border-radius:18px}
+ .care-detail-v4 .care-detail-header{padding:13px 15px}
+ .care-detail-v4 .care-detail-content{padding:12px 15px 14px;scrollbar-gutter:auto}
+ .care-detail-v4 .care-detail-facts{grid-template-columns:1fr 1fr;gap:6px}
+ .care-detail-v4 .care-detail-facts>div{padding:9px}
+ .care-detail-v4 .care-detail-facts dd{font-size:12px}
+ .care-detail-v4 .care-record-pending-actions{padding:8px}
+ .care-detail-v4 .care-resolution-panel button{font-size:11px;min-height:40px}
+ .care-detail-v4 .care-detail-footer{bottom:-14px;margin:12px -15px -14px;padding:10px 15px calc(10px + env(safe-area-inset-bottom,0px))}
+ .care-detail-v4 .care-detail-footer button{min-height:43px;font-size:12px}
+}
+@media(max-width:365px){
+ .care-detail-v4 .care-detail-facts{grid-template-columns:1fr}
+ .care-detail-v4 .care-detail-footer{flex-direction:column}
+ .care-detail-v4 .care-detail-footer button{width:100%;flex:none}
+}
