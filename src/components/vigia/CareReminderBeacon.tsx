@@ -222,11 +222,11 @@ export function CareReminderBeacon({tasks,patientId,ownerId,refreshKey=0,onOpen,
       setSoundNotice("O navegador não autorizou o som. Os avisos visuais continuam disponíveis.");
     }
   }
-  const title=due?"Hora do seu cuidado":late?"Sem confirmação no prazo":"Acompanhamento em dia";
+  const title=due?"Hora do seu cuidado":late?"Cuidado sem confirmação":"Acompanhamento em dia";
   const description=due?
     "Confirme apenas após realizar o cuidado. O aviso permanece por até 10 minutos.":
     late?
-      "Passaram 10 minutos sem confirmação. O cuidado pode ter ocorrido; registre a informação real no prontuário.":
+      "Verifique o registro deste cuidado quando puder.":
       "Nenhum cuidado aguardando resposta entre os acontecimentos recentes." ;
   const percent=due?Math.max(0,primary!.remainingMs/CARE_REMINDER_WINDOW_MS):late?1:0;
   if(!patientId||!ownerId||answersStatus==="loading")return null;
@@ -247,7 +247,7 @@ export function CareReminderBeacon({tasks,patientId,ownerId,refreshKey=0,onOpen,
       onDismiss={()=>closeClock(task.id)}/>}
    <section aria-label="Central de lembretes de cuidados"
     data-reminder-status={stage} data-reminder-category={task?.category??"nenhuma"}
-    className={"care-reminder-beacon relative flex w-full min-w-0 items-center gap-2.5 overflow-hidden rounded-2xl border p-2.5 shadow-sm sm:gap-3 sm:px-3.5 "+(compact?"care-reminder-compact":"")}>
+    className={"care-reminder-beacon relative flex w-full min-w-0 items-center gap-2.5 overflow-hidden rounded-2xl border p-2.5 shadow-sm sm:gap-3 sm:px-3.5 "+(compact?"care-reminder-compact care-reminder-unified":"")}>
     <ReminderArtwork category={task?.category??"medicacao"}
       progress={percent} active={due}/>
     <div className="min-w-0 flex-1">
@@ -263,7 +263,7 @@ export function CareReminderBeacon({tasks,patientId,ownerId,refreshKey=0,onOpen,
       {task&&<p className="care-reminder-task mt-0.5 truncate text-[12px] font-semibold">
         {reminderCategoryLabel(task.category)} · {task.title} · {reminderClock(task.scheduled_at)}
       </p>}
-      <p className="care-reminder-subtitle mt-0.5 max-w-[74ch] text-[10px] leading-snug sm:text-[11px]">{description}</p>
+      <p className="care-reminder-subtitle mt-0.5 max-w-[74ch] text-[10px] leading-snug sm:text-[11px]">{compact?"Acesse os detalhes para registrar ou revisar.":description}</p>
       {due&&<div className="care-reminder-track mt-1.5 h-1 max-w-[260px] overflow-hidden rounded-full">
         <div className="care-reminder-track-fill h-full rounded-full" style={{width:(percent*100)+"%"}}/>
       </div>}
