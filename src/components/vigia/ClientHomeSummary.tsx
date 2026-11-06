@@ -388,7 +388,9 @@ export function ClientHomeSummary(){
       <span className="care-next-kicker"><Activity size={14}/> SEU ESPAÇO DE BEM-ESTAR</span>
       <h2>Olá, <span>{patient?.full_name?.split(" ").slice(0,2).join(" ")??"bem-vindo"}</span></h2>
       <p>Seu cuidado diário, de um jeito mais simples.</p>
+      <div className="care-art-date"><CalendarClock size={15}/>{new Intl.DateTimeFormat("pt-BR",{timeZone:zone,weekday:"short",day:"2-digit",month:"short"}).format(now??new Date())}</div>
     </div>
+    <div className="care-art-completion" role="img" aria-label={`${completion}% dos cuidados do dia concluídos`} style={{"--care-completion":`${completion}%`} as React.CSSProperties}><span><strong>{completion}%</strong><small>Meta diária</small></span></div>
     <div className="care-next-header-actions">
       <a href="#care-home-timeline" className="care-next-today-link"><CalendarClock size={16}/> Ver agenda</a>
       {patient&&wellness&&<button type="button" onClick={()=>setShowHealthProfile(v=>!v)} className="care-next-profile-button">{showHealthProfile?"Ocultar perfil":"Meu perfil"} <ChevronRight size={15}/></button>}
