@@ -411,15 +411,17 @@ export function ClientHomeSummary(){
       </div>
     </div>
   </details>
-  <div className="care-premium-welcome care-reference-hero relative z-10 flex items-center justify-between gap-3 overflow-hidden rounded-[16px] border border-cyan-200/10 bg-gradient-to-r from-slate-950/55 to-teal-900/30 px-3 py-2 pr-14 sm:px-4 sm:pr-16">
-    <div className="min-w-0">
-      <p className="text-[10px] font-bold uppercase tracking-[.16em] text-teal-200/80">Saúde · Rotina · Evolução</p>
-      <h2 className="mt-1 truncate text-lg font-extrabold tracking-tight text-white sm:text-2xl">Olá, <span className="text-teal-200">{patient?.full_name?.split(" ").slice(0,2).join(" ")??"bem-vindo"}</span></h2>
-      <p className="mt-1 text-[11px] text-slate-200">Acompanhe seus cuidados e sua evolução.</p>
+  <header className="care-next-header relative z-10">
+    <div className="care-next-intro">
+      <span className="care-next-kicker"><Activity size={14}/> SEU ESPAÇO DE BEM-ESTAR</span>
+      <h2>Olá, <span>{patient?.full_name?.split(" ").slice(0,2).join(" ")??"bem-vindo"}</span></h2>
+      <p>Seu cuidado diário, de um jeito mais simples.</p>
     </div>
-    <img src="/images/care-next-wellness.svg" alt="" aria-hidden="true" className="hidden h-[42px] w-[90px] shrink-0 object-contain opacity-65 lg:block" loading="lazy"/>
-  </div>
-  {patient&&wellness&&<div className="relative z-10 flex justify-end"><button type="button" onClick={()=>setShowHealthProfile(v=>!v)} className="rounded-lg border border-teal-300/40 bg-teal-900/60 px-3 py-1.5 text-xs font-bold text-teal-100 hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300">{showHealthProfile?"Ocultar perfil":"Editar meu perfil de saúde"}</button></div>}
+    <div className="care-next-header-actions">
+      <a href="#care-home-timeline" className="care-next-today-link"><CalendarClock size={16}/> Ver agenda</a>
+      {patient&&wellness&&<button type="button" onClick={()=>setShowHealthProfile(v=>!v)} className="care-next-profile-button">{showHealthProfile?"Ocultar perfil":"Meu perfil"} <ChevronRight size={15}/></button>}
+    </div>
+  </header>
   {patient&&wellness&&showHealthProfile&&<div className="care-health-profile-overlay fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/80 p-3 backdrop-blur-sm" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget)setShowHealthProfile(false)}}><div className="w-full h-[min(88dvh,690px)] max-h-[88dvh] max-w-[1000px] overflow-hidden rounded-2xl" role="dialog" aria-modal="true" aria-label="Painel completo de saúde do cliente"><ClientHealthProfile patientId={patient.id} ownerId={patient.owner_id} initial={{weight:wellness.weight_kg,height:patient.height_cm,age:wellness.age,objective:wellness.objective,protein:wellness.protein,carbs:wellness.carbs,fat:wellness.fat,kcal:wellness.kcal,activityMinutes:wellness.activity_minutes}} onClose={()=>setShowHealthProfile(false)} onSaved={()=>setRevision(v=>v+1)}/></div></div>}
   {wellness&&<details className="care-home-health-disclosure relative z-10">
    <summary className="care-home-health-trigger"><span className="care-health-trigger-icon"><Activity size={17}/></span><span className="care-health-trigger-copy"><strong>Indicadores de saúde e metas</strong><small>IMC · água · proteínas · carboidratos · gorduras · energia</small></span><span className="care-health-trigger-action">Ver indicadores <ChevronRight size={15}/></span></summary>
