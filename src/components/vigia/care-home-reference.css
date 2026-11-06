@@ -1861,10 +1861,6 @@
  box-shadow:none!important;cursor:pointer;list-style:none;
 }
 :root .client-home-dashboard.care-home-redesign-next .care-next-quick-actions>summary::-webkit-details-marker{display:none}
-:root .client-home-dashboard.care-home-redesign-next .care-next-quick-actions>summary::after{
- content:"Ações rápidas";font-size:12px;font-weight:800;letter-spacing:.01em;
-}
-:root .client-home-dashboard.care-home-redesign-next .care-next-quick-actions[open]>summary::after{content:"Ocultar ações rápidas"}
 :root .client-home-dashboard.care-home-redesign-next .care-next-quick-actions .care-home-shortcuts-content{
  position:relative!important;inset:auto!important;transform:none!important;
  width:100%!important;max-width:none!important;max-height:none!important;
@@ -1959,3 +1955,23 @@
  :root .client-home-dashboard.care-home-redesign-next .care-next-quick-actions>summary{border-radius:14px!important}
  :root .client-home-dashboard.care-home-redesign-next .care-next-header{margin:0!important}
 }
+
+/* Final trigger cleanup: explicit JSX label, never generated text or inherited icon-only sizing. */
+:root .client-home-dashboard.care-home-redesign-next .care-next-quick-actions>.care-next-quick-trigger{
+ display:flex!important;flex-direction:row!important;align-items:center!important;
+ gap:10px!important;width:100%!important;min-width:0!important;
+ min-height:48px!important;height:auto!important;max-width:none!important;
+ padding:12px 14px!important;list-style:none!important;
+ background:var(--cd-panel)!important;color:var(--cd-ink)!important;
+ border:1px solid var(--cd-line)!important;border-radius:14px!important;
+ box-shadow:none!important;cursor:pointer;
+}
+:root .client-home-dashboard.care-home-redesign-next .care-next-quick-actions>.care-next-quick-trigger::before,
+:root .client-home-dashboard.care-home-redesign-next .care-next-quick-actions>.care-next-quick-trigger::after{content:none!important;display:none!important}
+:root .client-home-dashboard.care-home-redesign-next .care-next-quick-actions>.care-next-quick-trigger>svg{flex:0 0 auto}
+:root .client-home-dashboard.care-home-redesign-next .care-next-quick-actions>.care-next-quick-trigger>.care-quick-label{
+ flex:1 1 auto!important;min-width:0!important;display:block!important;
+ font-size:13px!important;font-weight:800!important;line-height:1.4!important;
+ color:var(--cd-ink)!important;text-align:left!important;
+}
+:root .client-home-dashboard.care-home-redesign-next .care-next-quick-actions>.care-next-quick-trigger:focus-visible{outline:3px solid var(--cd-accent);outline-offset:3px}
