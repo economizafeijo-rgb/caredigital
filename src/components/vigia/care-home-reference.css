@@ -2171,3 +2171,109 @@
  .client-home-dashboard.care-home-redesign-next .care-agenda-record>span:nth-child(2){width:26px!important;height:26px!important}
  .client-home-dashboard.care-home-redesign-next .care-agenda-record>span:nth-child(4){font-size:8px!important;padding:3px 4px!important}
 }
+
+/* CareDigital 2026: light-mode mobile palette, scoped so dark mode remains untouched.
+   Palette: ivory canvas, deep petrol text, mint, lilac and warm coral accents. */
+@media(max-width:767px){
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next{
+  --cd-bg:#f5f8fa!important;--cd-panel:#ffffff!important;--cd-panel-alt:#edf4f6!important;
+  --cd-ink:#17323e!important;--cd-muted:#506a77!important;--cd-line:#d4e2e8!important;
+  --cd-accent:#087a75!important;--cd-accent-soft:#d8f5ed!important;
+  background:linear-gradient(180deg,#eaf6f5 0%,#f5f8fa 240px,#f5f8fa 100%)!important;
+  color:#17323e!important;
+ }
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next>.care-next-header{
+  background:linear-gradient(125deg,#ffffff,#edf9f5)!important;
+  border:1px solid #d0e8e3!important;border-radius:20px!important;
+  box-shadow:0 8px 25px #24485a0c!important;
+ }
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-next-intro h2,
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-next-intro h2 span{color:#163746!important}
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-next-kicker{color:#087a75!important}
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-next-intro p{color:#4d6975!important}
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-art-date{
+  background:#e1f5ee!important;border-color:#b9e4d7!important;color:#135c57!important;
+ }
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-art-completion{
+  background:conic-gradient(#159d8b var(--care-completion),#cfe9e6 0)!important;
+ }
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-art-completion>span{background:#fff!important}
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-art-completion strong{color:#16453f!important}
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-art-completion small{color:#4c6d70!important}
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-art-shortcuts :is(a,button){
+  background:#fff!important;border-color:#d3e6e9!important;color:#21404e!important;
+  box-shadow:0 4px 15px #24485a0b!important;
+ }
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-art-shortcuts :is(a,button):nth-child(5n+1){background:#e1f6f1!important;border-color:#b5e6da!important}
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-art-shortcuts :is(a,button):nth-child(5n+2){background:#f0ebff!important;border-color:#ddd2fa!important}
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-art-shortcuts :is(a,button):nth-child(5n+3){background:#e9f3ff!important;border-color:#c9dff5!important}
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-art-shortcuts :is(a,button):nth-child(5n+4){background:#fff0e8!important;border-color:#f6d6c3!important}
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-art-shortcuts :is(a,button):nth-child(5n+5){background:#eaf5f3!important;border-color:#c7e5df!important}
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-art-shortcuts svg{color:#087a75!important}
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-reference-next{
+  background:linear-gradient(130deg,#e0f6ef,#f5fbfc)!important;
+  border:1px solid #b4ddd5!important;box-shadow:0 8px 24px #24485a13!important;
+ }
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-reference-next :is(h2,h3,h4,strong,.care-next-countdown),
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-next-copy h3{color:#173c43!important}
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-reference-next :is(p,small){color:#47646c!important}
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-next-cta{
+  background:#087a75!important;color:#fff!important;border-color:#087a75!important;
+ }
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-next-secondary{
+  background:#fff!important;color:#165f60!important;border-color:#9bcfc7!important;
+ }
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-reference-timeline{
+  background:#fff!important;color:#193845!important;border:1px solid #d6e5e9!important;
+  box-shadow:0 6px 22px #24485a0e!important;
+ }
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-reference-timeline :is(h3,h4,strong){color:#193845!important}
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-reference-timeline :is(p,small,.care-timeline-page-count){color:#526d78!important}
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-timeline-view-switch{background:#edf4f6!important;border-color:#d6e5e9!important}
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-timeline-view-switch button{
+  color:#244b59!important;border-color:#d6e5e9!important;
+ }
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-timeline-view-switch button[aria-pressed="true"]{
+  background:#087a75!important;color:#fff!important;border-color:#087a75!important;
+ }
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-timeline-filter{
+  background:#f0f5f8!important;color:#294b5a!important;border-color:#d5e3e9!important;
+ }
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-timeline-filter[aria-pressed="true"]{
+  background:#d8f4ed!important;color:#075d56!important;border-color:#66b7a8!important;
+ }
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-agenda-record{
+  background:#f8fbfc!important;color:#1d3a48!important;border-color:#dbe7ec!important;
+ }
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-agenda-record[data-care-state="done"]{
+  background:#ecf9f1!important;border-color:#b9e4cc!important;
+ }
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-agenda-record[data-care-state="overdue"]{
+  background:#fff6e8!important;border-color:#f0d1a3!important;
+ }
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-agenda-record[data-care-state="resolved"]{
+  background:#fff0f0!important;border-color:#ecc6ca!important;
+ }
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-agenda-record>span:nth-child(3) :is(span,strong){color:#284651!important}
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-agenda-record>span:nth-child(4){
+  background:#e0f1ed!important;color:#125b54!important;
+ }
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-agenda-pagination{
+  background:#f0f7f8!important;border-color:#d6e5e9!important;color:#244b59!important;
+ }
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-agenda-pagination>button{
+  background:#fff!important;color:#245263!important;border:1px solid #bcd4da!important;
+ }
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-timeline-all-link{color:#087a75!important}
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-next-quick-actions>.care-next-quick-trigger,
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-home-health-disclosure>.care-next-health-summary{
+  background:#fff!important;color:#17323e!important;border-color:#d5e5e8!important;box-shadow:0 4px 16px #24485a0b!important;
+ }
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-next-health-copy strong,
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-quick-label{color:#17323e!important}
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-next-health-copy small{color:#526d78!important}
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-next-health-action{color:#087a75!important}
+ :root:not(.dark) .client-home-dashboard.care-home-redesign-next .care-wellness-insights{
+  background:#fff!important;color:#17323e!important;border-color:#d5e5e8!important;
+ }
+}
