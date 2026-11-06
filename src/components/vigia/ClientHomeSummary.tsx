@@ -394,8 +394,8 @@ export function ClientHomeSummary(){
       {patient&&wellness&&<button type="button" onClick={()=>setShowHealthProfile(v=>!v)} className="care-next-profile-button">{showHealthProfile?"Ocultar perfil":"Meu perfil"} <ChevronRight size={15}/></button>}
     </div>
   </header>
-  <details className="care-home-shortcuts care-next-quick-actions relative z-20">
-    <summary aria-label="Abrir ações rápidas e lembretes" title="Ações rápidas e lembretes" className="care-home-shortcut-trigger">
+  <details className="care-next-quick-actions relative z-20">
+    <summary aria-label="Abrir ações rápidas e lembretes" title="Ações rápidas e lembretes" className="care-next-quick-trigger">
       <Plus size={18} aria-hidden="true" /><span className="care-quick-label">Ações rápidas</span><ChevronRight size={16} className="care-quick-chevron" aria-hidden="true"/>
     </summary>
     <div className="care-home-shortcuts-content">
