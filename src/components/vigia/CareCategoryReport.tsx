@@ -1,12 +1,12 @@
 import {useEffect,useMemo,useState} from "react";
 import {createPortal} from "react-dom";
-import {BarChart3,CalendarDays,CheckCircle2,Clock3,Download,X} from "lucide-react";
+import {BarChart3,CalendarDays,CheckCircle2,Clock3,Download,Plus,X} from "lucide-react";
 import {supabase} from "@/integrations/supabase/client";
 
 type Category="hidratacao"|"refeicao"|"medicacao";
 type Period="dia"|"mes"|"ano";
 type Event={id:string;at:string;title:string;state:"realizado"|"pendente"|"nao_realizado";detail:string;amount?:number};
-type Props={patientId:string;ownerId?:string;category:Category;onClose:()=>void};
+type Props={patientId:string;ownerId?:string;category:Category;onClose:()=>void;onAdd?:()=>void};
 const zone="America/Rio_Branco";
 const labels:Record<Category,string>={hidratacao:"Hidratação",refeicao:"Alimentação",medicacao:"Medicamentos e suplementos"};
 const stamp=(d:Date)=>new Intl.DateTimeFormat("en-CA",{timeZone:zone,year:"numeric",month:"2-digit",day:"2-digit"}).format(d);
@@ -17,7 +17,7 @@ function range(period:Period){
  const end=period==="dia"?start+86400000:period==="mes"?Date.UTC(y,m,1,5):Date.UTC(y+1,0,1,5);
  return {from:new Date(start).toISOString(),to:new Date(end).toISOString()};
 }
-export function CareCategoryReport({patientId,ownerId,category,onClose}:Props){
+export function CareCategoryReport({patientId,ownerId,category,onClose,onAdd}:Props){
  const [period,setPeriod]=useState<Period>("dia");
  const [events,setEvents]=useState<Event[]>([]);
  const [loading,setLoading]=useState(true);
@@ -97,6 +97,7 @@ export function CareCategoryReport({patientId,ownerId,category,onClose}:Props){
       {events.length>35&&<button type="button" onClick={()=>setAll(v=>!v)} className="w-full rounded-lg border border-teal-300/30 p-2 text-xs font-bold text-teal-100">{all?"Mostrar menos":"Mostrar todos os "+events.length+" registros"}</button>}
      </div>}
     </div>
+    {onAdd&&<div className="shrink-0 border-t border-white/10 px-4 py-3"><button type="button" onClick={onAdd} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-teal-300 px-4 py-2.5 text-sm font-extrabold text-slate-950 transition hover:bg-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"><Plus size={18}/> {category==="hidratacao"?"Registrar nova hidratação":category==="refeicao"?"Registrar nova alimentação":"Registrar informação de medicação"}</button></div>}
     <footer className="shrink-0 border-t border-white/10 px-4 py-2 text-[11px] text-slate-300">Sem confirmação não comprova que o cuidado deixou de ocorrer. Dados limitados aos registros acessíveis no sistema.</footer>
    </section>
   </div>,document.body);
