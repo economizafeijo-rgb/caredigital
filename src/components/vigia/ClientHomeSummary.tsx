@@ -259,7 +259,11 @@ export function ClientHomeSummary(){
    return planned.length>0&&planned.every(t=>Boolean(t.completed_at));
  };
  const reminderTasks=summaryTasks.filter(t=>
-   !categoryAchieved(t.category as "hidratacao"|"refeicao"|"medicacao")||Boolean(t.completed_at)
+   // Alertas somente para tarefas ainda abertas. As concluídas permanecem
+   // no histórico, mas não entram novamente na central de lembretes.
+   !t.completed_at &&
+   !resolvedStates[t.id] &&
+   !categoryAchieved(t.category as "hidratacao"|"refeicao"|"medicacao")
  );
  const pending=reminderTasks.filter(t=>!t.completed_at&&!resolvedStates[t.id]);
  const next=now?pending.filter(t=>new Date(t.scheduled_at).getTime()>=now.getTime())[0]??pending[0]:pending[0];
