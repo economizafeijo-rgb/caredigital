@@ -1809,3 +1809,17 @@
  .client-home-dashboard .care-next-intro h2{font-size:25px}
 }
 @media(prefers-reduced-motion:reduce){.client-home-dashboard .care-next-header-actions :is(a,button){transition:none}}
+
+/* Consistência visual CareDigital Next: neutraliza superfícies antigas em ambos os temas. */
+:root .client-home-dashboard.care-home-redesign-next :is(.care-reference-next,.care-home-health-trigger,.care-wellness-insights,.care-premium-progress,.patient-timeline-item,.care-timeline-view-switch,.care-reference-primary){
+ background:var(--cd-panel)!important;color:var(--cd-ink)!important;
+ border-color:var(--cd-line)!important;box-shadow:0 5px 18px #2339570d!important;
+}
+:root .client-home-dashboard.care-home-redesign-next :is(.care-reference-next,.care-home-health-trigger,.care-wellness-insights,.care-premium-progress,.patient-timeline-item){border-radius:16px!important}
+:root .client-home-dashboard.care-home-redesign-next :is(.care-health-trigger-copy strong,.care-health-trigger-action,.care-reference-next h3,.care-reference-next strong,.patient-timeline-item strong){color:var(--cd-ink)!important}
+:root .client-home-dashboard.care-home-redesign-next :is(.care-health-trigger-copy small,.care-reference-next p,.patient-timeline-item small,.care-wellness-insights p){color:var(--cd-muted)!important}
+:root .client-home-dashboard.care-home-redesign-next .care-home-health-trigger{min-height:52px;padding:10px 14px!important}
+:root .client-home-dashboard.care-home-redesign-next .care-health-trigger-icon{background:var(--cd-accent-soft);color:var(--cd-accent)}
+:root .client-home-dashboard.care-home-redesign-next .care-reference-timeline{background:var(--cd-panel)!important;border-color:var(--cd-line)!important}
+:root .client-home-dashboard.care-home-redesign-next .care-timeline-view-switch{background:var(--cd-panel-alt)!important;border-radius:14px}
+:root .client-home-dashboard.care-home-redesign-next .care-reference-next{background:var(--cd-panel)!important}
