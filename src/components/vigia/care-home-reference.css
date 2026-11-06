@@ -2045,3 +2045,48 @@
  .client-home-dashboard.care-home-redesign-next .care-art-shortcuts svg{width:19px;height:19px}
  .client-home-dashboard.care-home-redesign-next .care-reference-next{min-height:250px!important}
 }
+
+/* Approved CareDigital reference — complete composition across breakpoints. */
+.client-home-dashboard.care-home-redesign-next{--cd-bg:#031c22;--cd-panel:#07343b;--cd-panel-alt:#0b4046;--cd-ink:#f3ffff;--cd-muted:#b9d8dc;--cd-line:#267c80;--cd-accent:#42edc8;--cd-accent-soft:#125b58;display:flex!important;flex-direction:column!important;gap:16px!important;background:radial-gradient(ellipse at 52% 0%,#086267 0%,transparent 39%),#031c22!important;color:#f3ffff!important}
+.client-home-dashboard.care-home-redesign-next>.care-next-header{order:0!important;display:grid!important;grid-template-columns:minmax(0,1fr) 125px!important;align-items:center!important;gap:8px 18px!important;min-height:150px!important;padding:18px 10px 8px!important;background:transparent!important;border:0!important}
+.client-home-dashboard.care-home-redesign-next .care-next-intro{grid-column:1!important;grid-row:1!important;min-width:0!important}
+.client-home-dashboard.care-home-redesign-next .care-next-kicker{color:#e3f5f7!important;font-weight:800!important;letter-spacing:.1em!important}
+.client-home-dashboard.care-home-redesign-next .care-next-intro h2{font-size:clamp(23px,3vw,35px)!important;line-height:1.15!important;color:white!important}
+.client-home-dashboard.care-home-redesign-next .care-next-intro h2 span{color:#48e9c8!important}
+.client-home-dashboard.care-home-redesign-next .care-next-intro p{display:block!important;color:#d1e8eb!important}
+.client-home-dashboard.care-home-redesign-next .care-art-date{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:8px 12px;border:1px solid #278e91;border-radius:999px;background:#0a424a;color:#e5ffff;font-size:12px;font-weight:700;text-transform:capitalize}
+.client-home-dashboard.care-home-redesign-next .care-art-completion{grid-column:2!important;grid-row:1!important;display:grid!important;place-items:center!important;justify-self:center;width:120px;height:120px;border-radius:50%;background:conic-gradient(#46efc8 var(--care-completion),#13515a 0);padding:11px}
+.client-home-dashboard.care-home-redesign-next .care-art-completion>span{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:100%;height:100%;border-radius:50%;background:#063039;text-align:center}
+.client-home-dashboard.care-home-redesign-next .care-art-completion strong{font-size:25px;color:white;line-height:1.1}
+.client-home-dashboard.care-home-redesign-next .care-art-completion small{font-size:10px;color:#cce5e8}
+.client-home-dashboard.care-home-redesign-next .care-next-header-actions{grid-column:1/-1!important;grid-row:2!important;display:none!important}
+.client-home-dashboard.care-home-redesign-next>.care-art-shortcuts{order:1!important}
+.client-home-dashboard.care-home-redesign-next>.care-home-body{order:2!important}
+.client-home-dashboard.care-home-redesign-next>.care-next-quick-actions{order:3!important}
+.client-home-dashboard.care-home-redesign-next>.care-home-health-disclosure{order:4!important}
+.client-home-dashboard.care-home-redesign-next>.care-patient-marquee{display:none!important}
+.client-home-dashboard.care-home-redesign-next .care-reference-grid{display:grid!important;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr)!important;gap:14px!important}
+.client-home-dashboard.care-home-redesign-next .care-reference-primary{display:flex!important;flex-direction:column!important;gap:12px!important}
+.client-home-dashboard.care-home-redesign-next .care-reference-next{min-height:290px!important;padding:22px!important;border-radius:22px!important;background:linear-gradient(120deg,#0a4a4d,#062d38)!important;border:1px solid #24c4aa!important}
+.client-home-dashboard.care-home-redesign-next .care-next-copy h3{font-size:clamp(23px,3vw,34px)!important;color:white!important}
+.client-home-dashboard.care-home-redesign-next .care-next-countdown{font-size:clamp(28px,4vw,44px)!important;color:white!important}
+.client-home-dashboard.care-home-redesign-next .care-next-generated-art{opacity:.6!important;object-fit:contain!important;object-position:right bottom!important}
+.client-home-dashboard.care-home-redesign-next .care-next-cta{background:#43eac5!important;color:#042c32!important;border-radius:13px!important}
+.client-home-dashboard.care-home-redesign-next .care-next-secondary{border-color:#59e4d0!important;color:#edffff!important;border-radius:13px!important}
+.client-home-dashboard.care-home-redesign-next .care-reference-timeline{border-color:#23747a!important;background:#072e39!important;border-radius:20px!important}
+.client-home-dashboard.care-home-redesign-next .care-next-health-summary{border-radius:19px!important}
+@media(max-width:767px){
+ .client-home-dashboard.care-home-redesign-next{padding:14px 12px calc(100px + env(safe-area-inset-bottom,0px))!important;gap:12px!important}
+ .client-home-dashboard.care-home-redesign-next>.care-next-header{grid-template-columns:minmax(0,1fr) 94px!important;min-height:138px!important;padding:8px 2px!important;gap:6px!important}
+ .client-home-dashboard.care-home-redesign-next .care-next-intro h2{font-size:clamp(20px,5.4vw,27px)!important}
+ .client-home-dashboard.care-home-redesign-next .care-next-intro p{font-size:11px!important;line-height:1.4!important}
+ .client-home-dashboard.care-home-redesign-next .care-next-kicker{font-size:9px!important;letter-spacing:.06em!important}
+ .client-home-dashboard.care-home-redesign-next .care-art-date{font-size:10px;margin-top:8px;padding:7px 9px}
+ .client-home-dashboard.care-home-redesign-next .care-art-completion{width:90px;height:90px;padding:8px}
+ .client-home-dashboard.care-home-redesign-next .care-art-completion strong{font-size:20px}
+ .client-home-dashboard.care-home-redesign-next .care-art-completion small{font-size:9px}
+ .client-home-dashboard.care-home-redesign-next .care-reference-grid{display:flex!important;flex-direction:column!important;gap:12px!important}
+ .client-home-dashboard.care-home-redesign-next .care-reference-next{min-height:260px!important;padding:15px!important}
+ .client-home-dashboard.care-home-redesign-next .care-next-generated-art{opacity:.42!important}
+ .client-home-dashboard.care-home-redesign-next .care-reference-timeline{min-height:220px!important}
+}
