@@ -1698,3 +1698,19 @@
   outline:2px solid rgba(251,191,36,.75);outline-offset:-2px;
  }
 }
+
+/* Painel unificado: atalhos e lembretes discretos, sem alterar o tema aprovado. */
+.care-home-shortcuts-content{max-width:min(94vw,720px);max-height:min(82dvh,660px);overflow-y:auto;overscroll-behavior:contain}
+.care-home-shortcuts-content .care-home-medication{margin-top:10px}
+.care-home-shortcuts-content .care-reminder-unified{border-radius:14px;padding:10px 12px;box-shadow:none}
+.care-home-shortcuts-content .care-reminder-unified .care-reminder-art{width:38px;height:38px}
+.care-home-shortcuts-content .care-reminder-unified .care-reminder-heading{font-size:12px;line-height:1.3}
+.care-home-shortcuts-content .care-reminder-unified .care-reminder-task{font-size:11px}
+.care-home-shortcuts-content .care-reminder-unified .care-reminder-actions{gap:5px}
+@media(max-width:640px){
+ .care-home-shortcuts-content{width:min(94vw,430px);max-height:78dvh;padding:12px}
+ .care-home-shortcuts-content .patient-home-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .care-home-shortcuts-content .patient-home-actions>*{min-width:0;max-width:100%;justify-content:center}
+ .care-home-shortcuts-content .care-reminder-unified{gap:8px;flex-wrap:wrap}
+ .care-home-shortcuts-content .care-reminder-unified .care-reminder-actions{flex-direction:row;flex-wrap:wrap;width:100%;justify-content:flex-end}
+}
