@@ -2,11 +2,12 @@ import {useEffect,useMemo,useState} from "react";
 import {createPortal} from "react-dom";
 import {BarChart3,CalendarDays,CheckCircle2,Clock3,Download,Plus,X} from "lucide-react";
 import {supabase} from "@/integrations/supabase/client";
+import type {HydrationGoalSnapshot} from "@/lib/hydration-goal";
 
 type Category="hidratacao"|"refeicao"|"medicacao";
 type Period="dia"|"mes"|"ano";
 type Event={id:string;at:string;title:string;state:"realizado"|"pendente"|"nao_realizado";detail:string;amount?:number};
-type Props={patientId:string;ownerId?:string;category:Category;onClose:()=>void;onAdd?:()=>void};
+type Props={patientId:string;ownerId?:string;category:Category;onClose:()=>void;onAdd?:()=>void;hydrationGoal?:HydrationGoalSnapshot|null};
 const zone="America/Rio_Branco";
 const labels:Record<Category,string>={hidratacao:"Hidratação",refeicao:"Alimentação",medicacao:"Medicamentos e suplementos"};
 const stamp=(d:Date)=>new Intl.DateTimeFormat("en-CA",{timeZone:zone,year:"numeric",month:"2-digit",day:"2-digit"}).format(d);
@@ -17,7 +18,7 @@ function range(period:Period){
  const end=period==="dia"?start+86400000:period==="mes"?Date.UTC(y,m,1,5):Date.UTC(y+1,0,1,5);
  return {from:new Date(start).toISOString(),to:new Date(end).toISOString()};
 }
-export function CareCategoryReport({patientId,ownerId,category,onClose,onAdd}:Props){
+export function CareCategoryReport({patientId,ownerId,category,onClose,onAdd,hydrationGoal}:Props){
  const [period,setPeriod]=useState<Period>("dia");
  const [events,setEvents]=useState<Event[]>([]);
  const [loading,setLoading]=useState(true);
@@ -53,7 +54,7 @@ export function CareCategoryReport({patientId,ownerId,category,onClose,onAdd}:Pr
      detail:done?"Confirmado":status?"Situação registrada: "+status:missed?"Horário passou sem confirmação":"Ainda programado"};
    });
    const extra:Event[]=[
-    ...(water.data??[]).filter((r:any)=>!r.task_id||!taskIds.has(r.task_id)).map((r:any)=>({id:"water:"+r.id,at:r.recorded_at,title:"Água consumida",state:"realizado" as const,detail:"Consumo avulso",amount:Number(r.amount_ml)||0})),
+    ...(water.data??[]).map((r:any)=>({id:"water:"+r.id,at:r.recorded_at,title:"Água consumida",state:"realizado" as const,detail:r.task_id?"Consumo vinculado ao lembrete":"Consumo avulso",amount:Number(r.amount_ml)||0})),
     ...(beverages.data??[]).map((r:any)=>({id:"drink:"+r.id,at:r.consumed_at,title:r.name||r.kind||"Bebida",state:"realizado" as const,detail:"Bebida registrada",amount:Number(r.amount_ml)||0})),
     ...(meals.data??[]).filter((r:any)=>!r.details?.superseded).map((r:any)=>({id:"meal:"+r.id,at:r.recorded_at,title:r.details?.title||r.details?.description||"Refeição avulsa",state:"realizado" as const,detail:"Consumo registrado"}))
    ];
@@ -63,7 +64,12 @@ export function CareCategoryReport({patientId,ownerId,category,onClose,onAdd}:Pr
   void load().catch(e=>{if(active){setLoading(false);setWarning(e instanceof Error?e.message:"Erro ao consultar os registros.");}});
   return()=>{active=false};
  },[patientId,ownerId,category,period]);
- const stats=useMemo(()=>({done:events.filter(x=>x.state==="realizado").length,missed:events.filter(x=>x.state==="nao_realizado").length,pending:events.filter(x=>x.state==="pendente").length,volume:events.reduce((n,x)=>n+(x.amount??0),0)}),[events]);
+ const stats=useMemo(()=>({done:events.filter(x=>x.state==="realizado").length,missed:events.filter(x=>x.state==="nao_realizado").length,pending:events.filter(x=>x.state==="pendente").length,volume:events.filter(x=>x.id.startsWith("water:")).reduce((n,x)=>n+(x.amount??0),0),beverages:events.filter(x=>x.id.startsWith("drink:")).reduce((n,x)=>n+(x.amount??0),0)}),[events]);
+ const today=stamp(new Date());
+ const goalForToday=category==="hidratacao"&&period==="dia"&&hydrationGoal?.goal_date===today&&Number(hydrationGoal.target_ml)>0?hydrationGoal:null;
+ const dailyConsumed=goalForToday?Number(goalForToday.consumed_ml??0):null;
+ const dailyTarget=goalForToday?Number(goalForToday.target_ml??0):null;
+ const dailyPercent=dailyTarget&&dailyConsumed!==null?Math.min(100,Math.round(dailyConsumed/dailyTarget*100)):0;
  const exportCsv=()=>{
   const rows=[["Data (Acre)","Categoria","Evento","Situação","Detalhes","Volume (ml)"],...events.map(e=>[format(e.at),labels[category],e.title,e.state,e.detail,String(e.amount??"")])];
   const csv="\uFEFF"+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(";")).join("\r\n");
@@ -83,8 +89,18 @@ export function CareCategoryReport({patientId,ownerId,category,onClose,onAdd}:Pr
      </div>
      <button type="button" onClick={exportCsv} disabled={loading||events.length===0} className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-3 py-2 text-xs font-bold disabled:opacity-40"><Download size={14}/> Exportar CSV</button>
     </div>
+    {category==="hidratacao"&&<div className="mx-4 mb-3 rounded-2xl border border-teal-300/25 bg-gradient-to-r from-teal-300/15 to-cyan-300/5 p-4" aria-live="polite">
+      <p className="text-xs font-bold uppercase tracking-wide text-teal-200">{period==="dia"?"Consumo de água de hoje":"Água registrada no período"}</p>
+      <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1"><strong className="text-3xl font-black tabular-nums">{(dailyConsumed??stats.volume).toLocaleString("pt-BR")} <span className="text-base font-bold">ml</span></strong>
+        {dailyTarget!==null&&<span className="text-sm text-slate-200">de {dailyTarget.toLocaleString("pt-BR")} ml · {dailyPercent}%</span>}
+      </div>
+      {dailyTarget!==null&&dailyConsumed!==null&&<><div role="progressbar" aria-label="Meta de hidratação" aria-valuenow={dailyPercent} aria-valuemin={0} aria-valuemax={100} className="mt-3 h-2 overflow-hidden rounded-full bg-white/15"><div className="h-full rounded-full bg-teal-300" style={{width:dailyPercent+"%"}}/></div>
+        <p className="mt-2 text-xs text-teal-100">{dailyConsumed>=dailyTarget?"Meta alcançada · "+(dailyConsumed-dailyTarget).toLocaleString("pt-BR")+" ml acima da meta":(dailyTarget-dailyConsumed).toLocaleString("pt-BR")+" ml restantes para a meta"}</p></>}
+      {dailyConsumed===null&&<p className="mt-2 text-xs text-slate-300">Total de água registrado no período. Bebidas aparecem separadamente no histórico.</p>}
+      <p className="mt-1 text-[11px] text-slate-300">Registros de água: {stats.volume.toLocaleString("pt-BR")} ml · Outras bebidas: {stats.beverages.toLocaleString("pt-BR")} ml</p>
+    </div>}
     <div className="grid shrink-0 grid-cols-2 gap-2 px-4 pb-3 sm:grid-cols-4">
-     {([{label:"Realizados",value:stats.done,icon:CheckCircle2},{label:"Sem confirmação",value:stats.missed,icon:Clock3},{label:"Pendentes",value:stats.pending,icon:CalendarDays},{label:category==="hidratacao"?"Volume avulso":"Eventos",value:category==="hidratacao"?(stats.volume/1000).toLocaleString("pt-BR",{maximumFractionDigits:2})+" L":events.length,icon:BarChart3}] as const).map(item=><div key={item.label} className="rounded-xl border border-white/10 bg-white/5 p-3"><span className="block text-[11px] text-slate-300">{item.label}</span><strong className="mt-1 block text-xl">{item.value}</strong></div>)}
+     {([{label:"Realizados",value:stats.done,icon:CheckCircle2},{label:"Sem confirmação",value:stats.missed,icon:Clock3},{label:"Pendentes",value:stats.pending,icon:CalendarDays},{label:category==="hidratacao"?"Água registrada":"Eventos",value:category==="hidratacao"?(stats.volume/1000).toLocaleString("pt-BR",{maximumFractionDigits:2})+" L":events.length,icon:BarChart3}] as const).map(item=><div key={item.label} className="rounded-xl border border-white/10 bg-white/5 p-3"><span className="block text-[11px] text-slate-300">{item.label}</span><strong className="mt-1 block text-xl">{item.value}</strong></div>)}
     </div>
     {warning&&<p role="alert" className="mx-4 mb-2 rounded-lg border border-amber-300/40 bg-amber-300/10 p-2 text-xs text-amber-100">{warning}</p>}
     <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4" role="region" aria-label="Eventos do período">
