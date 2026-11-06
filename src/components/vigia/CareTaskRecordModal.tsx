@@ -268,7 +268,7 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
     resolutionReady&&!resolution&&(details.category!=="hidratacao"||(responseReady&&!skippedWater)));
 
   return createPortal(
-    <div className="care-record-modal-overlay care-detail-v4 fixed inset-0 z-[10020] flex items-center justify-center overflow-hidden bg-slate-950/75 p-2 backdrop-blur-sm sm:p-3"
+    <div className="care-record-modal-overlay care-detail-v4 care-modal-theme fixed inset-0 z-[10020] flex items-center justify-center overflow-hidden bg-slate-950/75 p-2 backdrop-blur-sm sm:p-3"
       onMouseDown={event => { if (event.target === event.currentTarget && !saving && !decisionSaving) onClose(); }}>
       <section role="dialog" aria-modal="true" aria-labelledby="care-task-record-title"
         data-care-type={task.category} className="care-record-modal-dialog care-detail-dialog-v4 flex w-full max-w-[680px] flex-col overflow-hidden rounded-[20px] border border-border/70 bg-card text-card-foreground shadow-[0_28px_100px_rgba(0,0,0,.35)]">
