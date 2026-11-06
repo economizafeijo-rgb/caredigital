@@ -587,12 +587,11 @@ export function ClientHomeSummary(){
         <img src="/images/care-agenda-wellness.svg" alt="" loading="eager" decoding="async"
           className="care-timeline-generated-art" draggable={false}/>
       </div>
-      <div id="care-home-timeline" className="relative z-10 flex shrink-0 items-center justify-between gap-2 border-b border-white/10 pb-2"><div><p className="care-timeline-eyebrow text-[10px] font-extrabold uppercase tracking-widest">Linha do tempo</p><h3 className="mt-0.5 text-lg font-extrabold tracking-tight">Agenda de hoje</h3></div><span className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-2 py-1 text-[10px] text-slate-200"><ListChecks size={13}/>{agendaItems.length} registros</span></div>
+      <div id="care-home-timeline" className="relative z-10 flex shrink-0 items-center justify-between gap-2 border-b border-white/10 pb-2"><div><p className="care-timeline-eyebrow text-[10px] font-extrabold uppercase tracking-widest">Acompanhamento diário</p><h3 className="mt-0.5 text-lg font-extrabold tracking-tight">Agenda e histórico</h3></div><span className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-2 py-1 text-[10px] text-slate-200"><ListChecks size={13}/>{agendaItems.length} registros</span></div>
       <div className="relative z-10 mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-300">
-        <span>Registros e acompanhamento em um só lugar.</span>
         <Link to="/cliente" hash="historico" className="rounded-lg border border-teal-300/30 px-2.5 py-1.5 font-bold text-teal-100 hover:bg-teal-400/10">Prontuário completo <ChevronRight size={12} className="inline"/></Link>
       </div>
-      <details className="relative z-10 mt-2 rounded-xl border border-white/10 bg-white/5 p-2">
+      <details className="care-timeline-report-drawer relative z-10 mt-2 rounded-xl border border-white/10 bg-white/5 p-2">
         <summary className="cursor-pointer select-none text-xs font-bold text-teal-100">Relatórios detalhados por categoria</summary>
         <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label="Relatórios de cuidados">
           {([{key:"hidratacao",label:"Água"},{key:"refeicao",label:"Refeições"},{key:"medicacao",label:"Medicamentos"}] as const).map(item=><button key={item.key} type="button" onClick={()=>setReportCategory(item.key)} className="min-h-9 rounded-lg border border-teal-300/25 bg-teal-300/10 px-3 py-1.5 text-[11px] font-bold text-teal-100 hover:bg-teal-300/20">{item.label}</button>)}
