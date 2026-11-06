@@ -396,7 +396,7 @@ export function ClientHomeSummary(){
   </header>
   <details className="care-home-shortcuts care-next-quick-actions relative z-20">
     <summary aria-label="Abrir ações rápidas e lembretes" title="Ações rápidas e lembretes" className="care-home-shortcut-trigger">
-      <Plus size={20} aria-hidden="true" />
+      <Plus size={18} aria-hidden="true" /><span className="care-quick-label">Ações rápidas</span><ChevronRight size={16} className="care-quick-chevron" aria-hidden="true"/>
     </summary>
     <div className="care-home-shortcuts-content">
       <p className="care-home-shortcuts-title">Ações rápidas</p>
