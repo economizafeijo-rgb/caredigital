@@ -52,7 +52,7 @@ const plannedMealKind=(title:string):string|null=>{
 export function ClientHomeSummary(){
  const [patient,setPatient]=useState<Person|null>(null);
  const [wellness,setWellness]=useState<WellnessProfile|null>(null);
- const [consumedMacros,setConsumedMacros]=useState<{kcal:number;protein:number;carbs:number;fat:number;fiber:number;count:number}|null>(null);
+ const [consumedMacros,setConsumedMacros]=useState<{kcal:number;protein:number;carbs:number;fat:number;fiber:number;count:number;weightG:number;weightCount:number}|null>(null);
  const [consumedError,setConsumedError]=useState(false);
 
  const [showHealthProfile,setShowHealthProfile]=useState(false);
@@ -84,8 +84,8 @@ export function ClientHomeSummary(){
   const end=new Date(new Date(today+"T00:00:00-05:00").getTime()+86400000).toISOString();
   const db=supabase as any;
   void Promise.all([
-   db.from("care_food_consumptions").select("id,request_id,kcal,protein_g,carbs_g,fat_g,fiber_g").eq("patient_id",patient.id).eq("owner_id",patient.owner_id).gte("recorded_at",start).lt("recorded_at",end).limit(500),
-   db.from("care_nutrition_meal_logs").select("id,request_id,kcal,protein_g,carbs_g,fat_g").eq("patient_id",patient.id).eq("owner_id",patient.owner_id).gte("recorded_at",start).lt("recorded_at",end).limit(500)
+   db.from("care_food_consumptions").select("*").eq("patient_id",patient.id).eq("owner_id",patient.owner_id).gte("recorded_at",start).lt("recorded_at",end).limit(500),
+   db.from("care_nutrition_meal_logs").select("*").eq("patient_id",patient.id).eq("owner_id",patient.owner_id).gte("recorded_at",start).lt("recorded_at",end).limit(500)
   ]).then(([food,meals]:any[])=>{
    if(!active)return;
    if(food.error||meals.error){setConsumedError(true);setConsumedMacros(null);return;}
@@ -95,7 +95,13 @@ export function ClientHomeSummary(){
    // when its request already has individual food records.
    const rows=[...foodRows,...(meals.data??[]).filter((item:any)=>!item.request_id||!foodRequests.has(item.request_id))];
    const sum=(field:string)=>Math.round(rows.reduce((total:number,item:any)=>total+(Number(item[field])||0),0));
-   setConsumedMacros({kcal:sum("kcal"),protein:sum("protein_g"),carbs:sum("carbs_g"),fat:sum("fat_g"),fiber:sum("fiber_g"),count:rows.length});
+   const weights=rows.map((item:any)=>{
+     // Peso somente quando registrado explicitamente; não inferir massa
+     // a partir de calorias ou de nomes genéricos de refeições.
+     const amount=Number(item.total_weight_g??item.weight_g??item.quantity_g??item.portion_g);
+     return Number.isFinite(amount)&&amount>0&&amount<=10000?amount:null;
+   }).filter((amount:number|null):amount is number=>amount!==null);
+   setConsumedMacros({kcal:sum("kcal"),protein:sum("protein_g"),carbs:sum("carbs_g"),fat:sum("fat_g"),fiber:sum("fiber_g"),count:rows.length,weightG:Math.round(weights.reduce((a:number,b:number)=>a+b,0)),weightCount:weights.length});
    setConsumedError(false);
   }).catch(()=>{if(active){setConsumedError(true);setConsumedMacros(null);}});
   return()=>{active=false};
@@ -459,6 +465,7 @@ export function ClientHomeSummary(){
         <p className="mb-2 text-[10px] text-slate-300">Estimativa educativa por idade, peso, altura, sexo e atividade informada (fator ×{objectiveEstimate.activityFactor.toLocaleString("pt-BR")}). Sem meta cadastrada, usa ±10% da manutenção conforme objetivo; a atividade real e condições clínicas podem alterar a necessidade. Metas individuais têm prioridade.</p>
         <section className="mb-2 rounded-xl border border-white/15 bg-slate-950/30 p-3" aria-label="Consumo de macronutrientes registrado hoje">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><strong className="text-xs">Consumido hoje × meta</strong><span className="text-[10px] text-slate-300">{consumedError?"Não foi possível consultar os registros":consumedMacros?consumedMacros.count+" lançamentos nutricionais":"Carregando registros"}</span></div>
+          {consumedMacros&&<div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-teal-300/15 bg-teal-300/5 px-3 py-2"><div><span className="block text-[10px] text-slate-300">Peso de alimentos registrado</span><strong className="text-lg font-extrabold tabular-nums">{consumedMacros.weightCount?consumedMacros.weightG.toLocaleString("pt-BR")+" g":"Não informado"}</strong></div><span className="text-[10px] text-slate-300">{consumedMacros.weightCount} de {consumedMacros.count} lançamentos com peso</span></div>}
           {consumedMacros&&<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {([{label:"Proteínas",actual:consumedMacros.protein,target:protein,unit:"g"},{label:"Carboidratos",actual:consumedMacros.carbs,target:carbs,unit:"g"},{label:"Gorduras",actual:consumedMacros.fat,target:fat,unit:"g"},{label:"Energia",actual:consumedMacros.kcal,target:goalKcal,unit:"kcal"},{label:"Fibras",actual:consumedMacros.fiber,target:null,unit:"g"}] as const).map(metric=><div key={metric.label} className="min-w-0 rounded-lg bg-white/5 p-2">
               <span className="block text-[10px] text-slate-300">{metric.label}</span><strong className="text-sm">{metric.actual.toLocaleString("pt-BR")} / {metric.target?.toLocaleString("pt-BR")??"—"} {metric.unit}</strong>
@@ -466,7 +473,7 @@ export function ClientHomeSummary(){
               <span className="text-[10px] text-slate-300">{metric.target!==null?metric.actual>=metric.target?"Meta atingida":Math.round(metric.target-metric.actual).toLocaleString("pt-BR")+" "+metric.unit+" restantes":metric.label==="Fibras"?"Total registrado; sem meta individual":"Meta não definida"}</span>
             </div>)}
           </div>}
-          <p className="mt-2 text-[10px] text-slate-300">Somente lançamentos com valores nutricionais registrados; refeições descritas sem quantificação não entram nos totais. Valores ausentes não significam consumo zero. Atualiza após novos registros.</p>
+          <p className="mt-2 text-[10px] text-slate-300">Macros calculados a partir dos lançamentos nutricionais disponíveis. Peso somado apenas quando informado em gramas; não é estimado a partir das calorias. Refeições descritas sem quantificação não entram nos totais. Valores ausentes não significam consumo zero. Atualiza após novos registros.</p>
         </section>
         <div className="care-wellness-metrics">
           <div data-health-tone={bmiTone}><span>IMC</span><strong>{bmi?bmi.toFixed(1).replace(".",","):"—"}</strong><small className="care-imc-status">{bmiStatus}</small><small>{bmi&&adult?"Classificação de referência para adultos":"Informe idade, peso e altura"}</small></div>
