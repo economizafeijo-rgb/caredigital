@@ -99,7 +99,8 @@ export function CareProgressVisual({tasks,goal,onOpen,onHydration,onFood,onMedic
     if(pending.some(t=>{const remaining=Date.parse(t.scheduled_at)-nowMs;return remaining>0&&remaining<=15*60*1000;}))return "soon";
     return "idle";
   };
-  const waterUrgency=alertWater?"due":urgency("hidratacao");
+  const hydrationMet=Boolean(goal?.target_ml && goal.target_ml>0 && (goal.status==="atingida" || (goal.consumed_ml??0)>=goal.target_ml));
+  const waterUrgency=hydrationMet?"idle":alertWater?"due":urgency("hidratacao");
   const foodUrgency=alertFood?"due":urgency("refeicao");
   const medicineUrgency=alertMedicine?"due":urgency("medicacao");
   const meds=tasks.filter(t=>t.category==="medicacao");
@@ -144,7 +145,7 @@ export function CareProgressVisual({tasks,goal,onOpen,onHydration,onFood,onMedic
         <span className="care-visual-subtitle block truncate text-[9px]">refeições confirmadas</span>
         <span className="care-visual-track mt-1 block h-1 overflow-hidden rounded-full"><i style={{width:(pct(completedMeals,meals.length)*100)+"%"}}/></span>
       </span>
-    {foodUrgency!=="idle"&&<span className="care-tile-alert-label" aria-label="Cuidado programado aguardando confirmação"><BellRing size={12} aria-hidden="true"/> {waterUrgency==="soon"?"Em breve":"Ação pendente"}</span>}</button>
+    {foodUrgency!=="idle"&&<span className="care-tile-alert-label" aria-label="Cuidado programado aguardando confirmação"><BellRing size={12} aria-hidden="true"/> {foodUrgency==="soon"?"Em breve":"Ação pendente"}</span>}</button>
     <button type="button" data-visual="medicine" data-care-alert={medicineUrgency==="idle"?undefined:medicineUrgency} data-action="register-medication"
       onClick={()=>open("medicacao")}
       title="Abrir registro ou histórico de medicação" aria-label={alertMedicine?"Medicação. Cuidado programado pendente. Abrir registro.":"Medicação. Abrir registro de medicação ou detalhes das doses."}
@@ -156,6 +157,6 @@ export function CareProgressVisual({tasks,goal,onOpen,onHydration,onFood,onMedic
         <span className="care-visual-subtitle block truncate text-[9px]">doses confirmadas</span>
         <span className="care-visual-track mt-1 block h-1 overflow-hidden rounded-full"><i style={{width:(pct(completedMeds,meds.length)*100)+"%"}}/></span>
       </span>
-    {medicineUrgency!=="idle"&&<span className="care-tile-alert-label" aria-label="Cuidado programado aguardando confirmação"><BellRing size={12} aria-hidden="true"/> {waterUrgency==="soon"?"Em breve":"Ação pendente"}</span>}</button>
+    {medicineUrgency!=="idle"&&<span className="care-tile-alert-label" aria-label="Cuidado programado aguardando confirmação"><BellRing size={12} aria-hidden="true"/> {medicineUrgency==="soon"?"Em breve":"Ação pendente"}</span>}</button>
   </section>;
 }
