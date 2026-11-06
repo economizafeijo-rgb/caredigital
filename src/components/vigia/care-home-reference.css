@@ -1997,3 +1997,26 @@
  .client-home-dashboard.care-home-redesign-next .care-reference-next{min-height:0!important;padding:14px!important}
  .client-home-dashboard.care-home-redesign-next .care-next-generated-art{opacity:.2!important}
 }
+
+/* Homepage layout v3: care-first hierarchy, not another stacked welcome page. */
+.client-home-dashboard.care-home-redesign-next{display:flex!important;flex-direction:column!important;gap:12px!important}
+.client-home-dashboard.care-home-redesign-next>.care-next-header{order:0}
+.client-home-dashboard.care-home-redesign-next>.care-home-body{order:1}
+.client-home-dashboard.care-home-redesign-next>.care-patient-marquee{order:2}
+.client-home-dashboard.care-home-redesign-next>.care-next-quick-actions{order:3}
+.client-home-dashboard.care-home-redesign-next>.care-home-health-disclosure{order:4}
+.client-home-dashboard.care-home-redesign-next .care-reference-grid{width:100%;min-width:0}
+.client-home-dashboard.care-home-redesign-next .care-reference-next{background:var(--cd-panel)!important}
+@media(max-width:767px){
+ .client-home-dashboard.care-home-redesign-next{padding:10px 12px 105px!important;gap:10px!important}
+ .client-home-dashboard.care-home-redesign-next>.care-next-header{padding:12px 14px!important}
+ .client-home-dashboard.care-home-redesign-next .care-next-intro p{display:none}
+ .client-home-dashboard.care-home-redesign-next .care-next-intro h2{font-size:21px!important;margin:4px 0!important}
+ .client-home-dashboard.care-home-redesign-next .care-next-header-actions{gap:8px!important}
+ .client-home-dashboard.care-home-redesign-next .care-reference-grid{display:flex!important;flex-direction:column!important}
+ .client-home-dashboard.care-home-redesign-next .care-reference-primary{display:flex!important;flex-direction:column!important}
+ .client-home-dashboard.care-home-redesign-next .care-reference-next{min-height:235px!important}
+ .client-home-dashboard.care-home-redesign-next .care-next-generated-art{opacity:.12!important}
+ .client-home-dashboard.care-home-redesign-next .care-patient-marquee{display:none!important}
+ .client-home-dashboard.care-home-redesign-next .care-next-quick-actions>.care-next-quick-trigger{min-height:46px!important}
+}
