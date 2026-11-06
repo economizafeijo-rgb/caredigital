@@ -606,7 +606,7 @@ export function ClientHomeSummary(){
         <div className="care-timeline-filters mb-2 flex flex-wrap gap-1.5" role="group" aria-label="Filtrar histórico">
           {([{key:"todos",label:"Todos"},{key:"hidratacao",label:"Água"},{key:"refeicao",label:"Refeições"},{key:"medicacao",label:"Medicação"}] as const).map(item=><button key={item.key} type="button" aria-pressed={agendaCategory===item.key} onClick={()=>chooseAgenda(item.key)} className="care-timeline-filter min-h-9 rounded-xl border px-3 py-1.5 text-xs font-bold">{item.label}</button>)}
         </div>
-        <CareRecentHistory patientId={patient.id} ownerId={patient.owner_id} category={agendaCategory}/>
+        <CareRecentHistory patientId={patient.id} ownerId={patient.owner_id} category={agendaCategory} compact/>
       </div>}
       {timelineView==="agenda"&&<>
       <div className="care-timeline-filters relative z-10 flex shrink-0 flex-wrap gap-1.5 pt-2" role="group" aria-label="Filtrar registros da agenda">
