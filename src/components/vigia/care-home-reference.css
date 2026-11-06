@@ -1714,3 +1714,22 @@
  .care-home-shortcuts-content .care-reminder-unified{gap:8px;flex-wrap:wrap}
  .care-home-shortcuts-content .care-reminder-unified .care-reminder-actions{flex-direction:row;flex-wrap:wrap;width:100%;justify-content:flex-end}
 }
+
+/* Agenda e histórico: uma área de trabalho sem barras horizontais no mobile. */
+#care-home-timeline{scroll-margin-top:12px}
+.care-timeline-report-drawer summary{list-style-position:inside;min-height:30px;display:flex;align-items:center;gap:8px}
+.care-timeline-report-drawer[open]{background:rgba(15,71,82,.22)}
+.care-history-compact{min-width:0}
+.care-history-compact .care-history-head{padding-block:8px}
+.care-history-compact .care-history-head h4{display:none}
+.care-history-compact .care-history-entry{min-width:0}
+.care-history-compact .care-history-entry-copy{min-width:0;overflow-wrap:anywhere}
+@media(max-width:640px){
+ .care-timeline-view-switch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+ .care-timeline-view-switch button{min-width:0;min-height:42px}
+ .care-timeline-filters{flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain;padding-bottom:4px}
+ .care-timeline-filters::-webkit-scrollbar{display:none}
+ .care-timeline-filters button{flex:0 0 auto;white-space:nowrap}
+ .care-history-compact .care-history-entry{gap:8px}
+ .care-history-compact .care-history-entry time{font-size:10px}
+}
