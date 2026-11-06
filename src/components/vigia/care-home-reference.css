@@ -1735,46 +1735,50 @@
 }
 
 
-/* CareDigital Claymorphism — homepage desktop e mobile.
-   Estilo isolado na homepage; nenhum fluxo de registro ou confirmação é alterado. */
+
+/* CareDigital Next — visual jovem, macio e editorial. Substitui integralmente claymorphism. */
 :root .client-home-dashboard.care-home-art-v2.care-home-art-reference{
- --clay-surface:#d8e9ec;--clay-highlight:#f4ffff;--clay-shadow:#718e9b;
- background:radial-gradient(circle at 12% 8%,#c6f1e8 0%,transparent 42%),radial-gradient(circle at 88% 80%,#b4d5ee 0%,transparent 48%),linear-gradient(145deg,#d6e9ed,#b9d3df);
- color:#183d4a;border:1px solid #e8fbff;border-radius:28px;
- box-shadow:inset 5px 5px 14px #ffffffb8,inset -7px -7px 18px #8faebd8a,0 18px 44px #23475a35;
+ --cd-bg:#f5f7fc;--cd-panel:#ffffff;--cd-panel-alt:#f2f5fb;
+ --cd-ink:#18253b;--cd-muted:#63718a;--cd-line:#e4eaf3;
+ --cd-accent:#6656db;--cd-accent-soft:#eeeaff;--cd-aqua:#087f87;
+ background:radial-gradient(ellipse at 85% 0%,#eae6ff 0%,transparent 42%),radial-gradient(ellipse at 0% 90%,#e5f6f5 0%,transparent 45%),var(--cd-bg);
+ color:var(--cd-ink);border:1px solid var(--cd-line);border-radius:24px;
+ box-shadow:0 12px 42px #2b3e6212;padding:clamp(10px,1.2vw,18px);
 }
-:root .client-home-dashboard.care-home-art-v2.care-home-art-reference .care-home-ambient{opacity:.16}
+:root .client-home-dashboard.care-home-art-v2.care-home-art-reference .care-home-ambient{opacity:.08}
 :root .client-home-dashboard.care-home-art-v2.care-home-art-reference :is(.care-reference-hero,.care-reference-timeline,.care-visual-tile,.care-wellness-metrics,.care-history-panel,.care-home-shortcuts-content,.care-timeline-report-drawer){
- border:1px solid #efffffcc;border-radius:24px;
- background:linear-gradient(145deg,#e4f3f5ed,#c2dbe4ef);
- box-shadow:inset 4px 4px 9px #ffffffc9,inset -5px -5px 12px #8aabb857,7px 9px 18px #577a8c45,-5px -5px 13px #ffffff9c;
- color:#193f4c;
+ background:var(--cd-panel);color:var(--cd-ink);border:1px solid var(--cd-line);
+ border-radius:20px;box-shadow:0 6px 22px #2438570c;
 }
-:root .client-home-dashboard.care-home-art-v2.care-home-art-reference :is(.care-reference-hero,.care-reference-timeline){overflow:hidden}
-:root .client-home-dashboard.care-home-art-v2.care-home-art-reference :is(h2,h3,h4,.care-history-head,.care-history-entry-copy strong){color:#173d49}
-:root .client-home-dashboard.care-home-art-v2.care-home-art-reference :is(.care-timeline-eyebrow,.care-history-eyebrow,.care-home-shortcuts-subtitle){color:#326c79}
-:root .client-home-dashboard.care-home-art-v2.care-home-art-reference :is(.care-timeline-view-switch button,.care-timeline-filter,.care-history-more,.care-timeline-report-drawer summary,.care-home-shortcut-trigger){
- border:1px solid #efffffbd;border-radius:15px;
- background:linear-gradient(145deg,#e5f4f6,#bcd7df);color:#235663;
- box-shadow:4px 5px 10px #7899a56b,-3px -3px 8px #ffffffb8;
- transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
+:root .client-home-dashboard.care-home-art-v2.care-home-art-reference :is(h2,h3,h4,.care-history-entry-copy strong){color:var(--cd-ink)}
+:root .client-home-dashboard.care-home-art-v2.care-home-art-reference :is(.care-timeline-eyebrow,.care-history-eyebrow,.care-home-shortcuts-subtitle){color:var(--cd-accent)}
+:root .client-home-dashboard.care-home-art-v2.care-home-art-reference :is(.care-timeline-view-switch button,.care-timeline-filter,.care-history-more,.care-home-shortcut-trigger){
+ background:var(--cd-panel-alt);color:var(--cd-muted);border:1px solid var(--cd-line);
+ border-radius:12px;box-shadow:none;transition:background .2s,color .2s,transform .2s;
 }
-:root .client-home-dashboard.care-home-art-v2.care-home-art-reference :is(.care-timeline-view-switch button,.care-timeline-filter,.care-history-more,.care-home-shortcut-trigger):active{transform:translateY(2px);box-shadow:inset 3px 3px 7px #8daab8a3,inset -3px -3px 7px #fff}
 :root .client-home-dashboard.care-home-art-v2.care-home-art-reference :is(.care-timeline-view-switch button[aria-pressed="true"],.care-timeline-filter[aria-pressed="true"]){
- background:linear-gradient(145deg,#a6e6dd,#c4e9eb);color:#0a4b57;
- box-shadow:inset 3px 4px 8px #75aeb4a3,inset -3px -3px 8px #f3ffff;
+ background:var(--cd-accent-soft);border-color:var(--cd-accent);color:var(--cd-accent);font-weight:800;
 }
 :root .client-home-dashboard.care-home-art-v2.care-home-art-reference .care-history-entry{
- border:1px solid #f1ffffb5;border-radius:16px;background:#d7e9edb8;
- box-shadow:inset 2px 2px 5px #ffffffb3,3px 4px 9px #7896a447;
+ background:var(--cd-panel-alt);border:1px solid var(--cd-line);border-radius:14px;box-shadow:none;
 }
-:root .client-home-dashboard.care-home-art-v2.care-home-art-reference .care-timeline-generated-art{opacity:.12}
-:root .client-home-dashboard.care-home-art-v2.care-home-art-reference :is(.text-slate-200,.text-slate-300,.text-teal-100){color:#285866}
-:root .client-home-dashboard.care-home-art-v2.care-home-art-reference :is(button,a,summary):focus-visible{outline:3px solid #168d95;outline-offset:3px}
+:root .client-home-dashboard.care-home-art-v2.care-home-art-reference :is(.text-slate-200,.text-slate-300,.text-teal-100){color:var(--cd-muted)}
+:root .client-home-dashboard.care-home-art-v2.care-home-art-reference .care-timeline-generated-art{opacity:.07}
+:root .client-home-dashboard.care-home-art-v2.care-home-art-reference :is(button,a,summary):focus-visible{outline:3px solid var(--cd-accent);outline-offset:3px}
+:root .client-home-dashboard.care-home-art-v2.care-home-art-reference :is(.care-timeline-view-switch button,.care-timeline-filter):hover{transform:translateY(-1px)}
+/* Compatível com Tailwind dark class e preferência de tema do navegador. */
+:root.dark .client-home-dashboard.care-home-art-v2.care-home-art-reference,
+.dark .client-home-dashboard.care-home-art-v2.care-home-art-reference{
+ --cd-bg:#0e1525;--cd-panel:#182238;--cd-panel-alt:#202d45;
+ --cd-ink:#f0f3ff;--cd-muted:#b4c1d7;--cd-line:#34415a;
+ --cd-accent:#b7a9ff;--cd-accent-soft:#332c59;--cd-aqua:#71d5d0;
+ background:radial-gradient(ellipse at 85% 0%,#29224a 0%,transparent 43%),radial-gradient(ellipse at 0% 95%,#11343b 0%,transparent 45%),var(--cd-bg);
+ box-shadow:0 14px 46px #0005;
+}
 @media(max-width:640px){
- :root .client-home-dashboard.care-home-art-v2.care-home-art-reference{border-radius:21px;padding:10px;box-shadow:inset 3px 3px 9px #fff9,inset -4px -4px 12px #8baab975}
- :root .client-home-dashboard.care-home-art-v2.care-home-art-reference :is(.care-reference-hero,.care-reference-timeline,.care-visual-tile,.care-history-panel){border-radius:19px;box-shadow:inset 2px 2px 6px #fffc,inset -3px -3px 8px #8faeba69,4px 6px 12px #65869445}
- :root .client-home-dashboard.care-home-art-v2.care-home-art-reference :is(.care-timeline-view-switch button,.care-timeline-filter){min-height:42px}
+ :root .client-home-dashboard.care-home-art-v2.care-home-art-reference{padding:10px;border-radius:17px}
+ :root .client-home-dashboard.care-home-art-v2.care-home-art-reference :is(.care-reference-hero,.care-reference-timeline,.care-visual-tile,.care-history-panel){border-radius:16px}
+ :root .client-home-dashboard.care-home-art-v2.care-home-art-reference :is(.care-timeline-view-switch button,.care-timeline-filter){min-height:44px}
 }
 @media(prefers-reduced-motion:reduce){
  :root .client-home-dashboard.care-home-art-v2.care-home-art-reference :is(button,a,summary){transition:none}
