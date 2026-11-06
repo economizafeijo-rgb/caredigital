@@ -4,10 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 
 type Category="hidratacao"|"refeicao"|"medicacao";
 type RecordRow={id:string;title:string;category:Category;at:string;detail:string;kind:"task"|"water"|"beverage"|"meal"};
-type Props={patientId:string;ownerId:string;category:Category|"todos";onClose?:()=>void};
+type Props={patientId:string;ownerId:string;category:Category|"todos";onClose?:()=>void;compact?:boolean};
 const labels:Record<Category,string>={hidratacao:"Hidratação",refeicao:"Alimentação",medicacao:"Medicação"};
 const dateTime=(value:string)=>new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Rio_Branco",day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}).format(new Date(value));
-export function CareRecentHistory({patientId,ownerId,category,onClose}:Props){
+export function CareRecentHistory({patientId,ownerId,category,onClose,compact=false}:Props){
  const [rows,setRows]=useState<RecordRow[]>([]);
  const [loading,setLoading]=useState(true);
  const [error,setError]=useState("");
@@ -61,16 +61,16 @@ export function CareRecentHistory({patientId,ownerId,category,onClose}:Props){
   return()=>{active=false};
  },[patientId,ownerId,category]);
  const displayed=showAll?rows:rows.slice(0,5);
- return <section className="care-history-panel" aria-label={"Histórico recente de "+(category==="todos"?"cuidados":labels[category])}>
-  <header className="care-history-head"><div><span className="care-history-eyebrow"><History size={14}/> HISTÓRICO CONFIRMADO</span><h4>{category==="todos"?"Últimos cuidados realizados":labels[category]+" · últimos registros"}</h4><p>Cuidados confirmados e consumos registrados nos últimos 14 dias.</p></div>
+ return <section className={compact?"care-history-panel care-history-compact":"care-history-panel"} aria-label={"Histórico recente de "+(category==="todos"?"cuidados":labels[category])}>
+  <header className="care-history-head"><div><span className="care-history-eyebrow"><History size={14}/> HISTÓRICO CONFIRMADO</span>{!compact&&<h4>{category==="todos"?"Últimos cuidados realizados":labels[category]+" · últimos registros"}</h4>}<p>Cuidados confirmados e consumos registrados nos últimos 14 dias.</p></div>
   {onClose&&<button type="button" className="care-history-close" onClick={onClose} aria-label="Fechar histórico"><X size={17}/></button>}</header>
-  {loading?<p className="care-history-empty">Consultando registros…</p>:error?<p role="alert" className="care-history-empty">{error}</p>:rows.length===0?<p className="care-history-empty">Nenhum registro encontrado neste período. Outros eventos podem estar disponíveis no prontuário completo.</p>:
-  <><div className="care-history-list">{displayed.map(row=><div className="care-history-entry" key={row.id}>
+  {loading?<p className="care-history-empty">Consultando registros…</p>:error&&rows.length===0?<p role="alert" className="care-history-empty">{error}</p>:rows.length===0?<p className="care-history-empty">Nenhum registro encontrado neste período. Outros eventos podem estar disponíveis no prontuário completo.</p>:
+  <>{error&&<p role="alert" className="care-history-empty">{error}</p>}<div className="care-history-list">{displayed.map(row=><div className="care-history-entry" key={row.id}>
    <span className="care-history-entry-icon"><CheckCircle2 size={17}/></span>
    <div className="care-history-entry-copy"><strong>{row.title}</strong><span>{labels[row.category]} · {row.detail}</span></div>
    <time dateTime={row.at}><Clock3 size={12}/>{dateTime(row.at)}</time>
   </div>)}</div>
   {rows.length>5&&<button type="button" className="care-history-more" onClick={()=>setShowAll(v=>!v)}>{showAll?"Mostrar menos":`Ver mais ${rows.length-5} registros`}</button>}</>}
-  <p className="care-history-footnote">Registros provenientes da agenda, hidratação, bebidas e refeições avulsas. Consulte o prontuário completo para detalhes adicionais.</p>
+  {!compact&&<p className="care-history-footnote">Registros provenientes da agenda, hidratação, bebidas e refeições avulsas. Consulte o prontuário completo para detalhes adicionais.</p>}
  </section>;
 }
