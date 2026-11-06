@@ -1823,3 +1823,61 @@
 :root .client-home-dashboard.care-home-redesign-next .care-reference-timeline{background:var(--cd-panel)!important;border-color:var(--cd-line)!important}
 :root .client-home-dashboard.care-home-redesign-next .care-timeline-view-switch{background:var(--cd-panel-alt)!important;border-radius:14px}
 :root .client-home-dashboard.care-home-redesign-next .care-reference-next{background:var(--cd-panel)!important}
+
+/* Next layout v2: agenda como foco e cards complementares sem corte em telas pequenas. */
+:root .client-home-dashboard.care-home-redesign-next{
+ gap:12px!important;min-width:0;
+}
+:root .client-home-dashboard.care-home-redesign-next .care-home-body{
+ min-width:0;min-height:0;gap:14px!important;
+}
+:root .client-home-dashboard.care-home-redesign-next .care-reference-grid{
+ grid-template-columns:minmax(0,1fr)!important;
+ align-items:start!important;
+}
+:root .client-home-dashboard.care-home-redesign-next .care-reference-primary{
+ grid-template-rows:auto!important;gap:12px!important;min-width:0;
+}
+:root .client-home-dashboard.care-home-redesign-next .care-reference-next{
+ min-height:170px!important;padding:18px!important;
+}
+:root .client-home-dashboard.care-home-redesign-next .care-reference-timeline{
+ min-height:360px!important;padding:16px!important;
+}
+:root .client-home-dashboard.care-home-redesign-next .care-visual-tile{
+ min-width:0;box-shadow:0 6px 18px #182b4910!important;
+}
+:root .client-home-dashboard.care-home-redesign-next .care-home-health-disclosure{min-width:0}
+:root .client-home-dashboard.care-home-redesign-next .care-timeline-filters{gap:8px}
+@media(min-width:1024px){
+ :root .client-home-dashboard.care-home-redesign-next .care-reference-grid{
+  grid-template-columns:minmax(0,1fr) minmax(360px,.94fr)!important;
+  align-items:stretch!important;
+ }
+ :root .client-home-dashboard.care-home-redesign-next .care-reference-primary{
+  grid-template-rows:minmax(175px,1fr) auto auto!important;
+ }
+ :root .client-home-dashboard.care-home-redesign-next .care-reference-timeline{
+  height:100%;min-height:360px!important;
+ }
+}
+@media(max-width:1023px){
+ :root .client-home-dashboard.care-home-redesign-next{
+  height:auto!important;max-height:none!important;overflow:visible!important;
+ }
+ :root .client-home-dashboard.care-home-redesign-next .care-home-body{
+  height:auto!important;max-height:none!important;overflow:visible!important;
+ }
+ :root .client-home-dashboard.care-home-redesign-next .care-reference-primary{
+  grid-template-rows:auto!important;
+ }
+ :root .client-home-dashboard.care-home-redesign-next .care-reference-timeline{
+  height:auto!important;max-height:none!important;
+ }
+}
+@media(max-width:640px){
+ :root .client-home-dashboard.care-home-redesign-next{gap:10px!important}
+ :root .client-home-dashboard.care-home-redesign-next .care-home-body{gap:10px!important}
+ :root .client-home-dashboard.care-home-redesign-next .care-reference-next{padding:14px!important;min-height:155px!important}
+ :root .client-home-dashboard.care-home-redesign-next .care-reference-timeline{padding:12px!important;min-height:320px!important}
+}
