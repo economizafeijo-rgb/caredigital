@@ -383,8 +383,18 @@ export function ClientHomeSummary(){
    medicacao:agendaItems.filter(item=>item.category==="medicacao").length};
  const chooseAgenda=(category:typeof agendaCategory)=>{setAgendaCategory(category);setAgendaPage(0);};
  return <section className="client-home-dashboard care-home-art-v2 care-home-art-reference care-premium-v3 care-reference-2026 care-dashboard-oneview care-home-redesign-next relative flex min-h-0 min-w-0 w-full flex-col gap-2 rounded-[20px] border p-2.5 shadow-xl md:h-full md:max-h-full md:overflow-hidden" aria-label="Painel interativo do cliente na homepage">
-  <div aria-hidden="true" className="care-home-ambient pointer-events-none absolute inset-0 overflow-hidden rounded-[24px]" style={{opacity:0.76}}><img src="/images/caredigital-ambient-background.svg" alt="" loading="eager" decoding="async" className="absolute inset-0 h-full w-full object-cover object-center opacity-85" /><span className="care-home-glow care-home-glow-a"/><span className="care-home-glow care-home-glow-b"/></div>
-  <details className="care-home-shortcuts absolute left-2 top-2 z-40">
+  <header className="care-next-header relative z-10">
+    <div className="care-next-intro">
+      <span className="care-next-kicker"><Activity size={14}/> SEU ESPAÇO DE BEM-ESTAR</span>
+      <h2>Olá, <span>{patient?.full_name?.split(" ").slice(0,2).join(" ")??"bem-vindo"}</span></h2>
+      <p>Seu cuidado diário, de um jeito mais simples.</p>
+    </div>
+    <div className="care-next-header-actions">
+      <a href="#care-home-timeline" className="care-next-today-link"><CalendarClock size={16}/> Ver agenda</a>
+      {patient&&wellness&&<button type="button" onClick={()=>setShowHealthProfile(v=>!v)} className="care-next-profile-button">{showHealthProfile?"Ocultar perfil":"Meu perfil"} <ChevronRight size={15}/></button>}
+    </div>
+  </header>
+  <details className="care-home-shortcuts care-next-quick-actions relative z-20">
     <summary aria-label="Abrir ações rápidas e lembretes" title="Ações rápidas e lembretes" className="care-home-shortcut-trigger">
       <Plus size={20} aria-hidden="true" />
     </summary>
@@ -411,17 +421,6 @@ export function ClientHomeSummary(){
       </div>
     </div>
   </details>
-  <header className="care-next-header relative z-10">
-    <div className="care-next-intro">
-      <span className="care-next-kicker"><Activity size={14}/> SEU ESPAÇO DE BEM-ESTAR</span>
-      <h2>Olá, <span>{patient?.full_name?.split(" ").slice(0,2).join(" ")??"bem-vindo"}</span></h2>
-      <p>Seu cuidado diário, de um jeito mais simples.</p>
-    </div>
-    <div className="care-next-header-actions">
-      <a href="#care-home-timeline" className="care-next-today-link"><CalendarClock size={16}/> Ver agenda</a>
-      {patient&&wellness&&<button type="button" onClick={()=>setShowHealthProfile(v=>!v)} className="care-next-profile-button">{showHealthProfile?"Ocultar perfil":"Meu perfil"} <ChevronRight size={15}/></button>}
-    </div>
-  </header>
   {patient&&wellness&&showHealthProfile&&<div className="care-health-profile-overlay fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/80 p-3 backdrop-blur-sm" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget)setShowHealthProfile(false)}}><div className="w-full h-[min(88dvh,690px)] max-h-[88dvh] max-w-[1000px] overflow-hidden rounded-2xl" role="dialog" aria-modal="true" aria-label="Painel completo de saúde do cliente"><ClientHealthProfile patientId={patient.id} ownerId={patient.owner_id} initial={{weight:wellness.weight_kg,height:patient.height_cm,age:wellness.age,objective:wellness.objective,protein:wellness.protein,carbs:wellness.carbs,fat:wellness.fat,kcal:wellness.kcal,activityMinutes:wellness.activity_minutes}} onClose={()=>setShowHealthProfile(false)} onSaved={()=>setRevision(v=>v+1)}/></div></div>}
   {wellness&&<details className="care-home-health-disclosure relative z-10">
    <summary className="care-home-health-trigger"><span className="care-health-trigger-icon"><Activity size={17}/></span><span className="care-health-trigger-copy"><strong>Indicadores de saúde e metas</strong><small>IMC · água · proteínas · carboidratos · gorduras · energia</small></span><span className="care-health-trigger-action">Ver indicadores <ChevronRight size={15}/></span></summary>
