@@ -77,14 +77,14 @@ export function CareCategoryReport({patientId,ownerId,category,onClose,onAdd,hyd
   const link=document.createElement("a");link.href=url;link.download="caredigital-"+category+"-"+period+".csv";link.click();URL.revokeObjectURL(url);
  };
  return typeof document==="undefined"?null:createPortal(
-  <div className="fixed inset-0 z-[190] flex items-center justify-center bg-slate-950/80 p-2 backdrop-blur-sm sm:p-4" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}>
-   <section role="dialog" aria-modal="true" aria-label={"Relatório de "+labels[category]} className="flex h-[min(90dvh,690px)] w-full max-w-[950px] flex-col overflow-hidden rounded-2xl border border-teal-300/30 bg-[#102b3b] text-white shadow-2xl">
+  <div className="fixed inset-0 z-[190] flex items-end justify-center bg-slate-950/80 p-0 backdrop-blur-sm sm:items-center sm:p-4" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}>
+   <section role="dialog" aria-modal="true" aria-label={"Relatório de "+labels[category]} className="flex h-[min(94dvh,800px)] w-full max-w-[950px] flex-col overflow-hidden rounded-t-3xl border border-teal-300/30 bg-[#102b3b] text-white shadow-2xl sm:h-[min(90dvh,800px)] sm:rounded-2xl">
     <header className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
      <div><p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-teal-300"><BarChart3 size={15}/> Relatório de acompanhamento</p><h2 className="text-lg font-extrabold">{labels[category]}</h2><p className="text-xs text-slate-300">Eventos realizados, não confirmados e futuros · horário do Acre</p></div>
      <button type="button" aria-label="Fechar relatório" onClick={onClose} className="rounded-lg border border-white/20 p-2"><X size={19}/></button>
     </header>
-    <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 px-4 py-3">
-     <div className="flex rounded-xl border border-white/15 bg-slate-950/30 p-1" role="group" aria-label="Período">
+    <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 px-3 py-3 sm:px-4">
+     <div className="flex min-w-0 rounded-xl border border-white/15 bg-slate-950/30 p-1" role="group" aria-label="Período">
       {(["dia","mes","ano"] as const).map(p=><button key={p} type="button" aria-pressed={period===p} onClick={()=>setPeriod(p)} className={"rounded-lg px-4 py-2 text-xs font-bold "+(period===p?"bg-teal-300 text-slate-950":"text-slate-200 hover:bg-white/10")}>{p==="dia"?"Diário":p==="mes"?"Mensal":"Anual"}</button>)}
      </div>
      <button type="button" onClick={exportCsv} disabled={loading||events.length===0} className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-3 py-2 text-xs font-bold disabled:opacity-40"><Download size={14}/> Exportar CSV</button>
