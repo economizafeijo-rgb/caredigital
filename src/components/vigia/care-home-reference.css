@@ -1923,3 +1923,46 @@
 @media(max-width:370px){
  .care-record-modal-dialog.care-detail-dialog-v4 .care-detail-facts{grid-template-columns:1fr}
 }
+
+/* Theme parity: modal rendered in document.body via portal, independent of dashboard nesting. */
+:root .care-modal-theme{
+ --care-modal-bg:#ffffff;--care-modal-surface:#f5f7fb;--care-modal-text:#1d2b40;
+ --care-modal-muted:#58687d;--care-modal-border:#dfe6f0;--care-modal-accent:#6556d9;
+ --care-modal-focus:#6556d9;
+}
+:root.dark .care-modal-theme,.dark .care-modal-theme{
+ --care-modal-bg:#172235;--care-modal-surface:#202e43;--care-modal-text:#f3f6fd;
+ --care-modal-muted:#bac6d8;--care-modal-border:#39495f;--care-modal-accent:#b4a7ff;
+ --care-modal-focus:#b4a7ff;
+}
+.care-modal-theme .care-record-modal-dialog.care-detail-dialog-v4{
+ background:var(--care-modal-bg)!important;color:var(--care-modal-text)!important;
+ border-color:var(--care-modal-border)!important;
+}
+.care-modal-theme .care-detail-content{
+ background:var(--care-modal-bg)!important;color:var(--care-modal-text)!important;
+}
+.care-modal-theme .care-detail-content :is(.care-detail-facts>*,.care-record-pending-actions){
+ background:var(--care-modal-surface)!important;border-color:var(--care-modal-border)!important;
+ color:var(--care-modal-text)!important;
+}
+.care-modal-theme .care-detail-content :is(p,small,dt,.text-muted-foreground){
+ color:var(--care-modal-muted);
+}
+.care-modal-theme .care-detail-content :is(strong,dd,label,.text-foreground){
+ color:var(--care-modal-text)!important;
+}
+.care-modal-theme .care-detail-content :is(input,textarea,select){
+ color:var(--care-modal-text)!important;background:var(--care-modal-bg)!important;
+ border-color:var(--care-modal-border)!important;
+}
+.care-modal-theme .care-detail-content :is(input,textarea,select)::placeholder{color:var(--care-modal-muted);opacity:.8}
+.care-modal-theme .care-detail-footer{background:var(--care-modal-bg)!important;border-color:var(--care-modal-border)!important}
+.care-modal-theme .care-detail-content :is(button,input,textarea,select):focus-visible{
+ outline:3px solid var(--care-modal-focus);outline-offset:2px;
+}
+@media(max-width:640px){
+ .care-modal-theme .care-record-pending-actions{padding:12px!important}
+ .care-modal-theme .care-detail-content :is(input,textarea,select){font-size:16px}
+ .care-modal-theme .care-detail-footer{padding-top:10px!important}
+}
