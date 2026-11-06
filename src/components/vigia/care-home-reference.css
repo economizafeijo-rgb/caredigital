@@ -1966,3 +1966,34 @@
  .care-modal-theme .care-detail-content :is(input,textarea,select){font-size:16px}
  .care-modal-theme .care-detail-footer{padding-top:10px!important}
 }
+
+/* Quick actions now participate in normal document flow, no floating overlay. */
+:root .client-home-dashboard.care-home-redesign-next .care-next-quick-actions{
+ position:relative!important;inset:auto!important;display:block;width:100%;min-width:0;
+}
+:root .client-home-dashboard.care-home-redesign-next .care-next-quick-actions>summary{
+ display:flex;align-items:center;justify-content:space-between;gap:10px;
+ width:100%;min-height:44px;padding:10px 15px!important;
+ background:var(--cd-panel)!important;border:1px solid var(--cd-line)!important;
+ border-radius:14px!important;color:var(--cd-ink)!important;
+ box-shadow:none!important;cursor:pointer;list-style:none;
+}
+:root .client-home-dashboard.care-home-redesign-next .care-next-quick-actions>summary::-webkit-details-marker{display:none}
+:root .client-home-dashboard.care-home-redesign-next .care-next-quick-actions>summary::after{
+ content:"Ações rápidas";font-size:12px;font-weight:800;letter-spacing:.01em;
+}
+:root .client-home-dashboard.care-home-redesign-next .care-next-quick-actions[open]>summary::after{content:"Ocultar ações rápidas"}
+:root .client-home-dashboard.care-home-redesign-next .care-next-quick-actions .care-home-shortcuts-content{
+ position:relative!important;inset:auto!important;transform:none!important;
+ width:100%!important;max-width:none!important;max-height:none!important;
+ margin-top:8px;padding:14px!important;background:var(--cd-panel)!important;
+ border:1px solid var(--cd-line)!important;border-radius:16px!important;
+ box-shadow:0 6px 20px #182b4910!important;color:var(--cd-ink)!important;
+}
+:root .client-home-dashboard.care-home-redesign-next .care-next-quick-actions .care-home-shortcuts-content :is(.care-home-shortcuts-title,.care-home-shortcuts-subtitle){color:var(--cd-ink)}
+:root .client-home-dashboard.care-home-redesign-next .care-next-quick-actions .care-home-shortcuts-subtitle{color:var(--cd-muted)!important}
+@media(max-width:640px){
+ :root .client-home-dashboard.care-home-redesign-next .care-next-quick-actions .patient-home-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ :root .client-home-dashboard.care-home-redesign-next .care-next-quick-actions .patient-home-actions>*{min-width:0}
+ :root .client-home-dashboard.care-home-redesign-next .care-next-quick-actions .care-home-shortcuts-content{padding:12px!important}
+}
