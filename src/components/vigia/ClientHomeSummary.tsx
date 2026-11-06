@@ -631,7 +631,7 @@ export function ClientHomeSummary(){
           title="Consultar os detalhes deste registro"
           aria-label={item.title+" às "+time(item.at)+". "+item.subtitle}
           onClick={()=>{setAgendaDetail(item);setError("");}}
-          className={"patient-timeline-item group flex w-full min-w-0 items-center gap-3 rounded-xl border px-3 py-2 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300 "+(item.completed?"border-emerald-400/35 bg-emerald-400/10 hover:bg-emerald-400/15":item.resolved?"border-rose-400/45 bg-rose-500/15 hover:bg-rose-500/20":item.overdue?"border-amber-400/55 bg-amber-400/15 hover:bg-amber-400/20":"border-white/10 bg-white/[.045] hover:border-teal-300/60 hover:bg-teal-300/10")}>
+          className={"patient-timeline-item care-agenda-record group flex w-full min-w-0 items-center gap-3 rounded-xl border px-3 py-2 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300 "+(item.completed?"border-emerald-400/35 bg-emerald-400/10 hover:bg-emerald-400/15":item.resolved?"border-rose-400/45 bg-rose-500/15 hover:bg-rose-500/20":item.overdue?"border-amber-400/55 bg-amber-400/15 hover:bg-amber-400/20":"border-white/10 bg-white/[.045] hover:border-teal-300/60 hover:bg-teal-300/10")}>
           <span className="w-11 shrink-0 font-mono text-[11px] font-bold tabular-nums">{time(item.at)}</span>
           <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/10"><Icon size={16}/></span>
           <span className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold">{item.title}</span>
@@ -641,7 +641,7 @@ export function ClientHomeSummary(){
         {filteredAgenda.length===0&&<p className="rounded-lg p-4 text-sm text-slate-200">Nenhum registro nesta categoria para hoje.</p>}
         {extraError&&<p role="alert" className="rounded-lg border border-amber-300/40 bg-amber-950/60 p-2 text-[11px] text-amber-100">Não foi possível consultar todos os registros de {extraError}. O prontuário pode conter outros lançamentos.</p>}
       </div>
-      <nav aria-label="Páginas da agenda" className="care-timeline-navigation relative z-20 mt-2 flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-white/15 pt-2">
+      <nav aria-label="Páginas da agenda" className="care-timeline-navigation care-agenda-pagination relative z-20 mt-2 flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-white/15 pt-2">
         <button type="button" onClick={()=>setAgendaPage(p=>Math.max(0,p-1))} disabled={agendaPage===0} className="rounded-lg border border-white/15 px-2.5 py-1 text-[11px] font-semibold disabled:opacity-35">Anterior</button>
         <span className="care-timeline-page-count text-[11px] text-slate-300">Página {agendaIndex+1} de {agendaPageCount} · {filteredAgenda.length} registros</span>
         <button type="button" onClick={()=>setAgendaPage(p=>Math.min(agendaPageCount-1,p+1))} disabled={agendaPage>=agendaPageCount-1} className="rounded-lg border border-white/15 px-3 py-1.5 text-xs font-semibold disabled:opacity-35">Próxima</button>
