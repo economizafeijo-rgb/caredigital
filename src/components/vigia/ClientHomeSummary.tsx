@@ -235,7 +235,19 @@ export function ClientHomeSummary(){
  // Não simular conclusão por correspondência de título: a classificação real
  // e a remarcação agora são feitas no banco, de forma auditável.
  const summaryTasks=tasks;
- const pending=summaryTasks.filter(t=>!t.completed_at&&!resolvedStates[t.id]);
+ // Ao atingir a meta, encerramos somente os lembretes de hidratação ainda
+ // abertos no dia. O histórico, os registros e as demais categorias permanecem.
+ // Não encerrar com snapshot ausente/antigo nem com meta inválida.
+ const hydrationGoalReached=Boolean(
+   dailyGoal?.goal_date===day(new Date()) &&
+   Number(dailyGoal.target_ml)>0 &&
+   (dailyGoal.status==="atingida" ||
+     Number(dailyGoal.consumed_ml)>=Number(dailyGoal.target_ml))
+ );
+ const reminderTasks=hydrationGoalReached
+   ?summaryTasks.filter(t=>t.category!=="hidratacao"||Boolean(t.completed_at))
+   :summaryTasks;
+ const pending=reminderTasks.filter(t=>!t.completed_at&&!resolvedStates[t.id]);
  const next=now?pending.filter(t=>new Date(t.scheduled_at).getTime()>=now.getTime())[0]??pending[0]:pending[0];
  const seconds=next&&now?Math.max(0,Math.round((new Date(next.scheduled_at).getTime()-now.getTime())/1000)):null;
  const countdown=seconds===null?"--:--:--":[Math.floor(seconds/3600),Math.floor(seconds%3600/60),seconds%60].map(x=>String(x).padStart(2,"0")).join(":");
@@ -277,12 +289,12 @@ export function ClientHomeSummary(){
  }
  const knownTaskIds=new Set(tasks.map(task=>task.id));
  const agendaItems:AgendaRow[]=[
-   ...tasks.map(task=>{const resolved=resolvedStates[task.id];const completed=Boolean(task.completed_at);const overdue=Boolean(now&&!completed&&!resolved&&Date.parse(task.scheduled_at)<now.getTime());return {
+   ...tasks.map(task=>{const resolved=resolvedStates[task.id];const completed=Boolean(task.completed_at);const hydrationClosed=hydrationGoalReached&&task.category==="hidratacao"&&!completed;const overdue=Boolean(now&&!hydrationClosed&&!completed&&!resolved&&Date.parse(task.scheduled_at)<now.getTime());return {
      key:"task:"+task.id,at:task.completed_at??task.scheduled_at,title:task.title,category:task.category as AgendaRow["category"],task,
-     completed,resolved:Boolean(resolved),overdue,
+     completed,resolved:Boolean(resolved)||hydrationClosed,overdue,
       amountMl:task.category==="hidratacao"&&task.completed_at?waterByTask.get(task.id)?.amount_ml:undefined,
       consumptionType:task.category==="hidratacao"?"Água":undefined,
-     subtitle:(completed?"Realizado no horário informado":resolved==="cancelado"?"Cancelado":resolved==="nao_cumprido"?"Não realizado":resolved==="nao_bebi"?"Não bebi":overdue?"Aguardando confirmação":"Programado")+" · "+labelFor(task.category)
+     subtitle:(hydrationClosed?"Meta diária atingida · lembrete encerrado":completed?"Realizado no horário informado":resolved==="cancelado"?"Cancelado":resolved==="nao_cumprido"?"Não realizado":resolved==="nao_bebi"?"Não bebi":overdue?"Aguardando confirmação":"Programado")+" · "+labelFor(task.category)
        +(!completed&&!resolved&&task.category==="hidratacao"&&hydrationPlan[task.id]?.suggested_ml>0?" · sug. "+hydrationPlan[task.id].suggested_ml+" ml":"")
    };}),
    ...extraWater.filter(item=>!item.task_id||!knownTaskIds.has(item.task_id)).map(item=>({
@@ -307,7 +319,7 @@ export function ClientHomeSummary(){
  // A due and unanswered task opens its existing verified confirmation workflow;
  // otherwise open a real, unscheduled intake form (never auto-confirm a task).
  const duePending=(category:"hidratacao"|"refeicao"|"medicacao")=>
-   summaryTasks.find(task=>task.category===category&&!task.completed_at&&!resolvedStates[task.id]
+   reminderTasks.find(task=>task.category===category&&!task.completed_at&&!resolvedStates[task.id]
      &&Date.now()>=Date.parse(task.scheduled_at) &&
      (category!=="medicacao"||day(new Date(task.scheduled_at))===day(new Date())));
  const openDueConfirmation=(task:Care)=>{
@@ -341,7 +353,7 @@ export function ClientHomeSummary(){
  // Pendências recentes: apenas cuidados vencidos SEM qualquer resposta.
  // Confirmações, cancelamentos e declarações "não fiz/não bebi" já estão
  // resolvidos e continuam no histórico, mas não devem ser cobrados novamente.
- const attentionItems=summaryTasks.filter(task=>
+ const attentionItems=reminderTasks.filter(task=>
    !task.completed_at &&
    !resolvedStates[task.id] &&
    Boolean(now && Date.parse(task.scheduled_at)<now.getTime())
@@ -370,7 +382,7 @@ export function ClientHomeSummary(){
         <a href="/cliente#cardapios" className="care-home-chart-link inline-flex min-h-9 items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[11px] font-bold">Cardápios e dietas <ArrowUpRight size={15}/></a>
       </div>
       <div className="care-home-medication mt-3">
-        <CareReminderBeacon tasks={summaryTasks} patientId={patient?.id??""} ownerId={patient?.owner_id??""}
+        <CareReminderBeacon tasks={reminderTasks} patientId={patient?.id??""} ownerId={patient?.owner_id??""}
           refreshKey={refresh+revision}
           onChanged={()=>setRefresh(value=>value+1)}
           onOpen={task=>{setDetailTask(task);setError("");}}
