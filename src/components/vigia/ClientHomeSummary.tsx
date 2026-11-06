@@ -250,9 +250,17 @@ export function ClientHomeSummary(){
    (dailyGoal.status==="atingida" ||
      Number(dailyGoal.consumed_ml)>=Number(dailyGoal.target_ml))
  );
- const reminderTasks=hydrationGoalReached
-   ?summaryTasks.filter(t=>t.category!=="hidratacao"||Boolean(t.completed_at))
-   :summaryTasks;
+ // Uma categoria concluída não deve continuar gerando pendências.
+ // Para refeições e medicações, exigir ao menos um cuidado programado e
+ // confirmação de todos os cuidados da categoria no dia.
+ const categoryAchieved=(category:"hidratacao"|"refeicao"|"medicacao")=>{
+   if(category==="hidratacao")return hydrationGoalReached;
+   const planned=summaryTasks.filter(t=>t.category===category&&day(new Date(t.scheduled_at))===day(new Date()));
+   return planned.length>0&&planned.every(t=>Boolean(t.completed_at));
+ };
+ const reminderTasks=summaryTasks.filter(t=>
+   !categoryAchieved(t.category as "hidratacao"|"refeicao"|"medicacao")||Boolean(t.completed_at)
+ );
  const pending=reminderTasks.filter(t=>!t.completed_at&&!resolvedStates[t.id]);
  const next=now?pending.filter(t=>new Date(t.scheduled_at).getTime()>=now.getTime())[0]??pending[0]:pending[0];
  const seconds=next&&now?Math.max(0,Math.round((new Date(next.scheduled_at).getTime()-now.getTime())/1000)):null;
@@ -295,12 +303,12 @@ export function ClientHomeSummary(){
  }
  const knownTaskIds=new Set(tasks.map(task=>task.id));
  const agendaItems:AgendaRow[]=[
-   ...tasks.map(task=>{const resolved=resolvedStates[task.id];const completed=Boolean(task.completed_at);const hydrationClosed=hydrationGoalReached&&task.category==="hidratacao"&&!completed;const overdue=Boolean(now&&!hydrationClosed&&!completed&&!resolved&&Date.parse(task.scheduled_at)<now.getTime());return {
+   ...tasks.map(task=>{const resolved=resolvedStates[task.id];const completed=Boolean(task.completed_at);const hydrationClosed=categoryAchieved(task.category as "hidratacao"|"refeicao"|"medicacao")&&!completed;const overdue=Boolean(now&&!hydrationClosed&&!completed&&!resolved&&Date.parse(task.scheduled_at)<now.getTime());return {
      key:"task:"+task.id,at:task.completed_at??task.scheduled_at,title:task.title,category:task.category as AgendaRow["category"],task,
      completed,resolved:Boolean(resolved)||hydrationClosed,overdue,
       amountMl:task.category==="hidratacao"&&task.completed_at?waterByTask.get(task.id)?.amount_ml:undefined,
       consumptionType:task.category==="hidratacao"?"Água":undefined,
-     subtitle:(hydrationClosed?"Meta diária atingida · lembrete encerrado":completed?"Realizado no horário informado":resolved==="cancelado"?"Cancelado":resolved==="nao_cumprido"?"Não realizado":resolved==="nao_bebi"?"Não bebi":overdue?"Aguardando confirmação":"Programado")+" · "+labelFor(task.category)
+     subtitle:(hydrationClosed?"Objetivo diário atingido · lembrete encerrado":completed?"Realizado no horário informado":resolved==="cancelado"?"Cancelado":resolved==="nao_cumprido"?"Não realizado":resolved==="nao_bebi"?"Não bebi":overdue?"Aguardando confirmação":"Programado")+" · "+labelFor(task.category)
        +(!completed&&!resolved&&task.category==="hidratacao"&&hydrationPlan[task.id]?.suggested_ml>0?" · sug. "+hydrationPlan[task.id].suggested_ml+" ml":"")
    };}),
    ...extraWater.filter(item=>!item.task_id||!knownTaskIds.has(item.task_id)).map(item=>({
