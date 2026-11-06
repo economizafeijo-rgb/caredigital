@@ -2,7 +2,7 @@ import { estimateActivityFactor, estimateObjectiveNutrition, objectiveLabel } fr
 import { useEffect, useRef, useState } from "react";
 import "./care-home-reference.css";
 import { Link } from "@tanstack/react-router";
-import { CalendarClock, Check, Clock3, Droplets, Pill, Utensils, X, ArrowUpRight, ChevronRight, Plus, ListChecks, AlertCircle, ShieldAlert, Activity } from "lucide-react";
+import { CalendarClock, Check, Clock3, Droplets, Pill, Utensils, X, ArrowUpRight, ChevronRight, Plus, ListChecks, AlertCircle, ShieldAlert, Activity, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CareReminderBeacon } from "./CareReminderBeacon";
 import { CareProgressVisual } from "./CareProgressVisual";
@@ -394,6 +394,13 @@ export function ClientHomeSummary(){
       {patient&&wellness&&<button type="button" onClick={()=>setShowHealthProfile(v=>!v)} className="care-next-profile-button">{showHealthProfile?"Ocultar perfil":"Meu perfil"} <ChevronRight size={15}/></button>}
     </div>
   </header>
+  <nav className="care-art-shortcuts relative z-10" aria-label="Acesso rápido aos cuidados">
+    <button type="button" onClick={()=>setWaterOpenSignal(value=>value+1)}><Droplets size={21}/><span>Água</span></button>
+    <button type="button" onClick={()=>setFoodOpenSignal(value=>value+1)}><Utensils size={21}/><span>Alimentação</span></button>
+    <a href="#care-home-timeline"><Pill size={21}/><span>Medicação</span></a>
+    <a href="#care-home-timeline"><Activity size={21}/><span>Atividade</span></a>
+    <a href="#care-home-indicators"><BarChart3 size={21}/><span>Indicadores</span></a>
+  </nav>
   <details className="care-next-quick-actions relative z-20">
     <summary aria-label="Abrir ações rápidas e lembretes" title="Ações rápidas e lembretes" className="care-next-quick-trigger">
       <Plus size={18} aria-hidden="true" /><span className="care-quick-label">Ações rápidas</span><ChevronRight size={16} className="care-quick-chevron" aria-hidden="true"/>
@@ -422,7 +429,7 @@ export function ClientHomeSummary(){
     </div>
   </details>
   {patient&&wellness&&showHealthProfile&&<div className="care-health-profile-overlay fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/80 p-3 backdrop-blur-sm" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget)setShowHealthProfile(false)}}><div className="w-full h-[min(88dvh,690px)] max-h-[88dvh] max-w-[1000px] overflow-hidden rounded-2xl" role="dialog" aria-modal="true" aria-label="Painel completo de saúde do cliente"><ClientHealthProfile patientId={patient.id} ownerId={patient.owner_id} initial={{weight:wellness.weight_kg,height:patient.height_cm,age:wellness.age,objective:wellness.objective,protein:wellness.protein,carbs:wellness.carbs,fat:wellness.fat,kcal:wellness.kcal,activityMinutes:wellness.activity_minutes}} onClose={()=>setShowHealthProfile(false)} onSaved={()=>setRevision(v=>v+1)}/></div></div>}
-  {wellness&&<details className="care-home-health-disclosure relative z-10">
+  {wellness&&<details id="care-home-indicators" className="care-home-health-disclosure relative z-10">
    <summary className="care-next-health-summary"><span className="care-next-health-icon"><Activity size={19}/></span><span className="care-next-health-copy"><strong>Indicadores de saúde e metas</strong><small>IMC, hidratação e metas nutricionais</small></span><span className="care-next-health-action"><span>Detalhes</span><ChevronRight size={18}/></span></summary>
    <section className="care-wellness-insights relative z-10" aria-label="Indicadores e orientações de saúde e nutrição">
     {(()=>{
