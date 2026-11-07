@@ -19,6 +19,13 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,da
   const elapsed=Math.round((Date.parse(today+"T12:00:00Z")-Date.parse("2026-10-31T12:00:00Z"))/86400000);
   return Math.min(34,Math.max(0,elapsed));
  });
+ // Recalculate after hydration: the server clock may be on the previous
+ // local date, otherwise the client opens one day behind the treatment plan.
+ useEffect(()=>{
+  const today=new Intl.DateTimeFormat("en-CA",{timeZone:zone,year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+  const elapsed=Math.floor((Date.parse(today+"T12:00:00Z")-Date.parse("2026-10-31T12:00:00Z"))/86400000);
+  setSelected(Math.min(34,Math.max(0,elapsed)));
+ },[]);
  const [activePill,setActivePill]=useState<{index:number;period:"morning"|"night";slot:number}|null>(null);
  const [loading,setLoading]=useState(true);
  const [error,setError]=useState("");
