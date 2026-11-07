@@ -13,6 +13,16 @@ const formatTime = (date: string) => new Intl.DateTimeFormat("pt-BR", {
   timeZone: zone, day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",
 }).format(new Date(date));
 
+/** datetime-local does not carry a timezone; its displayed value is always Acre wall time. */
+const acreInputValue = (date = new Date()) => {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).formatToParts(date);
+  const part = (type: string) => parts.find(item => item.type === type)?.value ?? "00";
+  return `${part("year")}-${part("month")}-${part("day")}T${part("hour")}:${part("minute")}`;
+};
+
 /** Registros avulsos não criam tarefas e não confirmam horários da programação. */
 export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mode = "all", openSignal = 0 }: Props) {
   const [open, setOpen] = useState(false);
@@ -46,7 +56,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
     setDescription("");
     setPortion("");
     setAmount("200");
-    setConsumedAt(new Date(Date.now()-5*3600000).toISOString().slice(0,16));
+    setConsumedAt(acreInputValue());
     setManualTime(false);
     setError("");
     setNotice("");
@@ -204,8 +214,8 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
                   onChange={event => setAmount(event.target.value)}/>
               </label>}
             <div className="min-w-0 max-w-full overflow-hidden rounded-xl border border-border/70 bg-card/80 p-3 space-y-2 text-foreground">
-              <label className="flex items-center gap-2 text-xs font-semibold text-foreground"><input type="checkbox" checked={manualTime} onChange={event=>setManualTime(event.target.checked)}/> Informar manualmente o horário em que consumi</label>
-              {manualTime && <label className="block min-w-0 max-w-full text-xs font-semibold">Data e hora do consumo (Acre)
+              <label className="flex items-center gap-2 text-xs font-semibold text-foreground"><input type="checkbox" checked={manualTime} onChange={event=>{const checked=event.target.checked;if(checked)setConsumedAt(acreInputValue());setManualTime(checked);}}/> Informar manualmente o horário em que consumi</label>
+              {manualTime && <label className="block min-w-0 max-w-full text-xs font-semibold">Data e hora do consumo (Acre · UTC−5)
                 <input type="datetime-local" required value={consumedAt} onChange={event=>setConsumedAt(event.target.value)} className="field care-intake-datetime mt-1 block w-full min-w-0 max-w-full" style={{boxSizing:"border-box",minWidth:0,maxWidth:"100%"}}/>
               </label>}
               <p className="text-[11px] text-foreground/80">O prontuário preserva o horário do consumo e a data em que você registrou a informação.</p>
