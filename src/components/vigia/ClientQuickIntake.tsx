@@ -94,14 +94,13 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
       setError("Informe um volume entre 10 e 1.500 ml.");
       return;
     }
-    const consumed = manualTime ? new Date(consumedAt+"-05:00") : new Date();
-    const clientNow = Date.now();
-    if(!Number.isFinite(consumed.getTime()) || consumed.getTime()>clientNow+120000 || consumed.getTime()<clientNow-7*86400000){
-      setError("Confira a data e a hora no fuso do Acre (UTC−5). O consumo deve estar entre agora e os últimos 7 dias.");
+    // Current-time entries use the database clock. Only manually selected times
+    // are converted from Acre wall time and sent by the browser.
+    const consumed = manualTime ? new Date(consumedAt+"-05:00") : null;
+    if (manualTime && (!consumed || !Number.isFinite(consumed.getTime()))) {
+      setError("Confira a data e a hora informadas no fuso do Acre (UTC−5).");
       return;
     }
-    // Avoid a tiny client/server clock drift turning a valid current-time entry into a future timestamp.
-    if(consumed.getTime()>clientNow) consumed.setTime(clientNow);
     setError("");
     setSaving(true);
     try {
@@ -111,15 +110,16 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
         p_description: formDescription,
         p_amount_ml: volume,
         p_request_id: requestId.current,
-        p_consumed_at: consumed.toISOString(),
+        p_consumed_at: consumed?.toISOString() ?? null,
       });
       if (failure) throw failure;
       if (typeof data !== "string" || !Number.isFinite(Date.parse(data))) {
         throw new Error("O servidor não confirmou o horário de registro.");
       }
+      const effectiveConsumedAt = manualTime ? consumed!.toISOString() : data;
       setNotice(isWater
-        ? `Água registrada em ${formatTime(consumed.toISOString())} (Acre). Meta e histórico atualizados.`
-        : `Consumo (${label.toLowerCase()}) registrado em ${formatTime(consumed.toISOString())} (Acre). Veja o histórico no prontuário.`);
+        ? `Água registrada em ${formatTime(effectiveConsumedAt)} (Acre). Meta e histórico atualizados.`
+        : `Consumo (${label.toLowerCase()}) registrado em ${formatTime(effectiveConsumedAt)} (Acre). Veja o histórico no prontuário.`);
       setOpen(false);
       requestId.current = null;
       onRecorded?.();
@@ -127,9 +127,11 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
       const detail = failure && typeof failure === "object" && "message" in failure
         ? String((failure as {message?:unknown}).message ?? "")
         : failure instanceof Error ? failure.message : "";
-      const friendly = /Invalid consumption time/i.test(detail)
-        ? "A data/hora informada está no futuro ou fora dos últimos 7 dias no horário do Acre. Confira o fuso UTC−5 e tente novamente."
-        : /Patient unavailable|Authentication required/i.test(detail)
+      const friendly = /future/i.test(detail)
+        ? "O horário informado está no futuro no horário do Acre. Confira e tente novamente."
+        : /last 7 days|older than 7 days/i.test(detail)
+          ? "O horário informado ultrapassa o limite de 7 dias. Escolha uma data mais recente."
+          : /Patient unavailable|Authentication required/i.test(detail)
           ? "Sua sessão ou o vínculo com o prontuário expirou. Entre novamente e tente salvar."
           : detail || "Confira sua conexão e tente novamente.";
       setError(`Não foi possível salvar. ${friendly}`);
