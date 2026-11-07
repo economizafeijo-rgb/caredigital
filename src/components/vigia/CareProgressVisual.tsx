@@ -3,7 +3,7 @@ import { Droplets, Utensils, Pill, BellRing } from "lucide-react";
 import type { HydrationGoalSnapshot } from "@/lib/hydration-goal";
 import type { ReminderTask } from "@/lib/care-reminders";
 
-type Props={tasks:ReminderTask[];goal:HydrationGoalSnapshot|null;
+type Props={tasks:ReminderTask[];goal:HydrationGoalSnapshot|null;recordedMealCount?:number|null;mealRecordsStatus?:"loading"|"error"|"ready";
   alertCategories?:Array<"hidratacao"|"refeicao"|"medicacao">;
   nowMs?:number;
   resolvedTaskIds?:string[];
@@ -88,7 +88,7 @@ function MedicationCapsule({ratio}: {ratio:number}){
   </svg>;
 }
 
-export function CareProgressVisual({tasks,goal,onOpen,onHydration,onFood,onMedication,alertCategories=[],nowMs,resolvedTaskIds=[]}:Props){
+export function CareProgressVisual({tasks,goal,recordedMealCount,mealRecordsStatus="ready",onOpen,onHydration,onFood,onMedication,alertCategories=[],nowMs,resolvedTaskIds=[]}:Props){
   const alertWater=alertCategories.includes("hidratacao");
   const alertFood=alertCategories.includes("refeicao");
   const alertMedicine=alertCategories.includes("medicacao");
@@ -107,6 +107,7 @@ export function CareProgressVisual({tasks,goal,onOpen,onHydration,onFood,onMedic
   const meals=tasks.filter(t=>t.category==="refeicao");
   const completedMeds=meds.filter(t=>Boolean(t.completed_at)).length;
   const completedMeals=meals.filter(t=>Boolean(t.completed_at)).length;
+  const mealCountValue=recordedMealCount===undefined?completedMeals:recordedMealCount;
   const waterTarget=goal?.target_ml??0, water=goal?.consumed_ml??0;
   const waterRatio=pct(water,waterTarget);
   const fmt=(value:number)=>value.toLocaleString("pt-BR");
@@ -141,8 +142,8 @@ export function CareProgressVisual({tasks,goal,onOpen,onHydration,onFood,onMedic
       <div className="care-reference-tile-top"><Utensils size={24}/><span className="care-reference-ring" style={{"--care-ratio":`${Math.round(pct(completedMeals,meals.length)*100)}%`} as React.CSSProperties}>{Math.round(pct(completedMeals,meals.length)*100)}%</span></div><MealPlate ratio={pct(completedMeals,meals.length)}/>
       <span className="min-w-0 flex-1">
         <span className="care-visual-title block truncate text-[10px] font-extrabold sm:text-xs">Alimentação</span>
-        <strong className="care-visual-value block text-[13px] font-extrabold tabular-nums sm:text-base">{completedMeals}<span className="text-[10px]">/{meals.length}</span></strong>
-        <span className="care-visual-subtitle block truncate text-[9px]">refeições confirmadas</span>
+        <strong className="care-visual-value block text-[13px] font-extrabold tabular-nums sm:text-base">{mealCountValue===null?"—":fmt(mealCountValue)}</strong>
+        <span className="care-visual-subtitle block truncate text-[9px]">{mealCountValue===null?"Consultando registros":mealRecordsStatus==="error"?`Contagem parcial · ${completedMeals}/${meals.length} confirmadas`:`refeições registradas · ${completedMeals}/${meals.length} confirmadas`}</span>
         <span className="care-visual-track mt-1 block h-1 overflow-hidden rounded-full"><i style={{width:(pct(completedMeals,meals.length)*100)+"%"}}/></span>
       </span>
     {foodUrgency!=="idle"&&<span className="care-tile-alert-label" aria-label="Cuidado programado aguardando confirmação"><BellRing size={12} aria-hidden="true"/> {foodUrgency==="soon"?"Em breve":"Ação pendente"}</span>}</button>

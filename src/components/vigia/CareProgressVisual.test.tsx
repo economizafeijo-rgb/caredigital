@@ -31,6 +31,13 @@ describe("Cards de progresso do cuidado",()=>{
    expect(food).toHaveBeenCalledTimes(1);
    expect(medicine).toHaveBeenCalledTimes(1);
  });
+ it("mostra a quantidade real de refeições registradas separada das confirmações previstas",()=>{
+   render(<CareProgressVisual tasks={tasks}
+     goal={{goal_date:"2026-11-02",status:"atingida",target_ml:2550,consumed_ml:2550}}
+     recordedMealCount={4} mealRecordsStatus="ready"/>);
+   expect(screen.getByText("4")).toBeTruthy();
+   expect(screen.getByText("refeições registradas · 1/1 confirmadas")).toBeTruthy();
+ });
  it("abre as três áreas mesmo se não houver tarefas cadastradas",()=>{
    const water=vi.fn(),food=vi.fn(),medicine=vi.fn();
    render(<CareProgressVisual tasks={[]} goal={null}

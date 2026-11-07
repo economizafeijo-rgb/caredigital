@@ -13,6 +13,7 @@ import { ClientQuickIntake } from "./ClientQuickIntake";
 import { CareTaskRecordModal } from "./CareTaskRecordModal";
 import type { HydrationGoalSnapshot } from "@/lib/hydration-goal";
 import { canConfirmCare, careScheduleBlockMessage } from "@/lib/care-schedule";
+import { estimateNextHydrationReminder } from "@/lib/hydration-reminder-estimate";
 
 type Care = {id:string;title:string;category:string;scheduled_at:string;completed_at:string|null};
 type WaterEntry = {id:string;task_id:string|null;amount_ml:number;recorded_at:string};
@@ -52,7 +53,7 @@ const plannedMealKind=(title:string):string|null=>{
 export function ClientHomeSummary(){
  const [patient,setPatient]=useState<Person|null>(null);
  const [wellness,setWellness]=useState<WellnessProfile|null>(null);
- const [consumedMacros,setConsumedMacros]=useState<{kcal:number;protein:number;carbs:number;fat:number;fiber:number;count:number;weightG:number;weightCount:number}|null>(null);
+ const [consumedMacros,setConsumedMacros]=useState<{kcal:number;protein:number;carbs:number;fat:number;fiber:number;count:number;mealCount:number;weightG:number;weightCount:number}|null>(null);
  const [consumedError,setConsumedError]=useState(false);
 
  const [showHealthProfile,setShowHealthProfile]=useState(false);
@@ -77,7 +78,7 @@ export function ClientHomeSummary(){
  const [revision,setRevision]=useState(0);
  const [refresh,setRefresh]=useState(0);
  useEffect(()=>{
-  if(!patient?.id){setConsumedMacros(null);return;}
+  if(!patient?.id){setConsumedMacros(null);setConsumedError(false);return;}
   let active=true;
   const today=day(new Date());
   const start=new Date(today+"T00:00:00-05:00").toISOString();
@@ -91,6 +92,16 @@ export function ClientHomeSummary(){
    if(food.error||meals.error){setConsumedError(true);setConsumedMacros(null);return;}
    const foodRows=food.data??[];
    const foodRequests=new Set(foodRows.map((item:any)=>item.request_id).filter(Boolean));
+   const mealKeys=new Set<string>();
+   for(const item of foodRows){
+     const groupId=typeof item.meal_group_id==="string"?item.meal_group_id:null;
+     const requestId=typeof item.request_id==="string"?item.request_id:null;
+     mealKeys.add(groupId?"group:"+groupId:requestId?"request:"+requestId:"food:"+item.id);
+   }
+   for(const item of meals.data??[]){
+     if(item.request_id&&foodRequests.has(item.request_id))continue;
+     mealKeys.add(item.request_id?"request:"+item.request_id:"meal:"+item.id);
+   }
    // Keep every food item in a request; exclude only an aggregate meal log
    // when its request already has individual food records.
    const rows=[...foodRows,...(meals.data??[]).filter((item:any)=>!item.request_id||!foodRequests.has(item.request_id))];
@@ -101,7 +112,7 @@ export function ClientHomeSummary(){
      const amount=Number(item.total_weight_g??item.weight_g??item.quantity_g??item.portion_g);
      return Number.isFinite(amount)&&amount>0&&amount<=10000?amount:null;
    }).filter((amount:number|null):amount is number=>amount!==null);
-   setConsumedMacros({kcal:sum("kcal"),protein:sum("protein_g"),carbs:sum("carbs_g"),fat:sum("fat_g"),fiber:sum("fiber_g"),count:rows.length,weightG:Math.round(weights.reduce((a:number,b:number)=>a+b,0)),weightCount:weights.length});
+   setConsumedMacros({kcal:sum("kcal"),protein:sum("protein_g"),carbs:sum("carbs_g"),fat:sum("fat_g"),fiber:sum("fiber_g"),count:rows.length,mealCount:mealKeys.size,weightG:Math.round(weights.reduce((a:number,b:number)=>a+b,0)),weightCount:weights.length});
    setConsumedError(false);
   }).catch(()=>{if(active){setConsumedError(true);setConsumedMacros(null);}});
   return()=>{active=false};
@@ -114,6 +125,7 @@ export function ClientHomeSummary(){
  const [extraBeverages,setExtraBeverages]=useState<BeverageEntry[]>([]);
  const [extraMeals,setExtraMeals]=useState<MealEntry[]>([]);
  const [extraError,setExtraError]=useState("");
+ const [careDataLoaded,setCareDataLoaded]=useState(false);
   useEffect(()=>{
     if(!agendaDetail||agendaDetail.category!=="refeicao"){
       setAgendaMealDescription(null);setAgendaMealLoading(false);return;
@@ -158,6 +170,7 @@ export function ClientHomeSummary(){
     if(detail.error||!detail.data?.length){setError("Não foi possível abrir o acompanhamento.");return;}
     const person=detail.data[0] as Person;
     setPatient(person);
+    setCareDataLoaded(false);
     // Indicadores complementares não podem bloquear o carregamento da agenda.
     // Cada consulta falha de modo independente e mantém a homepage funcional.
     void Promise.allSettled([
@@ -222,7 +235,7 @@ export function ClientHomeSummary(){
       new Promise<any[]>((resolve)=>window.setTimeout(()=>resolve(Array.from({length:8},()=>({data:null,error:null}))),12000))
     ]);
     if(!active)return;
-    if(res.error){setError("Não foi possível carregar sua agenda.");return;}
+    if(res.error||!Array.isArray(res.data)){setError("Não foi possível carregar sua agenda.");return;}
     setTasks(res.data??[]);
     const resolutionMap:Record<string,string>={};
     if(!resolutions.error)for(const row of resolutions.data??[])resolutionMap[row.task_id]=row.status;
@@ -235,6 +248,7 @@ export function ClientHomeSummary(){
     setHydrationPlan(waterSuggestions.error?{}:Object.fromEntries((waterSuggestions.data??[]).map((row:{task_id:string;suggested_ml:number;reason:string;remaining_ml:number})=>
       [row.task_id,{suggested_ml:Number(row.suggested_ml),reason:row.reason,remaining_ml:Number(row.remaining_ml)}])));
     setExtraError([waterEntries.error&&"água",beverages.error&&"bebidas",mealEntries.error&&"refeições"].filter(Boolean).join(", "));
+    setCareDataLoaded(true);
     setError("");
  })();return()=>{active=false}},[revision,refresh]);
  // A agenda deve refletir exclusivamente o estado confirmado no Supabase.
@@ -245,7 +259,7 @@ export function ClientHomeSummary(){
  // abertos no dia. O histórico, os registros e as demais categorias permanecem.
  // Não encerrar com snapshot ausente/antigo nem com meta inválida.
  const hydrationGoalReached=Boolean(
-   dailyGoal?.goal_date===day(new Date()) &&
+   dailyGoal?.goal_date===day(now??new Date()) &&
    Number(dailyGoal.target_ml)>0 &&
    (dailyGoal.status==="atingida" ||
      Number(dailyGoal.consumed_ml)>=Number(dailyGoal.target_ml))
@@ -269,6 +283,48 @@ export function ClientHomeSummary(){
  const next=now?pending.filter(t=>new Date(t.scheduled_at).getTime()>=now.getTime())[0]??pending[0]:pending[0];
  const seconds=next&&now?Math.max(0,Math.round((new Date(next.scheduled_at).getTime()-now.getTime())/1000)):null;
  const countdown=seconds===null?"--:--:--":[Math.floor(seconds/3600),Math.floor(seconds%3600/60),seconds%60].map(x=>String(x).padStart(2,"0")).join(":");
+
+ // A próxima água usa primeiro um horário real da agenda. Se não houver
+ // lembrete aberto, exibe uma estimativa organizacional baseada no último
+ // registro e no intervalo mínimo já adotado pelo recálculo do Supabase.
+ const currentDay=day(now??new Date());
+ const goalIsToday=dailyGoal?.goal_date===currentDay;
+ const profileWaterTarget=wellness?.target_ml ??
+   (wellness&&wellness.weight_kg&&!wellness.fluid_restriction
+     ?Math.round(wellness.weight_kg*30/50)*50:0);
+ const waterTargetForReminder=Number(goalIsToday?dailyGoal?.target_ml:0)||Number(profileWaterTarget)||0;
+ const recordedWaterToday=extraWater.reduce((total,entry)=>total+(Number(entry.amount_ml)||0),0);
+ const waterConsumedForReminder=Math.max(
+   goalIsToday?Number(dailyGoal?.consumed_ml??0):0,
+   recordedWaterToday
+ );
+ const waterRemainingForReminder=Math.max(0,waterTargetForReminder-waterConsumedForReminder);
+ const pendingWaterTasks=!hydrationGoalReached
+   ?reminderTasks.filter(task=>task.category==="hidratacao")
+     .sort((a,b)=>Date.parse(a.scheduled_at)-Date.parse(b.scheduled_at))
+   :[];
+ const nextWaterTask=now
+   ?pendingWaterTasks.find(task=>Date.parse(task.scheduled_at)>=now.getTime())??pendingWaterTasks[0]??null
+   :null;
+ const lastWaterEntry=extraWater.reduce<WaterEntry|null>((latest,entry)=>
+   !latest||Date.parse(entry.recorded_at)>Date.parse(latest.recorded_at)?entry:latest,null);
+ const waterCutoffMs=new Date(currentDay+"T22:50:00-05:00").getTime();
+ const waterEstimate=!nextWaterTask&&!hydrationGoalReached&&careDataLoaded&&
+   !extraError.split(", ").includes("água")&&now&&wellness&&!wellness.fluid_restriction&&
+   waterTargetForReminder>0&&waterRemainingForReminder>0
+   ?estimateNextHydrationReminder(now.getTime(),lastWaterEntry
+      ?{recordedAt:lastWaterEntry.recorded_at,amountMl:Number(lastWaterEntry.amount_ml)}
+      :null,waterCutoffMs)
+   :null;
+ const nextWaterInfo=nextWaterTask
+   ?{kind:"programado" as const,at:nextWaterTask.scheduled_at,taskId:nextWaterTask.id,
+      suggestedMl:Number(hydrationPlan[nextWaterTask.id]?.suggested_ml)||0,
+      overdue:Date.parse(nextWaterTask.scheduled_at)<(now?.getTime()??Date.now())}
+   :waterEstimate
+     ?{kind:"estimativa" as const,at:new Date(waterEstimate.atMs).toISOString(),
+        intervalMinutes:waterEstimate.intervalMinutes,immediate:waterEstimate.immediate,
+        basedOnLastRecord:waterEstimate.basedOnLastRecord,remainingMl:waterRemainingForReminder}
+     :null;
  async function confirm(){
   if(!selected||working||!patient)return;
   if(selected.category==="medicacao"&&day(new Date(selected.scheduled_at))!==day(new Date())){setError("Medicação somente pode ser confirmada no dia previsto.");return;}
@@ -381,6 +437,19 @@ export function ClientHomeSummary(){
  const categoryCounts={hidratacao:agendaItems.filter(item=>item.category==="hidratacao").length,
    refeicao:agendaItems.filter(item=>item.category==="refeicao").length,
    medicacao:agendaItems.filter(item=>item.category==="medicacao").length};
+ const recordedMealKeys=new Set<string>();
+ for(const task of summaryTasks){
+   if(task.category==="refeicao"&&task.completed_at)recordedMealKeys.add("task:"+task.id);
+ }
+ for(const entry of extraMeals){
+   if(entry.details?.superseded)continue;
+   const linkedTaskId=entry.details?.linked_task_id;
+   recordedMealKeys.add(linkedTaskId?"task:"+linkedTaskId:"intake:"+entry.id);
+ }
+ const mealRecordsStatus=consumedError?"error":consumedMacros?"ready":"loading";
+ const recordedMealCount=mealRecordsStatus==="ready"
+   ?recordedMealKeys.size+(consumedMacros?.mealCount??0)
+   :mealRecordsStatus==="error"?recordedMealKeys.size:null;
  const chooseAgenda=(category:typeof agendaCategory)=>{setAgendaCategory(category);setAgendaPage(0);};
  return <section className="client-home-dashboard care-home-art-v2 care-home-art-reference care-premium-v3 care-reference-2026 care-dashboard-oneview care-home-redesign-next relative flex min-h-0 min-w-0 w-full flex-col gap-2 rounded-[20px] border p-2.5 shadow-xl md:h-auto md:max-h-none md:overflow-visible" aria-label="Painel interativo do cliente na homepage">
   <header className="care-next-header relative z-10">
@@ -573,16 +642,30 @@ export function ClientHomeSummary(){
           <img src="/images/care-next-wellness.svg" alt="" loading="eager" decoding="async"
             className="care-next-generated-art" draggable={false}/>
         </div>
-        <div className="relative flex items-center justify-between gap-2"><span className="care-next-overline inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-widest"><Clock3 size={17}/> Próximo cuidado</span><span className="care-next-time-chip rounded-full px-2.5 py-1 text-[10px] font-bold">{next?time(next.scheduled_at):"Agenda concluída"}</span></div>
+        <div className="relative flex items-center justify-between gap-2"><span className="care-next-overline inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-widest"><Clock3 size={17}/> Próximo cuidado</span><span className="care-next-time-chip rounded-full px-2.5 py-1 text-[10px] font-bold">{next?time(next.scheduled_at):nextWaterInfo?(nextWaterInfo.kind==="estimativa"?"Estimativa":"Água programada"):"Agenda concluída"}</span></div>
         <div className="care-next-copy relative z-10 mt-2"><h3 className="max-w-[26ch] text-lg font-extrabold leading-tight lg:text-xl">{next?next.title:"Nenhum cuidado aguardando resposta"}</h3><div className="mt-2 flex flex-wrap items-baseline gap-2"><strong className="care-next-countdown font-mono text-xl font-extrabold tabular-nums lg:text-2xl">{next?countdown:"✓"}</strong><span className="care-next-countdown-label text-xs">{next?(seconds===0?"Horário previsto já passou":"até o horário previsto"):"Nenhuma atividade pendente"}</span></div></div>
         {next?.category==="hidratacao"&&hydrationPlan[next.id]&&<p className="relative z-10 text-[11px] font-semibold text-cyan-100">
           {hydrationPlan[next.id].suggested_ml===0?"Meta de água atingida; lembrete opcional.":
            "Volume orientativo atualizado: até "+hydrationPlan[next.id].suggested_ml+" ml por lembrete."}
           {hydrationPlan[next.id].reason==="restante_supera_capacidade"&&" Meta restante exige mais fracionamento."}
         </p>}
+        {nextWaterInfo&&(nextWaterInfo.kind==="estimativa"||next?.id!==nextWaterInfo.taskId)&&<div className="relative z-10 mt-2 flex min-w-0 items-center gap-2 rounded-xl border border-cyan-200/25 bg-cyan-200/10 px-3 py-2 text-cyan-50">
+          <Droplets size={17} className="shrink-0 text-cyan-200"/>
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-extrabold">Próxima água · {nextWaterInfo.kind==="programado"?"programada":"estimativa"}</p>
+            <p className="text-sm font-extrabold tabular-nums">{nextWaterInfo.kind==="estimativa"&&nextWaterInfo.immediate?"Agora":time(nextWaterInfo.at)}</p>
+            <p className="text-[10px] leading-snug text-cyan-50/85">
+              {nextWaterInfo.kind==="programado"
+                ?nextWaterInfo.suggestedMl>0?"Volume orientativo: até "+nextWaterInfo.suggestedMl+" ml por lembrete.":nextWaterInfo.overdue?"Horário previsto já passou; aguardando confirmação.":"Horário cadastrado na agenda."
+                :"Intervalo organizacional de "+nextWaterInfo.intervalMinutes+" min"+(nextWaterInfo.immediate?" já cumprido":nextWaterInfo.basedOnLastRecord?" após o último registro":" para a estimativa inicial")+" · "+nextWaterInfo.remainingMl.toLocaleString("pt-BR")+" ml restantes da meta diária."}
+            </p>
+            {nextWaterInfo.kind==="estimativa"&&<p className="text-[9px] text-cyan-100/65">Estimativa de lembrete, não prescrição.</p>}
+          </div>
+          <button type="button" onClick={openHydrationCard} className="shrink-0 rounded-lg border border-cyan-100/30 px-2 py-1.5 text-[10px] font-bold text-cyan-50 transition hover:bg-cyan-100/10">Registrar água</button>
+        </div>}
         <div className="relative z-10 mt-2 flex shrink-0 flex-wrap gap-1.5">{next&&<button type="button" onClick={()=>{setSelected(next);setError("");setMealTime(currentAcreTime());setMealDescription("");setMealType(mealTypeFromTitle(next.title));}} className="care-next-cta inline-flex min-h-9 items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-extrabold transition">Verificar / confirmar <ChevronRight size={15}/></button>}<Link to="/cliente" className="care-next-secondary inline-flex min-h-9 items-center rounded-full border px-3 py-1.5 text-[11px] font-bold transition">Ver tratamento completo</Link></div>
       </article>
-      <CareProgressVisual tasks={summaryTasks} goal={dailyGoal} nowMs={now?.getTime()} resolvedTaskIds={Object.keys(resolvedStates).filter(id=>Boolean(resolvedStates[id]))}
+      <CareProgressVisual tasks={summaryTasks} goal={dailyGoal} recordedMealCount={recordedMealCount} mealRecordsStatus={mealRecordsStatus} nowMs={now?.getTime()} resolvedTaskIds={Object.keys(resolvedStates).filter(id=>Boolean(resolvedStates[id]))}
         alertCategories={Array.from(new Set(attentionItems.map(task=>task.category))) as Array<"hidratacao"|"refeicao"|"medicacao">}
         onHydration={()=>setReportCategory("hidratacao")} onFood={()=>setReportCategory("refeicao")}
         onMedication={()=>setReportCategory("medicacao")} onOpen={task=>{setDetailTask(task);setError("");}}/>
