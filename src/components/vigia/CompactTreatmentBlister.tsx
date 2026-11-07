@@ -173,6 +173,7 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,da
     </div>
   </article>;
 })}
+      </div>}
      {first&&renderPeriod("night",evening)}
     </div>
     <div className="care-blister-legend flex shrink-0 flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5 text-[9px] leading-tight text-muted-foreground" aria-label="Legenda da cartela">
