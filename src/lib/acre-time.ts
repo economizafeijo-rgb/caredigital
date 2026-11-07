@@ -5,7 +5,7 @@ type DateInput = Date | number | string;
 
 const asDate = (value: DateInput) => {
   if (value instanceof Date) return value;
-  if (typeof value === "string" && /^\\d{4}-\\d{2}-\\d{2}$/.test(value)) {
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return new Date(`${value}T12:00:00${ACRE_UTC_OFFSET}`);
   }
   return new Date(value);
@@ -46,7 +46,7 @@ export function acreDateTimeInput(value: DateInput = Date.now()): string {
 
 /** Creates an absolute instant from a wall-clock date/time in Acre, never the device timezone. */
 export function acreDateAtTime(dateKey: string, time: string): Date {
-  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(dateKey) || !/^\\d{2}:\\d{2}$/.test(time)) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey) || !/^\d{2}:\d{2}$/.test(time)) {
     throw new RangeError("Invalid Acre date or time");
   }
   const value = new Date(`${dateKey}T${time}:00${ACRE_UTC_OFFSET}`);
@@ -67,7 +67,7 @@ export function acreEndOfDay(dateKey = acreDateKey()): Date {
 }
 
 export function acreAddDays(dateKey: string, days: number): string {
-  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(dateKey) || !Number.isInteger(days)) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey) || !Number.isInteger(days)) {
     throw new RangeError("Invalid Acre date or day offset");
   }
   const [year, month, day] = dateKey.split("-").map(Number);
