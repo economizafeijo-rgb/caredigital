@@ -472,7 +472,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
       {activeTab==="hoje"&&<ClientTodayTimeline tasks={tasks} resolved={resolvedStates} onConfirm={askConfirm} onDetails={showTaskDetails} now={clock?.getTime()}/>}
       {activeTab==="hoje"&&<section className="care-client-art-metrics" aria-label="Indicadores visuais de hidratação, alimentação e medicação">
         <button type="button" className="care-art-metric-card" data-kind="water" onClick={()=>openSection("hidratacao")} aria-label="Abrir acompanhamento de hidratação">
-          <img src="/images/care-dashboard-art-sprite.webp" alt="" draggable={false}/>
+          <img src="/images/care-card-water.jpg" alt="" draggable={false}/>
           <span className="care-art-metric-copy">
             <span className="care-art-metric-title"><Droplets size={19}/> Hidratação</span>
             <strong>{hydrationTarget>0?hydrationConsumed.toLocaleString("pt-BR")+" ml":hydrationConfirmed+"/"+hydrationTasks.length}</strong>
@@ -482,7 +482,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
           <span className="care-art-metric-ring" style={{background:"conic-gradient(#57f4e5 "+hydrationPercent+"%,rgba(255,255,255,.2) 0)"}}>{hydrationPercent}%</span>
         </button>
         <button type="button" className="care-art-metric-card" data-kind="meals" onClick={()=>openSection("alimentacao")} aria-label="Abrir acompanhamento da alimentação e consultar os registros">
-          <img src="/images/care-dashboard-art-sprite.webp" alt="" draggable={false}/>
+          <img src="/images/care-card-meals.jpg" alt="" draggable={false}/>
           <span className="care-art-metric-copy">
             <span className="care-art-metric-title"><UtensilsCrossed size={19}/> Alimentação</span>
             <strong>{mealRecordCount===null?"—":mealRecordCount.toLocaleString("pt-BR")}</strong>
@@ -492,7 +492,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
           <span className="care-art-metric-ring" style={{background:"conic-gradient(#9df5ce "+mealPercent+"%,rgba(255,255,255,.2) 0)"}}>{mealPercent}%</span>
         </button>
         <button type="button" className="care-art-metric-card" data-kind="medicine" onClick={()=>openSection("hoje")} aria-label="Voltar à cartela interativa de medicação">
-          <img src="/images/care-dashboard-art-sprite.webp" alt="" draggable={false}/>
+          <img src="/images/care-card-medicine.jpg" alt="" draggable={false}/>
           <span className="care-art-metric-copy">
             <span className="care-art-metric-title"><Pill size={19}/> Medicação</span>
             <strong>{medicineValue}</strong>

@@ -371,3 +371,53 @@
   :root .care-client-dashboard.care-client-art-reference .care-blister-period {min-height:92px;padding:7px 5px;}
   :root .care-client-dashboard.care-client-art-reference .care-blister-graphic {max-width:128px;}
 }
+
+/* Correção definitiva do painel: cada cartão usa sua fotografia individual,
+   preservando o enquadramento sem recortes de uma sprite sheet corrompida. */
+:root .care-client-dashboard.care-client-art-reference .care-art-metric-card > img {
+  width:clamp(82px,8.4vw,116px);
+  height:100%;
+  object-fit:cover;
+  object-position:center center;
+  image-rendering:auto;
+  opacity:1;
+}
+:root .care-client-dashboard.care-client-art-reference .care-art-metric-card[data-kind="water"] > img,
+:root .care-client-dashboard.care-client-art-reference .care-art-metric-card[data-kind="meals"] > img,
+:root .care-client-dashboard.care-client-art-reference .care-art-metric-card[data-kind="medicine"] > img {
+  object-position:center center;
+}
+:root .care-client-dashboard.care-client-art-reference .care-client-route,
+:root .care-client-dashboard.care-client-art-reference.care-client-route {
+  min-height:0;
+  max-height:none;
+  overflow-x:hidden;
+  overflow-y:auto;
+}
+:root .care-client-dashboard.care-client-art-reference.care-client-route .care-client-content {
+  height:auto;
+  min-height:100%;
+  flex:0 0 auto;
+}
+:root .care-client-dashboard.care-client-art-reference.care-client-route .care-client-page-main {
+  min-height:clamp(320px,44vh,430px);
+  flex:0 0 auto;
+}
+:root .care-client-dashboard.care-client-art-reference.care-client-route .care-client-art-metrics {
+  flex:0 0 auto;
+  padding-bottom:2px;
+}
+:root .care-client-dashboard.care-client-art-reference.care-client-route .care-client-summary {
+  min-height:300px;
+}
+@media(max-width:767px) {
+  :root .care-client-dashboard.care-client-art-reference.care-client-route .care-client-content {
+    min-height:0;
+  }
+  :root .care-client-dashboard.care-client-art-reference.care-client-route .care-client-page-main {
+    min-height:0;
+  }
+  :root .care-client-dashboard.care-client-art-reference.care-client-route .care-client-summary {
+    min-height:300px;
+  }
+}
