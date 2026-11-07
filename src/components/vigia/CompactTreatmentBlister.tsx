@@ -96,7 +96,7 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,da
    </div>;
  };
 
- return <section aria-label="Cartelas interativas" data-layout-version="blister-compact-v2" className={`care-blister-panel care-blister-refined rounded-2xl border border-border bg-card text-foreground shadow-sm ${dashboardMode?"care-blister-dashboard":"care-blister-standalone"}`}>
+ return <section aria-label="Cartelas interativas" data-layout-version="blister-professional-v3" className={`care-blister-panel care-blister-refined rounded-2xl border border-border bg-card text-foreground shadow-sm ${dashboardMode?"care-blister-dashboard":"care-blister-standalone"}`}>
   <header className="care-blister-header flex items-start justify-between gap-2">
     <div className="min-w-0">
       <h3 className="flex items-center gap-1.5 text-[13px] font-extrabold leading-tight text-foreground"><Pill size={16} className="shrink-0 text-primary"/> Cartela interativa</h3>
@@ -121,45 +121,50 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,da
   {loading?<p className="mt-5 text-center text-sm text-muted-foreground">Carregando tratamento…</p>:<>
    <div className={`care-blister-body ${first?"is-dual":"is-continuation"}`}>
      {first&&renderPeriod("morning",morning)}
-     <div className="care-blister-graphic min-w-0">
-     <div className={`relative mx-auto overflow-hidden rounded-xl ${first?"aspect-[480/440]":"aspect-[580/430]"}`}>
-       {!first&&<img className="absolute inset-0 h-full w-full object-contain" src="/images/cartela-lansoprazol-7.svg" alt="Cartela ilustrativa de sete cápsulas"/>}
-       {first?<svg viewBox="0 0 480 440" role="group" aria-label="Cartela de oito unidades. Quatro unidades à esquerda são da manhã e quatro à direita são da noite" className="absolute inset-0 block h-full w-full">
-         <defs>
-           <pattern id="compact-foil" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="1.15" fill="#adc2d0"/></pattern>
-         </defs>
-         <rect x="13" y="10" width="454" height="420" rx="34" fill="#d5e1e9" stroke="#86a4b8" strokeWidth="3"/>
-         <rect x="20" y="17" width="440" height="404" rx="29" fill="url(#compact-foil)"/>
-         <path d="M250 18h179c17 0 30 14 30 30v340H250z" fill="#0659b2"/>
-         {Array.from({length:8},(_,i)=>{
-           const period=i<4?"morning":"night" as const;
-           const row=i%4;
-           const task=getTask(period);
-           const done=Boolean(task?.completed_at);
-           const reported=firstReport&&!done;
-           const x=period==="morning"?53:267;
-           const y=32+row*91;
-           const colors=row===0?["#07a8ee","#fafbfc"]:row===1?["#fafbfc","#fafbfc"]:row===2?(period==="morning"?["#ef1b93","#0737b4"]:["#0737b4","#ef1b93"]):["#0737b4","#ef1b93"];
-           return <g key={i} role="button" tabIndex={0} focusable="true" aria-label={`Dia ${dayLabel(day.iso)}, ${period==="morning"?"manhã":"noite"}, unidade ${row+1}: ${done?`confirmada em ${timeText(task!.completed_at!)}`:reported?"relatada pelo paciente":task?careScheduleLabel(task):"Sem horário"}`} onClick={()=>setActivePill({index:selected,period,slot:row+1})} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setActivePill({index:selected,period,slot:row+1})}}} className="cursor-pointer outline-none">
-             <rect x={x-5} y={y-5} width="170" height="72" rx="35" fill="#d7e5ef" stroke="#9bb4c5" strokeWidth="2"/>
-             <clipPath id={`compact-pocket-${i}`}><rect x={x} y={y} width="160" height="62" rx="31"/></clipPath>
-             <g clipPath={`url(#compact-pocket-${i})`}>
-               <rect x={x} y={y} width="80" height="62" fill={colors[0]}/>
-               <rect x={x+80} y={y} width="80" height="62" fill={colors[1]}/>
-               <path d={`M${x+15} ${y+14} Q${x+80} ${y-5} ${x+144} ${y+14}`} stroke="#fff" strokeOpacity=".36" strokeWidth="5" fill="none"/>
-             </g>
-             <rect x={x} y={y} width="160" height="62" rx="31" fill={done?"#d7efe9":reported?"#fde7b3":"transparent"} fillOpacity={done?".78":reported?".28":"0"} stroke={done?"#159a74":"#e9f3f9"} strokeWidth={done?"3":"2"}/>
-             {done&&<g><circle cx={x+142} cy={y+50} r="13" fill={done?"#158567":"#bd7c19"}/><path d={`M${x+136} ${y+50}l4 4 8-9`} stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/></g>}
-           </g>;
-         })}
-         <text x="35" y="410" fontFamily="Arial,sans-serif" fontSize="15" fontWeight="700" fill="#244a68">MANHÃ</text>
-         <text x="369" y="410" fontFamily="Arial,sans-serif" fontSize="15" fontWeight="700" fill="#e7f7ff">NOITE</text>
-       </svg>:Array.from({length:7},(_,i)=>{
+     {first?<div className="care-blister-graphic min-w-0">
+       <div className="relative mx-auto aspect-[480/440] w-full overflow-hidden rounded-xl">
+         <svg viewBox="0 0 480 440" role="group" aria-label="Cartela de oito unidades: quatro pela manhã e quatro à noite" className="absolute inset-0 block h-full w-full">
+           <defs><pattern id="compact-foil" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="1.15" fill="#adc2d0"/></pattern></defs>
+           <rect x="13" y="10" width="454" height="420" rx="34" fill="#d5e1e9" stroke="#86a4b8" strokeWidth="3"/>
+           <rect x="20" y="17" width="440" height="404" rx="29" fill="url(#compact-foil)"/>
+           <path d="M250 18h179c17 0 30 14 30 30v340H250z" fill="#0659b2"/>
+           {Array.from({length:8},(_,i)=>{
+             const period=i<4?"morning":"night" as const;
+             const row=i%4;
+             const task=getTask(period);
+             const done=Boolean(task?.completed_at);
+             const reported=firstReport&&!done;
+             const x=period==="morning"?53:267;
+             const y=32+row*91;
+             const colors=row===0?["#07a8ee","#fafbfc"]:row===1?["#fafbfc","#fafbfc"]:row===2?(period==="morning"?["#ef1b93","#0737b4"]:["#0737b4","#ef1b93"]):["#0737b4","#ef1b93"];
+             return <g key={i} role="button" tabIndex={0} focusable="true" aria-label={`Dia ${dayLabel(day.iso)}, ${period==="morning"?"manhã":"noite"}, unidade ${row+1}`} onClick={()=>setActivePill({index:selected,period,slot:row+1})} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setActivePill({index:selected,period,slot:row+1})}}} className="cursor-pointer outline-none">
+               <rect x={x-5} y={y-5} width="170" height="72" rx="35" fill="#d7e5ef" stroke="#9bb4c5" strokeWidth="2"/>
+               <clipPath id={`compact-pocket-${i}`}><rect x={x} y={y} width="160" height="62" rx="31"/></clipPath>
+               <g clipPath={`url(#compact-pocket-${i})`}><rect x={x} y={y} width="80" height="62" fill={colors[0]}/><rect x={x+80} y={y} width="80" height="62" fill={colors[1]}/></g>
+               <rect x={x} y={y} width="160" height="62" rx="31" fill={done?"#d7efe9":reported?"#fde7b3":"transparent"} fillOpacity={done?".78":reported?".28":"0"} stroke={done?"#159a74":"#e9f3f9"} strokeWidth={done?"3":"2"}/>
+               {done&&<circle cx={x+142} cy={y+50} r="12" fill="#158567"/>}
+             </g>;
+           })}
+           <text x="35" y="410" fontFamily="Arial,sans-serif" fontSize="15" fontWeight="700" fill="#244a68">MANHÃ</text>
+           <text x="369" y="410" fontFamily="Arial,sans-serif" fontSize="15" fontWeight="700" fill="#e7f7ff">NOITE</text>
+         </svg>
+       </div>
+     </div>:<div className="care-blister-dose-grid" aria-label="Doses diárias da continuidade do tratamento">
+       {Array.from({length:7},(_,i)=>{
          const task=continuationDoses[i];
-         return <button key={i} type="button" onClick={()=>setActivePill({index:selected,period:"morning",slot:i+1})} aria-label={`Cápsula ${i+1}, ${dayLabel(days[7+continuationWeek*7+i].iso)}: ${task?.completed_at?`confirmada em ${timeText(task.completed_at)}`:task?careScheduleLabel(task):"Sem horário"}`} className={`absolute rounded-full border-2 transition-colors ${task?.completed_at?"border-emerald-500 bg-emerald-500/60":"border-sky-400/30 hover:bg-sky-400/25"}`} style={{width:"30%",height:"21%",left:`${10+(i%2)*46}%`,top:`${7+Math.floor(i/2)*23}%`}}>{task?.completed_at&&<Check size={21} className="mx-auto text-white"/>}</button>;
+         const doseDay=days[7+continuationWeek*7+i];
+         const confirmed=Boolean(task?.completed_at);
+         const time=task?timeText(task.scheduled_at).slice(0,5):"Horário não cadastrado";
+         return <button key={i} type="button" onClick={()=>setActivePill({index:selected,period:"morning",slot:i+1})}
+           aria-label={`Dia ${doseDay.index+1}, ${dayLabel(doseDay.iso)}: ${confirmed?"confirmada":task?careScheduleLabel(task):"sem horário"}`}
+           className={`care-blister-dose-card ${confirmed?"is-confirmed":""}`}>
+           <span className="care-blister-dose-date"><strong>Dia {doseDay.index+1}</strong><small>{dayLabel(doseDay.iso)}</small></span>
+           <span className={`care-blister-dose-capsule ${confirmed?"is-confirmed":""}`} aria-hidden="true"><i/></span>
+           <span className="care-blister-dose-status">{confirmed?<Check size={13}/>:<Clock3 size={12}/>} {confirmed?"Confirmada":"Pendente"}</span>
+           <span className="care-blister-dose-time">{confirmed?timeText(task!.completed_at!).slice(0,5):time}</span>
+         </button>;
        })}
-     </div>
-     </div>
+     </div>}
      {first&&renderPeriod("night",evening)}
     </div>
     <div className="care-blister-legend flex shrink-0 flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5 text-[9px] leading-tight text-muted-foreground" aria-label="Legenda da cartela">
