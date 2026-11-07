@@ -2277,3 +2277,58 @@
   background:#fff!important;color:#17323e!important;border-color:#d5e5e8!important;
  }
 }
+
+/* Compact dashboard composition: no overlay between the quick-actions bar and care cards. */
+.client-home-dashboard.care-home-redesign-next{
+ display:flex!important;flex-direction:column!important;align-items:stretch!important;
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ height:auto!important;min-height:0!important;max-height:none!important;
+ overflow:visible!important;gap:10px!important;padding:14px!important;
+}
+.client-home-dashboard.care-home-redesign-next>.care-next-header{order:0!important;flex:none!important;min-height:0!important}
+.client-home-dashboard.care-home-redesign-next>.care-premium-pending{order:1!important;position:relative!important;z-index:5!important;flex:none!important}
+.client-home-dashboard.care-home-redesign-next>.care-art-shortcuts{order:2!important;flex:none!important}
+.client-home-dashboard.care-home-redesign-next>.care-home-body{order:3!important;flex:none!important;height:auto!important;min-height:0!important;max-height:none!important;position:relative!important;z-index:1!important}
+.client-home-dashboard.care-home-redesign-next>.care-next-quick-actions{order:4!important;position:relative!important;z-index:2!important;flex:none!important;width:100%!important;margin:0!important}
+.client-home-dashboard.care-home-redesign-next>.care-home-health-disclosure{order:5!important;position:relative!important;z-index:1!important;flex:none!important;width:100%!important;margin:0!important}
+.client-home-dashboard.care-home-redesign-next>.care-patient-marquee{display:none!important}
+.client-home-dashboard.care-home-redesign-next .care-reference-grid{
+ display:grid!important;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr)!important;
+ align-items:stretch!important;gap:12px!important;width:100%!important;min-width:0!important;
+}
+.client-home-dashboard.care-home-redesign-next .care-reference-primary{
+ display:flex!important;flex-direction:column!important;min-width:0!important;gap:10px!important;
+}
+.client-home-dashboard.care-home-redesign-next .care-reference-next{
+ min-height:235px!important;height:auto!important;flex:none!important;padding:16px!important;
+}
+.client-home-dashboard.care-home-redesign-next .care-reference-timeline{
+ min-height:360px!important;height:auto!important;max-height:520px!important;
+}
+.client-home-dashboard.care-home-redesign-next .care-next-quick-actions>.care-next-quick-trigger{
+ position:relative!important;z-index:1!important;width:100%!important;
+}
+.client-home-dashboard.care-home-redesign-next .care-home-shortcuts-content{
+ position:relative!important;inset:auto!important;width:100%!important;max-height:none!important;
+ overflow:visible!important;margin-top:8px!important;
+}
+@media(max-width:900px){
+ .client-home-dashboard.care-home-redesign-next .care-reference-grid{
+  grid-template-columns:minmax(0,1fr)!important;
+ }
+ .client-home-dashboard.care-home-redesign-next .care-reference-timeline{min-height:340px!important}
+}
+@media(max-width:640px){
+ .client-home-dashboard.care-home-redesign-next{padding:10px!important;gap:9px!important}
+ .client-home-dashboard.care-home-redesign-next>.care-next-header{
+  grid-template-columns:minmax(0,1fr) 78px!important;padding:10px!important;
+ }
+ .client-home-dashboard.care-home-redesign-next .care-art-completion{width:76px!important;height:76px!important}
+ .client-home-dashboard.care-home-redesign-next .care-art-completion strong{font-size:18px!important}
+ .client-home-dashboard.care-home-redesign-next .care-art-shortcuts{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+ .client-home-dashboard.care-home-redesign-next .care-art-shortcuts :is(a,button){
+  min-height:66px!important;padding:7px 2px!important;font-size:9px!important;
+ }
+ .client-home-dashboard.care-home-redesign-next .care-reference-next{min-height:220px!important;padding:13px!important}
+ .client-home-dashboard.care-home-redesign-next .care-reference-timeline{min-height:360px!important;max-height:70vh!important}
+}
