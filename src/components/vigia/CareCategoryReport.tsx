@@ -6,7 +6,8 @@ import type {HydrationGoalSnapshot} from "@/lib/hydration-goal";
 
 type Category="hidratacao"|"refeicao"|"medicacao";
 type Period="dia"|"mes"|"ano";
-type Event={id:string;at:string;title:string;state:"realizado"|"pendente"|"nao_realizado";detail:string;amount?:number};
+type Event={id:string;at:string;title:string;state:"realizado"|"pendente"|"nao_realizado";detail:string;amount?:number;taskId?:string};
+type TaskDetails={task_id:string;title:string;category:string;scheduled_at:string;completed_at:string|null;description:string|null;amount_ml:number|null;water_entry_id:string|null;last_corrected_at:string|null;can_edit_water:boolean};
 type Props={patientId:string;ownerId?:string;category:Category;onClose:()=>void;onAdd?:()=>void;hydrationGoal?:HydrationGoalSnapshot|null};
 const zone="America/Rio_Branco";
 const labels:Record<Category,string>={hidratacao:"Hidratação",refeicao:"Alimentação",medicacao:"Medicamentos e suplementos"};
@@ -24,6 +25,11 @@ export function CareCategoryReport({patientId,ownerId,category,onClose,onAdd,hyd
  const [loading,setLoading]=useState(true);
  const [warning,setWarning]=useState("");
  const [all,setAll]=useState(false);
+ const [selectedEvent,setSelectedEvent]=useState<Event|null>(null);
+ const [selectedTaskDetails,setSelectedTaskDetails]=useState<TaskDetails|null>(null);
+ const [selectedWaterResponse,setSelectedWaterResponse]=useState<{response:string;recorded_at:string}|null>(null);
+ const [detailLoading,setDetailLoading]=useState(false);
+ const [detailError,setDetailError]=useState("");
  useEffect(()=>{
   let active=true;setLoading(true);setWarning("");setEvents([]);setAll(false);
   async function load(){
@@ -51,12 +57,12 @@ export function CareCategoryReport({patientId,ownerId,category,onClose,onAdd,hyd
     const missed=!done&&(status==="nao_bebi"||status==="nao_realizado"||status==="nao_confirmou"||status==="not_drunk"||Date.parse(r.scheduled_at)<now);
     return {id:"task:"+r.id,at:r.completed_at||r.scheduled_at,title:r.title||labels[category],
      state:done?"realizado":missed?"nao_realizado":"pendente",
-     detail:done?"Confirmado":status?"Situação registrada: "+status:missed?"Horário passou sem confirmação":"Ainda programado"};
+     detail:done?"Confirmado":status?"Situação registrada: "+status:missed?"Horário passou sem confirmação":"Ainda programado",taskId:r.id};
    });
    const extra:Event[]=[
     ...(water.data??[]).map((r:any)=>({id:"water:"+r.id,at:r.recorded_at,title:"Água consumida",state:"realizado" as const,detail:r.task_id?"Consumo vinculado ao lembrete":"Consumo avulso",amount:Number(r.amount_ml)||0})),
     ...(beverages.data??[]).map((r:any)=>({id:"drink:"+r.id,at:r.consumed_at,title:r.name||r.kind||"Bebida",state:"realizado" as const,detail:"Bebida registrada",amount:Number(r.amount_ml)||0})),
-    ...(meals.data??[]).filter((r:any)=>!r.details?.superseded).map((r:any)=>({id:"meal:"+r.id,at:r.recorded_at,title:r.details?.title||r.details?.description||"Refeição avulsa",state:"realizado" as const,detail:"Consumo registrado"}))
+    ...(meals.data??[]).filter((r:any)=>!r.details?.superseded).map((r:any)=>({id:"meal:"+r.id,at:r.recorded_at,title:r.details?.title||"Refeição avulsa",state:"realizado" as const,detail:String(r.details?.description||"Nenhuma descrição alimentar foi informada."),amount:undefined}))
    ];
    setEvents([...scheduled,...extra].sort((a,b)=>Date.parse(b.at)-Date.parse(a.at)));
    setLoading(false);
@@ -70,6 +76,27 @@ export function CareCategoryReport({patientId,ownerId,category,onClose,onAdd,hyd
  const dailyConsumed=goalForToday?Number(goalForToday.consumed_ml??0):null;
  const dailyTarget=goalForToday?Number(goalForToday.target_ml??0):null;
  const dailyPercent=dailyTarget&&dailyConsumed!==null?Math.min(100,Math.round(dailyConsumed/dailyTarget*100)):0;
+ const openEventDetails=async(event:Event)=>{
+  setSelectedEvent(event);setSelectedTaskDetails(null);setSelectedWaterResponse(null);setDetailError("");
+  if(!event.taskId){setDetailLoading(false);return;}
+  setDetailLoading(true);
+  try{
+   const db=supabase as any;
+   const [record,response]=await Promise.all([
+    db.rpc("care_get_task_record",{p_task_id:event.taskId}),
+    category==="hidratacao"
+      ?db.from("care_hydration_responses").select("response,recorded_at").eq("task_id",event.taskId).maybeSingle()
+      :Promise.resolve({data:null,error:null})
+   ]);
+   if(record.error)throw record.error;
+   if(!record.data||record.data.task_id!==event.taskId)throw new Error("O detalhe deste cuidado não foi encontrado no prontuário.");
+   setSelectedTaskDetails(record.data as TaskDetails);
+   if(response.error)throw response.error;
+   setSelectedWaterResponse(response.data??null);
+  }catch(failure){
+   setDetailError(failure instanceof Error?failure.message:"Não foi possível carregar os detalhes adicionais.");
+  }finally{setDetailLoading(false);}
+ };
  const exportCsv=()=>{
   const rows=[["Data (Acre)","Categoria","Evento","Situação","Detalhes","Volume (ml)"],...events.map(e=>[format(e.at),labels[category],e.title,e.state,e.detail,String(e.amount??"")])];
   const csv="\uFEFF"+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(";")).join("\r\n");
@@ -105,14 +132,35 @@ export function CareCategoryReport({patientId,ownerId,category,onClose,onAdd,hyd
     {warning&&<p role="alert" className="mx-4 mb-2 rounded-lg border border-amber-300/40 bg-amber-300/10 p-2 text-xs text-amber-100">{warning}</p>}
     <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4" role="region" aria-label="Eventos do período">
      {loading?<p className="p-4 text-sm text-slate-300">Consultando registros…</p>:events.length===0?<p className="p-4 text-sm text-slate-300">Nenhum evento encontrado neste período.</p>:<div className="space-y-2">
-      {(all?events:events.slice(0,35)).map(e=><div key={e.id} className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
+      {(all?events:events.slice(0,35)).map(e=><button key={e.id} type="button" onClick={()=>void openEventDetails(e)}
+       aria-label={"Ver detalhes de "+e.title+" às "+format(e.at)}
+       className="group flex w-full items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-3 text-left transition hover:border-teal-300/50 hover:bg-teal-300/[.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300">
        <span className={"mt-1 size-2 shrink-0 rounded-full "+(e.state==="realizado"?"bg-emerald-300":e.state==="pendente"?"bg-sky-300":"bg-amber-300")}/>
-       <div className="min-w-0 flex-1"><strong className="block text-sm">{e.title}</strong><p className="mt-1 text-xs text-slate-300">{e.detail}{e.amount!==undefined?" · "+e.amount.toLocaleString("pt-BR")+" ml":""}</p></div>
-       <div className="shrink-0 text-right"><time className="block text-[11px] text-slate-300">{format(e.at)}</time><span className="text-[11px] font-semibold">{e.state==="realizado"?"Realizado":e.state==="pendente"?"Pendente":"Sem confirmação"}</span></div>
-      </div>)}
+       <span className="min-w-0 flex-1"><strong className="block text-sm">{e.title}</strong><span className="mt-1 block text-xs text-slate-300">{e.detail}{e.amount!==undefined?" · "+e.amount.toLocaleString("pt-BR")+" ml":""}</span></span>
+       <span className="shrink-0 text-right"><time className="block text-[11px] text-slate-300">{format(e.at)}</time><span className="text-[11px] font-semibold">{e.state==="realizado"?"Realizado":e.state==="pendente"?"Pendente":"Sem confirmação"}</span><span className="mt-1 flex items-center justify-end gap-1 text-[10px] font-bold text-teal-200 opacity-80 group-hover:opacity-100">Detalhes <span aria-hidden="true">›</span></span></span>
+      </button>)}
       {events.length>35&&<button type="button" onClick={()=>setAll(v=>!v)} className="w-full rounded-lg border border-teal-300/30 p-2 text-xs font-bold text-teal-100">{all?"Mostrar menos":"Mostrar todos os "+events.length+" registros"}</button>}
      </div>}
     </div>
+    {selectedEvent&&<div className="fixed inset-0 z-[220] flex items-center justify-center bg-slate-950/75 p-3 backdrop-blur-sm" onMouseDown={e=>{if(e.target===e.currentTarget)setSelectedEvent(null);}}>
+     <section role="dialog" aria-modal="true" aria-labelledby="care-report-detail-title" className="w-full max-w-xl overflow-hidden rounded-2xl border border-teal-300/30 bg-[#102b3b] text-white shadow-2xl">
+      <header className="flex items-start justify-between gap-3 border-b border-white/10 bg-white/[.04] px-4 py-3">
+       <div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-widest text-teal-300">{category==="hidratacao"?"Detalhes da hidratação":category==="refeicao"?"Detalhes da refeição":"Detalhes do cuidado"}</p><h3 id="care-report-detail-title" className="mt-1 break-words text-lg font-extrabold">{selectedEvent.title}</h3><p className="mt-1 text-xs text-slate-300">{format(selectedEvent.at)} · horário do Acre</p></div>
+       <button type="button" aria-label="Fechar detalhes" onClick={()=>setSelectedEvent(null)} className="shrink-0 rounded-lg border border-white/20 p-2 hover:bg-white/10"><X size={17}/></button>
+      </header>
+      <div className="space-y-3 p-4">
+       <div className="grid grid-cols-2 gap-2">
+        <div className="rounded-xl border border-white/10 bg-white/5 p-3"><span className="block text-[11px] text-slate-300">Situação</span><strong className="mt-1 block text-sm">{selectedEvent.state==="realizado"?"Realizado":selectedEvent.state==="pendente"?"Pendente":"Sem confirmação"}</strong></div>
+        <div className="rounded-xl border border-white/10 bg-white/5 p-3"><span className="block text-[11px] text-slate-300">{category==="hidratacao"?"Quantidade":category==="refeicao"?"Horário registrado":"Registro"}</span><strong className="mt-1 block text-sm">{category==="hidratacao"?((selectedTaskDetails?.amount_ml??selectedEvent.amount)!=null?String((selectedTaskDetails?.amount_ml??selectedEvent.amount)?.toLocaleString("pt-BR"))+" ml":"Não informado"):format(selectedEvent.at)}</strong></div>
+       </div>
+       {detailLoading&&<p className="rounded-xl border border-teal-300/20 bg-teal-300/5 p-3 text-sm text-teal-100">Carregando detalhes do prontuário…</p>}
+       {category==="hidratacao"&&<div className="rounded-xl border border-teal-300/25 bg-teal-300/[.08] p-3"><p className="text-[11px] font-bold uppercase tracking-wide text-teal-200">Informações da hidratação</p><p className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed">{selectedTaskDetails?.description||selectedEvent.detail||"Sem observações adicionais."}</p>{selectedWaterResponse&&<p className="mt-2 text-xs text-teal-100">Resposta: {selectedWaterResponse.response} · {format(selectedWaterResponse.recorded_at)}</p>}{selectedTaskDetails?.last_corrected_at&&<p className="mt-2 text-xs text-slate-300">Quantidade corrigida em {format(selectedTaskDetails.last_corrected_at)}.</p>}</div>}
+       {category==="refeicao"&&<div className="rounded-xl border border-teal-300/25 bg-teal-300/[.08] p-3"><p className="text-[11px] font-bold uppercase tracking-wide text-teal-200">Alimentos e porções</p><p className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed">{selectedTaskDetails?.description||(!selectedEvent.taskId?selectedEvent.detail:"")||"Nenhuma descrição detalhada dos alimentos foi registrada para esta refeição."}</p></div>}
+       {detailError&&<p role="alert" className="rounded-lg border border-amber-300/35 bg-amber-300/10 p-3 text-xs text-amber-100">Não foi possível carregar todos os detalhes. {detailError}</p>}
+       <div className="flex justify-end"><button type="button" onClick={()=>setSelectedEvent(null)} className="min-h-10 rounded-xl bg-teal-300 px-5 text-sm font-extrabold text-slate-950 hover:bg-teal-200">Fechar</button></div>
+      </div>
+     </section>
+    </div>}
     {onAdd&&<div className="shrink-0 border-t border-white/10 px-4 py-3"><button type="button" onClick={onAdd} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-teal-300 px-4 py-2.5 text-sm font-extrabold text-slate-950 transition hover:bg-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"><Plus size={18}/> {category==="hidratacao"?"Registrar nova hidratação":category==="refeicao"?"Registrar nova alimentação":"Registrar informação de medicação"}</button></div>}
     <footer className="shrink-0 border-t border-white/10 px-4 py-2 text-[11px] text-slate-300">Sem confirmação não comprova que o cuidado deixou de ocorrer. Dados limitados aos registros acessíveis no sistema.</footer>
    </section>
