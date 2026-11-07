@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode, type ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { acreDateAtTime, acreDateKey, acreTimeLabel, formatAcreDateOnly } from "@/lib/acre-time";
 
 export function useNow(interval = 1000) {
   const [now, setNow] = useState<Date | null>(null);
@@ -14,9 +15,8 @@ export function useNow(interval = 1000) {
 
 export function secondsUntil(now: Date, hhmm: string) {
   const [h = 0, m = 0] = hhmm.split(":").map(Number);
-  const t = new Date(now);
-  t.setHours(h, m, 0, 0);
-  return Math.floor((t.getTime() - now.getTime()) / 1000);
+  const target = acreDateAtTime(acreDateKey(now), `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`);
+  return Math.floor((target.getTime() - now.getTime()) / 1000);
 }
 
 export function fmtDuration(sec: number) {
@@ -29,8 +29,8 @@ export function fmtDuration(sec: number) {
 
 export function fmtClock(d: Date | null) {
   if (!d) return "--:-- · --";
-  const time = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-  const date = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }).replace(".", "");
+  const time = acreTimeLabel(d);
+  const date = formatAcreDateOnly(acreDateKey(d), { day: "2-digit", month: "short" }).replace(".", "");
   return `${time} · ${date}`;
 }
 
