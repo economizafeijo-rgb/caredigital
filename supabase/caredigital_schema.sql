@@ -56,7 +56,7 @@ create table if not exists public.care_patient_protocols (
  owner_id uuid not null references auth.users(id) on delete cascade,
  patient_id uuid not null,
  protocol_id uuid not null,
- started_at date not null default current_date,
+ started_at date not null default ((now() at time zone 'America/Rio_Branco')::date),
  primary key(patient_id,protocol_id),
  foreign key (patient_id,owner_id) references public.care_patients(id,owner_id) on delete cascade,
  foreign key (protocol_id,owner_id) references public.care_protocols(id,owner_id) on delete cascade
