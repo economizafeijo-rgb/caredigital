@@ -2478,12 +2478,28 @@ iframe[title*="Lovable" i][title*="badge" i] {
 .care-premium-medication-dialog :is(.border-border,.border-border\/60),
 .care-premium-intake-dialog :is(.border-border,.border-border\/60) {border-color:rgba(118,219,215,.32)}
 .care-premium-medication-dialog :is(input,select,textarea),
-.care-premium-intake-dialog :is(input,select,textarea) {
+.care-premium-intake-dialog :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea) {
   border-color:rgba(133,230,223,.4);
   background:rgba(2,28,42,.72);
   color:#f2ffff;
   border-radius:12px;
   min-height:39px;
+}
+/* Keep the manual-time checkbox native and compact; never style it as a text field. */
+.care-premium-intake-dialog input.care-intake-manual-time-toggle {
+  appearance:auto;
+  display:inline-block;
+  flex:0 0 16px;
+  width:16px;
+  height:16px;
+  min-height:16px;
+  min-width:16px;
+  margin:1px 0 0;
+  padding:0;
+  border:0;
+  border-radius:4px;
+  background:transparent;
+  accent-color:#55e3d1;
 }
 .care-premium-intake-dialog :is(input,textarea)::placeholder {color:rgba(205,234,236,.6)}
 .care-premium-medication-dialog :is(button,input,select):focus-visible,
@@ -3125,6 +3141,35 @@ iframe[title*="Lovable" i][title*="badge" i] {
  box-sizing:border-box;
 }
 .care-intake-responsive-v2 form{display:grid;grid-template-columns:minmax(0,1fr)}
+/* Food fields stay aligned, comfortably spaced and clear of the form scrollbar. */
+.care-intake-responsive-v2 .care-intake-oneview-form{
+ gap:12px;
+ padding:2px 10px 12px 2px;
+}
+.care-intake-responsive-v2 .care-intake-food-fields{gap:12px}
+.care-intake-responsive-v2 .care-intake-food-fields label{
+ display:block;
+ min-width:0;
+ line-height:1.45;
+}
+.care-intake-responsive-v2 .care-intake-food-fields .field{
+ display:block;
+ width:100%;
+ min-width:0;
+ max-width:100%;
+ box-sizing:border-box;
+ margin-top:6px;
+ padding:10px 12px;
+}
+.care-intake-responsive-v2 .care-intake-food-fields textarea.field{
+ height:76px;
+ min-height:76px;
+ line-height:1.45;
+}
+.care-intake-responsive-v2 .care-intake-food-fields input.field{
+ height:44px;
+ min-height:44px;
+}
 .care-intake-responsive-v2 .care-premium-intake-header>div:first-child{min-width:0;flex:1}
 .care-intake-responsive-v2 .care-premium-intake-header>div:first-child>div:last-child{min-width:0}
 .care-intake-responsive-v2 .care-premium-intake-header h2{overflow-wrap:anywhere}
