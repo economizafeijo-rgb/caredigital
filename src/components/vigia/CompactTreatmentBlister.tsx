@@ -51,7 +51,7 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,da
    })();
    return ()=>{active=false};
  },[patientId,ownerId,revision,refresh]);
- const treatmentDoses=useMemo(()=>doses.filter(d=>/Conferir medicação|Conferir lansoprazol/i.test(d.title)),[doses]);
+ const treatmentDoses=useMemo(()=>doses.filter(d=>/Conferir medicação|Conferir lansoprazol|Lansoprazol 30 mg/i.test(d.title)),[doses]);
  const days=useMemo(()=>Array.from({length:35},(_,index)=>{
    const iso=new Date(Date.parse("2026-10-31T12:00:00Z")+index*86400000).toISOString();
    return {index,iso,first:index<7,tasks:treatmentDoses.filter(d=>dateKey(d.scheduled_at)===dateKey(iso))};
