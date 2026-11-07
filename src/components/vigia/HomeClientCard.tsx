@@ -182,22 +182,49 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
     const from = new Date(mealRecordDay + "T00:00:00-05:00").toISOString();
     const until = new Date(new Date(from).getTime() + 86400000).toISOString();
     void (async () => {
-      const result = await (supabase as any).from("care_activity_log")
-        .select("id,task_id,event_type,source,details")
-        .eq("patient_id", client.id)
-        .eq("owner_id", client.owner_id)
-        .eq("category", "refeicao")
-        .in("event_type", ["confirmed", "logged"])
-        .gte("happened_at", from)
-        .lt("happened_at", until)
-        .limit(200);
+      const [result,foodRows,mealRows] = await Promise.all([
+        (supabase as any).from("care_activity_log")
+          .select("id,task_id,event_type,source,details")
+          .eq("patient_id", client.id)
+          .eq("owner_id", client.owner_id)
+          .eq("category", "refeicao")
+          .in("event_type", ["confirmed", "logged"])
+          .gte("happened_at", from)
+          .lt("happened_at", until)
+          .limit(200),
+        (supabase as any).from("care_food_consumptions")
+          .select("id,request_id,meal_group_id")
+          .eq("patient_id", client.id)
+          .eq("owner_id", client.owner_id)
+          .gte("recorded_at", from)
+          .lt("recorded_at", until)
+          .limit(500),
+        (supabase as any).from("care_nutrition_meal_logs")
+          .select("id,request_id")
+          .eq("patient_id", client.id)
+          .eq("owner_id", client.owner_id)
+          .gte("recorded_at", from)
+          .lt("recorded_at", until)
+          .limit(500),
+      ]);
       if (!active) return;
-      if (result.error) {
+      if (result.error || foodRows.error || mealRows.error) {
         setMealRecordCount(null);
         setMealRecordsLoading(false);
         return;
       }
       const uniqueRecords = new Set<string>();
+      const foodRequests = new Set((foodRows.data ?? [])
+        .map((row:any)=>row.request_id).filter(Boolean));
+      for (const row of foodRows.data ?? []) {
+        const groupId=typeof row.meal_group_id==="string"?row.meal_group_id:null;
+        const requestId=typeof row.request_id==="string"?row.request_id:null;
+        uniqueRecords.add(groupId?"group:"+groupId:requestId?"request:"+requestId:"food:"+row.id);
+      }
+      for (const row of mealRows.data ?? []) {
+        if(row.request_id&&foodRequests.has(row.request_id))continue;
+        uniqueRecords.add(row.request_id?"request:"+row.request_id:"nutrition:"+row.id);
+      }
       for (const row of result.data ?? []) {
         const details = row.details && typeof row.details === "object"
           ? row.details as Record<string, unknown>
