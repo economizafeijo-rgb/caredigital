@@ -224,7 +224,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
               {manualTime && <label className="block min-w-0 max-w-full text-xs font-semibold">Data e hora do consumo (Acre · UTC−5)
                 <input type="datetime-local" required value={consumedAt} onChange={event=>setConsumedAt(event.target.value)} className="field care-intake-datetime mt-1 block w-full min-w-0 max-w-full" style={{boxSizing:"border-box",minWidth:0,maxWidth:"100%"}}/>
               </label>}
-              <p className="text-[11px] text-foreground/80">O prontuário preserva o horário do consumo e a data em que você registrou a informação.</p>
+              <p className="text-[11px] text-foreground/80">O prontuário preserva o horário do consumo e a data em que você registrou a informação. O horário informado é sempre o do Acre (UTC−5), duas horas atrás de Brasília.</p>
             </div>
             <p className="rounded-lg border border-cyan-400/25 bg-slate-900/75 px-3 py-2 text-[11px] font-medium leading-relaxed text-slate-100 dark:bg-slate-900/85 dark:text-slate-100">
               O consumo será salvo com o horário informado (ou o horário atual) e a data do lançamento.
