@@ -39,22 +39,19 @@ DECLARE
   v_definition text;
 BEGIN
   v_definition:=pg_get_functiondef('public.care_update_intake_entry(uuid,text,uuid,text,integer,timestamptz)'::regprocedure);
-  v_definition:=replace(v_definition,'  v_task_id uuid;','  v_task_id uuid;\n  v_old_day date;');
+  v_definition:=replace(v_definition,'  v_task_id uuid;','  v_task_id uuid; v_old_day date;');
   v_definition:=replace(v_definition,
     '    v_task_id:=nullif(v_meal.details->>''linked_task_id'','''')::uuid;',
-    '    v_old_day:=(v_meal.happened_at AT TIME ZONE ''America/Rio_Branco'')::date;\n    v_task_id:=nullif(v_meal.details->>''linked_task_id'','''')::uuid;');
+    '    v_old_day:=(v_meal.happened_at AT TIME ZONE ''America/Rio_Branco'')::date; v_task_id:=nullif(v_meal.details->>''linked_task_id'','''')::uuid;');
   v_definition:=replace(v_definition,
     '      PERFORM set_config(''care.meal_reclassification'',''enabled'',true);',
-    '      IF v_when < v_now-interval ''7 days'' THEN RAISE EXCEPTION ''Linked meal can only be adjusted within 7 days''; END IF;\n      PERFORM set_config(''care.meal_reclassification'',''enabled'',true);');
+    '      IF v_when < v_now-interval ''7 days'' THEN RAISE EXCEPTION ''Linked meal can only be adjusted within 7 days''; END IF; PERFORM set_config(''care.meal_reclassification'',''enabled'',true);');
   v_definition:=replace(v_definition,
-    '      UPDATE public.care_meal_details SET description=btrim(p_description),recorded_at=v_when\n      WHERE task_id=v_task_id;',
-    '      INSERT INTO public.care_meal_details(task_id,owner_id,patient_id,description,recorded_at)\n      VALUES(v_task_id,v_owner,p_patient_id,btrim(p_description),v_when)\n      ON CONFLICT(task_id) DO UPDATE SET description=EXCLUDED.description,recorded_at=EXCLUDED.recorded_at;');
-  v_definition:=replace(v_definition,
-    '    IF (v_when AT TIME ZONE ''America/Rio_Branco'')::date=\n       (v_now AT TIME ZONE ''America/Rio_Branco'')::date THEN',
-    '    IF v_old_day=(v_now AT TIME ZONE ''America/Rio_Branco'')::date OR\n       (v_when AT TIME ZONE ''America/Rio_Branco'')::date=(v_now AT TIME ZONE ''America/Rio_Branco'')::date THEN');
+    '    IF (v_when AT TIME ZONE ''America/Rio_Branco'')::date=',
+    '    IF v_old_day=(v_now AT TIME ZONE ''America/Rio_Branco'')::date OR (v_when AT TIME ZONE ''America/Rio_Branco'')::date=');
   IF position('v_old_day date' in v_definition)=0
      OR position('Linked meal can only be adjusted within 7 days' in v_definition)=0
-     OR position('ON CONFLICT(task_id) DO UPDATE' in v_definition)=0 THEN
+     OR position('v_old_day=(v_now AT TIME ZONE' in v_definition)=0 THEN
     RAISE EXCEPTION 'Could not safely patch care_update_intake_entry';
   END IF;
   EXECUTE v_definition;
