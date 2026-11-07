@@ -2760,3 +2760,70 @@
     overflow: visible !important;
   }
 }
+
+
+/* Agenda column: stretch to the exact height of the care/progress column.
+   The grid row determines the shared height; the list absorbs free space and
+   pagination stays anchored to the bottom of the card. */
+@media (min-width: 768px) {
+  :root .client-home-dashboard.care-home-art-v2.care-home-art-reference.care-home-redesign-next > .care-home-body {
+    align-items: stretch !important;
+    align-content: stretch !important;
+    grid-auto-rows: minmax(0, 1fr) !important;
+  }
+
+  :root .client-home-dashboard.care-home-art-v2.care-home-art-reference.care-home-redesign-next > .care-home-body > .care-home-left {
+    align-self: stretch !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  :root .client-home-dashboard.care-home-art-v2.care-home-art-reference.care-home-redesign-next > .care-home-body > .care-reference-timeline {
+    align-self: stretch !important;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100% !important;
+    max-height: none !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  :root .client-home-dashboard.care-home-art-v2.care-home-art-reference.care-home-redesign-next .care-reference-timeline > #care-home-timeline,
+  :root .client-home-dashboard.care-home-art-v2.care-home-art-reference.care-home-redesign-next .care-reference-timeline > .care-timeline-report-drawer,
+  :root .client-home-dashboard.care-home-art-v2.care-home-art-reference.care-home-redesign-next .care-reference-timeline > .care-timeline-view-switch,
+  :root .client-home-dashboard.care-home-art-v2.care-home-art-reference.care-home-redesign-next .care-reference-timeline > .care-timeline-filters,
+  :root .client-home-dashboard.care-home-art-v2.care-home-art-reference.care-home-redesign-next .care-reference-timeline > nav.care-timeline-navigation {
+    flex: 0 0 auto !important;
+  }
+
+  :root .client-home-dashboard.care-home-art-v2.care-home-art-reference.care-home-redesign-next .care-reference-timeline > .care-timeline-scroll {
+    flex: 1 1 0 !important;
+    min-height: 90px !important;
+    max-height: none !important;
+    overflow-y: auto !important;
+  }
+
+  :root .client-home-dashboard.care-home-art-v2.care-home-art-reference.care-home-redesign-next .care-reference-timeline > nav.care-timeline-navigation {
+    margin-top: auto !important;
+    padding-bottom: 2px !important;
+  }
+}
+
+/* In fullscreen, stretch both columns within the available grid row as well. */
+@media (min-width: 768px) {
+  :root:fullscreen .client-home-dashboard.care-home-art-v2.care-home-art-reference.care-home-redesign-next > .care-home-body {
+    align-items: stretch !important;
+    align-content: stretch !important;
+    grid-template-rows: minmax(0, 1fr) !important;
+  }
+  :root:fullscreen .client-home-dashboard.care-home-art-v2.care-home-art-reference.care-home-redesign-next > .care-home-body > .care-reference-timeline {
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+  :root:fullscreen .client-home-dashboard.care-home-art-v2.care-home-art-reference.care-home-redesign-next .care-reference-timeline > .care-timeline-scroll {
+    min-height: 0 !important;
+  }
+}
