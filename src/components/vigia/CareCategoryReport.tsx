@@ -125,7 +125,7 @@ export function CareCategoryReport({patientId,ownerId,category,onClose,onAdd,hyd
    setDetailError("Informe uma data e hora válidas, sem horário futuro (Acre).");return;
   }
   const amount=event.entryType==="meal"?null:Number(editAmount);
-  if(event.entryType!=="meal"&&(!Number.isInteger(amount)||amount===null||amount<10||amount>1500)){
+  if(event.entryType!=="meal"&&(amount===null||!Number.isInteger(amount)||amount<10||amount>1500)){
    setDetailError("Informe uma quantidade entre 10 e 1.500 ml.");return;
   }
   if((event.entryType==="meal"&&editDescription.trim().length<3)||(event.entryType==="beverage"&&editDescription.trim().length<2)){
