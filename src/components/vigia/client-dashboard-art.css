@@ -759,3 +759,45 @@
 @media(max-width:600px) {
   .care-client-one-window .care-blister-dose-grid {grid-template-columns:1fr;grid-template-rows:repeat(7,minmax(92px,auto));}
 }
+
+/* Compactação legível das duas tomadas em cada dia da continuidade. */
+@media (min-width:901px) {
+  .care-client-one-window .care-blister-dose-grid {
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    grid-template-rows:repeat(4,minmax(0,1fr)) !important;
+    gap:5px !important;
+  }
+  .care-client-one-window .care-blister-dose-card {
+    display:grid !important;
+    grid-template-columns:40px minmax(0,1fr) !important;
+    align-items:center !important;
+    gap:5px !important;
+    padding:5px !important;
+  }
+  .care-client-one-window .care-blister-dose-date {
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:flex-start !important;
+    justify-content:center !important;
+    gap:1px !important;
+  }
+  .care-client-one-window .care-blister-dose-date strong {font-size:9px !important;}
+  .care-client-one-window .care-blister-dose-date small {font-size:8px !important;}
+  .care-client-one-window .care-blister-dose-actions {
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:4px !important;
+  }
+  .care-client-one-window .care-blister-dose-action {
+    display:flex !important;
+    flex-direction:row !important;
+    justify-content:space-between !important;
+    gap:3px !important;
+    padding:4px !important;
+    border-radius:7px !important;
+  }
+  .care-client-one-window .care-blister-dose-action-label {font-size:8px !important;gap:2px !important;}
+  .care-client-one-window .care-blister-dose-action .care-blister-dose-capsule {width:17px !important;height:9px !important;flex:0 0 17px !important;}
+  .care-client-one-window .care-blister-dose-action .care-blister-dose-status {font-size:0 !important;gap:0 !important;}
+  .care-client-one-window .care-blister-dose-action .care-blister-dose-status svg {width:10px !important;height:10px !important;}
+  .care-client-one-window .care-blister-dose-action .care-blister-dose-time {font-size:8px !important;}
+}
