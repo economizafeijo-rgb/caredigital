@@ -17,6 +17,7 @@ import { CareTaskRecordModal } from "./CareTaskRecordModal";
 import { CareReminderBeacon } from "./CareReminderBeacon";
 import { ClientTodayTimeline } from "./ClientTodayTimeline";
 import { canConfirmCare, careScheduleBlockMessage, careScheduleLabel, getCareScheduleState } from "@/lib/care-schedule";
+import "./client-dashboard-art.css";
 
 type Client = { id: string; owner_id: string; full_name: string; status: string; care_goal: string | null };
 type Task = { id: string; patient_id: string; title: string; category: string; scheduled_at: string; completed_at: string | null };
@@ -68,6 +69,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
   const [tick, setTick] = useState(0);
   const [clock, setClock] = useState<Date | null>(null);
   const [treatmentProgress,setTreatmentProgress] = useState<{confirmed:number;total:number}|null>(null);
+  const [hydrationGoal,setHydrationGoal] = useState<{consumed_ml?:number;target_ml?:number;status?:string}|null>(null);
   useEffect(()=>{
     const syncHash=()=>setActiveTab(clientSectionFromHash(window.location.hash));
     window.addEventListener("hashchange",syncHash);
@@ -126,7 +128,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
       const until = new Date(new Date(from).getTime() + 86400000).toISOString();
       const rows = await db.from("care_daily_checklist").select("id,patient_id,title,category,scheduled_at,completed_at")
         .eq("owner_id",first.owner_id).eq("patient_id",first.id).gte("scheduled_at",from).lt("scheduled_at",until)
-        .in("category",["medicacao","outro"]).order("scheduled_at",{ascending:true}).limit(120);
+        .in("category",["medicacao","hidratacao","refeicao","outro"]).order("scheduled_at",{ascending:true}).limit(120);
       if(!active)return;
       if(rows.error){setNotice("Não foi possível carregar a agenda de hoje.");return;}
       const eligible=(rows.data??[]).filter((task:Task)=>task.category!=="outro"||
@@ -153,6 +155,16 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
     void load();
     return () => { active = false; };
   }, [owner, tick]);
+
+  useEffect(() => {
+    if (!client?.id) { setHydrationGoal(null); return; }
+    let active = true;
+    void (supabase as any).rpc("care_sync_hydration_goal", { p_patient_id: client.id })
+      .then((result: any) => {
+        if (active) setHydrationGoal(result.error ? null : (result.data ?? null));
+      }, () => { if (active) setHydrationGoal(null); });
+    return () => { active = false; };
+  }, [client?.id, client?.owner_id, tick]);
 
   const completed = tasks.filter(t => Boolean(t.completed_at)).length;
   const nextCare = tasks.find(t => !t.completed_at && !resolvedStates[t.id] && Date.parse(t.scheduled_at) >= (clock?.getTime() ?? Date.now()))
@@ -248,7 +260,17 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
 
   const medicineTasks=tasks.filter(task=>task.category==="medicacao");
   const medicineConfirmed=medicineTasks.filter(task=>Boolean(task.completed_at)).length;
+  const hydrationTasks=tasks.filter(task=>task.category==="hidratacao");
+  const hydrationConfirmed=hydrationTasks.filter(task=>Boolean(task.completed_at)).length;
+  const mealConfirmed=tasks.filter(task=>task.category==="refeicao"&&Boolean(task.completed_at)).length;
   const progressPercent=treatmentProgress?Math.min(100,Math.round(treatmentProgress.confirmed/treatmentProgress.total*100)):0;
+  const hydrationTarget=Number(hydrationGoal?.target_ml)||0;
+  const hydrationConsumed=Number(hydrationGoal?.consumed_ml)||0;
+  const hydrationPercent=hydrationTarget>0?Math.min(100,Math.round(hydrationConsumed/hydrationTarget*100)):(hydrationTasks.length?Math.round(hydrationConfirmed/hydrationTasks.length*100):0);
+  const mealTotal=meals.length;
+  const mealPercent=mealTotal?Math.round(mealConfirmed/mealTotal*100):0;
+  const medicinePercent=treatmentProgress?progressPercent:(medicineTasks.length?Math.round(medicineConfirmed/medicineTasks.length*100):0);
+  const medicineValue=treatmentProgress?`${treatmentProgress.confirmed}/${treatmentProgress.total}`:`${medicineConfirmed}/${medicineTasks.length}`;
   const tabs=[
     {key:"hoje",label:"Visão geral",icon:LayoutDashboard},
     {key:"agenda",label:"Agenda",icon:CalendarDays},
@@ -258,7 +280,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
     {key:"cardapios",label:"Cardápios e dietas",icon:BookOpen},
   ] as const;
 
-  return <section aria-label="Painel de acompanhamento individual do cliente" className="care-client-dashboard care-client-route flex h-full min-h-0 w-full flex-col overflow-x-hidden overflow-y-auto rounded-[22px] border border-border bg-card/95 shadow-[0_20px_60px_-44px_rgba(25,65,54,.45)]">
+  return <section aria-label="Painel de acompanhamento individual do cliente" className="care-client-dashboard care-client-art-reference care-client-route flex h-full min-h-0 w-full flex-col overflow-x-hidden overflow-y-auto rounded-[22px] border border-border bg-card/95 shadow-[0_20px_60px_-44px_rgba(25,65,54,.45)]">
     {loading ? <p role="status" className="p-6 text-sm text-muted-foreground">Verificando acesso seguro…</p> : !owner ? <div className="grid gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-center">
       <div><div className="flex items-center gap-2 font-semibold"><LockKeyhole size={19} className="text-primary"/> Acesso protegido</div><p className="mt-2 max-w-2xl text-sm text-muted-foreground">Entre com sua conta para consultar somente seu acompanhamento e confirmar os cuidados realizados.</p></div>
       <button onClick={() => setLocked(true)} className="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground">Consultar programação</button>
@@ -366,6 +388,38 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
       </div>
 
       {activeTab==="hoje"&&<ClientTodayTimeline tasks={tasks} resolved={resolvedStates} onConfirm={askConfirm} onDetails={showTaskDetails} now={clock?.getTime()}/>}
+      {activeTab==="hoje"&&<section className="care-client-art-metrics" aria-label="Indicadores visuais de hidratação, alimentação e medicação">
+        <button type="button" className="care-art-metric-card" data-kind="water" onClick={()=>openSection("hidratacao")} aria-label="Abrir acompanhamento de hidratação">
+          <img src="/images/care-card-water.jpg" alt="" draggable={false}/>
+          <span className="care-art-metric-copy">
+            <span className="care-art-metric-title"><Droplets size={19}/> Hidratação</span>
+            <strong>{hydrationTarget>0?hydrationConsumed.toLocaleString("pt-BR")+" ml":hydrationConfirmed+"/"+hydrationTasks.length}</strong>
+            <small>{hydrationTarget>0?"de "+hydrationTarget.toLocaleString("pt-BR")+" ml":"lembretes confirmados"}</small>
+            <i className="care-art-metric-track"><b style={{width:hydrationPercent+"%"}}/></i>
+          </span>
+          <span className="care-art-metric-ring" style={{background:"conic-gradient(#57f4e5 "+hydrationPercent+"%,rgba(255,255,255,.2) 0)"}}>{hydrationPercent}%</span>
+        </button>
+        <button type="button" className="care-art-metric-card" data-kind="meals" onClick={()=>openSection("alimentacao")} aria-label="Abrir acompanhamento da alimentação">
+          <img src="/images/care-card-meals.jpg" alt="" draggable={false}/>
+          <span className="care-art-metric-copy">
+            <span className="care-art-metric-title"><UtensilsCrossed size={19}/> Alimentação</span>
+            <strong>{mealConfirmed}/{mealTotal}</strong>
+            <small>refeições confirmadas</small>
+            <i className="care-art-metric-track"><b style={{width:mealPercent+"%"}}/></i>
+          </span>
+          <span className="care-art-metric-ring" style={{background:"conic-gradient(#9df5ce "+mealPercent+"%,rgba(255,255,255,.2) 0)"}}>{mealPercent}%</span>
+        </button>
+        <button type="button" className="care-art-metric-card" data-kind="medicine" onClick={()=>openSection("hoje")} aria-label="Voltar à cartela interativa de medicação">
+          <img src="/images/care-card-medicine.jpg" alt="" draggable={false}/>
+          <span className="care-art-metric-copy">
+            <span className="care-art-metric-title"><Pill size={19}/> Medicação</span>
+            <strong>{medicineValue}</strong>
+            <small>unidades confirmadas</small>
+            <i className="care-art-metric-track"><b style={{width:medicinePercent+"%"}}/></i>
+          </span>
+          <span className="care-art-metric-ring" style={{background:"conic-gradient(#d7d8ff "+medicinePercent+"%,rgba(255,255,255,.2) 0)"}}>{medicinePercent}%</span>
+        </button>
+      </section>}
     </div>}
     <CareTaskRecordModal task={detailTask} onClose={()=>setDetailTask(null)}
       onSaved={()=>setTick(value=>value+1)} onConfirm={record=>{const task=tasks.find(item=>item.id===record.id);if(task)askConfirm(task);}}/>
