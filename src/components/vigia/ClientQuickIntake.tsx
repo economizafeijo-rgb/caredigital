@@ -118,9 +118,15 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
       requestId.current = null;
       onRecorded?.();
     } catch (failure) {
-      setError(failure instanceof Error
-        ? `Não foi possível salvar. ${failure.message}`
-        : "Não foi possível salvar. Confira a conexão e tente novamente.");
+      const detail = failure && typeof failure === "object" && "message" in failure
+        ? String((failure as {message?:unknown}).message ?? "")
+        : failure instanceof Error ? failure.message : "";
+      const friendly = /Invalid consumption time/i.test(detail)
+        ? "A data/hora informada está no futuro ou fora dos últimos 7 dias no horário do Acre. Confira o fuso UTC−5 e tente novamente."
+        : /Patient unavailable|Authentication required/i.test(detail)
+          ? "Sua sessão ou o vínculo com o prontuário expirou. Entre novamente e tente salvar."
+          : detail || "Confira sua conexão e tente novamente.";
+      setError(`Não foi possível salvar. ${friendly}`);
       // Mantém o mesmo identificador para reenvios sem duplicar lançamentos.
     } finally {
       setSaving(false);
