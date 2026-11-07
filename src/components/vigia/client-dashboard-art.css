@@ -285,3 +285,89 @@
   :root .care-client-dashboard.care-client-art-reference .care-art-metric-card {transition:none;}
   :root .care-client-dashboard.care-client-art-reference .care-art-metric-card:hover {transform:none;}
 }
+
+/* Arte aprovada aplicada com imagens sem texto embutido: os dados continuam dinâmicos. */
+:root .care-client-dashboard.care-client-art-reference .care-art-metric-card {
+  min-height:clamp(116px,14vh,148px); padding:11px 12px 11px 0; border-radius:22px;
+}
+:root .care-client-dashboard.care-client-art-reference .care-art-metric-card > img {
+  z-index:0; width:clamp(82px,8.4vw,116px); height:100%; object-fit:cover;
+  object-position:0% 50%; opacity:1;
+  -webkit-mask-image:linear-gradient(90deg,#000 0%,#000 72%,transparent 100%);
+  mask-image:linear-gradient(90deg,#000 0%,#000 72%,transparent 100%);
+}
+:root .care-client-dashboard.care-client-art-reference .care-art-metric-card[data-kind="water"] > img {object-position:0% 50%;}
+:root .care-client-dashboard.care-client-art-reference .care-art-metric-card[data-kind="meals"] > img {object-position:33.333% 50%;}
+:root .care-client-dashboard.care-client-art-reference .care-art-metric-card[data-kind="medicine"] > img {object-position:66.667% 50%;}
+:root .care-client-dashboard.care-client-art-reference .care-art-metric-copy {
+  margin-left:clamp(88px,8.4vw,116px); padding-right:clamp(50px,4.2vw,60px); gap:4px;
+}
+:root .care-client-dashboard.care-client-art-reference .care-art-metric-title {
+  min-width:0; font-size:clamp(11px,.95vw,15px); line-height:1.15;
+}
+:root .care-client-dashboard.care-client-art-reference .care-art-metric-copy strong {
+  max-width:100%; font-size:clamp(18px,1.75vw,28px); line-height:1.05; letter-spacing:-.035em;
+}
+:root .care-client-dashboard.care-client-art-reference .care-art-metric-copy small {
+  display:block; max-width:100%; font-size:clamp(9px,.74vw,12px); line-height:1.25;
+  white-space:normal; overflow-wrap:anywhere;
+}
+:root .care-client-dashboard.care-client-art-reference .care-art-metric-track {height:7px; margin-top:5px;}
+:root .care-client-dashboard.care-client-art-reference .care-art-metric-ring {
+  top:9px; right:9px; width:clamp(40px,3.7vw,54px); font-size:clamp(10px,.9vw,13px);
+  box-shadow:inset 0 0 0 6px rgba(3,40,51,.9),0 0 0 1px rgba(255,255,255,.15);
+}
+
+/* A arte do blister aparece como detalhe de fundo; os alvos SVG continuam clicáveis. */
+:root .care-client-dashboard.care-client-art-reference .care-blister-refined {
+  position:relative; isolation:isolate; overflow:hidden; gap:clamp(7px,.8vw,12px);
+}
+:root .care-client-dashboard.care-client-art-reference .care-blister-refined::before {
+  content:""; position:absolute; z-index:0; top:50%; right:clamp(8px,1.2vw,18px);
+  width:min(38%,210px); aspect-ratio:1; transform:translateY(-50%); border-radius:18px;
+  background-image:url("/images/care-dashboard-art-sprite.webp"); background-repeat:no-repeat;
+  background-size:400% 100%; background-position:100% 50%; opacity:.13;
+  mix-blend-mode:screen; pointer-events:none;
+}
+:root .care-client-dashboard.care-client-art-reference .care-blister-refined > * {position:relative;z-index:1;}
+:root .care-client-dashboard.care-client-art-reference .care-blister-body {
+  display:grid; min-width:0; min-height:0; align-items:center; gap:clamp(6px,.8vw,12px);
+}
+:root .care-client-dashboard.care-client-art-reference .care-blister-body.is-dual {
+  grid-template-columns:minmax(0,1fr) minmax(108px,.9fr) minmax(0,1fr);
+}
+:root .care-client-dashboard.care-client-art-reference .care-blister-body.is-continuation {
+  grid-template-columns:minmax(0,1fr); justify-items:center;
+}
+:root .care-client-dashboard.care-client-art-reference .care-blister-period {
+  display:flex; min-width:0; min-height:clamp(94px,13vh,132px); flex-direction:column;
+  align-items:center; justify-content:center; gap:5px; padding:clamp(8px,.9vw,13px);
+  border-radius:18px; text-align:center;
+}
+:root .care-client-dashboard.care-client-art-reference .care-blister-graphic {
+  width:100%; max-width:clamp(108px,15vw,190px); justify-self:center;
+}
+:root .care-client-dashboard.care-client-art-reference .care-blister-continuation-hint {
+  max-width:100%; white-space:normal; line-height:1.35;
+}
+@media (max-width:900px) {
+  :root .care-client-dashboard.care-client-art-reference .care-art-metric-card > img {width:108px;}
+  :root .care-client-dashboard.care-client-art-reference .care-art-metric-copy {margin-left:104px;padding-right:54px;}
+  :root .care-client-dashboard.care-client-art-reference .care-blister-body.is-dual {
+    grid-template-columns:minmax(0,1fr) minmax(100px,.8fr) minmax(0,1fr);
+  }
+}
+@media (max-width:767px) {
+  :root .care-client-dashboard.care-client-art-reference .care-art-metric-card {min-height:116px;}
+  :root .care-client-dashboard.care-client-art-reference .care-art-metric-card > img {width:clamp(88px,25vw,108px);}
+  :root .care-client-dashboard.care-client-art-reference .care-art-metric-copy {
+    margin-left:clamp(96px,27vw,112px); padding-right:52px;
+  }
+  :root .care-client-dashboard.care-client-art-reference .care-art-metric-ring {top:8px;right:8px;width:42px;}
+  :root .care-client-dashboard.care-client-art-reference .care-blister-refined::before {width:34%;opacity:.08;}
+  :root .care-client-dashboard.care-client-art-reference .care-blister-body.is-dual {
+    grid-template-columns:minmax(0,1fr) minmax(88px,.8fr) minmax(0,1fr); gap:5px;
+  }
+  :root .care-client-dashboard.care-client-art-reference .care-blister-period {min-height:92px;padding:7px 5px;}
+  :root .care-client-dashboard.care-client-art-reference .care-blister-graphic {max-width:128px;}
+}
