@@ -70,6 +70,9 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
   const [clock, setClock] = useState<Date | null>(null);
   const [treatmentProgress,setTreatmentProgress] = useState<{confirmed:number;total:number}|null>(null);
   const [hydrationGoal,setHydrationGoal] = useState<{consumed_ml?:number;target_ml?:number;status?:string}|null>(null);
+  const [mealRecordCount,setMealRecordCount] = useState<number|null>(null);
+  const [mealRecordsLoading,setMealRecordsLoading] = useState(true);
+  const mealRecordDay=dayInAcre(clock??new Date());
   useEffect(()=>{
     const syncHash=()=>setActiveTab(clientSectionFromHash(window.location.hash));
     window.addEventListener("hashchange",syncHash);
@@ -165,6 +168,58 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
       }, () => { if (active) setHydrationGoal(null); });
     return () => { active = false; };
   }, [client?.id, client?.owner_id, tick]);
+
+  // Conta registros alimentares reais do prontuário, sem confundir com a agenda.
+  // Confirmações programadas e lançamentos avulsos vêm do mesmo histórico auditável.
+  useEffect(() => {
+    if (!client?.id || !client?.owner_id) {
+      setMealRecordCount(0);
+      setMealRecordsLoading(false);
+      return;
+    }
+    let active = true;
+    setMealRecordsLoading(true);
+    const from = new Date(mealRecordDay + "T00:00:00-05:00").toISOString();
+    const until = new Date(new Date(from).getTime() + 86400000).toISOString();
+    void (async () => {
+      const result = await (supabase as any).from("care_activity_log")
+        .select("id,task_id,event_type,source,details")
+        .eq("patient_id", client.id)
+        .eq("owner_id", client.owner_id)
+        .eq("category", "refeicao")
+        .in("event_type", ["confirmed", "logged"])
+        .gte("happened_at", from)
+        .lt("happened_at", until)
+        .limit(200);
+      if (!active) return;
+      if (result.error) {
+        setMealRecordCount(null);
+        setMealRecordsLoading(false);
+        return;
+      }
+      const uniqueRecords = new Set<string>();
+      for (const row of result.data ?? []) {
+        const details = row.details && typeof row.details === "object"
+          ? row.details as Record<string, unknown>
+          : {};
+        if (row.event_type === "confirmed") {
+          uniqueRecords.add(row.task_id ? "task:" + row.task_id : "log:" + row.id);
+        } else if (
+          row.event_type === "logged" &&
+          row.source === "client_unscheduled_intake" &&
+          details.superseded !== true
+        ) {
+          const linkedTask = typeof details.linked_task_id === "string"
+            ? details.linked_task_id
+            : null;
+          uniqueRecords.add(linkedTask ? "task:" + linkedTask : "log:" + row.id);
+        }
+      }
+      setMealRecordCount(uniqueRecords.size);
+      setMealRecordsLoading(false);
+    })();
+    return () => { active = false; };
+  }, [client?.id, client?.owner_id, tick, mealRecordDay]);
 
   const completed = tasks.filter(t => Boolean(t.completed_at)).length;
   const nextCare = tasks.find(t => !t.completed_at && !resolvedStates[t.id] && Date.parse(t.scheduled_at) >= (clock?.getTime() ?? Date.now()))
@@ -399,12 +454,12 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
           </span>
           <span className="care-art-metric-ring" style={{background:"conic-gradient(#57f4e5 "+hydrationPercent+"%,rgba(255,255,255,.2) 0)"}}>{hydrationPercent}%</span>
         </button>
-        <button type="button" className="care-art-metric-card" data-kind="meals" onClick={()=>openSection("alimentacao")} aria-label="Abrir acompanhamento da alimentação">
+        <button type="button" className="care-art-metric-card" data-kind="meals" onClick={()=>openSection("alimentacao")} aria-label="Abrir acompanhamento da alimentação e consultar os registros">
           <img src="/images/care-card-meals.jpg" alt="" draggable={false}/>
           <span className="care-art-metric-copy">
             <span className="care-art-metric-title"><UtensilsCrossed size={19}/> Alimentação</span>
-            <strong>{mealConfirmed}/{mealTotal}</strong>
-            <small>refeições confirmadas</small>
+            <strong>{mealRecordCount===null?"—":mealRecordCount.toLocaleString("pt-BR")}</strong>
+            <small>{mealRecordCount===null?(mealRecordsLoading?"carregando registros":"registros indisponíveis"):`${mealRecordCount===1?"registro alimentar":"registros alimentares"} · ${mealConfirmed}/${mealTotal} confirmadas`}</small>
             <i className="care-art-metric-track"><b style={{width:mealPercent+"%"}}/></i>
           </span>
           <span className="care-art-metric-ring" style={{background:"conic-gradient(#9df5ce "+mealPercent+"%,rgba(255,255,255,.2) 0)"}}>{mealPercent}%</span>
