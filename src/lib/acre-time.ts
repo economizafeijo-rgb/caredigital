@@ -3,7 +3,13 @@ export const ACRE_UTC_OFFSET = "-05:00";
 
 type DateInput = Date | number | string;
 
-const asDate = (value: DateInput) => value instanceof Date ? value : new Date(value);
+const asDate = (value: DateInput) => {
+  if (value instanceof Date) return value;
+  if (typeof value === "string" && /^\\d{4}-\\d{2}-\\d{2}$/.test(value)) {
+    return new Date(`${value}T12:00:00${ACRE_UTC_OFFSET}`);
+  }
+  return new Date(value);
+};
 
 export function acreDateKey(value: DateInput = Date.now()): string {
   return new Intl.DateTimeFormat("en-CA", {
@@ -44,7 +50,11 @@ export function acreDateAtTime(dateKey: string, time: string): Date {
     throw new RangeError("Invalid Acre date or time");
   }
   const value = new Date(`${dateKey}T${time}:00${ACRE_UTC_OFFSET}`);
-  if (!Number.isFinite(value.getTime())) throw new RangeError("Invalid Acre date or time");
+  if (
+    !Number.isFinite(value.getTime()) ||
+    acreDateKey(value) !== dateKey ||
+    acreTimeLabel(value) !== time
+  ) throw new RangeError("Invalid Acre date or time");
   return value;
 }
 
@@ -69,7 +79,7 @@ export function formatAcreDateOnly(
   options: Intl.DateTimeFormatOptions = { dateStyle: "short" },
 ): string {
   return new Intl.DateTimeFormat("pt-BR", {
-    timeZone: ACRE_TIME_ZONE,
     ...options,
+    timeZone: ACRE_TIME_ZONE,
   }).format(acreDateAtTime(dateKey, "12:00"));
 }
