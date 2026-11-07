@@ -362,11 +362,11 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
     {key:"cardapios",label:"Cardápios e dietas",icon:BookOpen},
   ] as const;
 
-  return <section aria-label="Painel de acompanhamento individual do cliente" className="care-client-dashboard care-client-art-reference care-client-route flex h-full min-h-0 w-full flex-col overflow-x-hidden overflow-y-auto rounded-[22px] border border-border bg-card/95 shadow-[0_20px_60px_-44px_rgba(25,65,54,.45)]">
+  return <section aria-label="Painel de acompanhamento individual do cliente" className="care-client-dashboard care-client-art-reference care-client-route care-client-one-window flex h-full min-h-0 w-full flex-col overflow-hidden rounded-[22px] border border-border bg-card/95 shadow-[0_20px_60px_-44px_rgba(25,65,54,.45)]">
     {loading ? <p role="status" className="p-6 text-sm text-muted-foreground">Verificando acesso seguro…</p> : !owner ? <div className="grid gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-center">
       <div><div className="flex items-center gap-2 font-semibold"><LockKeyhole size={19} className="text-primary"/> Acesso protegido</div><p className="mt-2 max-w-2xl text-sm text-muted-foreground">Entre com sua conta para consultar somente seu acompanhamento e confirmar os cuidados realizados.</p></div>
       <button onClick={() => setLocked(true)} className="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground">Consultar programação</button>
-    </div> : !client ? <p className="p-6 text-sm text-muted-foreground">Nenhum prontuário vinculado a esta conta. Confira seu acesso com o responsável.</p> : <div className="care-client-content flex h-full min-h-0 flex-1 flex-col gap-2 p-2 sm:p-3">
+    </div> : !client ? <p className="p-6 text-sm text-muted-foreground">Nenhum prontuário vinculado a esta conta. Confira seu acesso com o responsável.</p> : <div className="care-client-content care-client-one-window-content flex h-full min-h-0 flex-1 flex-col gap-2 p-2 sm:p-3">
 
       <header className={"care-client-identity shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-2xl border border-primary/15 bg-gradient-to-r from-primary/[.07] via-card to-primary/[.035] px-3 py-2.5 sm:px-4 "+(activeTab==="hoje"?"flex":"hidden")}>
         <div className="flex min-w-0 items-center gap-3">
@@ -387,7 +387,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
         </div>
       </header>
 
-      <div className="care-client-medication-alert shrink-0">
+      <div className={"care-client-medication-alert shrink-0 "+(activeTab==="hoje"?"hidden":"")}>
         <CareReminderBeacon tasks={tasks} patientId={client.id} ownerId={client.owner_id} refreshKey={tick}
           onOpen={alertTask=>{const task=tasks.find(t=>t.id===alertTask.id);if(task)showTaskDetails(task)}}
           onConfirm={alertTask=>{const task=tasks.find(t=>t.id===alertTask.id);if(task)askConfirm(task)}} compact/>
@@ -469,7 +469,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
         </section>
       </div>
 
-      {activeTab==="hoje"&&<ClientTodayTimeline tasks={tasks} resolved={resolvedStates} onConfirm={askConfirm} onDetails={showTaskDetails} now={clock?.getTime()}/>}
+      {activeTab==="hoje"&&<div className="care-client-timeline-slot" aria-hidden="true"><ClientTodayTimeline tasks={tasks} resolved={resolvedStates} onConfirm={askConfirm} onDetails={showTaskDetails} now={clock?.getTime()}/></div>}
       {activeTab==="hoje"&&<section className="care-client-art-metrics" aria-label="Indicadores visuais de hidratação, alimentação e medicação">
         <button type="button" className="care-art-metric-card" data-kind="water" onClick={()=>openSection("hidratacao")} aria-label="Abrir acompanhamento de hidratação">
           <img src="/images/care-card-water.jpg" alt="" draggable={false}/>
