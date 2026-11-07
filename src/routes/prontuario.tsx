@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { ClipboardList, Droplets, HeartPulse, Plus, CheckCircle2, Circle, Bell, Clock3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Btn, Panel, PageHeader } from "@/components/vigia/ui";
+import { formatAcreDateOnly } from "@/lib/acre-time";
 
 export const Route = createFileRoute("/prontuario")({
   head: () => ({ meta: [{ title: "Prontuário de acompanhamento — CareDigital" }] }),
@@ -279,7 +280,7 @@ function Prontuario() {
         <div className="space-y-5">
           {!current ? <Panel title="Selecione um cliente"><p className="text-sm text-muted-foreground">Escolha ou cadastre um cliente para abrir a ficha individual.</p></Panel> : <>
             <Panel title="Ficha individual">
-              <div className="flex items-center gap-3"><HeartPulse className="text-primary" /><div><h2 className="text-xl font-semibold">{current.full_name}</h2><p className="text-xs text-muted-foreground">{current.birth_date ? `Nascimento: ${new Date(current.birth_date+"T12:00:00").toLocaleDateString("pt-BR")}` : "Nascimento não informado"}</p></div></div>
+              <div className="flex items-center gap-3"><HeartPulse className="text-primary" /><div><h2 className="text-xl font-semibold">{current.full_name}</h2><p className="text-xs text-muted-foreground">{current.birth_date ? `Nascimento: ${formatAcreDateOnly(current.birth_date,{dateStyle:"short"})}` : "Nascimento não informado"}</p></div></div>
               {current.contact_email && <p className="mt-2 text-xs text-muted-foreground">{current.contact_email}</p>}
               <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
                 <div className="rounded-xl bg-foreground/5 p-3"><p className="text-xs text-muted-foreground">Peso inicial</p><strong>{current.weight_kg ? `${current.weight_kg} kg` : "Não registrado"}</strong></div>
