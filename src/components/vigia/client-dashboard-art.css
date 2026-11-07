@@ -485,3 +485,69 @@
   :root .care-client-one-window .care-blister-graphic > div {height:165px !important;max-height:165px !important;}
   :root .care-client-one-window .care-client-art-metrics {grid-template-columns:1fr !important;max-height:none !important;}
 }
+
+/* Cartela interativa: reservar altura real para o blister, a legenda e os dias. */
+:root .care-client-one-window .care-client-content {
+  grid-template-rows:auto auto minmax(250px,1fr) 58px !important;
+  gap:7px !important;
+}
+:root .care-client-one-window .care-client-main {
+  min-height:250px !important;
+  grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr) !important;
+}
+:root .care-client-one-window .care-client-main > .care-blister-panel {
+  display:grid !important;
+  grid-template-rows:auto 4px auto minmax(132px,1fr) auto auto !important;
+  align-content:stretch !important;
+  min-height:250px !important;
+  height:100% !important;
+  gap:6px !important;
+  padding:10px !important;
+  overflow:hidden !important;
+}
+:root .care-client-one-window .care-blister-header {min-height:34px !important;align-items:center !important;}
+:root .care-client-one-window .care-blister-navigation {min-height:32px !important;}
+:root .care-client-one-window .care-blister-body {
+  min-height:132px !important;
+  height:100% !important;
+  align-items:center !important;
+}
+:root .care-client-one-window .care-blister-body.is-dual {
+  grid-template-columns:minmax(0,1fr) minmax(112px,.86fr) minmax(0,1fr) !important;
+}
+:root .care-client-one-window .care-blister-graphic {
+  display:grid !important;
+  place-items:center !important;
+  width:100% !important;
+  max-width:170px !important;
+  max-height:140px !important;
+  height:100% !important;
+  overflow:visible !important;
+}
+:root .care-client-one-window .care-blister-graphic > div {
+  width:100% !important;
+  height:136px !important;
+  max-height:136px !important;
+  aspect-ratio:480/440 !important;
+  overflow:visible !important;
+}
+:root .care-client-one-window .care-blister-graphic svg,
+:root .care-client-one-window .care-blister-graphic img {
+  width:100% !important;
+  height:100% !important;
+  object-fit:contain !important;
+}
+:root .care-client-one-window .care-blister-period {min-height:76px !important;gap:4px !important;padding:5px !important;}
+:root .care-client-one-window .care-blister-legend {min-height:14px !important;}
+:root .care-client-one-window .care-blister-day-selector {min-height:26px !important;padding-top:3px !important;}
+:root .care-client-one-window .care-client-art-metrics {min-height:58px !important;max-height:58px !important;}
+:root .care-client-one-window .care-art-metric-card {min-height:58px !important;}
+@media(max-height:700px) and (min-width:901px) {
+  :root .care-client-one-window .care-client-content {grid-template-rows:auto auto minmax(240px,1fr) 52px !important;}
+  :root .care-client-one-window .care-client-main {min-height:240px !important;}
+  :root .care-client-one-window .care-client-main > .care-blister-panel {min-height:240px !important;grid-template-rows:auto 3px auto minmax(120px,1fr) auto auto !important;gap:4px !important;padding:8px !important;}
+  :root .care-client-one-window .care-blister-body {min-height:120px !important;}
+  :root .care-client-one-window .care-blister-graphic > div {height:122px !important;max-height:122px !important;}
+  :root .care-client-one-window .care-blister-period {min-height:68px !important;}
+  :root .care-client-one-window .care-blister-day-selector {min-height:23px !important;}
+}
