@@ -126,7 +126,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
       const until = new Date(new Date(from).getTime() + 86400000).toISOString();
       const rows = await db.from("care_daily_checklist").select("id,patient_id,title,category,scheduled_at,completed_at")
         .eq("owner_id",first.owner_id).eq("patient_id",first.id).gte("scheduled_at",from).lt("scheduled_at",until)
-        .in("category",["medicacao","hidratacao","refeicao","outro"]).order("scheduled_at",{ascending:true}).limit(120);
+        .in("category",["medicacao","outro"]).order("scheduled_at",{ascending:true}).limit(120);
       if(!active)return;
       if(rows.error){setNotice("Não foi possível carregar a agenda de hoje.");return;}
       const eligible=(rows.data??[]).filter((task:Task)=>task.category!=="outro"||
