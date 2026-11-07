@@ -382,7 +382,7 @@ export function ClientHomeSummary(){
    refeicao:agendaItems.filter(item=>item.category==="refeicao").length,
    medicacao:agendaItems.filter(item=>item.category==="medicacao").length};
  const chooseAgenda=(category:typeof agendaCategory)=>{setAgendaCategory(category);setAgendaPage(0);};
- return <section className="client-home-dashboard care-home-art-v2 care-home-art-reference care-premium-v3 care-reference-2026 care-dashboard-oneview care-home-redesign-next relative flex min-h-0 min-w-0 w-full flex-col gap-2 rounded-[20px] border p-2.5 shadow-xl md:h-full md:max-h-full md:overflow-hidden" aria-label="Painel interativo do cliente na homepage">
+ return <section className="client-home-dashboard care-home-art-v2 care-home-art-reference care-premium-v3 care-reference-2026 care-dashboard-oneview care-home-redesign-next relative flex min-h-0 min-w-0 w-full flex-col gap-2 rounded-[20px] border p-2.5 shadow-xl md:h-auto md:max-h-none md:overflow-visible" aria-label="Painel interativo do cliente na homepage">
   <header className="care-next-header relative z-10">
     <div className="care-next-intro">
       <span className="care-next-kicker"><Activity size={14}/> SEU ESPAÇO DE BEM-ESTAR</span>
