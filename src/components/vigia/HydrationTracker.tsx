@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Droplets } from "lucide-react";
 import { Panel, SelectField, Tag } from "@/components/vigia/ui";
 import { HydrationPersonalPlan } from "./HydrationPersonalPlan";
+import { acreAddDays, acreDateAtTime, acreDateKey, acreTimeLabel } from "@/lib/acre-time";
 
 const STORAGE_KEY = "vigia-hydration-v1";
 const goals = [
@@ -25,29 +26,23 @@ type HydrationData = {
 };
 
 function dayKey(date = new Date()) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  return acreDateKey(date);
 }
 
 function timeOnDate(value: string, date: Date) {
-  const [hours, minutes] = value.split(":").map(Number);
-  const result = new Date(date);
-  result.setHours(hours || 0, minutes || 0, 0, 0);
-  return result;
+  return acreDateAtTime(dayKey(date), value);
 }
 
 function nextReminder(from: Date, wakeTime: string, sleepTime: string, intervalMinutes: number) {
+  const today = dayKey(from);
   const wake = timeOnDate(wakeTime, from);
   const sleep = timeOnDate(sleepTime, from);
   const intervalMs = intervalMinutes * 60_000;
   if (from < wake) return wake.getTime();
-  if (from >= sleep) {
-    const tomorrow = new Date(from);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return timeOnDate(wakeTime, tomorrow).getTime();
-  }
+  if (from >= sleep) return acreDateAtTime(acreAddDays(today, 1), wakeTime).getTime();
   const elapsed = from.getTime() - wake.getTime();
   const due = new Date(wake.getTime() + (Math.floor(elapsed / intervalMs) + 1) * intervalMs);
-  return due <= sleep ? due.getTime() : timeOnDate(wakeTime, new Date(from.getFullYear(), from.getMonth(), from.getDate() + 1)).getTime();
+  return due <= sleep ? due.getTime() : acreDateAtTime(acreAddDays(today, 1), wakeTime).getTime();
 }
 
 function defaults(now = new Date()): HydrationData {
@@ -147,7 +142,7 @@ export function useHydration() {
 }
 
 function timeLabel(timestamp: number) {
-  return new Date(timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  return acreTimeLabel(timestamp);
 }
 
 function countdown(seconds: number) {
@@ -188,9 +183,9 @@ export function HydrationDashboard() {
   const portionMl = Math.round(data.targetMl / reminderCount / 25) * 25;
   const percent = Math.min(100, Math.round((data.intakeMl / data.targetMl) * 100));
   const schedule = Array.from({ length: reminderCount }, (_, index) => {
-    const time = timeOnDate(data.wakeTime, now);
-    time.setMinutes(time.getMinutes() + index * data.intervalMinutes);
-    return { at: time, amount: portionMl };
+    const start = timeOnDate(data.wakeTime, now);
+    const at = new Date(start.getTime() + index * data.intervalMinutes * 60_000);
+    return { at, amount: portionMl };
   }).filter((item) => item.at <= timeOnDate(data.sleepTime, now));
 
   if (!ready) return <p className="rounded-xl bg-foreground/5 p-4 text-sm text-muted-foreground">Carregando seu cronograma salvo neste dispositivo…</p>;
@@ -251,7 +246,7 @@ export function HydrationDashboard() {
                   <span className="text-[10px] font-bold text-muted-foreground">{index+1}/{schedule.length}</span>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2"><time className="text-sm font-bold tabular-nums text-foreground">{item.at.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}</time>{slotConfirmed?<span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">Confirmado</span>:slotExpired?<span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-900">Não confirmado</span>:slotOpen?<span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">Confirmar · tolerância 20 min</span>:<span className="text-[10px] text-muted-foreground">Programado</span>}</div>
+                  <div className="flex flex-wrap items-center gap-2"><time className="text-sm font-bold tabular-nums text-foreground">{acreTimeLabel(item.at)}</time>{slotConfirmed?<span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">Confirmado</span>:slotExpired?<span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-900">Não confirmado</span>:slotOpen?<span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">Confirmar · tolerância 20 min</span>:<span className="text-[10px] text-muted-foreground">Programado</span>}</div>
                   <p className="mt-0.5 text-xs font-medium">{copy}</p>
                   <p className="text-[11px] text-muted-foreground">Porção sugerida ~{Math.round(data.targetMl/schedule.length/25)*25} ml · referência acumulada {suggestedCumulative} ml</p>
                   {scheduledPassed&&<p className="mt-0.5 text-[10px] text-muted-foreground">Volume real do dia: {data.intakeMl} ml (não atribuído automaticamente a esta etapa).</p>}
@@ -261,13 +256,13 @@ export function HydrationDashboard() {
             })}
           </ol>
           <p className="mt-3 text-[11px] text-muted-foreground">Cada horário pode ser confirmado durante 20 minutos após o início. Após esse período, fica como não confirmado, sem presumir que você não bebeu. Para registrar água realmente consumida fora do cronograma, use o registro livre acima.</p>
-          {confirmSlot&&<div role="dialog" aria-modal="true" aria-label="Confirmar copo de água" className="mt-3 rounded-xl border border-primary/30 bg-background p-4 shadow-lg"><p className="font-semibold">Quanto você bebeu neste horário?</p><label className="mt-2 flex items-center gap-2 text-xs"><input type="number" inputMode="numeric" min="10" max="1500" step="1" value={confirmSlot.amount} onChange={e=>setConfirmSlot({...confirmSlot,amount:Number(e.target.value)})} className="w-32 rounded-lg border border-border bg-background px-3 py-2 text-sm"/> ml</label><p className="mt-1 text-xs text-muted-foreground">Horário previsto: {new Date(confirmSlot.scheduledAt).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}. O horário real da confirmação será registrado.</p><div className="mt-3 flex gap-2"><button type="button" className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground disabled:opacity-40" disabled={!validMl(confirmSlot.amount)} onClick={()=>{const start=Date.parse(confirmSlot.scheduledAt);if(Date.now()>=start&&Date.now()<=start+toleranceMs&&!data.logs.some(log=>log.scheduledAt===confirmSlot.scheduledAt)){register(confirmSlot.amount,confirmSlot.scheduledAt)}else{setNotice("Etapa encerrada ou já confirmada. Use o registro livre para consumo fora do horário.");setConfirmSlot(null)}}}>Sim, bebi agora</button><button type="button" className="rounded-lg border px-4 py-2 text-xs" onClick={()=>setConfirmSlot(null)}>Cancelar</button></div></div>}
+          {confirmSlot&&<div role="dialog" aria-modal="true" aria-label="Confirmar copo de água" className="mt-3 rounded-xl border border-primary/30 bg-background p-4 shadow-lg"><p className="font-semibold">Quanto você bebeu neste horário?</p><label className="mt-2 flex items-center gap-2 text-xs"><input type="number" inputMode="numeric" min="10" max="1500" step="1" value={confirmSlot.amount} onChange={e=>setConfirmSlot({...confirmSlot,amount:Number(e.target.value)})} className="w-32 rounded-lg border border-border bg-background px-3 py-2 text-sm"/> ml</label><p className="mt-1 text-xs text-muted-foreground">Horário previsto: {acreTimeLabel(confirmSlot.scheduledAt)}. O horário real da confirmação será registrado.</p><div className="mt-3 flex gap-2"><button type="button" className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground disabled:opacity-40" disabled={!validMl(confirmSlot.amount)} onClick={()=>{const start=Date.parse(confirmSlot.scheduledAt);if(Date.now()>=start&&Date.now()<=start+toleranceMs&&!data.logs.some(log=>log.scheduledAt===confirmSlot.scheduledAt)){register(confirmSlot.amount,confirmSlot.scheduledAt)}else{setNotice("Etapa encerrada ou já confirmada. Use o registro livre para consumo fora do horário.");setConfirmSlot(null)}}}>Sim, bebi agora</button><button type="button" className="rounded-lg border px-4 py-2 text-xs" onClick={()=>setConfirmSlot(null)}>Cancelar</button></div></div>}
         </Panel>
       </div>
     </div>
 
     <Panel title="Seu registro de hoje">
-      {data.logs.length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma ingestão registrada hoje. Use os botões acima para acompanhar o que bebeu.</p> : <ol className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{data.logs.map((log, index) => <li key={`${log.at}-${index}`} className="flex justify-between rounded-lg bg-foreground/5 p-3 text-sm"><time className="font-mono text-muted-foreground">{new Date(log.at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</time><strong>{log.amountMl} ml</strong></li>)}</ol>}
+      {data.logs.length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma ingestão registrada hoje. Use os botões acima para acompanhar o que bebeu.</p> : <ol className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{data.logs.map((log, index) => <li key={`${log.at}-${index}`} className="flex justify-between rounded-lg bg-foreground/5 p-3 text-sm"><time className="font-mono text-muted-foreground">{acreTimeLabel(log.at)}</time><strong>{log.amountMl} ml</strong></li>)}</ol>}
     </Panel>
 
     <p className="rounded-xl border border-warning/30 bg-warning/10 p-4 text-xs leading-relaxed">Referências populacionais para adultos estimam água total em torno de 2,7 L/dia para mulheres e 3,7 L/dia para homens, contando água dos alimentos e todas as bebidas; isso não é uma meta individual de água pura. Calor, exercício e doenças podem alterar a necessidade. Não force grandes volumes nem tente compensar rapidamente. Doença renal ou cardíaca, gravidez, amamentação, diarreia/vômitos ou restrição médica exigem meta profissional individualizada. <a href="https://www.nationalacademies.org/read/10925/chapter/6" target="_blank" rel="noreferrer" className="font-semibold underline underline-offset-4">National Academies</a> · <a href="https://www.cdc.gov/healthy-weight-growth/water-healthy-drinks/index.html" target="_blank" rel="noreferrer" className="font-semibold underline underline-offset-4">CDC</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/17277604/" target="_blank" rel="noreferrer" className="font-semibold underline underline-offset-4">ACSM — exercício e reposição de líquidos</a></p>
