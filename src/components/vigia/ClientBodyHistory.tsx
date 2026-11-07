@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { acreDateKey } from "@/lib/acre-time";
 
 type Point={id:string;recorded_on:string;weight_kg:number;height_cm:number};
 type Props={patientId:string;ownerId:string;currentWeight:number|null;height:number|null};
 export function ClientBodyHistory({patientId,ownerId,currentWeight,height}:Props){
  const [points,setPoints]=useState<Point[]>([]);
- const [date,setDate]=useState(()=>new Date().toISOString().slice(0,10));
+ const [date,setDate]=useState(()=>acreDateKey());
  const [weight,setWeight]=useState(currentWeight?.toString()??"");
  const [loading,setLoading]=useState(true);
  const [saving,setSaving]=useState(false);
@@ -22,7 +23,7 @@ export function ClientBodyHistory({patientId,ownerId,currentWeight,height}:Props
  const save=async()=>{
   const kg=Number(weight.replace(",","."));
   if(!Number.isFinite(kg)||kg<20||kg>350||height===null||height<100||height>230){setMessage("Informe um peso válido e confirme que a altura está cadastrada no prontuário.");return;}
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date>new Date().toISOString().slice(0,10)){setMessage("Selecione uma data válida que não esteja no futuro.");return;}
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date>acreDateKey()){setMessage("Selecione uma data válida que não esteja no futuro.");return;}
   setSaving(true);setMessage("");
   const auth=await supabase.auth.getUser();
   if(!auth.data.user){setMessage("Entre na sua conta para registrar a evolução.");setSaving(false);return;}
@@ -51,7 +52,7 @@ export function ClientBodyHistory({patientId,ownerId,currentWeight,height}:Props
     </table>
    </div>}
    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]">
-    <label className="text-xs">Data<input type="date" max={new Date().toISOString().slice(0,10)} value={date} onChange={e=>setDate(e.target.value)} className="mt-1 block min-h-10 w-full rounded-lg border border-white/20 bg-slate-900 px-2 text-base text-white"/></label>
+    <label className="text-xs">Data<input type="date" max={acreDateKey()} value={date} onChange={e=>setDate(e.target.value)} className="mt-1 block min-h-10 w-full rounded-lg border border-white/20 bg-slate-900 px-2 text-base text-white"/></label>
     <label className="text-xs">Peso (kg)<input inputMode="decimal" value={weight} onChange={e=>setWeight(e.target.value)} placeholder="Ex.: 75,5" className="mt-1 block min-h-10 w-full rounded-lg border border-white/20 bg-slate-900 px-2 text-base text-white"/></label>
     <button type="button" disabled={saving} onClick={()=>void save()} className="self-end rounded-lg bg-teal-300 px-3 py-2.5 text-sm font-bold text-slate-950 disabled:opacity-50">{saving?"Salvando…":"Registrar"}</button>
    </div>
