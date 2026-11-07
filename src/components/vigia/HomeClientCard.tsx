@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, CalendarClock, CalendarDays, CheckCircle2, Droplets, History, LayoutDashboard, LockKeyhole, Pill, Target, UtensilsCrossed, BookOpen, UserRound, AlertTriangle, Trash2, X } from "lucide-react";
+import { ArrowRight, CalendarClock, CalendarDays, CheckCircle2, Droplets, History, LayoutDashboard, LockKeyhole, Pill, Target, UtensilsCrossed, BookOpen, UserRound, AlertTriangle, Trash2, X, Activity, BarChart3, Clock3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CompactTreatmentBlister } from "./CompactTreatmentBlister";
 import { PatientActivityHistory } from "./PatientActivityHistory";
@@ -16,10 +16,15 @@ import { ClientQuickIntake } from "./ClientQuickIntake";
 import { CareTaskRecordModal } from "./CareTaskRecordModal";
 import { CareReminderBeacon } from "./CareReminderBeacon";
 import { ClientTodayTimeline } from "./ClientTodayTimeline";
+import { CareRecentHistory } from "./CareRecentHistory";
+import { ClientHealthProfile } from "./ClientHealthProfile";
+import { ClientOverviewIndicators } from "./ClientOverviewIndicators";
+import "./client-overview-premium.css";
 import { canConfirmCare, careScheduleBlockMessage, careScheduleLabel, getCareScheduleState } from "@/lib/care-schedule";
 import "./client-dashboard-art.css";
 
-type Client = { id: string; owner_id: string; full_name: string; status: string; care_goal: string | null };
+type Client = { id: string; owner_id: string; full_name: string; status: string; care_goal: string | null; height_cm: number | null; weight_kg: number | null };
+type OverviewHealthProfile = { age: number | null; activityMinutes: number; weightKg: number | null; objective: string | null; protein: number | null; carbs: number | null; fat: number | null; kcal: number | null };
 type Task = { id: string; patient_id: string; title: string; category: string; scheduled_at: string; completed_at: string | null };
 const db = supabase as unknown as { from: (table: string) => any; auth: typeof supabase.auth };
 const tz = "America/Rio_Branco";
@@ -72,6 +77,10 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
   const [hydrationGoal,setHydrationGoal] = useState<{consumed_ml?:number;target_ml?:number;status?:string}|null>(null);
   const [mealRecordCount,setMealRecordCount] = useState<number|null>(null);
   const [mealRecordsLoading,setMealRecordsLoading] = useState(true);
+  const [healthProfile,setHealthProfile] = useState<OverviewHealthProfile>({age:null,activityMinutes:0,weightKg:null,objective:null,protein:null,carbs:null,fat:null,kcal:null});
+  const [activityCount,setActivityCount] = useState<number|null>(null);
+  const [historyCategory,setHistoryCategory] = useState<"todos"|"hidratacao"|"refeicao"|"medicacao">("todos");
+  const [showHealthProfile,setShowHealthProfile] = useState(false);
   const mealRecordDay=dayInAcre(clock??new Date());
   useEffect(()=>{
     const syncHash=()=>setActiveTab(clientSectionFromHash(window.location.hash));
@@ -119,8 +128,8 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
       if (grants.error) { if (active) setNotice("Não foi possível verificar o vínculo de acesso."); return; }
       const assignedId = grants.data?.[0]?.patient_id;
       const res = assignedId
-        ? await db.from("care_patients").select("id,owner_id,full_name,status,care_goal").eq("id",assignedId).limit(1)
-        : await db.from("care_patients").select("id,owner_id,full_name,status,care_goal").eq("owner_id", owner).order("created_at", {ascending: true}).limit(1);
+        ? await db.from("care_patients").select("id,owner_id,full_name,status,care_goal,height_cm,weight_kg").eq("id",assignedId).limit(1)
+        : await db.from("care_patients").select("id,owner_id,full_name,status,care_goal,height_cm,weight_kg").eq("owner_id", owner).order("created_at", {ascending: true}).limit(1);
       if (!active) return;
       if (res.error) { setNotice("Não foi possível consultar o prontuário."); return; }
       const first = (res.data ?? [])[0] as Client | undefined;
@@ -168,6 +177,53 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
       }, () => { if (active) setHydrationGoal(null); });
     return () => { active = false; };
   }, [client?.id, client?.owner_id, tick]);
+
+  // Metas e perfil são somente leitura nesta visão geral; a edição continua no modal Meu perfil.
+  useEffect(() => {
+    if (!client?.id || !client?.owner_id) {
+      setHealthProfile({age:null,activityMinutes:0,weightKg:null,objective:null,protein:null,carbs:null,fat:null,kcal:null});
+      return;
+    }
+    let active = true;
+    void Promise.all([
+      db.from("care_hydration_profiles").select("age,activity_minutes,weight_kg")
+        .eq("patient_id",client.id).eq("owner_id",client.owner_id).maybeSingle(),
+      db.from("care_nutrition_preferences").select("weight_kg,objective,target_protein_g,target_carbs_g,target_fat_g,target_kcal")
+        .eq("patient_id",client.id).eq("owner_id",client.owner_id).maybeSingle()
+    ]).then(([hydration,nutrition]) => {
+      if (!active) return;
+      const num = (value:unknown):number|null => {
+        if (value===null||value===undefined||value==="") return null;
+        const parsed=Number(value);
+        return Number.isFinite(parsed)&&parsed>0?parsed:null;
+      };
+      setHealthProfile({
+        age:num(hydration.data?.age),
+        activityMinutes:num(hydration.data?.activity_minutes)??0,
+        weightKg:num(nutrition.data?.weight_kg)??num(hydration.data?.weight_kg)??num(client.weight_kg),
+        objective:typeof nutrition.data?.objective==="string"?nutrition.data.objective:client.care_goal,
+        protein:num(nutrition.data?.target_protein_g),
+        carbs:num(nutrition.data?.target_carbs_g),
+        fat:num(nutrition.data?.target_fat_g),
+        kcal:num(nutrition.data?.target_kcal)
+      });
+    }).catch(() => { if(active) setHealthProfile({age:null,activityMinutes:0,weightKg:client.weight_kg,objective:client.care_goal,protein:null,carbs:null,fat:null,kcal:null}); });
+    return () => { active=false; };
+  }, [client?.id,client?.owner_id,client?.weight_kg,client?.care_goal,tick]);
+
+  // A atividade só aparece quando existe um evento real lançado no prontuário.
+  useEffect(() => {
+    if (!client?.id || !client?.owner_id) { setActivityCount(null); return; }
+    let active=true;
+    const from=new Date(mealRecordDay+"T00:00:00-05:00").toISOString();
+    const until=new Date(new Date(from).getTime()+86400000).toISOString();
+    void db.from("care_activity_log").select("id")
+      .eq("patient_id",client.id).eq("owner_id",client.owner_id).eq("category","atividade")
+      .in("event_type",["confirmed","logged"]).gte("recorded_at",from).lt("recorded_at",until).limit(200)
+      .then((result:any) => { if(active) setActivityCount(result.error?null:(result.data??[]).length); })
+      .catch(() => { if(active) setActivityCount(null); });
+    return () => { active=false; };
+  }, [client?.id,client?.owner_id,mealRecordDay,tick]);
 
   // Conta registros alimentares reais do prontuário, sem confundir com a agenda.
   // Confirmações programadas e lançamentos avulsos vêm do mesmo histórico auditável.
@@ -362,7 +418,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
     {key:"cardapios",label:"Cardápios e dietas",icon:BookOpen},
   ] as const;
 
-  return <section aria-label="Painel de acompanhamento individual do cliente" className="care-client-dashboard care-client-art-reference care-client-route care-client-one-window flex h-full min-h-0 w-full flex-col overflow-hidden rounded-[22px] border border-border bg-card/95 shadow-[0_20px_60px_-44px_rgba(25,65,54,.45)]">
+  return <section aria-label="Painel de acompanhamento individual do cliente" className={`care-client-dashboard care-client-art-reference care-client-route care-client-one-window ${activeTab==="hoje"?"care-client-overview-v2":""} flex h-full min-h-0 w-full flex-col overflow-hidden rounded-[22px] border border-border bg-card/95 shadow-[0_20px_60px_-44px_rgba(25,65,54,.45)]`}>
     {loading ? <p role="status" className="p-6 text-sm text-muted-foreground">Verificando acesso seguro…</p> : !owner ? <div className="grid gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-center">
       <div><div className="flex items-center gap-2 font-semibold"><LockKeyhole size={19} className="text-primary"/> Acesso protegido</div><p className="mt-2 max-w-2xl text-sm text-muted-foreground">Entre com sua conta para consultar somente seu acompanhamento e confirmar os cuidados realizados.</p></div>
       <button onClick={() => setLocked(true)} className="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground">Consultar programação</button>
@@ -374,7 +430,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
           <div className="min-w-0">
             <p className="text-[10px] font-extrabold uppercase tracking-[.13em] text-primary">Meu acompanhamento · acesso individual</p>
             <h1 className="truncate text-xl font-extrabold tracking-tight text-foreground sm:text-2xl">{patientName||client.full_name}</h1>
-            <p className="text-[11px] text-muted-foreground">Tratamento de 35 dias · horários do Acre</p>
+            <p className="text-[11px] text-muted-foreground">Tratamento e rotina · {dateInAcre(clock??new Date())} · {completed}/{tasks.length} cuidados concluídos</p>
           </div>
         </div>
         <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
@@ -383,7 +439,11 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
             <span className="min-w-0"><strong className="block text-xs font-extrabold text-foreground">{medicineTasks.length && medicineConfirmed===medicineTasks.length?"Medicações de hoje confirmadas":"Tratamento em acompanhamento"}</strong>
             <small className="block text-[10px] text-muted-foreground">{medicineTasks.length?`${medicineConfirmed}/${medicineTasks.length} doses confirmadas hoje`:"Nenhuma dose prevista hoje"}</small></span>
           </div>
-          <div className="flex flex-wrap items-center gap-1.5"><ClientQuickIntake patientId={client.id} mode="water" onRecorded={()=>setTick(value=>value+1)}/><ClientQuickIntake patientId={client.id} onRecorded={()=>setTick(value=>value+1)}/></div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <ClientQuickIntake patientId={client.id} mode="water" onRecorded={()=>setTick(value=>value+1)}/>
+            <ClientQuickIntake patientId={client.id} onRecorded={()=>setTick(value=>value+1)}/>
+            <button type="button" className="care-overview-profile-button" onClick={()=>setShowHealthProfile(true)}>Meu perfil</button>
+          </div>
         </div>
       </header>
 
@@ -407,43 +467,98 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
 
       <div id="care-client-tab-panel" role="tabpanel" aria-label={tabs.find(tab=>tab.key===activeTab)?.label}
         data-client-page={activeTab}
-        className={"care-client-main care-client-page-main grid min-h-0 min-w-0 flex-1 items-stretch gap-2 "+(activeTab==="hoje"?"md:grid-cols-[minmax(0,1.06fr)_minmax(0,.94fr)]":"grid-cols-1")}>
-        {activeTab==="hoje"&&<CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm} dashboardMode onProgressChange={setTreatmentProgress}/>}
-        <section data-page={activeTab} className={"care-client-summary care-client-page-content min-h-0 min-w-0 rounded-2xl border border-border bg-card "+(activeTab==="hoje"?"overflow-y-auto p-3 sm:p-4":"overflow-y-auto overscroll-contain p-2 sm:p-3")} aria-label={"Página "+tabs.find(tab=>tab.key===activeTab)?.label}>
-          {activeTab==="hoje"&&<div className="care-summary-today flex h-full min-h-0 flex-col gap-3">
-            <div className="flex shrink-0 items-center justify-between gap-2">
-              <h2 className="inline-flex items-center gap-2 text-sm font-extrabold text-foreground"><LayoutDashboard size={18} className="text-primary"/> Resumo do dia</h2>
-              <span className="whitespace-nowrap rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-semibold text-primary">{dateInAcre(clock??new Date())}</span>
-            </div>
-
-            <div className="care-summary-stats grid shrink-0 grid-cols-3 gap-2">
-              <div className="rounded-2xl border border-border/55 bg-muted/70 p-3"><p className="text-[11px] text-muted-foreground">Cuidados</p><strong className="mt-1 block text-2xl font-extrabold tabular-nums text-foreground">{tasks.length}</strong></div>
-              <div className="rounded-2xl border border-success/15 bg-success/5 p-3"><p className="text-[11px] text-muted-foreground">Concluídos</p><strong className="mt-1 block text-2xl font-extrabold tabular-nums text-success">{completed}</strong></div>
-              <div className="rounded-2xl border border-border/55 bg-muted/70 p-3"><p className="text-[11px] text-muted-foreground">Não confirmados</p><strong className="mt-1 block text-2xl font-extrabold tabular-nums text-foreground">{tasks.length-completed}</strong></div>
-            </div>
-
-            <div className="care-next-care flex shrink-0 flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/20 bg-primary/[.045] p-3">
-              <div className="flex min-w-0 flex-1 items-start gap-2.5">
-                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><CalendarClock size={21}/></span>
-                <div className="min-w-0">
-                  <p className="text-xs font-extrabold text-foreground">Próximo cuidado pendente</p>
-                  {nextCare?<><strong className="mt-1 block text-base font-extrabold tabular-nums text-foreground">{timeInAcre(nextCare.scheduled_at)} · {categoryInfo[nextCare.category]?.label??"Atividade"}</strong><p className="truncate text-xs text-muted-foreground">{nextCare.title}</p><LiveCareCountdown scheduledAt={nextCare.scheduled_at}/></>:<p className="mt-1 text-xs text-muted-foreground">Não há novos horários disponíveis. Consulte a agenda para ver os cuidados não confirmados.</p>}
+        className={"care-client-main care-client-page-main grid min-h-0 min-w-0 flex-1 items-stretch gap-2 "+(activeTab==="hoje"?"care-overview-layout":"grid-cols-1")}>
+        {activeTab==="hoje" ? <>
+          <div className="care-overview-primary">
+            <CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm} dashboardMode onProgressChange={setTreatmentProgress}/>
+            <section className="care-overview-progress" aria-label="Progresso dos cuidados por categoria">
+              <div className="care-overview-section-heading">
+                <div><span className="care-overview-eyebrow">ACOMPANHAMENTO</span><h3>Progresso dos cuidados</h3></div>
+                <span className="care-overview-heading-note">Hoje · Acre</span>
+              </div>
+              <div className="care-overview-progress-grid">
+                <article className="care-overview-progress-item">
+                  <header><Droplets size={13}/> Água</header>
+                  <strong>{hydrationTarget>0?hydrationConsumed.toLocaleString("pt-BR")+" ml":hydrationConfirmed+"/"+hydrationTasks.length}</strong>
+                  <small>{hydrationTarget>0?"de "+hydrationTarget.toLocaleString("pt-BR")+" ml":hydrationTasks.length+" lembretes"}</small>
+                  <div className="care-overview-progress-track"><i style={{width:hydrationPercent+"%"}}/></div>
+                </article>
+                <article className="care-overview-progress-item">
+                  <header><UtensilsCrossed size={13}/> Refeições</header>
+                  <strong>{mealRecordCount===null?"—":mealRecordCount.toLocaleString("pt-BR")}</strong>
+                  <small>{mealRecordCount===null?(mealRecordsLoading?"Consultando":"Indisponível"):`${mealConfirmed}/${mealTotal} confirmadas`}</small>
+                  <div className="care-overview-progress-track"><i style={{width:mealPercent+"%"}}/></div>
+                </article>
+                <article className="care-overview-progress-item">
+                  <header><Pill size={13}/> Medicamentos</header>
+                  <strong>{medicineValue}</strong>
+                  <small>doses confirmadas</small>
+                  <div className="care-overview-progress-track"><i style={{width:medicinePercent+"%"}}/></div>
+                </article>
+                <article className="care-overview-progress-item">
+                  <header><Activity size={13}/> Atividade</header>
+                  <strong>{activityCount===null?"—":activityCount.toLocaleString("pt-BR")}</strong>
+                  <small>{activityCount===null?"Sem dados disponíveis":activityCount===0?"Sem registro hoje":"registros hoje"}</small>
+                  <div className="care-overview-progress-track"><i style={{width:activityCount&&activityCount>0?"100%":"0%"}}/></div>
+                </article>
+              </div>
+            </section>
+          </div>
+          <div className="care-overview-secondary">
+            <section className="care-overview-card" aria-label="Resumo do dia">
+              <div className="care-overview-section-heading">
+                <div><span className="care-overview-eyebrow">SEU DIA</span><h3>Resumo do dia</h3></div>
+                <span className="care-overview-heading-note">{dateInAcre(clock??new Date())}</span>
+              </div>
+              <div className="care-overview-stats">
+                <div className="care-overview-stat"><span>Total de cuidados</span><strong>{tasks.length}</strong></div>
+                <div className="care-overview-stat is-complete"><span>Concluídos</span><strong>{completed}</strong></div>
+                <div className="care-overview-stat"><span>Pendentes</span><strong>{Math.max(0,tasks.length-completed)}</strong></div>
+              </div>
+              <div className="mt-2 flex items-center justify-between gap-2 text-[10px] font-bold text-slate-600">
+                <span>Progresso diário</span><span className="tabular-nums">{tasks.length?Math.round(completed/tasks.length*100):0}%</span>
+              </div>
+              <div className="care-overview-progress-track" role="progressbar" aria-label="Percentual de cuidados concluídos" aria-valuenow={tasks.length?Math.round(completed/tasks.length*100):0} aria-valuemin={0} aria-valuemax={100}>
+                <i style={{width:(tasks.length?Math.round(completed/tasks.length*100):0)+"%"}}/>
+              </div>
+              <div className="mt-2 flex items-center justify-between gap-2 rounded-xl border border-sky-100 bg-sky-50 px-3 py-2">
+                <span className="flex items-center gap-2 text-[10px] font-bold text-sky-800"><Droplets size={15}/> Meta de hidratação</span>
+                <strong className="text-[11px] font-extrabold tabular-nums text-sky-900">{hydrationTarget>0?hydrationConsumed.toLocaleString("pt-BR")+" / "+hydrationTarget.toLocaleString("pt-BR")+" ml":"Não disponível"}</strong>
+              </div>
+            </section>
+            <section id="care-home-timeline" className="care-overview-card care-overview-next" data-kind={nextCare?.category==="hidratacao"?"hidratacao":undefined} aria-label="Próximo cuidado">
+              <div className="flex items-center justify-between gap-2">
+                <span className="care-overview-eyebrow">PRÓXIMO CUIDADO</span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-white/80 px-2 py-1 text-[9px] font-bold text-slate-600"><Clock3 size={12}/> Horário do Acre</span>
+              </div>
+              {nextCare ? <>
+                <h3 className="mt-1">{nextCare.title}</h3>
+                <div className="mt-1 flex flex-wrap items-baseline justify-between gap-2">
+                  <strong className="care-overview-next-time">{timeInAcre(nextCare.scheduled_at)}</strong>
+                  <span className="text-[10px] font-semibold text-slate-600">{categoryInfo[nextCare.category]?.label??"Atividade"}</span>
                 </div>
+                <LiveCareCountdown scheduledAt={nextCare.scheduled_at}/>
+                <button type="button" onClick={()=>askConfirm(nextCare)}><CheckCircle2 size={14}/> Confirmar / registrar</button>
+                {nextCare.category==="hidratacao"&&<small className="mt-1 block text-[9px] font-semibold text-sky-800">Hidratação: registre somente o volume realmente consumido.</small>}
+              </> : <p className="mt-2 text-xs">Nenhum cuidado futuro pendente. Consulte o histórico para conferir os registros do dia.</p>}
+            </section>
+            <section className="care-overview-agenda" aria-label="Agenda de hoje e histórico recente">
+              <div className="care-overview-section-heading">
+                <div><span className="care-overview-eyebrow">ROTINA E REGISTROS</span><h3>Agenda e histórico recente</h3></div>
+                <button type="button" onClick={()=>openSection("agenda")} className="text-[10px] font-bold text-teal-700">Ver agenda <ArrowRight size={12} className="inline"/></button>
               </div>
-              {nextCare&&<button type="button" onClick={()=>askConfirm(nextCare)} className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-primary px-3 text-[11px] font-extrabold text-primary-foreground transition hover:opacity-90">Consultar / confirmar <ArrowRight size={15}/></button>}
+              <ClientTodayTimeline tasks={tasks} resolved={resolvedStates} onConfirm={askConfirm} onDetails={showTaskDetails} now={clock?.getTime()}/>
+              <div className="care-overview-history-filters" role="group" aria-label="Filtrar histórico recente">
+                {([{key:"todos",label:"Todos"},{key:"hidratacao",label:"Água"},{key:"refeicao",label:"Refeições"},{key:"medicacao",label:"Medicamentos"}] as const).map(item=><button key={item.key} type="button" aria-pressed={historyCategory===item.key} onClick={()=>setHistoryCategory(item.key)}>{item.label}</button>)}
+              </div>
+              <CareRecentHistory patientId={client.id} ownerId={client.owner_id} category={historyCategory} compact/>
+            </section>
+            <div id="care-overview-indicators">
+              <ClientOverviewIndicators heightCm={client.height_cm} weightKg={healthProfile.weightKg??client.weight_kg} waterTarget={hydrationTarget||null}
+                protein={healthProfile.protein} carbs={healthProfile.carbs} fat={healthProfile.fat} kcal={healthProfile.kcal}/>
             </div>
-
-            <div className="care-treatment-progress mt-auto shrink-0 border-t border-border pt-3">
-              <div className="flex items-center justify-between gap-2"><h3 className="inline-flex items-center gap-2 text-xs font-extrabold text-foreground"><Target size={18} className="text-primary"/> Progresso do tratamento</h3>
-                <span className="text-xs font-extrabold tabular-nums text-foreground">{treatmentProgress?`${treatmentProgress.confirmed}/${treatmentProgress.total}`:"Carregando…"} <span className="font-medium text-muted-foreground">{treatmentProgress?`· ${progressPercent}%`:""}</span></span>
-              </div>
-              <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Unidades de medicação confirmadas" aria-valuenow={treatmentProgress?.confirmed??0} aria-valuemin={0} aria-valuemax={112}>
-                <div className="h-full rounded-full bg-gradient-to-r from-primary to-success transition-[width] duration-500" style={{width:`${progressPercent}%`}}/>
-              </div>
-              <p className="mt-1.5 text-[10px] text-muted-foreground">7 cartelas de 8 comprimidos + 4 semanas de continuidade com 2 tomadas diárias de lansoprazol 30 mg (56 cápsulas). O progresso considera somente registros salvos.</p>
-            </div>
-          </div>}
-
+          </div>
+        </> : <section data-page={activeTab} className="care-client-summary care-client-page-content min-h-0 min-w-0 rounded-2xl border border-border bg-card overflow-y-auto overscroll-contain p-2 sm:p-3" aria-label={"Página "+tabs.find(tab=>tab.key===activeTab)?.label}>
           {activeTab==="agenda"&&<ClientAgendaPage tasks={tasks} resolved={resolvedStates} now={clock?.getTime()}
             onView={showTaskDetails} onConfirm={askConfirm}/>}
           {activeTab==="hidratacao"&&<div className="care-client-hydration-page flex h-full min-h-0 flex-col gap-2">
@@ -466,43 +581,15 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
             onDelete={meal=>{const item=tasks.find(task=>task.id===meal.id);if(item){setPending(null);setMealToDelete(item);}}}
             onRecorded={()=>setTick(value=>value+1)}/>}
           {activeTab==="cardapios"&&<ClientNutritionStudio patientId={client.id} ownerId={client.owner_id} onLogged={()=>setTick(v=>v+1)}/>}
-        </section>
+
+        </section>}
       </div>
 
-      {activeTab==="hoje"&&<div className="care-client-timeline-slot" aria-hidden="true"><ClientTodayTimeline tasks={tasks} resolved={resolvedStates} onConfirm={askConfirm} onDetails={showTaskDetails} now={clock?.getTime()}/></div>}
-      {activeTab==="hoje"&&<section className="care-client-art-metrics" aria-label="Indicadores visuais de hidratação, alimentação e medicação">
-        <button type="button" className="care-art-metric-card" data-kind="water" onClick={()=>openSection("hidratacao")} aria-label="Abrir acompanhamento de hidratação">
-          <img src="/images/care-card-water.jpg" alt="" draggable={false}/>
-          <span className="care-art-metric-copy">
-            <span className="care-art-metric-title"><Droplets size={19}/> Hidratação</span>
-            <strong>{hydrationTarget>0?hydrationConsumed.toLocaleString("pt-BR")+" ml":hydrationConfirmed+"/"+hydrationTasks.length}</strong>
-            <small>{hydrationTarget>0?"de "+hydrationTarget.toLocaleString("pt-BR")+" ml":"lembretes confirmados"}</small>
-            <i className="care-art-metric-track"><b style={{width:hydrationPercent+"%"}}/></i>
-          </span>
-          <span className="care-art-metric-ring" style={{background:"conic-gradient(#57f4e5 "+hydrationPercent+"%,rgba(255,255,255,.2) 0)"}}>{hydrationPercent}%</span>
-        </button>
-        <button type="button" className="care-art-metric-card" data-kind="meals" onClick={()=>openSection("alimentacao")} aria-label="Abrir acompanhamento da alimentação e consultar os registros">
-          <img src="/images/care-card-meals.jpg" alt="" draggable={false}/>
-          <span className="care-art-metric-copy">
-            <span className="care-art-metric-title"><UtensilsCrossed size={19}/> Alimentação</span>
-            <strong>{mealRecordCount===null?"—":mealRecordCount.toLocaleString("pt-BR")}</strong>
-            <small>{mealRecordCount===null?(mealRecordsLoading?"carregando registros":"registros indisponíveis"):`${mealRecordCount===1?"registro alimentar":"registros alimentares"} · ${mealConfirmed}/${mealTotal} confirmadas`}</small>
-            <i className="care-art-metric-track"><b style={{width:mealPercent+"%"}}/></i>
-          </span>
-          <span className="care-art-metric-ring" style={{background:"conic-gradient(#9df5ce "+mealPercent+"%,rgba(255,255,255,.2) 0)"}}>{mealPercent}%</span>
-        </button>
-        <button type="button" className="care-art-metric-card" data-kind="medicine" onClick={()=>openSection("hoje")} aria-label="Voltar à cartela interativa de medicação">
-          <img src="/images/care-card-medicine.jpg" alt="" draggable={false}/>
-          <span className="care-art-metric-copy">
-            <span className="care-art-metric-title"><Pill size={19}/> Medicação</span>
-            <strong>{medicineValue}</strong>
-            <small>unidades confirmadas</small>
-            <i className="care-art-metric-track"><b style={{width:medicinePercent+"%"}}/></i>
-          </span>
-          <span className="care-art-metric-ring" style={{background:"conic-gradient(#d7d8ff "+medicinePercent+"%,rgba(255,255,255,.2) 0)"}}>{medicinePercent}%</span>
-        </button>
-      </section>}
     </div>}
+    {showHealthProfile&&client&&<ClientHealthProfile patientId={client.id} ownerId={client.owner_id}
+      initial={{weight:healthProfile.weightKg??client.weight_kg,height:client.height_cm,age:healthProfile.age,objective:healthProfile.objective,
+        protein:healthProfile.protein,carbs:healthProfile.carbs,fat:healthProfile.fat,kcal:healthProfile.kcal,activityMinutes:healthProfile.activityMinutes}}
+      onSaved={()=>setTick(value=>value+1)} onClose={()=>setShowHealthProfile(false)}/>}
     <CareTaskRecordModal task={detailTask} onClose={()=>setDetailTask(null)}
       onSaved={()=>setTick(value=>value+1)} onConfirm={record=>{const task=tasks.find(item=>item.id===record.id);if(task)askConfirm(task);}}/>
     {confirmationResult && typeof document!=="undefined" && createPortal(
