@@ -117,6 +117,14 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
  const next=dayClosed||remaining===0?undefined:
    schedule.find(item=>!item.completed_at&&!skipped.has(item.id)&&Date.parse(item.scheduled_at)>=clock&&Date.parse(item.scheduled_at)<cutoffUtc)
    ?? (dayClosed?undefined:schedule.find(item=>!item.completed_at&&!skipped.has(item.id)&&getCareScheduleState(item,clock)==="available"&&Date.parse(item.scheduled_at)<cutoffUtc));
+ const lastWater=drinks.length?drinks[drinks.length-1]:null;
+ const adaptiveGapMinutes=(amount:number)=>amount>=750?90:amount>=500?75:amount>=300?60:45;
+ const nextHydrationAt=goal>0&&remaining>0&&!dayClosed&&lastWater
+   ? Date.parse(lastWater.recorded_at)+adaptiveGapMinutes(Number(lastWater.amount_ml))*60_000
+   : null;
+ const nextHydrationLabel=nextHydrationAt&&nextHydrationAt<=cutoffUtc
+   ? time(new Date(nextHydrationAt).toISOString())
+   : "Após registro";
  const pageSize=3;
  const pageCount=Math.max(1,Math.ceil(schedule.length/pageSize));
  const activePage=Math.min(page,pageCount-1);
@@ -213,13 +221,13 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
       {label:"Meta diária",value:goal?`${goal.toLocaleString("pt-BR")} ml`:"A definir"},
       {label:"Consumido",value:`${intake.toLocaleString("pt-BR")} ml`},
       {label:"Restante",value:goal?`${remaining.toLocaleString("pt-BR")} ml`:"—"},
-      {label:"Próxima água",value:dayClosed?"Encerrado":remaining===0?"Meta atingida":next?time(next.scheduled_at):"Até 23h"}
+      {label:"Próxima recomendação",value:dayClosed?"Dia encerrado":remaining===0?"Meta atingida":nextHydrationAt&&nextHydrationAt<=cutoffUtc?nextHydrationLabel:"Aguardando registro"}
     ].map(item=><div key={item.label} className="min-w-0 rounded-lg border border-border/70 bg-muted/40 px-2.5 py-2">
       <p className="truncate text-[10px] font-medium text-muted-foreground">{item.label}</p>
       <p className="mt-0.5 truncate text-sm font-extrabold tabular-nums text-foreground">{item.value}</p>
     </div>)}
   </div>
-  {next&&remaining>0&&!dayClosed&&<p aria-live="off" className="rounded-lg border border-sky-500/20 bg-sky-500/[.05] px-2.5 py-2 text-[11px] font-semibold">Próxima verificação de água em <strong className="font-mono tabular-nums">{fmtCountdown(Date.parse(next.scheduled_at)-clock)}</strong> · horário recalculado automaticamente após cada consumo, quando necessário.</p>}
+  {nextHydrationAt&&nextHydrationAt<=cutoffUtc&&remaining>0&&!dayClosed&&<p aria-live="off" className="rounded-lg border border-sky-500/20 bg-sky-500/[.05] px-2.5 py-2 text-[11px] font-semibold">Próxima recomendação estimada em <strong className="font-mono tabular-nums">{fmtCountdown(nextHydrationAt-clock)}</strong>, calculada a partir do último registro e do volume informado. É uma sugestão, não um alarme.</p>}
   <div className="flex items-center gap-2.5">
     <div className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-muted" role="progressbar"
       aria-label="Progresso da meta de hidratação" aria-valuemin={0} aria-valuemax={goal||1} aria-valuenow={goal?Math.min(intake,goal):0}>
