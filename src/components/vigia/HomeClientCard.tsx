@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, CalendarClock, CalendarDays, CheckCircle2, Droplets, History, LayoutDashboard, LockKeyhole, Pill, Target, UtensilsCrossed, BookOpen, UserRound, AlertTriangle, Trash2, X, Activity, BarChart3, Clock3 } from "lucide-react";
+import { ArrowRight, CalendarClock, CalendarDays, CheckCircle2, Droplets, History, LayoutDashboard, LockKeyhole, Pill, Target, UtensilsCrossed, BookOpen, UserRound, AlertTriangle, Trash2, X, Activity, Clock3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CompactTreatmentBlister } from "./CompactTreatmentBlister";
 import { PatientActivityHistory } from "./PatientActivityHistory";
@@ -447,6 +447,13 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
         </div>
       </header>
 
+      {activeTab==="hoje"&&<nav className="care-overview-shortcuts" aria-label="Atalhos rápidos">
+        <button type="button" onClick={()=>openSection("hidratacao")}><Droplets size={15}/> Água</button>
+        <button type="button" onClick={()=>openSection("alimentacao")}><UtensilsCrossed size={15}/> Alimentação</button>
+        <button type="button" onClick={()=>document.getElementById("care-overview-medication")?.scrollIntoView({behavior:"smooth",block:"center"})}><Pill size={15}/> Medicação</button>
+        <button type="button" onClick={()=>openSection("historico")}><Activity size={15}/> Atividade</button>
+        <button type="button" onClick={()=>document.getElementById("care-overview-indicators")?.scrollIntoView({behavior:"smooth",block:"center"})}><Target size={15}/> Indicadores</button>
+      </nav>}
       <div className={"care-client-medication-alert shrink-0 "+(activeTab==="hoje"?"hidden":"")}>
         <CareReminderBeacon tasks={tasks} patientId={client.id} ownerId={client.owner_id} refreshKey={tick}
           onOpen={alertTask=>{const task=tasks.find(t=>t.id===alertTask.id);if(task)showTaskDetails(task)}}
@@ -469,7 +476,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
         data-client-page={activeTab}
         className={"care-client-main care-client-page-main grid min-h-0 min-w-0 flex-1 items-stretch gap-2 "+(activeTab==="hoje"?"care-overview-layout":"grid-cols-1")}>
         {activeTab==="hoje" ? <>
-          <div className="care-overview-primary">
+          <div className="care-overview-primary" id="care-overview-medication">
             <CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm} dashboardMode onProgressChange={setTreatmentProgress}/>
             <section className="care-overview-progress" aria-label="Progresso dos cuidados por categoria">
               <div className="care-overview-section-heading">
@@ -526,7 +533,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
                 <strong className="text-[11px] font-extrabold tabular-nums text-sky-900">{hydrationTarget>0?hydrationConsumed.toLocaleString("pt-BR")+" / "+hydrationTarget.toLocaleString("pt-BR")+" ml":"Não disponível"}</strong>
               </div>
             </section>
-            <section id="care-home-timeline" className="care-overview-card care-overview-next" data-kind={nextCare?.category==="hidratacao"?"hidratacao":undefined} aria-label="Próximo cuidado">
+            <section className="care-overview-card care-overview-next" data-kind={nextCare?.category==="hidratacao"?"hidratacao":undefined} aria-label="Próximo cuidado">
               <div className="flex items-center justify-between gap-2">
                 <span className="care-overview-eyebrow">PRÓXIMO CUIDADO</span>
                 <span className="inline-flex items-center gap-1 rounded-full bg-white/80 px-2 py-1 text-[9px] font-bold text-slate-600"><Clock3 size={12}/> Horário do Acre</span>
@@ -542,7 +549,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
                 {nextCare.category==="hidratacao"&&<small className="mt-1 block text-[9px] font-semibold text-sky-800">Hidratação: registre somente o volume realmente consumido.</small>}
               </> : <p className="mt-2 text-xs">Nenhum cuidado futuro pendente. Consulte o histórico para conferir os registros do dia.</p>}
             </section>
-            <section className="care-overview-agenda" aria-label="Agenda de hoje e histórico recente">
+            <section id="care-home-timeline" className="care-overview-agenda" aria-label="Agenda de hoje e histórico recente">
               <div className="care-overview-section-heading">
                 <div><span className="care-overview-eyebrow">ROTINA E REGISTROS</span><h3>Agenda e histórico recente</h3></div>
                 <button type="button" onClick={()=>openSection("agenda")} className="text-[10px] font-bold text-teal-700">Ver agenda <ArrowRight size={12} className="inline"/></button>
