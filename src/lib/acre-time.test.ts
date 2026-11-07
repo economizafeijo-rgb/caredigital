@@ -18,6 +18,10 @@ describe("Acre timezone helpers", () => {
     expect(acreTimeLabel(instant)).toBe("23:30");
   });
 
+  it("keeps date-only strings on the same Acre calendar date", () => {
+    expect(acreDateKey("2026-11-07")).toBe("2026-11-07");
+  });
+
   it("converts Acre wall-clock time to the correct absolute instant", () => {
     expect(acreDateAtTime("2026-11-07", "00:15").toISOString())
       .toBe("2026-11-07T05:15:00.000Z");
@@ -33,6 +37,11 @@ describe("Acre timezone helpers", () => {
   it("adds calendar days across month and year boundaries", () => {
     expect(acreAddDays("2026-12-31", 1)).toBe("2027-01-01");
     expect(acreAddDays("2026-03-01", -1)).toBe("2026-02-28");
+  });
+
+  it("rejects impossible Acre wall-clock dates", () => {
+    expect(() => acreDateAtTime("2026-02-31", "12:00")).toThrow("Invalid Acre date or time");
+    expect(() => acreDateAtTime("2026-11-07", "25:00")).toThrow("Invalid Acre date or time");
   });
 
   it("formats date-only values in the Acre timezone", () => {
