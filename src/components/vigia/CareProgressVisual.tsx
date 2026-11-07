@@ -1,4 +1,3 @@
-import { useId } from "react";
 import { Droplets, Utensils, Pill, BellRing } from "lucide-react";
 import type { HydrationGoalSnapshot } from "@/lib/hydration-goal";
 import type { ReminderTask } from "@/lib/care-reminders";
@@ -14,79 +13,7 @@ type Props={tasks:ReminderTask[];goal:HydrationGoalSnapshot|null;recordedMealCou
 const pct=(numerator:number,denominator:number)=>denominator>0?
   Math.max(0,Math.min(1,numerator/denominator)):0;
 
-function WaterVessel({amount,target}: {amount:number;target:number}){
-  const id=useId().replace(/:/g,"");
-  const clip="waterClip"+id, gradient="waterFill"+id;
-  const level=pct(amount,target);
-  const bottle=target>=2000;
-  const waterHeight=level*77;
-  const y=103-waterHeight;
-  return <svg aria-hidden="true" className="care-progress-svg care-progress-water-visual"
-    viewBox="0 0 104 126" width="73" height="88">
-    <defs>
-      <linearGradient id={gradient} x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stopColor="#79f4ee"/><stop offset="1" stopColor="#0ea5e9"/>
-      </linearGradient>
-      {bottle?
-        <clipPath id={clip}><path d="M43 22h18v8c0 6 14 16 14 29v43c0 8-5 11-13 11H42c-8 0-13-3-13-11V59c0-13 14-23 14-29Z"/></clipPath>:
-        <clipPath id={clip}><path d="M27 28h50l-6 72c-1 9-5 13-14 13H47c-9 0-13-4-14-13Z"/></clipPath>}
-    </defs>
-    <ellipse cx="52" cy="118" rx="36" ry="5" fill="#0a718e" opacity=".14"/>
-    {bottle?<g>
-      <rect x="40" y="12" width="24" height="14" rx="4" fill="#57ced8" stroke="#158ca7" strokeWidth="2"/>
-      <path d="M43 22h18v8c0 6 14 16 14 29v43c0 8-5 11-13 11H42c-8 0-13-3-13-11V59c0-13 14-23 14-29Z"
-        fill="rgba(255,255,255,.64)" stroke="#2b98af" strokeWidth="2.6"/>
-    </g>:<path d="M27 28h50l-6 72c-1 9-5 13-14 13H47c-9 0-13-4-14-13Z"
-      fill="rgba(255,255,255,.65)" stroke="#2b98af" strokeWidth="2.6"/>}
-    <g clipPath={"url(#"+clip+")"}>
-      <rect className="care-water-fill" x="24" y={y} width="56" height={waterHeight+11}
-        fill={"url(#"+gradient+")"}/>
-      {level>0&&<path className="care-water-wave"
-        d={"M22 "+(y+2)+" Q32 "+(y-2)+" 42 "+(y+2)+" T62 "+(y+2)+" T82 "+(y+2)}
-        fill="none" stroke="#d1fffa" strokeWidth="3" opacity=".9"/>}
-      <path d="M41 38q-7 13-7 31v29" fill="none" stroke="white" strokeWidth="3" opacity=".55" strokeLinecap="round"/>
-    </g>
-    {bottle?<path d="M37 73h30v20H37Z" rx="5" fill="rgba(255,255,255,.45)" stroke="#5dc4d6" strokeWidth="1" />:null}
-    <g fill="#06768c" opacity=".58">
-      <circle cx="67" cy="64" r="2.2"/><circle cx="60" cy="79" r="1.6"/>
-    </g>
-  </svg>;
-}
-function MealPlate({ratio}: {ratio:number}){
-  const id=useId().replace(/:/g,"");
-  return <svg aria-hidden="true" className="care-progress-svg" viewBox="0 0 104 104" width="72" height="82">
-    <defs><linearGradient id={"plate"+id} x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stopColor="#86efac"/><stop offset="1" stopColor="#34d399"/>
-    </linearGradient></defs>
-    <circle cx="52" cy="50" r="41" fill="#dffbef" stroke="#87d6b1" strokeWidth="2"/>
-    <circle cx="52" cy="50" r="33" fill="#fff" stroke="#b0ead2" strokeWidth="6"/>
-    <circle cx="52" cy="50" r="26" fill={"url(#plate"+id+")"} opacity=".16"/>
-    <circle cx="52" cy="50" r="37" fill="none" stroke="#0f9f7f"
-      strokeWidth="5" strokeLinecap="round"
-      strokeDasharray={2*Math.PI*37} strokeDashoffset={2*Math.PI*37*(1-ratio)}
-      transform="rotate(-90 52 50)" className="care-progress-ring"/>
-    <g stroke="#168465" strokeWidth="3" strokeLinecap="round" fill="none">
-      <path d="M40 29v15m-5-15v14m10-14v14m-10 0q5 8 10 0v26m17-40v40m-7-36q7-8 7-4"/>
-    </g>
-    <circle cx="75" cy="24" r="8" fill="#abf7cb" opacity=".6"/>
-  </svg>;
-}
-function MedicationCapsule({ratio}: {ratio:number}){
-  return <svg aria-hidden="true" className="care-progress-svg" viewBox="0 0 104 104" width="72" height="82">
-    <circle cx="52" cy="50" r="42" fill="#e4e8ff" stroke="#b8c5ff" strokeWidth="2"/>
-    <circle cx="52" cy="50" r="36" fill="none" stroke="#9ca3f5" strokeWidth="5" opacity=".25"/>
-    <circle cx="52" cy="50" r="36" fill="none" stroke="#6d5ce7" strokeWidth="5" strokeLinecap="round"
-      strokeDasharray={2*Math.PI*36} strokeDashoffset={2*Math.PI*36*(1-ratio)}
-      transform="rotate(-90 52 50)" className="care-progress-ring"/>
-    <g transform="rotate(-39 52 50)">
-      <rect x="39" y="22" width="26" height="56" rx="13" fill="#f7f7ff" stroke="#7768d8" strokeWidth="3"/>
-      <path d="M39 50h26v15a13 13 0 0 1-26 0Z" fill="#8f7aff"/>
-      <path d="M39 50h26" stroke="#7768d8" strokeWidth="3"/>
-      <path d="M45 34v10" stroke="#fff" strokeWidth="3" strokeLinecap="round"/>
-    </g>
-    <circle cx="76" cy="19" r="7" fill="#a9a3ff" opacity=".5"/>
-  </svg>;
-}
+// Decorative SVG artwork removed: the original illustrations were rendering as corrupted textures in the live dashboard.
 
 export function CareProgressVisual({tasks,goal,recordedMealCount,mealRecordsStatus="ready",onOpen,onHydration,onFood,onMedication,alertCategories=[],nowMs,resolvedTaskIds=[]}:Props){
   const alertWater=alertCategories.includes("hidratacao");
@@ -127,7 +54,7 @@ export function CareProgressVisual({tasks,goal,recordedMealCount,mealRecordsStat
       onClick={()=>open("hidratacao")}
       title="Registrar água ou conferir hidratação" aria-label={alertWater?"Hidratação. Cuidado programado pendente. Abrir registro.":"Hidratação. Abrir registro de água."}
       className="care-visual-tile care-visual-action relative flex min-w-0 items-center gap-1.5 overflow-hidden rounded-2xl border px-1.5 py-1.5 text-left sm:gap-2 sm:px-2.5">
-      <div className="care-reference-tile-top"><Droplets size={24}/><span className="care-reference-ring" style={{"--care-ratio":`${Math.round(waterRatio*100)}%`} as React.CSSProperties}>{Math.round(waterRatio*100)}%</span></div><WaterVessel amount={water} target={waterTarget}/>
+      <div className="care-reference-tile-top"><Droplets size={24}/><span className="care-reference-ring" style={{"--care-ratio":`${Math.round(waterRatio*100)}%`} as React.CSSProperties}>{Math.round(waterRatio*100)}%</span></div>
       <div className="min-w-0 flex-1">
         <p className="care-visual-title truncate text-[10px] font-extrabold sm:text-xs">Hidratação</p>
         <strong className="care-visual-value block text-[13px] font-extrabold tabular-nums sm:text-base">{fmt(water)}<span className="text-[9px]"> ml</span></strong>
@@ -139,7 +66,7 @@ export function CareProgressVisual({tasks,goal,recordedMealCount,mealRecordsStat
       onClick={()=>open("refeicao")}
       title="Registrar uma refeição ou alimento" aria-label={alertFood?"Alimentação. Cuidado programado pendente. Abrir registro.":"Alimentação. Abrir registro de refeição ou alimento."}
       className="care-visual-tile care-visual-action relative flex min-w-0 items-center gap-1.5 overflow-hidden rounded-2xl border px-1.5 py-1.5 text-left sm:gap-2 sm:px-2.5">
-      <div className="care-reference-tile-top"><Utensils size={24}/><span className="care-reference-ring" style={{"--care-ratio":`${Math.round(pct(completedMeals,meals.length)*100)}%`} as React.CSSProperties}>{Math.round(pct(completedMeals,meals.length)*100)}%</span></div><MealPlate ratio={pct(completedMeals,meals.length)}/>
+      <div className="care-reference-tile-top"><Utensils size={24}/><span className="care-reference-ring" style={{"--care-ratio":`${Math.round(pct(completedMeals,meals.length)*100)}%`} as React.CSSProperties}>{Math.round(pct(completedMeals,meals.length)*100)}%</span></div>
       <span className="min-w-0 flex-1">
         <span className="care-visual-title block truncate text-[10px] font-extrabold sm:text-xs">Alimentação</span>
         <strong className="care-visual-value block text-[13px] font-extrabold tabular-nums sm:text-base">{mealCountValue===null?"—":fmt(mealCountValue)}</strong>
@@ -151,7 +78,7 @@ export function CareProgressVisual({tasks,goal,recordedMealCount,mealRecordsStat
       onClick={()=>open("medicacao")}
       title="Abrir registro ou histórico de medicação" aria-label={alertMedicine?"Medicação. Cuidado programado pendente. Abrir registro.":"Medicação. Abrir registro de medicação ou detalhes das doses."}
       className="care-visual-tile care-visual-action relative flex min-w-0 items-center gap-1.5 overflow-hidden rounded-2xl border px-1.5 py-1.5 text-left sm:gap-2 sm:px-2.5">
-      <div className="care-reference-tile-top"><Pill size={24}/><span className="care-reference-ring" style={{"--care-ratio":`${Math.round(pct(completedMeds,meds.length)*100)}%`} as React.CSSProperties}>{Math.round(pct(completedMeds,meds.length)*100)}%</span></div><MedicationCapsule ratio={pct(completedMeds,meds.length)}/>
+      <div className="care-reference-tile-top"><Pill size={24}/><span className="care-reference-ring" style={{"--care-ratio":`${Math.round(pct(completedMeds,meds.length)*100)}%`} as React.CSSProperties}>{Math.round(pct(completedMeds,meds.length)*100)}%</span></div>
       <span className="min-w-0 flex-1">
         <span className="care-visual-title block truncate text-[10px] font-extrabold sm:text-xs">Medicação</span>
         <strong className="care-visual-value block text-[13px] font-extrabold tabular-nums sm:text-base">{completedMeds}<span className="text-[10px]">/{meds.length}</span></strong>
