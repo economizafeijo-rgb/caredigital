@@ -437,10 +437,10 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
               <div className="flex items-center justify-between gap-2"><h3 className="inline-flex items-center gap-2 text-xs font-extrabold text-foreground"><Target size={18} className="text-primary"/> Progresso do tratamento</h3>
                 <span className="text-xs font-extrabold tabular-nums text-foreground">{treatmentProgress?`${treatmentProgress.confirmed}/${treatmentProgress.total}`:"Carregando…"} <span className="font-medium text-muted-foreground">{treatmentProgress?`· ${progressPercent}%`:""}</span></span>
               </div>
-              <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Unidades de medicação confirmadas" aria-valuenow={treatmentProgress?.confirmed??0} aria-valuemin={0} aria-valuemax={84}>
+              <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Unidades de medicação confirmadas" aria-valuenow={treatmentProgress?.confirmed??0} aria-valuemin={0} aria-valuemax={112}>
                 <div className="h-full rounded-full bg-gradient-to-r from-primary to-success transition-[width] duration-500" style={{width:`${progressPercent}%`}}/>
               </div>
-              <p className="mt-1.5 text-[10px] text-muted-foreground">7 cartelas de 8 unidades + 4 semanas de continuidade (28 cápsulas). O progresso considera somente registros salvos.</p>
+              <p className="mt-1.5 text-[10px] text-muted-foreground">7 cartelas de 8 comprimidos + 4 semanas de continuidade com 2 tomadas diárias de lansoprazol 30 mg (56 cápsulas). O progresso considera somente registros salvos.</p>
             </div>
           </div>}
 
