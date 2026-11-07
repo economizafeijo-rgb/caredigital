@@ -250,7 +250,7 @@ export function CareCategoryReport({patientId,ownerId,category,onClose,onAdd,hyd
           <button type="button" disabled={mutating} onClick={()=>void deleteEntry()} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-rose-500 px-4 text-sm font-extrabold text-white disabled:opacity-50"><Trash2 size={15}/>{mutating?"Excluindo…":"Confirmar exclusão"}</button>
          </div>
         </div>}
-       </div>
+       </div>}
        <div className="flex justify-end"><button type="button" onClick={()=>setSelectedEvent(null)} className="min-h-10 rounded-xl bg-teal-300 px-5 text-sm font-extrabold text-slate-950 hover:bg-teal-200">Fechar</button></div>
       </div>
      </section>
