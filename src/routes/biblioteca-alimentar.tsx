@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Calculator, Search, Utensils, Target, BookOpen, LayoutDashboard, ChefHat, TrendingUp, Plus, Leaf } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
+import { acreAddDays, acreDateKey, acreEndOfDay, acreStartOfDay, formatAcreDateOnly } from "@/lib/acre-time";
 
 export const Route = createFileRoute("/biblioteca-alimentar")({ component: BibliotecaAlimentar });
 type Food = { id:string; name:string; food_group:string; kcal:number; protein_g:number; carbs_g:number; fat_g:number; fiber_g:number; provenance:string|null; note:string|null };
@@ -41,15 +42,24 @@ function BibliotecaAlimentar(){
    const patientId=grant.data?.[0]?.patient_id??own.data?.[0]?.id;
    if(active)setPatientId(patientId??null);
    if(patientId){const preferences=await (supabase as any).from("care_nutrition_preferences").select("target_kcal,target_protein_g,target_carbs_g,target_fat_g,weight_kg").eq("patient_id",patientId).maybeSingle();if(active&&!preferences.error)setGoals(preferences.data);
-    const start=new Date();start.setHours(0,0,0,0);
-    const end=new Date(start);end.setDate(end.getDate()+1);
+    const today=acreDateKey();
+    const start=acreStartOfDay(today);
+    const end=acreEndOfDay(today);
     const logs=await (supabase as any).from("care_food_consumptions").select("kcal,protein_g,carbs_g,fat_g").eq("patient_id",patientId).gte("recorded_at",start.toISOString()).lt("recorded_at",end.toISOString());
     if(active&&!logs.error)setConsumed(logs.data??[]);
-    const week=new Date(start);week.setDate(week.getDate()-6);
+    const week=acreStartOfDay(acreAddDays(today,-6));
     const recent=await (supabase as any).from("care_food_consumptions").select("kcal,protein_g,carbs_g,fat_g,recorded_at").eq("patient_id",patientId).gte("recorded_at",week.toISOString()).order("recorded_at",{ascending:true}).limit(1000);
     if(active&&!recent.error)setHistory(recent.data??[]);
     const info=await (supabase as any).from("care_patients").select("birth_date,height_cm,weight_kg").eq("id",patientId).maybeSingle();
-    if(active&&info.data)setProfile(p=>({...p,height:n(info.data.height_cm)||p.height,weight:n(info.data.weight_kg)||p.weight,age:info.data.birth_date?Math.max(0,new Date().getFullYear()-new Date(info.data.birth_date).getFullYear()-(new Date().toISOString().slice(5,10)<String(info.data.birth_date).slice(5,10)?1:0)):p.age}));
+    if(active&&info.data)setProfile(p=>{
+     const birthDate=String(info.data.birth_date??"");
+     const todayParts=today.split("-").map(Number);
+     const birthParts=birthDate.split("-").map(Number);
+     const age=birthParts.length===3&&birthParts.every(Number.isFinite)
+       ?Math.max(0,todayParts[0]-birthParts[0]-((todayParts[1]*100+todayParts[2])<(birthParts[1]*100+birthParts[2])?1:0))
+       :p.age;
+     return {...p,height:n(info.data.height_cm)||p.height,weight:n(info.data.weight_kg)||p.weight,age};
+    });
    }
   }
   if(active)setLoading(false);
@@ -69,7 +79,7 @@ function BibliotecaAlimentar(){
   const requestId=crypto.randomUUID();
   const {error:saveError}=await (supabase as any).rpc("care_log_food_portion",{p_patient_id:patientId,p_food_id:food.id,p_grams:grams,p_request_id:requestId});
   if(saveError){setFeedback("Não foi possível registrar a porção: "+saveError.message);setSaving(false);return;}
-  const start=new Date();start.setHours(0,0,0,0);const end=new Date(start);end.setDate(end.getDate()+1);
+  const today=acreDateKey();const start=acreStartOfDay(today);const end=acreEndOfDay(today);
   const logs=await (supabase as any).from("care_food_consumptions").select("kcal,protein_g,carbs_g,fat_g").eq("patient_id",patientId).gte("recorded_at",start.toISOString()).lt("recorded_at",end.toISOString());
   if(!logs.error)setConsumed(logs.data??[]);
   setFeedback("Porção registrada no histórico alimentar.");setSaving(false);
@@ -81,14 +91,18 @@ function BibliotecaAlimentar(){
  const maintenance=bmr===null?null:Math.round(bmr*profile.activity);
  const estimated=maintenance===null?null:Math.round(maintenance*(profile.objective==="reduzir"?0.9:profile.objective==="ganhar"?1.1:1));
  const macroEstimate=estimated===null?null:{protein:Math.round(estimated*.2/4),carbs:Math.round(estimated*.5/4),fat:Math.round(estimated*.3/9)};
- const days=Array.from({length:7},(_,i)=>{const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-6+i);const next=new Date(d);next.setDate(next.getDate()+1);return {day:d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"}),kcal:history.filter(h=>{const t=new Date(h.recorded_at);return t>=d&&t<next}).reduce((s,h)=>s+n(h.kcal),0)}});
+ const todayKey=acreDateKey();
+ const days=Array.from({length:7},(_,i)=>{
+  const key=acreAddDays(todayKey,-6+i),from=acreStartOfDay(key),to=acreEndOfDay(key);
+  return {day:formatAcreDateOnly(key,{day:"2-digit",month:"2-digit"}),kcal:history.filter(h=>{const t=new Date(h.recorded_at);return t>=from&&t<to}).reduce((s,h)=>s+n(h.kcal),0)};
+ });
  async function registerMeal(){
   if(!patientId||saving||mealItems.length===0)return;
   setSaving(true);setFeedback("");
   const requestId=crypto.randomUUID();
   const {error:mealError}=await (supabase as any).rpc("care_log_nutrition_meal",{p_patient_id:patientId,p_meal_name:mealName,p_items:mealItems.map(item=>({food_id:item.food.id,grams:item.grams})),p_request_id:requestId});
   if(mealError){setFeedback("Não foi possível registrar a refeição: "+mealError.message);setSaving(false);return;}
-  const start=new Date();start.setHours(0,0,0,0);const end=new Date(start);end.setDate(end.getDate()+1);const week=new Date(start);week.setDate(week.getDate()-6);
+  const today=acreDateKey();const start=acreStartOfDay(today);const end=acreEndOfDay(today);const week=acreStartOfDay(acreAddDays(today,-6));
   const [daily,recent]=await Promise.all([(supabase as any).from("care_food_consumptions").select("kcal,protein_g,carbs_g,fat_g").eq("patient_id",patientId).gte("recorded_at",start.toISOString()).lt("recorded_at",end.toISOString()),(supabase as any).from("care_food_consumptions").select("kcal,protein_g,carbs_g,fat_g,recorded_at").eq("patient_id",patientId).gte("recorded_at",week.toISOString()).order("recorded_at",{ascending:true}).limit(1000)]);
   if(!daily.error)setConsumed(daily.data??[]);if(!recent.error)setHistory(recent.data??[]);
   setMeal([]);setFeedback(`${mealName}: ${mealItems.length} alimentos salvos como uma única refeição no histórico.`);setSaving(false);
