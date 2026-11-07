@@ -203,15 +203,17 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
               <span className="min-w-0 flex-1">{label} <span className="font-normal text-muted-foreground">· {option?.hint}</span></span>
             </p>
             {!isWater && (isFood
-              ? <div className="grid min-w-0 gap-2">
-                  <label className="text-xs font-semibold">O que você comeu?
-                    <textarea rows={2} required maxLength={1000} value={description}
+              ? <div className="care-intake-food-fields grid min-w-0 grid-cols-1 gap-3">
+                  <label className="block min-w-0 text-xs font-semibold leading-relaxed">
+                    <span className="block">O que você comeu?</span>
+                    <textarea rows={3} required maxLength={1000} value={description}
                       onChange={event => setDescription(event.target.value)}
                       placeholder={foodCategory(kind)?.example??"Descreva o alimento ou a refeição"}
-                      className="field mt-1 w-full resize-none"/>
+                      className="field mt-1.5 block min-h-[76px] w-full resize-y"/>
                   </label>
-                  <label className="text-xs font-semibold">Quantidade ou porção (opcional)
-                    <input type="text" className="field mt-1 w-full" maxLength={100} value={portion}
+                  <label className="block min-w-0 text-xs font-semibold leading-relaxed">
+                    <span className="block">Quantidade ou porção (opcional)</span>
+                    <input type="text" className="field mt-1.5 block min-h-[44px] w-full" maxLength={100} value={portion}
                       onChange={event=>setPortion(event.target.value)} placeholder="Ex.: 1 unidade, 100 g, 1 prato"/>
                   </label>
                 </div>
@@ -228,7 +230,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
                   onChange={event => setAmount(event.target.value)}/>
               </label>}
             <div className="min-w-0 max-w-full overflow-hidden rounded-xl border border-border/70 bg-card/80 p-3 space-y-2 text-foreground">
-              <label className="flex items-center gap-2 text-xs font-semibold text-foreground"><input type="checkbox" checked={manualTime} onChange={event=>{const checked=event.target.checked;if(checked)setConsumedAt(acreInputValue());setManualTime(checked);}}/> Informar manualmente o horário em que consumi</label>
+              <label className="flex min-w-0 items-start gap-2 text-xs font-semibold leading-relaxed text-foreground"><input className="care-intake-manual-time-toggle" type="checkbox" checked={manualTime} onChange={event=>{const checked=event.target.checked;if(checked)setConsumedAt(acreInputValue());setManualTime(checked);}}/><span className="min-w-0">Informar manualmente o horário em que consumi</span></label>
               {manualTime && <label className="block min-w-0 max-w-full text-xs font-semibold">Data e hora do consumo (Acre · UTC−5)
                 <input type="datetime-local" required value={consumedAt} onChange={event=>setConsumedAt(event.target.value)} className="field care-intake-datetime mt-1 block w-full min-w-0 max-w-full" style={{boxSizing:"border-box",minWidth:0,maxWidth:"100%"}}/>
               </label>}
