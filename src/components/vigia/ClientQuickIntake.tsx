@@ -95,7 +95,13 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
       return;
     }
     const consumed = manualTime ? new Date(consumedAt+"-05:00") : new Date();
-    if(!Number.isFinite(consumed.getTime()) || consumed.getTime()>Date.now() || consumed.getTime()<Date.now()-7*86400000){setError("Informe um horário válido nos últimos 7 dias, sem antecipar o consumo.");return;}
+    const clientNow = Date.now();
+    if(!Number.isFinite(consumed.getTime()) || consumed.getTime()>clientNow+120000 || consumed.getTime()<clientNow-7*86400000){
+      setError("Confira a data e a hora no fuso do Acre (UTC−5). O consumo deve estar entre agora e os últimos 7 dias.");
+      return;
+    }
+    // Avoid a tiny client/server clock drift turning a valid current-time entry into a future timestamp.
+    if(consumed.getTime()>clientNow) consumed.setTime(clientNow);
     setError("");
     setSaving(true);
     try {
