@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { formatAcreDateOnly } from "@/lib/acre-time";
 import { loadDigestiveProtocols, type DigestiveProtocol } from "@/lib/digestive-protocols";
 import { Panel, Tag } from "@/components/vigia/ui";
 
@@ -74,7 +75,7 @@ export function DigestiveProtocolLibrary() {
         </div>
 
         {selected && <Panel className="lg:col-span-2" delay={0.1}>
-          <div className="flex flex-wrap items-center gap-2"><Tag tone="primary">{selected.category}</Tag><span className="text-xs text-muted-foreground">Atualizado em {new Date(`${selected.updated_at}T00:00:00`).toLocaleDateString("pt-BR")}</span></div>
+          <div className="flex flex-wrap items-center gap-2"><Tag tone="primary">{selected.category}</Tag><span className="text-xs text-muted-foreground">Atualizado em {formatAcreDateOnly(selected.updated_at,{dateStyle:"short"})}</span></div>
           <h3 className="mt-2 font-display text-xl tracking-tight md:text-2xl">{selected.name}</h3>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{selected.summary}</p>
           <h4 className="mt-3 label-mono">Orientações</h4>
