@@ -108,7 +108,7 @@ export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,no
           <UtensilsCrossed size={17} className="text-emerald-600 dark:text-emerald-300"/> Alimentação de hoje
         </h3>
         <p className="mt-0.5 text-[11px] text-muted-foreground">
-          {confirmed} de {meals.length} refeições programadas confirmadas · {extraMeals.length} registros avulsos · {pending} pendentes
+          {extraMeals.length} refeições e lanches registrados hoje · sem horários fixos
         </p>
       </div>
       <ClientQuickIntake patientId={patientId} variant="panel" mode="food" onRecorded={onRecorded}/>
@@ -209,7 +209,7 @@ export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,no
       </div>
       {!visible.length&&<div className="rounded-xl border border-dashed border-border p-5 text-center">
         <CalendarDays size={18} className="mx-auto text-muted-foreground"/>
-        <p className="mt-1 text-xs text-muted-foreground">Não há refeições para os filtros selecionados.</p>
+        <p className="mt-1 text-xs text-muted-foreground">Nenhuma refeição registrada ainda. Use “Registrar alimento” quando fizer sua refeição.</p>
       </div>}
     </div>
     <nav aria-label="Paginação das refeições" className="flex shrink-0 items-center justify-between gap-2 border-t border-border/60 pt-2">
