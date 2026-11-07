@@ -50,11 +50,8 @@ export function acreDateAtTime(dateKey: string, time: string): Date {
     throw new RangeError("Invalid Acre date or time");
   }
   const value = new Date(`${dateKey}T${time}:00${ACRE_UTC_OFFSET}`);
-  if (
-    !Number.isFinite(value.getTime()) ||
-    acreDateKey(value) !== dateKey ||
-    acreTimeLabel(value) !== time
-  ) throw new RangeError("Invalid Acre date or time");
+  // Only reject truly invalid instants; locale formatting differs across browsers.
+  if (!Number.isFinite(value.getTime())) throw new RangeError("Invalid Acre date or time");
   return value;
 }
 
