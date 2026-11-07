@@ -602,3 +602,24 @@
 @media(prefers-reduced-motion:reduce) {
  :root .care-client-one-window * {scroll-behavior:auto !important;transition:none !important;animation:none !important;}
 }
+
+/* Remove the old corrupted sprite artwork behind the interactive blister. */
+:root .care-client-one-window .care-blister-refined::before {
+  display:none !important;
+  content:none !important;
+  background-image:none !important;
+}
+:root .care-client-one-window .care-blister-refined {
+  background:
+    radial-gradient(ellipse at 50% 88%,rgba(24,202,184,.16),transparent 55%),
+    linear-gradient(145deg,rgba(7,75,81,.42),rgba(3,39,50,.28)) !important;
+  border:1px solid rgba(65,224,207,.18) !important;
+  border-radius:20px !important;
+}
+:root .care-client-one-window .care-blister-graphic {
+  filter:drop-shadow(0 12px 22px rgba(0,0,0,.24));
+}
+:root .care-client-one-window .care-client-summary .care-next-care strong,
+:root .care-client-one-window .care-client-summary .care-treatment-progress strong {
+  color:#effffb !important;
+}
