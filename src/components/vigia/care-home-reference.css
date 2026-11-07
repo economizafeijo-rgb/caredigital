@@ -3284,50 +3284,25 @@
   }
 }
 
-/* Care dashboard metric cards: preserve the original vector proportions.
-   The previous percentage-based width + height stretched the SVG artwork
-   into a noisy, distorted shape on short dashboard cards. */
+/* Metric cards: remove the broken decorative SVG artwork entirely.
+   It is rendered as a noisy/glitched bitmap-like illustration in the live UI.
+   Keep the data, progress ring, colors and card layout intact. */
 :root .client-home-dashboard.care-home-art-v2.care-home-art-reference.care-home-redesign-next .care-visual-tile {
   position: relative !important;
   min-width: 0 !important;
   overflow: hidden !important;
 }
 :root .client-home-dashboard.care-home-art-v2.care-home-art-reference.care-home-redesign-next .care-visual-tile > .care-progress-svg {
-  display: block !important;
-  position: absolute !important;
-  left: 10px !important;
-  right: auto !important;
-  bottom: 7px !important;
-  top: auto !important;
-  width: clamp(54px, 6.2vw, 78px) !important;
-  height: auto !important;
-  max-height: 72% !important;
-  aspect-ratio: auto !important;
-  transform: none !important;
-  object-fit: contain !important;
-  opacity: .22 !important;
-  filter: none !important;
-  pointer-events: none !important;
-  flex: none !important;
+  display: none !important;
 }
 :root .client-home-dashboard.care-home-art-v2.care-home-art-reference.care-home-redesign-next .care-visual-tile > :is(div, span):not(.care-reference-tile-top) {
   position: relative !important;
   z-index: 2 !important;
   width: auto !important;
   min-width: 0 !important;
-  margin-left: clamp(66px, 7.2vw, 88px) !important;
+  margin-left: 0 !important;
   padding: 0 2px 0 0 !important;
 }
 :root .client-home-dashboard.care-home-art-v2.care-home-art-reference.care-home-redesign-next .care-visual-tile .care-reference-tile-top {
   z-index: 3 !important;
-}
-@media (max-width: 767px) {
-  :root .client-home-dashboard.care-home-art-v2.care-home-art-reference.care-home-redesign-next .care-visual-tile > .care-progress-svg {
-    left: 6px !important;
-    width: 48px !important;
-    max-height: 58% !important;
-  }
-  :root .client-home-dashboard.care-home-art-v2.care-home-art-reference.care-home-redesign-next .care-visual-tile > :is(div, span):not(.care-reference-tile-top) {
-    margin-left: 52px !important;
-  }
 }
