@@ -261,3 +261,24 @@
 - **Interface consistency:** existing route paths and patient section keys are retained; no new data contract is introduced.
 - **Review focus coverage:** long treatment history; narrow viewports/zoom; theme parity; profile/access state; missing/error data.
 - **Builder check:** self-reviewed because no independent subagent dispatch facility is available here. Live browser screenshots and credentials for every profile remain Phase 0 prerequisites.
+
+
+## Execution log — 2026-11-08
+
+### Phase 0 — Baseline
+- Repository default branch confirmed as `main`.
+- Package scripts confirmed: `npm test`, `npm run lint`, `npm run build`; CI uses Bun with the lockfile.
+- Local baseline could not be run in this environment because the container cannot resolve `github.com` for cloning/installing dependencies. The repository's GitHub Actions workflow was used as the verification path instead.
+- Browser screenshots and real-profile visual checks remain pending; no visual appearance has been claimed as browser-verified.
+
+### Phase 1 — Foundation (in progress)
+- Updated `src/styles.css` with the approved semantic light/dark palette, shared spacing/radius tokens, global focus treatment, form-control token inheritance and reduced-motion handling.
+- Aligned display/interface typography to Inter and updated the root Google Fonts stylesheet link.
+- Removed the duplicate internal-workspace color-token overrides; internal surfaces, fields, tables and headings now inherit semantic theme variables.
+- Updated shared `Btn` touch sizing and field-label size in `src/components/vigia/ui.tsx`.
+- Added `src/test/design-tokens.test.ts` and `src/components/vigia/ui.test.tsx`.
+- GitHub Actions verification was automatically triggered by the latest push. At the time of this log, dependency installation had succeeded and the test step was running; test/build conclusions are not yet available.
+
+### Verification limitations
+- The new tests have been committed but must be confirmed by the active GitHub Actions run.
+- The design system is a first foundation pass, not a completed migration of all legacy page-specific CSS. Further scoped-style cleanup and browser validation remain required.
