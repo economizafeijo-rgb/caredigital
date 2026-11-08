@@ -1,8 +1,9 @@
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const styles = readFileSync(new URL("../styles.css", import.meta.url), "utf8");
-const internalStyles = readFileSync(new URL("../components/vigia/internal-premium.css", import.meta.url), "utf8");
+const styles = readFileSync(resolve(process.cwd(), "src/styles.css"), "utf8");
+const internalStyles = readFileSync(resolve(process.cwd(), "src/components/vigia/internal-premium.css"), "utf8");
 
 describe("CareDigital semantic design tokens", () => {
   it("defines the approved light theme from semantic variables", () => {
