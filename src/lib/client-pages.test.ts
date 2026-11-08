@@ -13,6 +13,9 @@ describe("CareDigital: páginas independentes do cliente",()=>{
     expect(clientSectionFromHash("")).toBe("hoje");
     expect(clientSectionFromHash("#desconhecido")).toBe("hoje");
   });
+  it("retorna à visão geral quando o hash contém codificação inválida",()=>{
+    expect(clientSectionFromHash("#%E0%A4%A")).toBe("hoje");
+  });
   it("cada seção possui título, descrição e identificador próprios",()=>{
     for(const section of sections){
       expect(clientSectionLabels[section].title.length).toBeGreaterThan(4);
