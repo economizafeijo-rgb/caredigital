@@ -196,3 +196,16 @@
 - [x] After revocation, the delegated user's visible patient count was 0 and hydration row count was 0.
 - [x] Rolled back the transaction; the actual access grant was not revoked in production.
 - [ ] Add a persistent automated integration test with isolated fixtures so grant/revoke behavior remains covered in CI. The current repository has unit tests but no database-auth integration harness configured.
+
+
+## Medication and treatment integrity audit (2026-11-08)
+
+- [x] Reviewed RLS on `care_medications`: owner-only ALL policy; patient/delegate has no direct access to the owner's medication inventory table.
+- [x] Reviewed `care_daily_checklist` medication schedule access: owner can manage own rows; explicitly assigned patient user has SELECT only.
+- [x] Authenticated-role smoke tests: owner sees 2 medication inventory rows and 72 scheduled medication tasks; delegated patient user sees 0 medication inventory rows and 72 permitted scheduled medication tasks; unrelated user sees 0 rows in both.
+- [x] Checked duplicate medication tasks by patient, owner, category, scheduled timestamp, and title: no duplicate groups in current data.
+- [x] Tested delegated user's attempt to confirm a future scheduled medication task through `care_confirm_task`; server rejected with `Care window not started`. Transaction rolled back; no dose was recorded.
+- [x] Reviewed database guards: direct checklist insert cannot set `completed_at`; confirmation timestamps are server-controlled; confirmed care records cannot be backdated/altered; medication trigger prevents early confirmation.
+- [ ] UI audit finding: `MedicationBlisterCalendar.tsx` currently hardcodes a 35-day display window, phase labels, 84-unit total, schedule start/end dates, and a patient-specific reported-first-blister flag. The component reads actual checklist rows, but the static labels/relato can diverge from live prescription and schedule data. Do not change any prescription or live records; refactor display metadata to derive from verified treatment plan and explicitly persisted patient-reported events after schema/source-of-truth review.
+- [ ] Add automated database integration tests for medication owner/delegate/outsider reads, early confirmation rejection, duplicate schedule prevention, and append-only audit history. Existing repo has unit tests but no configured authenticated database integration harness.
+- [ ] Review whether protocol admin policies hardcoded to a single email should use a stable admin role/claim instead; do not alter until auth model and administrative users are confirmed.
