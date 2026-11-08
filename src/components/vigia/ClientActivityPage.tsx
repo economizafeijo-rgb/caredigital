@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Activity, Bike, Clock3, Footprints, HeartPulse, Plus, Route, Search, Waves, Dumbbell } from "lucide-react";
+import { Activity, Bike, Clock3, Footprints, HeartPulse, Plus, Search, Waves, Dumbbell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type ActivityEntry = {
@@ -47,16 +47,22 @@ export function ClientActivityPage({ patientId, ownerId, revision, onRecorded }:
     let active = true;
     setLoading(true);
     void (async () => {
-      const since = new Date(Date.now() - 90 * 86400000).toISOString();
-      const result = await (supabase as any).from("care_activity_log")
-        .select("id,happened_at,details")
-        .eq("patient_id", patientId).eq("owner_id", ownerId)
-        .eq("category", "atividade").eq("event_type", "logged")
-        .gte("happened_at", since).order("happened_at", { ascending: false }).limit(200);
-      if (!active) return;
-      if (result.error) setError("Não foi possível carregar as atividades. Verifique se a migração da área foi aplicada.");
-      else { setItems(result.data ?? []); setError(""); }
-      setLoading(false);
+      try {
+        const since = new Date(Date.now() - 90 * 86400000).toISOString();
+        const result = await (supabase as any).from("care_activity_log")
+          .select("id,happened_at,details")
+          .eq("patient_id", patientId).eq("owner_id", ownerId)
+          .eq("category", "atividade").eq("event_type", "logged")
+          .gte("happened_at", since).order("happened_at", { ascending: false }).limit(200);
+        if (!active) return;
+        if (result.error) throw result.error;
+        setItems(result.data ?? []);
+        setError("");
+      } catch {
+        if (active) setError("Não foi possível carregar as atividades. Tente novamente em instantes.");
+      } finally {
+        if (active) setLoading(false);
+      }
     })();
     return () => { active = false; };
   }, [patientId, ownerId, revision]);
@@ -77,18 +83,20 @@ export function ClientActivityPage({ patientId, ownerId, revision, onRecorded }:
     }
     if (notes.trim().length > 500) { setError("As observações podem ter até 500 caracteres."); return; }
     setSaving(true); setError(""); setNotice("");
-    const result = await (supabase as any).rpc("care_log_client_activity", {
-      p_patient_id: patientId, p_activity_type: type, p_duration_minutes: minutes,
-      p_distance_km: km, p_intensity: intensity, p_notes: notes.trim(),
-    });
-    if (result.error) {
-      setError("Não foi possível registrar. Confira o acesso ao prontuário e se a migração da área Atividade foi aplicada.");
-    } else {
+    try {
+      const result = await (supabase as any).rpc("care_log_client_activity", {
+        p_patient_id: patientId, p_activity_type: type, p_duration_minutes: minutes,
+        p_distance_km: km, p_intensity: intensity, p_notes: notes.trim(),
+      });
+      if (result.error) throw result.error;
       setNotice("Atividade registrada no seu prontuário.");
       setDuration("30"); setDistance(""); setIntensity("moderada"); setNotes("");
       onRecorded();
+    } catch {
+      setError("Não foi possível registrar. Confira sua conexão e o acesso ao prontuário.");
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   }
 
   return <section className="flex h-full min-h-0 flex-col gap-3" aria-label="Atividade física">
