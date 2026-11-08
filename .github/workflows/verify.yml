@@ -25,4 +25,5 @@ jobs:
       - name: Run all project tests
         run: bun run test
       - name: Compile production site
+        if: always()
         run: bun run build
