@@ -241,3 +241,15 @@
 - [ ] Await CI run 42435355297 for full tests and production build.
 - [ ] Consider keyset pagination if a future patient workflow needs browsing more than the newest 500 medication events; do not silently expand query volume without UX/performance review.
 - [ ] Browser-verify long-history behavior and visual layout on desktop/mobile; no browser session or deployment verification has been performed in this slice.
+
+
+## Hydration profile RLS owner binding (2026-11-08)
+
+- [x] Found tautological `p.owner_id = p.owner_id` predicates in hydration-profile INSERT and UPDATE policy checks.
+- [x] Checked existing data before migration: 1 profile row, 0 orphan patient references, 0 owner mismatches.
+- [x] Replaced tautology with `care_patients.owner_id = care_hydration_profiles.owner_id` in both write policies; retained owner/delegate authorization predicates and authenticated-only policy scope.
+- [x] Applied live Supabase migration `harden_hydration_profile_owner_binding`.
+- [x] Re-read live policies and confirmed both now enforce patient-owner equality.
+- [x] Executed an authenticated-role transaction attempting to insert a profile for the real patient with a mismatched owner UUID; RLS rejected it. Transaction rolled back and no profile was added.
+- [x] Added matching migration file to repository main: `20261108013000_harden_hydration_profile_owner_binding.sql`.
+- [ ] Await CI on migration commit and confirm repo migration tracking is synchronized with the live project.
