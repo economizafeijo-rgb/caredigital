@@ -60,7 +60,7 @@ export function ClientOverviewIndicators({ heightCm, weightKg, waterTarget, prot
     if(!full||!patientId||!ownerId){setWaterHistory([]);setActivityHistory([]);return;}
     let active=true;
     setHistoryLoading(true);setHistoryError("");
-    const since=new Date(Date.now()-6*86400000).toISOString().slice(0,10);
+    const since=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Rio_Branco",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(Date.now()-6*86400000));
     void Promise.all([
       (supabase as any).from("care_hydration_daily_goals").select("goal_date,consumed_ml")
         .eq("patient_id",patientId).eq("owner_id",ownerId).gte("goal_date",since).order("goal_date",{ascending:true}).limit(7),
@@ -76,8 +76,8 @@ export function ClientOverviewIndicators({ heightCm, weightKg, waterTarget, prot
       setWaterHistory(Array.from({length:7},(_,index)=>{
         const date=new Date(Date.now()-(6-index)*86400000);
         const key=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Rio_Branco",year:"numeric",month:"2-digit",day:"2-digit"}).format(date);
-        return {date:key.slice(5).split("-").reverse().join("/"),value:waterMap.get(key)??0};
-      }));
+        return waterMap.has(key)?{date:key.slice(5).split("-").reverse().join("/"),value:waterMap.get(key)!}:null;
+      }).filter((point):point is DailyValue=>point!==null));
       const activityMap=new Map<string,number>();
       for(const row of activity.data??[]){
         const key=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Rio_Branco",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(row.happened_at));
