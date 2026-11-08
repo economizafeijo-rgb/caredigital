@@ -11,7 +11,7 @@
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
-  --font-display: "Anton", sans-serif;
+  --font-display: "Inter", sans-serif;
   --font-sans: "Inter", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
   --color-background: var(--background);
@@ -40,41 +40,47 @@
 }
 
 :root {
-  --radius: 0.875rem;
+  color-scheme: light;
+  --radius: 0.75rem;
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
-  --background: #f2f4f2;
-  --foreground: #26333b;
+  --background: #f4f7f6;
+  --foreground: #20343a;
   --surface: #ffffff;
   --card: #ffffff;
-  --card-foreground: #26333b;
+  --card-foreground: #20343a;
   --popover: #ffffff;
-  --popover-foreground: #26333b;
-  --primary: #286b64;
+  --popover-foreground: #20343a;
+  --primary: #1c6665;
   --primary-foreground: #ffffff;
   --secondary: #e8eeeb;
-  --secondary-foreground: #26333b;
+  --secondary-foreground: #20343a;
   --muted: #edf1ee;
-  --muted-foreground: #576970;
-  --accent: #e0ece6;
+  --muted-foreground: #5c7074;
+  --accent: #e4f1ed;
   --accent-foreground: #234e48;
   --destructive: #b94852;
   --destructive-foreground: #ffffff;
   --success: #27775d;
   --warning: #a8792d;
   --sky: #8db9b2;
-  --border: rgba(55,79,78,0.16);
-  --input: rgba(55,79,78,0.24);
-  --ring: #286b64;
+  --border: #dce6e3;
+  --input: #c7d4d0;
+  --ring: #278b83;
 }
 
 @layer base {
-  * { border-color: var(--color-border); }
+  *, *::before, *::after { border-color: var(--color-border); }
+  html { font-family: var(--font-sans); text-size-adjust: 100%; -webkit-text-size-adjust: 100%; }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
+  :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  :disabled { cursor: not-allowed; }
+  ::selection { background: color-mix(in srgb, var(--primary) 24%, transparent); color: var(--foreground); }
 }
 
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
@@ -143,28 +149,29 @@ iframe[title*="Lovable" i][title*="badge" i] {
    One source of truth: previous overlapping blue overrides removed. */
 :root.dark {
   color-scheme: dark;
-  --background: #252e32;
-  --foreground: #f0f5f2;
-  --surface: #303c3e;
-  --card: #344144;
-  --card-foreground: #f0f5f2;
-  --popover: #3a494a;
-  --popover-foreground: #f0f5f2;
+  color-scheme: dark;
+  --background: #172327;
+  --foreground: #edf5f2;
+  --surface: #202f34;
+  --card: #26383d;
+  --card-foreground: #edf5f2;
+  --popover: #26383d;
+  --popover-foreground: #edf5f2;
   --primary: #8dd7c7;
   --primary-foreground: #173b36;
-  --secondary: #405052;
+  --secondary: #304347;
   --secondary-foreground: #edf5f1;
-  --muted: #3c4a4c;
-  --muted-foreground: #c3d0cd;
-  --accent: #42615d;
+  --muted: #304044;
+  --muted-foreground: #b6c8c5;
+  --accent: #304c4b;
   --accent-foreground: #f0faf6;
   --destructive: #ffaaa9;
   --destructive-foreground: #351c20;
   --success: #91ddba;
   --warning: #f0cf91;
   --sky: #acd4d8;
-  --border: rgba(204,224,218,.23);
-  --input: rgba(204,224,218,.36);
+  --border: #3a4d50;
+  --input: #52676a;
   --ring: #a5e7d9;
 }
 .dark body { background-color: var(--background); color: var(--foreground); }
@@ -3197,4 +3204,16 @@ iframe[title*="Lovable" i][title*="badge" i] {
  box-sizing:border-box;
  min-width:0;
  max-width:100%;
+}
+
+
+/* CareDigital design-system foundation: shared accessibility and responsive defaults. */
+:root { --cd-space-1: 4px; --cd-space-2: 8px; --cd-space-3: 12px; --cd-space-4: 16px; --cd-space-5: 20px; --cd-space-6: 24px; --cd-space-8: 32px; --cd-radius-control: 8px; --cd-radius-card: 12px; --cd-radius-panel: 16px; --cd-radius-shell: 20px; }
+:root.dark { color-scheme: dark; }
+:where(button, input, select, textarea, [role="button"], [role="tab"], a[href]) { -webkit-tap-highlight-color: transparent; }
+:where(input, select, textarea) { accent-color: var(--primary); }
+:where(input:not([type="checkbox"]):not([type="radio"]), select, textarea) { color: var(--foreground); }
+:where(input, textarea)::placeholder { color: var(--muted-foreground); opacity: .85; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
