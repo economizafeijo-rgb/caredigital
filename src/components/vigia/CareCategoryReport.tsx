@@ -166,39 +166,39 @@ export function CareCategoryReport({patientId,ownerId,category,onClose,onAdd,hyd
  };
  return typeof document==="undefined"?null:createPortal(
   <div className="fixed inset-0 z-[190] flex items-end justify-center bg-slate-950/80 p-0 backdrop-blur-sm sm:items-center sm:p-4" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}>
-   <section role="dialog" aria-modal="true" aria-label={"Relatório de "+labels[category]} className="flex h-[min(94dvh,800px)] w-full max-w-[950px] flex-col overflow-hidden rounded-t-3xl border border-teal-300/30 bg-[#102b3b] text-white shadow-2xl sm:h-[min(90dvh,800px)] sm:rounded-2xl">
-    <header className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
-     <div><p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-teal-300"><BarChart3 size={15}/> Relatório de acompanhamento</p><h2 className="text-lg font-extrabold">{labels[category]}</h2><p className="text-xs text-slate-300">Eventos realizados, não confirmados e futuros · horário do Acre</p></div>
+   <section role="dialog" aria-modal="true" aria-label={"Relatório de "+labels[category]} className="care-category-report-dialog flex h-[min(96dvh,760px)] w-full max-w-[900px] min-h-0 flex-col overflow-hidden rounded-t-3xl border border-teal-300/30 bg-[#102b3b] text-white shadow-2xl sm:h-[min(94dvh,760px)] sm:rounded-2xl">
+    <header className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-3 py-2 sm:px-4 sm:py-2.5">
+     <div><p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-teal-300"><BarChart3 size={15}/> Relatório de acompanhamento</p><h2 className="text-base font-extrabold sm:text-lg">{labels[category]}</h2><p className="text-xs text-slate-300">Eventos realizados, não confirmados e futuros · horário do Acre</p></div>
      <button type="button" aria-label="Fechar relatório" onClick={onClose} className="rounded-lg border border-white/20 p-2"><X size={19}/></button>
     </header>
-    <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 px-3 py-3 sm:px-4">
+    <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 px-3 py-2 sm:px-4 sm:py-2.5">
      <div className="flex min-w-0 rounded-xl border border-white/15 bg-slate-950/30 p-1" role="group" aria-label="Período">
-      {(["dia","mes","ano"] as const).map(p=><button key={p} type="button" aria-pressed={period===p} onClick={()=>setPeriod(p)} className={"rounded-lg px-4 py-2 text-xs font-bold "+(period===p?"bg-teal-300 text-slate-950":"text-slate-200 hover:bg-white/10")}>{p==="dia"?"Diário":p==="mes"?"Mensal":"Anual"}</button>)}
+      {(["dia","mes","ano"] as const).map(p=><button key={p} type="button" aria-pressed={period===p} onClick={()=>setPeriod(p)} className={"rounded-lg px-3 py-1.5 text-[11px] font-bold sm:px-4 sm:py-2 sm:text-xs "+(period===p?"bg-teal-300 text-slate-950":"text-slate-200 hover:bg-white/10")}>{p==="dia"?"Diário":p==="mes"?"Mensal":"Anual"}</button>)}
      </div>
      <button type="button" onClick={exportCsv} disabled={loading||events.length===0} className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-3 py-2 text-xs font-bold disabled:opacity-40"><Download size={14}/> Exportar CSV</button>
     </div>
-    {category==="hidratacao"&&<div className="mx-4 mb-3 rounded-2xl border border-teal-300/25 bg-gradient-to-r from-teal-300/15 to-cyan-300/5 p-4" aria-live="polite">
+    {category==="hidratacao"&&<div className="mx-3 mb-2 shrink-0 rounded-xl border border-teal-300/25 bg-gradient-to-r from-teal-300/15 to-cyan-300/5 p-2.5 sm:mx-4 sm:mb-2.5 sm:p-3" aria-live="polite">
       <p className="text-xs font-bold uppercase tracking-wide text-teal-200">{period==="dia"?"Consumo de água de hoje":"Água registrada no período"}</p>
-      <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1"><strong className="text-3xl font-black tabular-nums">{(dailyConsumed??stats.volume).toLocaleString("pt-BR")} <span className="text-base font-bold">ml</span></strong>
+      <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1"><strong className="text-2xl font-black tabular-nums sm:text-3xl">{(dailyConsumed??stats.volume).toLocaleString("pt-BR")} <span className="text-base font-bold">ml</span></strong>
         {dailyTarget!==null&&<span className="text-sm text-slate-200">de {dailyTarget.toLocaleString("pt-BR")} ml · {dailyPercent}%</span>}
       </div>
-      {dailyTarget!==null&&dailyConsumed!==null&&<><div role="progressbar" aria-label="Meta de hidratação" aria-valuenow={dailyPercent} aria-valuemin={0} aria-valuemax={100} className="mt-3 h-2 overflow-hidden rounded-full bg-white/15"><div className="h-full rounded-full bg-teal-300" style={{width:dailyPercent+"%"}}/></div>
-        <p className="mt-2 text-xs text-teal-100">{dailyConsumed>=dailyTarget?"Meta alcançada · "+(dailyConsumed-dailyTarget).toLocaleString("pt-BR")+" ml acima da meta":(dailyTarget-dailyConsumed).toLocaleString("pt-BR")+" ml restantes para a meta"}</p></>}
+      {dailyTarget!==null&&dailyConsumed!==null&&<><div role="progressbar" aria-label="Meta de hidratação" aria-valuenow={dailyPercent} aria-valuemin={0} aria-valuemax={100} className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/15"><div className="h-full rounded-full bg-teal-300" style={{width:dailyPercent+"%"}}/></div>
+        <p className="mt-1.5 text-[11px] text-teal-100 sm:text-xs">{dailyConsumed>=dailyTarget?"Meta alcançada · "+(dailyConsumed-dailyTarget).toLocaleString("pt-BR")+" ml acima da meta":(dailyTarget-dailyConsumed).toLocaleString("pt-BR")+" ml restantes para a meta"}</p></>}
       {dailyConsumed===null&&<p className="mt-2 text-xs text-slate-300">Total de água registrado no período. Bebidas aparecem separadamente no histórico.</p>}
-      <p className="mt-1 text-[11px] text-slate-300">Registros de água: {stats.volume.toLocaleString("pt-BR")} ml · Outras bebidas: {stats.beverages.toLocaleString("pt-BR")} ml</p>
+      <p className="mt-1 text-[10px] text-slate-300 sm:text-[11px]">Registros de água: {stats.volume.toLocaleString("pt-BR")} ml · Outras bebidas: {stats.beverages.toLocaleString("pt-BR")} ml</p>
     </div>}
-    <div className="grid shrink-0 grid-cols-2 gap-2 px-4 pb-3 sm:grid-cols-4">
-     {([{label:"Realizados",value:stats.done,icon:CheckCircle2},{label:"Sem confirmação",value:stats.missed,icon:Clock3},{label:"Pendentes",value:stats.pending,icon:CalendarDays},{label:category==="hidratacao"?"Água registrada":"Eventos",value:category==="hidratacao"?(stats.volume/1000).toLocaleString("pt-BR",{maximumFractionDigits:2})+" L":events.length,icon:BarChart3}] as const).map(item=><div key={item.label} className="rounded-xl border border-white/10 bg-white/5 p-3"><span className="block text-[11px] text-slate-300">{item.label}</span><strong className="mt-1 block text-xl">{item.value}</strong></div>)}
+    <div className="grid shrink-0 grid-cols-2 gap-1.5 px-3 pb-2 sm:grid-cols-4 sm:gap-2 sm:px-4 sm:pb-2.5">
+     {([{label:"Realizados",value:stats.done,icon:CheckCircle2},{label:"Sem confirmação",value:stats.missed,icon:Clock3},{label:"Pendentes",value:stats.pending,icon:CalendarDays},{label:category==="hidratacao"?"Água registrada":"Eventos",value:category==="hidratacao"?(stats.volume/1000).toLocaleString("pt-BR",{maximumFractionDigits:2})+" L":events.length,icon:BarChart3}] as const).map(item=><div key={item.label} className="rounded-lg border border-white/10 bg-white/5 p-2 sm:rounded-xl sm:p-2.5"><span className="block text-[10px] leading-tight text-slate-300 sm:text-[11px]">{item.label}</span><strong className="mt-0.5 block text-lg leading-tight sm:mt-1 sm:text-xl">{item.value}</strong></div>)}
     </div>
     {warning&&<p role="alert" className="mx-4 mb-2 rounded-lg border border-amber-300/40 bg-amber-300/10 p-2 text-xs text-amber-100">{warning}</p>}
-    <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4" role="region" aria-label="Eventos do período">
+    <div className="care-category-report-events min-h-[150px] flex-1 overflow-y-auto overscroll-contain px-3 pb-2 sm:px-4 sm:pb-3" role="region" aria-label="Eventos do período">
      {loading?<p className="p-4 text-sm text-slate-300">Consultando registros…</p>:events.length===0?<p className="p-4 text-sm text-slate-300">Nenhum evento encontrado neste período.</p>:<div className="space-y-2">
       {(all?events:events.slice(0,35)).map(e=><button key={e.id} type="button" onClick={()=>void openEventDetails(e)}
        aria-label={"Ver detalhes de "+e.title+" às "+format(e.at)}
-       className="group flex w-full items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-3 text-left transition hover:border-teal-300/50 hover:bg-teal-300/[.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300">
+       className="group flex w-full items-start gap-2.5 rounded-lg border border-white/10 bg-white/5 p-2 sm:gap-3 sm:rounded-xl sm:p-2.5 text-left transition hover:border-teal-300/50 hover:bg-teal-300/[.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300">
        <span className={"mt-1 size-2 shrink-0 rounded-full "+(e.state==="realizado"?"bg-emerald-300":e.state==="pendente"?"bg-sky-300":"bg-amber-300")}/>
-       <span className="min-w-0 flex-1"><strong className="block text-sm">{e.title}</strong><span className="mt-1 block text-xs text-slate-300">{e.detail}{e.amount!==undefined?" · "+e.amount.toLocaleString("pt-BR")+" ml":""}</span></span>
-       <span className="shrink-0 text-right"><time className="block text-[11px] text-slate-300">{format(e.at)}</time><span className="text-[11px] font-semibold">{e.state==="realizado"?"Realizado":e.state==="pendente"?"Pendente":"Sem confirmação"}</span><span className="mt-1 flex items-center justify-end gap-1 text-[10px] font-bold text-teal-200 opacity-80 group-hover:opacity-100">Detalhes <span aria-hidden="true">›</span></span></span>
+       <span className="min-w-0 flex-1"><strong className="block text-[12px] leading-snug sm:text-sm">{e.title}</strong><span className="mt-0.5 block text-[10px] leading-snug text-slate-300 sm:mt-1 sm:text-xs">{e.detail}{e.amount!==undefined?" · "+e.amount.toLocaleString("pt-BR")+" ml":""}</span></span>
+       <span className="shrink-0 text-right"><time className="block text-[10px] text-slate-300 sm:text-[11px]">{format(e.at)}</time><span className="text-[10px] font-semibold sm:text-[11px]">{e.state==="realizado"?"Realizado":e.state==="pendente"?"Pendente":"Sem confirmação"}</span><span className="mt-0.5 flex items-center justify-end gap-1 text-[9px] font-bold text-teal-200 opacity-80 group-hover:opacity-100">Detalhes <span aria-hidden="true">›</span></span></span>
       </button>)}
       {events.length>35&&<button type="button" onClick={()=>setAll(v=>!v)} className="w-full rounded-lg border border-teal-300/30 p-2 text-xs font-bold text-teal-100">{all?"Mostrar menos":"Mostrar todos os "+events.length+" registros"}</button>}
      </div>}
@@ -255,8 +255,8 @@ export function CareCategoryReport({patientId,ownerId,category,onClose,onAdd,hyd
       </div>
      </section>
     </div>}
-    {onAdd&&<div className="shrink-0 border-t border-white/10 px-4 py-3"><button type="button" onClick={onAdd} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-teal-300 px-4 py-2.5 text-sm font-extrabold text-slate-950 transition hover:bg-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"><Plus size={18}/> {category==="hidratacao"?"Registrar nova hidratação":category==="refeicao"?"Registrar nova alimentação":"Registrar informação de medicação"}</button></div>}
-    <footer className="shrink-0 border-t border-white/10 px-4 py-2 text-[11px] text-slate-300">Sem confirmação não comprova que o cuidado deixou de ocorrer. Dados limitados aos registros acessíveis no sistema.</footer>
+    {onAdd&&<div className="shrink-0 border-t border-white/10 px-3 py-2 sm:px-4 sm:py-2"><button type="button" onClick={onAdd} className="flex min-h-9 w-full items-center justify-center gap-2 rounded-lg bg-teal-300 px-3 py-2 text-xs font-extrabold sm:min-h-10 sm:rounded-xl sm:px-4 sm:py-2.5 sm:text-sm text-slate-950 transition hover:bg-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"><Plus size={18}/> {category==="hidratacao"?"Registrar nova hidratação":category==="refeicao"?"Registrar nova alimentação":"Registrar informação de medicação"}</button></div>}
+    <footer className="shrink-0 border-t border-white/10 px-3 py-1.5 text-[10px] leading-snug text-slate-300 sm:px-4 sm:py-2 sm:text-[11px]">Sem confirmação não comprova que o cuidado deixou de ocorrer. Dados limitados aos registros acessíveis no sistema.</footer>
    </section>
   </div>,document.body);
 }
