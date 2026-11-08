@@ -114,3 +114,18 @@
 - [ ] Re-run Supabase security and performance advisors.
 - [ ] Review changed files and database migration history.
 - [ ] Record unresolved external settings or deployment limitations explicitly.
+
+
+## Auditoria adicional — RLS e advisors (2026-11-08)
+
+- [x] Reconsultados os advisors Supabase de segurança e desempenho.
+- [x] As 29 tabelas `care_*` verificadas estão com RLS habilitado.
+- [x] Confirmado um caso RLS habilitado sem policy: `care_hydration_goal_targets`. A tabela é acessada pelo fluxo privilegiado `care_sync_hydration_goal`; não foi criada policy permissiva sem validar se clientes devem ler/escrever diretamente.
+- [x] Revisadas policies de leitura e acesso delegado nas tabelas de pacientes, checklist, hidratação, histórico, bebidas e concessões.
+- [ ] Corrigir a expressão tautológica `p.owner_id = p.owner_id` na policy de leitura de `care_nutrition_meal_logs` após validar a semântica pretendida e criar teste de acesso cruzado.
+- [ ] Revisar a policy de leitura de `care_activity_log` que usa `auth.uid()` sem subselect; avaliar também as policies com múltiplas permissões SELECT.
+- [ ] Advisor atual: 11 FKs sem índice correspondente (a contagem anterior de 12 era uma superestimativa). A maioria das tabelas relacionadas tem poucas linhas neste momento; avaliar crescimento e planos de consulta antes de adicionar índices.
+- [ ] Advisor aponta 11 índices não utilizados; não remover sem histórico representativo de uso e validação de consultas.
+- [ ] Há 26 avisos para SECURITY DEFINER executáveis por authenticated; são RPCs do cliente com verificações internas. Não revogar em massa. Continuar teste adversarial por função.
+- [ ] Habilitar proteção contra senhas vazadas no Auth via configuração do projeto, após revisão da configuração operacional.
+- [ ] Criar testes automatizados de isolamento por dois usuários e dois pacientes para cada família de RPC e policy. Não foi possível provar esse isolamento apenas com consultas administrativas; nenhuma alegação de teste adversarial concluído.
