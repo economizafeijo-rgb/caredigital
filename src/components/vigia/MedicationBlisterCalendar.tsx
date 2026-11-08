@@ -107,12 +107,13 @@ export function MedicationBlisterCalendar({
       setSelectedDay("");
       return;
     }
-    if (!days.some((day) => day.key === selectedDay)) {
-      const today = dayKey(new Date().toISOString());
-      const firstUpcoming = days.find((day) => day.key >= today);
-      setSelectedDay(firstUpcoming?.key ?? days[days.length - 1]!.key);
-    }
-  }, [days, selectedDay]);
+    const today = dayKey(new Date().toISOString());
+    const firstUpcoming = days.find((day) => day.key >= today);
+    const fallback = firstUpcoming?.key ?? days[days.length - 1]!.key;
+    setSelectedDay((current) =>
+      current && days.some((day) => day.key === current) ? current : fallback,
+    );
+  }, [days]);
 
   const total = doses.length;
   const completed = doses.filter((dose) => dose.completed_at !== null).length;
