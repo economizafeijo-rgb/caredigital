@@ -49,8 +49,13 @@ export function acreDateAtTime(dateKey: string, time: string): Date {
   if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(dateKey) || !/^[0-9]{2}:[0-9]{2}$/.test(time)) {
     throw new RangeError("Invalid Acre date or time");
   }
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const [hour, minute] = time.split(":").map(Number);
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  if (month < 1 || month > 12 || day < 1 || day > daysInMonth || hour > 23 || minute > 59) {
+    throw new RangeError("Invalid Acre date or time");
+  }
   const value = new Date(`${dateKey}T${time}:00${ACRE_UTC_OFFSET}`);
-  // Only reject truly invalid instants; locale formatting differs across browsers.
   if (!Number.isFinite(value.getTime())) throw new RangeError("Invalid Acre date or time");
   return value;
 }
