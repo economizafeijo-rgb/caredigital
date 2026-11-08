@@ -1,0 +1,226 @@
+/* CareDigital · Visão geral premium
+   Styles are isolated to the overview tab. Other client sections keep their existing layout. */
+:root .care-client-dashboard.care-client-overview-v2 {
+  --background:#f3f8f8;
+  --card:#ffffff;
+  --foreground:#12333c;
+  --muted-foreground:#55717a;
+  --muted:#eaf2f2;
+  --border:#d8e6e7;
+  --primary:#087f83;
+  --primary-foreground:#ffffff;
+  --success:#16866c;
+  background:#f3f8f8;
+  border:1px solid #d7e5e6;
+  color:#12333c;
+  box-shadow:0 14px 38px rgba(20,62,69,.09);
+  padding:10px;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-client-content {gap:8px;padding:8px;}
+:root .care-client-dashboard.care-client-overview-v2 .care-client-identity {
+  border:1px solid #d7e7e7;
+  border-radius:17px;
+  background:linear-gradient(105deg,#ffffff,#eef7f6);
+  box-shadow:0 3px 12px rgba(25,77,82,.05);
+  padding:9px 14px;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-client-identity h1,
+:root .care-client-dashboard.care-client-overview-v2 .care-client-identity strong {color:#12333c;}
+:root .care-client-dashboard.care-client-overview-v2 .care-client-identity p,
+:root .care-client-dashboard.care-client-overview-v2 .care-client-identity small {color:#58737b;}
+:root .care-client-dashboard.care-client-overview-v2 .care-client-identity p:first-child {color:#087f83;}
+:root .care-client-dashboard.care-client-overview-v2 .care-client-dose-status {
+  border:1px solid #cfe6df;border-radius:13px;background:#edf8f3;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-client-dose-status strong {color:#174d42;}
+:root .care-client-dashboard.care-client-overview-v2 .care-client-dose-status small {color:#52756b;}
+:root .care-client-dashboard.care-client-overview-v2 .care-client-page-nav {
+  border:1px solid #d8e6e7;border-radius:14px;background:#eaf2f2;padding:4px;gap:4px;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-client-page-nav button {
+  min-height:36px;border:0;border-radius:10px;background:transparent;color:#567078;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-client-page-nav button[aria-selected="true"] {
+  color:#ffffff;background:#087f83;box-shadow:0 2px 7px rgba(8,127,131,.2);
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-client-main.care-overview-layout {
+  display:grid!important;grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr);
+  align-items:stretch;gap:10px;overflow:hidden;min-height:0;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-primary,
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-secondary {
+  display:flex;flex-direction:column;gap:9px;min-width:0;min-height:0;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-blister-refined,
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-card,
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-progress,
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-agenda,
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-indicators {
+  border:1px solid #dce8e8;border-radius:16px;background:#ffffff;color:#12333c;
+  box-shadow:0 3px 12px rgba(25,77,82,.045);
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-blister-refined {
+  padding:10px;gap:7px;min-height:0;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-blister-refined :is(h3,strong,.care-blister-period-time) {color:#12333c;}
+:root .care-client-dashboard.care-client-overview-v2 .care-blister-refined :is(p,span,.care-blister-period-subtitle) {color:#59747b;}
+:root .care-client-dashboard.care-client-overview-v2 .care-blister-refined .care-blister-period {
+  border-color:#dce9e8;background:#f4f9f8;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-blister-refined .care-blister-period.is-confirmed {
+  border-color:#b8e3d4;background:#eff9f4;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-blister-refined .care-blister-period-status {
+  color:#476b69;border-color:#d4e5e3;background:#ffffff;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-blister-refined .care-blister-period-status.is-confirmed {
+  color:#14765f;border-color:#b8e3d4;background:#eaf8f1;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-blister-refined .care-blister-step {
+  color:#31555c;border-color:#d5e5e5;background:#f5f9f9;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-blister-refined .care-blister-step[aria-current="true"] {
+  color:#ffffff;border-color:#087f83;background:#087f83;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-blister-refined .care-blister-progress {background:#e3eeee;}
+:root .care-client-dashboard.care-client-overview-v2 .care-blister-refined .care-blister-progress>div {background:#13a58d;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-card,
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-progress,
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-agenda,
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-indicators {padding:11px;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-section-heading {
+  display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-section-heading h3 {
+  margin:2px 0 0;font-size:13px;line-height:1.2;font-weight:850;color:#173c44;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-eyebrow {
+  color:#0a8586;font-size:9px;font-weight:850;letter-spacing:.12em;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-heading-note {
+  color:#6a8389;font-size:9px;font-weight:650;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-stats {
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-stat {
+  min-width:0;border:1px solid #e1ebeb;border-radius:12px;background:#f6f9f9;padding:8px;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-stat span {display:block;color:#617a80;font-size:9px;font-weight:650;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-stat strong {display:block;margin-top:2px;color:#173c44;font-size:21px;font-weight:900;line-height:1.1;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-stat.is-complete {background:#eff8f3;border-color:#d5eade;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-stat.is-complete strong {color:#16866c;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-progress-track {
+  height:7px;overflow:hidden;border-radius:99px;background:#e8f0ef;margin-top:8px;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-progress-track i {display:block;height:100%;border-radius:inherit;background:#149b87;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-next {
+  border:1px solid #cbe7e2;border-radius:15px;background:linear-gradient(105deg,#edf8f6,#f8fbfa);
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-next[data-kind="hidratacao"] {
+  border-color:#b6e1e7;background:#edf8fa;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-next h3 {color:#143c44;font-size:15px;font-weight:850;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-next p,
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-next small {color:#557179;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-next .care-overview-next-time {color:#087f83;font-size:20px;font-weight:900;font-variant-numeric:tabular-nums;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-next button {
+  min-height:34px;border-radius:10px;background:#087f83;color:#ffffff;padding:7px 11px;font-size:10px;font-weight:800;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-progress-grid {
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-progress-item {
+  min-width:0;border:1px solid #dce9e8;border-radius:13px;background:#f8fbfa;padding:8px;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-progress-item header {display:flex;align-items:center;gap:5px;color:#496970;font-size:9px;font-weight:750;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-progress-item strong {display:block;margin-top:5px;color:#153d45;font-size:15px;font-weight:900;line-height:1.1;overflow-wrap:anywhere;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-progress-item small {display:block;margin-top:3px;color:#698087;font-size:8px;line-height:1.25;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-progress-item .care-overview-progress-track {height:4px;margin-top:6px;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-agenda {min-height:0;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-agenda .care-timeline {
+  padding:0;border:0;background:transparent;box-shadow:none;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-agenda .care-timeline-heading {display:none;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-agenda .care-timeline>div {display:block;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-agenda .care-timeline-item {background:#f7faf9;border-color:#dce9e8;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-agenda .care-timeline-item-title {color:#173c44;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-history-filters {display:flex;flex-wrap:wrap;gap:5px;margin:7px 0;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-history-filters button {
+  min-height:27px;border:1px solid #d8e6e7;border-radius:99px;background:#f5f9f8;color:#557078;
+  padding:4px 9px;font-size:9px;font-weight:750;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-history-filters button[aria-pressed="true"] {
+  border-color:#087f83;background:#e6f5f2;color:#086c70;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-agenda .care-recent-history,
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-agenda [data-care-history] {max-height:145px;overflow:auto;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-indicator-grid {
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-indicator {
+  min-width:0;border:1px solid #e0ebea;border-radius:12px;background:#f8fbfa;overflow:hidden;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-indicator summary {
+  display:flex;align-items:flex-start;gap:6px;padding:7px;cursor:pointer;list-style:none;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-indicator summary::-webkit-details-marker {display:none;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-indicator-icon {
+  display:grid;place-items:center;flex:0 0 25px;width:25px;height:25px;border-radius:8px;background:#e6f4f2;color:#087f83;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-indicator-copy {display:block;min-width:0;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-indicator-copy>span {display:block;color:#617b81;font-size:8px;font-weight:700;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-indicator-copy strong {display:block;color:#173c44;font-size:14px;font-weight:900;line-height:1.1;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-indicator-copy strong small {margin-left:2px;color:#6b8589;font-size:8px;font-weight:700;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-indicator-copy em {display:block;margin-top:2px;color:#74898d;font-size:7px;font-style:normal;line-height:1.2;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-indicator>p {margin:0;padding:0 8px 8px;color:#58737a;font-size:9px;line-height:1.35;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-indicator[open] {border-color:#a9d7d1;background:#f0f8f6;}
+:root .care-client-dashboard.care-client-overview-v2 .care-client-summary {border:0;background:transparent;box-shadow:none;padding:0;overflow:visible;}
+:root .care-client-dashboard.care-client-overview-v2 .care-client-main:not(.care-overview-layout) {grid-template-columns:minmax(0,1fr);}
+:root .care-client-dashboard.care-client-overview-v2 .care-client-page-content {border-color:#dce8e8;background:#ffffff;color:#12333c;}
+:root .care-client-dashboard.care-client-overview-v2 .care-client-page-content :is(h2,h3,strong) {color:#173c44;}
+:root .care-client-dashboard.care-client-overview-v2 .care-client-page-content :is(p,small) {color:#58737a;}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-profile-button {
+  min-height:34px;border:1px solid #cfe1e1;border-radius:10px;background:#ffffff;color:#24616a;
+  padding:6px 10px;font-size:10px;font-weight:800;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-shortcuts {
+  display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-shortcuts :is(button,a) {
+  display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:34px;
+  border:1px solid #d8e6e7;border-radius:11px;background:#ffffff;color:#315d65;
+  font-size:10px;font-weight:800;text-decoration:none;
+}
+:root .care-client-dashboard.care-client-overview-v2 .care-overview-shortcuts svg {color:#087f83;flex:0 0 auto;}
+@media (min-width:768px) {
+  :root .care-client-dashboard.care-client-overview-v2 .care-client-content {overflow:hidden;}
+  :root .care-client-dashboard.care-client-overview-v2 .care-client-main.care-overview-layout {flex:1 1 0;}
+  :root .care-client-dashboard.care-client-overview-v2 .care-overview-secondary {overflow-y:auto;overscroll-behavior:contain;padding-right:2px;}
+  :root .care-client-dashboard.care-client-overview-v2 .care-overview-primary {overflow-y:auto;overscroll-behavior:contain;padding-right:2px;}
+}
+@media (max-width:900px) {
+  :root .care-client-dashboard.care-client-overview-v2 .care-client-page-nav {grid-template-columns:repeat(3,minmax(0,1fr));}
+  :root .care-client-dashboard.care-client-overview-v2 .care-overview-layout {grid-template-columns:minmax(0,1fr)!important;overflow:visible!important;}
+  :root .care-client-dashboard.care-client-overview-v2 .care-overview-progress-grid {grid-template-columns:repeat(4,minmax(0,1fr));}
+}
+@media (max-width:767px) {
+  :root .care-client-dashboard.care-client-overview-v2 {height:auto!important;min-height:0!important;overflow:visible!important;padding:6px;}
+  :root .care-client-dashboard.care-client-overview-v2 .care-client-content {height:auto!important;overflow:visible!important;padding:5px;gap:7px;}
+  :root .care-client-dashboard.care-client-overview-v2 .care-client-main.care-overview-layout {display:flex!important;flex-direction:column;overflow:visible!important;}
+  :root .care-client-dashboard.care-client-overview-v2 .care-overview-primary,
+  :root .care-client-dashboard.care-client-overview-v2 .care-overview-secondary {overflow:visible;padding:0;}
+  :root .care-client-dashboard.care-client-overview-v2 .care-overview-progress-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+  :root .care-client-dashboard.care-client-overview-v2 .care-overview-indicator-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+  :root .care-client-dashboard.care-client-overview-v2 .care-overview-shortcuts {grid-template-columns:repeat(5,minmax(0,1fr));}
+  :root .care-client-dashboard.care-client-overview-v2 .care-overview-shortcuts :is(button,a) {flex-direction:column;gap:3px;min-height:48px;font-size:8px;}
+  :root .care-client-dashboard.care-client-overview-v2 .care-client-identity {padding:8px 10px;}
+}
+@media (max-width:390px) {
+  :root .care-client-dashboard.care-client-overview-v2 .care-overview-stats {gap:4px;}
+  :root .care-client-dashboard.care-client-overview-v2 .care-overview-stat {padding:6px;}
+  :root .care-client-dashboard.care-client-overview-v2 .care-overview-stat strong {font-size:18px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  :root .care-client-dashboard.care-client-overview-v2 * {scroll-behavior:auto!important;transition:none!important;}
+}
