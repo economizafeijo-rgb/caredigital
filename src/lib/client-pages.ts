@@ -29,6 +29,16 @@ export const clientSectionLabels: Record<ClientSection,{title:string;subtitle:st
     title:"Cardápios e dietas",
     subtitle:"Planejamento educativo por objetivo, receitas regionais e calculadora de proteína",
     tagline:"Nutrição personalizada"
+  },
+  medicacao:{
+    title:"Tratamento e medicamentos",
+    subtitle:"Cartela de doses, horários programados e confirmações do tratamento",
+    tagline:"Acompanhamento do tratamento"
+  },
+  indicadores:{
+    title:"Indicadores de saúde",
+    subtitle:"Indicadores calculados a partir dos dados cadastrados no seu perfil",
+    tagline:"Dados do perfil"
   }
 };
 export const clientSectionHashes:Record<ClientSection,string>={
