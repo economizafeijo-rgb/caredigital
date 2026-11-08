@@ -252,4 +252,5 @@
 - [x] Re-read live policies and confirmed both now enforce patient-owner equality.
 - [x] Executed an authenticated-role transaction attempting to insert a profile for the real patient with a mismatched owner UUID; RLS rejected it. Transaction rolled back and no profile was added.
 - [x] Added matching migration file to repository main: `20261108013000_harden_hydration_profile_owner_binding.sql`.
-- [ ] Await CI on migration commit and confirm repo migration tracking is synchronized with the live project.
+- [x] CI passed for migration commit `b93d824` (GitHub Actions run 42435501146). Supabase migration was applied live and the matching migration file is committed to main.
+- [x] Authenticated-role read smoke tests: owner sees 1 profile, assigned delegate sees 1 permitted profile, unrelated user sees 0.
