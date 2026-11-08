@@ -115,7 +115,7 @@ export function ClientActivityPage({ patientId, ownerId, revision, onRecorded }:
         </div>
         <div className="mt-3 grid grid-cols-2 gap-2">
           <label className="text-xs font-semibold">Duração (min)<input type="number" min="1" max="1440" step="1" value={duration} onChange={e => setDuration(e.target.value)} className="field mt-1 w-full"/></label>
-          <label className="text-xs font-semibold">Distância (km)<input type="number" min="0" max="500" step="0.1" value={distance} onChange={e => setDistance(e.target.value)} placeholder="Opcional" className="field mt-1 w-full"/></label>
+          <label className="text-xs font-semibold">Distância (km)<input type="text" inputMode="decimal" value={distance} onChange={e => setDistance(e.target.value)} placeholder="Opcional" className="field mt-1 w-full"/></label>
           <label className="col-span-2 text-xs font-semibold">Intensidade<select value={intensity} onChange={e => setIntensity(e.target.value)} className="field mt-1 w-full"><option value="leve">Leve</option><option value="moderada">Moderada</option><option value="intensa">Intensa</option></select></label>
           <label className="col-span-2 text-xs font-semibold">Observações<textarea rows={2} maxLength={500} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Percurso, sensação ou detalhes (opcional)" className="field mt-1 w-full resize-y"/></label>
         </div>
