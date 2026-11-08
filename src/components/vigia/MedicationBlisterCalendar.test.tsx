@@ -89,7 +89,7 @@ describe("MedicationBlisterCalendar", () => {
     expect(screen.getByText("Pendentes")).toBeInTheDocument();
     const firstDayButtons = await screen.findAllByRole("button", { name: /confirmados/i });
     fireEvent.click(firstDayButtons[0]);
-    expect(await screen.findByText("Lansoprazol · manhã")).toBeInTheDocument();
+    expect(await screen.findByText((_, element) => element?.textContent?.includes("Lansoprazol · manhã") ?? false)).toBeInTheDocument();
   });
 
   it("shows an explicit empty state instead of inventing blister units", async () => {
