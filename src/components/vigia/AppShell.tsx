@@ -113,7 +113,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="absolute -right-40 top-1/3 size-[380px] rounded-full bg-sky/15 blur-3xl" />
         </div>
 
-        <header className="relative z-30 shrink-0 border-b border-border/70 bg-background/90 backdrop-blur-xl">
+        <header className="sticky top-0 z-40 shrink-0 border-b border-border/70 bg-background/90 backdrop-blur-xl">
           <div className="mx-auto flex h-12 max-w-none items-center justify-between gap-1.5 px-3 sm:gap-2 md:h-14 md:px-4 xl:px-5">
             <Link to="/" className="flex min-w-0 shrink-0 items-center gap-1.5 lg:gap-2">
               <div className="grid size-8 place-items-center rounded-lg bg-primary font-display text-lg leading-none text-primary-foreground shadow-sm md:size-9" aria-hidden="true">C</div>
@@ -166,7 +166,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         {moreOpen && !clientOnly && <>
           <button type="button" aria-label="Fechar menu" className="fixed inset-0 z-30 cursor-default" onClick={() => setMoreOpen(false)}/>
-          <nav id="care-secondary-navigation" role="menu" className="fixed right-4 top-[4.75rem] z-40 grid w-64 gap-1 rounded-2xl border border-border bg-background p-2 shadow-xl md:right-[max(1.5rem,calc((100vw-80rem)/2))]" aria-label={adminAccess ? "Gestão e outras áreas" : "Mais áreas"}>
+          <nav id="care-secondary-navigation" role="menu" className="fixed right-4 top-[4.75rem] z-40 grid max-h-[min(70vh,32rem)] w-64 gap-1 overflow-y-auto overscroll-contain rounded-2xl border border-border bg-background p-2 shadow-xl md:right-[max(1.5rem,calc((100vw-80rem)/2))]" aria-label={adminAccess ? "Gestão e outras áreas" : "Mais áreas"}>
             <div className="flex items-center justify-between px-3 py-2">
               <span className="label-mono text-muted-foreground">{adminAccess ? "Gestão e áreas" : "Mais áreas"}</span>
               <button type="button" onClick={() => setMoreOpen(false)} aria-label="Fechar"><X size={15}/></button>
