@@ -1,29 +1,11 @@
 /* CareDigital — premium internal workspace system
    Shared by agenda, hydration, medication, food, history, protocols and admin pages.
    Patient overview keeps its dedicated composition. */
+/* Internal workspace inherits the global semantic tokens. */
 #care-content:not(:has(.public-homepage)) {
-  --background: #f1f7f8;
-  --foreground: #17364a;
-  --surface: rgba(255,255,255,.94);
-  --card: #ffffff;
-  --card-foreground: #17364a;
-  --popover: #ffffff;
-  --popover-foreground: #17364a;
-  --primary: #087f83;
-  --primary-foreground: #ffffff;
-  --secondary: #e5f1f2;
-  --secondary-foreground: #204858;
-  --muted: #eaf2f3;
-  --muted-foreground: #587381;
-  --accent: #d9f2ed;
-  --accent-foreground: #075e62;
-  --border: rgba(45,111,124,.17);
-  --input: rgba(45,111,124,.25);
-  --ring: #20b9ad;
   color: var(--foreground);
-  background:
-    radial-gradient(ellipse at 4% 0%, rgba(105,211,204,.13), transparent 38%),
-    radial-gradient(ellipse at 100% 85%, rgba(92,174,198,.10), transparent 36%);
+  background: radial-gradient(ellipse at 4% 0%, color-mix(in srgb, var(--primary) 8%, transparent), transparent 38%),
+    radial-gradient(ellipse at 100% 85%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 36%);
 }
 #care-content:not(:has(.public-homepage)) > :not(.client-home-dashboard) {
   min-width: 0;
@@ -113,29 +95,9 @@
 
 /* Internal pages in dark mode: deep ocean teal, mint accents and readable surfaces. */
 .dark #care-content:not(:has(.public-homepage)) {
-  --background: #082b34;
-  --foreground: #eaf7f7;
-  --surface: rgba(10,53,63,.94);
-  --card: #103d49;
-  --card-foreground: #eaf7f7;
-  --popover: #123e49;
-  --popover-foreground: #eaf7f7;
-  --primary: #29c9b7;
-  --primary-foreground: #052e36;
-  --secondary: #174b56;
-  --secondary-foreground: #e8f8f6;
-  --muted: #16434e;
-  --muted-foreground: #b4d0d4;
-  --accent: #185d61;
-  --accent-foreground: #eafffb;
-  --border: rgba(132,205,207,.22);
-  --input: rgba(132,205,207,.34);
-  --ring: #5de1d0;
   color: var(--foreground);
-  background:
-    radial-gradient(ellipse at 0% 0%,rgba(30,175,166,.13),transparent 42%),
-    radial-gradient(ellipse at 100% 100%,rgba(39,125,153,.13),transparent 42%),
-    linear-gradient(145deg,#082b34,#0a3540 58%,#0b303c);
+  background: radial-gradient(ellipse at 0% 0%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 42%),
+    radial-gradient(ellipse at 100% 100%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 42%);
 }
 .dark #care-content:not(:has(.public-homepage)) :is(h1,h2,h3) { color: #f1fbfb; }
 .dark #care-content:not(:has(.public-homepage)) .label-mono { color: #8fd9d4; }
