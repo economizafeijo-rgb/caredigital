@@ -220,3 +220,13 @@
 - [x] Added empty, loading, and error states; dark-mode surfaces use semantic theme tokens.
 - [ ] Await CI for TypeScript/build/test validation. No deployment was triggered from this change.
 - [ ] Browser-verify the medication screen on desktop/mobile and compare the rendered rows with live checklist data before treating the UI task as complete.
+
+
+## Activity-history access audit (2026-11-08)
+
+- [x] Verified `care_activity_log` grants: `authenticated` has SELECT only; INSERT, UPDATE, and DELETE are not granted. `anon` has no table privileges. `service_role` retains full privileges for trusted backend maintenance.
+- [x] Verified RLS read policy limits rows to the owner or an explicitly assigned patient user.
+- [x] Existing SECURITY DEFINER care RPCs append events for confirmations, corrections, cancellations, and rescheduling; direct authenticated clients cannot rewrite or delete the audit rows.
+- [x] No changes made to live activity-log data or permissions.
+- [ ] Review privileged service-role access operationally; it is intentionally privileged and must remain server-side only.
+- [ ] Medication calendar CI is still being corrected: production build succeeds, but the new UI tests had matcher failures. Latest test revision narrows assertions to the dose-row paragraph; await CI before marking complete.
