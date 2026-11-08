@@ -140,3 +140,14 @@
 - [ ] Wait for CI on latest main commit to complete; tests/build are still running at the time of this note.
 - [ ] Continue RLS audit: body-measurement policies also contain tautological self-comparisons; inspect and test read/insert/update semantics before changing them.
 - [ ] Revisit the 7 auth initplan advisor findings after these changes and determine which remaining policy definitions are genuinely affected.
+
+
+## Body-measurement RLS hardening (2026-11-08)
+
+- [x] Inspected SELECT, INSERT, and UPDATE policies on `care_body_measurements`.
+- [x] Replaced tautological parent-owner comparisons with `care_patients.owner_id = care_body_measurements.owner_id` in all three policies.
+- [x] Preserved owner access and explicit `care_patient_access` delegation; INSERT/UPDATE still require `recorded_by = (select auth.uid())`.
+- [x] Checked current data before applying: table had 0 rows, 0 orphaned patient references, 0 owner mismatches; no patient records were modified.
+- [x] Applied and re-read the live policies to confirm the intended owner binding.
+- [ ] Run dedicated authenticated two-owner/delegate integration tests; current admin SQL inspection is not a substitute for end-user JWT/RLS tests.
+- [ ] Await CI for commit `ebc77f8` before marking code verification complete.
