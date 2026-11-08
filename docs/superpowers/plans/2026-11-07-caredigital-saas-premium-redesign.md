@@ -282,3 +282,13 @@
 ### Verification limitations
 - The new tests have been committed but must be confirmed by the active GitHub Actions run.
 - The design system is a first foundation pass, not a completed migration of all legacy page-specific CSS. Further scoped-style cleanup and browser validation remain required.
+
+
+### Phase 1 verification update
+- Latest successful CI run: `42437499835` — all workflow steps completed successfully.
+- Test suite: **20 test files passed, 104 tests passed**.
+- Scoped ESLint: the two newly added UI test files passed.
+- Production build: passed.
+- A full-repository `bun run lint` was also attempted. It currently fails with **8,377 errors and 22 warnings**, mostly Prettier formatting violations spread across the existing repository. The lint step is therefore scoped to the newly added tests for this phase; the repository-wide lint debt is not silently treated as resolved. Since a pre-change full-lint baseline was not captured, these findings are recorded as current repository debt rather than definitively attributed to earlier commits.
+- One initial run exposed a test-path issue (`new URL(...)` under the Vitest transform); the test was corrected to resolve files from the project root, and the subsequent complete test/build run passed.
+- Visual contrast measurements, live-browser screenshots and all-viewport review remain outstanding; Phase 1 is not declared complete until these are verified.
