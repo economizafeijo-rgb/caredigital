@@ -22,6 +22,7 @@ import { ClientOverviewIndicators } from "./ClientOverviewIndicators";
 import "./client-overview-premium.css";
 import { canConfirmCare, careScheduleBlockMessage, careScheduleLabel, getCareScheduleState } from "@/lib/care-schedule";
 import "./client-dashboard-art.css";
+import "./client-overview-fullscreen.css";
 
 type Client = { id: string; owner_id: string; full_name: string; status: string; care_goal: string | null; height_cm: number | null; weight_kg: number | null };
 type OverviewHealthProfile = { age: number | null; activityMinutes: number; weightKg: number | null; objective: string | null; protein: number | null; carbs: number | null; fat: number | null; kcal: number | null };
@@ -418,7 +419,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
     {key:"cardapios",label:"Cardápios e dietas",icon:BookOpen},
   ] as const;
 
-  return <section aria-label="Painel de acompanhamento individual do cliente" className={`care-client-dashboard care-client-art-reference care-client-route care-client-one-window ${activeTab==="hoje"?"care-client-overview-v2":""} flex h-full min-h-0 w-full flex-col overflow-hidden rounded-[22px] border border-border bg-card/95 shadow-[0_20px_60px_-44px_rgba(25,65,54,.45)]`}>
+  return <section aria-label="Painel de acompanhamento individual do cliente" className={`care-client-dashboard care-client-route ${activeTab==="hoje"?"care-client-overview-v3":"care-client-art-reference care-client-one-window"} flex h-full min-h-0 w-full max-w-none flex-col overflow-hidden rounded-[18px] border border-border bg-card/95 shadow-[0_12px_36px_-24px_rgba(25,65,54,.25)]`}>
     {loading ? <p role="status" className="p-6 text-sm text-muted-foreground">Verificando acesso seguro…</p> : !owner ? <div className="grid gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-center">
       <div><div className="flex items-center gap-2 font-semibold"><LockKeyhole size={19} className="text-primary"/> Acesso protegido</div><p className="mt-2 max-w-2xl text-sm text-muted-foreground">Entre com sua conta para consultar somente seu acompanhamento e confirmar os cuidados realizados.</p></div>
       <button onClick={() => setLocked(true)} className="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground">Consultar programação</button>

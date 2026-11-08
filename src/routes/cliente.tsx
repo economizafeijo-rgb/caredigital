@@ -34,7 +34,7 @@ function ClientPage() {
   if (status === "loading") return <div role="status" className="rounded-xl border border-border bg-card p-4 text-sm">Verificando seu acesso…</div>;
   if (status === "guest") return <section className="mx-auto max-w-lg rounded-2xl border border-border bg-card p-6 text-center"><UserRound className="mx-auto text-primary" size={30}/><h1 className="mt-3 text-xl font-bold">Área do cliente</h1><p className="mt-2 text-sm text-muted-foreground">Entre com sua conta para consultar seu acompanhamento.</p><Link to="/entrar" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground"><LogIn size={17}/> Entrar</Link></section>;
   if (status === "unlinked") return <section className="mx-auto max-w-lg rounded-2xl border border-border bg-card p-6"><h1 className="text-lg font-bold">Prontuário não vinculado</h1><p className="mt-2 text-sm text-muted-foreground">Sua conta está conectada, mas não foi possível localizar um prontuário autorizado. Solicite acesso ao administrador.</p><Link to="/" className="mt-3 inline-block text-sm font-semibold text-primary underline">Voltar à homepage</Link></section>;
-  return <main className="care-client-route mx-auto flex h-full min-h-0 w-full max-w-[1280px] flex-col md:overflow-hidden" aria-label="Área privada do cliente">
+  return <main className="care-client-route care-client-overview-route mx-0 flex h-full min-h-0 w-full max-w-none flex-col overflow-hidden" aria-label="Área privada do cliente">
     <HomeClientCard patientName={name}/>
   </main>;
 }
