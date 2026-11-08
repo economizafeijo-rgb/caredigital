@@ -416,7 +416,9 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
     {key:"hidratacao",label:"Minha hidratação",icon:Droplets},
     {key:"historico",label:"Histórico",icon:History},
     {key:"alimentacao",label:"Alimentação",icon:UtensilsCrossed},
-    {key:"cardapios",label:"Cardápios e dietas",icon:BookOpen},\n    {key:"medicacao",label:"Medicação",icon:Pill},\n    {key:"indicadores",label:"Indicadores",icon:Target},
+    {key:"cardapios",label:"Cardápios e dietas",icon:BookOpen},
+    {key:"medicacao",label:"Medicação",icon:Pill},
+    {key:"indicadores",label:"Indicadores",icon:Target},
   ] as const;
 
   return <section aria-label="Painel de acompanhamento individual do cliente" className={`care-client-dashboard care-client-route ${activeTab==="hoje"?"care-client-overview-v3":"care-client-art-reference care-client-one-window"} flex h-full min-h-0 w-full max-w-none flex-col overflow-hidden rounded-[18px] border border-border bg-card/95 shadow-[0_12px_36px_-24px_rgba(25,65,54,.25)]`}>
