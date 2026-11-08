@@ -218,7 +218,7 @@
 - [x] Counts, completion progress, day selection, titles, and times now derive from actual `care_daily_checklist` records; one scheduled task is represented as one care event, without inferring pill counts from labels.
 - [x] Kept confirmation connected to the existing `onConfirm` flow and `canConfirmCare` guard; no direct writes or prescription edits were introduced.
 - [x] Added empty, loading, and error states; dark-mode surfaces use semantic theme tokens.
-- [ ] Await CI for TypeScript/build/test validation. No deployment was triggered from this change.
+- [x] Full Vitest suite and production build passed on commit `e2067d4` (CI run 42435228432). No deployment was triggered from this change.
 - [ ] Browser-verify the medication screen on desktop/mobile and compare the rendered rows with live checklist data before treating the UI task as complete.
 
 
@@ -229,4 +229,15 @@
 - [x] Existing SECURITY DEFINER care RPCs append events for confirmations, corrections, cancellations, and rescheduling; direct authenticated clients cannot rewrite or delete the audit rows.
 - [x] No changes made to live activity-log data or permissions.
 - [ ] Review privileged service-role access operationally; it is intentionally privileged and must remain server-side only.
-- [ ] Medication calendar CI is still being corrected: production build succeeds, but the new UI tests had matcher failures. Latest test revision narrows assertions to the dose-row paragraph; await CI before marking complete.
+- [x] Calendar test matcher correction passed full CI on commit `e2067d4` (94 tests, production build successful).
+
+
+## Medication history resilience (2026-11-08)
+
+- [x] Changed the calendar query to fetch the newest 500 scheduled medication events first, preventing older rows from occupying the bounded result window and hiding newer treatment records.
+- [x] Sort the returned recent events chronologically in memory before rendering, preserving day and dose order.
+- [x] Added explicit catch/finally handling so rejected network requests show a recoverable error and always clear the loading state.
+- [x] Added regression coverage for descending database order and rejected requests.
+- [ ] Await CI run 42435355297 for full tests and production build.
+- [ ] Consider keyset pagination if a future patient workflow needs browsing more than the newest 500 medication events; do not silently expand query volume without UX/performance review.
+- [ ] Browser-verify long-history behavior and visual layout on desktop/mobile; no browser session or deployment verification has been performed in this slice.
