@@ -13,13 +13,17 @@ type Dose = {
 };
 
 const timeZone = "America/Rio_Branco";
-const dayKey = (value: string) =>
-  new Intl.DateTimeFormat("en-CA", {
+const dayKey = (value: string) => {
+  const parts = new Intl.DateTimeFormat("en", {
     timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).format(new Date(value));
+  }).formatToParts(new Date(value));
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((item) => item.type === type)?.value ?? "";
+  return `${part("year")}-${part("month")}-${part("day")}`;
+};
 const dateLabel = (value: string) =>
   new Intl.DateTimeFormat("pt-BR", {
     timeZone,
