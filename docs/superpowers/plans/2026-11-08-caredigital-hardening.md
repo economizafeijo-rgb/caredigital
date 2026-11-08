@@ -39,7 +39,7 @@
 
 - [x] Inspect definitions and confirm all three are trigger functions.
 - [x] Revoke direct EXECUTE grants without changing trigger definitions.
-- [ ] Verify anon/authenticated cannot execute and trigger attachments still exist.
+- [x] Verify anon/authenticated cannot execute and trigger attachments still exist (SQL query: all three have anon_exec=false, auth_exec=false, attached_triggers=1).
 
 ### Task 2: Audit patient-facing menu and page data contracts
 
@@ -54,10 +54,10 @@
 - Consumes: existing ClientSection hash map and patient/owner identifiers.
 - Produces: verified mapping from each menu to its own page and patient-scoped query.
 
-- [ ] Trace all menu click, URL hash, browser back/forward, and page rendering paths.
+- [x] Trace menu click, URL hash, browser back/forward, and page rendering paths; all nine sections have unique hashes and individual conditional page renderers.\n- [x] Add regression test for malformed percent-encoded hashes; observed RED in CI (run 42432583929), added safe fallback to the overview, then GREEN in full CI (run 42432618684).
 - [ ] Verify loading, empty, error, and populated states for each page.
 - [ ] Add failing regression tests for any confirmed navigation/data defect before fixing it.
-- [ ] Run affected tests and full suite.
+- [x] Run full suite and production build: GitHub Actions run 42432618684 completed successfully.
 
 ### Task 3: Review Supabase authorization and RLS
 
