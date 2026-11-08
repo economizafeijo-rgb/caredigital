@@ -231,3 +231,170 @@
   :root .care-client-overview-v3 .care-client-page-nav button {min-height:30px!important;}
   :root .care-client-overview-v3 .care-overview-secondary .care-overview-indicator-grid {grid-template-columns:repeat(2,minmax(0,1fr))!important;}
 }
+
+
+/* Navigation: every shortcut opens a real section; keep all eight tabs visible. */
+:root .care-client-dashboard .care-client-page-nav {
+  grid-template-columns:repeat(8,minmax(0,1fr)) !important;
+  min-height:38px !important;
+  height:auto !important;
+}
+:root .care-client-dashboard .care-client-page-nav button {
+  min-width:0 !important;
+  white-space:nowrap !important;
+  padding-inline:5px !important;
+}
+:root .care-client-dashboard .care-client-page-nav button span {
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+:root .care-client-dashboard .care-client-medication-page,
+:root .care-client-dashboard .care-client-indicators-page {
+  min-height:0 !important;
+  width:100% !important;
+  height:100% !important;
+  overflow:auto !important;
+  padding:4px !important;
+}
+:root .care-client-dashboard .care-client-indicators-page .care-overview-indicators {
+  min-height:100% !important;
+}
+@media(max-width:1100px) {
+  :root .care-client-dashboard .care-client-page-nav {grid-template-columns:repeat(4,minmax(0,1fr)) !important;}
+}
+@media(max-width:520px) {
+  :root .care-client-dashboard .care-client-page-nav {grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
+}
+
+/* Dark theme: the previous light overview used hard-coded white surfaces and
+   slate text, which overrode the application's .dark design tokens. */
+:root.dark .care-client-dashboard.care-client-overview-v3 {
+  color-scheme:dark !important;
+  --ov-ink:#e8f3f1; --ov-muted:#b6c9c6; --ov-line:rgba(190,220,213,.2);
+  --ov-teal:#70d5c5; --ov-green:#80d7b5; --ov-bg:#263638;
+  --background:#263638; --card:#344548; --foreground:#eaf3f0;
+  --muted-foreground:#b9cbc7; --muted:#3b4e50; --border:rgba(197,222,215,.2);
+  --primary:#83d9ca; --primary-foreground:#173b38; --success:#8bd8b5;
+  background:linear-gradient(145deg,#263638 0%,#2d4142 55%,#26393b 100%) !important;
+  border-color:rgba(113,202,188,.3) !important;
+  color:#eaf3f0 !important;
+  box-shadow:0 12px 36px rgba(0,0,0,.24) !important;
+}
+:root.dark .care-client-overview-v3 :is(.care-client-identity,.care-overview-shortcuts button,.care-overview-progress,.care-overview-card,.care-overview-agenda,.care-overview-indicators,.care-blister-refined,.care-client-page-content) {
+  background:#344548 !important;
+  border-color:rgba(190,220,213,.2) !important;
+  color:#eaf3f0 !important;
+  box-shadow:0 2px 9px rgba(0,0,0,.14) !important;
+}
+:root.dark .care-client-overview-v3 .care-client-identity {
+  background:linear-gradient(105deg,#34494a,#2e4143) !important;
+}
+:root.dark .care-client-overview-v3 :is(.care-client-identity h1,.care-overview-section-heading h3,.care-overview-progress-item strong,.care-overview-stat strong,.care-blister-refined h3,.care-blister-refined strong,.care-overview-next h3,.care-overview-indicator-copy strong) {
+  color:#edf7f4 !important;
+}
+:root.dark .care-client-overview-v3 :is(.care-client-identity p,.care-overview-section-heading p,.care-overview-section-heading span,.care-overview-progress-item small,.care-overview-progress-item header,.care-overview-stat span,.care-overview-next p,.care-overview-next small,.care-overview-heading-note,.care-overview-indicator-copy span,.care-overview-indicator-copy em,.care-overview-indicator>p,.care-blister-refined p,.care-blister-refined span) {
+  color:#b8cbc7 !important;
+}
+:root.dark .care-client-overview-v3 .care-overview-shortcuts button {
+  background:#3b5152 !important;
+  color:#e6f2ef !important;
+  border-color:rgba(177,213,204,.22) !important;
+}
+:root.dark .care-client-overview-v3 .care-overview-shortcuts button svg,
+:root.dark .care-client-overview-v3 .care-overview-eyebrow {color:#83d9ca !important;}
+:root.dark .care-client-overview-v3 .care-client-page-nav {
+  background:#2b3e40 !important;
+  border-color:rgba(177,213,204,.2) !important;
+}
+:root.dark .care-client-overview-v3 .care-client-page-nav button {
+  color:#c0d2ce !important;
+}
+:root.dark .care-client-overview-v3 .care-client-page-nav button[aria-selected="true"] {
+  background:#168b83 !important;
+  color:#f4fffc !important;
+}
+:root.dark .care-client-overview-v3 .care-overview-stat,
+:root.dark .care-client-overview-v3 .care-overview-progress-item,
+:root.dark .care-client-overview-v3 .care-overview-indicator,
+:root.dark .care-client-overview-v3 .care-blister-period {
+  background:#2c4042 !important;
+  border-color:rgba(177,213,204,.18) !important;
+  color:#eaf3f0 !important;
+}
+:root.dark .care-client-overview-v3 .care-overview-stat.is-complete,
+:root.dark .care-client-overview-v3 .care-blister-period.is-confirmed {
+  background:#29483f !important;
+  border-color:rgba(111,205,164,.28) !important;
+}
+:root.dark .care-client-overview-v3 .care-overview-next {
+  background:#30494a !important;
+  border-color:rgba(107,203,191,.25) !important;
+}
+:root.dark .care-client-overview-v3 .care-overview-next[data-kind="hidratacao"] {
+  background:#2c464c !important;
+  border-color:rgba(103,191,208,.3) !important;
+}
+:root.dark .care-client-overview-v3 .care-overview-next-time {color:#8ce1d2 !important;}
+:root.dark .care-client-overview-v3 .care-overview-next button {
+  background:#168b83 !important;
+  color:#f4fffc !important;
+}
+:root.dark .care-client-overview-v3 .care-overview-progress-track,
+:root.dark .care-client-overview-v3 .care-blister-progress {background:#526668 !important;}
+:root.dark .care-client-overview-v3 .care-overview-indicator-icon {
+  background:#345958 !important;color:#8ce1d2 !important;
+}
+:root.dark .care-client-overview-v3 .care-overview-indicator[open] {
+  background:#304c49 !important;border-color:#5c9e90 !important;
+}
+:root.dark .care-client-overview-v3 .care-overview-history-filters button {
+  background:#2e4446 !important;color:#c5d8d3 !important;border-color:rgba(177,213,204,.2) !important;
+}
+:root.dark .care-client-overview-v3 .care-overview-history-filters button[aria-pressed="true"] {
+  background:#315a55 !important;color:#a6eee0 !important;border-color:#69bdb0 !important;
+}
+:root.dark .care-client-overview-v3 .care-overview-agenda .care-timeline-item {
+  background:#2d4244 !important;border-color:rgba(177,213,204,.18) !important;
+}
+:root.dark .care-client-overview-v3 .care-overview-agenda .care-timeline-item-title {color:#eaf3f0 !important;}
+:root.dark .care-client-overview-v3 .care-blister-period,
+:root.dark .care-client-overview-v3 .care-blister-dose-card {
+  background:#2d4143 !important;border-color:rgba(177,213,204,.2) !important;
+}
+:root.dark .care-client-overview-v3 .care-blister-dose-card :is(strong,small,span) {color:#e4f0ed !important;}
+:root.dark .care-client-overview-v3 .care-overview-progress-item header svg {color:#83d9ca !important;}
+:root.dark .care-client-overview-v3 .care-overview-progress-item .care-overview-progress-track i {background:#60cbb6 !important;}
+:root.dark .care-client-overview-v3 .care-overview-progress-track i {background:#60cbb6 !important;}
+:root.dark .care-client-overview-v3 .care-overview-agenda :is(.care-recent-history,[data-care-history]) {color:#eaf3f0 !important;}
+:root.dark .care-client-overview-v3 .care-overview-agenda :is(button,a) {color:#8ce1d2 !important;}
+:root.dark .care-client-overview-v3 .care-overview-progress > div,
+:root.dark .care-client-overview-v3 .care-overview-card > div {color:#eaf3f0;}
+:root.dark .care-client-overview-v3 .care-overview-card .bg-sky-50,
+:root.dark .care-client-overview-v3 .care-overview-card [class*="bg-sky-50"] {
+  background:#29464a !important;border-color:rgba(114,191,205,.25) !important;
+}
+:root.dark .care-client-overview-v3 .care-overview-card .text-sky-800,
+:root.dark .care-client-overview-v3 .care-overview-card .text-sky-900 {color:#a8dfe3 !important;}
+:root.dark .care-client-overview-v3 .care-overview-card .text-slate-600 {color:#bfd0cc !important;}
+:root.dark .care-client-overview-v3 .care-overview-profile-button {
+  background:#3b5152 !important;color:#eaf3f0 !important;border-color:rgba(177,213,204,.25) !important;
+}
+:root.dark .care-client-dashboard .care-client-page-content,
+:root.dark .care-client-dashboard .care-client-summary {
+  background:#2d4143 !important;border-color:rgba(190,220,213,.2) !important;color:#eaf3f0 !important;
+}
+:root.dark .care-client-dashboard .care-section-heading {
+  background:linear-gradient(110deg,#30494a,#293d3f) !important;
+  border-color:rgba(134,207,194,.24) !important;color:#edf7f4 !important;
+}
+:root.dark .care-client-dashboard .care-section-heading :is(h2,p,span) {color:#e5f1ed !important;}
+:root.dark .care-client-dashboard .care-section-heading-stat,
+:root.dark .care-client-dashboard .care-section-heading-icon {
+  background:#3b5353 !important;border-color:rgba(177,213,204,.24) !important;color:#a4e8da !important;
+}
+:root.dark .care-client-dashboard .care-client-medication-page .care-blister-refined {
+  background:#344548 !important;color:#edf7f4 !important;border-color:rgba(190,220,213,.2) !important;
+}
+:root.dark .care-client-dashboard .care-client-indicators-page .care-overview-indicators {
+  background:#344548 !important;color:#edf7f4 !important;border-color:rgba(190,220,213,.2) !important;
+}

@@ -417,6 +417,8 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
     {key:"historico",label:"Histórico",icon:History},
     {key:"alimentacao",label:"Alimentação",icon:UtensilsCrossed},
     {key:"cardapios",label:"Cardápios e dietas",icon:BookOpen},
+    {key:"medicacao",label:"Medicação",icon:Pill},
+    {key:"indicadores",label:"Indicadores",icon:Target},
   ] as const;
 
   return <section aria-label="Painel de acompanhamento individual do cliente" className={`care-client-dashboard care-client-route ${activeTab==="hoje"?"care-client-overview-v3":"care-client-art-reference care-client-one-window"} flex h-full min-h-0 w-full max-w-none flex-col overflow-hidden rounded-[18px] border border-border bg-card/95 shadow-[0_12px_36px_-24px_rgba(25,65,54,.25)]`}>
@@ -451,9 +453,9 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
       {activeTab==="hoje"&&<nav className="care-overview-shortcuts" aria-label="Atalhos rápidos">
         <button type="button" onClick={()=>openSection("hidratacao")}><Droplets size={15}/> Água</button>
         <button type="button" onClick={()=>openSection("alimentacao")}><UtensilsCrossed size={15}/> Alimentação</button>
-        <button type="button" onClick={()=>document.getElementById("care-overview-medication")?.scrollIntoView({behavior:"smooth",block:"center"})}><Pill size={15}/> Medicação</button>
+        <button type="button" onClick={()=>openSection("medicacao")}><Pill size={15}/> Medicação</button>
         <button type="button" onClick={()=>openSection("historico")}><Activity size={15}/> Atividade</button>
-        <button type="button" onClick={()=>document.getElementById("care-overview-indicators")?.scrollIntoView({behavior:"smooth",block:"center"})}><Target size={15}/> Indicadores</button>
+        <button type="button" onClick={()=>openSection("indicadores")}><Target size={15}/> Indicadores</button>
       </nav>}
       <div className={"care-client-medication-alert shrink-0 "+(activeTab==="hoje"?"hidden":"")}>
         <CareReminderBeacon tasks={tasks} patientId={client.id} ownerId={client.owner_id} refreshKey={tick}
@@ -461,7 +463,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
           onConfirm={alertTask=>{const task=tasks.find(t=>t.id===alertTask.id);if(task)askConfirm(task)}} compact/>
       </div>
 
-      <div className="care-client-tabs care-client-page-nav grid shrink-0 grid-cols-3 gap-1 rounded-xl border border-border bg-muted/55 p-1 sm:grid-cols-6" role="tablist" aria-label="Páginas do acompanhamento">
+      <div className="care-client-tabs care-client-page-nav grid shrink-0 grid-cols-3 gap-1 rounded-xl border border-border bg-muted/55 p-1 sm:grid-cols-4 lg:grid-cols-8" role="tablist" aria-label="Páginas do acompanhamento">
         {tabs.map(tab=>{
           const Icon=tab.icon;
           return <button type="button" role="tab" key={tab.key} aria-selected={activeTab===tab.key} aria-controls="care-client-tab-panel"
@@ -589,6 +591,8 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
             onDelete={meal=>{const item=tasks.find(task=>task.id===meal.id);if(item){setPending(null);setMealToDelete(item);}}}
             onRecorded={()=>setTick(value=>value+1)}/>}
           {activeTab==="cardapios"&&<ClientNutritionStudio patientId={client.id} ownerId={client.owner_id} onLogged={()=>setTick(v=>v+1)}/>}
+          {activeTab==="medicacao"&&<div className="care-client-medication-page min-h-0 w-full"><CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm}/></div>}
+          {activeTab==="indicadores"&&<div className="care-client-indicators-page min-h-0 w-full"><ClientOverviewIndicators heightCm={client.height_cm} weightKg={healthProfile.weightKg??client.weight_kg} waterTarget={hydrationTarget||null} protein={healthProfile.protein} carbs={healthProfile.carbs} fat={healthProfile.fat} kcal={healthProfile.kcal}/></div>}
 
         </section>}
       </div>
