@@ -5,6 +5,7 @@ import { MedicationBlisterCalendar } from "./MedicationBlisterCalendar";
 const query = vi.hoisted(() => ({
   result: { data: [] as Array<Record<string, unknown>>, error: null as unknown },
   filters: [] as Array<[string, unknown]>,
+  throwOnFetch: false,
   from: vi.fn(),
 }));
 
@@ -27,6 +28,7 @@ vi.mock("@/integrations/supabase/client", () => ({
         },
         limit: (value: number) => {
           query.filters.push(["limit", value]);
+          if (query.throwOnFetch) return Promise.reject(new Error("network unavailable"));
           return Promise.resolve(query.result);
         },
       };
@@ -66,6 +68,7 @@ describe("MedicationBlisterCalendar", () => {
   beforeEach(() => {
     query.result = { data: doses, error: null };
     query.filters = [];
+    query.throwOnFetch = false;
     query.from.mockClear();
   });
 
@@ -85,6 +88,7 @@ describe("MedicationBlisterCalendar", () => {
     expect(query.filters).toContainEqual(["patient_id", "patient-1"]);
     expect(query.filters).toContainEqual(["category", "medicacao"]);
     expect(query.filters).toContainEqual(["limit", 500]);
+    expect(query.filters).toContainEqual(["scheduled_at", { ascending: false }]);
     expect(screen.getByText("Programados")).toBeInTheDocument();
     expect(screen.getByText("Pendentes")).toBeInTheDocument();
     const firstDayButtons = await screen.findAllByRole("button", { name: /confirmados/i });
@@ -123,6 +127,23 @@ describe("MedicationBlisterCalendar", () => {
     expect(
       await screen.findByRole("alert"),
     ).toHaveTextContent("Não foi possível carregar a agenda de medicamentos.");
+  });
+
+  it("shows a recoverable error when the request rejects", async () => {
+    query.throwOnFetch = true;
+    render(
+      <MedicationBlisterCalendar
+        patientId="patient-1"
+        ownerId="owner-1"
+        revision={0}
+        onConfirm={vi.fn()}
+      />,
+    );
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Não foi possível carregar a agenda de medicamentos.",
+    );
+    expect(screen.queryByText("Carregando registros…")).not.toBeInTheDocument();
   });
 
   it("switches the selected day without changing schedule data", async () => {
