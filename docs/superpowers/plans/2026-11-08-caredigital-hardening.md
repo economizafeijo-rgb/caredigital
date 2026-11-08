@@ -172,3 +172,18 @@
 - [x] Explicitly delegated user sees the linked patient and the same permitted rows: 1 patient, 208 checklist rows, 44 hydration rows, 314 activity rows, 1 nutrition meal-log row.
 - [ ] These are read-isolation smoke tests against the current live data, not a full adversarial suite. Need add automated JWT integration tests for attempted writes, cross-patient RPC calls, revoked grants, and a second unrelated real patient.
 - [ ] The current project contains only one patient record and one explicit patient-access grant, limiting the available cross-owner fixtures.
+
+
+## RPC write-boundary smoke tests and SECURITY DEFINER review (2026-11-08)
+
+- [x] Ran transactional RPC checks under `SET LOCAL ROLE authenticated` with simulated unrelated and explicitly delegated JWT subjects; transaction rolled back.
+- [x] Unrelated authenticated user calling `care_confirm_task` for the patient's pending hydration task was rejected as unavailable.
+- [x] Unrelated authenticated user calling `care_correct_water_entry` for the patient's water row was rejected as unavailable.
+- [x] Delegated user reached the existing completed-task guard in `care_confirm_task` (the function recognized the authorized task, then rejected it because it was already completed).
+- [x] Delegated user called `care_correct_water_entry` with the current amount (no-op); the function returned the same amount.
+- [x] Post-check confirmed pending hydration task, water amount, and completed meal task were unchanged.
+- [x] Reviewed all public SECURITY DEFINER functions: authenticated RPC entry points are not granted to `anon`; trigger/internal helpers without an `auth.uid()` check are not executable by `authenticated` or `anon`. User-facing RPCs inspected include explicit owner or patient-access checks.
+- [x] `care_hydration_goal_targets` has RLS enabled and no policies, but neither `anon` nor `authenticated` has table privileges; it is currently inaccessible through the public Data API. No broad policy was added.
+- [ ] Supabase Security Advisor still reports the expected warning for 26 authenticated-callable SECURITY DEFINER functions. Keep reviewing each public RPC and consider moving internal helpers to a non-exposed schema in a separate migration after dependency mapping.
+- [ ] Expand automated integration coverage with a second unrelated real patient, attempted writes, access revocation, and cross-patient RPC IDs. Current live project only has one patient and one access grant.
+- [ ] Do not revoke authenticated EXECUTE globally or switch every SECURITY DEFINER function to SECURITY INVOKER without dependency review; several functions are intentional public RPC entry points and their bodies enforce ownership/access checks.
