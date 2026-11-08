@@ -459,7 +459,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
         <button type="button" onClick={()=>openSection("hidratacao")}><Droplets size={15}/> Água</button>
         <button type="button" onClick={()=>openSection("alimentacao")}><UtensilsCrossed size={15}/> Alimentação</button>
         <button type="button" onClick={()=>openSection("medicacao")}><Pill size={15}/> Medicação</button>
-        <button type="button" onClick={()=>openSection("historico")}><Activity size={15}/> Atividade</button>
+        <button type="button" onClick={()=>openSection("atividade")}><Activity size={15}/> Atividade</button>
         <button type="button" onClick={()=>openSection("indicadores")}><Target size={15}/> Indicadores</button>
       </nav>}
       <div className={"care-client-medication-alert shrink-0 "+(activeTab==="hoje"?"hidden":"")}>
