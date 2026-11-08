@@ -595,7 +595,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
           {activeTab==="cardapios"&&<ClientNutritionStudio patientId={client.id} ownerId={client.owner_id} onLogged={()=>setTick(v=>v+1)}/>}
           {activeTab==="medicacao"&&<div className="care-client-medication-page min-h-0 w-full"><CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm}/></div>}
           {activeTab==="atividade"&&<div className="care-client-activity-page min-h-0 w-full"><ClientActivityPage patientId={client.id} ownerId={client.owner_id} revision={tick} onRecorded={()=>setTick(value=>value+1)}/></div>}
-          {activeTab==="indicadores"&&<div className="care-client-indicators-page min-h-0 w-full"><ClientOverviewIndicators heightCm={client.height_cm} weightKg={healthProfile.weightKg??client.weight_kg} waterTarget={hydrationTarget||null} protein={healthProfile.protein} carbs={healthProfile.carbs} fat={healthProfile.fat} kcal={healthProfile.kcal}/></div>}
+          {activeTab==="indicadores"&&<div className="care-client-indicators-page min-h-0 w-full"><ClientOverviewIndicators heightCm={client.height_cm} weightKg={healthProfile.weightKg??client.weight_kg} waterTarget={hydrationTarget||null} protein={healthProfile.protein} carbs={healthProfile.carbs} fat={healthProfile.fat} kcal={healthProfile.kcal} patientId={client.id} ownerId={client.owner_id} revision={tick} full/></div>}
 
         </section>}
       </div>
