@@ -187,3 +187,12 @@
 - [ ] Supabase Security Advisor still reports the expected warning for 26 authenticated-callable SECURITY DEFINER functions. Keep reviewing each public RPC and consider moving internal helpers to a non-exposed schema in a separate migration after dependency mapping.
 - [ ] Expand automated integration coverage with a second unrelated real patient, attempted writes, access revocation, and cross-patient RPC IDs. Current live project only has one patient and one access grant.
 - [ ] Do not revoke authenticated EXECUTE globally or switch every SECURITY DEFINER function to SECURITY INVOKER without dependency review; several functions are intentional public RPC entry points and their bodies enforce ownership/access checks.
+
+
+## Delegated-access revocation test (2026-11-08)
+
+- [x] Confirmed the explicit delegated user had access to the patient and hydration records in the earlier authenticated-role smoke test.
+- [x] In a transaction, removed only the delegated user's `care_patient_access` grant, then queried as `authenticated` using that user's JWT subject.
+- [x] After revocation, the delegated user's visible patient count was 0 and hydration row count was 0.
+- [x] Rolled back the transaction; the actual access grant was not revoked in production.
+- [ ] Add a persistent automated integration test with isolated fixtures so grant/revoke behavior remains covered in CI. The current repository has unit tests but no database-auth integration harness configured.
