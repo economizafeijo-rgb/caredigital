@@ -69,7 +69,7 @@
 - Consumes: current Supabase schema and auth.uid()-based ownership/access relationships.
 - Produces: explicit least-privilege grants and RLS policies that preserve intended admin/client access.
 
-- [ ] Classify each SECURITY DEFINER function by caller and authorization checks.
+- [x] Initial static authorization review of all 26 authenticated SECURITY DEFINER overloads: all require an authenticated UID, use a fixed `search_path` (`public`, `pg_temp`), and include owner or `care_patient_access` scoping checks. Inspected representative write/read flows in detail; no blanket EXECUTE revocations were made because these are intentional patient workflows.\n- [ ] Complete adversarial cross-patient tests for every RPC family before declaring this review closed.
 - [ ] Determine intended access to care_hydration_goal_targets before adding any policy.
 - [ ] Add privilege/RLS regression assertions.
 - [ ] Apply only verified restrictive changes and confirm existing authenticated workflows remain available.
@@ -84,7 +84,7 @@
 - Consumes: advisor findings and current application query patterns.
 - Produces: indexes for demonstrated FK/query paths and optimized auth initplans.
 
-- [ ] Map each advisor finding to real query paths and existing indexes.
+- [x] Compared every public foreign-key constraint with valid leading-column indexes. Twelve FK constraints currently lack a matching leading index; this is not yet a mandate to add indexes.\n- [ ] Map the twelve candidates to actual query plans, table sizes, and delete/update paths before choosing indexes.
 - [ ] Do not remove unused indexes without production-scale evidence.
 - [ ] Add only non-duplicative indexes and safe policy expression optimizations.
 - [ ] Verify advisor changes and run regression checks.
