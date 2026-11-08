@@ -274,3 +274,16 @@
 - [x] Revoked EXECUTE from PUBLIC, anon, and authenticated while preserving trusted service-role execution and the existing enabled triggers.
 - [x] Verified effective permissions: anon=false, authenticated=false, service_role=true for both functions; both triggers remain enabled.
 - [ ] Await CI run 42435892834 for migration commit `c97c13d`.
+
+
+## Medication confirmation window consistency (2026-11-08)
+
+- [x] Compared client rule (`care-schedule.ts`: medication becomes missed at the 15-minute boundary) with live RPC `care_confirm_task`.
+- [x] Found server-side gap: RPC rejected future doses but did not reject a medication confirmation after the 15-minute window.
+- [x] Applied live migration `enforce_medication_confirmation_window`: medication confirmation at or after scheduled time + 15 minutes now raises a clear exception; meal and hydration late-confirmation behavior is unchanged.
+- [x] Kept medication schedule timestamps unchanged; no prescription, dose, or task record was updated by the migration.
+- [x] Tested an expired pending medication task in an authenticated transaction; server rejected the late confirmation and transaction was rolled back. Verified the task remains pending and has zero confirmed audit events.
+- [x] Audited current medication schedule data: 72 checklist medication entries, no duplicate patient/owner/title/time slots; no duplicate `care_doses` patient/owner/medication/time tuples.
+- [x] Confirmed task row locking, completed-state check, and unique `care_activity_log(task_id,event_type='confirmed')` index prevent duplicate confirmations under concurrent/retry calls.
+- [x] Added migration `20261108170000_enforce_medication_confirmation_window.sql` to main.
+- [ ] Await CI run 42436106790.
