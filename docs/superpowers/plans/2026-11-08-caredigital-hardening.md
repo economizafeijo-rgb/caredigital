@@ -264,3 +264,13 @@
 - [x] Committed matching migration `20261108020000_restrict_care_table_privileges.sql` to main.
 - [ ] Await CI for migration commit `0047d53`.
 - [ ] Continue checking SECURITY DEFINER RPCs for authorization predicates and explicit search_path; do not weaken existing RLS or alter clinical records.
+
+
+## Trigger-function execution hardening (2026-11-08)
+
+- [x] Audited SECURITY DEFINER functions: all currently have an explicit `search_path=public, pg_temp`.
+- [x] Found two trigger-only SECURITY DEFINER functions with inherited PUBLIC EXECUTE: `care_enforce_task_confirmation_window()` and `care_prevent_early_medication()`.
+- [x] Confirmed both are attached to enabled triggers on `care_daily_checklist`; neither is an API RPC.
+- [x] Revoked EXECUTE from PUBLIC, anon, and authenticated while preserving trusted service-role execution and the existing enabled triggers.
+- [x] Verified effective permissions: anon=false, authenticated=false, service_role=true for both functions; both triggers remain enabled.
+- [ ] Await CI run 42435892834 for migration commit `c97c13d`.
