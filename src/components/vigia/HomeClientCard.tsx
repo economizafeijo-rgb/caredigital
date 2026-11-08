@@ -412,16 +412,19 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
   const medicinePercent=treatmentProgress?progressPercent:(medicineTasks.length?Math.round(medicineConfirmed/medicineTasks.length*100):0);
   const medicineValue=treatmentProgress?`${treatmentProgress.confirmed}/${treatmentProgress.total}`:`${medicineConfirmed}/${medicineTasks.length}`;
   const tabs=[
-    {key:"hoje",label:"Visão geral",icon:LayoutDashboard},
-    {key:"agenda",label:"Agenda",icon:CalendarDays},
-    {key:"hidratacao",label:"Minha hidratação",icon:Droplets},
-    {key:"historico",label:"Histórico",icon:History},
+    {key:"hidratacao",label:"Água",icon:Droplets},
     {key:"alimentacao",label:"Alimentação",icon:UtensilsCrossed},
-    {key:"cardapios",label:"Cardápios e dietas",icon:BookOpen},
     {key:"medicacao",label:"Medicação",icon:Pill},
     {key:"atividade",label:"Atividade",icon:Activity},
     {key:"indicadores",label:"Indicadores",icon:Target},
   ] as const;
+  const secondaryTabs=[
+    {key:"hoje",label:"Visão geral",icon:LayoutDashboard},
+    {key:"agenda",label:"Agenda",icon:CalendarDays},
+    {key:"historico",label:"Histórico",icon:History},
+    {key:"cardapios",label:"Cardápios e dietas",icon:BookOpen},
+  ] as const;
+  const allTabs=[...tabs,...secondaryTabs];
 
   return <section aria-label="Painel de acompanhamento individual do cliente" className={`care-client-dashboard care-client-route ${activeTab==="hoje"?"care-client-overview-v3":"care-client-art-reference care-client-one-window"} flex h-full min-h-0 w-full max-w-none flex-col overflow-hidden rounded-[18px] border border-border bg-card/95 shadow-[0_12px_36px_-24px_rgba(25,65,54,.25)]`}>
     {loading ? <p role="status" className="p-6 text-sm text-muted-foreground">Verificando acesso seguro…</p> : !owner ? <div className="grid gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-center">
@@ -465,19 +468,29 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
           onConfirm={alertTask=>{const task=tasks.find(t=>t.id===alertTask.id);if(task)askConfirm(task)}} compact/>
       </div>
 
-      <div className="care-client-tabs care-client-page-nav grid shrink-0 grid-cols-3 gap-1 rounded-xl border border-border bg-muted/55 p-1 sm:grid-cols-4 lg:grid-cols-9" role="tablist" aria-label="Páginas do acompanhamento">
+      <div className="care-client-tabs care-client-page-nav grid shrink-0 grid-cols-5 gap-1 rounded-xl border border-border bg-muted/55 p-1" role="tablist" aria-label="Menus principais do acompanhamento">
         {tabs.map(tab=>{
           const Icon=tab.icon;
           return <button type="button" role="tab" key={tab.key} aria-selected={activeTab===tab.key} aria-controls="care-client-tab-panel"
-            onClick={()=>openSection(tab.key)} className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-[11px] font-bold transition-colors sm:text-xs ${activeTab===tab.key?"bg-primary text-primary-foreground shadow-sm":"text-muted-foreground hover:bg-card hover:text-foreground"}`}>
+            onClick={()=>openSection(tab.key)} className={`flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-1.5 py-2.5 text-[10px] font-bold transition-colors sm:px-2 sm:text-xs ${activeTab===tab.key?"bg-primary text-primary-foreground shadow-sm":"text-muted-foreground hover:bg-card hover:text-foreground"}`}>
             <Icon size={15} className="shrink-0"/><span className="min-w-0 whitespace-normal break-words text-center leading-tight">{tab.label}</span>
           </button>;
         })}
       </div>
+      <nav className="flex shrink-0 flex-wrap items-center gap-1.5 px-1" aria-label="Outras áreas do acompanhamento">
+        <span className="mr-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Outras áreas</span>
+        {secondaryTabs.map(tab=>{
+          const Icon=tab.icon;
+          return <button key={tab.key} type="button" onClick={()=>openSection(tab.key)} aria-current={activeTab===tab.key?"page":undefined}
+            className={`inline-flex min-h-7 items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-semibold transition-colors ${activeTab===tab.key?"border-primary/35 bg-primary/10 text-primary":"border-border/70 text-muted-foreground hover:bg-muted"}`}>
+            <Icon size={12}/>{tab.label}
+          </button>;
+        })}
+      </nav>
 
       {activeTab!=="hoje"&&<ClientSectionHeader section={activeTab} count={activeTab==="agenda"?tasks.length:activeTab==="hidratacao"?tasks.filter(t=>t.category==="hidratacao").length:activeTab==="alimentacao"?meals.length:activeTab==="atividade"?(activityCount??undefined):undefined} dateLabel={dateInAcre(clock??new Date())}/>}
 
-      <div id="care-client-tab-panel" role="tabpanel" aria-label={tabs.find(tab=>tab.key===activeTab)?.label}
+      <div id="care-client-tab-panel" role="tabpanel" aria-label={allTabs.find(tab=>tab.key===activeTab)?.label}
         data-client-page={activeTab}
         className={"care-client-main care-client-page-main grid min-h-0 min-w-0 flex-1 items-stretch gap-2 "+(activeTab==="hoje"?"care-overview-layout":"grid-cols-1")}>
         {activeTab==="hoje" ? <>
