@@ -79,7 +79,7 @@ describe("MedicationBlisterCalendar", () => {
       />,
     );
 
-    await screen.findByText("1/3");
+    await screen.findByRole("progressbar", { name: "Progresso das confirmações de medicamentos" });
     expect(query.from).toHaveBeenCalledWith("care_daily_checklist");
     expect(query.filters).toContainEqual(["owner_id", "owner-1"]);
     expect(query.filters).toContainEqual(["patient_id", "patient-1"]);
@@ -87,7 +87,9 @@ describe("MedicationBlisterCalendar", () => {
     expect(query.filters).toContainEqual(["limit", 500]);
     expect(screen.getByText("Programados")).toBeInTheDocument();
     expect(screen.getByText("Pendentes")).toBeInTheDocument();
-    expect(screen.getByText("Lansoprazol · manhã")).toBeInTheDocument();
+    const firstDayButtons = await screen.findAllByRole("button", { name: /confirmados/i });
+    fireEvent.click(firstDayButtons[0]);
+    expect(await screen.findByText("Lansoprazol · manhã")).toBeInTheDocument();
   });
 
   it("shows an explicit empty state instead of inventing blister units", async () => {
@@ -133,10 +135,11 @@ describe("MedicationBlisterCalendar", () => {
       />,
     );
 
-    await screen.findByText("3/3");
+    await screen.findByRole("progressbar", { name: "Progresso das confirmações de medicamentos" });
     const dayButtons = await screen.findAllByRole("button", { name: /confirmados/i });
-    expect(dayButtons.length).toBeGreaterThanOrEqual(2);
-    fireEvent.click(dayButtons[dayButtons.length - 1]);
-    await waitFor(() => expect(screen.getByText("Lansoprazol · manhã")).toBeInTheDocument());
+    expect(dayButtons.length).toBe(2);
+    fireEvent.click(dayButtons[1]);
+    expect(await screen.findByText("Lansoprazol · manhã")).toBeInTheDocument();
+    await waitFor(() => expect(dayButtons[1]).toHaveAttribute("aria-pressed", "true"));
   });
 });
