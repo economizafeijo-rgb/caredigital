@@ -129,3 +129,14 @@
 - [ ] Há 26 avisos para SECURITY DEFINER executáveis por authenticated; são RPCs do cliente com verificações internas. Não revogar em massa. Continuar teste adversarial por função.
 - [ ] Habilitar proteção contra senhas vazadas no Auth via configuração do projeto, após revisão da configuração operacional.
 - [ ] Criar testes automatizados de isolamento por dois usuários e dois pacientes para cada família de RPC e policy. Não foi possível provar esse isolamento apenas com consultas administrativas; nenhuma alegação de teste adversarial concluído.
+
+
+## Incremental policy hardening (2026-11-08)
+
+- [x] Removed the tautological `p.owner_id = p.owner_id` from `care_nutrition_meal_logs` SELECT policy. Owner access and explicit delegated access predicates remain intact.
+- [x] Compared old and new meal-log policy predicates for every current meal log and owner/delegate actor: 0 behavior differences across 2 comparisons (small live dataset).
+- [x] Optimized `care_activity_log` SELECT policy to use `(select auth.uid())` for statement-level evaluation, preserving owner/delegate predicate logic.
+- [x] Compared activity-log access predicates across current log/owner/delegate combinations: 0 differences across 628 comparisons.
+- [ ] Wait for CI on latest main commit to complete; tests/build are still running at the time of this note.
+- [ ] Continue RLS audit: body-measurement policies also contain tautological self-comparisons; inspect and test read/insert/update semantics before changing them.
+- [ ] Revisit the 7 auth initplan advisor findings after these changes and determine which remaining policy definitions are genuinely affected.
