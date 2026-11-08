@@ -254,3 +254,13 @@
 - [x] Added matching migration file to repository main: `20261108013000_harden_hydration_profile_owner_binding.sql`.
 - [x] CI passed for migration commit `b93d824` (GitHub Actions run 42435501146). Supabase migration was applied live and the matching migration file is committed to main.
 - [x] Authenticated-role read smoke tests: owner sees 1 profile, assigned delegate sees 1 permitted profile, unrelated user sees 0.
+
+
+## Direct table privilege hardening (2026-11-08)
+
+- [x] Audited grants across all `care_*` tables; found anonymous roles had broad table privileges on multiple patient-data tables and authenticated roles had unnecessary `TRUNCATE`, `TRIGGER`, and `REFERENCES` privileges.
+- [x] Applied live migration `restrict_care_table_privileges`: revoked all anon privileges from patient-care tables; retained anon SELECT only on public `care_demo_catalog` and `care_food_catalog`; revoked `TRUNCATE`, `TRIGGER`, and `REFERENCES` from anon/authenticated on care tables.
+- [x] Verified effective privileges: anon cannot SELECT patients or INSERT hydration profiles; anon can SELECT public food catalog; authenticated cannot TRUNCATE patients or create checklist triggers.
+- [x] Committed matching migration `20261108020000_restrict_care_table_privileges.sql` to main.
+- [ ] Await CI for migration commit `0047d53`.
+- [ ] Continue checking SECURITY DEFINER RPCs for authorization predicates and explicit search_path; do not weaken existing RLS or alter clinical records.
