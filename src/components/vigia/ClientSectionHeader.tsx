@@ -1,10 +1,10 @@
-import { CalendarDays, Droplets, History, LayoutDashboard, UtensilsCrossed, BookOpen } from "lucide-react";
+import { CalendarDays, Droplets, History, LayoutDashboard, UtensilsCrossed, BookOpen, Pill, Target } from "lucide-react";
 import { clientSectionLabels, type ClientSection } from "@/lib/client-pages";
 type Props={section:ClientSection;count?:number;dateLabel?:string};
 const icons={
-  hoje:LayoutDashboard,agenda:CalendarDays,hidratacao:Droplets,historico:History,alimentacao:UtensilsCrossed,cardapios:BookOpen,
+  hoje:LayoutDashboard,agenda:CalendarDays,hidratacao:Droplets,historico:History,alimentacao:UtensilsCrossed,cardapios:BookOpen,medicacao:Pill,indicadores:Target,
 } as const;
-const countUnit={hoje:"cuidados",agenda:"agendamentos",hidratacao:"horários",historico:"prontuário privado",alimentacao:"refeições",cardapios:"biblioteca alimentar"} as const;
+const countUnit={hoje:"cuidados",agenda:"agendamentos",hidratacao:"horários",historico:"prontuário privado",alimentacao:"refeições",cardapios:"biblioteca alimentar",medicacao:"doses programadas",indicadores:"dados do perfil"} as const;
 
 export function ClientSectionHeader({section,count,dateLabel}:Props){
   const Icon=icons[section];
