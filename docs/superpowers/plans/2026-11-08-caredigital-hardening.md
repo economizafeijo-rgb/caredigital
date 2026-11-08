@@ -162,3 +162,13 @@
 - [x] No speculative indexes added. This avoids write overhead and duplicate index storage for low-volume tables.
 - [ ] Revisit indexes after meaningful data growth or when representative production query plans show sequential scans with material cost.
 - [ ] Next focus: validate authenticated RLS isolation using dedicated JWT-based integration tests; admin SQL comparisons are not sufficient.
+
+
+## Read-isolation smoke tests under authenticated role (2026-11-08)
+
+- [x] Executed read-only SQL transactions using `SET LOCAL ROLE authenticated` and simulated JWT subject claims; each transaction rolled back.
+- [x] Patient owner sees the linked patient and current rows: 1 patient, 208 checklist rows, 44 hydration rows, 314 activity rows, 1 nutrition meal-log row.
+- [x] Unrelated authenticated UUID sees 0 rows in all five datasets.
+- [x] Explicitly delegated user sees the linked patient and the same permitted rows: 1 patient, 208 checklist rows, 44 hydration rows, 314 activity rows, 1 nutrition meal-log row.
+- [ ] These are read-isolation smoke tests against the current live data, not a full adversarial suite. Need add automated JWT integration tests for attempted writes, cross-patient RPC calls, revoked grants, and a second unrelated real patient.
+- [ ] The current project contains only one patient record and one explicit patient-access grant, limiting the available cross-owner fixtures.
