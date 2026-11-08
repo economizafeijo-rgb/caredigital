@@ -149,7 +149,6 @@ iframe[title*="Lovable" i][title*="badge" i] {
    One source of truth: previous overlapping blue overrides removed. */
 :root.dark {
   color-scheme: dark;
-  color-scheme: dark;
   --background: #172327;
   --foreground: #edf5f2;
   --surface: #202f34;
