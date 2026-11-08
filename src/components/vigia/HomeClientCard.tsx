@@ -9,6 +9,7 @@ import { ClientHydrationTab } from "./ClientHydrationTab";
 import { ClientAgendaPage } from "./ClientAgendaPage";
 import { ClientMealsPage } from "./ClientMealsPage";
 import { ClientNutritionStudio } from "./ClientNutritionStudio";
+import { ClientActivityPage } from "./ClientActivityPage";
 import { ClientSectionHeader } from "./ClientSectionHeader";
 import { clientSectionFromHash, clientSectionHash, type ClientSection } from "@/lib/client-pages";
 import { ClientBeverageTracker } from "./ClientBeverageTracker";
@@ -418,6 +419,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
     {key:"alimentacao",label:"Alimentação",icon:UtensilsCrossed},
     {key:"cardapios",label:"Cardápios e dietas",icon:BookOpen},
     {key:"medicacao",label:"Medicação",icon:Pill},
+    {key:"atividade",label:"Atividade",icon:Activity},
     {key:"indicadores",label:"Indicadores",icon:Target},
   ] as const;
 
@@ -463,7 +465,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
           onConfirm={alertTask=>{const task=tasks.find(t=>t.id===alertTask.id);if(task)askConfirm(task)}} compact/>
       </div>
 
-      <div className="care-client-tabs care-client-page-nav grid shrink-0 grid-cols-3 gap-1 rounded-xl border border-border bg-muted/55 p-1 sm:grid-cols-4 lg:grid-cols-8" role="tablist" aria-label="Páginas do acompanhamento">
+      <div className="care-client-tabs care-client-page-nav grid shrink-0 grid-cols-3 gap-1 rounded-xl border border-border bg-muted/55 p-1 sm:grid-cols-4 lg:grid-cols-9" role="tablist" aria-label="Páginas do acompanhamento">
         {tabs.map(tab=>{
           const Icon=tab.icon;
           return <button type="button" role="tab" key={tab.key} aria-selected={activeTab===tab.key} aria-controls="care-client-tab-panel"
@@ -473,7 +475,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
         })}
       </div>
 
-      {activeTab!=="hoje"&&<ClientSectionHeader section={activeTab} count={activeTab==="agenda"?tasks.length:activeTab==="hidratacao"?tasks.filter(t=>t.category==="hidratacao").length:activeTab==="alimentacao"?meals.length:undefined} dateLabel={dateInAcre(clock??new Date())}/>}
+      {activeTab!=="hoje"&&<ClientSectionHeader section={activeTab} count={activeTab==="agenda"?tasks.length:activeTab==="hidratacao"?tasks.filter(t=>t.category==="hidratacao").length:activeTab==="alimentacao"?meals.length:activeTab==="atividade"?(activityCount??undefined):undefined} dateLabel={dateInAcre(clock??new Date())}/>}
 
       <div id="care-client-tab-panel" role="tabpanel" aria-label={tabs.find(tab=>tab.key===activeTab)?.label}
         data-client-page={activeTab}
@@ -592,6 +594,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
             onRecorded={()=>setTick(value=>value+1)}/>}
           {activeTab==="cardapios"&&<ClientNutritionStudio patientId={client.id} ownerId={client.owner_id} onLogged={()=>setTick(v=>v+1)}/>}
           {activeTab==="medicacao"&&<div className="care-client-medication-page min-h-0 w-full"><CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm}/></div>}
+          {activeTab==="atividade"&&<div className="care-client-activity-page min-h-0 w-full"><ClientActivityPage patientId={client.id} ownerId={client.owner_id} revision={tick} onRecorded={()=>setTick(value=>value+1)}/></div>}
           {activeTab==="indicadores"&&<div className="care-client-indicators-page min-h-0 w-full"><ClientOverviewIndicators heightCm={client.height_cm} weightKg={healthProfile.weightKg??client.weight_kg} waterTarget={hydrationTarget||null} protein={healthProfile.protein} carbs={healthProfile.carbs} fat={healthProfile.fat} kcal={healthProfile.kcal}/></div>}
 
         </section>}
