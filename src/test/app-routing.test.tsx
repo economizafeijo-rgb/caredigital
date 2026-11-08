@@ -1,39 +1,35 @@
 import { QueryClient } from "@tanstack/react-query";
-import { createMemoryHistory, createRouter, RouterProvider } from "@tanstack/react-router";
-import { cleanup, render, waitFor } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { createMemoryHistory, createRouter } from "@tanstack/react-router";
+import { describe, expect, it } from "vitest";
 
 import { routeTree } from "@/routeTree.gen";
 
-function renderAt(path: string) {
-  const queryClient = new QueryClient();
-  const router = createRouter({
+function createTestRouter(path: string) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  return createRouter({
     routeTree,
     context: { queryClient },
     history: createMemoryHistory({ initialEntries: [path] }),
   });
-  return render(<RouterProvider router={router} />);
 }
 
-afterEach(() => {
-  cleanup();
-  vi.restoreAllMocks();
-});
-
-// Assert only that the router mounts and paints, never page content:
-// routes are rewritten as the app is built and this must keep passing.
 describe("App routing", () => {
-  it("renders the index route", async () => {
-    const { container } = renderAt("/");
+  it("resolves the index route", async () => {
+    const router = createTestRouter("/");
+    await router.load();
 
-    await waitFor(() => expect(container.firstChild).not.toBeNull());
+    expect(router.state.location.pathname).toBe("/");
+    expect(router.state.matches.length).toBeGreaterThan(0);
   });
 
-  it("renders the not-found route", async () => {
-    vi.spyOn(console, "warn").mockImplementation(() => undefined);
+  it("resolves an unknown path through the not-found route", async () => {
+    const router = createTestRouter("/this-route-does-not-exist");
+    await router.load();
 
-    const { container } = renderAt("/this-route-does-not-exist");
-
-    await waitFor(() => expect(container.firstChild).not.toBeNull());
+    expect(router.state.location.pathname).toBe("/this-route-does-not-exist");
+    expect(router.state.matches.length).toBeGreaterThan(0);
+    expect(router.state.matches.some((match) => match.status === "notFound")).toBe(true);
   });
 });
