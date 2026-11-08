@@ -209,3 +209,14 @@
 - [ ] UI audit finding: `MedicationBlisterCalendar.tsx` currently hardcodes a 35-day display window, phase labels, 84-unit total, schedule start/end dates, and a patient-specific reported-first-blister flag. The component reads actual checklist rows, but the static labels/relato can diverge from live prescription and schedule data. Do not change any prescription or live records; refactor display metadata to derive from verified treatment plan and explicitly persisted patient-reported events after schema/source-of-truth review.
 - [ ] Add automated database integration tests for medication owner/delegate/outsider reads, early confirmation rejection, duplicate schedule prevention, and append-only audit history. Existing repo has unit tests but no configured authenticated database integration harness.
 - [ ] Review whether protocol admin policies hardcoded to a single email should use a stable admin role/claim instead; do not alter until auth model and administrative users are confirmed.
+
+
+## Medication calendar UI refactor (2026-11-08)
+
+- [x] Replaced the hardcoded 35-day/84-unit blister presentation with a schedule-driven calendar reading all medication checklist rows for the selected patient (bounded query limit 500).
+- [x] Removed patient-specific UUID logic and hardcoded start/end dates, phase lengths, capsule counts, dose quantities, and unpersisted historical dose claims.
+- [x] Counts, completion progress, day selection, titles, and times now derive from actual `care_daily_checklist` records; one scheduled task is represented as one care event, without inferring pill counts from labels.
+- [x] Kept confirmation connected to the existing `onConfirm` flow and `canConfirmCare` guard; no direct writes or prescription edits were introduced.
+- [x] Added empty, loading, and error states; dark-mode surfaces use semantic theme tokens.
+- [ ] Await CI for TypeScript/build/test validation. No deployment was triggered from this change.
+- [ ] Browser-verify the medication screen on desktop/mobile and compare the rendered rows with live checklist data before treating the UI task as complete.
