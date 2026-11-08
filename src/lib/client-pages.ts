@@ -15,7 +15,12 @@ export const clientSectionHashes:Record<ClientSection,string>={
   alimentacao:"alimentacao",cardapios:"cardapios",medicacao:"medicacao",atividade:"atividade",indicadores:"indicadores"
 };
 export function clientSectionFromHash(hash:string):ClientSection {
-  const normalized=decodeURIComponent(hash.replace(/^#/,"")).toLowerCase().trim();
+  let normalized:string;
+  try {
+    normalized=decodeURIComponent(hash.replace(/^#/,"")).toLowerCase().trim();
+  } catch {
+    return "hoje";
+  }
   const found=(Object.entries(clientSectionHashes) as [ClientSection,string][])
     .find(([key,slug])=>slug===normalized||key===normalized);
   return found?.[0]??"hoje";
