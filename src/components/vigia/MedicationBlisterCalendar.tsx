@@ -65,23 +65,35 @@ export function MedicationBlisterCalendar({
     setError("");
 
     void (async () => {
-      const result = await (supabase as any)
-        .from("care_daily_checklist")
-        .select("id,patient_id,title,category,scheduled_at,completed_at")
-        .eq("owner_id", ownerId)
-        .eq("patient_id", patientId)
-        .eq("category", "medicacao")
-        .order("scheduled_at", { ascending: true })
-        .limit(500);
+      try {
+        // Fetch the newest 500 entries so a long history cannot hide current treatment.
+        // Sort locally afterward to keep the calendar chronological.
+        const result = await (supabase as any)
+          .from("care_daily_checklist")
+          .select("id,patient_id,title,category,scheduled_at,completed_at")
+          .eq("owner_id", ownerId)
+          .eq("patient_id", patientId)
+          .eq("category", "medicacao")
+          .order("scheduled_at", { ascending: false })
+          .limit(500);
 
-      if (!active) return;
-      if (result.error) {
+        if (!active) return;
+        if (result.error) {
+          setError("Não foi possível carregar a agenda de medicamentos.");
+          setDoses([]);
+        } else {
+          const recent = (result.data ?? []) as Dose[];
+          setDoses(recent.sort((a, b) =>
+            a.scheduled_at.localeCompare(b.scheduled_at) || a.id.localeCompare(b.id),
+          ));
+        }
+      } catch {
+        if (!active) return;
         setError("Não foi possível carregar a agenda de medicamentos.");
         setDoses([]);
-      } else {
-        setDoses((result.data ?? []) as Dose[]);
+      } finally {
+        if (active) setLoading(false);
       }
-      setLoading(false);
     })();
 
     return () => {
