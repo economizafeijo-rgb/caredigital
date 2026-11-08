@@ -3,7 +3,10 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const styles = readFileSync(resolve(process.cwd(), "src/styles.css"), "utf8");
-const internalStyles = readFileSync(resolve(process.cwd(), "src/components/vigia/internal-premium.css"), "utf8");
+const internalStyles = readFileSync(
+  resolve(process.cwd(), "src/components/vigia/internal-premium.css"),
+  "utf8",
+);
 
 describe("CareDigital semantic design tokens", () => {
   it("defines the approved light theme from semantic variables", () => {
@@ -22,7 +25,9 @@ describe("CareDigital semantic design tokens", () => {
   });
 
   it("keeps internal workspaces on the global semantic theme contract", () => {
-    expect(internalStyles).not.toMatch(/--(?:background|foreground|surface|card|primary|muted|border|ring)\s*:/);
+    expect(internalStyles).not.toMatch(
+      /--(?:background|foreground|surface|card|primary|muted|border|ring)\s*:/,
+    );
     expect(internalStyles).toContain("var(--foreground)");
     expect(internalStyles).toContain("var(--primary)");
   });
