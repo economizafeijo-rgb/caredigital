@@ -54,7 +54,7 @@ export function Btn({
       {...props}
       className={cn(
         "inline-flex items-center justify-center gap-2 font-semibold transition-colors disabled:opacity-50",
-        size === "sm" ? "rounded-md px-3 py-2 text-xs" : "rounded-lg px-5 py-3 text-sm",
+        size === "sm" ? "min-h-10 rounded-lg px-3 py-2 text-sm" : "min-h-11 rounded-xl px-5 py-3 text-sm",
         variants[variant],
         className,
       )}
@@ -119,7 +119,7 @@ export function Panel({ title, action, children, className, delay = 0 }: { title
 export function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="block">
-      <span className="label-mono mb-1.5 block text-[10px] text-muted-foreground">{label}</span>
+      <span className="label-mono mb-1.5 block text-xs text-muted-foreground">{label}</span>
       {children}
     </label>
   );
