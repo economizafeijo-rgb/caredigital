@@ -151,3 +151,14 @@
 - [x] Applied and re-read the live policies to confirm the intended owner binding.
 - [ ] Run dedicated authenticated two-owner/delegate integration tests; current admin SQL inspection is not a substitute for end-user JWT/RLS tests.
 - [ ] Await CI for commit `ebc77f8` before marking code verification complete.
+
+
+## Index review and query-plan validation (2026-11-08)
+
+- [x] Confirmed CI success for body-measurement RLS migration commit `ebc77f8` and plan update `fa9d597`.
+- [x] Reconciled actual FK constraints with valid leading-column indexes. Nine FK constraints are not covered by a matching child-side index; advisor reports 11 findings (the advisor's count is retained as authoritative for its own rules).
+- [x] Inspected live table statistics. Current tables are small (largest observed: `care_activity_log` 314 rows, `care_daily_checklist` 208 rows, `care_hydration` 44 rows).
+- [x] Ran EXPLAIN ANALYZE on the real patient/time checklist access pattern. PostgreSQL uses `care_checklist_patient_schedule`; execution was 0.046 ms with 2 shared buffers. A new index is not justified by this plan.
+- [x] No speculative indexes added. This avoids write overhead and duplicate index storage for low-volume tables.
+- [ ] Revisit indexes after meaningful data growth or when representative production query plans show sequential scans with material cost.
+- [ ] Next focus: validate authenticated RLS isolation using dedicated JWT-based integration tests; admin SQL comparisons are not sufficient.
