@@ -79,13 +79,14 @@ describe("MedicationBlisterCalendar", () => {
       />,
     );
 
-    await screen.findByText("3/3");
+    await screen.findByText("1/3");
     expect(query.from).toHaveBeenCalledWith("care_daily_checklist");
     expect(query.filters).toContainEqual(["owner_id", "owner-1"]);
     expect(query.filters).toContainEqual(["patient_id", "patient-1"]);
     expect(query.filters).toContainEqual(["category", "medicacao"]);
     expect(query.filters).toContainEqual(["limit", 500]);
-    expect(screen.getByText("2/3")).toBeInTheDocument();
+    expect(screen.getByText("Programados")).toBeInTheDocument();
+    expect(screen.getByText("Pendentes")).toBeInTheDocument();
     expect(screen.getByText("Lansoprazol · manhã")).toBeInTheDocument();
   });
 
