@@ -12,8 +12,9 @@ export function CareRecentHistory({patientId,ownerId,category,onClose,compact=fa
  const [loading,setLoading]=useState(true);
  const [error,setError]=useState("");
  const [showAll,setShowAll]=useState(false);
+ useEffect(()=>{setShowAll(false)},[category,patientId]);
  useEffect(()=>{
-  let active=true;setLoading(true);setError("");setRows([]);setShowAll(false);
+  let active=true;setError("");
   const from=new Date(Date.now()-14*86400000).toISOString();
   let q=(supabase as any).from("care_daily_checklist")
    .select("id,title,category,scheduled_at,completed_at")

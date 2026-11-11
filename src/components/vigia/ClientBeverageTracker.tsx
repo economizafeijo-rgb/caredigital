@@ -42,7 +42,6 @@ export function ClientBeverageTracker({
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
     void (async () => {
       const result = await (supabase as any).from("care_client_beverages")
         .select("id,kind,name,amount_ml,notes,consumed_at")

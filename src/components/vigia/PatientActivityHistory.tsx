@@ -86,7 +86,6 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
 
   useEffect(()=>{
     let live=true;
-    setLoading(true);
     const load=async()=>{
       const db=supabase as any;
       // Scope every source to this authorized patient and its owner.
@@ -361,7 +360,8 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
       </section>
 
       <section aria-label="Detalhes do registro selecionado" className={"patient-history-detail relative isolate flex min-h-0 min-w-0 flex-col overflow-hidden rounded-[24px] border border-border/70 bg-card shadow-xl "+(showMobileDetail?"flex":"hidden lg:flex")}>
-        <div className="shrink-0 border-b border-border p-4 sm:p-5">
+        <div className="shrink-0 border-b border-border p-4 sm:p-5">
+
           <div className="flex items-center justify-between gap-3">
             <span className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1.5 text-[11px] font-bold uppercase tracking-[.13em] text-foreground">
               <History size={14}/> Prontuário · Detalhes

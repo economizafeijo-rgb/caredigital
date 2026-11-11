@@ -18,6 +18,8 @@ import { CareReminderBeacon } from "./CareReminderBeacon";
 import { CareRecentHistory } from "./CareRecentHistory";
 import { ClientHealthProfile } from "./ClientHealthProfile";
 import { ClientOverviewIndicators } from "./ClientOverviewIndicators";
+import { ClientWeightPage } from "./ClientWeightPage";
+import { clientSectionOrder, clientSectionTheme } from "@/lib/client-section-theme";
 import { canConfirmCare, careScheduleBlockMessage, getCareScheduleState } from "@/lib/care-schedule";
 
 type Client = { id: string; owner_id: string; full_name: string; status: string; care_goal: string | null; height_cm: number | null; weight_kg: number | null };
@@ -215,7 +217,6 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
       return;
     }
     let active = true;
-    setMealRecordsLoading(true);
     const from = new Date(mealRecordDay + "T00:00:00-05:00").toISOString();
     const until = new Date(new Date(from).getTime() + 86400000).toISOString();
     void (async () => {
@@ -390,17 +391,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
   const mealPercent=mealTotal?Math.round(mealConfirmed/mealTotal*100):0;
   const medicinePercent=treatmentProgress?progressPercent:(medicineTasks.length?Math.round(medicineConfirmed/medicineTasks.length*100):0);
   const medicineValue=treatmentProgress?`${treatmentProgress.confirmed}/${treatmentProgress.total}`:`${medicineConfirmed}/${medicineTasks.length}`;
-  const sections=[
-    {key:"hoje",label:"Visão geral",icon:LayoutDashboard},
-    {key:"agenda",label:"Agenda",icon:CalendarDays},
-    {key:"historico",label:"Histórico",icon:History},
-    {key:"medicacao",label:"Medicação",icon:Pill},
-    {key:"hidratacao",label:"Hidratação",icon:Droplets},
-    {key:"alimentacao",label:"Alimentação",icon:UtensilsCrossed},
-    {key:"atividade",label:"Atividade",icon:Activity},
-    {key:"indicadores",label:"Indicadores",icon:Target},
-    {key:"cardapios",label:"Cardápios",icon:BookOpen},
-  ] as const;
+  const sections=clientSectionOrder.map(key=>({key,label:clientSectionTheme[key].label,icon:clientSectionTheme[key].icon}));
   const nowMs=clock?.getTime()??Date.now();
   const today=dateInAcre(clock??new Date());
   const dayPercent=tasks.length?Math.round(completed/tasks.length*100):0;
@@ -431,24 +422,28 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
 
       <nav className="-mx-1 flex shrink-0 gap-1.5 overflow-x-auto px-1 pb-1 xl:hidden" aria-label="Áreas do acompanhamento">
         {sections.map(({key,label,icon:Icon})=><button key={key} type="button" onClick={()=>openSection(key)} aria-current={activeTab===key?"page":undefined}
-          className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors ${activeTab===key?"border-primary bg-primary text-primary-foreground":"border-border bg-surface text-muted-foreground"}`}>
-          <Icon size={14}/>{label}
+          className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors ${activeTab===key?`border-transparent text-white shadow-sm ${clientSectionTheme[key].pill}`:"border-border bg-surface text-muted-foreground hover:text-foreground"}`}>
+          <span className={`grid size-5 place-items-center rounded-full ${activeTab===key?"bg-white/20":clientSectionTheme[key].chip}`}><Icon size={12}/></span>{label}
         </button>)}
       </nav>
 
-      <header className={"relative isolate flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 "+(activeTab==="hoje"?"min-h-[150px] items-end overflow-hidden rounded-2xl bg-slate-950 px-5 py-5 text-white shadow-card [&_p]:!text-slate-200":"")}>
-        {activeTab==="hoje"&&<>
-          <img src="/images/caredigital-care-hero.webp" alt="" aria-hidden="true" width={1672} height={941} className="absolute inset-y-0 right-0 -z-20 h-full w-1/2 object-cover object-[55%_20%]"/>
-          <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-950 from-40% via-slate-950/70 via-60% to-slate-950/10"/>
-        </>}
-        <div className="min-w-0">
+      <header className="relative isolate flex min-h-[132px] shrink-0 flex-wrap items-end justify-between gap-x-4 gap-y-2 overflow-hidden rounded-2xl bg-slate-950 px-5 py-5 text-white shadow-card [&_p]:!text-slate-200">
+        <img key={activeTab} src={clientSectionTheme[activeTab].image} alt="" aria-hidden="true" width={1400} height={600} decoding="async"
+          style={{objectPosition:clientSectionTheme[activeTab].position}}
+          className="absolute inset-y-0 right-0 -z-20 h-full w-full object-cover sm:w-3/5"/>
+        <div aria-hidden="true" className={`absolute inset-0 -z-10 bg-gradient-to-r from-35% via-60% ${clientSectionTheme[activeTab].overlay}`}/>
+        <div className="flex min-w-0 items-center gap-3">
+          {(()=>{const HeaderIcon=clientSectionTheme[activeTab].icon;return <span aria-hidden="true" className={`hidden size-12 shrink-0 place-items-center rounded-2xl text-white shadow-lg ring-1 ring-white/25 sm:grid ${clientSectionTheme[activeTab].pill}`}><HeaderIcon size={24}/></span>;})()}
+          <div className="min-w-0">
+          <p className="!text-[10px] font-bold uppercase tracking-[.14em] !text-white/70">{clientSectionLabels[activeTab].tagline}</p>
           <h1 className="truncate text-xl font-bold tracking-tight sm:text-2xl">{activeTab==="hoje"?`Olá, ${(patientName||client.full_name).split(" ")[0]}`:clientSectionLabels[activeTab].title}</h1>
           <p className="truncate text-[13px] text-muted-foreground first-letter:uppercase">
             {activeTab==="hoje"?`${today} · ${completed} de ${tasks.length} cuidados concluídos`:clientSectionLabels[activeTab].subtitle}
             {activeTab!=="hoje"&&sectionCount!=null&&` · ${sectionCount} hoje`}
           </p>
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2 [&>button:first-child]:!text-white">
+        <div className="flex flex-wrap items-center gap-2 [&_button]:!border-white/25 [&_button]:!bg-white/15 [&_button]:!text-white [&_button]:backdrop-blur hover:[&_button]:!bg-white/25">
           <ClientQuickIntake patientId={client.id} mode="water" onRecorded={()=>setTick(value=>value+1)}/>
           <ClientQuickIntake patientId={client.id} onRecorded={()=>setTick(value=>value+1)}/>
           <button type="button" onClick={()=>setShowHealthProfile(true)} className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-border bg-surface px-3 text-xs font-semibold text-foreground transition-colors hover:border-primary/40 hover:bg-accent"><UserRound size={15}/> Meu perfil</button>
@@ -466,12 +461,12 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
           {kpis.map(({key,label,icon:Icon,tone,bar,percent,value,note})=><button key={key} type="button" onClick={()=>openSection(key)}
             aria-label={`${label}: ${value}, ${note}. Abrir área.`} className={card+" group p-3.5 text-left transition hover:border-primary/40"}>
             <span className="flex items-center justify-between gap-2">
-              <span className="flex items-center gap-2 text-xs font-semibold text-muted-foreground"><span className={`grid size-7 place-items-center rounded-lg ${tone}`}><Icon size={15}/></span>{label}</span>
+              <span className="flex items-center gap-2 text-xs font-semibold text-muted-foreground"><span data-tone={tone} className={`grid size-8 place-items-center rounded-xl text-white shadow-sm ${clientSectionTheme[key].pill}`}><Icon size={16}/></span>{label}</span>
               <ChevronRight size={15} className="text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-primary"/>
             </span>
             <strong className="mt-2 block font-display text-2xl font-bold leading-none tabular-nums">{value}</strong>
             <span className="mt-1 block truncate text-xs text-muted-foreground">{note}</span>
-            <span className="mt-2.5 block h-1.5 overflow-hidden rounded-full bg-muted"><i className={`block h-full rounded-full ${bar} transition-[width]`} style={{width:percent+"%"}}/></span>
+            <span className="mt-2.5 block h-1.5 overflow-hidden rounded-full bg-muted"><i data-bar={bar} className={`block h-full rounded-full ${clientSectionTheme[key].pill} transition-[width]`} style={{width:percent+"%"}}/></span>
           </button>)}
         </div>
 
@@ -574,6 +569,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
         {activeTab==="cardapios"&&<ClientNutritionStudio patientId={client.id} ownerId={client.owner_id} onLogged={()=>setTick(v=>v+1)}/>}
         {activeTab==="medicacao"&&<div className="mx-auto w-full max-w-3xl"><CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm}/></div>}
         {activeTab==="atividade"&&<ClientActivityPage patientId={client.id} ownerId={client.owner_id} revision={tick} onRecorded={()=>setTick(value=>value+1)}/>}
+        {activeTab==="peso"&&<ClientWeightPage patientId={client.id} ownerId={client.owner_id} heightCm={client.height_cm} currentWeight={healthProfile.weightKg??client.weight_kg} onRecorded={()=>setTick(value=>value+1)}/>}
         {activeTab==="indicadores"&&<ClientOverviewIndicators heightCm={client.height_cm} weightKg={healthProfile.weightKg??client.weight_kg} waterTarget={hydrationTarget||null} protein={healthProfile.protein} carbs={healthProfile.carbs} fat={healthProfile.fat} kcal={healthProfile.kcal} patientId={client.id} ownerId={client.owner_id} revision={tick} full/>}
       </section>}
     </>}

@@ -45,7 +45,6 @@ export function ClientActivityPage({ patientId, ownerId, revision, onRecorded }:
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
     void (async () => {
       try {
         const since = new Date(Date.now() - 90 * 86400000).toISOString();

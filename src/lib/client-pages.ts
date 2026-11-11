@@ -1,4 +1,4 @@
-export type ClientSection = "hoje" | "agenda" | "hidratacao" | "historico" | "alimentacao" | "cardapios" | "medicacao" | "atividade" | "indicadores";
+export type ClientSection = "hoje" | "agenda" | "hidratacao" | "historico" | "alimentacao" | "cardapios" | "medicacao" | "atividade" | "peso" | "indicadores";
 export const clientSectionLabels: Record<ClientSection,{title:string;subtitle:string;tagline:string}> = {
   hoje:{title:"Visão geral",subtitle:"Acompanhamento de hoje, próximo cuidado e progresso do tratamento",tagline:"Painel do dia"},
   agenda:{title:"Agenda de cuidados",subtitle:"Horários programados, confirmações e pendências em uma única agenda",tagline:"Organização diária"},
@@ -8,11 +8,12 @@ export const clientSectionLabels: Record<ClientSection,{title:string;subtitle:st
   cardapios:{title:"Cardápios e dietas",subtitle:"Planejamento educativo por objetivo, receitas regionais e calculadora de proteína",tagline:"Nutrição personalizada"},
   medicacao:{title:"Tratamento e medicamentos",subtitle:"Cartelas de doses, horários programados e confirmações do tratamento",tagline:"Acompanhamento do tratamento"},
   atividade:{title:"Atividade física",subtitle:"Registre caminhadas, corrida, ciclismo, musculação e acompanhe sua rotina",tagline:"Movimento e evolução"},
+  peso:{title:"Peso e composição",subtitle:"Registre seu peso e acompanhe a evolução com gráficos, IMC e metas",tagline:"Evolução corporal"},
   indicadores:{title:"Indicadores de saúde",subtitle:"Acompanhe medidas corporais, hidratação, nutrição e atividade com dados registrados",tagline:"Evolução e resultados"}
 };
 export const clientSectionHashes:Record<ClientSection,string>={
   hoje:"visao-geral",agenda:"agenda",hidratacao:"minha-hidratacao",historico:"historico",
-  alimentacao:"alimentacao",cardapios:"cardapios",medicacao:"medicacao",atividade:"atividade",indicadores:"indicadores"
+  alimentacao:"alimentacao",cardapios:"cardapios",medicacao:"medicacao",atividade:"atividade",peso:"peso",indicadores:"indicadores"
 };
 export function clientSectionFromHash(hash:string):ClientSection {
   let normalized:string;
