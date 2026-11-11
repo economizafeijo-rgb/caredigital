@@ -59,7 +59,7 @@ export function ClientOverviewIndicators({ heightCm, weightKg, waterTarget, prot
   useEffect(()=>{
     if(!full||!patientId||!ownerId){setWaterHistory([]);setActivityHistory([]);return;}
     let active=true;
-    setHistoryLoading(true);setHistoryError("");
+    setHistoryLoading(waterHistory.length===0&&activityHistory.length===0);setHistoryError("");
     const since=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Rio_Branco",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(Date.now()-6*86400000));
     void Promise.all([
       (supabase as any).from("care_hydration_daily_goals").select("goal_date,consumed_ml")

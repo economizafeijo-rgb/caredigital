@@ -2,12 +2,13 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Activity, Apple, BookOpen, CalendarDays, ClipboardList, Droplets, Dumbbell, HeartPulse, History, Home,
-  LayoutDashboard, LogIn, LogOut, Maximize, Menu, Minimize, Moon, Pill, Settings2, Sun, Target, Utensils, X,
+  LayoutDashboard, LogIn, LogOut, Maximize, Menu, Minimize, Moon, Pill, Scale, Settings2, Sun, Target, Utensils, X,
   type LucideIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { clientSectionHashes, type ClientSection } from "@/lib/client-pages";
 import { useAccess, type AccessStatus } from "@/lib/use-access";
+import { clientSectionTheme, type SectionTheme } from "@/lib/client-section-theme";
 import { fmtClock, useNow } from "./ui";
 import { HydrationProvider, HydrationReminder } from "./HydrationTracker";
 
@@ -16,6 +17,9 @@ type NavGroup = { title: string; items: NavItem[] };
 
 const section = (key: ClientSection, label: string, icon: LucideIcon): NavItem =>
   ({ to: "/cliente", hash: clientSectionHashes[key], label, icon });
+
+const sectionThemeByHash: Record<string, SectionTheme> = Object.fromEntries(
+  (Object.keys(clientSectionHashes) as ClientSection[]).map(key => [clientSectionHashes[key], clientSectionTheme[key]]));
 
 const contentGroup: NavGroup = {
   title: "Conteúdo",
@@ -53,6 +57,7 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
       section("atividade", "Atividade", Activity),
     ] },
     { title: "Saúde", items: [
+      section("peso", "Peso e evolução", Scale),
       section("indicadores", "Indicadores", Target),
       section("cardapios", "Cardápios e dietas", BookOpen),
       { to: "/biblioteca-alimentar", label: "Biblioteca alimentar", icon: Apple },
@@ -137,9 +142,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   const sideLink = (item: NavItem) => {
     const active = isActive(item);
     const Icon = item.icon;
+    const theme = item.hash ? sectionThemeByHash[item.hash] : undefined;
     return <Link key={item.to + (item.hash ?? "")} to={item.to} {...(item.hash ? { hash: item.hash } : {})} activeOptions={{ exact: true, includeHash: true }} aria-current={active ? "page" : undefined}
-      className={`flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-[13px] font-medium transition-colors ${active ? "bg-primary text-white shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"}`}>
-      <Icon size={17} strokeWidth={2} className="shrink-0"/><span className="truncate">{item.label}</span>
+      className={`flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-[13px] font-medium transition-colors ${active ? `${theme?.pill ?? "bg-primary"} text-white shadow-sm` : "text-slate-300 hover:bg-white/10 hover:text-white"}`}>
+      <span className={`grid size-6 shrink-0 place-items-center rounded-md ${active ? "bg-white/20" : theme ? theme.pill + " text-white opacity-90" : ""}`}><Icon size={14} strokeWidth={2.2}/></span><span className="truncate">{item.label}</span>
     </Link>;
   };
   const sidebarBody = <>

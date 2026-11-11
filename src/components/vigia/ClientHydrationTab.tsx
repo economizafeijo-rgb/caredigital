@@ -56,7 +56,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
    }
  },[clock,dailyGoal?.goal_date,dailyGoal?.status]);
  const update=(change:Partial<Profile>)=>setProfile(prev=>({...prev,...change}));
- useEffect(()=>{let active=true;setLoading(true);
+ useEffect(()=>{let active=true;
   void (async()=>{
    const now=dateKey(new Date().toISOString());
    const start=new Date(now+"T00:00:00-05:00");
@@ -228,7 +228,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
       {label:"Consumido",value:`${intake.toLocaleString("pt-BR")} ml`},
       {label:"Restante",value:goal?`${remaining.toLocaleString("pt-BR")} ml`:"—"},
       {label:"Próxima recomendação",value:dayClosed?"Dia encerrado":remaining===0?"Meta atingida":nextPlan?`${nextHydrationLabel} · ${nextPlan.suggestedMl} ml`:"Aguardando registro"}
-    ].map(item=><div key={item.label} className="min-w-0 rounded-lg border border-border/70 bg-muted/40 px-2.5 py-2">
+    ].map((item,index)=><div key={item.label} className={`min-w-0 rounded-xl border px-2.5 py-2 ${["border-sky-500/25 bg-sky-500/[.07]","border-emerald-500/25 bg-emerald-500/[.07]","border-amber-500/25 bg-amber-500/[.07]","border-violet-500/25 bg-violet-500/[.07]"][index]}`}>
       <p className="truncate text-[11px] font-medium text-muted-foreground">{item.label}</p>
       <p className="mt-0.5 truncate text-sm font-bold tabular-nums text-foreground">{item.value}</p>
     </div>)}
@@ -306,7 +306,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
         className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1.5 text-[11px] font-semibold text-foreground disabled:opacity-35">Próxima <ChevronRight size={13}/></button>
     </nav>}
   </div>
-  {loading&&<p role="status" className="text-[11px] text-muted-foreground">Atualizando registros de água…</p>}
+  {loading&&drinks.length===0&&<p role="status" className="text-[11px] text-muted-foreground">Carregando registros de água…</p>}
   {error&&<p role="alert" className="rounded-lg bg-destructive/5 p-2 text-xs text-destructive">{error}</p>}
   {notice&&<p role="status" className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">{notice}</p>}
   <details className="group rounded-lg border border-border/60 bg-muted/20 px-2 py-1.5 text-[11px] text-muted-foreground">

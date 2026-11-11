@@ -127,7 +127,7 @@ export function CareReminderBeacon({tasks,patientId,ownerId,refreshKey=0,onOpen,
   },[]);
   useEffect(()=>{
     let active=true;
-    setAnswersStatus("loading");
+    // Atualizações periódicas são silenciosas: mantém o aviso visível enquanto consulta.
     if(!patientId||!ownerId) {
       setAnsweredTaskIds(new Set());
       return()=>{active=false;};
