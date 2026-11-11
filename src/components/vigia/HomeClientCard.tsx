@@ -436,7 +436,11 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
         </button>)}
       </nav>
 
-      <header className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2">
+      <header className={"relative isolate flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 "+(activeTab==="hoje"?"min-h-[150px] items-end overflow-hidden rounded-2xl bg-slate-950 px-5 py-5 text-white shadow-card [&_p]:!text-slate-200":"")}>
+        {activeTab==="hoje"&&<>
+          <img src="/images/caredigital-care-hero.webp" alt="" aria-hidden="true" width={1672} height={941} className="absolute inset-y-0 right-0 -z-20 h-full w-1/2 object-cover object-[55%_20%]"/>
+          <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-950 from-40% via-slate-950/70 via-60% to-slate-950/10"/>
+        </>}
         <div className="min-w-0">
           <h1 className="truncate text-xl font-bold tracking-tight sm:text-2xl">{activeTab==="hoje"?`Olá, ${(patientName||client.full_name).split(" ")[0]}`:clientSectionLabels[activeTab].title}</h1>
           <p className="truncate text-[13px] text-muted-foreground first-letter:uppercase">
@@ -444,10 +448,10 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
             {activeTab!=="hoje"&&sectionCount!=null&&` · ${sectionCount} hoje`}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 [&>button:first-child]:!text-white">
           <ClientQuickIntake patientId={client.id} mode="water" onRecorded={()=>setTick(value=>value+1)}/>
           <ClientQuickIntake patientId={client.id} onRecorded={()=>setTick(value=>value+1)}/>
-          <button type="button" onClick={()=>setShowHealthProfile(true)} className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-border bg-surface px-3 text-xs font-semibold transition-colors hover:border-primary/40 hover:bg-accent"><UserRound size={15}/> Meu perfil</button>
+          <button type="button" onClick={()=>setShowHealthProfile(true)} className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-border bg-surface px-3 text-xs font-semibold text-foreground transition-colors hover:border-primary/40 hover:bg-accent"><UserRound size={15}/> Meu perfil</button>
         </div>
       </header>
 

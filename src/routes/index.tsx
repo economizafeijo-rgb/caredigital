@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
-import { ArrowRight, CalendarCheck, Check, Clock3, Droplets, History, LockKeyhole, Pill, ShieldCheck, Utensils } from "lucide-react";
+import { ArrowRight, CalendarCheck, Clock3, Droplets, History, LockKeyhole, Pill, ShieldCheck, Utensils } from "lucide-react";
 import { useAccess } from "@/lib/use-access";
 
 export const Route = createFileRoute("/")({
@@ -21,49 +21,6 @@ const features = [
   { to: "/protocolos", title: "Histórico", description: "Tudo fica registrado com data e hora reais.", icon: History, tone: "text-activity bg-activity/10" },
 ] as const;
 
-// Prévia ilustrativa do painel: valores de exemplo, não são dados de um paciente.
-const previewCare = [
-  { time: "07:00", title: "Medicação da manhã", icon: Pill, tone: "text-med bg-med/10", done: true },
-  { time: "09:30", title: "Água · 250 ml", icon: Droplets, tone: "text-water bg-water/10", done: true },
-  { time: "12:00", title: "Almoço", icon: Utensils, tone: "text-meal bg-meal/10", done: false },
-  { time: "19:00", title: "Medicação da noite", icon: Pill, tone: "text-med bg-med/10", done: false },
-] as const;
-
-function DashboardPreview() {
-  return <div aria-hidden="true" className="relative mx-auto w-full max-w-[460px]">
-    <div className="absolute -inset-6 -z-10 rounded-[40px] bg-gradient-to-br from-primary/20 via-water/10 to-transparent blur-2xl"/>
-    <div className="rounded-2xl border border-border bg-card p-4 shadow-pop">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-primary">Hoje</p>
-          <p className="font-display text-lg font-bold">Sua rotina de cuidados</p>
-        </div>
-        <span className="rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success">2 de 4 concluídos</span>
-      </div>
-      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full w-1/2 rounded-full bg-primary"/></div>
-      <ul className="mt-3 grid gap-1.5">
-        {previewCare.map(({ time, title, icon: Icon, tone, done }) => <li key={time} className="flex items-center gap-3 rounded-xl border border-border bg-surface px-3 py-2">
-          <span className={`grid size-8 shrink-0 place-items-center rounded-lg ${tone}`}><Icon size={16}/></span>
-          <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{title}</span>
-          <span className="text-xs tabular-nums text-muted-foreground">{time}</span>
-          <span className={`grid size-5 shrink-0 place-items-center rounded-full ${done ? "bg-success text-white" : "border border-input"}`}>{done && <Check size={12} strokeWidth={3}/>}</span>
-        </li>)}
-      </ul>
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <div className="rounded-xl bg-water/10 p-3">
-          <p className="flex items-center gap-1.5 text-[11px] font-semibold text-water"><Droplets size={13}/> Água</p>
-          <p className="mt-1 font-display text-lg font-bold tabular-nums">1.250<span className="ml-1 text-xs font-medium text-muted-foreground">/ 2.400 ml</span></p>
-        </div>
-        <div className="rounded-xl bg-med/10 p-3">
-          <p className="flex items-center gap-1.5 text-[11px] font-semibold text-med"><Clock3 size={13}/> Próximo cuidado</p>
-          <p className="mt-1 font-display text-lg font-bold tabular-nums">12:00<span className="ml-1 text-xs font-medium text-muted-foreground">Almoço</span></p>
-        </div>
-      </div>
-    </div>
-    <p className="mt-2 text-center text-[11px] text-muted-foreground">Prévia ilustrativa do painel do paciente</p>
-  </div>;
-}
-
 function Homepage() {
   const { status } = useAccess();
 
@@ -76,32 +33,34 @@ function Homepage() {
       Sua conta está conectada, mas ainda não há um prontuário vinculado. Solicite o acesso ao administrador.
     </p>}
 
-    <section aria-labelledby="home-title" className="grid flex-1 items-center gap-8 lg:grid-cols-[1.05fr_.95fr] lg:gap-10">
-      <div>
-        <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">
+    <section aria-labelledby="home-title" className="relative isolate flex min-h-[400px] flex-1 items-center overflow-hidden rounded-3xl bg-slate-950 shadow-pop">
+      <img src="/images/caredigital-care-hero.webp" alt="" aria-hidden="true" width={1672} height={941} loading="eager" decoding="async"
+        className="absolute inset-0 -z-20 h-full w-full object-cover object-[72%_25%]"/>
+      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-950/95 via-slate-950/70 to-slate-950/5 max-md:bg-slate-950/75"/>
+      <div className="max-w-xl px-6 py-10 text-white sm:px-10 lg:px-12">
+        <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur">
           <ShieldCheck size={14}/> Acompanhamento individual e protegido
         </span>
         <h1 id="home-title" className="mt-4 text-balance text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl">
-          Sua rotina de cuidados, <span className="text-primary">organizada em um só lugar.</span>
+          Sua rotina de cuidados, <span className="text-[#8fb2ff]">organizada em um só lugar.</span>
         </h1>
-        <p className="mt-4 max-w-[52ch] text-base leading-relaxed text-muted-foreground">
+        <p className="mt-4 max-w-[48ch] text-base leading-relaxed text-slate-200">
           Medicações, refeições e hidratação com horários, lembretes e registros confiáveis — para você e para quem acompanha o seu tratamento.
         </p>
         <div className="mt-6 flex flex-wrap items-center gap-3">
-          <Link to="/entrar" className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110">
+          <Link to="/entrar" className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-white shadow-sm transition hover:brightness-110">
             <LockKeyhole size={17}/> Acessar minha conta <ArrowRight size={16}/>
           </Link>
-          <Link to="/protocolos" className="inline-flex h-11 items-center gap-2 rounded-xl border border-border bg-surface px-5 text-sm font-semibold transition-colors hover:border-primary/40 hover:bg-accent">
+          <Link to="/protocolos" className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20">
             Como funciona
           </Link>
         </div>
-        <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-muted-foreground">
-          <li className="inline-flex items-center gap-1.5"><CalendarCheck size={15} className="text-primary"/> Rotina por horários</li>
-          <li className="inline-flex items-center gap-1.5"><Clock3 size={15} className="text-primary"/> Registro com hora real</li>
-          <li className="inline-flex items-center gap-1.5"><ShieldCheck size={15} className="text-primary"/> Acesso individual</li>
+        <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-slate-200">
+          <li className="inline-flex items-center gap-1.5"><CalendarCheck size={15}/> Rotina por horários</li>
+          <li className="inline-flex items-center gap-1.5"><Clock3 size={15}/> Registro com hora real</li>
+          <li className="inline-flex items-center gap-1.5"><ShieldCheck size={15}/> Acesso individual</li>
         </ul>
       </div>
-      <DashboardPreview/>
     </section>
 
     <section aria-label="Recursos da plataforma" className="grid shrink-0 gap-3 sm:grid-cols-2 lg:grid-cols-4">
