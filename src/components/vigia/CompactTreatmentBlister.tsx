@@ -11,20 +11,26 @@ const dateKey = (iso: string) => new Intl.DateTimeFormat("en-CA", { timeZone: zo
 const timeText = (iso: string) => new Intl.DateTimeFormat("pt-BR", { timeZone: zone,hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false }).format(new Date(iso));
 const dayLabel = (iso:string) => new Intl.DateTimeFormat("pt-BR",{timeZone:zone,day:"2-digit",month:"short"}).format(new Date(iso));
 const reportedPatientId = "28da9bb3-0049-4206-b1cd-e93008b87786";
+// Tratamento: 14 dias de cartela combinada (8 comprimidos/dia) + 4 semanas de lansoprazol.
+const FIRST_DAYS = 14;
+const CONT_WEEKS = 4;
+const TOTAL_DAYS = FIRST_DAYS + CONT_WEEKS * 7;
+const LAST = TOTAL_DAYS - 1;
+const TOTAL_DOSES = FIRST_DAYS * 2 * 4 + CONT_WEEKS * 7 * 2;
 
 export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,dashboardMode=false,onProgressChange}:Props) {
  const [doses,setDoses]=useState<Dose[]>([]);
  const [selected,setSelected]=useState(()=>{
   const today=new Intl.DateTimeFormat("en-CA",{timeZone:zone,year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
   const elapsed=Math.round((Date.parse(today+"T12:00:00Z")-Date.parse("2026-10-31T12:00:00Z"))/86400000);
-  return Math.min(34,Math.max(0,elapsed));
+  return Math.min(LAST,Math.max(0,elapsed));
  });
  // Recalculate after hydration: the server clock may be on the previous
  // local date, otherwise the client opens one day behind the treatment plan.
  useEffect(()=>{
   const today=new Intl.DateTimeFormat("en-CA",{timeZone:zone,year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
   const elapsed=Math.floor((Date.parse(today+"T12:00:00Z")-Date.parse("2026-10-31T12:00:00Z"))/86400000);
-  setSelected(Math.min(34,Math.max(0,elapsed)));
+  setSelected(Math.min(LAST,Math.max(0,elapsed)));
  },[]);
  const [activePill,setActivePill]=useState<{index:number;period:"morning"|"night";slot:number}|null>(null);
  const [loading,setLoading]=useState(true);
@@ -43,7 +49,7 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,da
      const result=await (supabase as any).from("care_daily_checklist")
        .select("id,patient_id,title,category,scheduled_at,completed_at")
        .eq("owner_id",ownerId).eq("patient_id",patientId).eq("category","medicacao")
-       .gte("scheduled_at","2026-10-31T00:00:00-05:00").lt("scheduled_at","2026-12-05T00:00:00-05:00")
+       .gte("scheduled_at","2026-10-31T00:00:00-05:00").lt("scheduled_at",new Date(Date.parse("2026-10-31T00:00:00-05:00")+TOTAL_DAYS*86400000).toISOString())
        .order("scheduled_at",{ascending:true}).limit(120);
      if(!active)return;
      setError(result.error?"Não foi possível atualizar os registros de medicação.":"");
@@ -59,9 +65,9 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,da
    return ()=>{active=false};
  },[patientId,ownerId,revision,refresh]);
  const treatmentDoses=useMemo(()=>doses.filter(d=>/Conferir medicação|Conferir lansoprazol|Lansoprazol 30 mg/i.test(d.title)),[doses]);
- const days=useMemo(()=>Array.from({length:35},(_,index)=>{
+ const days=useMemo(()=>Array.from({length:TOTAL_DAYS},(_,index)=>{
    const iso=new Date(Date.parse("2026-10-31T12:00:00Z")+index*86400000).toISOString();
-   return {index,iso,first:index<7,tasks:treatmentDoses.filter(d=>dateKey(d.scheduled_at)===dateKey(iso))};
+   return {index,iso,first:index<FIRST_DAYS,tasks:treatmentDoses.filter(d=>dateKey(d.scheduled_at)===dateKey(iso))};
  }),[treatmentDoses]);
  const day=days[selected]??days[0]!;
  const first=day.first;
@@ -69,20 +75,20 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,da
  const evening=day.tasks.find(t=>timeText(t.scheduled_at).startsWith("19:"))??day.tasks[1];
  const firstReport=selected===0&&patientId===reportedPatientId&&day.tasks.some(t=>!t.completed_at);
  const verified=days.reduce((total,d)=>total+d.tasks.filter(t=>t.completed_at).length*(d.first?4:1),0);
- useEffect(()=>{if(!loading)onProgressChange?.({confirmed:verified,total:112});},[verified,loading,onProgressChange]);
+ useEffect(()=>{if(!loading)onProgressChange?.({confirmed:verified,total:TOTAL_DOSES});},[verified,loading,onProgressChange]);
  const dayCompleted=day.tasks.filter(t=>Boolean(t.completed_at)).length;
  const dayExpected=2;
  
  const getTask=(period:"morning"|"night")=>period==="morning"?morning:evening;
  const info=activePill?days[activePill.index]:null;
  const infoTask=activePill
-  ? activePill.index>=7
-    ? days[7+Math.floor((activePill.index-7)/7)*7+activePill.slot-1]?.tasks.find(t=>timeText(t.scheduled_at).startsWith(activePill.period==="morning"?"07:":"19:"))
+  ? activePill.index>=FIRST_DAYS
+    ? days[FIRST_DAYS+Math.floor((activePill.index-FIRST_DAYS)/7)*7+activePill.slot-1]?.tasks.find(t=>timeText(t.scheduled_at).startsWith(activePill.period==="morning"?"07:":"19:"))
     : info?.tasks.find(t=>timeText(t.scheduled_at).startsWith(activePill.period==="morning"?"07:":"19:"))??info?.tasks[activePill.period==="morning"?0:1]
   : undefined;
  const isReported=Boolean(activePill?.index===0&&patientId===reportedPatientId&&!infoTask?.completed_at);
- const continuationWeek=selected>=7?Math.floor((selected-7)/7):0;
- const continuationDays=selected>=7?days.slice(7+continuationWeek*7,14+continuationWeek*7):[];
+ const continuationWeek=selected>=FIRST_DAYS?Math.floor((selected-FIRST_DAYS)/7):0;
+ const continuationDays=selected>=FIRST_DAYS?days.slice(FIRST_DAYS+continuationWeek*7,FIRST_DAYS+7+continuationWeek*7):[];
  const reportTime=activePill?.period==="morning"?"10:00":"19:00";
 
  const renderPeriod=(period:"morning"|"night",task?:Dose)=>{
@@ -110,21 +116,21 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,da
       <h3 className="flex items-center gap-1.5 text-[13px] font-bold leading-tight text-foreground"><Pill size={16} className="shrink-0 text-primary"/> Cartela interativa</h3>
       <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground">Toque na unidade para ver o registro.</p>
     </div>
-    <div className="care-blister-total shrink-0 text-right" aria-label={`${verified} de 112 doses-equivalentes confirmadas`}>
-      <strong className="block text-lg font-bold leading-none tabular-nums text-foreground">{verified}<span className="text-sm text-muted-foreground">/112</span></strong>
+    <div className="care-blister-total shrink-0 text-right" aria-label={`${verified} de ${TOTAL_DOSES} doses-equivalentes confirmadas`}>
+      <strong className="block text-lg font-bold leading-none tabular-nums text-foreground">{verified}<span className="text-sm text-muted-foreground">/{TOTAL_DOSES}</span></strong>
       <span className="text-[11px] leading-tight text-muted-foreground">confirmadas</span>
     </div>
   </header>
-  <div className="care-blister-progress h-[3px] shrink-0 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Progresso da medicação" aria-valuemin={0} aria-valuemax={112} aria-valuenow={verified}>
-    <div className="h-full rounded-full bg-emerald-400 transition-[width]" style={{width:`${verified/112*100}%`}}/>
+  <div className="care-blister-progress h-[3px] shrink-0 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Progresso da medicação" aria-valuemin={0} aria-valuemax={TOTAL_DOSES} aria-valuenow={verified}>
+    <div className="h-full rounded-full bg-emerald-400 transition-[width]" style={{width:`${verified/TOTAL_DOSES*100}%`}}/>
   </div>
   <nav className="care-blister-navigation grid grid-cols-[30px_minmax(0,1fr)_30px] items-center gap-1" aria-label="Navegar entre as cartelas">
     <button type="button" disabled={selected===0} onClick={()=>setSelected(x=>Math.max(0,x-1))} className="grid size-[30px] place-items-center rounded-lg border border-border text-foreground hover:bg-muted disabled:opacity-25" aria-label="Cartela anterior"><ArrowLeft size={15}/></button>
     <div className="min-w-0 text-center">
-      <p className="truncate text-xs font-bold leading-tight text-foreground">{first?`Cartela ${selected+1} de 7`:`Continuidade · semana ${Math.floor((selected-7)/7)+1} de 4`}</p>
-      <p className="truncate text-[11px] leading-tight text-muted-foreground">{dayLabel(day.iso)} · Dia {selected+1}/35 · {first?`4 manhã + 4 noite · ${dayCompleted}/${dayExpected} tomadas` :`Lansoprazol 30 mg · manhã + noite · ${dayCompleted}/${dayExpected} tomadas`}</p>
+      <p className="truncate text-xs font-bold leading-tight text-foreground">{first?`Cartela ${selected+1} de ${FIRST_DAYS}`:`Continuidade · semana ${Math.floor((selected-FIRST_DAYS)/7)+1} de ${CONT_WEEKS}`}</p>
+      <p className="truncate text-[11px] leading-tight text-muted-foreground">{dayLabel(day.iso)} · Dia {selected+1}/{TOTAL_DAYS} · {first?`4 manhã + 4 noite · ${dayCompleted}/${dayExpected} tomadas` :`Lansoprazol 30 mg · manhã + noite · ${dayCompleted}/${dayExpected} tomadas`}</p>
     </div>
-    <button type="button" disabled={selected===34} onClick={()=>setSelected(x=>Math.min(34,x+1))} className="grid size-[30px] place-items-center rounded-lg border border-border text-foreground hover:bg-muted disabled:opacity-25" aria-label="Próxima cartela"><ArrowRight size={15}/></button>
+    <button type="button" disabled={selected===LAST} onClick={()=>setSelected(x=>Math.min(LAST,x+1))} className="grid size-[30px] place-items-center rounded-lg border border-border text-foreground hover:bg-muted disabled:opacity-25" aria-label="Próxima cartela"><ArrowRight size={15}/></button>
   </nav>
   {loading?<p className="mt-5 text-center text-sm text-muted-foreground">Carregando tratamento…</p>:<>
    <div className={`care-blister-body ${first?"is-dual":"is-continuation"}`}>
@@ -193,18 +199,18 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,da
     {error&&<p role="alert" className="care-blister-error text-[11px] text-destructive">{error}</p>}
   </>}
   <nav className="care-blister-day-selector flex shrink-0 flex-wrap items-center justify-center gap-1 border-t border-border/60 pt-1" aria-label="Selecionar dia ou semana">
-    {Array.from({length:7},(_,i)=><button type="button" key={i} onClick={()=>setSelected(i)} aria-current={selected===i?"true":undefined} aria-label={`Cartela ${i+1}`} title={`Cartela ${i+1}`}
+    {Array.from({length:FIRST_DAYS},(_,i)=><button type="button" key={i} onClick={()=>setSelected(i)} aria-current={selected===i?"true":undefined} aria-label={`Cartela ${i+1}`} title={`Cartela ${i+1}`}
       className={`care-blister-step grid size-[24px] shrink-0 place-items-center rounded-full border text-[11px] font-bold transition-colors ${selected===i?"border-primary bg-primary text-primary-foreground":days[i].tasks.length&&days[i].tasks.every(t=>t.completed_at)?"border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300":"border-border bg-muted/30 text-muted-foreground hover:border-primary/40"}`}>
       {days[i].tasks.length&&days[i].tasks.every(t=>t.completed_at)?"✓":i+1}
     </button>)}
     <span className="mx-0.5 h-4 w-px bg-border" aria-hidden="true"/>
-    {Array.from({length:4},(_,i)=><button type="button" key={i+7} onClick={()=>setSelected(7+i*7)} aria-current={selected>=7+i*7&&selected<14+i*7?"true":undefined} aria-label={`Semana de continuidade ${i+1}`}
-      className={`care-blister-step min-w-[27px] shrink-0 rounded-full border px-1.5 py-1 text-[11px] font-semibold leading-tight transition-colors ${selected>=7+i*7&&selected<14+i*7?"border-primary bg-primary text-primary-foreground":"border-border bg-muted/30 text-muted-foreground hover:border-primary/40"}`}>S{i+1}</button>)}
+    {Array.from({length:CONT_WEEKS},(_,i)=><button type="button" key={i+FIRST_DAYS} onClick={()=>setSelected(FIRST_DAYS+i*7)} aria-current={selected>=FIRST_DAYS+i*7&&selected<FIRST_DAYS+7+i*7?"true":undefined} aria-label={`Semana de continuidade ${i+1}`}
+      className={`care-blister-step min-w-[27px] shrink-0 rounded-full border px-1.5 py-1 text-[11px] font-semibold leading-tight transition-colors ${selected>=FIRST_DAYS+i*7&&selected<FIRST_DAYS+7+i*7?"border-primary bg-primary text-primary-foreground":"border-border bg-muted/30 text-muted-foreground hover:border-primary/40"}`}>S{i+1}</button>)}
   </nav>
   {activePill && typeof document !== "undefined" && createPortal(<div className="fixed inset-0 z-[9000] flex items-center justify-center overflow-y-auto bg-slate-950/60 p-3 backdrop-blur-sm" onMouseDown={e=>{if(e.target===e.currentTarget)setActivePill(null)}}>
     <section role="dialog" aria-modal="true" aria-label="Detalhes da medicação" className="care-premium-medication-dialog my-auto max-h-[calc(100dvh-1rem)] w-full max-w-sm overflow-y-auto rounded-[24px] border border-border bg-card p-4 text-card-foreground shadow-2xl sm:p-5">
       <div className="care-premium-medication-dialog-header flex items-center justify-between gap-3"><h4 className="flex items-center gap-2 text-base font-bold"><Info size={18} className="text-primary"/> Detalhes da unidade</h4><button aria-label="Fechar" onClick={()=>setActivePill(null)} className="rounded-lg border border-border p-1.5"><X size={17}/></button></div>
-      <p className="mt-2 text-xs text-muted-foreground">{info?.first?`Cartela ${activePill.index+1}`:`Continuidade · semana ${Math.floor((activePill.index-7)/7)+1}`} {info?.first?`· unidade ${activePill.slot} · ${activePill.period==="morning"?"manhã":"noite"}`:`· dia ${dayLabel(days[7+Math.floor((activePill.index-7)/7)*7+activePill.slot-1]?.iso??day.iso)} · ${activePill.period==="morning"?"manhã":"noite"}`}</p>
+      <p className="mt-2 text-xs text-muted-foreground">{info?.first?`Cartela ${activePill.index+1}`:`Continuidade · semana ${Math.floor((activePill.index-FIRST_DAYS)/7)+1}`} {info?.first?`· unidade ${activePill.slot} · ${activePill.period==="morning"?"manhã":"noite"}`:`· dia ${dayLabel(days[FIRST_DAYS+Math.floor((activePill.index-FIRST_DAYS)/7)*7+activePill.slot-1]?.iso??day.iso)} · ${activePill.period==="morning"?"manhã":"noite"}`}</p>
       <div className="mt-3 rounded-xl bg-muted p-3"><div className="flex items-center gap-2 text-sm font-semibold"><Clock3 size={16}/> Horário programado</div><p className="mt-1 text-sm">{infoTask?timeText(infoTask.scheduled_at):"Nenhum horário cadastrado"}</p></div>
       {isReported&&<div className="mt-3 rounded-xl border border-amber-300/40 bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-950/25 dark:text-amber-100"><strong>Relato do paciente — 31/10:</strong> quatro comprimidos às {reportTime}.{activePill.period==="morning"?" Tomados em jejum após acordar tarde; 3h depois do previsto.":" No horário previsto."}<p className="mt-1 text-xs">Relato não equivale à confirmação auditada no banco.</p></div>}
       <p className="mt-3 text-sm">{infoTask?.completed_at?`Confirmação registrada em ${new Intl.DateTimeFormat("pt-BR",{timeZone:zone,day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new Date(infoTask.completed_at))}.`:"Ainda sem confirmação persistida para esta tomada."}</p>
