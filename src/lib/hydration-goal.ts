@@ -54,3 +54,32 @@ export function hydrationGoalNotice(goal: HydrationGoalSnapshot | null, now: num
   return {kind:"pending",title:"Meta aberta até 23h",
     message:`${format(consumed)} de ${format(target)} ml · ${format(remaining)} ml restantes. Meta estimada, respeite suas necessidades e orientação profissional.`};
 }
+
+/**
+ * Estima o horário e o volume da próxima hidratação a partir do último líquido
+ * registrado, do volume restante da meta e do tempo disponível até o corte das 23h.
+ * - Porções confortáveis de ~250 ml (máx. 350 ml);
+ * - intervalo mínimo proporcional ao volume ingerido (~800 ml/h de absorção);
+ * - intervalo máximo de 2h para manter a regularidade.
+ */
+export function estimateNextHydration(input: {
+  remainingMl: number;
+  lastIntakeAt: number | null;
+  lastAmountMl: number;
+  now: number;
+  cutoff: number;
+}): { at: number; suggestedMl: number; intervalMin: number; portions: number } | null {
+  const { remainingMl, lastIntakeAt, lastAmountMl, now, cutoff } = input;
+  if (remainingMl < 10 || now >= cutoff) return null;
+  const from = lastIntakeAt ?? now;
+  const portions = Math.max(1, Math.ceil(remainingMl / 250));
+  const windowMin = Math.max(0, (cutoff - from) / 60_000);
+  const minGap = Math.max(20, Math.round((lastAmountMl / 800) * 60));
+  const spread = windowMin / portions;
+  const intervalMin = lastIntakeAt ? Math.round(Math.min(120, Math.max(minGap, spread))) : 0;
+  let at = from + intervalMin * 60_000;
+  if (at < now) at = now;
+  if (at > cutoff) at = cutoff;
+  const suggestedMl = Math.min(350, Math.max(10, Math.round(remainingMl / portions / 10) * 10));
+  return { at, suggestedMl, intervalMin, portions };
+}

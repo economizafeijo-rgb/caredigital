@@ -3,7 +3,7 @@ import { Droplets, CheckCircle2, AlertCircle, Save, SlidersHorizontal, ChevronLe
 import { supabase } from "@/integrations/supabase/client";
 import { ClientQuickIntake } from "./ClientQuickIntake";
 import { CareTaskRecordModal } from "./CareTaskRecordModal";
-import { acreCalendarDay, acreHour, hydrationGoalNotice, type HydrationGoalSnapshot } from "@/lib/hydration-goal";
+import { acreCalendarDay, acreHour, estimateNextHydration, hydrationGoalNotice, type HydrationGoalSnapshot } from "@/lib/hydration-goal";
 import {canConfirmCare,careScheduleBlockMessage,careScheduleLabel,getCareScheduleState} from "@/lib/care-schedule";
 
 type Task={id:string;patient_id:string;category:string;title:string;scheduled_at:string;completed_at:string|null};
@@ -30,6 +30,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
  const [editing,setEditing]=useState(false);
  const [saving,setSaving]=useState(false);
  const [drinks,setDrinks]=useState<Drink[]>([]);
+ const [otherDrinks,setOtherDrinks]=useState<Drink[]>([]);
  const [suggestedByTask,setSuggestedByTask]=useState<Record<string,{suggested_ml:number;reason:string;remaining_ml:number}>>({});
  const [volumeByTask,setVolumeByTask]=useState<Record<string,number>>({});
  const [detailTask,setDetailTask]=useState<Task|null>(null);
@@ -61,14 +62,16 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
    const start=new Date(now+"T00:00:00-05:00");
    const end=new Date(start.getTime()+86400000);
    const db=supabase as any;
-   const [saved,water,responses,goalSummary,recommended]=await Promise.all([
+   const [saved,water,responses,goalSummary,recommended,beverages]=await Promise.all([
     db.from("care_hydration_profiles").select("sex,age,weight_kg,objective,activity_minutes,sweat,fluid_restriction,target_ml").eq("patient_id",patientId).maybeSingle(),
     db.from("care_hydration").select("id,amount_ml,recorded_at").eq("patient_id",patientId).eq("owner_id",ownerId).gte("recorded_at",start.toISOString()).lt("recorded_at",end.toISOString()).order("recorded_at",{ascending:true}).limit(200),
     db.from("care_hydration_responses").select("task_id,recorded_at").eq("patient_id",patientId).eq("owner_id",ownerId).limit(100),
     db.rpc("care_sync_hydration_goal",{p_patient_id:patientId}),
     db.from("care_hydration_suggested_portions")
       .select("task_id,suggested_ml,reason,remaining_ml")
-      .eq("patient_id",patientId).eq("owner_id",ownerId).limit(120)
+      .eq("patient_id",patientId).eq("owner_id",ownerId).limit(120),
+    db.from("care_client_beverages").select("id,amount_ml,consumed_at").eq("patient_id",patientId).eq("owner_id",ownerId)
+      .gte("consumed_at",start.toISOString()).lt("consumed_at",end.toISOString()).order("consumed_at",{ascending:true}).limit(200)
    ]);
    if(!active)return;
    if(saved.error||water.error||responses.error||goalSummary.error)setError("Não foi possível consultar todos os registros de hidratação ou o fechamento da meta. Confira as permissões.");
@@ -77,6 +80,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
    else {setConfigured(false);setEditing(false)}
    setDailyGoal(goalSummary.error?null:goalSummary.data as HydrationGoalSnapshot);
    setDrinks(water.data??[]);
+   setOtherDrinks(beverages.error?[]:(beverages.data??[]).map((row:{id:string;amount_ml:number;consumed_at:string})=>({id:row.id,amount_ml:row.amount_ml,recorded_at:row.consumed_at})));
    setNotDrunk(responses.data??[]);
    if(recommended.error){setSuggestedByTask({});setNotice("Sugestões dinâmicas de volume indisponíveis; confira a meta e os registros.");}
    else setSuggestedByTask(Object.fromEntries((recommended.data??[]).map((row:{task_id:string;suggested_ml:number;reason:string;remaining_ml:number})=>
@@ -117,14 +121,16 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
  const next=dayClosed||remaining===0?undefined:
    schedule.find(item=>!item.completed_at&&!skipped.has(item.id)&&Date.parse(item.scheduled_at)>=clock&&Date.parse(item.scheduled_at)<cutoffUtc)
    ?? (dayClosed?undefined:schedule.find(item=>!item.completed_at&&!skipped.has(item.id)&&getCareScheduleState(item,clock)==="available"&&Date.parse(item.scheduled_at)<cutoffUtc));
- const lastWater=drinks.length?drinks[drinks.length-1]:null;
- const adaptiveGapMinutes=(amount:number)=>amount>=750?90:amount>=500?75:amount>=300?60:45;
- const nextHydrationAt=goal>0&&remaining>0&&!dayClosed&&lastWater
-   ? Date.parse(lastWater.recorded_at)+adaptiveGapMinutes(Number(lastWater.amount_ml))*60_000
-   : null;
- const nextHydrationLabel=nextHydrationAt&&nextHydrationAt<=cutoffUtc
-   ? time(new Date(nextHydrationAt).toISOString())
-   : "Após registro";
+ // Último líquido registrado (água ou outra bebida) define o ponto de partida.
+ const lastWater=useMemo(()=>[...drinks,...otherDrinks].sort((a,b)=>Date.parse(a.recorded_at)-Date.parse(b.recorded_at)).at(-1)??null,[drinks,otherDrinks]);
+ const nextPlan=goal>0&&!dayClosed?estimateNextHydration({
+   remainingMl:remaining,
+   lastIntakeAt:lastWater?Date.parse(lastWater.recorded_at):null,
+   lastAmountMl:lastWater?Number(lastWater.amount_ml):0,
+   now:clock,cutoff:cutoffUtc,
+ }):null;
+ const nextHydrationAt=nextPlan?.at??null;
+ const nextHydrationLabel=nextPlan?(nextPlan.at<=clock?"Agora":time(new Date(nextPlan.at).toISOString())):"Após registro";
  const pageSize=3;
  const pageCount=Math.max(1,Math.ceil(schedule.length/pageSize));
  const activePage=Math.min(page,pageCount-1);
@@ -221,13 +227,13 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
       {label:"Meta diária",value:goal?`${goal.toLocaleString("pt-BR")} ml`:"A definir"},
       {label:"Consumido",value:`${intake.toLocaleString("pt-BR")} ml`},
       {label:"Restante",value:goal?`${remaining.toLocaleString("pt-BR")} ml`:"—"},
-      {label:"Próxima recomendação",value:dayClosed?"Dia encerrado":remaining===0?"Meta atingida":nextHydrationAt&&nextHydrationAt<=cutoffUtc?nextHydrationLabel:"Aguardando registro"}
+      {label:"Próxima recomendação",value:dayClosed?"Dia encerrado":remaining===0?"Meta atingida":nextPlan?`${nextHydrationLabel} · ${nextPlan.suggestedMl} ml`:"Aguardando registro"}
     ].map(item=><div key={item.label} className="min-w-0 rounded-lg border border-border/70 bg-muted/40 px-2.5 py-2">
       <p className="truncate text-[11px] font-medium text-muted-foreground">{item.label}</p>
       <p className="mt-0.5 truncate text-sm font-bold tabular-nums text-foreground">{item.value}</p>
     </div>)}
   </div>
-  {nextHydrationAt&&nextHydrationAt<=cutoffUtc&&remaining>0&&!dayClosed&&<p aria-live="off" className="rounded-lg border border-sky-500/20 bg-sky-500/[.05] px-2.5 py-2 text-[11px] font-semibold">Próxima recomendação estimada em <strong className="font-mono tabular-nums">{fmtCountdown(nextHydrationAt-clock)}</strong>, calculada a partir do último registro e do volume informado. É uma sugestão, não um alarme.</p>}
+  {nextHydrationAt&&nextHydrationAt<=cutoffUtc&&remaining>0&&!dayClosed&&<p aria-live="off" className="rounded-lg border border-sky-500/20 bg-sky-500/[.05] px-2.5 py-2 text-[11px] font-semibold">{nextHydrationAt<=clock?<>Já pode beber cerca de <strong>{nextPlan?.suggestedMl} ml</strong> agora.</>:<>Próxima hidratação às <strong>{nextHydrationLabel}</strong> (em <strong className="font-mono tabular-nums">{fmtCountdown(nextHydrationAt-clock)}</strong>) · cerca de <strong>{nextPlan?.suggestedMl} ml</strong>.</>} Cálculo automático: {remaining.toLocaleString("pt-BR")} ml restantes divididos em ~{nextPlan?.portions} porções até 23h{lastWater?`, a partir do último líquido (${Number(lastWater.amount_ml)} ml às ${time(lastWater.recorded_at)})`:""}. É uma sugestão, não um alarme.</p>}
   <div className="flex items-center gap-2.5">
     <div className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-muted" role="progressbar"
       aria-label="Progresso da meta de hidratação" aria-valuemin={0} aria-valuemax={goal||1} aria-valuenow={goal?Math.min(intake,goal):0}>

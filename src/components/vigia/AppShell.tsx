@@ -126,6 +126,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const currentHash = location.hash || clientSectionHashes.hoje;
   const isActive = (item: NavItem) => item.to === location.pathname && (!item.hash || item.hash === currentHash);
   const current = items.find(isActive);
+  const panelHome = profile === "client" ? "/cliente" : profile === "admin" ? "/admin" : null;
 
   const tools = <>
     <button type="button" onClick={() => void toggleFullscreen()} aria-pressed={fullScreen} aria-label={fullScreen ? "Sair da tela cheia" : "Ativar tela cheia"} title="Tela cheia" className={`${iconButton} hidden sm:grid`}>{fullScreen ? <Minimize size={17}/> : <Maximize size={17}/>}</button>
@@ -173,7 +174,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             {signedIn ? <>
               <button type="button" onClick={() => setMenuOpen(true)} aria-label="Abrir menu" aria-expanded={menuOpen} className={`${iconButton} xl:hidden`}><Menu size={18}/></button>
               <div className="min-w-0 flex-1">
-                <p className="truncate font-display text-[15px] font-bold leading-tight">{current?.label ?? "CareDigital"}</p>
+                <p className="truncate font-display text-[15px] font-bold leading-tight">{current?.label ?? (location.pathname === "/" ? "Página inicial" : "CareDigital")}</p>
                 <p className="truncate text-[11px] text-muted-foreground">{fmtClock(now)} · horário do Acre</p>
               </div>
             </> : <>
@@ -186,6 +187,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               <span className="flex-1 lg:hidden"/>
             </>}
             <div className="flex shrink-0 items-center gap-1.5">
+              {signedIn && (location.pathname === "/"
+                ? panelHome && <Link to={panelHome} className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110" title="Voltar ao meu painel"><LayoutDashboard size={16}/><span className="hidden sm:inline">Meu painel</span></Link>
+                : <Link to="/" className="inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm font-semibold text-foreground transition hover:border-primary/40" title="Ir à página inicial sem sair da conta"><Home size={16}/><span className="hidden sm:inline">Página inicial</span></Link>)}
               {tools}
               {!signedIn && access.status !== "loading" && loginButton}
               {!signedIn && <button type="button" onClick={() => setMenuOpen(true)} aria-label="Abrir menu" aria-expanded={menuOpen} className={`${iconButton} lg:hidden`}><Menu size={18}/></button>}

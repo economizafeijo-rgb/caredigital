@@ -103,6 +103,15 @@ const copy: Record<ShowcaseKind, Showcase> = {
   },
 };
 
+/** Fotografias ilustrativas (Unsplash, licença livre) servidas localmente em /public/images. */
+const showcaseImage: Record<ShowcaseKind, { src: string; position: string }> = {
+  hydration: { src: "/images/caredigital-hidratacao.webp", position: "50% 40%" },
+  medication: { src: "/images/caredigital-medicamentos.webp", position: "50% 50%" },
+  sports: { src: "/images/caredigital-esporte.webp", position: "50% 40%" },
+  diet: { src: "/images/caredigital-alimentacao.webp", position: "50% 50%" },
+  protocols: { src: "/images/caredigital-historico.webp", position: "40% 50%" },
+};
+
 export function PublicCareShowcase({ kind }: { kind: ShowcaseKind }) {
   const info = copy[kind];
   const Icon = info.icon;
@@ -123,7 +132,10 @@ export function PublicCareShowcase({ kind }: { kind: ShowcaseKind }) {
 
       <div aria-hidden="true" className="relative mx-auto w-full max-w-[400px]">
         <div className="absolute -inset-5 -z-10 rounded-[36px] bg-gradient-to-br from-primary/15 via-transparent to-water/10 blur-2xl"/>
-        <div className="rounded-2xl border border-border bg-card p-4 shadow-pop">
+        <img src={showcaseImage[kind].src} alt="" width={1200} height={750} loading="eager" decoding="async"
+          style={{ objectPosition: showcaseImage[kind].position }}
+          className="aspect-[16/10] w-full rounded-2xl object-cover shadow-pop"/>
+        <div className="relative -mt-16 mx-3 rounded-2xl border border-border bg-card/95 p-4 shadow-pop backdrop-blur">
           <div className="flex items-center gap-3">
             <span className={`grid size-12 place-items-center rounded-xl ${info.tone}`}><Icon size={24}/></span>
             <div><p className="font-display text-base font-bold">{info.eyebrow}</p><p className="text-xs text-muted-foreground">Rotina individual de cuidados</p></div>
