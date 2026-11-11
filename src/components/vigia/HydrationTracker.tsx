@@ -161,7 +161,7 @@ export function HydrationReminder() {
     </div>
     <div className="hidden items-center gap-2 md:flex">
       <Droplets size={16} className="shrink-0 text-primary" />
-      <div className="min-w-0 flex-1"><div className="text-xs font-semibold">Água · {data.intakeMl} ml</div><div className="text-[10px] text-muted-foreground">{due ? "Hora de beber água" : `Próximo em ${countdown(seconds)}`} · meta {data.targetMl} ml</div></div>
+      <div className="min-w-0 flex-1"><div className="text-xs font-semibold">Água · {data.intakeMl} ml</div><div className="text-[11px] text-muted-foreground">{due ? "Hora de beber água" : `Próximo em ${countdown(seconds)}`} · meta {data.targetMl} ml</div></div>
       <button type="button" onClick={() => addWater(200)} className="shrink-0 rounded-lg bg-primary px-3 py-1.5 text-[11px] font-semibold text-primary-foreground">+200 ml</button>
       <Link to="/hidratacao" aria-label="Abrir hidratação" className="shrink-0 text-xs font-semibold text-primary underline">Ver</Link>
     </div>
@@ -202,13 +202,13 @@ export function HydrationDashboard() {
 
     <div className="grid gap-5 lg:grid-cols-[.85fr_1.15fr]">
       <Panel title="Configurar rotina">
-      <label className="mb-4 block"><span className="label-mono mb-1.5 block text-[10px] text-muted-foreground">Objetivo atual</span><SelectField value={data.objective} onValueChange={(objective) => setSettings({ objective })} options={[{ value: "hipertrofia", label: "Hipertrofia / ganho de massa" }, { value: "emagrecimento", label: "Emagrecimento" }, { value: "ganho-de-peso", label: "Aumento de peso" }]} /></label>
-        <label className="mb-4 block"><span className="label-mono mb-1.5 block text-[10px] text-muted-foreground">Meta diária pessoal (ml) · definida com sua equipe</span><input type="number" min="250" max="6000" step="50" value={data.targetMl} onChange={(e) => setSettings({ targetMl: Math.min(6000, Math.max(250, Number(e.target.value) || 250)) })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" /></label>
+      <label className="mb-4 block"><span className="label-mono mb-1.5 block text-[11px] text-muted-foreground">Objetivo atual</span><SelectField value={data.objective} onValueChange={(objective) => setSettings({ objective })} options={[{ value: "hipertrofia", label: "Hipertrofia / ganho de massa" }, { value: "emagrecimento", label: "Emagrecimento" }, { value: "ganho-de-peso", label: "Aumento de peso" }]} /></label>
+        <label className="mb-4 block"><span className="label-mono mb-1.5 block text-[11px] text-muted-foreground">Meta diária pessoal (ml) · definida com sua equipe</span><input type="number" min="250" max="6000" step="50" value={data.targetMl} onChange={(e) => setSettings({ targetMl: Math.min(6000, Math.max(250, Number(e.target.value) || 250)) })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" /></label>
         <div className="grid grid-cols-2 gap-3">
-          <label className="block"><span className="label-mono mb-1.5 block text-[10px] text-muted-foreground">Acordar</span><input type="time" value={data.wakeTime} onChange={(e) => setSettings({ wakeTime: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" /></label>
-          <label className="block"><span className="label-mono mb-1.5 block text-[10px] text-muted-foreground">Encerrar</span><input type="time" value={data.sleepTime} onChange={(e) => setSettings({ sleepTime: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" /></label>
+          <label className="block"><span className="label-mono mb-1.5 block text-[11px] text-muted-foreground">Acordar</span><input type="time" value={data.wakeTime} onChange={(e) => setSettings({ wakeTime: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" /></label>
+          <label className="block"><span className="label-mono mb-1.5 block text-[11px] text-muted-foreground">Encerrar</span><input type="time" value={data.sleepTime} onChange={(e) => setSettings({ sleepTime: e.target.value })} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" /></label>
         </div>
-        <label className="mt-4 block"><span className="label-mono mb-1.5 block text-[10px] text-muted-foreground">Lembrete a cada · minutos</span><SelectField value={String(data.intervalMinutes)} onValueChange={(interval) => setSettings({ intervalMinutes: Number(interval) })} options={[{ value: "45", label: "45 minutos" }, { value: "60", label: "60 minutos" }, { value: "90", label: "90 minutos" }, { value: "120", label: "120 minutos" }]} /></label>
+        <label className="mt-4 block"><span className="label-mono mb-1.5 block text-[11px] text-muted-foreground">Lembrete a cada · minutos</span><SelectField value={String(data.intervalMinutes)} onValueChange={(interval) => setSettings({ intervalMinutes: Number(interval) })} options={[{ value: "45", label: "45 minutos" }, { value: "60", label: "60 minutos" }, { value: "90", label: "90 minutos" }, { value: "120", label: "120 minutos" }]} /></label>
         <p className="mt-4 rounded-xl bg-foreground/5 p-3 text-xs leading-relaxed text-muted-foreground">{objective.note}</p>
         <button type="button" onClick={() => void enableNotifications()} className="mt-4 w-full rounded-lg bg-foreground px-4 py-3 text-sm font-semibold text-primary-foreground">Ativar notificações do navegador</button>
         <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">O lembrete na tela funciona enquanto o app está aberto. O navegador pode suspender ou não entregar avisos se a página for fechada, se o sistema bloquear notificações ou se a economia de bateria estiver ativa.</p>
@@ -226,9 +226,9 @@ export function HydrationDashboard() {
         <Panel title="Roteiro guiado de hidratação" action={<Tag tone={due?"warning":"primary"}>{due?"Pausa sugerida":"Rotina de hoje"}</Tag>}>
           <p className="mb-3 text-xs leading-relaxed text-muted-foreground">Guia visual flexível, não prescrição: horários e porções sugeridos com base na sua meta e no período acordado. Marque apenas o volume realmente bebido; horários perdidos não exigem compensação rápida.</p>
           <div className="mb-3 grid grid-cols-3 gap-2">
-            <div className="rounded-xl bg-muted p-2.5"><p className="text-[10px] text-muted-foreground">Meta do dia</p><p className="mt-1 text-base font-bold tabular-nums">{data.targetMl} ml</p></div>
-            <div className="rounded-xl bg-muted p-2.5"><p className="text-[10px] text-muted-foreground">Já registrado</p><p className="mt-1 text-base font-bold tabular-nums text-success">{data.intakeMl} ml</p></div>
-            <div className="rounded-xl bg-muted p-2.5"><p className="text-[10px] text-muted-foreground">Restante</p><p className="mt-1 text-base font-bold tabular-nums">{Math.max(0,data.targetMl-data.intakeMl)} ml</p></div>
+            <div className="rounded-xl bg-muted p-2.5"><p className="text-[11px] text-muted-foreground">Meta do dia</p><p className="mt-1 text-base font-bold tabular-nums">{data.targetMl} ml</p></div>
+            <div className="rounded-xl bg-muted p-2.5"><p className="text-[11px] text-muted-foreground">Já registrado</p><p className="mt-1 text-base font-bold tabular-nums text-success">{data.intakeMl} ml</p></div>
+            <div className="rounded-xl bg-muted p-2.5"><p className="text-[11px] text-muted-foreground">Restante</p><p className="mt-1 text-base font-bold tabular-nums">{Math.max(0,data.targetMl-data.intakeMl)} ml</p></div>
           </div>
           <ol className="max-h-[390px] space-y-2 overflow-y-auto pr-1">
             {schedule.map((item,index)=>{
@@ -243,13 +243,13 @@ export function HydrationDashboard() {
               return <li key={item.at.toISOString()} className={`flex items-center gap-3 rounded-xl border p-2.5 sm:p-3 ${currentSlot?"border-primary/60 bg-primary/10":"border-border bg-background/70"}`}>
                 <div className="relative flex w-12 shrink-0 flex-col items-center gap-1">
                   <svg viewBox="0 0 46 56" className="h-12 w-10" role="img" aria-label="Ilustração de copo de água"><path d="M8 6h30l-4 42a7 7 0 0 1-7 6h-8a7 7 0 0 1-7-6z" fill="none" stroke="currentColor" strokeOpacity=".5" strokeWidth="2.5"/><path d="M11 25q11-4 24 0l-2 21q-1 6-7 6h-6q-6 0-7-6z" fill="#58bcdf" fillOpacity=".75"/><path d="M12 21h23" stroke="#a5daec" strokeWidth="2"/></svg>
-                  <span className="text-[10px] font-bold text-muted-foreground">{index+1}/{schedule.length}</span>
+                  <span className="text-[11px] font-bold text-muted-foreground">{index+1}/{schedule.length}</span>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2"><time className="text-sm font-bold tabular-nums text-foreground">{acreTimeLabel(item.at)}</time>{slotConfirmed?<span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">Confirmado</span>:slotExpired?<span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-900">Não confirmado</span>:slotOpen?<span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">Confirmar · tolerância 20 min</span>:<span className="text-[10px] text-muted-foreground">Programado</span>}</div>
+                  <div className="flex flex-wrap items-center gap-2"><time className="text-sm font-bold tabular-nums text-foreground">{acreTimeLabel(item.at)}</time>{slotConfirmed?<span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">Confirmado</span>:slotExpired?<span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-900">Não confirmado</span>:slotOpen?<span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground">Confirmar · tolerância 20 min</span>:<span className="text-[11px] text-muted-foreground">Programado</span>}</div>
                   <p className="mt-0.5 text-xs font-medium">{copy}</p>
                   <p className="text-[11px] text-muted-foreground">Porção sugerida ~{Math.round(data.targetMl/schedule.length/25)*25} ml · referência acumulada {suggestedCumulative} ml</p>
-                  {scheduledPassed&&<p className="mt-0.5 text-[10px] text-muted-foreground">Volume real do dia: {data.intakeMl} ml (não atribuído automaticamente a esta etapa).</p>}
+                  {scheduledPassed&&<p className="mt-0.5 text-[11px] text-muted-foreground">Volume real do dia: {data.intakeMl} ml (não atribuído automaticamente a esta etapa).</p>}
                 </div>
                 <button type="button" onClick={()=>setConfirmSlot({scheduledAt:item.at.toISOString(),amount:Math.max(50,Math.round(data.targetMl/schedule.length/50)*50)})} disabled={!slotOpen} aria-label={`Confirmar água bebida na etapa das ${acreTimeLabel(item.at)}`} className="shrink-0 rounded-lg border border-primary/30 bg-primary/10 px-2.5 py-2 text-xs font-semibold text-primary hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-40">{slotConfirmed?"Registrado":slotExpired?"Expirado":!scheduledPassed?"Aguardar":"Confirmar"} · {Math.max(50,Math.round(data.targetMl/schedule.length/50)*50)} ml</button>
               </li>;

@@ -145,12 +145,12 @@ function Entrar() {
   const title = mode==="login"?"Acesse seu acompanhamento":mode==="forgot"?"Recuperar acesso":"Criar nova senha";
 
   return <main className="mx-auto flex min-h-full w-full max-w-[520px] flex-col justify-center py-4 sm:py-6" aria-label="Acesso CareDigital">
-    <section className="overflow-hidden rounded-3xl border border-border bg-card/95 shadow-[0_22px_70px_-42px_rgba(15,50,45,.4)]">
-      <div className="flex items-center gap-3 border-b border-border bg-primary/5 px-5 py-4 sm:px-6">
+    <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-pop">
+      <div className="flex items-center gap-3 border-b border-border px-5 py-4 sm:px-6">
         <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><LockKeyhole size={21}/></div>
         <div className="min-w-0">
-          <p className="text-[10px] font-extrabold uppercase tracking-[.17em] text-primary">CareDigital · Conta protegida</p>
-          <h1 className="mt-0.5 text-xl font-extrabold tracking-tight text-foreground">{title}</h1>
+          <p className="text-[11px] font-bold uppercase tracking-[.17em] text-primary">CareDigital · Conta protegida</p>
+          <h1 className="mt-0.5 text-xl font-bold tracking-tight text-foreground">{title}</h1>
         </div>
       </div>
       <div className="space-y-4 p-5 sm:p-6">

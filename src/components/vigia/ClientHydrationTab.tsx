@@ -185,8 +185,8 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
  return <section className="care-premium-hydration care-hydration-responsive flex min-h-0 w-full min-w-0 flex-col gap-2" aria-label="Programa personalizado de hidratação">
   <header className="flex flex-wrap items-center justify-between gap-2">
     <div className="min-w-0">
-      <h3 className="flex items-center gap-1.5 text-sm font-extrabold"><Droplets size={18} className="text-sky-600 dark:text-sky-300"/> Minha hidratação</h3>
-      <p className="text-[10px] text-muted-foreground">Meta diária até 23h · horário do Acre · água registrada</p>
+      <h3 className="flex items-center gap-1.5 text-sm font-bold"><Droplets size={18} className="text-sky-600 dark:text-sky-300"/> Minha hidratação</h3>
+      <p className="text-[11px] text-muted-foreground">Meta diária até 23h · horário do Acre · água registrada</p>
     </div>
     <div className="flex flex-wrap items-center gap-1.5">
       <ClientQuickIntake patientId={patientId} mode="water" onRecorded={()=>{setReload(n=>n+1);onRecorded();}}/>
@@ -223,8 +223,8 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
       {label:"Restante",value:goal?`${remaining.toLocaleString("pt-BR")} ml`:"—"},
       {label:"Próxima recomendação",value:dayClosed?"Dia encerrado":remaining===0?"Meta atingida":nextHydrationAt&&nextHydrationAt<=cutoffUtc?nextHydrationLabel:"Aguardando registro"}
     ].map(item=><div key={item.label} className="min-w-0 rounded-lg border border-border/70 bg-muted/40 px-2.5 py-2">
-      <p className="truncate text-[10px] font-medium text-muted-foreground">{item.label}</p>
-      <p className="mt-0.5 truncate text-sm font-extrabold tabular-nums text-foreground">{item.value}</p>
+      <p className="truncate text-[11px] font-medium text-muted-foreground">{item.label}</p>
+      <p className="mt-0.5 truncate text-sm font-bold tabular-nums text-foreground">{item.value}</p>
     </div>)}
   </div>
   {nextHydrationAt&&nextHydrationAt<=cutoffUtc&&remaining>0&&!dayClosed&&<p aria-live="off" className="rounded-lg border border-sky-500/20 bg-sky-500/[.05] px-2.5 py-2 text-[11px] font-semibold">Próxima recomendação estimada em <strong className="font-mono tabular-nums">{fmtCountdown(nextHydrationAt-clock)}</strong>, calculada a partir do último registro e do volume informado. É uma sugestão, não um alarme.</p>}
@@ -238,16 +238,16 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
   {!planValid&&<button type="button" onClick={()=>setEditing(true)} className="rounded-lg border border-amber-300/30 bg-amber-500/5 px-2 py-1.5 text-left text-[11px] text-foreground">Defina uma meta em <strong>Ajustar meta</strong> para calcular volumes sugeridos. Os registros reais continuam disponíveis.</button>}
   {!loading&&dailyGoal&&dailyGoal.status!=="sem_meta"&&<div role="status" aria-live="polite" className={`flex items-start gap-1.5 rounded-lg border px-2.5 py-2 text-[11px] leading-snug ${goalSummary.kind==="met"?"border-emerald-500/25 bg-emerald-500/[.045] text-foreground":goalSummary.kind==="missed"?"border-amber-500/25 bg-amber-500/[.04] text-foreground":"border-border/70 bg-muted/25 text-foreground"}`}>
     {goalSummary.kind==="met"?<CheckCircle2 size={14} className="mt-0.5 shrink-0 text-emerald-600 dark:text-emerald-300"/>:<Info size={14} className="mt-0.5 shrink-0 text-muted-foreground"/>}
-    <div><strong className="block text-[11px] font-bold">{goalSummary.title}</strong><p className="mt-0.5 text-[10px] text-muted-foreground">{goalSummary.message}</p></div>
+    <div><strong className="block text-[11px] font-bold">{goalSummary.title}</strong><p className="mt-0.5 text-[11px] text-muted-foreground">{goalSummary.message}</p></div>
   </div>}
-  {!loading&&!dailyGoal&&goal>0&&<p className="text-[10px] text-muted-foreground">Meta até 23h (Acre). O resumo automático não está disponível no momento.</p>}
+  {!loading&&!dailyGoal&&goal>0&&<p className="text-[11px] text-muted-foreground">Meta até 23h (Acre). O resumo automático não está disponível no momento.</p>}
   <div className="rounded-xl border border-border bg-card/70 p-2.5">
     <div className="mb-2 flex min-w-0 items-center justify-between gap-2 border-b border-border/70 pb-2">
       <div>
-        <h4 className="text-xs font-extrabold text-foreground">Horários e registros</h4>
-        <p className="text-[10px] text-muted-foreground">Toque em um registro confirmado para consultar ou corrigir</p>
+        <h4 className="text-xs font-bold text-foreground">Horários e registros</h4>
+        <p className="text-[11px] text-muted-foreground">Toque em um registro confirmado para consultar ou corrigir</p>
       </div>
-      <span className="shrink-0 rounded-md bg-muted px-2 py-1 text-[10px] font-semibold tabular-nums text-foreground">{schedule.length} horários</span>
+      <span className="shrink-0 rounded-md bg-muted px-2 py-1 text-[11px] font-semibold tabular-nums text-foreground">{schedule.length} horários</span>
     </div>
     <div className="space-y-1.5">
       {pageTasks.map(task=>{
@@ -262,18 +262,18 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
         return <article key={task.id} className={`care-premium-hydration-event flex min-w-0 flex-col gap-1.5 rounded-lg border px-2 py-1.5 ${status==="done"?"border-emerald-500/25 bg-emerald-500/[.055]":status==="skipped"?"border-amber-500/30 bg-amber-500/[.04]":"border-border/75 bg-muted/25"}`}>
           <div className="flex min-w-0 items-center gap-2"><span className={`grid size-7 shrink-0 place-items-center rounded-lg ${status==="done"?"bg-emerald-500/10 text-emerald-600 dark:text-emerald-300":"bg-sky-500/10 text-sky-600 dark:text-sky-300"}`}>{status==="done"?<CheckCircle2 size={16}/>:<Droplets size={16}/>}</span>
           <div className="min-w-0 flex-1">
-            <p className="flex flex-wrap items-center gap-1 text-[11px] font-bold text-foreground"><span className="tabular-nums">{time(task.scheduled_at)}</span><span>· Água</span>{suggested>0&&!task.completed_at&&<span className="rounded bg-sky-500/10 px-1 text-[10px] text-sky-700 dark:text-sky-300">~{suggested} ml</span>}</p>
-            {backend?.reason==="restante_supera_capacidade"&&!task.completed_at&&<p className="text-[10px] text-amber-700 dark:text-amber-300">Meta restante exige fracionamento adicional; não tente beber tudo de uma vez.</p>}
-            <p className="truncate text-[10px] text-muted-foreground">{status==="done"?`Bebi · confirmado em ${time(task.completed_at!)}`:status==="skipped"?`Não bebi · resposta às ${time(answered!)}`:available?"Informe se bebeu ou não bebeu":`Programado · disponível a partir de ${time(task.scheduled_at)}`}</p>
+            <p className="flex flex-wrap items-center gap-1 text-[11px] font-bold text-foreground"><span className="tabular-nums">{time(task.scheduled_at)}</span><span>· Água</span>{suggested>0&&!task.completed_at&&<span className="rounded bg-sky-500/10 px-1 text-[11px] text-sky-700 dark:text-sky-300">~{suggested} ml</span>}</p>
+            {backend?.reason==="restante_supera_capacidade"&&!task.completed_at&&<p className="text-[11px] text-amber-700 dark:text-amber-300">Meta restante exige fracionamento adicional; não tente beber tudo de uma vez.</p>}
+            <p className="truncate text-[11px] text-muted-foreground">{status==="done"?`Bebi · confirmado em ${time(task.completed_at!)}`:status==="skipped"?`Não bebi · resposta às ${time(answered!)}`:available?"Informe se bebeu ou não bebeu":`Programado · disponível a partir de ${time(task.scheduled_at)}`}</p>
           </div>
           {status==="done"?<button type="button" onClick={()=>setDetailTask(task)} title="Consultar e corrigir volume" className="shrink-0 rounded-lg border border-emerald-500/35 bg-emerald-500/10 px-2 py-1.5 text-[11px] font-bold text-emerald-700 hover:bg-emerald-500/15 dark:text-emerald-300">Ver registro</button>
            :status==="skipped"?<button type="button" disabled={Boolean(action)} onClick={()=>setCorrectingTaskId(correcting?null:task.id)}
              className="shrink-0 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2 py-1.5 text-[11px] font-bold text-foreground disabled:opacity-50">{correcting?"Fechar":"Corrigir"}</button>
-           :available?<span className="shrink-0 rounded-md bg-sky-500/10 px-2 py-1 text-[10px] font-semibold text-sky-700 dark:text-sky-300">Responder</span>
-           :<span className="shrink-0 text-[10px] font-medium text-muted-foreground">Aguardando</span>}
+           :available?<span className="shrink-0 rounded-md bg-sky-500/10 px-2 py-1 text-[11px] font-semibold text-sky-700 dark:text-sky-300">Responder</span>
+           :<span className="shrink-0 text-[11px] font-medium text-muted-foreground">Aguardando</span>}
           </div>
           {((available&&!answered)||correcting)&&status!=="done"&&<div className="flex min-w-0 flex-wrap items-center gap-1.5 pl-0 sm:pl-9">
-             <label className="flex items-center gap-1 text-[10px] text-muted-foreground">
+             <label className="flex items-center gap-1 text-[11px] text-muted-foreground">
                <span>Volume</span><input aria-label={`Volume de água às ${time(task.scheduled_at)} em ml`}
                  type="number" min={10} max={1500} step={10}
                  value={defaultVolume} onChange={e=>setVolumeByTask(prev=>({...prev,[task.id]:Number(e.target.value)}))}
@@ -287,7 +287,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
                :<button type="button" disabled={Boolean(action)} onClick={()=>void markNo(task)}
                className="h-8 rounded-lg border border-border px-2.5 text-[11px] font-semibold text-foreground disabled:opacity-50">Não bebi</button>}
           </div>}
-          {!available&&!task.completed_at&&!answered&&<p className="text-[10px] text-muted-foreground sm:pl-9">Se bebeu antes deste horário, use “Registrar água” para salvar agora sem antecipar a programação.</p>}
+          {!available&&!task.completed_at&&!answered&&<p className="text-[11px] text-muted-foreground sm:pl-9">Se bebeu antes deste horário, use “Registrar água” para salvar agora sem antecipar a programação.</p>}
         </article>;
       })}
       {!pageTasks.length&&<p className="rounded-lg bg-muted/30 p-2 text-xs text-muted-foreground">Nenhum horário de hidratação programado. Você ainda pode usar <strong>Registrar água</strong>.</p>}
@@ -295,7 +295,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
     {pageCount>1&&<nav aria-label="Páginas dos horários de hidratação" className="mt-2 flex items-center justify-between gap-2 border-t border-border pt-2">
       <button type="button" disabled={activePage===0} onClick={()=>setPage(p=>Math.max(0,p-1))}
         className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1.5 text-[11px] font-semibold text-foreground disabled:opacity-35"><ChevronLeft size={13}/> Anterior</button>
-      <span className="text-[10px] tabular-nums text-muted-foreground">Página {activePage+1} de {pageCount}</span>
+      <span className="text-[11px] tabular-nums text-muted-foreground">Página {activePage+1} de {pageCount}</span>
       <button type="button" disabled={activePage>=pageCount-1} onClick={()=>setPage(p=>Math.min(pageCount-1,p+1))}
         className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1.5 text-[11px] font-semibold text-foreground disabled:opacity-35">Próxima <ChevronRight size={13}/></button>
     </nav>}
@@ -303,7 +303,7 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
   {loading&&<p role="status" className="text-[11px] text-muted-foreground">Atualizando registros de água…</p>}
   {error&&<p role="alert" className="rounded-lg bg-destructive/5 p-2 text-xs text-destructive">{error}</p>}
   {notice&&<p role="status" className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">{notice}</p>}
-  <details className="group rounded-lg border border-border/60 bg-muted/20 px-2 py-1.5 text-[10px] text-muted-foreground">
+  <details className="group rounded-lg border border-border/60 bg-muted/20 px-2 py-1.5 text-[11px] text-muted-foreground">
     <summary className="flex cursor-pointer items-center gap-1.5 font-semibold text-foreground"><Info size={13}/> Orientações e referências</summary>
     <p className="mt-2 leading-relaxed">A meta é avaliada às 23h (Acre) e considera somente registros de água feitos entre 00h e 23h. Consumos depois das 23h continuam no prontuário, mas não alteram o resultado já encerrado. A necessidade de água varia conforme peso, idade, atividade física, temperatura e orientações médicas. A meta é estimativa, não obrigação. Evite grandes volumes de uma só vez e respeite qualquer restrição prescrita.</p>
     <p className="mt-1">Referências: <a className="underline" href="https://www.nationalacademies.org/read/10925/chapter/6" target="_blank" rel="noreferrer">National Academies</a> · <a className="underline" href="https://pubmed.ncbi.nlm.nih.gov/17277604/" target="_blank" rel="noreferrer">ACSM</a>.</p>

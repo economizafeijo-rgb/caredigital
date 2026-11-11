@@ -64,7 +64,7 @@ export function ProtocolAdminManager({ownerId}:{ownerId:string}) {
 
   return <section className="mt-4 overflow-hidden rounded-2xl border border-border bg-card" aria-label="Gestão administrativa de protocolos">
     <button type="button" onClick={()=>setOpen(value=>!value)} aria-expanded={open} className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-muted/50">
-      <span className="flex items-center gap-2"><ClipboardList size={18} className="text-primary"/><span className="text-sm font-bold text-foreground">Protocolos administrativos</span><span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">Acesso restrito</span></span>
+      <span className="flex items-center gap-2"><ClipboardList size={18} className="text-primary"/><span className="text-sm font-bold text-foreground">Protocolos administrativos</span><span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">Acesso restrito</span></span>
       <ChevronDown size={18} className={open?"rotate-180 transition-transform":"transition-transform"}/>
     </button>
     {open&&<div className="space-y-3 border-t border-border p-4">

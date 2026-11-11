@@ -107,12 +107,12 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,da
  return <section aria-label="Cartelas interativas" data-layout-version="blister-professional-v3" className={`care-blister-panel care-blister-refined rounded-2xl border border-border bg-card text-foreground shadow-sm ${dashboardMode?"care-blister-dashboard":"care-blister-standalone"}`}>
   <header className="care-blister-header flex items-start justify-between gap-2">
     <div className="min-w-0">
-      <h3 className="flex items-center gap-1.5 text-[13px] font-extrabold leading-tight text-foreground"><Pill size={16} className="shrink-0 text-primary"/> Cartela interativa</h3>
-      <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">Toque na unidade para ver o registro.</p>
+      <h3 className="flex items-center gap-1.5 text-[13px] font-bold leading-tight text-foreground"><Pill size={16} className="shrink-0 text-primary"/> Cartela interativa</h3>
+      <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground">Toque na unidade para ver o registro.</p>
     </div>
     <div className="care-blister-total shrink-0 text-right" aria-label={`${verified} de 112 doses-equivalentes confirmadas`}>
-      <strong className="block text-lg font-extrabold leading-none tabular-nums text-foreground">{verified}<span className="text-sm text-muted-foreground">/112</span></strong>
-      <span className="text-[9px] leading-tight text-muted-foreground">confirmadas</span>
+      <strong className="block text-lg font-bold leading-none tabular-nums text-foreground">{verified}<span className="text-sm text-muted-foreground">/112</span></strong>
+      <span className="text-[11px] leading-tight text-muted-foreground">confirmadas</span>
     </div>
   </header>
   <div className="care-blister-progress h-[3px] shrink-0 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Progresso da medicação" aria-valuemin={0} aria-valuemax={112} aria-valuenow={verified}>
@@ -121,8 +121,8 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,da
   <nav className="care-blister-navigation grid grid-cols-[30px_minmax(0,1fr)_30px] items-center gap-1" aria-label="Navegar entre as cartelas">
     <button type="button" disabled={selected===0} onClick={()=>setSelected(x=>Math.max(0,x-1))} className="grid size-[30px] place-items-center rounded-lg border border-border text-foreground hover:bg-muted disabled:opacity-25" aria-label="Cartela anterior"><ArrowLeft size={15}/></button>
     <div className="min-w-0 text-center">
-      <p className="truncate text-xs font-extrabold leading-tight text-foreground">{first?`Cartela ${selected+1} de 7`:`Continuidade · semana ${Math.floor((selected-7)/7)+1} de 4`}</p>
-      <p className="truncate text-[10px] leading-tight text-muted-foreground">{dayLabel(day.iso)} · Dia {selected+1}/35 · {first?`4 manhã + 4 noite · ${dayCompleted}/${dayExpected} tomadas` :`Lansoprazol 30 mg · manhã + noite · ${dayCompleted}/${dayExpected} tomadas`}</p>
+      <p className="truncate text-xs font-bold leading-tight text-foreground">{first?`Cartela ${selected+1} de 7`:`Continuidade · semana ${Math.floor((selected-7)/7)+1} de 4`}</p>
+      <p className="truncate text-[11px] leading-tight text-muted-foreground">{dayLabel(day.iso)} · Dia {selected+1}/35 · {first?`4 manhã + 4 noite · ${dayCompleted}/${dayExpected} tomadas` :`Lansoprazol 30 mg · manhã + noite · ${dayCompleted}/${dayExpected} tomadas`}</p>
     </div>
     <button type="button" disabled={selected===34} onClick={()=>setSelected(x=>Math.min(34,x+1))} className="grid size-[30px] place-items-center rounded-lg border border-border text-foreground hover:bg-muted disabled:opacity-25" aria-label="Próxima cartela"><ArrowRight size={15}/></button>
   </nav>
@@ -183,25 +183,25 @@ export function CompactTreatmentBlister({patientId,ownerId,revision,onConfirm,da
       </div>}
      {first&&renderPeriod("night",evening)}
     </div>
-    <div className="care-blister-legend flex shrink-0 flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5 text-[9px] leading-tight text-muted-foreground" aria-label="Legenda da cartela">
+    <div className="care-blister-legend flex shrink-0 flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5 text-[11px] leading-tight text-muted-foreground" aria-label="Legenda da cartela">
       <span className="inline-flex items-center gap-1"><i className="size-1.5 rounded-full bg-emerald-400"/>Confirmado</span>
       <span className="inline-flex items-center gap-1"><i className="size-1.5 rounded-full bg-amber-400"/>Relatado</span>
       <span className="inline-flex items-center gap-1"><i className="size-1.5 rounded-full border border-muted-foreground"/>Pendente</span>
       {firstReport&&<span title="31/10: relato sem confirmação auditada; abra as unidades para detalhes" className="font-semibold text-amber-700 dark:text-amber-300">31/10: relato não confirmado</span>}
     </div>
-    {!first&&<p className="care-blister-continuation-hint truncate text-center text-[9px] text-muted-foreground">Uma cápsula pela manhã e outra à noite · verde indica confirmação.</p>}
-    {error&&<p role="alert" className="care-blister-error text-[10px] text-destructive">{error}</p>}
+    {!first&&<p className="care-blister-continuation-hint truncate text-center text-[11px] text-muted-foreground">Uma cápsula pela manhã e outra à noite · verde indica confirmação.</p>}
+    {error&&<p role="alert" className="care-blister-error text-[11px] text-destructive">{error}</p>}
   </>}
   <nav className="care-blister-day-selector flex shrink-0 flex-wrap items-center justify-center gap-1 border-t border-border/60 pt-1" aria-label="Selecionar dia ou semana">
     {Array.from({length:7},(_,i)=><button type="button" key={i} onClick={()=>setSelected(i)} aria-current={selected===i?"true":undefined} aria-label={`Cartela ${i+1}`} title={`Cartela ${i+1}`}
-      className={`care-blister-step grid size-[24px] shrink-0 place-items-center rounded-full border text-[10px] font-bold transition-colors ${selected===i?"border-primary bg-primary text-primary-foreground":days[i].tasks.length&&days[i].tasks.every(t=>t.completed_at)?"border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300":"border-border bg-muted/30 text-muted-foreground hover:border-primary/40"}`}>
+      className={`care-blister-step grid size-[24px] shrink-0 place-items-center rounded-full border text-[11px] font-bold transition-colors ${selected===i?"border-primary bg-primary text-primary-foreground":days[i].tasks.length&&days[i].tasks.every(t=>t.completed_at)?"border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300":"border-border bg-muted/30 text-muted-foreground hover:border-primary/40"}`}>
       {days[i].tasks.length&&days[i].tasks.every(t=>t.completed_at)?"✓":i+1}
     </button>)}
     <span className="mx-0.5 h-4 w-px bg-border" aria-hidden="true"/>
     {Array.from({length:4},(_,i)=><button type="button" key={i+7} onClick={()=>setSelected(7+i*7)} aria-current={selected>=7+i*7&&selected<14+i*7?"true":undefined} aria-label={`Semana de continuidade ${i+1}`}
-      className={`care-blister-step min-w-[27px] shrink-0 rounded-full border px-1.5 py-1 text-[9px] font-semibold leading-tight transition-colors ${selected>=7+i*7&&selected<14+i*7?"border-primary bg-primary text-primary-foreground":"border-border bg-muted/30 text-muted-foreground hover:border-primary/40"}`}>S{i+1}</button>)}
+      className={`care-blister-step min-w-[27px] shrink-0 rounded-full border px-1.5 py-1 text-[11px] font-semibold leading-tight transition-colors ${selected>=7+i*7&&selected<14+i*7?"border-primary bg-primary text-primary-foreground":"border-border bg-muted/30 text-muted-foreground hover:border-primary/40"}`}>S{i+1}</button>)}
   </nav>
-  {activePill && typeof document !== "undefined" && createPortal(<div className="fixed inset-0 z-[9000] flex items-center justify-center overflow-y-auto bg-slate-950/70 p-3 backdrop-blur-sm" onMouseDown={e=>{if(e.target===e.currentTarget)setActivePill(null)}}>
+  {activePill && typeof document !== "undefined" && createPortal(<div className="fixed inset-0 z-[9000] flex items-center justify-center overflow-y-auto bg-slate-950/60 p-3 backdrop-blur-sm" onMouseDown={e=>{if(e.target===e.currentTarget)setActivePill(null)}}>
     <section role="dialog" aria-modal="true" aria-label="Detalhes da medicação" className="care-premium-medication-dialog my-auto max-h-[calc(100dvh-1rem)] w-full max-w-sm overflow-y-auto rounded-[24px] border border-border bg-card p-4 text-card-foreground shadow-2xl sm:p-5">
       <div className="care-premium-medication-dialog-header flex items-center justify-between gap-3"><h4 className="flex items-center gap-2 text-base font-bold"><Info size={18} className="text-primary"/> Detalhes da unidade</h4><button aria-label="Fechar" onClick={()=>setActivePill(null)} className="rounded-lg border border-border p-1.5"><X size={17}/></button></div>
       <p className="mt-2 text-xs text-muted-foreground">{info?.first?`Cartela ${activePill.index+1}`:`Continuidade · semana ${Math.floor((activePill.index-7)/7)+1}`} {info?.first?`· unidade ${activePill.slot} · ${activePill.period==="morning"?"manhã":"noite"}`:`· dia ${dayLabel(days[7+Math.floor((activePill.index-7)/7)*7+activePill.slot-1]?.iso??day.iso)} · ${activePill.period==="morning"?"manhã":"noite"}`}</p>

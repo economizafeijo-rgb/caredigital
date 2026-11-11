@@ -62,16 +62,16 @@ export function ClientAgendaPage({tasks,resolved={},now=Date.now(),onView,onConf
   return <div className="care-page-agenda care-premium-agenda flex h-full min-h-0 min-w-0 flex-col gap-3">
     <div className="care-page-agenda-insights grid shrink-0 grid-cols-3 gap-2">
       <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/[.075] px-3 py-2">
-        <span className="block text-[10px] font-semibold text-muted-foreground">Confirmados</span>
-        <strong className="mt-1 block text-lg font-extrabold tabular-nums text-emerald-700 dark:text-emerald-300">{confirmed}</strong>
+        <span className="block text-[11px] font-semibold text-muted-foreground">Confirmados</span>
+        <strong className="mt-1 block text-lg font-bold tabular-nums text-emerald-700 dark:text-emerald-300">{confirmed}</strong>
       </div>
       <div className="rounded-xl border border-sky-500/25 bg-sky-500/[.065] px-3 py-2">
-        <span className="block text-[10px] font-semibold text-muted-foreground">No horário</span>
-        <strong className="mt-1 block text-lg font-extrabold tabular-nums text-sky-700 dark:text-sky-300">{available}</strong>
+        <span className="block text-[11px] font-semibold text-muted-foreground">No horário</span>
+        <strong className="mt-1 block text-lg font-bold tabular-nums text-sky-700 dark:text-sky-300">{available}</strong>
       </div>
       <div className="rounded-xl border border-amber-500/25 bg-amber-500/[.065] px-3 py-2">
-        <span className="block text-[10px] font-semibold text-muted-foreground">Sem confirmação</span>
-        <strong className="mt-1 block text-lg font-extrabold tabular-nums text-amber-700 dark:text-amber-300">{late}</strong>
+        <span className="block text-[11px] font-semibold text-muted-foreground">Sem confirmação</span>
+        <strong className="mt-1 block text-lg font-bold tabular-nums text-amber-700 dark:text-amber-300">{late}</strong>
       </div>
     </div>
 
@@ -84,7 +84,7 @@ export function ClientAgendaPage({tasks,resolved={},now=Date.now(),onView,onConf
           return <button key={field.id} type="button" aria-pressed={selected} onClick={()=>changeCategory(field.id)}
             className={"inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl border px-3 text-[11px] font-bold transition-colors "+(selected?
               "border-primary bg-primary text-primary-foreground":"border-border bg-muted/35 text-foreground hover:bg-muted/70")}>
-            <Icon size={14}/>{field.label}<span className={"rounded-full px-1.5 py-0.5 text-[9px] tabular-nums "+(selected?"bg-white/20":"bg-background/70")}>{count}</span>
+            <Icon size={14}/>{field.label}<span className={"rounded-full px-1.5 py-0.5 text-[11px] tabular-nums "+(selected?"bg-muted":"bg-background/70")}>{count}</span>
           </button>;
         })}
       </div>
@@ -129,7 +129,7 @@ export function ClientAgendaPage({tasks,resolved={},now=Date.now(),onView,onConf
                 <Icon size={18}/>
               </span>
               <span className="min-w-0 flex-1">
-                <strong className="block text-xs font-extrabold leading-snug text-foreground">{task.title}</strong>
+                <strong className="block text-xs font-bold leading-snug text-foreground">{task.title}</strong>
                 <span className="mt-0.5 block text-[11px] font-semibold tabular-nums text-foreground">
                   <Clock3 size={12} className="mr-1 inline"/>{reminderClock(task.scheduled_at)}
                 </span>
@@ -138,7 +138,7 @@ export function ClientAgendaPage({tasks,resolved={},now=Date.now(),onView,onConf
                 <ChevronRight size={15} className="shrink-0 text-muted-foreground"/>}
             </button>
             <div className="mt-2 flex min-h-7 items-center justify-between gap-2 border-t border-current/10 pt-2">
-              <span className={"min-w-0 truncate text-[10px] font-semibold "+(done?"text-emerald-700 dark:text-emerald-300":
+              <span className={"min-w-0 truncate text-[11px] font-semibold "+(done?"text-emerald-700 dark:text-emerald-300":
                 answered?"text-emerald-700 dark:text-emerald-300":
                 lateState?"text-amber-700 dark:text-amber-300":"text-muted-foreground")}>
                 {done?"Confirmado às "+reminderClock(task.completed_at!):
@@ -148,7 +148,7 @@ export function ClientAgendaPage({tasks,resolved={},now=Date.now(),onView,onConf
                   lateState?"Sem confirmação após 10 min":state==="due"?"Aguardando confirmação":"Programado"}
               </span>
               {!done&&canAct&&<button type="button" onClick={()=>onConfirm(task)}
-                className="shrink-0 rounded-lg bg-primary px-2.5 py-1.5 text-[10px] font-extrabold text-primary-foreground">
+                className="shrink-0 rounded-lg bg-primary px-2.5 py-1.5 text-[11px] font-bold text-primary-foreground">
                 Registrar
               </button>}
             </div>
@@ -164,14 +164,14 @@ export function ClientAgendaPage({tasks,resolved={},now=Date.now(),onView,onConf
       <button type="button" disabled={current===0} onClick={()=>setPage(v=>Math.max(0,v-1))}
         className="inline-flex h-8 items-center gap-1 rounded-lg border border-border px-2 text-[11px] font-bold text-foreground disabled:opacity-35">
         <ChevronLeft size={14}/>Anterior</button>
-      <span className="text-[10px] font-semibold tabular-nums text-muted-foreground">
+      <span className="text-[11px] font-semibold tabular-nums text-muted-foreground">
         {filtered.length} registros · Página {current+1} de {pages}
       </span>
       <button type="button" disabled={current>=pages-1} onClick={()=>setPage(v=>Math.min(pages-1,v+1))}
         className="inline-flex h-8 items-center gap-1 rounded-lg border border-border px-2 text-[11px] font-bold text-foreground disabled:opacity-35">
         Próxima<ChevronRight size={14}/></button>
     </nav>
-    <p className="shrink-0 text-[10px] leading-tight text-muted-foreground">
+    <p className="shrink-0 text-[11px] leading-tight text-muted-foreground">
       Não confirmado significa ausência de registro, não prova que o cuidado deixou de ocorrer. Medicação: não dobre doses.
     </p>
   </div>;

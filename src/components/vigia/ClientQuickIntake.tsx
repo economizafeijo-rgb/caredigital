@@ -146,7 +146,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
 
     <button type="button" onClick={openForm} disabled={!patientId}
       className={variant === "home"
-        ? "inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-sky-300/40 bg-sky-300/15 px-2.5 text-[11px] font-bold text-slate-900 transition hover:bg-sky-300/25 dark:text-sky-100 disabled:opacity-50"
+        ? "inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-sky-300/40 bg-sky-300/15 px-2.5 text-[11px] font-bold text-primary-foreground transition hover:bg-sky-300/25 dark:text-sky-100 disabled:opacity-50"
         : mode === "water"
           ? "inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-sky-500/35 bg-sky-500/10 px-3 text-xs font-bold text-foreground transition hover:bg-sky-500/20 disabled:opacity-50"
           : "inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground transition hover:opacity-90 disabled:opacity-50"}>
@@ -160,7 +160,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
       </div>, document.body
     )}
     {open && typeof document !== "undefined" && createPortal(
-      <div className="care-intake-modal-overlay fixed inset-0 z-[150] flex items-center justify-center overflow-hidden bg-slate-950/75 p-3 backdrop-blur-sm"
+      <div className="care-intake-modal-overlay fixed inset-0 z-[150] flex items-center justify-center overflow-hidden bg-slate-950/60 p-3 backdrop-blur-sm"
         onMouseDown={event => { if (event.target === event.currentTarget) closeForm(); }}>
         <section role="dialog" aria-modal="true" aria-labelledby="quick-intake-title"
           className="care-premium-intake-dialog care-intake-responsive-v2 care-intake-oneview flex h-[min(94dvh,710px)] max-h-[94dvh] w-full max-w-[720px] min-w-0 flex-col overflow-hidden rounded-[24px] border border-border bg-card p-4 text-card-foreground shadow-2xl sm:p-5">
@@ -170,24 +170,24 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
                 <CareIntakeIcon kind={kind} size={20}/>
               </span>
               <div>
-                <h2 id="quick-intake-title" className="text-base font-extrabold">{mode==="water"?"Registrar água":isFood?"Registrar alimento ou refeição":"Registrar líquido"}</h2>
+                <h2 id="quick-intake-title" className="text-base font-bold">{mode==="water"?"Registrar água":isFood?"Registrar alimento ou refeição":"Registrar líquido"}</h2>
                 <p className="text-[11px] text-muted-foreground">Informe o horário do consumo · fuso horário do Acre</p>
               </div>
             </div>
             <button type="button" aria-label="Fechar" disabled={saving} onClick={closeForm}
               className="grid size-8 place-items-center rounded-lg border border-border"><X size={18}/></button>
           </div>
-          <button type="button" onClick={()=>setReportOpen(true)} className="mt-3 inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-teal-400/40 bg-teal-400/10 px-3 py-2.5 text-xs font-extrabold text-teal-100 hover:bg-teal-400/20"><BarChart3 size={17}/> Relatório diário, mensal e anual</button>
+          <button type="button" onClick={()=>setReportOpen(true)} className="mt-3 inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-primary/30 bg-accent px-3 py-2.5 text-xs font-bold text-primary hover:bg-accent"><BarChart3 size={17}/> Relatório diário, mensal e anual</button>
           <form className="care-intake-oneview-form mt-2 grid min-h-0 flex-1 content-start gap-2 overflow-y-auto overscroll-contain pr-1" onSubmit={event => void save(event)}>
             {mode==="all"&&<div role="group" aria-label="Selecionar tipo de consumo" className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-muted/35 p-1">
               <button type="button" aria-pressed={group==="food"}
                 onClick={()=>{setGroup("food");setKind("almoco");setDescription("");setPortion("");setError("");}}
-                className={"flex min-h-9 items-center justify-center gap-1.5 rounded-lg px-2 text-[11px] font-extrabold "+(group==="food"?"bg-primary text-primary-foreground":"text-muted-foreground hover:bg-card")}>
+                className={"flex min-h-9 items-center justify-center gap-1.5 rounded-lg px-2 text-[11px] font-bold "+(group==="food"?"bg-primary text-primary-foreground":"text-muted-foreground hover:bg-card")}>
                 <UtensilsCrossed size={15}/> Alimentos e refeições
               </button>
               <button type="button" aria-pressed={group==="beverage"}
                 onClick={()=>{setGroup("beverage");setKind("agua");setDescription("");setPortion("");setError("");}}
-                className={"flex min-h-9 items-center justify-center gap-1.5 rounded-lg px-2 text-[11px] font-extrabold "+(group==="beverage"?"bg-primary text-primary-foreground":"text-muted-foreground hover:bg-card")}>
+                className={"flex min-h-9 items-center justify-center gap-1.5 rounded-lg px-2 text-[11px] font-bold "+(group==="beverage"?"bg-primary text-primary-foreground":"text-muted-foreground hover:bg-card")}>
                 <Droplets size={15}/> Líquidos e shakes
               </button>
             </div>}
@@ -235,7 +235,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
               </label>
               <p className="text-[11px] text-foreground/80">O campo já vem preenchido com o horário atual do Acre. Se você não alterar, o sistema usa o relógio oficial do servidor; se editar, salva a data e a hora escolhidas. A data do lançamento também fica registrada no prontuário.</p>
             </div>
-            <p className="rounded-lg border border-cyan-400/25 bg-slate-900/75 px-3 py-2 text-[11px] font-medium leading-relaxed text-slate-100 dark:bg-slate-900/85 dark:text-slate-100">
+            <p className="rounded-lg border border-primary/30 bg-card px-3 py-2 text-[11px] font-medium leading-relaxed text-foreground dark:bg-card dark:text-foreground">
               O consumo será salvo com o horário informado (ou o horário atual) e a data do lançamento.
               {isWater
                 ? "Água e outras bebidas entram no total diário de líquidos. Este registro não confirma horários programados; não registre o mesmo copo novamente na agenda."
@@ -244,9 +244,9 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
             {error && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive">{error}</p>}
             <div className="grid grid-cols-2 gap-2">
               <button type="button" disabled={saving} onClick={closeForm}
-                className="rounded-lg border border-cyan-400/35 bg-slate-950/75 px-3 py-2.5 text-xs font-semibold text-white disabled:opacity-50">Cancelar</button>
+                className="rounded-lg border border-primary/30 bg-slate-950/75 px-3 py-2.5 text-xs font-semibold text-foreground disabled:opacity-50">Cancelar</button>
               <button type="submit" disabled={saving}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-cyan-400 px-3 py-2.5 text-xs font-extrabold text-slate-950 transition hover:bg-cyan-300 disabled:opacity-50">
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2.5 text-xs font-bold text-primary-foreground transition hover:bg-primary disabled:opacity-50">
                 <Save size={15}/>{saving ? "Salvando..." : "Registrar agora"}
               </button>
             </div>

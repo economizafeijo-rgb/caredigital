@@ -65,7 +65,7 @@ export function DigestiveProtocolLibrary() {
             <button key={protocol.id} type="button" onClick={() => setSelectedId(protocol.id)} aria-pressed={selected?.id === protocol.id}
               className={`w-full rounded-xl p-3 text-left transition-colors ${selected?.id === protocol.id ? "bg-primary/10 ring-1 ring-primary/30" : "bg-foreground/5 hover:bg-foreground/10"}`}>
               <div className="flex items-center justify-between gap-2">
-                <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{protocol.category}</span>
+                <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{protocol.category}</span>
                 
               </div>
               <div className="mt-1 text-sm font-semibold">{protocol.name}</div>

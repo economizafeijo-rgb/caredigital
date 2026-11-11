@@ -36,9 +36,9 @@ export function fmtClock(d: Date | null) {
 
 type Variant = "dark" | "primary" | "ghost" | "glass" | "danger";
 const variants: Record<Variant, string> = {
-  dark: "bg-foreground text-primary-foreground hover:bg-foreground/90",
-  primary: "bg-primary text-primary-foreground hover:bg-primary/90",
-  ghost: "bg-foreground/5 text-foreground hover:bg-foreground/10",
+  dark: "bg-primary text-primary-foreground shadow-sm hover:brightness-110",
+  primary: "bg-primary text-primary-foreground shadow-sm hover:brightness-110",
+  ghost: "border border-border bg-surface text-foreground hover:border-primary/40 hover:bg-accent",
   glass: "bg-primary-foreground/10 text-primary-foreground ring-1 ring-primary-foreground/15 hover:bg-primary-foreground/15",
   danger: "bg-destructive/10 text-destructive hover:bg-destructive/15",
 };
@@ -94,22 +94,22 @@ export const kindTone = (k: string): ToneKey =>
 
 export function PageHeader({ eyebrow, title, children }: { eyebrow: string; title: string; children?: ReactNode }) {
   return (
-    <div className="mb-5 flex animate-rise flex-col gap-3 md:mb-7 md:flex-row md:items-end md:justify-between">
+    <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
       <div>
-        <div className="label-mono text-muted-foreground">{eyebrow}</div>
-        <h1 className="mt-1 font-display text-3xl leading-[0.98] tracking-tight md:mt-2 md:text-4xl">{title}</h1>
+        <div className="label-mono text-primary">{eyebrow}</div>
+        <h1 className="mt-0.5 text-xl font-bold tracking-tight sm:text-2xl">{title}</h1>
       </div>
       {children && <div className="flex flex-wrap gap-2">{children}</div>}
     </div>
   );
 }
 
-export function Panel({ title, action, children, className, delay = 0 }: { title?: string; action?: ReactNode; children: ReactNode; className?: string; delay?: number }) {
+export function Panel({ title, action, children, className, delay: _delay = 0 }: { title?: string; action?: ReactNode; children: ReactNode; className?: string; delay?: number }) {
   return (
-    <div className={cn("panel animate-rise", className)} style={{ animationDelay: `${delay}s` }}>
+    <div className={cn("panel", className)}>
       {(title || action) && (
         <div className="mb-4 flex items-center justify-between gap-3">
-          {title && <h2 className="font-display text-xl tracking-tight md:text-2xl">{title}</h2>}
+          {title && <h2 className="text-base font-bold tracking-tight">{title}</h2>}
           {action}
         </div>
       )}
@@ -157,10 +157,10 @@ export function SelectField({
 export function Modal({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/40 p-4 backdrop-blur-sm" onClick={onClose}>
-      <div className="panel w-full max-w-lg animate-rise" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/60 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div role="dialog" aria-modal="true" aria-label={title} className="panel max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="mb-5 flex items-center justify-between">
-          <h3 className="font-display text-3xl tracking-tight">{title}</h3>
+          <h3 className="text-lg font-bold tracking-tight">{title}</h3>
           <button onClick={onClose} className="label-mono text-muted-foreground hover:text-foreground">Fechar</button>
         </div>
         {children}

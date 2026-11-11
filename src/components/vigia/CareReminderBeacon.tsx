@@ -231,7 +231,7 @@ export function CareReminderBeacon({tasks,patientId,ownerId,refreshKey=0,onOpen,
   const percent=due?Math.max(0,primary!.remainingMs/CARE_REMINDER_WINDOW_MS):late?1:0;
   if(!patientId||!ownerId||answersStatus==="loading")return null;
   if(answersStatus==="error")return <p role="status"
-    className="rounded-xl border border-border/60 bg-muted/25 px-3 py-2 text-[10px] text-muted-foreground">
+    className="rounded-xl border border-border/60 bg-muted/25 px-3 py-2 text-[11px] text-muted-foreground">
     Não foi possível verificar todas as respostas de hidratação. Os alertas foram ocultados até a consulta ser atualizada.
   </p>;
   // Do not show a banner for a completed or explicitly answered task, nor
@@ -252,43 +252,43 @@ export function CareReminderBeacon({tasks,patientId,ownerId,refreshKey=0,onOpen,
       progress={percent} active={due}/>
     <div className="min-w-0 flex-1">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-        <strong className="care-reminder-heading text-xs font-extrabold sm:text-sm">{title}</strong>
-        {due&&<span className="care-reminder-badge inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-extrabold">
+        <strong className="care-reminder-heading text-xs font-bold sm:text-sm">{title}</strong>
+        {due&&<span className="care-reminder-badge inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold">
           <Clock3 size={12}/> {reminderMmSs(primary!.remainingMs)} restantes
         </span>}
-        {late&&<span className="care-reminder-badge inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-extrabold">
+        {late&&<span className="care-reminder-badge inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold">
           <Bell size={11}/> Pendente
         </span>}
       </div>
       {task&&<p className="care-reminder-task mt-0.5 truncate text-[12px] font-semibold">
         {reminderCategoryLabel(task.category)} · {task.title} · {reminderClock(task.scheduled_at)}
       </p>}
-      <p className="care-reminder-subtitle mt-0.5 max-w-[74ch] text-[10px] leading-snug sm:text-[11px]">{compact?"Acesse os detalhes para registrar ou revisar.":description}</p>
+      <p className="care-reminder-subtitle mt-0.5 max-w-[74ch] text-[11px] leading-snug sm:text-[11px]">{compact?"Acesse os detalhes para registrar ou revisar.":description}</p>
       {due&&<div className="care-reminder-track mt-1.5 h-1 max-w-[260px] overflow-hidden rounded-full">
         <div className="care-reminder-track-fill h-full rounded-full" style={{width:(percent*100)+"%"}}/>
       </div>}
-      {Boolean(dueCount>1||unconfirmedCount>0)&&<p className="care-reminder-queue mt-1 text-[10px] font-semibold">
+      {Boolean(dueCount>1||unconfirmedCount>0)&&<p className="care-reminder-queue mt-1 text-[11px] font-semibold">
         {dueCount>1?`${dueCount} lembretes no horário`:""}
         {dueCount>1&&unconfirmedCount>0?" · ":""}
         {unconfirmedCount>0?`${unconfirmedCount} sem confirmação no prazo`:""}
       </p>}
-      {soundNotice&&<p role="status" className="care-reminder-subtitle mt-0.5 text-[10px]">{soundNotice}</p>}
+      {soundNotice&&<p role="status" className="care-reminder-subtitle mt-0.5 text-[11px]">{soundNotice}</p>}
     </div>
     <div className="care-reminder-actions flex shrink-0 flex-col items-end justify-center gap-1.5">
       {due&&task&&!showClockAlert&&<button type="button"
         onClick={()=>{
           setDismissedClockIds(previous=>{const updated=new Set(previous);updated.delete(task.id);return updated;});
           setSnoozedClock(null);
-        }} className="care-reminder-open inline-flex min-h-8 items-center gap-1 rounded-full px-2.5 text-[10px] font-extrabold sm:text-[11px]">
+        }} className="care-reminder-open inline-flex min-h-8 items-center gap-1 rounded-full px-2.5 text-[11px] font-bold sm:text-[11px]">
         <Clock3 size={13}/> Ver alerta
       </button>}
       {task&&<button type="button" onClick={()=>onOpen(task)}
-        className="care-reminder-open inline-flex min-h-8 items-center gap-1 rounded-full px-2.5 text-[10px] font-extrabold sm:text-[11px]">
+        className="care-reminder-open inline-flex min-h-8 items-center gap-1 rounded-full px-2.5 text-[11px] font-bold sm:text-[11px]">
         Resolver pendência <ChevronRight size={14}/>
       </button>}
       <button type="button" onClick={()=>void toggleAudio()} aria-pressed={soundEnabled}
         title={soundEnabled?"Desativar avisos sonoros":"Ativar avisos sonoros com teste"}
-        className="care-reminder-sound inline-flex min-h-8 items-center gap-1 rounded-full border px-2.5 text-[10px] font-bold">
+        className="care-reminder-sound inline-flex min-h-8 items-center gap-1 rounded-full border px-2.5 text-[11px] font-bold">
         {soundEnabled?<BellOff size={13}/>:<Volume2 size={14}/>}
         {soundEnabled?"Silenciar":"Ativar som"}
       </button>

@@ -231,16 +231,16 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
       <div className="flex min-w-0 items-center gap-2">
         <History size={21} className="shrink-0 text-primary" aria-hidden="true"/>
         <div className="min-w-0">
-          <h2 className="truncate text-base font-extrabold tracking-tight sm:text-lg">Histórico e prontuário</h2>
-          <p className="truncate text-[10px] text-muted-foreground sm:text-xs">Consumos, refeições e cuidados · fuso do Acre</p>
+          <h2 className="truncate text-base font-bold tracking-tight sm:text-lg">Histórico e prontuário</h2>
+          <p className="truncate text-[11px] text-muted-foreground sm:text-xs">Consumos, refeições e cuidados · fuso do Acre</p>
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-1.5">
         <button type="button" aria-expanded={filtersOpen} onClick={()=>setFiltersOpen(value=>!value)}
-          className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-muted/40 px-2.5 text-[10px] font-semibold text-foreground hover:bg-muted">
+          className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-muted/40 px-2.5 text-[11px] font-semibold text-foreground hover:bg-muted">
           <SlidersHorizontal size={14}/>{filtersOpen?"Recolher filtros":"Exibir filtros"}
         </button>
-        <span className="rounded-full border border-border bg-muted/60 px-2.5 py-1 text-[10px] font-semibold tabular-nums">{dayItems.length} registros</span>
+        <span className="rounded-full border border-border bg-muted/60 px-2.5 py-1 text-[11px] font-semibold tabular-nums">{dayItems.length} registros</span>
       </div>
     </header>
 
@@ -250,11 +250,11 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
         const count=dayItems.filter(item=>group.key==="todos"||item.group===group.key).length;
         const active=filters.group===group.key;
         return <button key={group.key} type="button" aria-pressed={active} onClick={()=>setGroup(group.key)}
-          className={"flex min-w-0 items-center justify-center gap-1.5 rounded-xl border px-1.5 py-2.5 text-[10px] font-bold transition-colors sm:text-xs "+
+          className={"flex min-w-0 items-center justify-center gap-1.5 rounded-xl border px-1.5 py-2.5 text-[11px] font-bold transition-colors sm:text-xs "+
             (active?"border-primary/70 bg-primary text-primary-foreground shadow-sm":"border-border bg-muted/30 text-foreground hover:border-primary/40 hover:bg-muted/70")}>
           <Icon size={15} className="shrink-0" aria-hidden="true"/>
           <span className="truncate">{group.label}</span>
-          <span className={"hidden rounded-full px-1.5 text-[9px] tabular-nums sm:inline "+(active?"bg-white/20":"bg-background/70")}>{count}</span>
+          <span className={"hidden rounded-full px-1.5 text-[11px] tabular-nums sm:inline "+(active?"bg-muted":"bg-background/70")}>{count}</span>
         </button>;
       })}
     </div>
@@ -268,7 +268,7 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
           className="h-10 w-full min-w-0 rounded-xl border border-border bg-muted/30 pl-9 pr-3 text-xs text-foreground outline-none transition focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary"/>
       </label>
       <div className="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-4">
-        <label className="flex min-w-0 flex-col gap-1 text-[10px] font-semibold text-muted-foreground">
+        <label className="flex min-w-0 flex-col gap-1 text-[11px] font-semibold text-muted-foreground">
           <span>Período</span>
           <select className="h-9 w-full min-w-0 rounded-lg border border-border bg-card px-2 text-xs font-semibold text-foreground"
             value={filters.period} onChange={event=>setFilter({period:event.target.value as HistoryFilter["period"],subtype:"todos",status:"todos"})}>
@@ -277,7 +277,7 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
             <option value="30d">Últimos 30 dias</option>
           </select>
         </label>
-        <label className="flex min-w-0 flex-col gap-1 text-[10px] font-semibold text-muted-foreground">
+        <label className="flex min-w-0 flex-col gap-1 text-[11px] font-semibold text-muted-foreground">
           <span>Tipo</span>
           <select className="h-9 w-full min-w-0 rounded-lg border border-border bg-card px-2 text-xs font-semibold text-foreground disabled:opacity-50"
             disabled={filters.group==="todos"}
@@ -286,7 +286,7 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
             {availableTypes.map(type=><option key={type.value} value={type.value}>{type.label}</option>)}
           </select>
         </label>
-        <label className="flex min-w-0 flex-col gap-1 text-[10px] font-semibold text-muted-foreground">
+        <label className="flex min-w-0 flex-col gap-1 text-[11px] font-semibold text-muted-foreground">
           <span>Situação</span>
           <select className="h-9 w-full min-w-0 rounded-lg border border-border bg-card px-2 text-xs font-semibold text-foreground"
             value={filters.status} onChange={event=>setFilter({status:event.target.value as HistoryFilter["status"]})}>
@@ -312,9 +312,9 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
         className={"patient-history-list flex min-h-0 min-w-0 flex-col rounded-2xl border border-border bg-muted/[.18] p-2.5 sm:p-3 "+(showMobileDetail?"hidden lg:flex":"flex")}>
         <div className="flex shrink-0 flex-wrap items-center justify-between gap-1 border-b border-border/70 pb-2">
           <h3 className="flex min-w-0 items-center gap-1.5 text-sm font-bold"><History size={16} className="text-primary"/> Registros <span className="text-xs font-semibold text-muted-foreground">({filtered.length})</span></h3>
-          <span className="text-[10px] text-muted-foreground">Selecione para consultar</span>
+          <span className="text-[11px] text-muted-foreground">Selecione para consultar</span>
         </div>
-        {partial&&<details className="mt-2 shrink-0 rounded-lg border border-amber-500/25 bg-amber-500/[.055] px-2.5 py-1.5 text-[10px] text-foreground">
+        {partial&&<details className="mt-2 shrink-0 rounded-lg border border-amber-500/25 bg-amber-500/[.055] px-2.5 py-1.5 text-[11px] text-foreground">
           <summary className="flex cursor-pointer items-center gap-1.5 font-semibold"><Info size={13} className="text-amber-700 dark:text-amber-300"/> Fontes parciais · verificar</summary>
           <p className="mt-1 text-muted-foreground">Alguns dados podem estar ausentes: {missingSources.join(", ")}.</p>
           <button type="button" onClick={()=>setReload(value=>value+1)} className="mt-1.5 rounded-md border border-border bg-card px-2 py-1 font-semibold">Atualizar consulta</button>
@@ -336,7 +336,7 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
                   "border-border bg-card/80 hover:border-primary/40 hover:bg-primary/[.04]")}>
                 <span className={"grid size-10 shrink-0 place-items-center rounded-xl "+color}><Icon size={20}/></span>
                 <span className="min-w-0 flex-1">
-                  <strong className="block truncate text-[13px] font-extrabold text-foreground">{entry.title}</strong>
+                  <strong className="block truncate text-[13px] font-bold text-foreground">{entry.title}</strong>
                   <span className="mt-1 block truncate text-[11px] text-muted-foreground">
                     {entry.group==="liquidos"?"Líquidos":entry.group==="refeicoes"?"Refeições":entry.group==="ajustes"?"Ajustes":"Cuidados"} · {statusLabel[entry.status]} às {acreHour(entry.occurredAt)}
                   </span>
@@ -354,36 +354,34 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
         <nav aria-label="Páginas do histórico" className="mt-2 flex shrink-0 items-center justify-between gap-1.5 border-t border-border/70 pt-2">
           <button type="button" disabled={currentPage===0} onClick={()=>changePage(currentPage-1)}
             className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-border bg-card px-2 text-[11px] font-semibold disabled:opacity-35"><ChevronLeft size={14}/>Anterior</button>
-          <span className="shrink-0 text-[10px] font-medium tabular-nums text-muted-foreground">Página {currentPage+1} de {pageCount}</span>
+          <span className="shrink-0 text-[11px] font-medium tabular-nums text-muted-foreground">Página {currentPage+1} de {pageCount}</span>
           <button type="button" disabled={currentPage>=pageCount-1} onClick={()=>changePage(currentPage+1)}
             className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-border bg-card px-2 text-[11px] font-semibold disabled:opacity-35">Próxima<ChevronRight size={14}/></button>
         </nav>
       </section>
 
       <section aria-label="Detalhes do registro selecionado" className={"patient-history-detail relative isolate flex min-h-0 min-w-0 flex-col overflow-hidden rounded-[24px] border border-border/70 bg-card shadow-xl "+(showMobileDetail?"flex":"hidden lg:flex")}>
-        <div className="relative isolate min-h-[185px] shrink-0 overflow-hidden p-4 sm:min-h-[205px] sm:p-5">
-          <div aria-hidden="true" className="absolute inset-0 -z-20 bg-cover bg-center" style={{backgroundImage:`url("${selected?.group==="refeicoes"?"https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1100&q=80":selected?.group==="liquidos"?"https://images.unsplash.com/photo-1433086966358-54859d0ed716?auto=format&fit=crop&w=1100&q=80":selected?.group==="cuidados"?"https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1100&q=80":"https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=1100&q=80"}")`}}/>
-          <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-950/95 via-slate-950/80 to-slate-950/40"/>
+        <div className="shrink-0 border-b border-border p-4 sm:p-5">
           <div className="flex items-center justify-between gap-3">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[.13em] text-white backdrop-blur-md">
+            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1.5 text-[11px] font-bold uppercase tracking-[.13em] text-foreground">
               <History size={14}/> Prontuário · Detalhes
             </span>
             <button type="button" onClick={()=>setShowMobileDetail(false)}
-              className="grid size-9 shrink-0 place-items-center rounded-full border border-white/30 bg-slate-950/30 text-white backdrop-blur-md lg:hidden" aria-label="Voltar aos registros"><ChevronLeft size={19}/></button>
+              className="grid size-9 shrink-0 place-items-center rounded-full border border-border bg-muted text-foreground lg:hidden" aria-label="Voltar aos registros"><ChevronLeft size={19}/></button>
           </div>
           {selected?<div className="mt-6 flex min-w-0 items-center gap-3">
-            <span className="grid size-12 shrink-0 place-items-center rounded-2xl border border-white/25 bg-white/15 text-white backdrop-blur-md"><SelectedIcon size={24}/></span>
+            <span className="grid size-12 shrink-0 place-items-center rounded-2xl border border-border bg-muted text-foreground"><SelectedIcon size={24}/></span>
             <div className="min-w-0">
-              <h4 className="break-words text-xl font-extrabold leading-tight tracking-tight text-white sm:text-2xl">{selected.title}</h4>
-              <p className="mt-1 text-xs font-medium text-white/80">{acreStamp(selected.occurredAt)} · Fuso do Acre</p>
+              <h4 className="break-words text-xl font-bold leading-tight tracking-tight text-foreground sm:text-2xl">{selected.title}</h4>
+              <p className="mt-1 text-xs font-medium text-muted-foreground">{acreStamp(selected.occurredAt)} · Fuso do Acre</p>
             </div>
-          </div>:<h3 className="mt-6 text-xl font-extrabold text-white">Selecione um registro</h3>}
+          </div>:<h3 className="mt-6 text-xl font-bold text-foreground">Selecione um registro</h3>}
         </div>
         <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-3 sm:px-5 sm:pb-5">
         {selected?<>
           <div className="mb-3 flex shrink-0 flex-wrap items-center justify-between gap-2 rounded-xl border border-border/70 bg-muted/35 px-3 py-2">
             <span className="text-[11px] font-semibold text-muted-foreground">Registro do histórico</span>
-            <span className={"inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-extrabold "+(selected.status==="confirmado"||selected.status==="registrado"||selected.status==="meta_atingida"?"bg-emerald-500/15 text-emerald-700 dark:text-emerald-300":"bg-primary/10 text-primary")}>
+            <span className={"inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold "+(selected.status==="confirmado"||selected.status==="registrado"||selected.status==="meta_atingida"?"bg-emerald-500/15 text-emerald-700 dark:text-emerald-300":"bg-primary/10 text-primary")}>
               {(selected.status==="confirmado"||selected.status==="registrado")&&<CheckCircle2 size={14}/>}
               {statusLabel[selected.status]}
             </span>
@@ -391,11 +389,11 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
           <div className="patient-history-detail-scroll min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain pr-1">
             <dl className="grid grid-cols-2 gap-2">
               <div className="min-w-0 rounded-2xl border border-border/70 bg-muted/30 p-3 shadow-sm">
-                <dt className="text-[10px] font-semibold text-muted-foreground">Categoria</dt>
-                <dd className="mt-1.5 break-words text-xs font-extrabold text-foreground">{selected.group==="liquidos"?"Líquidos":selected.group==="refeicoes"?"Refeições":selected.group==="ajustes"?"Ajustes":"Cuidados"}</dd>
+                <dt className="text-[11px] font-semibold text-muted-foreground">Categoria</dt>
+                <dd className="mt-1.5 break-words text-xs font-bold text-foreground">{selected.group==="liquidos"?"Líquidos":selected.group==="refeicoes"?"Refeições":selected.group==="ajustes"?"Ajustes":"Cuidados"}</dd>
               </div>
               <div className="min-w-0 rounded-2xl border border-border/70 bg-muted/30 p-3 shadow-sm">
-                <dt className="text-[10px] font-semibold text-muted-foreground">Situação</dt>
+                <dt className="text-[11px] font-semibold text-muted-foreground">Situação</dt>
                 <dd className={"mt-1.5 inline-flex max-w-full items-center gap-1 break-words rounded-full px-2 py-1 text-[11px] font-bold "+
                   (selected.status==="confirmado"||selected.status==="meta_atingida"?"bg-emerald-500/15 text-emerald-700 dark:text-emerald-300":
                     selected.status==="nao_confirmado"||selected.status==="nao_bebi"||selected.status==="meta_nao_atingida"?"bg-amber-500/15 text-amber-700 dark:text-amber-300":"bg-primary/10 text-primary")}>
@@ -404,13 +402,13 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
                 </dd>
               </div>
               <div className="min-w-0 rounded-2xl border border-border/70 bg-muted/30 p-3 shadow-sm">
-                <dt className="text-[10px] font-semibold text-muted-foreground">Horário previsto</dt>
+                <dt className="text-[11px] font-semibold text-muted-foreground">Horário previsto</dt>
                 <dd className="mt-1.5 break-words text-xs font-semibold tabular-nums text-foreground">
                   {selected.scheduledAt?acreStamp(selected.scheduledAt):"Não programado"}
                 </dd>
               </div>
               <div className="min-w-0 rounded-2xl border border-border/70 bg-muted/30 p-3 shadow-sm">
-                <dt className="text-[10px] font-semibold text-muted-foreground">{selected.status==="nao_confirmado"?"Confirmação":"Horário registrado"}</dt>
+                <dt className="text-[11px] font-semibold text-muted-foreground">{selected.status==="nao_confirmado"?"Confirmação":"Horário registrado"}</dt>
                 <dd className="mt-1.5 break-words text-xs font-semibold tabular-nums text-foreground">
                   {selected.status==="nao_confirmado"?"Não confirmada":acreStamp(selected.occurredAt)}
                 </dd>
@@ -427,7 +425,7 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
                   value={editAmount} onChange={event=>setEditAmount(event.target.value)}
                   className="mt-1 block h-9 w-full rounded-lg border border-border bg-card px-3 text-xs font-bold text-foreground"/>
               </label>
-              <p className="text-[10px] text-muted-foreground">Somente o volume muda. O horário original permanece e a correção é registrada no prontuário.</p>
+              <p className="text-[11px] text-muted-foreground">Somente o volume muda. O horário original permanece e a correção é registrada no prontuário.</p>
               {editError&&<p role="alert" className="text-[11px] text-destructive">{editError}</p>}
               <div className="flex flex-wrap justify-end gap-2">
                 <button type="button" disabled={editSaving} onClick={()=>{setEditingWater(false);setEditError("");}}
@@ -438,7 +436,7 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
               </div>
             </form>}
             {editNotice&&!editingWater&&<p role="status" className="flex items-start gap-1.5 rounded-lg border border-emerald-500/25 bg-emerald-500/[.07] p-2 text-[11px] text-foreground"><CheckCircle2 size={15} className="shrink-0 text-emerald-600"/>{editNotice}</p>}
-            {selected.automatic&&<p className="flex items-start gap-1.5 text-[10px] text-muted-foreground"><Info size={14} className="shrink-0"/>Ajuste automático da programação, não equivale a um novo consumo.</p>}
+            {selected.automatic&&<p className="flex items-start gap-1.5 text-[11px] text-muted-foreground"><Info size={14} className="shrink-0"/>Ajuste automático da programação, não equivale a um novo consumo.</p>}
           </div>
           <div className="mt-3 flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-border/60 pt-3">
             <button type="button" onClick={showAllHistory}
@@ -448,7 +446,7 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
             {editableWater?<button type="button" onClick={()=>{setEditAmount(String(selected.amountMl??""));setEditingWater(true);setEditError("");setEditNotice("");}}
               className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 text-[11px] font-bold text-primary-foreground hover:opacity-90">
               <Pencil size={15}/>Editar registro
-            </button>:<span className="text-[10px] text-muted-foreground">Registro disponível para consulta</span>}
+            </button>:<span className="text-[11px] text-muted-foreground">Registro disponível para consulta</span>}
           </div>
         </>:<div className="flex flex-1 flex-col items-center justify-center gap-2 text-center text-muted-foreground">
           <History size={25}/>
@@ -457,7 +455,7 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
         </div>
       </section>
     </div>
-    <p className="shrink-0 text-[10px] leading-tight text-muted-foreground">
+    <p className="shrink-0 text-[11px] leading-tight text-muted-foreground">
       Últimos 30 dias · Horários reais no Acre · Ajustes automáticos não representam consumo.
     </p>
   </section>;

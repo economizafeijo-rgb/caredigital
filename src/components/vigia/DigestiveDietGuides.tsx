@@ -58,7 +58,7 @@ export function DigestiveDietGuides() {
           {!loading && !error && visible.length === 0 && <p className="rounded-xl bg-foreground/5 p-4 text-sm text-muted-foreground">Nenhuma orientação ativa para este filtro.</p>}
           {visible.map((guide) => <button key={guide.id} type="button" onClick={() => setSelectedId(guide.id)} aria-pressed={selected?.id === guide.id}
             className={`w-full rounded-xl p-4 text-left transition-colors ${selected?.id === guide.id ? "bg-primary/10 ring-1 ring-primary/30" : "bg-foreground/5 hover:bg-foreground/10"}`}>
-            <div className="flex items-center justify-between gap-2"><span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{guide.category}</span><span className="rounded-full bg-success/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-success">Ativa</span></div>
+            <div className="flex items-center justify-between gap-2"><span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{guide.category}</span><span className="rounded-full bg-success/10 px-2 py-0.5 font-mono text-[11px] uppercase tracking-wider text-success">Ativa</span></div>
             <div className="mt-1 text-sm font-semibold">{guide.name}</div>
             <div className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">{guide.summary}</div>
           </button>)}

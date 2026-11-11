@@ -105,7 +105,7 @@ export function ClientBeverageTracker({
     <header className="flex items-center gap-2">
       <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-sky-500/10 text-sky-700 dark:text-sky-300"><Droplets size={20}/></span>
       <div>
-        <h3 className="text-sm font-extrabold text-foreground">Chás, bebidas, shakes e suplementos</h3>
+        <h3 className="text-sm font-bold text-foreground">Chás, bebidas, shakes e suplementos</h3>
         <p className="mt-0.5 text-[11px] text-muted-foreground">Escolha a categoria pelo ícone e registre o consumo real (Acre).</p>
       </div>
     </header>
@@ -136,16 +136,16 @@ export function ClientBeverageTracker({
       <button type="submit" disabled={saving} className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 text-xs font-bold text-primary-foreground disabled:opacity-60">
         <Save size={16}/> {saving ? "Salvando…" : "Registrar bebida agora"}
       </button>
-      <p className="text-[10px] text-muted-foreground">Água entra na meta diária; não registre novamente o mesmo copo na agenda. Chás, energéticos, suplementos líquidos e shakes ficam no histórico separadamente. O registro não significa recomendação médica.</p>
+      <p className="text-[11px] text-muted-foreground">Água entra na meta diária; não registre novamente o mesmo copo na agenda. Chás, energéticos, suplementos líquidos e shakes ficam no histórico separadamente. O registro não significa recomendação médica.</p>
     </form>
     {error && <p role="alert" className="rounded-lg border border-destructive/30 p-2 text-xs text-destructive">{error}</p>}
     {notice && <p role="status" className="flex items-start gap-2 rounded-lg border border-success/30 bg-success/10 p-2 text-xs text-foreground"><CheckCircle2 size={15} className="shrink-0 text-success"/>{notice}</p>}
     <div className="space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h4 className="text-xs font-extrabold text-foreground">Últimas bebidas registradas</h4>
+        <h4 className="text-xs font-bold text-foreground">Últimas bebidas registradas</h4>
         <select aria-label="Filtrar bebidas por categoria" value={historyKind}
           onChange={e=>setHistoryKind(e.target.value as "todos"|BeverageKind)}
-          className="max-w-[180px] rounded-lg border border-border bg-card px-2 py-1.5 text-[10px] font-semibold text-foreground">
+          className="max-w-[180px] rounded-lg border border-border bg-card px-2 py-1.5 text-[11px] font-semibold text-foreground">
           <option value="todos">Todas as categorias</option>
           {beverageKinds.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}
         </select>
@@ -157,9 +157,9 @@ export function ClientBeverageTracker({
             <CareIntakeIcon kind={item.kind} size={19} className="shrink-0 text-primary"/>
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs font-semibold text-foreground">{item.name} · {item.amount_ml} ml</p>
-              <p className="text-[10px] text-muted-foreground">{beverageCategory(item.kind)?.label ?? "Bebida"}{item.notes ? ` · ${item.notes}` : ""}</p>
+              <p className="text-[11px] text-muted-foreground">{beverageCategory(item.kind)?.label ?? "Bebida"}{item.notes ? ` · ${item.notes}` : ""}</p>
             </div>
-            <span className="flex shrink-0 items-center gap-1 text-[10px] text-muted-foreground"><Clock3 size={12}/>{formatStamp(item.consumed_at)}</span>
+            <span className="flex shrink-0 items-center gap-1 text-[11px] text-muted-foreground"><Clock3 size={12}/>{formatStamp(item.consumed_at)}</span>
           </article>)}
         </div>}
     </div>

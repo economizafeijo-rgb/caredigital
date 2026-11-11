@@ -254,10 +254,9 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
 
   const row = (title: string, value: string) =>
     <div className="min-w-0 rounded-lg border border-border/60 bg-background/65 px-2.5 py-1.5 shadow-sm backdrop-blur-sm">
-      <dt className="text-[10px] font-semibold tracking-wide text-muted-foreground">{title}</dt>
+      <dt className="text-[11px] font-semibold tracking-wide text-muted-foreground">{title}</dt>
       <dd className="mt-0.5 break-words text-xs font-semibold leading-tight sm:text-sm text-foreground">{value}</dd>
     </div>;
-  const categoryPhoto=task?.category==="refeicao"?"https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1100&q=80":task?.category==="hidratacao"?"https://images.unsplash.com/photo-1532634896-26909d0d4b2d?auto=format&fit=crop&w=1100&q=80":"https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1100&q=80";
   const CategoryIcon=task?.category==="refeicao"?UtensilsCrossed:task?.category==="hidratacao"?Droplets:Pill;
 
   const skippedWater=details?.category==="hidratacao"&&waterResponse?.response==="not_drunk";
@@ -268,24 +267,22 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
     resolutionReady&&!resolution&&(details.category!=="hidratacao"||(responseReady&&!skippedWater)));
 
   return createPortal(
-    <div className="care-record-modal-overlay care-detail-v4 care-modal-theme fixed inset-0 z-[10020] flex items-center justify-center overflow-hidden bg-slate-950/75 p-2 backdrop-blur-sm sm:p-3"
+    <div className="care-record-modal-overlay care-detail-v4 care-modal-theme fixed inset-0 z-[10020] flex items-center justify-center overflow-hidden bg-slate-950/60 p-2 backdrop-blur-sm sm:p-3"
       onMouseDown={event => { if (event.target === event.currentTarget && !saving && !decisionSaving) onClose(); }}>
       <section role="dialog" aria-modal="true" aria-labelledby="care-task-record-title"
         data-care-type={task.category} className="care-record-modal-dialog care-detail-dialog-v4 flex w-full max-w-[680px] flex-col overflow-hidden rounded-[20px] border border-border/70 bg-card text-card-foreground shadow-[0_28px_100px_rgba(0,0,0,.35)]">
-        <header className="care-detail-header relative isolate shrink-0 overflow-hidden px-4 py-4 sm:px-5 sm:py-5">
-          <div className="absolute inset-0 -z-20 bg-cover bg-center" style={{backgroundImage:`url("${categoryPhoto}")`}} aria-hidden="true"/>
-          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-950/95 via-slate-950/85 to-slate-950/45" aria-hidden="true"/>
+        <header className="care-detail-header shrink-0 border-b border-border px-4 py-4 sm:px-5">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <div className="mb-1 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[.12em] text-white backdrop-blur-md">
+              <div className="mb-1 inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1.5 text-[11px] font-bold uppercase tracking-[.12em] text-foreground">
                 <CategoryIcon size={15}/> {label(task.category)} · Detalhes
               </div>
-              <h2 id="care-task-record-title" className="text-xl font-extrabold leading-tight tracking-tight text-white sm:text-2xl">{task.title}</h2>
-              <p className="care-detail-description mt-1 text-xs text-slate-200">Confira os dados e escolha como deseja prosseguir.</p>
+              <h2 id="care-task-record-title" className="text-xl font-bold leading-tight tracking-tight text-foreground sm:text-2xl">{task.title}</h2>
+              <p className="care-detail-description mt-1 text-xs text-muted-foreground">Confira os dados e escolha como deseja prosseguir.</p>
     
             </div>
             <button type="button" aria-label="Fechar detalhes" disabled={saving||decisionSaving} onClick={onClose}
-              className="grid size-9 shrink-0 place-items-center rounded-full border border-white/30 bg-black/25 text-white backdrop-blur-md transition hover:bg-white/20 disabled:opacity-50">
+              className="grid size-9 shrink-0 place-items-center rounded-full border border-border bg-surface text-foreground transition hover:bg-muted disabled:opacity-50">
               <X size={19}/>
             </button>
           </div>
@@ -308,18 +305,18 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
           </dl>}
 
         {!editing&&!editingMeal&&details&&!details.completed_at&&resolutionReady&&(!skippedWater||Boolean(resolution))&&<div className="care-record-pending-actions rounded-xl border border-primary/30 bg-primary/[.045] px-3 pb-3 pt-1">
-          <p className="mt-2 text-xs font-extrabold text-foreground">Registrar uma decisão</p>
+          <p className="mt-2 text-xs font-bold text-foreground">Registrar uma decisão</p>
           <CareTaskResolutionPanel key={task.id} task={task} resolution={resolution} waterAnswered={Boolean(skippedWater)}
             onChange={setResolution} onSaved={()=>onSaved?.()} onClose={onClose}/>
         </div>}
-        {details?.category==="refeicao"&&!details.completed_at&&resolutionReady&&!resolution&&canConfirmCare(details)&&<form onSubmit={event=>void confirmPendingMeal(event)} className="mt-2 grid grid-cols-1 gap-2 rounded-xl border border-primary/30 bg-primary/[.045] p-2.5 sm:grid-cols-[minmax(0,1fr)_150px]"><div className="sm:col-span-2"><p className="text-xs font-extrabold">Informar consumo antes de confirmar</p></div><label className="block text-xs font-semibold">O que você consumiu?<textarea required minLength={3} maxLength={900} rows={2} value={mealDescription} onChange={event=>setMealDescription(event.target.value)} placeholder="Ex.: pão, ovo, banana e café; inclua as quantidades se desejar." className="mt-1 w-full resize-y rounded-lg border border-border bg-background p-2 text-sm text-foreground"/></label><label className="block text-xs font-semibold">Horário real da refeição · Acre<input required type="time" value={mealTime} onChange={event=>setMealTime(event.target.value)} className="mt-1 w-full rounded-lg border border-border bg-background p-2 text-sm text-foreground"/></label><button type="submit" disabled={saving||mealDescription.trim().length<3||!mealTime} className="min-h-9 w-full rounded-lg bg-primary px-3 py-2 text-xs font-extrabold text-primary-foreground disabled:opacity-50 sm:col-span-2">{saving?"Confirmando…":"Confirmar refeição com estes dados"}</button></form>}
+        {details?.category==="refeicao"&&!details.completed_at&&resolutionReady&&!resolution&&canConfirmCare(details)&&<form onSubmit={event=>void confirmPendingMeal(event)} className="mt-2 grid grid-cols-1 gap-2 rounded-xl border border-primary/30 bg-primary/[.045] p-2.5 sm:grid-cols-[minmax(0,1fr)_150px]"><div className="sm:col-span-2"><p className="text-xs font-bold">Informar consumo antes de confirmar</p></div><label className="block text-xs font-semibold">O que você consumiu?<textarea required minLength={3} maxLength={900} rows={2} value={mealDescription} onChange={event=>setMealDescription(event.target.value)} placeholder="Ex.: pão, ovo, banana e café; inclua as quantidades se desejar." className="mt-1 w-full resize-y rounded-lg border border-border bg-background p-2 text-sm text-foreground"/></label><label className="block text-xs font-semibold">Horário real da refeição · Acre<input required type="time" value={mealTime} onChange={event=>setMealTime(event.target.value)} className="mt-1 w-full rounded-lg border border-border bg-background p-2 text-sm text-foreground"/></label><button type="submit" disabled={saving||mealDescription.trim().length<3||!mealTime} className="min-h-9 w-full rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50 sm:col-span-2">{saving?"Confirmando…":"Confirmar refeição com estes dados"}</button></form>}
 
         {details?.category==="refeicao"&&details.completed_at&&!editingMeal&&<button type="button" onClick={()=>{setEditingMeal(true);setError("");setSuccess("");}} className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-xl border border-primary/35 bg-primary/10 px-3 text-xs font-bold text-primary transition hover:bg-primary/15"><Pencil size={15}/> Editar alimentos e horário real</button>}
-        {editingMeal&&details?.category==="refeicao"&&details.completed_at&&<form onSubmit={event=>void saveMealCorrection(event)} className="mt-2 grid grid-cols-1 gap-2 rounded-xl border border-primary/25 bg-muted/20 p-2.5 sm:grid-cols-[minmax(0,1fr)_150px]"><p className="text-sm font-extrabold">Corrigir refeição registrada</p><label className="block text-xs font-semibold">O que foi consumido?<textarea required minLength={3} maxLength={900} rows={3} value={mealDescription} onChange={event=>setMealDescription(event.target.value)} className="mt-1 w-full resize-y rounded-xl border border-border bg-background p-3 text-sm text-foreground" placeholder="Alimentos, bebidas e quantidades consumidas"/></label><label className="block text-xs font-semibold">Horário real do consumo · Acre<input required type="time" value={mealTime} onChange={event=>setMealTime(event.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background p-3 text-sm text-foreground"/></label><p className="text-[11px] leading-relaxed text-muted-foreground">A data da refeição é mantida. O horário planejado não será modificado.</p><div className="grid grid-cols-2 gap-2"><button type="button" disabled={saving} onClick={()=>{setEditingMeal(false);setError("");}} className="rounded-xl border border-border px-3 py-2 text-xs font-semibold">Cancelar</button><button type="submit" disabled={saving||mealDescription.trim().length<3||!mealTime} className="rounded-xl bg-primary px-3 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50">{saving?"Salvando…":"Salvar alterações"}</button></div></form>}
+        {editingMeal&&details?.category==="refeicao"&&details.completed_at&&<form onSubmit={event=>void saveMealCorrection(event)} className="mt-2 grid grid-cols-1 gap-2 rounded-xl border border-primary/25 bg-muted/20 p-2.5 sm:grid-cols-[minmax(0,1fr)_150px]"><p className="text-sm font-bold">Corrigir refeição registrada</p><label className="block text-xs font-semibold">O que foi consumido?<textarea required minLength={3} maxLength={900} rows={3} value={mealDescription} onChange={event=>setMealDescription(event.target.value)} className="mt-1 w-full resize-y rounded-xl border border-border bg-background p-3 text-sm text-foreground" placeholder="Alimentos, bebidas e quantidades consumidas"/></label><label className="block text-xs font-semibold">Horário real do consumo · Acre<input required type="time" value={mealTime} onChange={event=>setMealTime(event.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background p-3 text-sm text-foreground"/></label><p className="text-[11px] leading-relaxed text-muted-foreground">A data da refeição é mantida. O horário planejado não será modificado.</p><div className="grid grid-cols-2 gap-2"><button type="button" disabled={saving} onClick={()=>{setEditingMeal(false);setError("");}} className="rounded-xl border border-border px-3 py-2 text-xs font-semibold">Cancelar</button><button type="submit" disabled={saving||mealDescription.trim().length<3||!mealTime} className="rounded-xl bg-primary px-3 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50">{saving?"Salvando…":"Salvar alterações"}</button></div></form>}
 
         {details?.category==="hidratacao"&&!details.completed_at&&!resolution&&<p className="care-detail-hint mt-3 text-xs text-muted-foreground">Para alterar o horário, utilize Remarcar. Para registrar o volume realmente consumido, selecione Bebi água.</p>}
         {details?.can_edit_water && !editing && <button type="button" onClick={() => { setEditing(true); setError(""); setSuccess(""); }}
-          className="mt-3 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-3 text-xs font-extrabold text-primary hover:bg-primary/15">
+          className="mt-3 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-3 text-xs font-bold text-primary hover:bg-primary/15">
           <Pencil size={15}/> Corrigir quantidade de água
         </button>}
 
@@ -343,13 +340,13 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
 
         {confirmNo&&canMarkNo&&!editing&&<div role="group" aria-label="Confirmar ausência de consumo"
           className="mt-3 rounded-xl border border-amber-500/35 bg-amber-500/[.08] p-3">
-          <p className="text-xs font-extrabold">Você não bebeu água neste horário?</p>
+          <p className="text-xs font-bold">Você não bebeu água neste horário?</p>
           <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">Vamos registrar sua resposta com a data e hora reais, sem somar nenhum ml à meta. Você poderá corrigir depois.</p>
           <div className="mt-3 flex justify-end gap-2">
             <button type="button" disabled={decisionSaving} onClick={()=>setConfirmNo(false)}
               className="min-h-9 rounded-lg border border-border px-3 text-[11px] font-semibold">Cancelar</button>
             <button type="button" disabled={decisionSaving} onClick={()=>void changeWaterDecision("not_drunk")}
-              className="min-h-9 rounded-lg bg-amber-600 px-3 text-[11px] font-extrabold text-white hover:bg-amber-700 disabled:opacity-50">
+              className="min-h-9 rounded-lg bg-amber-600 px-3 text-[11px] font-bold text-foreground hover:bg-amber-700 disabled:opacity-50">
               {decisionSaving?"Salvando…":"Sim, não bebi"}
             </button>
           </div>

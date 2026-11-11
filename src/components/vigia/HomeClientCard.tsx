@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Link } from "@tanstack/react-router";
-import { ArrowRight, CalendarClock, CalendarDays, CheckCircle2, Droplets, History, LayoutDashboard, LockKeyhole, Pill, Target, UtensilsCrossed, BookOpen, UserRound, AlertTriangle, Trash2, X, Activity, Clock3 } from "lucide-react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { ArrowRight, CalendarDays, CheckCircle2, ChevronRight, Droplets, History, LayoutDashboard, LockKeyhole, Pill, Sparkles, Target, UtensilsCrossed, BookOpen, UserRound, AlertTriangle, Trash2, X, Activity, Clock3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CompactTreatmentBlister } from "./CompactTreatmentBlister";
 import { PatientActivityHistory } from "./PatientActivityHistory";
@@ -10,20 +10,15 @@ import { ClientAgendaPage } from "./ClientAgendaPage";
 import { ClientMealsPage } from "./ClientMealsPage";
 import { ClientNutritionStudio } from "./ClientNutritionStudio";
 import { ClientActivityPage } from "./ClientActivityPage";
-import { ClientSectionHeader } from "./ClientSectionHeader";
-import { clientSectionFromHash, clientSectionHash, type ClientSection } from "@/lib/client-pages";
+import { clientSectionFromHash, clientSectionHashes, clientSectionLabels, type ClientSection } from "@/lib/client-pages";
 import { ClientBeverageTracker } from "./ClientBeverageTracker";
 import { ClientQuickIntake } from "./ClientQuickIntake";
 import { CareTaskRecordModal } from "./CareTaskRecordModal";
 import { CareReminderBeacon } from "./CareReminderBeacon";
-import { ClientTodayTimeline } from "./ClientTodayTimeline";
 import { CareRecentHistory } from "./CareRecentHistory";
 import { ClientHealthProfile } from "./ClientHealthProfile";
 import { ClientOverviewIndicators } from "./ClientOverviewIndicators";
-import "./client-overview-premium.css";
-import { canConfirmCare, careScheduleBlockMessage, careScheduleLabel, getCareScheduleState } from "@/lib/care-schedule";
-import "./client-dashboard-art.css";
-import "./client-overview-fullscreen.css";
+import { canConfirmCare, careScheduleBlockMessage, getCareScheduleState } from "@/lib/care-schedule";
 
 type Client = { id: string; owner_id: string; full_name: string; status: string; care_goal: string | null; height_cm: number | null; weight_kg: number | null };
 type OverviewHealthProfile = { age: number | null; activityMinutes: number; weightKg: number | null; objective: string | null; protein: number | null; carbs: number | null; fat: number | null; kcal: number | null };
@@ -72,7 +67,9 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
   const [mealDescription,setMealDescription]=useState("");
   const [detailTask,setDetailTask]=useState<Task|null>(null);
   const [busy, setBusy] = useState(false);
-  const [activeTab, setActiveTab] = useState<ClientSection>(()=>typeof window!=="undefined"?clientSectionFromHash(window.location.hash):"hoje");
+  const navigate = useNavigate();
+  const activeTab = clientSectionFromHash(useRouterState({ select: state => state.location.hash }));
+  const openSection = (section: ClientSection) => { void navigate({ to: "/cliente", hash: clientSectionHashes[section] }); };
   const [tick, setTick] = useState(0);
   const [clock, setClock] = useState<Date | null>(null);
   const [treatmentProgress,setTreatmentProgress] = useState<{confirmed:number;total:number}|null>(null);
@@ -84,24 +81,6 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
   const [historyCategory,setHistoryCategory] = useState<"todos"|"hidratacao"|"refeicao"|"medicacao">("todos");
   const [showHealthProfile,setShowHealthProfile] = useState(false);
   const mealRecordDay=dayInAcre(clock??new Date());
-  useEffect(()=>{
-    const syncHash=()=>setActiveTab(clientSectionFromHash(window.location.hash));
-    window.addEventListener("hashchange",syncHash);
-    window.addEventListener("popstate",syncHash);
-    return()=>{
-      window.removeEventListener("hashchange",syncHash);
-      window.removeEventListener("popstate",syncHash);
-    };
-  },[]);
-  function openSection(section:ClientSection){
-    setActiveTab(section);
-    if(typeof window!=="undefined"){
-      const desired=clientSectionHash(section);
-      if(window.location.hash!==desired){
-        window.history.pushState(window.history.state,"",window.location.pathname+window.location.search+desired);
-      }
-    }
-  }
   useEffect(() => { const update = () => setClock(new Date()); update(); const timer = window.setInterval(update,15000); return () => window.clearInterval(timer); }, []);
 
   useEffect(() => {
@@ -411,209 +390,189 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
   const mealPercent=mealTotal?Math.round(mealConfirmed/mealTotal*100):0;
   const medicinePercent=treatmentProgress?progressPercent:(medicineTasks.length?Math.round(medicineConfirmed/medicineTasks.length*100):0);
   const medicineValue=treatmentProgress?`${treatmentProgress.confirmed}/${treatmentProgress.total}`:`${medicineConfirmed}/${medicineTasks.length}`;
-  const tabs=[
-    {key:"hidratacao",label:"Água",icon:Droplets},
-    {key:"alimentacao",label:"Alimentação",icon:UtensilsCrossed},
-    {key:"medicacao",label:"Medicação",icon:Pill},
-    {key:"atividade",label:"Atividade",icon:Activity},
-    {key:"indicadores",label:"Indicadores",icon:Target},
-  ] as const;
-  const secondaryTabs=[
+  const sections=[
     {key:"hoje",label:"Visão geral",icon:LayoutDashboard},
     {key:"agenda",label:"Agenda",icon:CalendarDays},
     {key:"historico",label:"Histórico",icon:History},
-    {key:"cardapios",label:"Cardápios e dietas",icon:BookOpen},
+    {key:"medicacao",label:"Medicação",icon:Pill},
+    {key:"hidratacao",label:"Hidratação",icon:Droplets},
+    {key:"alimentacao",label:"Alimentação",icon:UtensilsCrossed},
+    {key:"atividade",label:"Atividade",icon:Activity},
+    {key:"indicadores",label:"Indicadores",icon:Target},
+    {key:"cardapios",label:"Cardápios",icon:BookOpen},
   ] as const;
-  const allTabs=[...tabs,...secondaryTabs];
+  const nowMs=clock?.getTime()??Date.now();
+  const today=dateInAcre(clock??new Date());
+  const dayPercent=tasks.length?Math.round(completed/tasks.length*100):0;
+  const sectionCount=activeTab==="agenda"?tasks.length:activeTab==="hidratacao"?hydrationTasks.length:activeTab==="alimentacao"?meals.length:activeTab==="atividade"?activityCount:null;
+  const kpis=[
+    {key:"hidratacao",label:"Água",icon:Droplets,tone:"text-water bg-water/10",bar:"bg-water",percent:hydrationPercent,
+      value:hydrationTarget>0?hydrationConsumed.toLocaleString("pt-BR")+" ml":hydrationConfirmed+"/"+hydrationTasks.length,
+      note:hydrationTarget>0?"de "+hydrationTarget.toLocaleString("pt-BR")+" ml":hydrationTasks.length+" lembretes hoje"},
+    {key:"alimentacao",label:"Refeições",icon:UtensilsCrossed,tone:"text-meal bg-meal/10",bar:"bg-meal",percent:mealPercent,
+      value:mealRecordCount===null?"—":mealRecordCount.toLocaleString("pt-BR"),
+      note:mealRecordCount===null?(mealRecordsLoading?"Consultando…":"Indisponível"):`${mealConfirmed}/${mealTotal} confirmadas`},
+    {key:"medicacao",label:"Medicamentos",icon:Pill,tone:"text-med bg-med/10",bar:"bg-med",percent:medicinePercent,
+      value:medicineValue,note:"doses confirmadas"},
+    {key:"atividade",label:"Atividade",icon:Activity,tone:"text-activity bg-activity/10",bar:"bg-activity",percent:activityCount&&activityCount>0?100:0,
+      value:activityCount===null?"—":activityCount.toLocaleString("pt-BR"),
+      note:activityCount===null?"Sem dados disponíveis":activityCount===0?"Sem registro hoje":"registros hoje"},
+  ] as const;
+  const card="rounded-2xl border border-border bg-card shadow-card";
+  const supplement=(task:Task)=>task.category==="outro";
 
-  return <section aria-label="Painel de acompanhamento individual do cliente" className={`care-client-dashboard care-client-route ${activeTab==="hoje"?"care-client-overview-v3":"care-client-art-reference care-client-one-window"} flex h-full min-h-0 w-full max-w-none flex-col overflow-hidden rounded-[18px] border border-border bg-card/95 shadow-[0_12px_36px_-24px_rgba(25,65,54,.25)]`}>
-    {loading ? <p role="status" className="p-6 text-sm text-muted-foreground">Verificando acesso seguro…</p> : !owner ? <div className="grid gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-center">
-      <div><div className="flex items-center gap-2 font-semibold"><LockKeyhole size={19} className="text-primary"/> Acesso protegido</div><p className="mt-2 max-w-2xl text-sm text-muted-foreground">Entre com sua conta para consultar somente seu acompanhamento e confirmar os cuidados realizados.</p></div>
-      <button onClick={() => setLocked(true)} className="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground">Consultar programação</button>
-    </div> : !client ? <p className="p-6 text-sm text-muted-foreground">Nenhum prontuário vinculado a esta conta. Confira seu acesso com o responsável.</p> : <div className="care-client-content care-client-one-window-content flex h-full min-h-0 flex-1 flex-col gap-2 p-2 sm:p-3">
+  return <section aria-label="Painel de acompanhamento individual" className="flex min-h-full w-full flex-col gap-3 lg:h-full lg:min-h-0">
+    {loading ? <p role="status" className="grid flex-1 place-items-center text-sm text-muted-foreground">Verificando acesso seguro…</p> : !owner ? <div className={card+" mx-auto mt-10 max-w-md p-8 text-center"}>
+      <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-accent text-accent-foreground"><LockKeyhole size={22}/></span>
+      <h1 className="mt-4 text-lg font-bold">Acesso protegido</h1>
+      <p className="mt-2 text-sm text-muted-foreground">Entre com sua conta para consultar seu acompanhamento e confirmar os cuidados realizados.</p>
+      <Link to="/entrar" className="mt-5 inline-flex h-10 items-center rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground">Entrar</Link>
+    </div> : !client ? <p className={card+" mx-auto mt-10 max-w-md p-8 text-center text-sm text-muted-foreground"}>Nenhum prontuário vinculado a esta conta. Confira seu acesso com o responsável.</p> : <>
 
-      <header className={"care-client-identity shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-2xl border border-primary/15 bg-gradient-to-r from-primary/[.07] via-card to-primary/[.035] px-3 py-2.5 sm:px-4 "+(activeTab==="hoje"?"flex":"hidden")}>
-        <div className="flex min-w-0 items-center gap-3">
-          <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary"><UserRound size={24}/></span>
-          <div className="min-w-0">
-            <p className="text-[10px] font-extrabold uppercase tracking-[.13em] text-primary">Meu acompanhamento · acesso individual</p>
-            <h1 className="truncate text-xl font-extrabold tracking-tight text-foreground sm:text-2xl">{patientName||client.full_name}</h1>
-            <p className="text-[11px] text-muted-foreground">Tratamento e rotina · {dateInAcre(clock??new Date())} · {completed}/{tasks.length} cuidados concluídos</p>
-          </div>
+      <nav className="-mx-1 flex shrink-0 gap-1.5 overflow-x-auto px-1 pb-1 xl:hidden" aria-label="Áreas do acompanhamento">
+        {sections.map(({key,label,icon:Icon})=><button key={key} type="button" onClick={()=>openSection(key)} aria-current={activeTab===key?"page":undefined}
+          className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors ${activeTab===key?"border-primary bg-primary text-primary-foreground":"border-border bg-surface text-muted-foreground"}`}>
+          <Icon size={14}/>{label}
+        </button>)}
+      </nav>
+
+      <header className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <div className="min-w-0">
+          <h1 className="truncate text-xl font-bold tracking-tight sm:text-2xl">{activeTab==="hoje"?`Olá, ${(patientName||client.full_name).split(" ")[0]}`:clientSectionLabels[activeTab].title}</h1>
+          <p className="truncate text-[13px] text-muted-foreground first-letter:uppercase">
+            {activeTab==="hoje"?`${today} · ${completed} de ${tasks.length} cuidados concluídos`:clientSectionLabels[activeTab].subtitle}
+            {activeTab!=="hoje"&&sectionCount!=null&&` · ${sectionCount} hoje`}
+          </p>
         </div>
-        <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
-          <div className="care-client-dose-status flex items-center gap-2 rounded-xl border border-success/20 bg-success/10 px-3 py-2">
-            <CheckCircle2 className="shrink-0 text-success" size={21}/>
-            <span className="min-w-0"><strong className="block text-xs font-extrabold text-foreground">{medicineTasks.length && medicineConfirmed===medicineTasks.length?"Medicações de hoje confirmadas":"Tratamento em acompanhamento"}</strong>
-            <small className="block text-[10px] text-muted-foreground">{medicineTasks.length?`${medicineConfirmed}/${medicineTasks.length} doses confirmadas hoje`:"Nenhuma dose prevista hoje"}</small></span>
-          </div>
-          <div className="flex flex-wrap items-center gap-1.5">
-            <ClientQuickIntake patientId={client.id} mode="water" onRecorded={()=>setTick(value=>value+1)}/>
-            <ClientQuickIntake patientId={client.id} onRecorded={()=>setTick(value=>value+1)}/>
-            <button type="button" className="care-overview-profile-button" onClick={()=>setShowHealthProfile(true)}>Meu perfil</button>
-          </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <ClientQuickIntake patientId={client.id} mode="water" onRecorded={()=>setTick(value=>value+1)}/>
+          <ClientQuickIntake patientId={client.id} onRecorded={()=>setTick(value=>value+1)}/>
+          <button type="button" onClick={()=>setShowHealthProfile(true)} className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-border bg-surface px-3 text-xs font-semibold transition-colors hover:border-primary/40 hover:bg-accent"><UserRound size={15}/> Meu perfil</button>
         </div>
       </header>
 
-      {activeTab==="hoje"&&<nav className="care-overview-shortcuts" aria-label="Atalhos rápidos">
-        <button type="button" onClick={()=>openSection("hidratacao")}><Droplets size={15}/> Água</button>
-        <button type="button" onClick={()=>openSection("alimentacao")}><UtensilsCrossed size={15}/> Alimentação</button>
-        <button type="button" onClick={()=>openSection("medicacao")}><Pill size={15}/> Medicação</button>
-        <button type="button" onClick={()=>openSection("atividade")}><Activity size={15}/> Atividade</button>
-        <button type="button" onClick={()=>openSection("indicadores")}><Target size={15}/> Indicadores</button>
-      </nav>}
-      <div className={"care-client-medication-alert shrink-0 "+(activeTab==="hoje"?"hidden":"")}>
+      <div className="shrink-0 empty:hidden">
         <CareReminderBeacon tasks={tasks} patientId={client.id} ownerId={client.owner_id} refreshKey={tick}
           onOpen={alertTask=>{const task=tasks.find(t=>t.id===alertTask.id);if(task)showTaskDetails(task)}}
           onConfirm={alertTask=>{const task=tasks.find(t=>t.id===alertTask.id);if(task)askConfirm(task)}} compact/>
       </div>
 
-      <div className="care-client-tabs care-client-page-nav grid shrink-0 grid-cols-5 gap-1 rounded-xl border border-border bg-muted/55 p-1" role="tablist" aria-label="Menus principais do acompanhamento">
-        {tabs.map(tab=>{
-          const Icon=tab.icon;
-          return <button type="button" role="tab" key={tab.key} aria-selected={activeTab===tab.key} aria-controls="care-client-tab-panel"
-            onClick={()=>openSection(tab.key)} className={`flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-1.5 py-2.5 text-[10px] font-bold transition-colors sm:px-2 sm:text-xs ${activeTab===tab.key?"bg-primary text-primary-foreground shadow-sm":"text-muted-foreground hover:bg-card hover:text-foreground"}`}>
-            <Icon size={15} className="shrink-0"/><span className="min-w-0 whitespace-normal break-words text-center leading-tight">{tab.label}</span>
-          </button>;
-        })}
-      </div>
-      <nav className="flex shrink-0 flex-wrap items-center gap-1.5 px-1" aria-label="Outras áreas do acompanhamento">
-        <span className="mr-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Outras áreas</span>
-        {secondaryTabs.map(tab=>{
-          const Icon=tab.icon;
-          return <button key={tab.key} type="button" onClick={()=>openSection(tab.key)} aria-current={activeTab===tab.key?"page":undefined}
-            className={`inline-flex min-h-7 items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-semibold transition-colors ${activeTab===tab.key?"border-primary/35 bg-primary/10 text-primary":"border-border/70 text-muted-foreground hover:bg-muted"}`}>
-            <Icon size={12}/>{tab.label}
-          </button>;
-        })}
-      </nav>
+      {activeTab==="hoje" ? <div id="care-client-tab-panel" data-client-page="hoje" className="flex min-h-0 flex-1 flex-col gap-3">
+        <div className="grid shrink-0 grid-cols-2 gap-3 lg:grid-cols-4">
+          {kpis.map(({key,label,icon:Icon,tone,bar,percent,value,note})=><button key={key} type="button" onClick={()=>openSection(key)}
+            aria-label={`${label}: ${value}, ${note}. Abrir área.`} className={card+" group p-3.5 text-left transition hover:border-primary/40"}>
+            <span className="flex items-center justify-between gap-2">
+              <span className="flex items-center gap-2 text-xs font-semibold text-muted-foreground"><span className={`grid size-7 place-items-center rounded-lg ${tone}`}><Icon size={15}/></span>{label}</span>
+              <ChevronRight size={15} className="text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-primary"/>
+            </span>
+            <strong className="mt-2 block font-display text-2xl font-bold leading-none tabular-nums">{value}</strong>
+            <span className="mt-1 block truncate text-xs text-muted-foreground">{note}</span>
+            <span className="mt-2.5 block h-1.5 overflow-hidden rounded-full bg-muted"><i className={`block h-full rounded-full ${bar} transition-[width]`} style={{width:percent+"%"}}/></span>
+          </button>)}
+        </div>
 
-      {activeTab!=="hoje"&&<ClientSectionHeader section={activeTab} count={activeTab==="agenda"?tasks.length:activeTab==="hidratacao"?tasks.filter(t=>t.category==="hidratacao").length:activeTab==="alimentacao"?meals.length:activeTab==="atividade"?(activityCount??undefined):undefined} dateLabel={dateInAcre(clock??new Date())}/>}
-
-      <div id="care-client-tab-panel" role="tabpanel" aria-label={allTabs.find(tab=>tab.key===activeTab)?.label}
-        data-client-page={activeTab}
-        className={"care-client-main care-client-page-main grid min-h-0 min-w-0 flex-1 items-stretch gap-2 "+(activeTab==="hoje"?"care-overview-layout":"grid-cols-1")}>
-        {activeTab==="hoje" ? <>
-          <div className="care-overview-primary" id="care-overview-medication">
-            <CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm} dashboardMode onProgressChange={setTreatmentProgress}/>
-            <section className="care-overview-progress" aria-label="Progresso dos cuidados por categoria">
-              <div className="care-overview-section-heading">
-                <div><span className="care-overview-eyebrow">ACOMPANHAMENTO</span><h3>Progresso dos cuidados</h3></div>
-                <span className="care-overview-heading-note">Hoje · Acre</span>
-              </div>
-              <div className="care-overview-progress-grid">
-                <article className="care-overview-progress-item">
-                  <header><Droplets size={13}/> Água</header>
-                  <strong>{hydrationTarget>0?hydrationConsumed.toLocaleString("pt-BR")+" ml":hydrationConfirmed+"/"+hydrationTasks.length}</strong>
-                  <small>{hydrationTarget>0?"de "+hydrationTarget.toLocaleString("pt-BR")+" ml":hydrationTasks.length+" lembretes"}</small>
-                  <div className="care-overview-progress-track"><i style={{width:hydrationPercent+"%"}}/></div>
-                </article>
-                <article className="care-overview-progress-item">
-                  <header><UtensilsCrossed size={13}/> Refeições</header>
-                  <strong>{mealRecordCount===null?"—":mealRecordCount.toLocaleString("pt-BR")}</strong>
-                  <small>{mealRecordCount===null?(mealRecordsLoading?"Consultando":"Indisponível"):`${mealConfirmed}/${mealTotal} confirmadas`}</small>
-                  <div className="care-overview-progress-track"><i style={{width:mealPercent+"%"}}/></div>
-                </article>
-                <article className="care-overview-progress-item">
-                  <header><Pill size={13}/> Medicamentos</header>
-                  <strong>{medicineValue}</strong>
-                  <small>doses confirmadas</small>
-                  <div className="care-overview-progress-track"><i style={{width:medicinePercent+"%"}}/></div>
-                </article>
-                <article className="care-overview-progress-item">
-                  <header><Activity size={13}/> Atividade</header>
-                  <strong>{activityCount===null?"—":activityCount.toLocaleString("pt-BR")}</strong>
-                  <small>{activityCount===null?"Sem dados disponíveis":activityCount===0?"Sem registro hoje":"registros hoje"}</small>
-                  <div className="care-overview-progress-track"><i style={{width:activityCount&&activityCount>0?"100%":"0%"}}/></div>
-                </article>
-              </div>
-            </section>
-          </div>
-          <div className="care-overview-secondary">
-            <section className="care-overview-card" aria-label="Resumo do dia">
-              <div className="care-overview-section-heading">
-                <div><span className="care-overview-eyebrow">SEU DIA</span><h3>Resumo do dia</h3></div>
-                <span className="care-overview-heading-note">{dateInAcre(clock??new Date())}</span>
-              </div>
-              <div className="care-overview-stats">
-                <div className="care-overview-stat"><span>Total de cuidados</span><strong>{tasks.length}</strong></div>
-                <div className="care-overview-stat is-complete"><span>Concluídos</span><strong>{completed}</strong></div>
-                <div className="care-overview-stat"><span>Pendentes</span><strong>{Math.max(0,tasks.length-completed)}</strong></div>
-              </div>
-              <div className="mt-2 flex items-center justify-between gap-2 text-[10px] font-bold text-slate-600">
-                <span>Progresso diário</span><span className="tabular-nums">{tasks.length?Math.round(completed/tasks.length*100):0}%</span>
-              </div>
-              <div className="care-overview-progress-track" role="progressbar" aria-label="Percentual de cuidados concluídos" aria-valuenow={tasks.length?Math.round(completed/tasks.length*100):0} aria-valuemin={0} aria-valuemax={100}>
-                <i style={{width:(tasks.length?Math.round(completed/tasks.length*100):0)+"%"}}/>
-              </div>
-              <div className="mt-2 flex items-center justify-between gap-2 rounded-xl border border-sky-100 bg-sky-50 px-3 py-2">
-                <span className="flex items-center gap-2 text-[10px] font-bold text-sky-800"><Droplets size={15}/> Meta de hidratação</span>
-                <strong className="text-[11px] font-extrabold tabular-nums text-sky-900">{hydrationTarget>0?hydrationConsumed.toLocaleString("pt-BR")+" / "+hydrationTarget.toLocaleString("pt-BR")+" ml":"Não disponível"}</strong>
-              </div>
-            </section>
-            <section className="care-overview-card care-overview-next" data-kind={nextCare?.category==="hidratacao"?"hidratacao":undefined} aria-label="Próximo cuidado">
-              <div className="flex items-center justify-between gap-2">
-                <span className="care-overview-eyebrow">PRÓXIMO CUIDADO</span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-white/80 px-2 py-1 text-[9px] font-bold text-slate-600"><Clock3 size={12}/> Horário do Acre</span>
+        <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-3">
+          <div className="flex min-h-0 flex-col gap-3 lg:overflow-y-auto lg:pr-0.5">
+            <section aria-label="Próximo cuidado" className="shrink-0 rounded-2xl bg-primary p-4 text-primary-foreground shadow-card">
+              <div className="flex items-center justify-between gap-2 text-[11px] font-semibold uppercase tracking-wider opacity-85">
+                <span>Próximo cuidado</span><span className="inline-flex items-center gap-1 normal-case tracking-normal"><Clock3 size={12}/> Horário do Acre</span>
               </div>
               {nextCare ? <>
-                <h3 className="mt-1">{nextCare.title}</h3>
-                <div className="mt-1 flex flex-wrap items-baseline justify-between gap-2">
-                  <strong className="care-overview-next-time">{timeInAcre(nextCare.scheduled_at)}</strong>
-                  <span className="text-[10px] font-semibold text-slate-600">{categoryInfo[nextCare.category]?.label??"Atividade"}</span>
+                <h3 className="mt-2 line-clamp-2 text-base font-bold leading-snug">{nextCare.title}</h3>
+                <div className="mt-1 flex items-end justify-between gap-3">
+                  <div className="min-w-0 text-xs opacity-90 [&>span]:!mt-0 [&>span]:!text-xs [&>span]:!text-primary-foreground">
+                    <p>{categoryInfo[nextCare.category]?.label??"Cuidado"}</p>
+                    <LiveCareCountdown scheduledAt={nextCare.scheduled_at}/>
+                  </div>
+                  <strong className="font-display text-3xl font-extrabold leading-none tabular-nums">{timeInAcre(nextCare.scheduled_at)}</strong>
                 </div>
-                <LiveCareCountdown scheduledAt={nextCare.scheduled_at}/>
-                <button type="button" onClick={()=>askConfirm(nextCare)}><CheckCircle2 size={14}/> Confirmar / registrar</button>
-                {nextCare.category==="hidratacao"&&<small className="mt-1 block text-[9px] font-semibold text-sky-800">Hidratação: registre somente o volume realmente consumido.</small>}
-              </> : <p className="mt-2 text-xs">Nenhum cuidado futuro pendente. Consulte o histórico para conferir os registros do dia.</p>}
+                <button type="button" onClick={()=>askConfirm(nextCare)} className="mt-3 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-xl bg-white text-sm font-semibold text-slate-900 transition hover:bg-white/90"><CheckCircle2 size={16}/> Confirmar / registrar</button>
+              </> : <p className="mt-2 text-sm opacity-90">Nenhum cuidado pendente para hoje. Consulte o histórico para conferir os registros.</p>}
             </section>
-            <section id="care-home-timeline" className="care-overview-agenda" aria-label="Agenda de hoje e histórico recente">
-              <div className="care-overview-section-heading">
-                <div><span className="care-overview-eyebrow">ROTINA E REGISTROS</span><h3>Agenda e histórico recente</h3></div>
-                <button type="button" onClick={()=>openSection("agenda")} className="text-[10px] font-bold text-teal-700">Ver agenda <ArrowRight size={12} className="inline"/></button>
+            <section aria-label="Resumo do dia" className={card+" shrink-0 p-4"}>
+              <div className="care-overview-section-heading"><div><span className="care-overview-eyebrow">Seu dia</span><h3>Resumo do dia</h3></div><span className="care-overview-heading-note tabular-nums">{dayPercent}% concluído</span></div>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                {[["Total",tasks.length,""],["Concluídos",completed,"text-success"],["Pendentes",Math.max(0,tasks.length-completed),"text-warning"]].map(([label,value,tone])=>
+                  <div key={label} className="rounded-xl bg-muted px-2 py-2.5"><strong className={`block font-display text-xl font-bold tabular-nums ${tone}`}>{value}</strong><span className="text-[11px] text-muted-foreground">{label}</span></div>)}
               </div>
-              <ClientTodayTimeline tasks={tasks} resolved={resolvedStates} onConfirm={askConfirm} onDetails={showTaskDetails} now={clock?.getTime()}/>
-              <div className="care-overview-history-filters" role="group" aria-label="Filtrar histórico recente">
-                {([{key:"todos",label:"Todos"},{key:"hidratacao",label:"Água"},{key:"refeicao",label:"Refeições"},{key:"medicacao",label:"Medicamentos"}] as const).map(item=><button key={item.key} type="button" aria-pressed={historyCategory===item.key} onClick={()=>setHistoryCategory(item.key)}>{item.label}</button>)}
-              </div>
-              <CareRecentHistory patientId={client.id} ownerId={client.owner_id} category={historyCategory} compact/>
+              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Percentual de cuidados concluídos" aria-valuenow={dayPercent} aria-valuemin={0} aria-valuemax={100}><i className="block h-full rounded-full bg-primary transition-[width]" style={{width:dayPercent+"%"}}/></div>
             </section>
-            <div id="care-overview-indicators">
+            <div className={card+" shrink-0 p-4"}>
               <ClientOverviewIndicators heightCm={client.height_cm} weightKg={healthProfile.weightKg??client.weight_kg} waterTarget={hydrationTarget||null}
                 protein={healthProfile.protein} carbs={healthProfile.carbs} fat={healthProfile.fat} kcal={healthProfile.kcal}/>
             </div>
           </div>
-        </> : <section data-page={activeTab} className="care-client-summary care-client-page-content min-h-0 min-w-0 rounded-2xl border border-border bg-card overflow-y-auto overscroll-contain p-2 sm:p-3" aria-label={"Página "+tabs.find(tab=>tab.key===activeTab)?.label}>
-          {activeTab==="agenda"&&<ClientAgendaPage tasks={tasks} resolved={resolvedStates} now={clock?.getTime()}
-            onView={showTaskDetails} onConfirm={askConfirm}/>}
-          {activeTab==="hidratacao"&&<div className="care-client-hydration-page flex h-full min-h-0 flex-col gap-2">
-            <div className="care-client-hydration-switch grid shrink-0 grid-cols-2 gap-1 rounded-xl border border-border bg-muted/45 p-1" role="group" aria-label="Bebidas e hidratação">
-              <button type="button" aria-pressed={hydrationView==="agua"} onClick={()=>setHydrationView("agua")}
-                className={`rounded-lg px-3 py-2.5 text-xs font-bold transition-colors ${hydrationView==="agua"?"bg-primary text-primary-foreground shadow-sm":"text-muted-foreground hover:bg-card"}`}>Minha meta de água</button>
-              <button type="button" aria-pressed={hydrationView==="bebidas"} onClick={()=>setHydrationView("bebidas")}
-                className={`rounded-lg px-3 py-2.5 text-xs font-bold transition-colors ${hydrationView==="bebidas"?"bg-primary text-primary-foreground shadow-sm":"text-muted-foreground hover:bg-card"}`}>Chás e bebidas</button>
-            </div>
-            <div className="care-client-hydration-content min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-xl border border-border/55 bg-card/45 p-2 sm:p-3">
-              {hydrationView==="agua"
-                ? <ClientHydrationTab patientId={client.id} ownerId={client.owner_id} tasks={tasks} revision={tick} onConfirm={askConfirm} onRecorded={()=>setTick(value=>value+1)}/>
-                : <ClientBeverageTracker patientId={client.id} ownerId={client.owner_id} revision={tick} onRecorded={()=>setTick(value=>value+1)}/>}
-            </div>
-          </div>}
-          {activeTab==="historico"&&<PatientActivityHistory patientId={client.id} ownerId={client.owner_id} revision={tick} onRecordChanged={()=>setTick(value=>value+1)}/>}
-          {activeTab==="alimentacao"&&<ClientMealsPage patientId={client.id} ownerId={client.owner_id}
-            meals={meals} resolved={resolvedStates} revision={tick} now={clock?.getTime()}
-            onView={showTaskDetails} onConfirm={askConfirm}
-            onDelete={meal=>{const item=tasks.find(task=>task.id===meal.id);if(item){setPending(null);setMealToDelete(item);}}}
-            onRecorded={()=>setTick(value=>value+1)}/>}
-          {activeTab==="cardapios"&&<ClientNutritionStudio patientId={client.id} ownerId={client.owner_id} onLogged={()=>setTick(v=>v+1)}/>}
-          {activeTab==="medicacao"&&<div className="care-client-medication-page min-h-0 w-full"><CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm}/></div>}
-          {activeTab==="atividade"&&<div className="care-client-activity-page min-h-0 w-full"><ClientActivityPage patientId={client.id} ownerId={client.owner_id} revision={tick} onRecorded={()=>setTick(value=>value+1)}/></div>}
-          {activeTab==="indicadores"&&<div className="care-client-indicators-page min-h-0 w-full"><ClientOverviewIndicators heightCm={client.height_cm} weightKg={healthProfile.weightKg??client.weight_kg} waterTarget={hydrationTarget||null} protein={healthProfile.protein} carbs={healthProfile.carbs} fat={healthProfile.fat} kcal={healthProfile.kcal} patientId={client.id} ownerId={client.owner_id} revision={tick} full/></div>}
 
-        </section>}
-      </div>
+          <section aria-label="Agenda de hoje" className={card+" flex min-h-[320px] flex-col p-4 lg:min-h-0"}>
+            <div className="care-overview-section-heading shrink-0">
+              <div><span className="care-overview-eyebrow">Rotina</span><h3>Agenda de hoje</h3></div>
+              <button type="button" onClick={()=>openSection("agenda")} className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">Ver agenda <ArrowRight size={13}/></button>
+            </div>
+            <ul className="-mx-1 min-h-0 flex-1 overflow-y-auto overscroll-contain px-1">
+              {tasks.map(task=>{
+                const info=supplement(task)?{label:"Suplemento",icon:Sparkles}:categoryInfo[task.category]??{label:"Cuidado",icon:Clock3};
+                const Icon=info.icon;
+                const response=resolvedStates[task.id];
+                const done=Boolean(task.completed_at);
+                const state=getCareScheduleState(task,nowMs);
+                const isNext=task.id===nextCare?.id;
+                const status=done?"Confirmado":response==="cancelado"?"Cancelado":response==="nao_cumprido"?"Não realizado":response==="nao_bebi"?"Não bebi":isNext?"Próximo":state==="waiting"?"Programado":state==="available"?"Registrar":"Sem confirmação";
+                const tone=done?"text-success":response?"text-muted-foreground":isNext||state==="available"?"text-primary":state==="missed"?"text-warning":"text-muted-foreground";
+                return <li key={task.id}><button type="button" onClick={()=>showTaskDetails(task)} aria-label={`${info.label} às ${timeInAcre(task.scheduled_at)}: ${task.title}. ${status}. Abrir detalhes.`}
+                  className={`flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors hover:bg-muted ${isNext?"bg-accent/60":""}`}>
+                  <span className="w-11 shrink-0 text-[13px] font-semibold tabular-nums">{timeInAcre(task.scheduled_at)}</span>
+                  <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground"><Icon size={15}/></span>
+                  <span className="min-w-0 flex-1"><span className="block truncate text-[13px] font-medium">{task.title}</span><span className="block truncate text-[11px] text-muted-foreground">{info.label} · <span className={`font-semibold ${tone}`}>{status}</span></span></span>
+                  {done?<CheckCircle2 size={16} className="shrink-0 text-success"/>:<ChevronRight size={15} className="shrink-0 text-muted-foreground"/>}
+                </button></li>;
+              })}
+              {!tasks.length&&<li className="grid h-full min-h-32 place-items-center rounded-xl bg-muted p-4 text-center text-sm text-muted-foreground">Nenhum cuidado programado para hoje.</li>}
+            </ul>
+          </section>
 
-    </div>}
+          <div className="flex min-h-0 flex-col gap-3">
+            <div className="shrink-0 lg:max-h-[55%] lg:overflow-y-auto" id="care-overview-medication">
+              <CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm} dashboardMode onProgressChange={setTreatmentProgress}/>
+            </div>
+            <section aria-label="Histórico recente" className={card+" flex min-h-[220px] flex-1 flex-col p-4 lg:min-h-0"}>
+              <div className="care-overview-section-heading shrink-0">
+                <div><span className="care-overview-eyebrow">Registros</span><h3>Histórico recente</h3></div>
+                <button type="button" onClick={()=>openSection("historico")} className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">Ver tudo <ArrowRight size={13}/></button>
+              </div>
+              <div className="mb-2 flex shrink-0 flex-wrap gap-1" role="group" aria-label="Filtrar histórico recente">
+                {([{key:"todos",label:"Todos"},{key:"hidratacao",label:"Água"},{key:"refeicao",label:"Refeições"},{key:"medicacao",label:"Medicação"}] as const).map(item=><button key={item.key} type="button" aria-pressed={historyCategory===item.key} onClick={()=>setHistoryCategory(item.key)}
+                  className={`h-7 rounded-full px-2.5 text-[11px] font-semibold transition-colors ${historyCategory===item.key?"bg-primary text-primary-foreground":"bg-muted text-muted-foreground hover:text-foreground"}`}>{item.label}</button>)}
+              </div>
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain"><CareRecentHistory patientId={client.id} ownerId={client.owner_id} category={historyCategory} compact/></div>
+            </section>
+          </div>
+        </div>
+      </div> : <section id="care-client-tab-panel" data-client-page={activeTab} data-page={activeTab} aria-label={clientSectionLabels[activeTab].title}
+        className={card+" min-h-[60dvh] min-w-0 flex-1 overflow-y-auto overscroll-contain p-3 sm:p-4 lg:min-h-0"}>
+        {activeTab==="agenda"&&<ClientAgendaPage tasks={tasks} resolved={resolvedStates} now={nowMs} onView={showTaskDetails} onConfirm={askConfirm}/>}
+        {activeTab==="hidratacao"&&<div className="flex h-full min-h-0 flex-col gap-3">
+          <div className="grid shrink-0 grid-cols-2 gap-1 rounded-xl bg-muted p-1 sm:max-w-sm" role="group" aria-label="Bebidas e hidratação">
+            {([["agua","Minha meta de água"],["bebidas","Chás e bebidas"]] as const).map(([key,label])=><button key={key} type="button" aria-pressed={hydrationView===key} onClick={()=>setHydrationView(key)}
+              className={`h-9 rounded-lg px-3 text-xs font-semibold transition-colors ${hydrationView===key?"bg-surface text-foreground shadow-sm":"text-muted-foreground hover:text-foreground"}`}>{label}</button>)}
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            {hydrationView==="agua"
+              ? <ClientHydrationTab patientId={client.id} ownerId={client.owner_id} tasks={tasks} revision={tick} onConfirm={askConfirm} onRecorded={()=>setTick(value=>value+1)}/>
+              : <ClientBeverageTracker patientId={client.id} ownerId={client.owner_id} revision={tick} onRecorded={()=>setTick(value=>value+1)}/>}
+          </div>
+        </div>}
+        {activeTab==="historico"&&<PatientActivityHistory patientId={client.id} ownerId={client.owner_id} revision={tick} onRecordChanged={()=>setTick(value=>value+1)}/>}
+        {activeTab==="alimentacao"&&<ClientMealsPage patientId={client.id} ownerId={client.owner_id}
+          meals={meals} resolved={resolvedStates} revision={tick} now={nowMs}
+          onView={showTaskDetails} onConfirm={askConfirm}
+          onDelete={meal=>{const item=tasks.find(task=>task.id===meal.id);if(item){setPending(null);setMealToDelete(item);}}}
+          onRecorded={()=>setTick(value=>value+1)}/>}
+        {activeTab==="cardapios"&&<ClientNutritionStudio patientId={client.id} ownerId={client.owner_id} onLogged={()=>setTick(v=>v+1)}/>}
+        {activeTab==="medicacao"&&<div className="mx-auto w-full max-w-3xl"><CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm}/></div>}
+        {activeTab==="atividade"&&<ClientActivityPage patientId={client.id} ownerId={client.owner_id} revision={tick} onRecorded={()=>setTick(value=>value+1)}/>}
+        {activeTab==="indicadores"&&<ClientOverviewIndicators heightCm={client.height_cm} weightKg={healthProfile.weightKg??client.weight_kg} waterTarget={hydrationTarget||null} protein={healthProfile.protein} carbs={healthProfile.carbs} fat={healthProfile.fat} kcal={healthProfile.kcal} patientId={client.id} ownerId={client.owner_id} revision={tick} full/>}
+      </section>}
+    </>}
     {showHealthProfile&&client&&<ClientHealthProfile patientId={client.id} ownerId={client.owner_id}
       initial={{weight:healthProfile.weightKg??client.weight_kg,height:client.height_cm,age:healthProfile.age,objective:healthProfile.objective,
         protein:healthProfile.protein,carbs:healthProfile.carbs,fat:healthProfile.fat,kcal:healthProfile.kcal,activityMinutes:healthProfile.activityMinutes}}
@@ -634,23 +593,17 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
         </div>
       </div>,document.body)}
     {notice && <div role="status" className="pointer-events-none fixed inset-x-3 bottom-5 z-[95] mx-auto max-w-xl"><p className="pointer-events-auto rounded-xl border border-primary/20 bg-card px-4 py-3 text-sm text-foreground shadow-xl">{notice}</p></div>}
-    {locked && <div role="dialog" aria-label="Acesso restrito" className="m-5 rounded-2xl border border-[#aec8d6] bg-[#eff5f8] p-5">
-      <div className="flex items-center gap-2 font-bold text-[#163b56]"><LockKeyhole size={19}/> Acesso necessário</div>
-      <p className="mt-2 text-sm text-[#456478]">Para proteger as informações de saúde, faça login antes de visualizar ou confirmar atividades do cliente.</p>
-      <div className="mt-4 flex flex-wrap gap-2"><Link to="/entrar" className="rounded-xl bg-[#216083] px-5 py-3 text-sm font-semibold text-white">Ir para a tela de login</Link><button onClick={() => setLocked(false)} className="rounded-xl border border-[#b8d2df] px-4 py-3 text-sm">Fechar</button></div>
+    {locked && <div role="dialog" aria-label="Acesso restrito" className="mx-auto max-w-md rounded-2xl border border-border bg-card p-5 shadow-card">
+      <div className="flex items-center gap-2 font-bold"><LockKeyhole size={19} className="text-primary"/> Acesso necessário</div>
+      <p className="mt-2 text-sm text-muted-foreground">Para proteger as informações de saúde, faça login antes de visualizar ou confirmar atividades.</p>
+      <div className="mt-4 flex flex-wrap gap-2"><Link to="/entrar" className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground">Ir para o login</Link><button onClick={() => setLocked(false)} className="rounded-xl border border-border px-4 py-2.5 text-sm">Fechar</button></div>
     </div>}
     {pending?.category === "medicacao" && typeof document !== "undefined" && createPortal(
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#071b2c]/75 p-3 backdrop-blur-sm" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget&&!busy)setPending(null)}}>
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/60 p-3 backdrop-blur-sm" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget&&!busy)setPending(null)}}>
         <section role="dialog" aria-modal="true" aria-labelledby="med-confirm-title" className="flex w-full max-w-[390px] max-h-[min(88dvh,430px)] flex-col overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-2xl">
-          <div className="flex shrink-0 items-center gap-2.5 bg-gradient-to-r from-[#153d59] to-[#216083] px-3 py-2.5 text-white">
-            <svg viewBox="0 0 48 48" className="size-10 shrink-0" role="img" aria-label="Cápsula e relógio">
-              <rect x="4" y="13" width="31" height="14" rx="7" transform="rotate(-26 20 20)" fill="#f3fbff"/>
-              <path d="m20 6 9-4a7 7 0 0 1 6 13l-10 5Z" fill="#81d3ee"/>
-              <circle cx="35" cy="33" r="12" fill="#163d58" stroke="#b5e8f5" strokeWidth="2"/>
-              <path d="M35 26v7l5 3" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round"/>
-            </svg>
-            <div className="min-w-0 flex-1"><p className="text-[9px] font-bold uppercase tracking-widest text-sky-200">Confirmação segura</p><h3 id="med-confirm-title" className="text-base font-extrabold leading-tight">Tomou a medicação agora?</h3></div>
-            <button type="button" aria-label="Fechar janela" disabled={busy} onClick={()=>setPending(null)} className="grid size-7 shrink-0 place-items-center rounded-lg bg-white/15 hover:bg-white/25"><X size={16}/></button>
+          <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-4 py-3">
+            <h3 id="med-confirm-title" className="flex items-center gap-2 text-sm font-bold"><span className="grid size-8 place-items-center rounded-lg bg-med/10 text-med"><Pill size={17}/></span> Tomou a medicação agora?</h3>
+            <button type="button" aria-label="Fechar janela" disabled={busy} onClick={()=>setPending(null)} className="grid size-8 shrink-0 place-items-center rounded-lg hover:bg-muted"><X size={17}/></button>
           </div>
           <div className="min-h-0 space-y-2 overflow-y-auto px-3 py-2.5">
             <div className="rounded-lg bg-muted px-2.5 py-2">
@@ -670,7 +623,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
     {pending && pending.category !== "medicacao" && typeof document !== "undefined" && createPortal(
       <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/70 p-3 backdrop-blur-sm" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)setPending(null)}}>
         <section role="dialog" aria-modal="true" aria-labelledby="care-confirm-title" className="w-full max-w-[390px] overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-2xl">
-          <div className="flex items-center justify-between gap-3 border-b border-border bg-primary/10 px-4 py-3">
+          <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
             <h3 id="care-confirm-title" className="flex items-center gap-2 text-sm font-extrabold text-foreground"><CheckCircle2 size={20} className="text-primary"/> Confirmar cuidado realizado</h3>
             <button type="button" disabled={busy} onClick={()=>setPending(null)} aria-label="Fechar confirmação" className="grid size-8 place-items-center rounded-lg hover:bg-muted"><X size={17}/></button>
           </div>

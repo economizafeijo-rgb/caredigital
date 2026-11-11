@@ -292,7 +292,7 @@ function Prontuario() {
             </Panel>
             {medications.length > 0 && <Panel title="Medicamento identificado">
               {medications.map(med => <div key={med.id} className="flex flex-col gap-4 sm:flex-row sm:items-start">
-                <img src="https://www.nortesulreal.com.br/ccstore/v1/images/?height=475&outputFormat=JPEG&quality=0.8&source=%2Ffile%2Fv1566709691030109489%2Fproducts%2FNSM_83085.jpg&width=475" alt="Caixa do medicamento genérico Teuto: lansoprazol, claritromicina e amoxicilina" referrerPolicy="no-referrer" loading="lazy" className="h-44 w-44 shrink-0 rounded-xl border border-border bg-white object-contain p-2" />
+                <img src="https://www.nortesulreal.com.br/ccstore/v1/images/?height=475&outputFormat=JPEG&quality=0.8&source=%2Ffile%2Fv1566709691030109489%2Fproducts%2FNSM_83085.jpg&width=475" alt="Caixa do medicamento genérico Teuto: lansoprazol, claritromicina e amoxicilina" referrerPolicy="no-referrer" loading="lazy" className="h-44 w-44 shrink-0 rounded-xl border border-border bg-surface object-contain p-2" />
                 <div className="min-w-0 space-y-2"><h3 className="text-sm font-semibold">{med.name}</h3><p className="text-xs text-muted-foreground">Concentrações da embalagem: {med.dose}</p><p className="text-xs text-muted-foreground">Administração oral · Produto identificado pela embalagem apresentada. A quantidade por tomada deve ser conferida na receita.</p><a href="https://www.nortesulreal.com.br/p/medicamentos/lans-clarit-amoxibp-28-cpr/NSM_83085" target="_blank" rel="noreferrer" className="inline-block text-xs font-semibold text-primary underline">Ver identificação do produto</a></div>
               </div>)}
             </Panel>}

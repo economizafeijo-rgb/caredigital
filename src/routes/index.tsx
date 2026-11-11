@@ -1,8 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { ArrowRight, ChevronRight, ClipboardList, Clock3, Droplets, HeartPulse, LockKeyhole, Pill, ShieldCheck, Sparkles, Utensils } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { ClientHomeSummary } from "@/components/vigia/ClientHomeSummary";
+import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
+import { ArrowRight, CalendarCheck, Check, Clock3, Droplets, History, LockKeyhole, Pill, ShieldCheck, Utensils } from "lucide-react";
+import { useAccess } from "@/lib/use-access";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -16,94 +14,110 @@ export const Route = createFileRoute("/")({
   component: Homepage,
 });
 
-type Access = "loading" | "public" | "client" | "admin" | "unlinked";
+const features = [
+  { to: "/medicamentos", title: "Medicações", description: "Cartela interativa, horários e confirmação de cada dose.", icon: Pill, tone: "text-med bg-med/10" },
+  { to: "/hidratacao", title: "Hidratação", description: "Meta diária calculada e registro de cada copo.", icon: Droplets, tone: "text-water bg-water/10" },
+  { to: "/dietas", title: "Alimentação", description: "Refeições programadas, cardápios e macros.", icon: Utensils, tone: "text-meal bg-meal/10" },
+  { to: "/protocolos", title: "Histórico", description: "Tudo fica registrado com data e hora reais.", icon: History, tone: "text-activity bg-activity/10" },
+] as const;
+
+// Prévia ilustrativa do painel: valores de exemplo, não são dados de um paciente.
+const previewCare = [
+  { time: "07:00", title: "Medicação da manhã", icon: Pill, tone: "text-med bg-med/10", done: true },
+  { time: "09:30", title: "Água · 250 ml", icon: Droplets, tone: "text-water bg-water/10", done: true },
+  { time: "12:00", title: "Almoço", icon: Utensils, tone: "text-meal bg-meal/10", done: false },
+  { time: "19:00", title: "Medicação da noite", icon: Pill, tone: "text-med bg-med/10", done: false },
+] as const;
+
+function DashboardPreview() {
+  return <div aria-hidden="true" className="relative mx-auto w-full max-w-[460px]">
+    <div className="absolute -inset-6 -z-10 rounded-[40px] bg-gradient-to-br from-primary/20 via-water/10 to-transparent blur-2xl"/>
+    <div className="rounded-2xl border border-border bg-card p-4 shadow-pop">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-primary">Hoje</p>
+          <p className="font-display text-lg font-bold">Sua rotina de cuidados</p>
+        </div>
+        <span className="rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success">2 de 4 concluídos</span>
+      </div>
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full w-1/2 rounded-full bg-primary"/></div>
+      <ul className="mt-3 grid gap-1.5">
+        {previewCare.map(({ time, title, icon: Icon, tone, done }) => <li key={time} className="flex items-center gap-3 rounded-xl border border-border bg-surface px-3 py-2">
+          <span className={`grid size-8 shrink-0 place-items-center rounded-lg ${tone}`}><Icon size={16}/></span>
+          <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{title}</span>
+          <span className="text-xs tabular-nums text-muted-foreground">{time}</span>
+          <span className={`grid size-5 shrink-0 place-items-center rounded-full ${done ? "bg-success text-white" : "border border-input"}`}>{done && <Check size={12} strokeWidth={3}/>}</span>
+        </li>)}
+      </ul>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className="rounded-xl bg-water/10 p-3">
+          <p className="flex items-center gap-1.5 text-[11px] font-semibold text-water"><Droplets size={13}/> Água</p>
+          <p className="mt-1 font-display text-lg font-bold tabular-nums">1.250<span className="ml-1 text-xs font-medium text-muted-foreground">/ 2.400 ml</span></p>
+        </div>
+        <div className="rounded-xl bg-med/10 p-3">
+          <p className="flex items-center gap-1.5 text-[11px] font-semibold text-med"><Clock3 size={13}/> Próximo cuidado</p>
+          <p className="mt-1 font-display text-lg font-bold tabular-nums">12:00<span className="ml-1 text-xs font-medium text-muted-foreground">Almoço</span></p>
+        </div>
+      </div>
+    </div>
+    <p className="mt-2 text-center text-[11px] text-muted-foreground">Prévia ilustrativa do painel do paciente</p>
+  </div>;
+}
 
 function Homepage() {
-  const [access, setAccess] = useState<Access>("loading");
+  const { status } = useAccess();
 
-  useEffect(() => {
-    let active = true;
-    const check = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (!active) return;
-      if (!data.user) { setAccess("public"); return; }
-      if ((data.user.email ?? "").trim().toLowerCase() === "francdenisbr@gmail.com") {
-        setAccess("admin"); return;
-      }
-      const { data: grants, error } = await (supabase as any).from("care_patient_access")
-        .select("patient_id").eq("user_id", data.user.id).limit(1);
-      if (!active) return;
-      setAccess(!error && grants?.length ? "client" : "unlinked");
-    };
-    void check();
-    const { data: subscription } = supabase.auth.onAuthStateChange(() => { void check(); });
-    return () => { active = false; subscription.subscription.unsubscribe(); };
-  }, []);
+  if (status === "loading") return <div role="status" className="grid h-full place-items-center text-sm text-muted-foreground">Preparando sua página…</div>;
+  if (status === "client") return <Navigate to="/cliente"/>;
+  if (status === "admin") return <Navigate to="/admin"/>;
 
-  if (access === "loading") {
-    return <div role="status" className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
-      Preparando sua página…
-    </div>;
-  }
+  return <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col gap-5 lg:gap-6">
+    {status === "unlinked" && <p role="status" className="rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm">
+      Sua conta está conectada, mas ainda não há um prontuário vinculado. Solicite o acesso ao administrador.
+    </p>}
 
-  if (access === "client") {
-    return <div className="mx-auto flex min-h-full w-full max-w-none flex-col overflow-visible">
-      <ClientHomeSummary />
-    </div>;
-  }
-
-  return <div className="public-homepage mx-auto flex min-h-full w-full max-w-[1160px] flex-col items-start gap-3 pb-2 lg:h-full lg:min-h-0 lg:overflow-hidden">
-    <section aria-labelledby="public-home-title" className="public-hero relative isolate mr-auto flex min-h-[440px] w-full max-w-[850px] flex-col overflow-hidden rounded-[28px] border border-[#9ecdd8]/70 bg-gradient-to-br from-[#edf9fb] via-[#d8eff3] to-[#b8e2e7] text-[#153748] shadow-[0_25px_65px_-40px_rgba(14,78,91,.45)] dark:border-[#7cb3bf]/25 dark:from-[#172b36] dark:via-[#183e49] dark:to-[#265962] dark:text-white lg:min-h-0 lg:flex-1">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-24 -top-28 size-80 rounded-full bg-[#5bcecd]/20 blur-[75px]"/>
-        <div className="absolute -bottom-44 right-0 size-[450px] rounded-full bg-[#8cddd5]/25 blur-[90px] dark:bg-[#6fd6c5]/10"/>
-        <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-transparent via-[#4eb5ae]/60 to-transparent"/>
-      </div>
-      <div className="relative grid min-h-0 flex-1 items-center gap-0 md:grid-cols-[minmax(0,0.90fr)_minmax(0,1.10fr)]">
-        <div className="public-hero-art relative flex min-h-0 items-center justify-center overflow-hidden px-5 pb-1 pt-5 sm:px-6 md:h-full md:p-4">
-          <div aria-hidden="true" className="pointer-events-none absolute aspect-square w-[min(78%,340px)] rounded-full border border-[#57bac4]/20 bg-white/20 shadow-[0_0_0_24px_rgba(113,200,205,.045)] dark:border-white/10 dark:bg-white/5"/>
-          <img src="/images/caredigital-health-illustration.svg" width={780} height={540} loading="eager" decoding="async"
-            alt="Ilustração vetorial de prontuário, medicação, hidratação e agenda de cuidados"
-            className="relative block h-auto max-h-[225px] w-full max-w-[410px] object-contain drop-shadow-[0_16px_32px_rgba(10,57,73,.14)] sm:max-h-[280px] md:max-h-[min(43dvh,355px)]"/>
+    <section aria-labelledby="home-title" className="grid flex-1 items-center gap-8 lg:grid-cols-[1.05fr_.95fr] lg:gap-10">
+      <div>
+        <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">
+          <ShieldCheck size={14}/> Acompanhamento individual e protegido
+        </span>
+        <h1 id="home-title" className="mt-4 text-balance text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl">
+          Sua rotina de cuidados, <span className="text-primary">organizada em um só lugar.</span>
+        </h1>
+        <p className="mt-4 max-w-[52ch] text-base leading-relaxed text-muted-foreground">
+          Medicações, refeições e hidratação com horários, lembretes e registros confiáveis — para você e para quem acompanha o seu tratamento.
+        </p>
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <Link to="/entrar" className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110">
+            <LockKeyhole size={17}/> Acessar minha conta <ArrowRight size={16}/>
+          </Link>
+          <Link to="/protocolos" className="inline-flex h-11 items-center gap-2 rounded-xl border border-border bg-surface px-5 text-sm font-semibold transition-colors hover:border-primary/40 hover:bg-accent">
+            Como funciona
+          </Link>
         </div>
-        <div className="public-hero-copy relative z-10 flex min-w-0 flex-col justify-center px-5 pb-7 pt-3 sm:px-7 md:py-5 md:pl-2 md:pr-6">
-          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#7dbcc4]/50 bg-white/45 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[.13em] text-[#216177] dark:border-white/20 dark:bg-white/10 dark:text-[#b7f0ea]"><Sparkles size={13}/> CareDigital · rotina conectada</span>
-          <h1 id="public-home-title" className="mt-4 max-w-[19ch] text-balance font-display text-[2.65rem] leading-[1.12] tracking-tight text-[#14384d] dark:text-white sm:text-[2.85rem] lg:text-[3rem]">
-            Seu cuidado, <span className="block text-primary dark:text-[#91e8df]">em um só lugar.</span>
-          </h1>
-          <p className="mt-3 max-w-[47ch] text-[13px] leading-relaxed text-[#3b6376] dark:text-[#d1e5e8] sm:text-sm">
-            Medicações, refeições e hidratação com horários, lembretes e registros organizados para sua rotina.
-          </p>
-          <div className="public-hero-actions mt-5 flex flex-wrap items-center gap-2.5">
-            {access==="admin"
-              ? <Link to="/prontuario" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#185d73] px-4 py-2.5 text-[13px] font-extrabold !text-white shadow-[0_8px_22px_-13px_rgba(5,50,68,.5)] transition hover:bg-[#23788c] dark:bg-primary dark:!text-primary-foreground dark:hover:bg-[#a9f0e1]"><ClipboardList size={17}/> Abrir prontuários <ArrowRight size={15}/></Link>
-              : <Link to="/entrar" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#185d73] px-4 py-2.5 text-[13px] font-extrabold !text-white shadow-[0_8px_22px_-13px_rgba(5,50,68,.5)] transition hover:bg-[#23788c] dark:bg-primary dark:!text-primary-foreground dark:hover:bg-[#a9f0e1]"><LockKeyhole size={17}/> Acessar minha conta <ArrowRight size={15}/></Link>
-            }
-            <Link to={access==="admin"?"/admin":"/protocolos"} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#7fb3be]/60 bg-white/50 px-4 py-2.5 text-[13px] font-bold text-[#23556a] transition hover:border-[#3e9da5] hover:bg-white/80 dark:border-white/25 dark:bg-white/10 dark:text-white dark:hover:bg-white/20">
-              {access==="admin"?"Administração":"Como funciona"} <ChevronRight size={16}/>
-            </Link>
-          </div>
-          <div className="public-hero-trust mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-[#76b1bd]/25 pt-3 text-[11px] font-semibold text-[#4d7281] dark:border-white/15 dark:text-[#c3dce0]">
-            <span className="inline-flex items-center gap-1.5"><Clock3 size={14}/> Rotina por horários</span>
-            <span className="inline-flex items-center gap-1.5"><HeartPulse size={14}/> Acompanhamento pessoal</span>
-            <span className="inline-flex items-center gap-1.5"><ShieldCheck size={14}/> Acesso protegido</span>
-          </div>
-        </div>
+        <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-muted-foreground">
+          <li className="inline-flex items-center gap-1.5"><CalendarCheck size={15} className="text-primary"/> Rotina por horários</li>
+          <li className="inline-flex items-center gap-1.5"><Clock3 size={15} className="text-primary"/> Registro com hora real</li>
+          <li className="inline-flex items-center gap-1.5"><ShieldCheck size={15} className="text-primary"/> Acesso individual</li>
+        </ul>
       </div>
+      <DashboardPreview/>
     </section>
 
-    <section aria-label="Conheça os recursos da plataforma" className="grid w-full max-w-[850px] shrink-0 gap-2.5 sm:grid-cols-3">
-      {[
-        {to:"/medicamentos",title:"Medicações",description:"Horários, lembretes e tomadas.",icon:Pill},
-        {to:"/dietas",title:"Alimentação",description:"Refeições e rotina alimentar.",icon:Utensils},
-        {to:"/hidratacao",title:"Hidratação",description:"Meta de água e acompanhamento.",icon:Droplets},
-      ].map(({to,title,description,icon:Icon})=>(
-        <Link key={to} to={to} className="public-feature-card group relative flex min-h-[94px] min-w-0 items-center gap-3 overflow-hidden rounded-[20px] border border-border bg-card/95 p-3.5 shadow-[0_7px_22px_-17px_rgba(20,65,78,.45)] transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-card hover:shadow-lg sm:p-4">
-          <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground"><Icon size={23} strokeWidth={1.9}/></span>
-          <span className="min-w-0 flex-1"><strong className="block text-[14px] font-extrabold text-foreground sm:text-[15px]">{title}</strong><span className="mt-1 block text-[11px] leading-snug text-muted-foreground sm:text-xs">{description}</span></span>
-          <span className="grid size-8 shrink-0 place-items-center rounded-full bg-muted/80 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:bg-primary/10 group-hover:text-primary"><ArrowRight size={17}/></span>
+    <section aria-label="Recursos da plataforma" className="grid shrink-0 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {features.map(({ to, title, description, icon: Icon, tone }) => (
+        <Link key={title} to={to} className="group flex items-start gap-3 rounded-2xl border border-border bg-card p-4 shadow-card transition hover:-translate-y-0.5 hover:border-primary/40">
+          <span className={`grid size-10 shrink-0 place-items-center rounded-xl ${tone}`}><Icon size={20}/></span>
+          <span className="min-w-0">
+            <strong className="flex items-center gap-1 font-display text-sm font-bold">{title} <ArrowRight size={14} className="opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100"/></strong>
+            <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">{description}</span>
+          </span>
         </Link>
       ))}
     </section>
+
+    <footer className="shrink-0 border-t border-border pt-3 text-center text-xs text-muted-foreground">
+      CareDigital · Desenvolvido por <strong className="font-semibold text-foreground">Franc D&apos;nis</strong> · Feijó, Acre
+    </footer>
   </div>;
 }

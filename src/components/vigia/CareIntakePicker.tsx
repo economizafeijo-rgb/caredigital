@@ -34,7 +34,7 @@ type Props=CommonProps&(
 export function CareIntakePicker(props:Props){
   const values=props.group==="food"?foodKinds:beverageKinds;
   return <fieldset className="min-w-0">
-    <legend className="mb-1.5 text-[11px] font-extrabold text-foreground">
+    <legend className="mb-1.5 text-[11px] font-bold text-foreground">
       {props.label??(props.group==="food"?"Categoria alimentar":"Tipo de bebida")}
     </legend>
     <div className={"care-intake-choices grid min-w-0 grid-cols-3 gap-1.5 sm:grid-cols-4 "+(props.compact?"care-intake-choices-compact":"")}>
@@ -51,7 +51,7 @@ export function CareIntakePicker(props:Props){
             (chosen?"border-primary bg-primary/10 text-primary shadow-[inset_0_0_0_1px_hsl(var(--primary)/.18)]":
               "border-border bg-muted/25 text-foreground hover:border-primary/45 hover:bg-muted/50")}>
           <Icon size={props.compact?19:21} className="shrink-0" strokeWidth={1.85}/>
-          <span className="line-clamp-2 text-[10px] font-bold leading-tight">{item.label}</span>
+          <span className="line-clamp-2 text-[11px] font-bold leading-tight">{item.label}</span>
         </button>;
       })}
     </div>

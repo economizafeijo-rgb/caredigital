@@ -123,58 +123,58 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
   finally{setSaving(false);}
  }
  const input=(label:string,value:string,set:(v:string)=>void,placeholder:string)=>(
-  <label className="min-w-0 text-xs font-semibold text-slate-100">{label}
+  <label className="min-w-0 text-xs font-semibold text-foreground">{label}
    <input inputMode="decimal" value={value} onChange={e=>{set(e.target.value);setConfirmMismatch(false);}} placeholder={placeholder}
-    className="mt-1 block min-h-10 w-full min-w-0 max-w-full rounded-lg border border-white/20 bg-slate-900/70 px-3 text-base text-white outline-offset-2 focus:border-teal-300"/>
+    className="mt-1 block min-h-10 w-full min-w-0 max-w-full rounded-lg border border-border bg-card px-3 text-base text-foreground outline-offset-2 focus:border-primary/30"/>
   </label>);
- return <section className="care-health-profile relative z-20 flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border border-teal-300/35 bg-[#12313c] p-4 text-white shadow-xl" aria-label="Meu perfil de saúde">
-  <div className="mb-3 flex items-start justify-between gap-2"><div className="min-w-0"><h3 className="flex items-center gap-2 text-lg font-extrabold"><Activity size={19}/> Meu Perfil de Saúde</h3><p className="mt-1 text-xs text-slate-300">Dados usados nos indicadores da homepage. Metas personalizadas têm prioridade sobre estimativas.</p></div><button type="button" onClick={onClose} aria-label="Fechar perfil" className="shrink-0 rounded-lg border border-white/20 p-2"><X size={17}/></button></div>
-  <div className="mb-3 grid grid-cols-4 gap-1 rounded-xl border border-white/15 bg-slate-950/30 p-1" role="tablist" aria-label="Seções do perfil">
-   {([{id:"dados",label:"Dados"},{id:"metas",label:"Metas"},{id:"historico",label:"Evolução"},{id:"orientacoes",label:"Orientações"}] as const).map(item=><button key={item.id} role="tab" aria-selected={tab===item.id} type="button" onClick={()=>setTab(item.id)} className={"min-w-0 rounded-lg px-1 py-2 text-[11px] font-bold sm:text-xs "+(tab===item.id?"bg-teal-300 text-slate-950":"text-slate-200 hover:bg-white/10")}>{item.label}</button>)}
+ return <div className="fixed inset-0 z-[9990] flex items-center justify-center bg-slate-950/60 p-3 backdrop-blur-sm" onMouseDown={event=>{if(event.target===event.currentTarget)onClose();}}><section role="dialog" aria-modal="true" className="care-health-profile flex w-full max-w-3xl min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-card p-4 text-foreground shadow-pop sm:p-5" aria-label="Meu perfil de saúde">
+  <div className="mb-3 flex items-start justify-between gap-2"><div className="min-w-0"><h3 className="flex items-center gap-2 text-lg font-bold"><Activity size={19}/> Meu Perfil de Saúde</h3><p className="mt-1 text-xs text-muted-foreground">Dados usados nos indicadores da homepage. Metas personalizadas têm prioridade sobre estimativas.</p></div><button type="button" onClick={onClose} aria-label="Fechar perfil" className="shrink-0 rounded-lg border border-border p-2"><X size={17}/></button></div>
+  <div className="mb-3 grid grid-cols-4 gap-1 rounded-xl border border-border bg-muted p-1" role="tablist" aria-label="Seções do perfil">
+   {([{id:"dados",label:"Dados"},{id:"metas",label:"Metas"},{id:"historico",label:"Evolução"},{id:"orientacoes",label:"Orientações"}] as const).map(item=><button key={item.id} role="tab" aria-selected={tab===item.id} type="button" onClick={()=>setTab(item.id)} className={"min-w-0 rounded-lg px-1 py-2 text-[11px] font-bold sm:text-xs "+(tab===item.id?"bg-primary text-primary-foreground":"text-foreground hover:bg-muted")}>{item.label}</button>)}
   </div>
   <div className="care-health-profile-panels min-h-0 flex-1 overflow-y-auto pr-1">
   {tab==="dados"&&<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
    {input("Peso atual (kg)",weight,setWeight,"Ex.: 75")}
    {input("Objetivo de peso (kg) · opcional",targetWeight,setTargetWeight,"Ex.: 70")}
-   <label className="text-xs font-semibold text-slate-100">Altura cadastrada (cm)<div className="mt-1 flex min-h-10 items-center rounded-lg border border-white/15 bg-slate-900/40 px-3 text-sm">{initial.height??"Não informada"}</div><small className="text-slate-300">Alteração pelo cadastro do prontuário.</small></label>
+   <label className="text-xs font-semibold text-foreground">Altura cadastrada (cm)<div className="mt-1 flex min-h-10 items-center rounded-lg border border-border bg-card px-3 text-sm">{initial.height??"Não informada"}</div><small className="text-muted-foreground">Alteração pelo cadastro do prontuário.</small></label>
    {input("Idade (anos)",age,setAge,"Ex.: 30")}
-   <label className="text-xs font-semibold text-slate-100">Atividade física diária estimada
-    <select value={activityMinutes} onChange={e=>setActivityMinutes(e.target.value)} className="mt-1 block min-h-10 w-full min-w-0 rounded-lg border border-white/20 bg-slate-900 px-2 text-sm text-white">
+   <label className="text-xs font-semibold text-foreground">Atividade física diária estimada
+    <select value={activityMinutes} onChange={e=>setActivityMinutes(e.target.value)} className="mt-1 block min-h-10 w-full min-w-0 rounded-lg border border-border bg-card px-2 text-sm text-foreground">
      {[{value:"0",label:"Baixa · menos de 20 min/dia"},{value:"30",label:"Leve · 20–44 min/dia"},{value:"60",label:"Moderada · 45–89 min/dia"},{value:"100",label:"Alta · 90 min ou mais/dia"}].map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
     </select>
-    <small className="text-slate-300">Fator energético aproximado: ×{activityFactor.toLocaleString("pt-BR")}. Atividade diária não substitui avaliação profissional.</small>
+    <small className="text-muted-foreground">Fator energético aproximado: ×{activityFactor.toLocaleString("pt-BR")}. Atividade diária não substitui avaliação profissional.</small>
    </label>
-   <label className="text-xs font-semibold text-slate-100">Objetivo alimentar<select value={objective} onChange={e=>{setObjective(e.target.value);setConfirmMismatch(false);}} className="mt-1 block min-h-10 w-full min-w-0 rounded-lg border border-white/20 bg-slate-900 px-2 text-base text-white">{goals.map(([v,label])=><option key={v} value={v}>{label}</option>)}</select></label>
+   <label className="text-xs font-semibold text-foreground">Objetivo alimentar<select value={objective} onChange={e=>{setObjective(e.target.value);setConfirmMismatch(false);}} className="mt-1 block min-h-10 w-full min-w-0 rounded-lg border border-border bg-card px-2 text-base text-foreground">{goals.map(([v,label])=><option key={v} value={v}>{label}</option>)}</select></label>
   </div>}
   {tab==="metas"&&<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-   <div className="col-span-full rounded-lg border border-teal-300/20 bg-teal-300/10 p-3 text-xs">Referências iniciais por peso para {selectedGoal.label.toLowerCase()}: proteína {suggestedProtein??"—"} g · carboidratos {suggestedCarbs??"—"} g · gorduras {suggestedFat??"—"} g · energia correspondente {suggestedKcal?.toLocaleString("pt-BR")??"—"} kcal. Não representam necessariamente déficit ou superávit energético: para isso é preciso estimar manutenção com sexo, idade, altura e atividade. Campos preenchidos manualmente têm prioridade.</div>
+   <div className="col-span-full rounded-lg border border-primary/30 bg-accent p-3 text-xs">Referências iniciais por peso para {selectedGoal.label.toLowerCase()}: proteína {suggestedProtein??"—"} g · carboidratos {suggestedCarbs??"—"} g · gorduras {suggestedFat??"—"} g · energia correspondente {suggestedKcal?.toLocaleString("pt-BR")??"—"} kcal. Não representam necessariamente déficit ou superávit energético: para isso é preciso estimar manutenção com sexo, idade, altura e atividade. Campos preenchidos manualmente têm prioridade.</div>
    {input("Meta de proteína (g/dia) · opcional",protein,setProtein,"Automática")}
    {input("Meta de carboidratos (g/dia) · opcional",carbs,setCarbs,"Automática")}
    {input("Meta de gorduras (g/dia) · opcional",fat,setFat,"Automática")}
    {input("Meta energética (kcal/dia) · opcional",kcal,setKcal,"Não definida")}
   </div>}
-  {tab==="dados"&&<div className="mt-3 rounded-xl border border-teal-300/25 bg-slate-950/35 p-3" aria-label="Métricas de peso corporal">
-   <div className="flex flex-wrap items-center justify-between gap-2"><strong className="text-sm">Peso e evolução corporal</strong><span className="text-xs text-slate-300">{targetLoading?"Carregando objetivo…":weightGap===null?"Informe seu objetivo de peso":Math.abs(weightGap)<0.05?"Objetivo atingido":`${Math.abs(weightGap).toFixed(1).replace(".",",")} kg ${weightGap<0?"para reduzir":"para ganhar"}`}</span></div>
+  {tab==="dados"&&<div className="mt-3 rounded-xl border border-primary/30 bg-muted p-3" aria-label="Métricas de peso corporal">
+   <div className="flex flex-wrap items-center justify-between gap-2"><strong className="text-sm">Peso e evolução corporal</strong><span className="text-xs text-muted-foreground">{targetLoading?"Carregando objetivo…":weightGap===null?"Informe seu objetivo de peso":Math.abs(weightGap)<0.05?"Objetivo atingido":`${Math.abs(weightGap).toFixed(1).replace(".",",")} kg ${weightGap<0?"para reduzir":"para ganhar"}`}</span></div>
    <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-    {([["Peso atual",currentKg>0?`${currentKg.toLocaleString("pt-BR")} kg`:"—"],["Peso desejado",goalKg>0?`${goalKg.toLocaleString("pt-BR")} kg`:"—"],["IMC atual",currentBmi?.toFixed(1).replace(".",",")??"—"],["IMC no objetivo",targetBmi?.toFixed(1).replace(".",",")??"—"]] as const).map(([label,value])=><div key={label} className="rounded-lg border border-white/10 bg-white/5 p-2"><span className="block text-[11px] text-slate-300">{label}</span><strong className="mt-1 block text-base">{value}</strong></div>)}
+    {([["Peso atual",currentKg>0?`${currentKg.toLocaleString("pt-BR")} kg`:"—"],["Peso desejado",goalKg>0?`${goalKg.toLocaleString("pt-BR")} kg`:"—"],["IMC atual",currentBmi?.toFixed(1).replace(".",",")??"—"],["IMC no objetivo",targetBmi?.toFixed(1).replace(".",",")??"—"]] as const).map(([label,value])=><div key={label} className="rounded-lg border border-border bg-muted p-2"><span className="block text-[11px] text-muted-foreground">{label}</span><strong className="mt-1 block text-base">{value}</strong></div>)}
    </div>
-   <p className="mt-2 text-xs leading-relaxed text-slate-300">O objetivo é uma referência pessoal, não uma recomendação clínica. O IMC é um indicador limitado e não avalia composição corporal.</p>
+   <p className="mt-2 text-xs leading-relaxed text-muted-foreground">O objetivo é uma referência pessoal, não uma recomendação clínica. O IMC é um indicador limitado e não avalia composição corporal.</p>
   </div>}
-  {tab==="metas"&&<div className="mt-3 rounded-xl border border-white/15 bg-slate-950/35 p-3" aria-label="Conferência das metas nutricionais">
-   <div className="flex flex-wrap items-center justify-between gap-2"><strong className="text-sm">Conferência das metas</strong><span className="text-xs text-slate-300">{previewTotal!==null?previewTotal.toLocaleString("pt-BR")+" kcal pelos macros":"Preencha os três macros para calcular a energia"}</span></div>
-   {previewTotal!==null&&<div className="mt-3 flex h-2.5 w-full overflow-hidden rounded-full bg-slate-700" role="img" aria-label="Distribuição das calorias entre proteínas, carboidratos e gorduras">
-    <span style={{width:(previewProtein!*4/previewTotal*100)+"%",background:"#8ce8df"}}/>
-    <span style={{width:(previewCarbs!*4/previewTotal*100)+"%",background:"#f7d38b"}}/>
-    <span style={{width:(previewFat!*9/previewTotal*100)+"%",background:"#c5b3f6"}}/>
+  {tab==="metas"&&<div className="mt-3 rounded-xl border border-border bg-muted p-3" aria-label="Conferência das metas nutricionais">
+   <div className="flex flex-wrap items-center justify-between gap-2"><strong className="text-sm">Conferência das metas</strong><span className="text-xs text-muted-foreground">{previewTotal!==null?previewTotal.toLocaleString("pt-BR")+" kcal pelos macros":"Preencha os três macros para calcular a energia"}</span></div>
+   {previewTotal!==null&&<div className="mt-3 flex h-2.5 w-full overflow-hidden rounded-full bg-muted" role="img" aria-label="Distribuição das calorias entre proteínas, carboidratos e gorduras">
+    <span style={{width:(previewProtein!*4/previewTotal*100)+"%",background:"var(--meal)"}}/>
+    <span style={{width:(previewCarbs!*4/previewTotal*100)+"%",background:"var(--warning)"}}/>
+    <span style={{width:(previewFat!*9/previewTotal*100)+"%",background:"var(--med)"}}/>
    </div>}
-   {previewDifference!==null&&Math.abs(previewDifference)>100&&<p role="status" className="mt-2 rounded-lg border border-amber-300/40 bg-amber-400/10 p-2 text-xs text-amber-100">A soma dos macros está {Math.abs(previewDifference).toLocaleString("pt-BR")} kcal {previewDifference>0?"acima":"abaixo"} da meta energética. Confira antes de salvar.</p>}
-   <p className="mt-2 text-xs text-slate-300">Prévia calculada a partir das metas digitadas; não representa consumo real.</p>
+   {previewDifference!==null&&Math.abs(previewDifference)>100&&<p role="status" className="mt-2 rounded-lg border border-amber-300/40 bg-amber-400/10 p-2 text-xs text-warning">A soma dos macros está {Math.abs(previewDifference).toLocaleString("pt-BR")} kcal {previewDifference>0?"acima":"abaixo"} da meta energética. Confira antes de salvar.</p>}
+   <p className="mt-2 text-xs text-muted-foreground">Prévia calculada a partir das metas digitadas; não representa consumo real.</p>
   </div>}
-  {tab==="metas"&&<p className="mt-3 text-xs leading-relaxed text-slate-300">Campos de metas vazios usam referências educativas. Metas calóricas e restrições de líquidos exigem avaliação individual. A altura e a prescrição de água permanecem sob controle do prontuário.</p>}
-  {message&&<p role="status" className="mt-3 rounded-lg border border-teal-300/25 bg-slate-900/50 p-2 text-xs">{message}</p>}
+  {tab==="metas"&&<p className="mt-3 text-xs leading-relaxed text-muted-foreground">Campos de metas vazios usam referências educativas. Metas calóricas e restrições de líquidos exigem avaliação individual. A altura e a prescrição de água permanecem sob controle do prontuário.</p>}
+  {message&&<p role="status" className="mt-3 rounded-lg border border-primary/30 bg-card p-2 text-xs">{message}</p>}
   {tab==="historico"&&<ClientBodyHistory patientId={patientId} ownerId={ownerId} currentWeight={initial.weight} height={initial.height}/>}
-  {tab==="orientacoes"&&<section className="space-y-3 rounded-xl border border-teal-300/20 bg-slate-950/30 p-4"><h4 className="text-base font-extrabold">Estratégias para {selectedGoal.label.toLowerCase()}</h4><p className="text-xs text-slate-300">Sugestões gerais de alimentação e hábitos. Restrições, sintomas e condições clínicas devem ser avaliados individualmente.</p><ul className="list-disc space-y-2 pl-5 text-sm">{selectedGoal.advice.map(item=><li key={item}>{item}</li>)}</ul><div className="rounded-lg border border-white/15 bg-white/5 p-3 text-xs">Referências diárias por peso: proteínas {suggestedProtein??"—"} g · carboidratos {suggestedCarbs??"—"} g · gorduras {suggestedFat??"—"} g. A energia correspondente não equivale a gasto energético nem determina déficit ou superávit.</div></section>}
+  {tab==="orientacoes"&&<section className="space-y-3 rounded-xl border border-primary/30 bg-muted p-4"><h4 className="text-base font-bold">Estratégias para {selectedGoal.label.toLowerCase()}</h4><p className="text-xs text-muted-foreground">Sugestões gerais de alimentação e hábitos. Restrições, sintomas e condições clínicas devem ser avaliados individualmente.</p><ul className="list-disc space-y-2 pl-5 text-sm">{selectedGoal.advice.map(item=><li key={item}>{item}</li>)}</ul><div className="rounded-lg border border-border bg-muted p-3 text-xs">Referências diárias por peso: proteínas {suggestedProtein??"—"} g · carboidratos {suggestedCarbs??"—"} g · gorduras {suggestedFat??"—"} g. A energia correspondente não equivale a gasto energético nem determina déficit ou superávit.</div></section>}
   </div>
-  <div className="mt-2 flex shrink-0 flex-wrap justify-end gap-2 border-t border-white/10 pt-2"><button type="button" onClick={onClose} className="rounded-lg border border-white/25 px-4 py-2 text-sm">Fechar</button><button type="button" disabled={saving} onClick={()=>void save()} className="inline-flex items-center gap-2 rounded-lg bg-teal-300 px-4 py-2 text-sm font-bold text-slate-950 disabled:opacity-50"><Save size={15}/>{saving?"Salvando…":confirmMismatch?"Confirmar e salvar":"Salvar perfil"}</button></div>
- </section>;
+  <div className="mt-2 flex shrink-0 flex-wrap justify-end gap-2 border-t border-border pt-2"><button type="button" onClick={onClose} className="rounded-lg border border-border px-4 py-2 text-sm">Fechar</button><button type="button" disabled={saving} onClick={()=>void save()} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"><Save size={15}/>{saving?"Salvando…":confirmMismatch?"Confirmar e salvar":"Salvar perfil"}</button></div>
+ </section></div>;
 }

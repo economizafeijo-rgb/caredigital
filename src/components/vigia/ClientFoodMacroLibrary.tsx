@@ -215,34 +215,34 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
     const total=totals[key],daily=currentTarget(key);
     const percentage=daily?Math.min(100,Math.round(100*total/daily)):0;
     return <div key={key} className="min-w-0 rounded-xl border border-border bg-muted/40 p-2.5">
-     <span className="block truncate text-[10px] font-bold text-muted-foreground">{labels[key]} hoje</span>
-     <strong className="mt-0.5 block text-base font-extrabold tabular-nums">{format(total)}{key==="kcal"?" kcal":" g"}</strong>
-     <span className="block text-[10px] text-muted-foreground">{daily?"meta "+format(daily)+(key==="kcal"?" kcal":" g"):"meta não definida"}</span>
+     <span className="block truncate text-[11px] font-bold text-muted-foreground">{labels[key]} hoje</span>
+     <strong className="mt-0.5 block text-base font-bold tabular-nums">{format(total)}{key==="kcal"?" kcal":" g"}</strong>
+     <span className="block text-[11px] text-muted-foreground">{daily?"meta "+format(daily)+(key==="kcal"?" kcal":" g"):"meta não definida"}</span>
      <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-muted"><i className="block h-full rounded-full bg-emerald-500" style={{width:percentage+"%"}}/></span>
     </div>;
    })}
   </div>
   <section className="shrink-0 rounded-xl border border-emerald-500/30 bg-emerald-500/[.06] p-3" aria-label="Montar e registrar refeição">
-   <div className="flex flex-wrap items-center justify-between gap-2"><div><h4 className="text-sm font-extrabold">Montar minha refeição</h4><p className="text-[10px] text-muted-foreground">Escolha alimentos na biblioteca, informe as gramas e adicione à refeição.</p></div>
+   <div className="flex flex-wrap items-center justify-between gap-2"><div><h4 className="text-sm font-bold">Montar minha refeição</h4><p className="text-[11px] text-muted-foreground">Escolha alimentos na biblioteca, informe as gramas e adicione à refeição.</p></div>
     <select aria-label="Tipo de refeição" value={mealName} onChange={e=>setMealName(e.target.value)} className="rounded-lg border border-border bg-background p-2 text-xs">{["Café da manhã","Lanche da manhã","Almoço","Lanche da tarde","Jantar","Ceia","Outra refeição"].map(x=><option key={x}>{x}</option>)}</select>
    </div>
    <div className="mt-2 flex flex-wrap gap-2">
     <button type="button" onClick={addToMeal} disabled={saving||!food||!perPortion} className="rounded-lg border border-emerald-500/40 px-3 py-2 text-xs font-bold disabled:opacity-50">+ Adicionar alimento e porção</button>
-    <button type="button" onClick={()=>void recordMeal()} disabled={saving||!mealBasket.length} className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-50">{saving?"Registrando…":editingMeal?"Salvar alterações da refeição":"Confirmar refeição consumida"}</button>
+    <button type="button" onClick={()=>void recordMeal()} disabled={saving||!mealBasket.length} className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-foreground disabled:opacity-50">{saving?"Registrando…":editingMeal?"Salvar alterações da refeição":"Confirmar refeição consumida"}</button>
    </div>
    {mealBasket.length>0&&<div className="mt-2 space-y-1">{mealBasket.map((item,index)=><div key={index} className="flex items-center justify-between gap-2 rounded-lg bg-background/60 px-2 py-1 text-xs"><span>{item.name} · {format(item.grams)} g</span><button type="button" disabled={saving} onClick={()=>{setMealBasket(items=>items.filter((_,i)=>i!==index));mealRequestIds.current=[];}} className="font-bold text-red-500" aria-label={"Remover "+item.name}>Remover</button></div>)}</div>}
    <p className="mt-2 text-xs font-semibold">Prévia da refeição: {format(basketTotals.kcal)} kcal · Proteínas {format(basketTotals.protein)} g · Carboidratos {format(basketTotals.carbs)} g · Gorduras {format(basketTotals.fat)} g · Fibras {format(basketTotals.fiber)} g</p>
    {editingMeal&&<button type="button" disabled={saving} onClick={()=>{setEditingMeal(null);setMealBasket([]);mealRequestIds.current=[];}} className="mt-1 text-xs font-bold underline">Cancelar edição</button>}
    {savedMeals.length>0&&<div className="mt-3 border-t border-border pt-2"><h5 className="text-xs font-bold">Refeições registradas hoje</h5><div className="mt-1 max-h-32 space-y-1 overflow-y-auto">{savedMeals.map(group=><div key={group.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-background/60 px-2 py-1 text-xs"><span>{group.name} · {stamp(group.recorded_at)}</span><div className="flex gap-2"><button type="button" disabled={saving} onClick={()=>void editMeal(group)} className="font-bold text-emerald-600">Editar</button><button type="button" disabled={saving} onClick={()=>void deleteMeal(group)} className="font-bold text-red-500">Excluir</button></div></div>)}</div></div>}
-   <p className="text-[10px] text-muted-foreground">Apenas alimentos efetivamente consumidos são registrados. Não confirma automaticamente tarefas agendadas.</p>
+   <p className="text-[11px] text-muted-foreground">Apenas alimentos efetivamente consumidos são registrados. Não confirma automaticamente tarefas agendadas.</p>
   </section>
   <div className="grid min-h-0 flex-1 gap-2 lg:grid-cols-[minmax(0,1.12fr)_minmax(300px,.88fr)]">
    <section className="min-h-0 min-w-0 overflow-y-auto rounded-xl border border-border bg-card/70 p-3">
     <div className="flex items-center justify-between gap-2">
-     <div><h4 className="text-sm font-extrabold">Biblioteca de alimentos e nutrientes</h4><p className="text-[10px] text-muted-foreground">Valores aproximados por 100 g da porção comestível e preparo especificado</p></div>
-     <span className="shrink-0 rounded-full bg-primary/10 px-2 py-1 text-[10px] font-bold text-primary">{foods.length} alimentos</span>
+     <div><h4 className="text-sm font-bold">Biblioteca de alimentos e nutrientes</h4><p className="text-[11px] text-muted-foreground">Valores aproximados por 100 g da porção comestível e preparo especificado</p></div>
+     <span className="shrink-0 rounded-full bg-primary/10 px-2 py-1 text-[11px] font-bold text-primary">{foods.length} alimentos</span>
     </div>
-    {sourceError&&<div role="status" className="mt-1 flex items-center justify-between gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 p-2 text-[10px] text-amber-600"><span>{sourceError}</span><button type="button" onClick={()=>setRefresh(v=>v+1)} className="shrink-0 rounded-md border border-amber-500/30 px-2 py-1 font-bold">Tentar novamente</button></div>}
+    {sourceError&&<div role="status" className="mt-1 flex items-center justify-between gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 p-2 text-[11px] text-amber-600"><span>{sourceError}</span><button type="button" onClick={()=>setRefresh(v=>v+1)} className="shrink-0 rounded-md border border-amber-500/30 px-2 py-1 font-bold">Tentar novamente</button></div>}
     <div className="mt-2 flex flex-wrap gap-1.5">
      <label className="relative flex min-w-[150px] flex-1"><Search size={14} className="absolute left-2.5 top-2.5 text-muted-foreground"/><input
        value={search} onChange={e=>{setSearch(e.target.value);setPage(0);}} type="search"
@@ -258,8 +258,8 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
      return <button type="button" key={f.id} onClick={()=>{setSelected(f.id);requestId.current=null;setNotice("");}}
        aria-pressed={chosen}
        className={"w-full rounded-lg border p-2.5 text-left transition "+(chosen?"border-emerald-500/70 bg-emerald-500/[.09]":"border-border bg-background/45 hover:border-primary/35")}>
-        <span className="block text-xs font-extrabold">{f.name}</span>
-        <span className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-muted-foreground">
+        <span className="block text-xs font-bold">{f.name}</span>
+        <span className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
          <span>P {f.protein===null?"—":format(f.protein)+" g"}</span>
          <span>C {f.carbs===null?"—":format(f.carbs)+" g"}</span>
          <span>G {f.fat===null?"—":format(f.fat)+" g"}</span>
@@ -275,16 +275,16 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
     </nav>
    </section>
    <section className="min-h-0 min-w-0 overflow-y-auto rounded-xl border border-border bg-card/70 p-3">
-    <h4 className="flex items-center gap-1.5 text-sm font-extrabold"><Calculator size={17} className="text-primary"/> Calculadora de alimentos e macronutrientes</h4>
-    <p className="mt-1 text-[10px] text-muted-foreground">Selecione um alimento na biblioteca e descubra quantos gramas forneceriam a quantidade desejada de um nutriente.</p>
+    <h4 className="flex items-center gap-1.5 text-sm font-bold"><Calculator size={17} className="text-primary"/> Calculadora de alimentos e macronutrientes</h4>
+    <p className="mt-1 text-[11px] text-muted-foreground">Selecione um alimento na biblioteca e descubra quantos gramas forneceriam a quantidade desejada de um nutriente.</p>
     {food&&<>
-     <h5 className="mt-3 text-xs font-extrabold">{food.name}</h5>
-     <p className="text-[10px] text-muted-foreground">{food.provenance==="TACO"?"Referência TACO/UNICAMP":food.provenance==="rotulo"?"Rótulo obrigatório":"Estimativa editorial"} · por 100 g</p>
+     <h5 className="mt-3 text-xs font-bold">{food.name}</h5>
+     <p className="text-[11px] text-muted-foreground">{food.provenance==="TACO"?"Referência TACO/UNICAMP":food.provenance==="rotulo"?"Rótulo obrigatório":"Estimativa editorial"} · por 100 g</p>
      <div className="mt-2 grid grid-cols-4 gap-1 rounded-xl border border-border bg-muted/35 p-2">
       {MACROS.map(key=><div key={key} className="min-w-0 text-center">
-       <small className="block truncate text-[9px] text-muted-foreground">{foodMacroLabels[key]}</small>
-       <strong className="block text-[12px] font-extrabold tabular-nums">{food[key]===null?"—":format(food[key]!)}</strong>
-       <small className="block text-[9px] text-muted-foreground">{key==="kcal"?"kcal":"g"}</small>
+       <small className="block truncate text-[11px] text-muted-foreground">{foodMacroLabels[key]}</small>
+       <strong className="block text-[12px] font-bold tabular-nums">{food[key]===null?"—":format(food[key]!)}</strong>
+       <small className="block text-[11px] text-muted-foreground">{key==="kcal"?"kcal":"g"}</small>
       </div>)}
      </div>
      <div className="mt-3 grid grid-cols-2 gap-2">
@@ -298,28 +298,28 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
          onChange={e=>{setPortion(e.target.value);requestId.current=null;}} className="mt-1 h-9 w-full rounded-lg border border-border bg-background px-2 text-xs"/>
       </label>
      </div>
-     {perPortion&&<p className="mt-1 rounded-lg bg-muted/45 px-2 py-1.5 text-[10px]">
+     {perPortion&&<p className="mt-1 rounded-lg bg-muted/45 px-2 py-1.5 text-[11px]">
        Esta porção tem cerca de <strong>{format(perPortion.protein??0)} g P</strong>, <strong>{format(perPortion.carbs??0)} g C</strong>, <strong>{format(perPortion.fat??0)} g G</strong> e <strong>{format(perPortion.kcal??0)} kcal</strong>.
      </p>}
      <div className="mt-3 flex items-center gap-2">
       <input id="macro-target-remaining" type="checkbox" checked={useRemaining} onChange={e=>setUseRemaining(e.target.checked)} className="size-4 accent-emerald-600"/>
       <label htmlFor="macro-target-remaining" className="text-[11px]">Calcular pelo restante da meta diária</label>
      </div>
-     {useRemaining&&target===null&&<p className="mt-1 text-[10px] text-amber-600">Defina uma meta diária abaixo ou use o cálculo por quantidade avulsa.</p>}
+     {useRemaining&&target===null&&<p className="mt-1 text-[11px] text-amber-600">Defina uma meta diária abaixo ou use o cálculo por quantidade avulsa.</p>}
      {!useRemaining&&<label className="mt-2 block text-[11px] font-bold">Quantidade adicional desejada ({macro==="kcal"?"kcal":"g"})
       <input type="number" min=".1" max="10000" step="1" value={desired} onChange={e=>setDesired(e.target.value)}
        className="mt-1 h-9 w-full rounded-lg border border-border bg-background px-2 text-xs"/>
      </label>}
      <div className="mt-2 rounded-xl border border-emerald-500/25 bg-emerald-500/[.075] p-3" aria-live="polite">
-      <p className="text-[10px] font-bold text-muted-foreground">{useRemaining?"Restante da meta":"Nutriente desejado"}</p>
-      <strong className="block text-xl font-extrabold tabular-nums">{needed===null?"Meta não definida":format(needed)+(macro==="kcal"?" kcal":" g")}</strong>
+      <p className="text-[11px] font-bold text-muted-foreground">{useRemaining?"Restante da meta":"Nutriente desejado"}</p>
+      <strong className="block text-xl font-bold tabular-nums">{needed===null?"Meta não definida":format(needed)+(macro==="kcal"?" kcal":" g")}</strong>
       <p className="mt-1 text-[11px] font-semibold">
        {neededGrams===null?"Não calculável para este alimento (valor ausente ou zero).":
         neededGrams===0?"Meta informada já atingida.":"Seriam aproximadamente "+format(neededGrams)+" g de "+food.name+"."}
       </p>
-      {neededGrams!==null&&neededGrams>600&&<p className="mt-1 text-[10px] text-amber-700 dark:text-amber-300"><AlertTriangle size={12} className="mr-1 inline"/> Porção alta. Não tente atingir toda a meta por um único alimento; varie as fontes.</p>}
+      {neededGrams!==null&&neededGrams>600&&<p className="mt-1 text-[11px] text-amber-700 dark:text-amber-300"><AlertTriangle size={12} className="mr-1 inline"/> Porção alta. Não tente atingir toda a meta por um único alimento; varie as fontes.</p>}
      </div>
-     {(simpleWarning||contraindicated)&&<p className="mt-2 rounded-lg border border-amber-500/25 bg-amber-500/[.06] p-2 text-[10px]">
+     {(simpleWarning||contraindicated)&&<p className="mt-2 rounded-lg border border-amber-500/25 bg-amber-500/[.06] p-2 text-[11px]">
       <AlertTriangle size={12} className="mr-1 inline"/>{contraindicated?"Alimento marcado como evitado. ":""}{simpleWarning?"Pode desencadear desconforto no estômago; avalie sua tolerância.":""}
      </p>}
      <button type="button" disabled={saving||!enteredGrams||enteredGrams>2000||!perPortion||food.protein===null||food.carbs===null||food.fat===null||food.kcal===null}
@@ -327,32 +327,32 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
        className="mt-2 flex min-h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-bold text-primary-foreground disabled:opacity-50">
        <ClipboardCheck size={15}/>{saving?"Registrando…":"Registrar este alimento consumido"}
      </button>
-     <p className="mt-1 text-[10px] text-muted-foreground">Registra apenas o alimento realmente consumido com horário do servidor, sem confirmar automaticamente uma refeição programada.</p>
+     <p className="mt-1 text-[11px] text-muted-foreground">Registra apenas o alimento realmente consumido com horário do servidor, sem confirmar automaticamente uma refeição programada.</p>
     </>}
-    <h5 className="mt-3 text-xs font-extrabold">Suas metas diárias de macros</h5>
+    <h5 className="mt-3 text-xs font-bold">Suas metas diárias de macros</h5>
     <div className="mt-1 grid grid-cols-2 gap-2">
-     {MACROS.map(key=><label key={key} className="text-[10px] font-bold">{foodMacroLabels[key]} ({key==="kcal"?"kcal":"g"})
+     {MACROS.map(key=><label key={key} className="text-[11px] font-bold">{foodMacroLabels[key]} ({key==="kcal"?"kcal":"g"})
       <input type="number" step=".1" min={1} max={key==="kcal"?7000:key==="fat"?350:key==="protein"?500:1200}
        placeholder={key==="protein"&&proteinEstimate?"Sugerida: "+proteinEstimate.low:"Definir"}
        value={targets[key]} onChange={e=>changeTarget(key,e.target.value)}
        className="mt-1 h-9 w-full rounded-lg border border-border bg-background px-2 text-xs"/>
      </label>)}
     </div>
-    <p className="mt-1 text-[10px] text-muted-foreground">Use o botão <strong>Salvar preferências</strong> acima para guardar as metas. Apenas proteína tem uma faixa orientativa derivada do peso; calorias, carboidratos e gorduras precisam ser definidos individualmente.</p>
+    <p className="mt-1 text-[11px] text-muted-foreground">Use o botão <strong>Salvar preferências</strong> acima para guardar as metas. Apenas proteína tem uma faixa orientativa derivada do peso; calorias, carboidratos e gorduras precisam ser definidos individualmente.</p>
    </section>
   </div>
   <div className="shrink-0 rounded-lg border border-border bg-muted/25 px-3 py-2">
-    <div className="flex items-center justify-between gap-1"><strong className="text-[11px]">Alimentos estruturados registrados hoje</strong><span className="text-[10px] text-muted-foreground">{logs.length} registros</span></div>
-    <div className="mt-1 flex max-h-20 flex-wrap gap-1.5 overflow-y-auto">{logs.length?logs.slice(0,12).map(log=><div key={log.id} className="flex items-center gap-1 rounded-lg border border-border bg-background px-2 py-1 text-[10px]">
+    <div className="flex items-center justify-between gap-1"><strong className="text-[11px]">Alimentos estruturados registrados hoje</strong><span className="text-[11px] text-muted-foreground">{logs.length} registros</span></div>
+    <div className="mt-1 flex max-h-20 flex-wrap gap-1.5 overflow-y-auto">{logs.length?logs.slice(0,12).map(log=><div key={log.id} className="flex items-center gap-1 rounded-lg border border-border bg-background px-2 py-1 text-[11px]">
      <span>{foods.find(f=>f.id===log.food_id)?.name??log.food_id} · {format(log.grams)} g · {stamp(log.recorded_at)}</span>
      <button type="button" aria-label="Remover consumo" onClick={()=>setToDelete(log)} className="text-destructive"><Trash2 size={12}/></button>
-    </div>):<span className="text-[10px] text-muted-foreground">Nenhum alimento com porção em gramas registrado pela biblioteca hoje.</span>}</div>
-    <p className="mt-1 text-[10px] text-muted-foreground">Refeições registradas apenas em texto não são convertidas em macros para evitar valores inventados.</p>
+    </div>):<span className="text-[11px] text-muted-foreground">Nenhum alimento com porção em gramas registrado pela biblioteca hoje.</span>}</div>
+    <p className="mt-1 text-[11px] text-muted-foreground">Refeições registradas apenas em texto não são convertidas em macros para evitar valores inventados.</p>
   </div>
   {notice&&<p role="status" className="shrink-0 rounded-lg border border-sky-500/25 bg-sky-500/[.05] p-2 text-[11px]">{notice}</p>}
   {toDelete&&<div className="fixed inset-0 z-[11000] grid place-items-center bg-slate-950/70 p-4" role="presentation">
    <section role="dialog" aria-modal="true" aria-label="Excluir registro alimentar" className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-2xl">
-    <h4 className="text-base font-extrabold">Excluir consumo registrado?</h4>
+    <h4 className="text-base font-bold">Excluir consumo registrado?</h4>
     <p className="mt-2 text-xs text-muted-foreground">Esse alimento será retirado dos totais nutricionais de hoje. A exclusão será anotada no histórico. Não desfaz automaticamente alterações anteriores de horário.</p>
     <div className="mt-4 flex gap-2"><button type="button" onClick={()=>setToDelete(null)} disabled={saving} className="flex-1 rounded-lg border border-border p-2 text-xs font-bold">Cancelar</button>
      <button type="button" onClick={()=>void deleteFood()} disabled={saving} className="flex-1 rounded-lg bg-destructive p-2 text-xs font-bold text-destructive-foreground">{saving?"Excluindo…":"Confirmar exclusão"}</button></div>

@@ -1,40 +1,27 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { UserRound, LogIn } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { LogIn, UserRound } from "lucide-react";
 import { HomeClientCard } from "@/components/vigia/HomeClientCard";
+import { useAccess } from "@/lib/use-access";
 
-export const Route = createFileRoute("/cliente")({ component: ClientPage });
+export const Route = createFileRoute("/cliente")({
+  head: () => ({ meta: [{ title: "Meu acompanhamento — CareDigital" }] }),
+  component: ClientPage,
+});
 
 function ClientPage() {
-  const [name, setName] = useState("");
-  const [status, setStatus] = useState<"loading" | "ready" | "guest" | "unlinked">("loading");
-  useEffect(() => {
-    let active = true;
-    const load = async () => {
-      const user = await supabase.auth.getUser();
-      if (!active) return;
-      if (!user.data.user) { setStatus("guest"); setName(""); return; }
-      const grants = await (supabase as any).from("care_patient_access")
-        .select("patient_id").eq("user_id",user.data.user.id).limit(1);
-      if (!active) return;
-      const patientId = grants.data?.[0]?.patient_id;
-      if (grants.error || !patientId) { setStatus("unlinked"); setName(""); return; }
-      const person = await (supabase as any).from("care_patients")
-        .select("full_name").eq("id",patientId).limit(1);
-      if (!active) return;
-      if (person.error || !person.data?.length) { setStatus("unlinked"); return; }
-      setName(person.data[0].full_name || "Cliente");
-      setStatus("ready");
-    };
-    void load();
-    const {data:listener} = supabase.auth.onAuthStateChange(() => { if(active) void load(); });
-    return () => { active = false; listener.subscription.unsubscribe(); };
-  }, []);
-  if (status === "loading") return <div role="status" className="rounded-xl border border-border bg-card p-4 text-sm">Verificando seu acesso…</div>;
-  if (status === "guest") return <section className="mx-auto max-w-lg rounded-2xl border border-border bg-card p-6 text-center"><UserRound className="mx-auto text-primary" size={30}/><h1 className="mt-3 text-xl font-bold">Área do cliente</h1><p className="mt-2 text-sm text-muted-foreground">Entre com sua conta para consultar seu acompanhamento.</p><Link to="/entrar" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground"><LogIn size={17}/> Entrar</Link></section>;
-  if (status === "unlinked") return <section className="mx-auto max-w-lg rounded-2xl border border-border bg-card p-6"><h1 className="text-lg font-bold">Prontuário não vinculado</h1><p className="mt-2 text-sm text-muted-foreground">Sua conta está conectada, mas não foi possível localizar um prontuário autorizado. Solicite acesso ao administrador.</p><Link to="/" className="mt-3 inline-block text-sm font-semibold text-primary underline">Voltar à homepage</Link></section>;
-  return <main className="care-client-route care-client-overview-route mx-0 flex h-full min-h-0 w-full max-w-none flex-col overflow-hidden" aria-label="Área privada do cliente">
-    <HomeClientCard patientName={name}/>
-  </main>;
+  const { status, name } = useAccess();
+  if (status === "loading") return <div role="status" className="grid h-full place-items-center text-sm text-muted-foreground">Verificando seu acesso…</div>;
+  if (status === "public") return <section className="mx-auto mt-10 max-w-md rounded-2xl border border-border bg-card p-8 text-center shadow-card">
+    <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-accent text-accent-foreground"><UserRound size={24}/></span>
+    <h1 className="mt-4 text-xl font-bold">Área do paciente</h1>
+    <p className="mt-2 text-sm text-muted-foreground">Entre com sua conta para consultar seu acompanhamento.</p>
+    <Link to="/entrar" className="mt-5 inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground"><LogIn size={16}/> Entrar</Link>
+  </section>;
+  if (status === "unlinked") return <section className="mx-auto mt-10 max-w-md rounded-2xl border border-border bg-card p-8 shadow-card">
+    <h1 className="text-lg font-bold">Prontuário não vinculado</h1>
+    <p className="mt-2 text-sm text-muted-foreground">Sua conta está conectada, mas não foi possível localizar um prontuário autorizado. Solicite acesso ao administrador.</p>
+    <Link to="/" className="mt-4 inline-block text-sm font-semibold text-primary hover:underline">Voltar ao início</Link>
+  </section>;
+  // O administrador também pode abrir esta área: o painel carrega o primeiro prontuário de sua propriedade.
+  return <HomeClientCard {...(status === "client" ? { patientName: name } : {})}/>;
 }

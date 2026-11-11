@@ -104,7 +104,7 @@ export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,no
   return <div className="care-page-meals care-premium-meals care-meals-responsive flex h-full min-h-0 min-w-0 flex-col gap-3">
     <div className="care-meals-actions flex shrink-0 flex-wrap items-center justify-between gap-2 rounded-2xl border border-emerald-500/25 bg-emerald-500/[.06] p-3">
       <div className="min-w-0">
-        <h3 className="flex items-center gap-2 text-sm font-extrabold text-foreground">
+        <h3 className="flex items-center gap-2 text-sm font-bold text-foreground">
           <UtensilsCrossed size={17} className="text-emerald-600 dark:text-emerald-300"/> Alimentação de hoje
         </h3>
         <p className="mt-0.5 text-[11px] text-muted-foreground">
@@ -121,7 +121,7 @@ export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,no
           {key:"pendentes",label:"Não confirmadas"}
         ] as const).map(option=><button key={option.key} type="button"
           aria-pressed={filter===option.key} onClick={()=>setStatus(option.key)}
-          className={"min-w-0 flex-1 rounded-lg px-2 py-2 text-[10px] font-bold transition-colors sm:text-xs "+
+          className={"min-w-0 flex-1 rounded-lg px-2 py-2 text-[11px] font-bold transition-colors sm:text-xs "+
             (filter===option.key?"bg-primary text-primary-foreground":"text-muted-foreground hover:bg-card")}>
           {option.label}
         </button>)}
@@ -139,11 +139,11 @@ export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,no
     </div>}
     <div className="care-page-meals-list min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
       {filteredExtras.length>0&&<section className="mb-3" aria-label="Refeições e lanches registrados fora da programação">
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><h4 className="text-xs font-extrabold text-foreground">Consumos registrados hoje</h4><span className="rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">{filteredExtras.length} registros avulsos</span></div>
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><h4 className="text-xs font-bold text-foreground">Consumos registrados hoje</h4><span className="rounded-full bg-emerald-500/10 px-2 py-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">{filteredExtras.length} registros avulsos</span></div>
         <div className="grid min-w-0 grid-cols-1 gap-2 md:grid-cols-2">
           {filteredExtras.map(entry=>{const Icon=foodIcon(entry.details?.title??"Refeição");return <article key={entry.id} className="flex min-w-0 items-start gap-3 rounded-2xl border border-emerald-500/25 bg-emerald-500/[.055] p-3">
             <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"><Icon size={20}/></span>
-            <div className="min-w-0 flex-1"><h5 className="text-xs font-extrabold text-foreground">{entry.details?.title??"Consumo avulso"}</h5>
+            <div className="min-w-0 flex-1"><h5 className="text-xs font-bold text-foreground">{entry.details?.title??"Consumo avulso"}</h5>
               <p className="mt-1 text-[11px] text-muted-foreground">{reminderClock(entry.happened_at)} · Registrado fora da programação</p>
               <p className="mt-1 break-words text-xs text-foreground">{entry.details?.description??"Descrição não informada"}</p>
             </div><CheckCircle2 size={17} className="shrink-0 text-emerald-600"/>
@@ -164,7 +164,7 @@ export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,no
             <div className="flex min-w-0 items-start gap-2">
               <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"><Icon size={20}/></span>
               <div className="min-w-0 flex-1">
-                <h4 className="text-xs font-extrabold leading-snug text-foreground">{meal.title}</h4>
+                <h4 className="text-xs font-bold leading-snug text-foreground">{meal.title}</h4>
                 <p className="mt-1 text-[11px] font-semibold text-muted-foreground">
                   <Clock3 size={12} className="mr-1 inline"/>{reminderClock(meal.scheduled_at)} · Horário programado
                 </p>
@@ -179,7 +179,7 @@ export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,no
                   <p className="text-[11px] text-muted-foreground">Aguardando o registro dos alimentos consumidos.</p>}
             </div>
             <div className="flex min-h-8 flex-wrap items-center justify-between gap-1.5 border-t border-border/60 pt-2">
-              <span className={"text-[10px] font-semibold "+(confirmedMeal?
+              <span className={"text-[11px] font-semibold "+(confirmedMeal?
                 "text-emerald-700 dark:text-emerald-300":status==="unconfirmed"?
                 "text-amber-700 dark:text-amber-300":"text-muted-foreground")}>
                 {confirmedMeal?"Confirmada às "+reminderClock(meal.completed_at!):
@@ -190,11 +190,11 @@ export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,no
               </span>
               <div className="flex gap-1.5">
                 <button type="button" onClick={()=>onView(meal)}
-                  className="rounded-lg border border-border bg-background px-2.5 py-1.5 text-[10px] font-bold text-foreground">
+                  className="rounded-lg border border-border bg-background px-2.5 py-1.5 text-[11px] font-bold text-foreground">
                   Ver detalhes
                 </button>
                 {!confirmedMeal&&!response&&status!=="waiting"&&<button type="button" onClick={()=>onConfirm(meal)}
-                  className="rounded-lg bg-primary px-2.5 py-1.5 text-[10px] font-extrabold text-primary-foreground">
+                  className="rounded-lg bg-primary px-2.5 py-1.5 text-[11px] font-bold text-primary-foreground">
                   Registrar
                 </button>}
                 <button type="button" onClick={()=>onDelete(meal)} title="Excluir com confirmação e registro de auditoria"
@@ -216,12 +216,12 @@ export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,no
       <button type="button" disabled={current===0} onClick={()=>setPage(n=>Math.max(0,n-1))}
         className="inline-flex h-8 items-center gap-1 rounded-lg border border-border px-2 text-[11px] font-bold text-foreground disabled:opacity-40">
         <ChevronLeft size={14}/>Anterior</button>
-      <span className="text-[10px] font-semibold tabular-nums text-muted-foreground">Página {current+1} de {count}</span>
+      <span className="text-[11px] font-semibold tabular-nums text-muted-foreground">Página {current+1} de {count}</span>
       <button type="button" disabled={current===count-1} onClick={()=>setPage(n=>Math.min(count-1,n+1))}
         className="inline-flex h-8 items-center gap-1 rounded-lg border border-border px-2 text-[11px] font-bold text-foreground disabled:opacity-40">
         Próxima<ChevronRight size={14}/></button>
     </nav>
-    <p className="shrink-0 text-[10px] text-muted-foreground">
+    <p className="shrink-0 text-[11px] text-muted-foreground">
       As descrições são registros informados pelo paciente. A confirmação do sistema não avalia o valor nutricional da refeição.
     </p>
   </div>;

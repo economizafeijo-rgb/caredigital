@@ -105,7 +105,7 @@ export function CareTaskResolutionPanel({
 
   return <div className="care-resolution-panel mt-3 space-y-2 border-t border-border/65 pt-3">
     {isResolved&&<div className="rounded-xl border border-emerald-500/35 bg-emerald-500/[.065] p-3">
-      <p className="flex items-center gap-1.5 text-xs font-extrabold text-foreground">
+      <p className="flex items-center gap-1.5 text-xs font-bold text-foreground">
         <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-300"/>
         {resolution?.status==="cancelado"?"Cancelamento registrado":"Cuidado informado como não realizado"}
       </p>
@@ -144,7 +144,7 @@ export function CareTaskResolutionPanel({
     </div>}
     {action&&canShowActions&&<form onSubmit={event=>void commit(event)}
       className="rounded-xl border border-primary/25 bg-muted/[.16] p-3">
-      <p className="text-xs font-extrabold text-foreground">
+      <p className="text-xs font-bold text-foreground">
         {action==="nao_cumprido"?"Confirmar que não realizou este cuidado?":
          action==="cancelado"?"Confirmar que este cuidado foi cancelado?":
          "Escolha o novo horário deste cuidado"}
@@ -160,7 +160,7 @@ export function CareTaskResolutionPanel({
           rows={2} maxLength={500} placeholder="Informe o motivo, se desejar"
           className="field mt-1 w-full resize-none"/>
       </label>
-      <p className="mt-2 text-[10px] text-muted-foreground">
+      <p className="mt-2 text-[11px] text-muted-foreground">
         A decisão será salva com a data e hora reais. {isMed?
           "Este relato não cancela a prescrição nem autoriza alterar doses; converse com seu profissional de saúde.":
           "O horário original e a alteração continuarão registrados no prontuário."}
@@ -169,7 +169,7 @@ export function CareTaskResolutionPanel({
         <button type="button" disabled={busy} onClick={()=>{setAction(null);setError("");}}
           className="min-h-9 rounded-lg border border-border px-3 text-[11px] font-semibold">Voltar</button>
         <button type="submit" disabled={busy}
-          className="min-h-9 rounded-lg bg-primary px-3 text-[11px] font-extrabold text-primary-foreground disabled:opacity-50">
+          className="min-h-9 rounded-lg bg-primary px-3 text-[11px] font-bold text-primary-foreground disabled:opacity-50">
           {busy?"Salvando…":"Salvar decisão"}
         </button>
       </div>

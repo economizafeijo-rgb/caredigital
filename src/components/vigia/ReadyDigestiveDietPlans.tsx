@@ -62,7 +62,7 @@ export function ReadyDigestiveDietPlans() {
             const selected = group.conditionKey === activeCondition;
             return <button key={group.conditionKey} type="button" onClick={() => { setActiveCondition(group.conditionKey); setActivePlanId(first.id); }} aria-pressed={selected}
               className={`rounded-xl p-4 text-left transition-colors ${selected ? "bg-primary/10 ring-1 ring-primary/40" : "bg-foreground/5 hover:bg-foreground/10"}`}>
-              <div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{first.category} · {group.plans.length} opções</div>
+              <div className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{first.category} · {group.plans.length} opções</div>
               <div className="mt-1 text-sm font-semibold leading-snug">{first.name}</div>
               <div className="mt-2 text-xs leading-relaxed text-muted-foreground">{first.goal}</div>
             </button>;
@@ -97,7 +97,7 @@ export function ReadyDigestiveDietPlans() {
                     <span className={`block text-sm font-semibold ${isChecked ? "text-muted-foreground line-through" : ""}`}>{meal.name}</span>
                     <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">{meal.items}</span>
                   </span>
-                  {isChecked && <span className="font-mono text-[10px] uppercase text-success">Feita</span>}
+                  {isChecked && <span className="font-mono text-[11px] uppercase text-success">Feita</span>}
                 </label>
               </li>;
             })}
@@ -113,7 +113,7 @@ export function ReadyDigestiveDietPlans() {
                     ? "bg-destructive/10 text-destructive"
                     : "bg-warning/15 text-warning";
                 return <article key={`${beverage.type}:${beverage.name}`} className="rounded-xl bg-foreground/5 p-4">
-                  <span className={`inline-flex rounded-full px-2 py-1 font-mono text-[10px] uppercase tracking-wider ${badge}`}>{beverage.type}</span>
+                  <span className={`inline-flex rounded-full px-2 py-1 font-mono text-[11px] uppercase tracking-wider ${badge}`}>{beverage.type}</span>
                   <h5 className="mt-2 text-sm font-semibold">{beverage.name}</h5>
                   <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{beverage.note}</p>
                 </article>;
