@@ -19,6 +19,8 @@ import { CareRecentHistory } from "./CareRecentHistory";
 import { ClientHealthProfile } from "./ClientHealthProfile";
 import { ClientOverviewIndicators } from "./ClientOverviewIndicators";
 import { ClientWeightPage } from "./ClientWeightPage";
+import { CareTimer, toneForCategory } from "./CareTimer";
+import { ClientSupplementCenter } from "./ClientSupplementCenter";
 import { clientSectionOrder, clientSectionTheme } from "@/lib/client-section-theme";
 import { canConfirmCare, careScheduleBlockMessage, getCareScheduleState } from "@/lib/care-schedule";
 
@@ -472,20 +474,13 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
 
         <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-3">
           <div className="flex min-h-0 flex-col gap-3 lg:overflow-y-auto lg:pr-0.5">
-            <section aria-label="Próximo cuidado" className="shrink-0 rounded-2xl bg-primary p-4 text-primary-foreground shadow-card">
+            <section aria-label="Próximo cuidado" className="relative shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-950 via-indigo-900 to-blue-800 p-4 text-white shadow-card">
               <div className="flex items-center justify-between gap-2 text-[11px] font-semibold uppercase tracking-wider opacity-85">
                 <span>Próximo cuidado</span><span className="inline-flex items-center gap-1 normal-case tracking-normal"><Clock3 size={12}/> Horário do Acre</span>
               </div>
               {nextCare ? <>
-                <h3 className="mt-2 line-clamp-2 text-base font-bold leading-snug">{nextCare.title}</h3>
-                <div className="mt-1 flex items-end justify-between gap-3">
-                  <div className="min-w-0 text-xs opacity-90 [&>span]:!mt-0 [&>span]:!text-xs [&>span]:!text-primary-foreground">
-                    <p>{categoryInfo[nextCare.category]?.label??"Cuidado"}</p>
-                    <LiveCareCountdown scheduledAt={nextCare.scheduled_at}/>
-                  </div>
-                  <strong className="font-display text-3xl font-extrabold leading-none tabular-nums">{timeInAcre(nextCare.scheduled_at)}</strong>
-                </div>
-                <button type="button" onClick={()=>askConfirm(nextCare)} className="mt-3 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-xl bg-white text-sm font-semibold text-slate-900 transition hover:bg-white/90"><CheckCircle2 size={16}/> Confirmar / registrar</button>
+                <div className="mt-3"><CareTimer target={Date.parse(nextCare.scheduled_at)} title={nextCare.title} subtitle={categoryInfo[nextCare.category]?.label??"Suplemento"} tone={toneForCategory(nextCare.category)} dark size="sm"/></div>
+                <button type="button" onClick={()=>askConfirm(nextCare)} className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-white text-sm font-bold text-slate-900 shadow-sm transition hover:bg-white/90"><CheckCircle2 size={16}/> Confirmar / registrar</button>
               </> : <p className="mt-2 text-sm opacity-90">Nenhum cuidado pendente para hoje. Consulte o histórico para conferir os registros.</p>}
             </section>
             <section aria-label="Resumo do dia" className={card+" shrink-0 p-4"}>
@@ -569,6 +564,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
         {activeTab==="cardapios"&&<ClientNutritionStudio patientId={client.id} ownerId={client.owner_id} onLogged={()=>setTick(v=>v+1)}/>}
         {activeTab==="medicacao"&&<div className="mx-auto w-full max-w-3xl"><CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm}/></div>}
         {activeTab==="atividade"&&<ClientActivityPage patientId={client.id} ownerId={client.owner_id} revision={tick} onRecorded={()=>setTick(value=>value+1)}/>}
+        {activeTab==="suplementos"&&<ClientSupplementCenter patientId={client.id} ownerId={client.owner_id} tasks={tasks} onConfirm={askConfirm}/>}
         {activeTab==="peso"&&<ClientWeightPage patientId={client.id} ownerId={client.owner_id} heightCm={client.height_cm} currentWeight={healthProfile.weightKg??client.weight_kg} onRecorded={()=>setTick(value=>value+1)}/>}
         {activeTab==="indicadores"&&<ClientOverviewIndicators heightCm={client.height_cm} weightKg={healthProfile.weightKg??client.weight_kg} waterTarget={hydrationTarget||null} protein={healthProfile.protein} carbs={healthProfile.carbs} fat={healthProfile.fat} kcal={healthProfile.kcal} patientId={client.id} ownerId={client.owner_id} revision={tick} full/>}
       </section>}

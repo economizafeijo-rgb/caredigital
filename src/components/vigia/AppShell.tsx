@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Activity, Apple, BookOpen, CalendarDays, ClipboardList, Droplets, Dumbbell, HeartPulse, History, Home,
-  LayoutDashboard, LogIn, LogOut, Maximize, Menu, Minimize, Moon, Pill, Scale, Settings2, Sun, Target, Utensils, X,
+  LayoutDashboard, LogIn, LogOut, Maximize, Menu, Minimize, Moon, Pill, Scale, Settings2, Sparkles, Sun, Target, Utensils, X,
   type LucideIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,6 +58,7 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
     ] },
     { title: "Saúde", items: [
       section("peso", "Peso e evolução", Scale),
+      section("suplementos", "Suplementos", Sparkles),
       section("indicadores", "Indicadores", Target),
       section("cardapios", "Cardápios e dietas", BookOpen),
       { to: "/biblioteca-alimentar", label: "Biblioteca alimentar", icon: Apple },
