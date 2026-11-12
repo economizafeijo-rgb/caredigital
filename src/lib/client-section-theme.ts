@@ -1,5 +1,5 @@
 import {
-  Activity, BookOpen, CalendarDays, Droplets, History, LayoutDashboard, Pill, Scale, Target, UtensilsCrossed,
+  Activity, BookOpen, CalendarDays, Droplets, History, LayoutDashboard, Pill, Scale, Sparkles, Target, UtensilsCrossed,
   type LucideIcon,
 } from "lucide-react";
 import type { ClientSection } from "./client-pages";
@@ -39,6 +39,8 @@ export const clientSectionTheme: Record<ClientSection, SectionTheme> = {
     overlay: "from-orange-950 via-orange-900/80 to-amber-500/10", pill: "bg-gradient-to-r from-orange-600 to-amber-500", chip: "bg-orange-500/15 text-orange-600 dark:text-orange-300" },
   peso: { label: "Peso", icon: Scale, image: "/images/painel-peso.webp", position: "50% 50%",
     overlay: "from-fuchsia-950 via-purple-900/80 to-pink-500/10", pill: "bg-gradient-to-r from-fuchsia-600 to-pink-500", chip: "bg-fuchsia-500/15 text-fuchsia-600 dark:text-fuchsia-300" },
+  suplementos: { label: "Suplementos", icon: Sparkles, image: "/images/painel-suplementos.webp", position: "50% 50%",
+    overlay: "from-violet-950 via-purple-900/80 to-amber-500/10", pill: "bg-gradient-to-r from-violet-600 to-amber-500", chip: "bg-violet-500/15 text-violet-600 dark:text-violet-300" },
   indicadores: { label: "Indicadores", icon: Target, image: "/images/painel-indicadores.webp", position: "50% 50%",
     overlay: "from-teal-950 via-teal-900/80 to-emerald-500/10", pill: "bg-gradient-to-r from-teal-600 to-emerald-500", chip: "bg-teal-500/15 text-teal-600 dark:text-teal-300" },
   cardapios: { label: "Cardápios", icon: BookOpen, image: "/images/painel-cardapios.webp", position: "50% 50%",
@@ -46,4 +48,4 @@ export const clientSectionTheme: Record<ClientSection, SectionTheme> = {
 };
 
 export const clientSectionOrder: ClientSection[] =
-  ["hoje", "agenda", "historico", "medicacao", "hidratacao", "alimentacao", "atividade", "peso", "indicadores", "cardapios"];
+  ["hoje", "agenda", "historico", "medicacao", "hidratacao", "alimentacao", "atividade", "peso", "suplementos", "indicadores", "cardapios"];

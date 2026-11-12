@@ -301,3 +301,45 @@ iframe[title*="Lovable" i][title*="badge" i] { display: none !important; visibil
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
+
+/* ── Áreas internas do painel do paciente: leitura maior, botões e cartões profissionais ── */
+#care-client-tab-panel { --section-from: #4f46e5; --section-to: #3b82f6; }
+#care-client-tab-panel[data-page="agenda"] { --section-from: #7c3aed; --section-to: #d946ef; }
+#care-client-tab-panel[data-page="medicacao"] { --section-from: #e11d48; --section-to: #ec4899; }
+#care-client-tab-panel[data-page="hidratacao"] { --section-from: #0284c7; --section-to: #06b6d4; }
+#care-client-tab-panel[data-page="alimentacao"], #care-client-tab-panel[data-page="cardapios"] { --section-from: #059669; --section-to: #65a30d; }
+#care-client-tab-panel[data-page="atividade"] { --section-from: #ea580c; --section-to: #f59e0b; }
+#care-client-tab-panel[data-page="historico"] { --section-from: #334155; --section-to: #64748b; }
+#care-client-tab-panel[data-page="indicadores"] { --section-from: #0d9488; --section-to: #10b981; }
+#care-client-tab-panel[data-page="peso"] { --section-from: #c026d3; --section-to: #ec4899; }
+#care-client-tab-panel[data-page="suplementos"] { --section-from: #7c3aed; --section-to: #f59e0b; }
+
+#care-client-tab-panel .text-\[10px\] { font-size: 12px; }
+#care-client-tab-panel .text-\[11px\] { font-size: 13px; }
+#care-client-tab-panel .text-xs { font-size: 13.5px; line-height: 1.35rem; }
+#care-client-tab-panel .text-sm { font-size: 15px; }
+#care-client-tab-panel h3 { letter-spacing: -0.01em; }
+
+#care-client-tab-panel button.bg-primary,
+#care-client-tab-panel a.bg-primary {
+  background-image: linear-gradient(90deg, var(--section-from), var(--section-to));
+  border: 0; color: #fff; font-weight: 700; min-height: 2.5rem;
+  box-shadow: 0 6px 18px -8px var(--section-from);
+  transition: filter .15s ease, transform .15s ease;
+}
+#care-client-tab-panel button.bg-primary:hover:not(:disabled),
+#care-client-tab-panel a.bg-primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+#care-client-tab-panel button[aria-pressed="true"].bg-primary { box-shadow: 0 0 0 3px color-mix(in srgb, var(--section-from) 25%, transparent); }
+#care-client-tab-panel button.border.border-border:not(.bg-primary) { min-height: 2.25rem; font-weight: 600; }
+#care-client-tab-panel button.border.border-border:not(.bg-primary):hover { border-color: var(--section-from); color: var(--section-from); }
+
+#care-client-tab-panel .rounded-xl.border.border-border,
+#care-client-tab-panel .rounded-2xl.border.border-border { box-shadow: 0 1px 2px rgb(15 23 42 / .04), 0 8px 24px -16px rgb(15 23 42 / .18); }
+#care-client-tab-panel input:not([type="checkbox"]):not([type="radio"]),
+#care-client-tab-panel select, #care-client-tab-panel textarea { min-height: 2.5rem; }
+#care-client-tab-panel input:focus-visible, #care-client-tab-panel select:focus-visible, #care-client-tab-panel textarea:focus-visible {
+  outline: 2px solid var(--section-from); outline-offset: 1px;
+}
+#care-client-tab-panel [role="progressbar"] > div, #care-client-tab-panel [role="progressbar"] > i {
+  background-image: linear-gradient(90deg, var(--section-from), var(--section-to));
+}

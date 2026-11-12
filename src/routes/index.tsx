@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, CalendarCheck, Clock3, Droplets, History, LayoutDashboard, LockKeyhole, Pill, ShieldCheck, Utensils } from "lucide-react";
 import { useAccess } from "@/lib/use-access";
+import { HomeNextCareCard } from "@/components/vigia/CareTimer";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -64,7 +65,10 @@ function Homepage() {
           <li className="inline-flex items-center gap-1.5"><ShieldCheck size={15}/> Acesso individual</li>
         </ul>
       </div>
+      {status === "client" && <div className="absolute bottom-6 right-6 hidden w-[380px] lg:block"><HomeNextCareCard panel="/cliente"/></div>}
     </section>
+
+    {status === "client" && <div className="rounded-3xl bg-gradient-to-br from-indigo-950 to-slate-900 p-1 lg:hidden"><HomeNextCareCard panel="/cliente"/></div>}
 
     <section aria-label="Recursos da plataforma" className="grid shrink-0 gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {features.map(({ to, title, description, icon: Icon, tone, image }) => (
