@@ -19,6 +19,7 @@ import { CareRecentHistory } from "./CareRecentHistory";
 import { ClientHealthProfile } from "./ClientHealthProfile";
 import { ClientOverviewIndicators } from "./ClientOverviewIndicators";
 import { ClientWeightPage } from "./ClientWeightPage";
+import { ClientMedicationManager } from "./ClientMedicationManager";
 import { MissedDoseRegularizer } from "./MissedDoseRegularizer";
 import { CareTimer, toneForCategory } from "./CareTimer";
 import { ClientSupplementCenter } from "./ClientSupplementCenter";
@@ -564,7 +565,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
           onDelete={meal=>{const item=tasks.find(task=>task.id===meal.id);if(item){setPending(null);setMealToDelete(item);}}}
           onRecorded={()=>setTick(value=>value+1)}/>}
         {activeTab==="cardapios"&&<ClientNutritionStudio patientId={client.id} ownerId={client.owner_id} onLogged={()=>setTick(v=>v+1)}/>}
-        {activeTab==="medicacao"&&<div className="mx-auto w-full max-w-3xl"><MissedDoseRegularizer patientId={client.id} onDone={()=>setTick(value=>value+1)}/><CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm}/></div>}
+        {activeTab==="medicacao"&&<div className="mx-auto w-full max-w-5xl"><MissedDoseRegularizer patientId={client.id} onDone={()=>setTick(value=>value+1)}/><CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm}/><ClientMedicationManager patientId={client.id} ownerId={client.owner_id}/></div>}
         {activeTab==="atividade"&&<ClientActivityPage patientId={client.id} ownerId={client.owner_id} revision={tick} onRecorded={()=>setTick(value=>value+1)}/>}
         {activeTab==="suplementos"&&<ClientSupplementCenter patientId={client.id} ownerId={client.owner_id} tasks={tasks} onConfirm={askConfirm}/>}
         {activeTab==="peso"&&<ClientWeightPage patientId={client.id} ownerId={client.owner_id} heightCm={client.height_cm} currentWeight={healthProfile.weightKg??client.weight_kg} onRecorded={()=>setTick(value=>value+1)}/>}
