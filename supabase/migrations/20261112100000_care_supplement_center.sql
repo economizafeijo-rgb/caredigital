@@ -43,6 +43,14 @@ grant execute on function public.care_can_access_patient(uuid, uuid) to authenti
 alter table public.care_supplement_plans enable row level security;
 alter table public.care_supplement_intakes enable row level security;
 
+drop policy if exists supplement_plans_select on public.care_supplement_plans;
+drop policy if exists supplement_plans_insert on public.care_supplement_plans;
+drop policy if exists supplement_plans_update on public.care_supplement_plans;
+drop policy if exists supplement_plans_delete on public.care_supplement_plans;
+drop policy if exists supplement_intakes_select on public.care_supplement_intakes;
+drop policy if exists supplement_intakes_insert on public.care_supplement_intakes;
+drop policy if exists supplement_intakes_delete on public.care_supplement_intakes;
+
 create policy supplement_plans_select on public.care_supplement_plans for select to authenticated
   using (public.care_can_access_patient(patient_id, owner_id));
 create policy supplement_plans_insert on public.care_supplement_plans for insert to authenticated
