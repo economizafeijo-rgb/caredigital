@@ -81,6 +81,16 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
     setReload(v => v + 1);
   }
 
+  async function extend(client: Client, days: number) {
+    if (!licenseColumns) return setMessage({ ok: false, text: "Aplique a migração de licenças (20261112180000) para gerenciar licenças." });
+    const base = client.license_expires_on && client.license_expires_on > today() ? client.license_expires_on : today();
+    const until = new Date(Date.parse(base + "T12:00:00Z") + days * 86_400_000).toISOString().slice(0, 10);
+    const result = await db.from("care_patients").update({ license_expires_on: until, ...(days > 0 ? { license_status: "ativa" } : {}) }).eq("id", client.id).eq("owner_id", ownerId);
+    if (result.error) return setMessage({ ok: false, text: "Falha ao ajustar o tempo da licença." });
+    setMessage({ ok: true, text: `Licença de ${client.full_name} válida até ${until.split("-").reverse().join("/")}.` });
+    setReload(v => v + 1);
+  }
+
   async function remove(client: Client) {
     const typed = window.prompt(`Excluir definitivamente ${client.full_name} e todos os registros? Digite EXCLUIR para confirmar.`);
     if (typed !== "EXCLUIR") return;
@@ -150,13 +160,15 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
               <td>{goals[c.care_goal ?? ""] ?? "—"}</td>
               <td>{plans[c.license_plan ?? ""] ?? "—"}</td>
               <td><span className={`rounded-full px-2.5 py-1 text-xs font-bold capitalize ${statusStyle[lic] ?? "bg-muted"}`}>{lic}</span></td>
-              <td className="tabular-nums">{c.license_expires_on ? c.license_expires_on.split("-").reverse().join("/") : "Sem validade"}</td>
+              <td className="tabular-nums">{c.license_expires_on ? <>{c.license_expires_on.split("-").reverse().join("/")}<span className="block text-xs text-muted-foreground">{(() => { const d = Math.round((Date.parse(c.license_expires_on + "T00:00:00Z") - Date.parse(today() + "T00:00:00Z")) / 86_400_000); return d < 0 ? `vencida há ${-d} dia(s)` : d === 0 ? "vence hoje" : `${d} dia(s) restantes`; })()}</span></> : "Sem validade"}</td>
               <td><div className="flex justify-end gap-1.5">
                 <button type="button" title="Relatório" onClick={() => void openReport(c)} className="grid size-9 place-items-center rounded-lg border border-border hover:border-indigo-500 hover:text-indigo-600"><BarChart3 size={16}/></button>
                 <button type="button" title="Editar" onClick={() => setEditing(c)} className="grid size-9 place-items-center rounded-lg border border-border hover:border-indigo-500 hover:text-indigo-600"><Pencil size={16}/></button>
                 {lic === "ativa"
                   ? <button type="button" title="Suspender licença" onClick={() => void setLicense(c, "suspensa")} className="grid size-9 place-items-center rounded-lg border border-border hover:border-amber-500 hover:text-amber-600"><ShieldAlert size={16}/></button>
-                  : <button type="button" title="Ativar licença por 30 dias" onClick={() => void setLicense(c, "ativa", 30)} className="inline-flex h-9 items-center gap-1 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-500 px-2.5 text-xs font-bold text-white"><KeyRound size={14}/> Ativar</button>}
+                  : <button type="button" title="Reativar licença" onClick={() => void setLicense(c, "ativa")} className="inline-flex h-9 items-center gap-1 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-500 px-2.5 text-xs font-bold text-white"><KeyRound size={14}/> Ativar</button>}
+                <select aria-label="Adicionar tempo à licença" value="" onChange={e => { const d = Number(e.target.value); if (d) void extend(c, d); }}
+                  className="h-9 rounded-lg border border-border bg-surface px-2 text-xs font-bold"><option value="">+ Tempo</option>{durations.map(([d, l]) => <option key={d} value={d}>+{l}</option>)}<option value="-7">−7 dias</option></select>
                 <button type="button" title="Excluir" onClick={() => void remove(c)} className="grid size-9 place-items-center rounded-lg border border-border text-destructive hover:bg-destructive/10"><Trash2 size={16}/></button>
               </div></td>
             </tr>; })}
@@ -164,6 +176,8 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
         </table>
       </div>
     </div>
+
+    <LicenseKeyPanel ownerId={ownerId} clients={clients}/>
 
     {editing && <div className="fixed inset-0 z-[90] grid place-items-center overflow-y-auto bg-slate-950/60 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Cadastro do cliente">
       <div className="w-full max-w-2xl rounded-3xl bg-card p-6 shadow-2xl">
@@ -182,7 +196,7 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
             <label>Situação da licença<select className={input} value={editing.license_status ?? "ativa"} onChange={e => setEditing({ ...editing, license_status: e.target.value })}>{["ativa", "teste", "suspensa", "expirada"].map(s => <option key={s}>{s}</option>)}</select></label>
             <label className="sm:col-span-2">Validade da licença
               <div className="mt-1 flex flex-wrap gap-2"><input type="date" className="h-11 flex-1 rounded-xl border border-border bg-surface px-3" value={editing.license_expires_on ?? ""} onChange={e => setEditing({ ...editing, license_expires_on: e.target.value })}/>
-                {[30, 90, 365].map(d => <button key={d} type="button" onClick={() => setEditing({ ...editing, license_expires_on: plusDays(d), license_status: "ativa" })} className="h-11 rounded-xl border border-border px-3 font-bold hover:border-emerald-500 hover:text-emerald-600">+{d === 365 ? "1 ano" : `${d} dias`}</button>)}</div></label>
+                {[7, 30, 90, 180, 365].map(d => <button key={d} type="button" onClick={() => setEditing({ ...editing, license_expires_on: plusDays(d), license_status: "ativa" })} className="h-11 rounded-xl border border-border px-3 font-bold hover:border-emerald-500 hover:text-emerald-600">+{d === 365 ? "1 ano" : d === 180 ? "6 meses" : `${d} dias`}</button>)}</div></label>
           </>}
           <label className="sm:col-span-2">Observações clínicas<textarea rows={3} className="mt-1 block w-full rounded-xl border border-border bg-surface p-3" value={editing.condition_notes ?? ""} onChange={e => setEditing({ ...editing, condition_notes: e.target.value })}/></label>
         </div>
@@ -209,4 +223,73 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
       </div>
     </div>}
   </section>;
+}
+
+type LicenseKey = { code: string; plan: string; days: number; patient_id: string | null; note: string | null; created_at: string; redeemed_at: string | null; redeemed_patient_id: string | null; revoked: boolean };
+const durations = [[7, "7 dias"], [15, "15 dias"], [30, "30 dias"], [90, "3 meses"], [180, "6 meses"], [365, "1 ano"], [730, "2 anos"]] as const;
+const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+export function generateLicenseCode() {
+  const bytes = crypto.getRandomValues(new Uint8Array(12));
+  const chars = Array.from(bytes, b => alphabet[b % alphabet.length]).join("");
+  return `CARE-${chars.slice(0, 4)}-${chars.slice(4, 8)}-${chars.slice(8, 12)}`;
+}
+
+export function LicenseKeyPanel({ ownerId, clients }: { ownerId: string; clients: { id: string; full_name: string }[] }) {
+  const [keys, setKeys] = useState<LicenseKey[]>([]);
+  const [available, setAvailable] = useState(true);
+  const [plan, setPlan] = useState("premium");
+  const [days, setDays] = useState(30);
+  const [qty, setQty] = useState(1);
+  const [patient, setPatient] = useState("");
+  const [note, setNote] = useState("");
+  const [fresh, setFresh] = useState<string[]>([]);
+  const [msg, setMsg] = useState("");
+  const [reload, setReload] = useState(0);
+  useEffect(() => {
+    void db.from("care_license_keys").select("*").eq("owner_id", ownerId).order("created_at", { ascending: false }).limit(100)
+      .then((r: any) => { setAvailable(!r.error); setKeys(r.data ?? []); });
+  }, [ownerId, reload]);
+  const nameOf = (id: string | null) => clients.find(c => c.id === id)?.full_name ?? "—";
+  async function generate() {
+    const codes = Array.from({ length: Math.min(20, Math.max(1, qty)) }, generateLicenseCode);
+    const r = await db.from("care_license_keys").insert(codes.map(code => ({ code, owner_id: ownerId, plan, days, patient_id: patient || null, note: note.trim() || null })));
+    if (r.error) return setMsg("Não foi possível gerar: " + r.error.message);
+    setFresh(codes); setMsg(`${codes.length} código(s) gerado(s). Envie ao cliente para ativar em Meu painel.`); setReload(v => v + 1);
+  }
+  async function revoke(code: string) {
+    if (!window.confirm(`Revogar o código ${code}?`)) return;
+    await db.from("care_license_keys").update({ revoked: true }).eq("code", code).eq("owner_id", ownerId); setReload(v => v + 1);
+  }
+  const copy = (text: string) => { void navigator.clipboard?.writeText(text); setMsg(`Copiado: ${text}`); };
+  const field = "mt-1 block h-11 w-full rounded-xl border border-border bg-surface px-3 text-sm";
+  return <div className="rounded-3xl border border-border bg-card p-5 shadow-card">
+    <h2 className="flex items-center gap-2 text-xl font-bold"><KeyRound size={22} className="text-emerald-500"/> Gerar licenças</h2>
+    <p className="text-sm text-muted-foreground">O cliente digita o código no painel e a licença é ativada na hora. Se já houver dias restantes, eles são somados.</p>
+    {!available ? <p className="mt-3 rounded-xl bg-amber-500/10 px-3 py-2 text-sm">Aplique a migração <code>20261112190000_care_license_keys.sql</code> para gerar códigos.</p> : <>
+      <div className="mt-4 grid gap-3 text-sm font-semibold sm:grid-cols-2 lg:grid-cols-5">
+        <label>Plano<select className={field} value={plan} onChange={e => setPlan(e.target.value)}>{Object.entries(plans).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
+        <label>Duração<select className={field} value={days} onChange={e => setDays(Number(e.target.value))}>{durations.map(([d, l]) => <option key={d} value={d}>{l}</option>)}</select></label>
+        <label>Quantidade<input type="number" min={1} max={20} className={field} value={qty} onChange={e => setQty(Number(e.target.value))}/></label>
+        <label>Exclusivo para<select className={field} value={patient} onChange={e => setPatient(e.target.value)}><option value="">Qualquer cliente</option>{clients.map(c => <option key={c.id} value={c.id}>{c.full_name}</option>)}</select></label>
+        <label>Observação<input className={field} value={note} maxLength={120} onChange={e => setNote(e.target.value)} placeholder="Ex.: renovação anual"/></label>
+      </div>
+      <button type="button" onClick={() => void generate()} className="mt-3 inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 px-6 text-sm font-bold text-white shadow-sm hover:brightness-110"><KeyRound size={17}/> Gerar código{qty > 1 ? "s" : ""}</button>
+      {msg && <p role="status" className="mt-3 rounded-xl bg-emerald-500/10 px-3 py-2 text-sm font-medium text-emerald-800 dark:text-emerald-200">{msg}</p>}
+      {fresh.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{fresh.map(c => <button key={c} type="button" onClick={() => copy(c)} className="rounded-xl border-2 border-dashed border-emerald-500 px-4 py-2 font-mono text-base font-bold tracking-wider hover:bg-emerald-500/10" title="Copiar">{c}</button>)}</div>}
+      <div className="mt-4 max-h-80 overflow-auto">
+        <table className="w-full min-w-[720px] text-left text-sm">
+          <thead className="sticky top-0 bg-card text-xs uppercase tracking-wider text-muted-foreground"><tr><th className="py-2">Código</th><th>Plano</th><th>Duração</th><th>Cliente</th><th>Situação</th><th/></tr></thead>
+          <tbody>{keys.map(k => { const state = k.revoked ? "revogado" : k.redeemed_at ? "usado" : "disponível";
+            return <tr key={k.code} className="border-t border-border">
+              <td className="py-2.5 font-mono font-bold">{k.code}</td><td>{plans[k.plan]}</td><td>{k.days} dias</td>
+              <td>{k.redeemed_patient_id ? nameOf(k.redeemed_patient_id) : k.patient_id ? `Para ${nameOf(k.patient_id)}` : "Qualquer"}</td>
+              <td><span className={`rounded-full px-2.5 py-1 text-xs font-bold ${state === "disponível" ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : state === "usado" ? "bg-sky-500/15 text-sky-700 dark:text-sky-300" : "bg-muted text-muted-foreground"}`}>{state}{k.redeemed_at ? ` em ${new Date(k.redeemed_at).toLocaleDateString("pt-BR")}` : ""}</span></td>
+              <td className="text-right">{state === "disponível" && <><button type="button" onClick={() => copy(k.code)} className="h-9 rounded-lg border border-border px-3 text-xs font-bold hover:border-emerald-500">Copiar</button>{" "}
+                <button type="button" onClick={() => void revoke(k.code)} className="h-9 rounded-lg border border-border px-3 text-xs font-bold text-destructive hover:bg-destructive/10">Revogar</button></>}</td>
+            </tr>; })}
+            {keys.length === 0 && <tr><td colSpan={6} className="py-6 text-center text-muted-foreground">Nenhum código gerado ainda.</td></tr>}</tbody>
+        </table>
+      </div>
+    </>}
+  </div>;
 }
