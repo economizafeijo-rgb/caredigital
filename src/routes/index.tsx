@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, CalendarCheck, Clock3, Droplets, History, LayoutDashboard, LockKeyhole, Pill, ShieldCheck, Utensils } from "lucide-react";
 import { useAccess } from "@/lib/use-access";
 import { HomeNextCareCard } from "@/components/vigia/CareTimer";
+import { HomeClientMetrics } from "@/components/vigia/HomeClientMetrics";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -70,6 +71,8 @@ function Homepage() {
 
     {status === "client" && <div className="rounded-3xl bg-gradient-to-br from-indigo-950 to-slate-900 p-1 lg:hidden"><HomeNextCareCard panel="/cliente"/></div>}
 
+    {status === "client" && <HomeClientMetrics/>}
+
     <section aria-label="Recursos da plataforma" className="grid shrink-0 gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {features.map(({ to, title, description, icon: Icon, tone, image }) => (
         <Link key={title} to={to} className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card transition hover:-translate-y-0.5 hover:border-primary/40">
@@ -87,8 +90,8 @@ function Homepage() {
       ))}
     </section>
 
-    <footer className="shrink-0 border-t border-border pt-3 text-center text-xs text-muted-foreground">
-      CareDigital · Desenvolvido por <strong className="font-semibold text-foreground">Franc D&apos;nis</strong> · Feijó, Acre
+    <footer className="shrink-0 overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-950 px-5 py-4 text-center text-sm text-slate-300">
+      <span className="font-semibold text-white">CareDigital</span> · Plataforma desenvolvida por <strong className="bg-gradient-to-r from-sky-300 to-fuchsia-300 bg-clip-text font-extrabold text-transparent">Franc D&apos;nis</strong> · Feijó, Acre — Brasil · © {new Date().getFullYear()}
     </footer>
   </div>;
 }

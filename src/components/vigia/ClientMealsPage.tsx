@@ -1,3 +1,4 @@
+import { DailyNutritionPanel, useDailyNutrition } from "./DailyNutritionPanel";
 import { useEffect, useMemo, useState } from "react";
 import {
   CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, Clock3,
@@ -42,6 +43,7 @@ const mealKind=(title:string):FoodKind=>{
 const foodIcon=(title:string)=>getCareIntakeIcon(mealKind(title))??UtensilsCrossed;
 
 export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,now=Date.now(),onView,onConfirm,onDelete,onRecorded}:Props){
+  const nutrition=useDailyNutrition(patientId,ownerId,revision);
   const [details,setDetails]=useState<MealDetail[]>([]);
   const [detailsError,setDetailsError]=useState(false);
   const [extraMeals,setExtraMeals]=useState<UnscheduledMeal[]>([]);
@@ -102,6 +104,7 @@ export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,no
   function setStatus(value:typeof filter){setFilter(value);setPage(0);}
 
   return <div className="care-page-meals care-premium-meals care-meals-responsive flex h-full min-h-0 min-w-0 flex-col gap-3">
+    <DailyNutritionPanel data={nutrition}/>
     <div className="care-meals-actions flex shrink-0 flex-wrap items-center justify-between gap-2 rounded-2xl border border-emerald-500/25 bg-emerald-500/[.06] p-3">
       <div className="min-w-0">
         <h3 className="flex items-center gap-2 text-sm font-bold text-foreground">
