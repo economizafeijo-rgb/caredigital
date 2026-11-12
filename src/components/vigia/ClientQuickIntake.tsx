@@ -5,6 +5,7 @@ import { CareCategoryReport } from "./CareCategoryReport";
 import { BarChart3 } from "lucide-react";
 import { CareIntakePicker, CareIntakeIcon } from "./CareIntakePicker";
 import { foodCategory,beverageCategory,isFoodKind,type IntakeKind,type FoodKind,type BeverageKind } from "@/lib/care-intake-categories";
+import { parseFoodText, sumNutrients } from "@/lib/food-parser";
 import { supabase } from "@/integrations/supabase/client";
 
 type Props = { patientId: string; onRecorded?: () => void; variant?: "home" | "panel"; mode?: "all" | "water" | "food" | "drink"; /** Increment to open the existing form from a dashboard card. */ openSignal?: number };
@@ -223,6 +224,12 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
                     placeholder={beverageCategory(kind)?.example??"Descreva a bebida"}/>
                 </label>
             )}
+            {!isWater && (()=>{const foods=parseFoodText(isFood?`${portion} ${description}`:description,isFood?null:Number(amount));if(!foods.length)return null;const t=sumNutrients(foods.map(f=>f.nutrients));
+              return <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/[.07] p-3 text-xs" aria-live="polite">
+                <p className="font-bold text-emerald-800 dark:text-emerald-200">Cálculo automático</p>
+                <p className="mt-1 text-muted-foreground">{foods.map(f=>`${f.name.split(",")[0]} ${f.grams} g`).join(" · ")}</p>
+                <div className="mt-2 grid grid-cols-4 gap-1.5 text-center">{[["kcal",t.kcal,"text-orange-600"],["Prot.",t.protein,"text-rose-600"],["Carb.",t.carbs,"text-amber-600"],["Gord.",t.fat,"text-violet-600"]].map(([l,v,c])=><span key={l as string} className="rounded-lg bg-card px-1 py-1.5"><strong className={`block text-sm ${c}`}>{Math.round(v as number)}{l==="kcal"?"":"g"}</strong>{l}</span>)}</div>
+              </div>;})()}
             {!isFood && <div aria-label="Volumes sugeridos para facilitar o registro" className="grid grid-cols-4 gap-1.5">{[100,200,300,500].map(value=><button key={value} type="button" onClick={()=>setAmount(String(value))} aria-pressed={amount===String(value)} className={`rounded-lg border px-1 py-2 text-[11px] font-bold ${amount===String(value)?"border-primary bg-primary/10 text-primary":"border-border bg-muted/50 text-foreground"}`}>{value} ml</button>)}</div>}
             {!isFood && <label className="text-xs font-semibold">Quantidade consumida (ml)
                 <input type="number" min={10} max={1500} step={1} required

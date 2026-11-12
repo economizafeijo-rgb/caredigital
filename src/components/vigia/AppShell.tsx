@@ -165,6 +165,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </span>
         <button type="button" onClick={() => void signOut()} disabled={signingOut} aria-label="Sair da conta" title="Sair da conta" className="grid size-8 shrink-0 place-items-center rounded-lg text-slate-300 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-50"><LogOut size={16}/></button>
       </div>
+      <p className="mt-2 text-center text-[10px] leading-tight text-slate-500">Desenvolvido por <span className="font-semibold text-slate-300">Franc D&apos;nis</span><br/>Feijó, Acre</p>
     </div>
   </>;
 
@@ -204,7 +205,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           </header>
 
           {shellError && <p role="alert" className="shrink-0 border-b border-destructive/20 bg-destructive/10 px-4 py-2 text-xs font-medium text-destructive">{shellError}</p>}
-          <main id="care-content" className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-3 sm:p-4 lg:p-5">{children}</main>
+          <main id="care-content" className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-3 sm:p-4 lg:p-5">{children}
+            {location.pathname !== "/" && <p className="mt-5 border-t border-border pt-3 text-center text-xs text-muted-foreground">CareDigital · Desenvolvido por <strong className="font-semibold text-foreground">Franc D&apos;nis</strong> · Feijó, Acre</p>}
+          </main>
         </div>
 
         {menuOpen && <div className={`fixed inset-0 z-50 ${signedIn ? "xl:hidden" : "lg:hidden"}`} role="dialog" aria-modal="true" aria-label="Menu">

@@ -19,6 +19,7 @@ import { CareRecentHistory } from "./CareRecentHistory";
 import { ClientHealthProfile } from "./ClientHealthProfile";
 import { ClientOverviewIndicators } from "./ClientOverviewIndicators";
 import { ClientWeightPage } from "./ClientWeightPage";
+import { MissedDoseRegularizer } from "./MissedDoseRegularizer";
 import { CareTimer, toneForCategory } from "./CareTimer";
 import { ClientSupplementCenter } from "./ClientSupplementCenter";
 import { clientSectionOrder, clientSectionTheme } from "@/lib/client-section-theme";
@@ -343,6 +344,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
     } catch (failure) {
       const message=failure instanceof Error?failure.message:"";
       const detail=/Care window not started/i.test(message)?"O horário programado ainda não chegou. Nenhuma confirmação foi salva."
+        :/Medication confirmation window expired/i.test(message)?"O servidor ainda bloqueia confirmações atrasadas de medicação. Aplique a atualização mais recente do banco; depois use “Regularizar doses” na área Medicação."
         :/Care window expired|Early meal confirmation disabled/i.test(message)?"O servidor conectado ainda utiliza uma regra antiga. Atualize o aplicativo e verifique se o Supabase correto está configurado."
         :/already completed/i.test(message)?"Este cuidado já foi confirmado. Atualize a agenda."
         :/Water was already marked as not drunk/i.test(message)?"Este horário foi registrado como Não bebi e não pode ser confirmado novamente."
@@ -562,7 +564,7 @@ export function HomeClientCard({patientName}:{patientName?:string}={}) {
           onDelete={meal=>{const item=tasks.find(task=>task.id===meal.id);if(item){setPending(null);setMealToDelete(item);}}}
           onRecorded={()=>setTick(value=>value+1)}/>}
         {activeTab==="cardapios"&&<ClientNutritionStudio patientId={client.id} ownerId={client.owner_id} onLogged={()=>setTick(v=>v+1)}/>}
-        {activeTab==="medicacao"&&<div className="mx-auto w-full max-w-3xl"><CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm}/></div>}
+        {activeTab==="medicacao"&&<div className="mx-auto w-full max-w-3xl"><MissedDoseRegularizer patientId={client.id} onDone={()=>setTick(value=>value+1)}/><CompactTreatmentBlister patientId={client.id} ownerId={client.owner_id} revision={tick} onConfirm={askConfirm}/></div>}
         {activeTab==="atividade"&&<ClientActivityPage patientId={client.id} ownerId={client.owner_id} revision={tick} onRecorded={()=>setTick(value=>value+1)}/>}
         {activeTab==="suplementos"&&<ClientSupplementCenter patientId={client.id} ownerId={client.owner_id} tasks={tasks} onConfirm={askConfirm}/>}
         {activeTab==="peso"&&<ClientWeightPage patientId={client.id} ownerId={client.owner_id} heightCm={client.height_cm} currentWeight={healthProfile.weightKg??client.weight_kg} onRecorded={()=>setTick(value=>value+1)}/>}
