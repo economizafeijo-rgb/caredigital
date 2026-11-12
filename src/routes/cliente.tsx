@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { LogIn, UserRound } from "lucide-react";
 import { HomeClientCard } from "@/components/vigia/HomeClientCard";
+import { LicenseGate } from "@/components/vigia/LicenseGate";
 import { useAccess } from "@/lib/use-access";
 
 export const Route = createFileRoute("/cliente")({
@@ -23,5 +24,5 @@ function ClientPage() {
     <Link to="/" className="mt-4 inline-block text-sm font-semibold text-primary hover:underline">Voltar ao início</Link>
   </section>;
   // O administrador também pode abrir esta área: o painel carrega o primeiro prontuário de sua propriedade.
-  return <HomeClientCard {...(status === "client" ? { patientName: name } : {})}/>;
+  return <LicenseGate><HomeClientCard {...(status === "client" ? { patientName: name } : {})}/></LicenseGate>;
 }
