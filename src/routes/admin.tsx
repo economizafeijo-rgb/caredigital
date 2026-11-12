@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ClipboardList, HeartPulse, ShieldCheck, Users } from "lucide-react";
+import { ClipboardList, HeartPulse } from "lucide-react";
 import { Btn, PageHeader, Panel } from "@/components/vigia/ui";
 import { supabase } from "@/integrations/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase-session";
+import { AdminClientManager } from "@/components/vigia/AdminClientManager";
 import { ProtocolAdminManager } from "@/components/vigia/ProtocolAdminManager";
 
 export const Route = createFileRoute("/admin")({
@@ -66,16 +67,18 @@ function Admin() {
     </PageHeader>
     {message && <Panel><p role="status" className="text-sm">{message} <Link to="/entrar" className="text-primary underline">Entrar</Link></p></Panel>}
     {loading ? <Panel>Carregando dados da conta…</Panel> : email && <>
-      <p className="mb-5 text-sm text-muted-foreground">Conta autenticada: {email}</p>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Panel><Users className="text-primary" /><p className="mt-3 text-sm text-muted-foreground">Clientes sob seus cuidados</p><p className="mt-1 text-4xl font-semibold">{clientCount ?? "—"}</p></Panel>
-        <Panel><ClipboardList className="text-primary" /><p className="mt-3 text-sm text-muted-foreground">Atividades registradas</p><p className="mt-1 text-4xl font-semibold">{checklistCount ?? "—"}</p></Panel>
-        <Panel><ShieldCheck className="text-primary" /><p className="mt-3 text-sm text-muted-foreground">Proteção dos dados</p><p className="mt-1 text-lg font-semibold">RLS por proprietário</p></Panel>
-      </div>
-      <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        <Link to="/prontuario" className="panel block transition-colors hover:bg-primary/5"><HeartPulse className="text-primary" /><h2 className="mt-3 text-xl font-semibold">Prontuários</h2><p className="mt-1 text-sm text-muted-foreground">Cadastre clientes, consulte a agenda e registre cuidados.</p></Link>
-        <Link to="/medicamentos" className="panel block transition-colors hover:bg-primary/5"><ClipboardList className="text-primary" /><h2 className="mt-3 text-xl font-semibold">Medicamentos</h2><p className="mt-1 text-sm text-muted-foreground">Conheça a apresentação pública; os medicamentos e registros reais permanecem nos prontuários protegidos.</p></Link>
-      </div>
+      <section className="relative isolate overflow-hidden rounded-3xl bg-slate-950 p-6 text-white shadow-card sm:p-8">
+        <img src="/images/painel-visao.webp" alt="" aria-hidden="true" className="absolute inset-y-0 right-0 -z-20 h-full w-full object-cover sm:w-3/5"/>
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-indigo-950 from-40% via-indigo-900/85 to-blue-700/10"/>
+        <p className="text-xs font-bold uppercase tracking-[.14em] text-white/70">Administração</p>
+        <h1 className="mt-1 text-3xl font-extrabold tracking-tight">Gestão de clientes</h1>
+        <p className="mt-1 max-w-xl text-sm text-slate-200">Cadastre, edite, acompanhe relatórios e gerencie licenças. Conta: {email}</p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link to="/prontuario" className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-slate-900 hover:bg-white/90"><HeartPulse size={17}/> Prontuários e agenda</Link>
+          <span className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 text-sm font-semibold backdrop-blur"><ClipboardList size={17}/> {checklistCount ?? "—"} atividades · {clientCount ?? "—"} clientes</span>
+        </div>
+      </section>
+      <AdminClientManager ownerId={ownerId}/>
       <ProtocolAdminManager ownerId={ownerId} />
       <p className="mt-5 rounded-xl border border-warning/30 bg-warning/10 p-3 text-xs">Esta é uma visão dos seus registros, não uma autorização de administrador global. Gestão de profissionais, convites e acesso compartilhado exigem permissões específicas no backend.</p>
     </>}
