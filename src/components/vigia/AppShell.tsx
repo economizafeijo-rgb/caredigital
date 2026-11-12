@@ -10,6 +10,7 @@ import { clientSectionHashes, type ClientSection } from "@/lib/client-pages";
 import { useAccess, type AccessStatus } from "@/lib/use-access";
 import { clientSectionTheme, type SectionTheme } from "@/lib/client-section-theme";
 import { fmtClock, useNow } from "./ui";
+import { InstallAppButton } from "./InstallApp";
 import { HydrationProvider, HydrationReminder } from "./HydrationTracker";
 
 type NavItem = { to: string; hash?: string; label: string; icon: LucideIcon };
@@ -198,6 +199,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               {signedIn && (location.pathname === "/"
                 ? panelHome && <Link to={panelHome} className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110" title="Voltar ao meu painel"><LayoutDashboard size={16}/><span className="hidden sm:inline">Meu painel</span></Link>
                 : <Link to="/" className="inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm font-semibold text-foreground transition hover:border-primary/40" title="Ir à página inicial sem sair da conta"><Home size={16}/><span className="hidden sm:inline">Página inicial</span></Link>)}
+              <InstallAppButton/>
               {tools}
               {!signedIn && access.status !== "loading" && loginButton}
               {!signedIn && <button type="button" onClick={() => setMenuOpen(true)} aria-label="Abrir menu" aria-expanded={menuOpen} className={`${iconButton} lg:hidden`}><Menu size={18}/></button>}
