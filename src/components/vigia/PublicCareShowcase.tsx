@@ -116,6 +116,12 @@ export function PublicCareShowcase({ kind }: { kind: ShowcaseKind }) {
   const info = copy[kind];
   const Icon = info.icon;
   return <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col gap-5">
+    <div className="relative isolate flex min-h-[160px] shrink-0 items-end overflow-hidden rounded-3xl bg-slate-950 p-5 text-white shadow-pop sm:min-h-[220px] sm:p-8">
+      <img src={showcaseImage[kind].src} alt="" aria-hidden="true" width={1200} height={750} loading="eager" style={{ objectPosition: showcaseImage[kind].position }} className="absolute inset-0 -z-20 h-full w-full object-cover"/>
+      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-950/90 via-slate-950/55 to-transparent"/>
+      <div><p className="text-xs font-bold uppercase tracking-[.14em] text-white/75">CareDigital</p>
+        <p className="mt-1 text-3xl font-extrabold leading-tight sm:text-5xl">{info.eyebrow}</p></div>
+    </div>
     <section className="grid flex-1 items-center gap-8 lg:grid-cols-[1.1fr_.9fr] lg:gap-10">
       <div>
         <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-xs font-semibold">

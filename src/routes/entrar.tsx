@@ -144,7 +144,18 @@ function Entrar() {
 
   const title = mode==="login"?"Acesse seu acompanhamento":mode==="forgot"?"Recuperar acesso":"Criar nova senha";
 
-  return <main className="mx-auto flex min-h-full w-full max-w-[520px] flex-col justify-center py-4 sm:py-6" aria-label="Acesso CareDigital">
+  return <main className="mx-auto grid min-h-full w-full max-w-5xl items-center gap-5 py-4 sm:py-6 lg:grid-cols-2" aria-label="Acesso CareDigital">
+    <aside className="relative isolate flex min-h-[180px] flex-col justify-end overflow-hidden rounded-3xl bg-slate-950 p-6 text-white shadow-pop lg:min-h-[540px] lg:p-8">
+      <img src="/images/caredigital-care-hero.webp" alt="" aria-hidden="true" width={1672} height={941} className="absolute inset-0 -z-20 h-full w-full object-cover object-[70%_20%]"/>
+      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-indigo-950 via-indigo-950/60 to-transparent"/>
+      <p className="text-xs font-bold uppercase tracking-[.14em] text-white/70">CareDigital</p>
+      <h1 className="mt-1 text-2xl font-extrabold leading-tight sm:text-3xl">Seu cuidado organizado, todos os dias.</h1>
+      <ul className="mt-3 hidden gap-2 text-sm text-slate-200 sm:grid">
+        <li className="flex items-center gap-2"><ShieldCheck size={16}/> Medicações, água e refeições com horário e timer</li>
+        <li className="flex items-center gap-2"><ShieldCheck size={16}/> Peso, nutrição e suplementos acompanhados</li>
+        <li className="flex items-center gap-2"><ShieldCheck size={16}/> Acesso individual e protegido</li>
+      </ul>
+    </aside>
     <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-pop">
       <div className="flex items-center gap-3 border-b border-border px-5 py-4 sm:px-6">
         <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><LockKeyhole size={21}/></div>
