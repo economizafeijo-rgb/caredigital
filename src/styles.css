@@ -344,3 +344,26 @@ iframe[title*="Lovable" i][title*="badge" i] { display: none !important; visibil
   background-image: linear-gradient(90deg, var(--section-from), var(--section-to));
 }
 @keyframes care-wave { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* ── Ajuste às janelas: nada estoura a largura em celular ou desktop ── */
+#care-content { container-type: inline-size; }
+#care-content img, #care-content svg, #care-content video { max-width: 100%; }
+#care-content :is(h1, h2, h3, h4, p, strong, span, td, th, li, label) { overflow-wrap: anywhere; }
+#care-content :is(.grid, .flex) > * { min-width: 0; }
+#care-content table { max-width: 100%; }
+@media (max-width: 640px) {
+  #care-content { padding: 0.625rem; }
+  #care-client-tab-panel { padding: 0.625rem; min-height: auto; }
+  #care-client-tab-panel .rounded-3xl { border-radius: 1.25rem; padding: 1rem; }
+  #care-content header.relative { min-height: 0; padding: 1rem; }
+  #care-content header.relative h1 { white-space: normal; font-size: 1.25rem; }
+  #care-content header.relative p { white-space: normal; }
+  #care-content [role="dialog"] > div, #care-content [role="alertdialog"] > div { max-height: 92dvh; overflow-y: auto; }
+  #care-content input, #care-content select, #care-content textarea { font-size: 16px; } /* evita zoom no iPhone */
+  #care-content [role="timer"] { flex-wrap: wrap; }
+}
+@media (max-width: 1023px) {
+  /* Em telas menores o painel rola como página inteira, sem áreas internas cortadas. */
+  .care-shell section[aria-label="Painel de acompanhamento individual"] { height: auto; }
+  #care-client-tab-panel { overflow: visible; }
+}
