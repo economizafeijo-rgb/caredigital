@@ -166,6 +166,15 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
   onRecorded();
   setReload(n=>n+1);
  }
+ async function quickDrink(ml:number){
+  if(action)return;
+  setAction("quick");setError("");setNotice("");
+  const res=await (supabase as any).rpc("care_log_unscheduled_intake",{p_patient_id:patientId,p_kind:"agua",p_description:"Água",p_amount_ml:ml,p_request_id:crypto.randomUUID(),p_consumed_at:null});
+  setAction(null);
+  if(res.error){setError("Não foi possível registrar a água. Tente novamente.");return}
+  setNotice(`${ml} ml de água registrados. Próximo horário recalculado automaticamente.`);
+  setReload(n=>n+1);onRecorded();
+ }
  async function markNo(task:Task){
   if(action)return;
   if(!canConfirmCare(task)){setError(careScheduleBlockMessage(task));return}
@@ -189,17 +198,29 @@ export function ClientHydrationTab({patientId,ownerId,tasks,revision,onConfirm,o
   onRecorded();setReload(n=>n+1);
  }
  return <section className="care-premium-hydration care-hydration-responsive flex min-h-0 w-full min-w-0 flex-col gap-2" aria-label="Programa personalizado de hidratação">
-  <header className="flex flex-wrap items-center justify-between gap-2">
-    <div className="min-w-0">
-      <h3 className="flex items-center gap-1.5 text-sm font-bold"><Droplets size={18} className="text-sky-600 dark:text-sky-300"/> Minha hidratação</h3>
-      <p className="text-[11px] text-muted-foreground">Meta diária até 23h · horário do Acre · água registrada</p>
-    </div>
-    <div className="flex flex-wrap items-center gap-1.5">
-      <ClientQuickIntake patientId={patientId} mode="water" onRecorded={()=>{setReload(n=>n+1);onRecorded();}}/>
-      <button type="button" aria-expanded={editing} onClick={()=>setEditing(value=>!value)}
-        className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-border px-2.5 text-[11px] font-semibold text-foreground hover:bg-muted">
-        <SlidersHorizontal size={14}/>{editing?"Fechar perfil":"Ajustar meta"}
-      </button>
+  <header className="relative isolate overflow-hidden rounded-3xl bg-sky-950 p-5 text-white shadow-card">
+    <img src="/images/caredigital-hidratacao.webp" alt="" aria-hidden="true" className="absolute inset-y-0 right-0 -z-20 h-full w-full object-cover opacity-60 sm:w-1/2"/>
+    <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-sky-950 from-45% via-sky-900/85 to-cyan-600/20"/>
+    <div className="flex flex-wrap items-center gap-5">
+      <div className="relative h-36 w-24 shrink-0 overflow-hidden rounded-b-[2.5rem] rounded-t-xl border-[3px] border-white/70 bg-white/10" role="img" aria-label={`Copo ${percent}% cheio`}>
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-sky-500 to-cyan-300 transition-[height] duration-700" style={{height:percent+"%"}}>
+          <div className="absolute -top-1.5 left-0 h-3 w-[200%] animate-[care-wave_3s_linear_infinite] rounded-[50%] bg-cyan-200/70"/>
+        </div>
+        <span className="absolute inset-0 grid place-items-center text-xl font-extrabold drop-shadow">{percent}%</span>
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-bold uppercase tracking-[.14em] text-white/70">Minha hidratação · até 23h (Acre)</p>
+        <p className="mt-1 text-3xl font-extrabold tabular-nums">{intake.toLocaleString("pt-BR")} <span className="text-lg font-semibold text-white/70">/ {goal?goal.toLocaleString("pt-BR")+" ml":"meta a definir"}</span></p>
+        <p className="text-sm text-white/80">{dayClosed?"Dia encerrado":remaining===0&&goal?"Meta de hoje atingida! 🎉":goal?`Faltam ${remaining.toLocaleString("pt-BR")} ml${nextPlan?` · próximo copo ${nextHydrationLabel==="Agora"?"agora":"às "+nextHydrationLabel} (~${nextPlan.suggestedMl} ml)`:""}`:"Defina sua meta em Ajustar meta"}</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {[150,250,500].map(ml=><button key={ml} type="button" disabled={Boolean(action)} onClick={()=>void quickDrink(ml)}
+            className="inline-flex h-11 items-center gap-1.5 rounded-xl bg-white px-4 text-sm font-bold text-sky-900 shadow-sm transition hover:-translate-y-0.5 hover:bg-white/90 disabled:opacity-60"><Droplets size={16}/> +{ml} ml</button>)}
+          <span className="[&_button]:!h-11 [&_button]:!rounded-xl [&_button]:!border-white/30 [&_button]:!bg-white/15 [&_button]:!px-4 [&_button]:!text-sm [&_button]:!text-white"><ClientQuickIntake patientId={patientId} mode="water" onRecorded={()=>{setReload(n=>n+1);onRecorded();}}/></span>
+          <button type="button" aria-expanded={editing} onClick={()=>setEditing(value=>!value)}
+            className="inline-flex h-11 items-center gap-1.5 rounded-xl border border-white/30 bg-white/10 px-4 text-sm font-bold text-white backdrop-blur hover:bg-white/20">
+            <SlidersHorizontal size={16}/>{editing?"Fechar perfil":"Ajustar meta"}</button>
+        </div>
+      </div>
     </div>
   </header>
   {editing&&<div className="rounded-xl border border-border bg-muted/30 p-2.5">
