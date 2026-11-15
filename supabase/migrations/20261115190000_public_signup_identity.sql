@@ -36,3 +36,26 @@ drop trigger if exists care_identity_profiles_updated_at on public.care_identity
 create trigger care_identity_profiles_updated_at
 before update on public.care_identity_profiles
 for each row execute function public.set_care_identity_profiles_updated_at();
+
+-- Public users must not be classified as professionals by the legacy auth trigger.
+create or replace function public.create_professional_profile_for_auth_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if coalesce(new.raw_user_meta_data ->> 'account_type', 'professional') <> 'professional' then
+    return new;
+  end if;
+  insert into public.professional_profiles (user_id, display_name, email, role)
+  values (
+    new.id,
+    coalesce(nullif(left(new.raw_user_meta_data ->> 'display_name', 120), ''), split_part(coalesce(new.email, ''), '@', 1), 'Profissional'),
+    coalesce(new.email, ''),
+    'professional'
+  )
+  on conflict (user_id) do nothing;
+  return new;
+end;
+$$;
