@@ -1305,7 +1305,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
               aria-label={clientSectionLabels[activeTab].title}
               className={
                 card +
-                " min-h-[60dvh] min-w-0 flex-1 overflow-y-auto overscroll-contain p-3 sm:p-4 lg:min-h-0"
+                " min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain p-3 sm:p-4 lg:min-h-0"
               }
             >
               {activeTab === "agenda" && (
