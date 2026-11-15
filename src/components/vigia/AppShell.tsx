@@ -207,10 +207,16 @@ export function AppShell({ children }: { children: ReactNode }) {
           </header>
 
           {shellError && <p role="alert" className="shrink-0 border-b border-destructive/20 bg-destructive/10 px-4 py-2 text-xs font-medium text-destructive">{shellError}</p>}
-          <main id="care-content" className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-3 sm:p-4 lg:p-5">{children}
+          <main id="care-content" className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-3 sm:p-4 lg:p-5 xl:pr-14">{children}
             {location.pathname !== "/" && <p className="mt-5 border-t border-border pt-3 text-center text-xs text-muted-foreground">NextVita · Desenvolvido por <strong className="font-semibold text-foreground">Franc D&apos;nis</strong> · Feijó, Acre</p>}
           </main>
         </div>
+
+        <aside aria-label="Assinatura NextVita" className="pointer-events-none fixed right-0 top-14 z-20 hidden h-[calc(100dvh-3.5rem)] w-9 items-center justify-center border-l border-border bg-surface/75 backdrop-blur-sm xl:flex">
+          <p className="[writing-mode:vertical-rl] rotate-180 whitespace-nowrap text-[10px] font-semibold uppercase tracking-[.18em] text-muted-foreground">
+            NextVita · Desenvolvido por Franc D&apos;nis · Feijó, Acre · Cuidar de si também é acompanhar sua evolução
+          </p>
+        </aside>
 
         {menuOpen && <div className={`fixed inset-0 z-50 ${signedIn ? "xl:hidden" : "lg:hidden"}`} role="dialog" aria-modal="true" aria-label="Menu">
           <button type="button" aria-label="Fechar menu" className="absolute inset-0 cursor-default bg-slate-950/60 backdrop-blur-sm" onClick={() => setMenuOpen(false)}/>
