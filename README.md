@@ -1,4 +1,4 @@
-# My Care Plan
+# NextVita
 
 quero que crie um projeto, um aplicativo, onde eu possa conbtrolar as dietas, os medicamentos que deve ser tomado, area para cadastrar remedios, horarios para tomar, protocolos para tipos de doenças ou dietas que o paciente esta tratando;  area para controlar, criar contas  para as pessoas, cuidadores, enferemeiros ou outros profsisionaius que trabalham cuidado de pessoas que tenham alguma concidição nedica que precisa seguir a riscas os horarios, as medicações, os remdeiod naturzai, timer programavel, tyempo, data, deve ter uma area para admnistrador controlart; deve ter tambem, protoclos, para cada tratamento que ainda irei inserir, dever term tambem formas dapessaoa fazer regime, tomar suplementos e oputros msais; nao conceta ao supabase faça apenas a area visual
 
