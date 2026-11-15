@@ -21,7 +21,10 @@ function NotFoundComponent() {
         <h1 className="font-display text-7xl text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">Página não encontrada</h2>
         <div className="mt-6">
-          <Link to="/" className="inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
+          <Link
+            to="/"
+            className="inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+          >
             Voltar ao painel
           </Link>
         </div>
@@ -40,7 +43,9 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">Esta página não carregou</h1>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          Esta página não carregou
+        </h1>
         <div className="mt-6 flex justify-center gap-2">
           <button
             onClick={() => {
@@ -62,11 +67,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "NextVita — Cuidado conectado" },
-      { name: "description", content: "NextVita: acompanhamento pessoal de medicações, alimentação, hidratação e cuidados com segurança." },
+      { title: "NextVita — Bem-estar conectado" },
+      {
+        name: "description",
+        content:
+          "NextVita: nutrição, hidratação, evolução do peso, suplementos e rotina de autocuidado em um só lugar.",
+      },
       { property: "og:type", content: "website" },
-      { property: "og:title", content: "NextVita — Cuidado conectado" },
-      { property: "og:description", content: "A sua rotina de cuidados em um só lugar." },
+      { property: "og:title", content: "NextVita — Bem-estar conectado" },
+      {
+        property: "og:description",
+        content: "Seu hub pessoal para cuidar do corpo, acompanhar hábitos e evoluir com clareza.",
+      },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "theme-color", content: "#0e8a6a" },
       { name: "mobile-web-app-capable", content: "yes" },
