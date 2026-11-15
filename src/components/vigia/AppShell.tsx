@@ -436,7 +436,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             )}
             <main
               id="care-content"
-              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-3 sm:p-4 lg:p-5 xl:pl-10 xl:pr-10"
+              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-3 sm:p-4 lg:p-5"
             >
               {children}
               {location.pathname !== "/" && (
@@ -451,9 +451,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <aside
             aria-label="Marca NextVita"
-            className="pointer-events-none fixed left-0 top-14 z-20 hidden h-[calc(100dvh-3.5rem)] w-7 items-center justify-center border-r border-border bg-surface/70 backdrop-blur-sm xl:flex"
+            className="pointer-events-none fixed left-0 top-14 z-20 hidden h-[calc(100dvh-3.5rem)] w-0 items-center justify-center xl:flex"
           >
-            <div className="flex h-full flex-col items-center justify-between py-6">
+            <div className="pointer-events-none fixed left-1 top-16 bottom-3 flex flex-col items-center justify-between py-2">
               <span className="[writing-mode:vertical-rl] rotate-180 text-[8px] font-extrabold uppercase tracking-[.28em] text-primary">
                 NextVita
               </span>
@@ -464,9 +464,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           </aside>
           <aside
             aria-label="Assinatura do desenvolvedor"
-            className="pointer-events-none fixed right-0 top-14 z-20 hidden h-[calc(100dvh-3.5rem)] w-7 items-center justify-center border-l border-border bg-surface/70 backdrop-blur-sm xl:flex"
+            className="pointer-events-none fixed right-0 top-14 z-20 hidden h-[calc(100dvh-3.5rem)] w-0 items-center justify-center xl:flex"
           >
-            <div className="flex h-full flex-col items-center justify-between py-6">
+            <div className="pointer-events-none fixed right-1 top-16 bottom-3 flex flex-col items-center justify-between py-2">
               <span className="[writing-mode:vertical-rl] rotate-180 text-[7px] font-semibold uppercase tracking-[.16em] text-muted-foreground">
                 Desenvolvido por Franc D&apos;nis
               </span>
