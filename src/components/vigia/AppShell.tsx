@@ -212,6 +212,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const internalPage = signedIn && location.pathname !== "/";
   const groups = navByProfile[profile];
   const items = groups.flatMap((group) => group.items);
+  const publicItems = navByProfile.public[0].items;
   const currentHash = location.hash || clientSectionHashes.hoje;
   const isActive = (item: NavItem) =>
     item.to === location.pathname && (!item.hash || item.hash === currentHash);
@@ -371,7 +372,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     className="ml-4 hidden min-w-0 flex-1 items-center gap-0.5 lg:flex"
                     aria-label="Navegação principal"
                   >
-                    {items.map((item) => (
+                    {publicItems.map((item) => (
                       <Link
                         key={item.to}
                         to={item.to}
@@ -501,11 +502,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                     <X size={18} />
                   </button>
                 </div>
-                {signedIn ? (
+                {internalPage ? (
                   sidebarBody
                 ) : (
                   <nav className="grid gap-0.5 p-3" aria-label="Navegação principal">
-                    {items.map(sideLink)}
+                    {publicItems.map(sideLink)}
                     <Link
                       to="/entrar"
                       className="mt-3 flex h-10 items-center justify-center gap-2 rounded-lg bg-primary text-sm font-semibold text-white"
