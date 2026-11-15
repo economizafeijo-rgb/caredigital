@@ -179,6 +179,7 @@ button:not(:disabled), a[href], [role="button"], label:has(input[type="checkbox"
 select:not(:disabled), [role="option"], [role="menuitem"], [role="tab"],
 input[type="checkbox"]:not(:disabled), input[type="radio"]:not(:disabled) { cursor: pointer; }
 
+input[type="text"], input:not([type]), textarea { text-transform: uppercase; }
 input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button { appearance: none; margin: 0; }
