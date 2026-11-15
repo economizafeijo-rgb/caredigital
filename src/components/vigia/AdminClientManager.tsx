@@ -451,12 +451,22 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
                       </div>
                     </td>
                     <td>{goals[c.care_goal ?? ""] ?? "—"}</td>
-                    <td>{plans[c.license_plan ?? ""] ?? "—"}</td>
+                    <td>
+                      {plans[c.license_plan ?? ""] ?? "—"}
+                      {lic === "gratuita" && (
+                        <span
+                          className="ml-1 text-[10px] font-semibold text-sky-700 dark:text-sky-300"
+                          title="Cadastro gratuito sem período pago"
+                        >
+                          (GRATUITO)
+                        </span>
+                      )}
+                    </td>
                     <td>
                       <span
                         className={`rounded-full px-2.5 py-1 text-xs font-bold capitalize ${statusStyle[lic] ?? "bg-muted"}`}
                       >
-                        {lic}
+                        {lic === "gratuita" ? "gratuita" : lic}
                       </span>
                     </td>
                     <td className="tabular-nums">
