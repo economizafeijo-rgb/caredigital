@@ -35,6 +35,7 @@ import { clientSectionTheme, type SectionTheme } from "@/lib/client-section-them
 import { fmtClock, useNow } from "./ui";
 import { InstallAppButton } from "./InstallApp";
 import { HydrationProvider, HydrationReminder } from "./HydrationTracker";
+import { DialogProvider } from "@/lib/dialog";
 
 type NavItem = { to: string; hash?: string; label: string; icon: LucideIcon };
 type NavGroup = { title: string; items: NavItem[] };
@@ -327,197 +328,198 @@ export function AppShell({ children }: { children: ReactNode }) {
   );
 
   return (
-    <HydrationProvider>
-      <div className="care-shell flex h-dvh min-h-0 overflow-hidden bg-background text-foreground">
-        {signedIn && (
-          <aside className="hidden w-60 shrink-0 flex-col bg-sidebar xl:flex">
-            <div className="flex h-14 shrink-0 items-center border-b border-white/10 px-4">
-              <Brand onDark />
-            </div>
-            {sidebarBody}
-          </aside>
-        )}
+    <DialogProvider>
+      <HydrationProvider>
+        <div className="care-shell flex h-dvh min-h-0 overflow-hidden bg-background text-foreground">
+          {signedIn && (
+            <aside className="hidden w-60 shrink-0 flex-col bg-sidebar xl:flex">
+              <div className="flex h-14 shrink-0 items-center border-b border-white/10 px-4">
+                <Brand onDark />
+              </div>
+              {sidebarBody}
+            </aside>
+          )}
 
-        <div className="flex min-w-0 flex-1 flex-col">
-          <header className="z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-surface/90 px-3 backdrop-blur sm:px-5">
-            {signedIn ? (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setMenuOpen(true)}
-                  aria-label="Abrir menu"
-                  aria-expanded={menuOpen}
-                  className={`${iconButton} xl:hidden`}
-                >
-                  <Menu size={18} />
-                </button>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-display text-[15px] font-bold leading-tight">
-                    {current?.label ?? (location.pathname === "/" ? "Página inicial" : "NextVita")}
-                  </p>
-                  <p className="truncate text-[11px] text-muted-foreground">
-                    {fmtClock(now)} · horário do Acre
-                  </p>
-                </div>
-              </>
-            ) : (
-              <>
-                <Brand />
-                <nav
-                  className="ml-4 hidden min-w-0 flex-1 items-center gap-0.5 lg:flex"
-                  aria-label="Navegação principal"
-                >
-                  {items.map((item) => (
+          <div className="flex min-w-0 flex-1 flex-col">
+            <header className="z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-surface/90 px-3 backdrop-blur sm:px-5">
+              {signedIn ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setMenuOpen(true)}
+                    aria-label="Abrir menu"
+                    aria-expanded={menuOpen}
+                    className={`${iconButton} xl:hidden`}
+                  >
+                    <Menu size={18} />
+                  </button>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-display text-[15px] font-bold leading-tight">
+                      {current?.label ??
+                        (location.pathname === "/" ? "Página inicial" : "NextVita")}
+                    </p>
+                    <p className="truncate text-[11px] text-muted-foreground">
+                      {fmtClock(now)} · horário do Acre
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Brand />
+                  <nav
+                    className="ml-4 hidden min-w-0 flex-1 items-center gap-0.5 lg:flex"
+                    aria-label="Navegação principal"
+                  >
+                    {items.map((item) => (
+                      <Link
+                        key={item.to}
+                        to={item.to}
+                        activeOptions={{ exact: item.to === "/" }}
+                        className="rounded-lg px-3 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        activeProps={{ className: "!bg-accent !text-accent-foreground" }}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </nav>
+                  <span className="flex-1 lg:hidden" />
+                </>
+              )}
+              <div className="flex shrink-0 items-center gap-1.5">
+                {signedIn &&
+                  (location.pathname === "/" ? (
+                    panelHome && (
+                      <Link
+                        to={panelHome}
+                        className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110"
+                        title="Voltar ao meu painel"
+                      >
+                        <LayoutDashboard size={16} />
+                        <span className="hidden sm:inline">Meu painel</span>
+                      </Link>
+                    )
+                  ) : (
                     <Link
-                      key={item.to}
-                      to={item.to}
-                      activeOptions={{ exact: item.to === "/" }}
-                      className="rounded-lg px-3 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                      activeProps={{ className: "!bg-accent !text-accent-foreground" }}
+                      to="/"
+                      className="inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm font-semibold text-foreground transition hover:border-primary/40"
+                      title="Ir à página inicial sem sair da conta"
                     >
-                      {item.label}
+                      <Home size={16} />
+                      <span className="hidden sm:inline">Página inicial</span>
                     </Link>
                   ))}
-                </nav>
-                <span className="flex-1 lg:hidden" />
-              </>
-            )}
-            <div className="flex shrink-0 items-center gap-1.5">
-              {signedIn &&
-                (location.pathname === "/" ? (
-                  panelHome && (
-                    <Link
-                      to={panelHome}
-                      className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110"
-                      title="Voltar ao meu painel"
-                    >
-                      <LayoutDashboard size={16} />
-                      <span className="hidden sm:inline">Meu painel</span>
-                    </Link>
-                  )
-                ) : (
-                  <Link
-                    to="/"
-                    className="inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm font-semibold text-foreground transition hover:border-primary/40"
-                    title="Ir à página inicial sem sair da conta"
+                <InstallAppButton />
+                {tools}
+                {!signedIn && access.status !== "loading" && loginButton}
+                {!signedIn && (
+                  <button
+                    type="button"
+                    onClick={() => setMenuOpen(true)}
+                    aria-label="Abrir menu"
+                    aria-expanded={menuOpen}
+                    className={`${iconButton} lg:hidden`}
                   >
-                    <Home size={16} />
-                    <span className="hidden sm:inline">Página inicial</span>
-                  </Link>
-                ))}
-              <InstallAppButton />
-              {tools}
-              {!signedIn && access.status !== "loading" && loginButton}
-              {!signedIn && (
-                <button
-                  type="button"
-                  onClick={() => setMenuOpen(true)}
-                  aria-label="Abrir menu"
-                  aria-expanded={menuOpen}
-                  className={`${iconButton} lg:hidden`}
-                >
-                  <Menu size={18} />
-                </button>
-              )}
-            </div>
-          </header>
+                    <Menu size={18} />
+                  </button>
+                )}
+              </div>
+            </header>
 
-          {shellError && (
-            <p
-              role="alert"
-              className="shrink-0 border-b border-destructive/20 bg-destructive/10 px-4 py-2 text-xs font-medium text-destructive"
-            >
-              {shellError}
-            </p>
-          )}
-          <main
-            id="care-content"
-            className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-3 sm:p-4 lg:p-5 xl:pl-10 xl:pr-10"
-          >
-            {children}
-            {location.pathname !== "/" && (
-              <p className="mt-5 border-t border-border pt-3 text-center text-xs text-muted-foreground">
-                NextVita · Desenvolvido por{" "}
-                <strong className="font-semibold text-foreground">Franc D&apos;nis</strong> · Feijó,
-                Acre
+            {shellError && (
+              <p
+                role="alert"
+                className="shrink-0 border-b border-destructive/20 bg-destructive/10 px-4 py-2 text-xs font-medium text-destructive"
+              >
+                {shellError}
               </p>
             )}
-          </main>
-        </div>
-
-        <aside
-          aria-label="Marca NextVita"
-          className="pointer-events-none fixed left-0 top-14 z-20 hidden h-[calc(100dvh-3.5rem)] w-7 items-center justify-center border-r border-border bg-surface/70 backdrop-blur-sm xl:flex"
-        >
-          <div className="flex h-full flex-col items-center justify-between py-6">
-            <span className="[writing-mode:vertical-rl] rotate-180 text-[8px] font-extrabold uppercase tracking-[.28em] text-primary">
-              NextVita
-            </span>
-            <span className="h-16 w-px bg-gradient-to-b from-primary/0 via-primary/45 to-primary/0" />
-            <span className="[writing-mode:vertical-rl] rotate-180 text-[7px] font-semibold uppercase tracking-[.16em] text-muted-foreground">
-              Bem-estar conectado
-            </span>
-          </div>
-        </aside>
-        <aside
-          aria-label="Assinatura do desenvolvedor"
-          className="pointer-events-none fixed right-0 top-14 z-20 hidden h-[calc(100dvh-3.5rem)] w-7 items-center justify-center border-l border-border bg-surface/70 backdrop-blur-sm xl:flex"
-        >
-          <div className="flex h-full flex-col items-center justify-between py-6">
-            <span className="[writing-mode:vertical-rl] rotate-180 text-[7px] font-semibold uppercase tracking-[.16em] text-muted-foreground">
-              Desenvolvido por Franc D&apos;nis
-            </span>
-            <span className="h-16 w-px bg-gradient-to-b from-primary/0 via-primary/45 to-primary/0" />
-            <span className="[writing-mode:vertical-rl] rotate-180 text-[7px] font-semibold uppercase tracking-[.16em] text-muted-foreground">
-              Feijó, Acre · Cuidar de si é acompanhar sua evolução
-            </span>
-          </div>
-        </aside>
-
-        {menuOpen && (
-          <div
-            className={`fixed inset-0 z-50 ${signedIn ? "xl:hidden" : "lg:hidden"}`}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Menu"
-          >
-            <button
-              type="button"
-              aria-label="Fechar menu"
-              className="absolute inset-0 cursor-default bg-slate-950/60 backdrop-blur-sm"
-              onClick={() => setMenuOpen(false)}
-            />
-            <div className="absolute inset-y-0 left-0 flex w-[min(18rem,85vw)] flex-col bg-sidebar shadow-2xl">
-              <div className="flex h-14 shrink-0 items-center justify-between border-b border-white/10 px-4">
-                <Brand onDark />
-                <button
-                  type="button"
-                  onClick={() => setMenuOpen(false)}
-                  aria-label="Fechar menu"
-                  className="grid size-8 place-items-center rounded-lg text-slate-300 hover:bg-white/10 hover:text-white"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-              {signedIn ? (
-                sidebarBody
-              ) : (
-                <nav className="grid gap-0.5 p-3" aria-label="Navegação principal">
-                  {items.map(sideLink)}
-                  <Link
-                    to="/entrar"
-                    className="mt-3 flex h-10 items-center justify-center gap-2 rounded-lg bg-primary text-sm font-semibold text-white"
-                  >
-                    <LogIn size={16} /> Entrar
-                  </Link>
-                </nav>
+            <main
+              id="care-content"
+              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-3 sm:p-4 lg:p-5 xl:pl-10 xl:pr-10"
+            >
+              {children}
+              {location.pathname !== "/" && (
+                <p className="mt-5 border-t border-border pt-3 text-center text-xs text-muted-foreground">
+                  NextVita · Desenvolvido por{" "}
+                  <strong className="font-semibold text-foreground">Franc D&apos;nis</strong> ·
+                  Feijó, Acre
+                </p>
               )}
-            </div>
+            </main>
           </div>
-        )}
 
-        {profile === "admin" && <HydrationReminder />}
-      </div>
-    </HydrationProvider>
+          <aside
+            aria-label="Marca NextVita"
+            className="pointer-events-none fixed left-0 top-14 z-20 hidden h-[calc(100dvh-3.5rem)] w-7 items-center justify-center border-r border-border bg-surface/70 backdrop-blur-sm xl:flex"
+          >
+            <div className="flex h-full flex-col items-center justify-between py-6">
+              <span className="[writing-mode:vertical-rl] rotate-180 text-[8px] font-extrabold uppercase tracking-[.28em] text-primary">
+                NextVita
+              </span>
+              <span className="[writing-mode:vertical-rl] rotate-180 text-[7px] font-semibold uppercase tracking-[.16em] text-muted-foreground">
+                Bem-estar conectado
+              </span>
+            </div>
+          </aside>
+          <aside
+            aria-label="Assinatura do desenvolvedor"
+            className="pointer-events-none fixed right-0 top-14 z-20 hidden h-[calc(100dvh-3.5rem)] w-7 items-center justify-center border-l border-border bg-surface/70 backdrop-blur-sm xl:flex"
+          >
+            <div className="flex h-full flex-col items-center justify-between py-6">
+              <span className="[writing-mode:vertical-rl] rotate-180 text-[7px] font-semibold uppercase tracking-[.16em] text-muted-foreground">
+                Desenvolvido por Franc D&apos;nis
+              </span>
+              <span className="[writing-mode:vertical-rl] rotate-180 text-[7px] font-semibold uppercase tracking-[.16em] text-muted-foreground">
+                Feijó, Acre · Cuidar de si é acompanhar sua evolução
+              </span>
+            </div>
+          </aside>
+
+          {menuOpen && (
+            <div
+              className={`fixed inset-0 z-50 ${signedIn ? "xl:hidden" : "lg:hidden"}`}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Menu"
+            >
+              <button
+                type="button"
+                aria-label="Fechar menu"
+                className="absolute inset-0 cursor-default bg-slate-950/60 backdrop-blur-sm"
+                onClick={() => setMenuOpen(false)}
+              />
+              <div className="absolute inset-y-0 left-0 flex w-[min(18rem,85vw)] flex-col bg-sidebar shadow-2xl">
+                <div className="flex h-14 shrink-0 items-center justify-between border-b border-white/10 px-4">
+                  <Brand onDark />
+                  <button
+                    type="button"
+                    onClick={() => setMenuOpen(false)}
+                    aria-label="Fechar menu"
+                    className="grid size-8 place-items-center rounded-lg text-slate-300 hover:bg-white/10 hover:text-white"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+                {signedIn ? (
+                  sidebarBody
+                ) : (
+                  <nav className="grid gap-0.5 p-3" aria-label="Navegação principal">
+                    {items.map(sideLink)}
+                    <Link
+                      to="/entrar"
+                      className="mt-3 flex h-10 items-center justify-center gap-2 rounded-lg bg-primary text-sm font-semibold text-white"
+                    >
+                      <LogIn size={16} /> Entrar
+                    </Link>
+                  </nav>
+                )}
+              </div>
+            </div>
+          )}
+
+          {profile === "admin" && <HydrationReminder />}
+        </div>
+      </HydrationProvider>
+    </DialogProvider>
   );
 }
