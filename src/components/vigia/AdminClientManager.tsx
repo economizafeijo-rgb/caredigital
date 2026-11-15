@@ -36,9 +36,9 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
 
   useEffect(() => {
     void (async () => {
-      const full = await db.from("care_patients").select("id,full_name,birth_date,condition_notes,status,contact_email,phone,weight_kg,height_cm,care_goal,license_plan,license_status,license_expires_on,created_at").eq("owner_id", ownerId).order("created_at", { ascending: false });
+      const full = await db.from("care_patients").select("id,full_name,birth_date,condition_notes,status,contact_email,phone,weight_kg,height_cm,care_goal,license_plan,license_status,license_expires_on,created_at").order("created_at", { ascending: false });
       if (!full.error) { setLicenseColumns(true); setClients(full.data ?? []); return; }
-      const basic = await db.from("care_patients").select("id,full_name,birth_date,condition_notes,status,contact_email,weight_kg,height_cm,care_goal,created_at").eq("owner_id", ownerId).order("created_at", { ascending: false });
+      const basic = await db.from("care_patients").select("id,full_name,birth_date,condition_notes,status,contact_email,weight_kg,height_cm,care_goal,created_at").order("created_at", { ascending: false });
       setLicenseColumns(false); setClients(basic.data ?? []);
     })();
   }, [ownerId, reload]);
@@ -64,7 +64,7 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
     };
     if (licenseColumns) Object.assign(row, { phone: editing.phone?.trim() || null, license_plan: editing.license_plan ?? "basico",
       license_status: editing.license_status ?? "ativa", license_expires_on: editing.license_expires_on || null });
-    const result = editing.id ? await db.from("care_patients").update(row).eq("id", editing.id).eq("owner_id", ownerId)
+    const result = editing.id ? await db.from("care_patients").update(row).eq("id", editing.id)
       : await db.from("care_patients").insert({ ...row, owner_id: ownerId });
     if (result.error) return setMessage({ ok: false, text: "Não foi possível salvar: " + result.error.message });
     setMessage({ ok: true, text: editing.id ? `Cadastro de ${name} atualizado.` : `${name} cadastrado com sucesso.` });
@@ -75,7 +75,7 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
     if (!licenseColumns) return setMessage({ ok: false, text: "Aplique a migração de licenças (20261112180000) para gerenciar licenças." });
     const patch: Record<string, unknown> = { license_status: status };
     if (days) patch.license_expires_on = plusDays(days);
-    const result = await db.from("care_patients").update(patch).eq("id", client.id).eq("owner_id", ownerId);
+    const result = await db.from("care_patients").update(patch).eq("id", client.id);
     if (result.error) return setMessage({ ok: false, text: "Falha ao atualizar a licença." });
     setMessage({ ok: true, text: `Licença de ${client.full_name}: ${status}${days ? ` até ${patch.license_expires_on}` : ""}.` });
     setReload(v => v + 1);
@@ -85,7 +85,7 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
     if (!licenseColumns) return setMessage({ ok: false, text: "Aplique a migração de licenças (20261112180000) para gerenciar licenças." });
     const base = client.license_expires_on && client.license_expires_on > today() ? client.license_expires_on : today();
     const until = new Date(Date.parse(base + "T12:00:00Z") + days * 86_400_000).toISOString().slice(0, 10);
-    const result = await db.from("care_patients").update({ license_expires_on: until, ...(days > 0 ? { license_status: "ativa" } : {}) }).eq("id", client.id).eq("owner_id", ownerId);
+    const result = await db.from("care_patients").update({ license_expires_on: until, ...(days > 0 ? { license_status: "ativa" } : {}) }).eq("id", client.id);
     if (result.error) return setMessage({ ok: false, text: "Falha ao ajustar o tempo da licença." });
     setMessage({ ok: true, text: `Licença de ${client.full_name} válida até ${until.split("-").reverse().join("/")}.` });
     setReload(v => v + 1);
@@ -94,7 +94,7 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
   async function remove(client: Client) {
     const typed = window.prompt(`Excluir definitivamente ${client.full_name} e todos os registros? Digite EXCLUIR para confirmar.`);
     if (typed !== "EXCLUIR") return;
-    const result = await db.from("care_patients").delete().eq("id", client.id).eq("owner_id", ownerId);
+    const result = await db.from("care_patients").delete().eq("id", client.id);
     if (result.error) return setMessage({ ok: false, text: "Não foi possível excluir: " + result.error.message });
     setMessage({ ok: true, text: `${client.full_name} excluído.` }); setReload(v => v + 1);
   }
@@ -246,7 +246,7 @@ export function LicenseKeyPanel({ ownerId, clients }: { ownerId: string; clients
   const [msg, setMsg] = useState("");
   const [reload, setReload] = useState(0);
   useEffect(() => {
-    void db.from("care_license_keys").select("*").eq("owner_id", ownerId).order("created_at", { ascending: false }).limit(100)
+    void db.from("care_license_keys").select("*").order("created_at", { ascending: false }).limit(100)
       .then((r: any) => { setAvailable(!r.error); setKeys(r.data ?? []); });
   }, [ownerId, reload]);
   const nameOf = (id: string | null) => clients.find(c => c.id === id)?.full_name ?? "—";
@@ -258,7 +258,7 @@ export function LicenseKeyPanel({ ownerId, clients }: { ownerId: string; clients
   }
   async function revoke(code: string) {
     if (!window.confirm(`Revogar o código ${code}?`)) return;
-    await db.from("care_license_keys").update({ revoked: true }).eq("code", code).eq("owner_id", ownerId); setReload(v => v + 1);
+    await db.from("care_license_keys").update({ revoked: true }).eq("code", code); setReload(v => v + 1);
   }
   const copy = (text: string) => { void navigator.clipboard?.writeText(text); setMsg(`Copiado: ${text}`); };
   const field = "mt-1 block h-11 w-full rounded-xl border border-border bg-surface px-3 text-sm";
