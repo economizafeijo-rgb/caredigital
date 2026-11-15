@@ -324,10 +324,10 @@ function Entrar() {
 
   return (
     <main
-      className="mx-auto grid min-h-full w-full max-w-5xl items-center gap-5 py-4 sm:py-6 lg:grid-cols-2"
+      className="mx-auto grid h-full min-h-0 w-full max-w-5xl items-center gap-5 py-3 sm:py-4 lg:h-[calc(100dvh-3.5rem)] lg:grid-cols-2 lg:overflow-hidden"
       aria-label="Acesso NextVita"
     >
-      <aside className="relative isolate flex min-h-[180px] flex-col justify-end overflow-hidden rounded-3xl bg-slate-950 p-6 text-white shadow-pop lg:min-h-[540px] lg:p-8">
+      <aside className="relative isolate flex min-h-[180px] flex-col justify-end overflow-hidden rounded-3xl bg-slate-950 p-6 text-white shadow-pop lg:h-full lg:min-h-0 lg:p-8">
         <img
           src="/images/caredigital-care-hero.webp"
           alt=""
@@ -356,7 +356,7 @@ function Entrar() {
           </li>
         </ul>
       </aside>
-      <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-pop">
+      <section className="min-h-0 max-h-full overflow-hidden rounded-2xl border border-border bg-card shadow-pop">
         <div className="flex items-center gap-3 border-b border-border px-5 py-4 sm:px-6">
           <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
             <LockKeyhole size={21} />
