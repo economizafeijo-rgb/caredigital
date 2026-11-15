@@ -68,7 +68,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "NextVita — Cuidado conectado" },
       { property: "og:description", content: "A sua rotina de cuidados em um só lugar." },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "theme-color", content: "#1f5eff" },
+      { name: "theme-color", content: "#0e8a6a" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-title", content: "NextVita" },
