@@ -85,7 +85,16 @@ function Entrar() {
       }
     });
     const params = new URLSearchParams(window.location.search);
-    if (window.location.hash.includes("type=recovery") || params.get("type") === "recovery")
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    if (hashParams.get("error_code") === "otp_expired") {
+      setMode("login");
+      setNotice({
+        type: "error",
+        message:
+          "Este link de confirmação expirou. Informe seu e-mail e use o botão para reenviar uma nova confirmação.",
+      });
+      setNeedsConfirmation(true);
+    } else if (window.location.hash.includes("type=recovery") || params.get("type") === "recovery")
       setMode("reset");
     else if (params.get("mode") === "signup") setMode("signup");
     return () => subscription.unsubscribe();
