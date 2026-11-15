@@ -17,7 +17,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-/** Apresentação pública e explicativa: nunca lê nem altera registros de saúde de um paciente. */
+/** Apresentação pública e explicativa: nunca lê nem altera registros pessoais de um usuário. */
 export type ShowcaseKind = "hydration" | "medication" | "sports" | "diet" | "protocols";
 
 type Showcase = {
@@ -40,7 +40,7 @@ const copy: Record<ShowcaseKind, Showcase> = {
     eyebrow: "Hidratação",
     title: "Um jeito claro de acompanhar a água ao longo do dia.",
     description:
-      "Metas orientativas, lembretes e copos ilustrados fazem parte da rotina individual. O paciente registra cada consumo na própria área protegida.",
+      "Metas orientativas, lembretes e copos ilustrados fazem parte da rotina individual. O usuário registra cada consumo na própria área protegida.",
     cta: "Acessar minha hidratação",
     preview: ["Meta diária", "Consumo registrado", "Próximo lembrete"],
     benefits: [
@@ -57,7 +57,7 @@ const copy: Record<ShowcaseKind, Showcase> = {
       {
         icon: ClipboardCheck,
         title: "Confirmação de consumo",
-        text: "O paciente informa se bebeu e consulta seus registros.",
+        text: "O usuário informa se bebeu e consulta seus registros.",
       },
     ],
     steps: [
@@ -67,7 +67,7 @@ const copy: Record<ShowcaseKind, Showcase> = {
       { name: "Registro", detail: "Histórico individual" },
     ],
     privacy:
-      "Metas, volumes e horários pessoais são exibidos somente na área autorizada do paciente.",
+      "Metas, volumes e horários pessoais são exibidos somente na área autorizada do usuário.",
   },
   medication: {
     icon: Pill,
@@ -81,7 +81,7 @@ const copy: Record<ShowcaseKind, Showcase> = {
     benefits: [
       {
         icon: UserRoundCheck,
-        title: "Tratamento individual",
+        title: "Rotina individual",
         text: "Cada pessoa acessa apenas sua própria rotina de medicamentos.",
       },
       {
@@ -99,10 +99,10 @@ const copy: Record<ShowcaseKind, Showcase> = {
       { name: "Prescrição", detail: "Orientação profissional" },
       { name: "Agenda", detail: "Doses e horários" },
       { name: "Confirmação", detail: "Tomada registrada" },
-      { name: "Histórico", detail: "Prontuário privado" },
+      { name: "Histórico", detail: "Histórico privado" },
     ],
     privacy:
-      "Nomes, dosagens, tratamentos e horários reais não são exibidos nesta apresentação pública.",
+      "Nomes, dosagens, rotinas pessoais e horários reais não são exibidos nesta apresentação pública.",
   },
   sports: {
     icon: Dumbbell,
@@ -162,13 +162,13 @@ const copy: Record<ShowcaseKind, Showcase> = {
       {
         icon: ClipboardList,
         title: "Acompanhamento simples",
-        text: "O paciente consulta o planejado e registra o que foi consumido.",
+        text: "O usuário consulta o planejado e registra o que foi consumido.",
       },
     ],
     steps: [
       { name: "Orientação", detail: "Definição individual" },
       { name: "Agenda", detail: "Horários de refeição" },
-      { name: "Registro", detail: "Confirmações do paciente" },
+      { name: "Registro", detail: "Confirmações do usuário" },
       { name: "Histórico", detail: "Acompanhamento privado" },
     ],
     privacy: "Orientações e registros pessoais ficam disponíveis somente na conta do usuário.",
@@ -202,7 +202,7 @@ const copy: Record<ShowcaseKind, Showcase> = {
     steps: [
       { name: "Vinculação", detail: "Perfil pessoal" },
       { name: "Programação", detail: "Rotina e horários" },
-      { name: "Confirmação", detail: "Ação do paciente" },
+      { name: "Confirmação", detail: "Ação do usuário" },
       { name: "Histórico", detail: "Acompanhamento" },
     ],
     privacy: "Protocolos e registros pessoais não são exibidos nesta página pública.",
