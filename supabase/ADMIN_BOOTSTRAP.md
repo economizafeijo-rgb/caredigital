@@ -4,7 +4,7 @@
 
 ```sh
 npx supabase login
-npx supabase link --project-ref vvonjcrpwjaujkugogem
+npx supabase link --project-ref stlypzsqpqvrfsewlktx
 npx supabase db push
 npx supabase functions deploy invite-professional
 ```
