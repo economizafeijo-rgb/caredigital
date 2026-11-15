@@ -74,6 +74,12 @@ export function ClientActivityPage({
   const [paused, setPaused] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [route, setRoute] = useState<GeolocationCoordinates[]>([]);
+  const [summary, setSummary] = useState<{
+    duration: number;
+    distance: number;
+    pace: string;
+    points: number;
+  } | null>(null);
   const watchRef = useRef<number | null>(null);
   const startedRef = useRef(0);
   const { confirm } = useDialog();
@@ -180,6 +186,9 @@ export function ClientActivityPage({
     )
       return;
     if (watchRef.current !== null) navigator.geolocation.clearWatch(watchRef.current);
+    const minutes = Math.max(1, Math.round(elapsed / 60));
+    const pace = routeDistance > 0 ? `${Math.floor(minutes / routeDistance)}:${String(Math.round((minutes / routeDistance % 1) * 60)).padStart(2, "0")} min/km` : "—";
+    setSummary({ duration: minutes, distance: routeDistance, pace, points: route.length });
     setTracking(false);
     setPaused(false);
     setDistance(routeDistance.toFixed(2));
@@ -241,6 +250,9 @@ export function ClientActivityPage({
 
   return (
     <section className="flex h-full min-h-0 flex-col gap-3" aria-label="Atividade física">
+      {(tracking || summary) && <div className={`fixed inset-0 z-[180] grid place-items-center bg-[#071a1d]/95 p-5 text-white backdrop-blur-xl`} role="dialog" aria-modal="true" aria-label={summary ? "Resumo da atividade" : "Atividade em andamento"}>
+        <div className="w-full max-w-3xl rounded-[28px] border border-white/15 bg-white/10 p-5 shadow-2xl sm:p-8"><div className="flex items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.2em] text-emerald-200">NextVita · movimento e evolução</p><h2 className="mt-1 text-2xl font-extrabold sm:text-4xl">{summary ? "Resumo da atividade" : type === "corrida" ? "Corrida em andamento" : "Caminhada em andamento"}</h2></div>{!summary && <span className="inline-flex items-center gap-2 rounded-full bg-emerald-400/15 px-3 py-1.5 text-xs font-bold text-emerald-200"><span className="size-2 animate-pulse rounded-full bg-emerald-300"/> GPS ativo</span>}</div><div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">{[["Tempo",summary?`${summary.duration} min`:`${Math.floor(elapsed/60)}:${String(elapsed%60).padStart(2,"0")}`],["Distância",`${(summary?.distance??routeDistance).toFixed(2)} km"],["Ritmo médio",summary?.pace??(routeDistance>0?`${Math.floor((elapsed/60)/routeDistance)} min/km`:"—")],["Pontos GPS",String(summary?.points??route.length)]].map(([label,value])=><div key={label} className="rounded-2xl bg-black/20 p-4"><span className="text-xs text-white/60">{label}</span><strong className="mt-1 block text-2xl font-extrabold tabular-nums sm:text-3xl">{value}</strong></div>)}</div><div className="mt-8 flex flex-wrap justify-center gap-3">{summary?<><button type="button" onClick={()=>setSummary(null)} className="rounded-xl bg-primary px-6 py-3 text-sm font-bold">Voltar ao registro</button>{notes.startsWith("Percurso GPS:")&&<a href={notes.replace("Percurso GPS: ","")} target="_blank" rel="noreferrer" className="rounded-xl border border-white/20 px-6 py-3 text-sm font-bold">Abrir percurso no Google Maps</a>}</>:<><button type="button" onClick={()=>setPaused(v=>!v)} className="inline-flex items-center gap-2 rounded-xl border border-white/20 px-6 py-3 text-sm font-bold">{paused?<Play size={17}/>:<Pause size={17}/>} {paused?"Retomar":"Pausar"}</button><button type="button" onClick={()=>void stopGps()} className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-6 py-3 text-sm font-bold"><Square size={17}/> Parar atividade</button></>}</div></div>
+      </div>}
       <div className="grid shrink-0 grid-cols-2 gap-2 sm:grid-cols-4">
         <article className="rounded-xl border border-border bg-muted/30 p-3">
           <span className="text-[11px] font-semibold text-muted-foreground">
