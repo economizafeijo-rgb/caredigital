@@ -99,13 +99,21 @@ export async function bootstrapPublicSignup(user: User): Promise<{ patientId: st
   }
 
   const patientId = patient.data.id as string;
-  const access = await db
+  const existingAccess = await db
     .from("care_patient_access")
-    .upsert(
-      { patient_id: patientId, user_id: user.id, owner_id: user.id },
-      { onConflict: "patient_id,user_id" },
-    );
-  if (access.error) throw access.error;
+    .select("patient_id")
+    .eq("patient_id", patientId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (existingAccess.error) throw existingAccess.error;
+  if (!existingAccess.data) {
+    const access = await db.from("care_patient_access").insert({
+      patient_id: patientId,
+      user_id: user.id,
+      owner_id: user.id,
+    });
+    if (access.error && access.error.code !== "23505") throw access.error;
+  }
 
   const today = new Date().toISOString().slice(0, 10);
   const measurement = await db
