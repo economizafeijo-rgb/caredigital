@@ -318,13 +318,13 @@ function Entrar() {
   const iconField = (Icon: LucideIcon, props: InputHTMLAttributes<HTMLInputElement>) => (
     <span className="relative block">
       <Icon size={17} className="pointer-events-none absolute left-3 top-3 text-muted-foreground" />
-      <input {...props} className={`${field} !pl-10`} />
+      <input {...props} className={`${field} !pl-10 lg:min-h-9 lg:py-1`} />
     </span>
   );
 
   return (
     <main
-      className="mx-auto grid h-full min-h-0 w-full max-w-5xl items-center gap-5 py-3 sm:py-4 lg:h-[calc(100dvh-3.5rem)] lg:grid-cols-2 lg:overflow-hidden"
+      className="mx-auto grid h-full min-h-0 w-full max-w-5xl items-center gap-5 py-2 sm:py-3 lg:h-[calc(100dvh-3.5rem)] lg:grid-cols-2 lg:overflow-hidden"
       aria-label="Acesso NextVita"
     >
       <aside className="relative isolate flex min-h-[180px] flex-col justify-end overflow-hidden rounded-3xl bg-slate-950 p-6 text-white shadow-pop lg:h-full lg:min-h-0 lg:p-8">
@@ -357,7 +357,7 @@ function Entrar() {
         </ul>
       </aside>
       <section className="min-h-0 max-h-full overflow-hidden rounded-2xl border border-border bg-card shadow-pop">
-        <div className="flex items-center gap-3 border-b border-border px-5 py-4 sm:px-6">
+        <div className="flex items-center gap-3 border-b border-border px-4 py-2.5 sm:px-5">
           <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
             <LockKeyhole size={21} />
           </div>
@@ -368,7 +368,7 @@ function Entrar() {
             <h1 className="mt-0.5 text-xl font-bold tracking-tight text-foreground">{title}</h1>
           </div>
         </div>
-        <div className="space-y-4 p-5 sm:p-6">
+        <div className="space-y-3 p-4 sm:p-5 lg:space-y-2.5 lg:p-4">
           <p className="text-sm leading-relaxed text-muted-foreground">
             {mode === "login"
               ? "Entre com o e-mail e a senha cadastrados."
@@ -474,7 +474,7 @@ function Entrar() {
 
           {mode === "signup" && (
             <form
-              className="grid gap-3 sm:grid-cols-2"
+              className="grid gap-2 sm:grid-cols-2"
               onSubmit={(event) => void handleSignup(event)}
             >
               <label className="block text-xs font-bold text-foreground sm:col-span-2">
