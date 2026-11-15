@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { Btn, Field, PageHeader, Panel, Tag } from "@/components/vigia/ui";
 
-describe("shared CareDigital UI primitives", () => {
+describe("shared NextVita UI primitives", () => {
   it("renders a primary action with a comfortable touch target", () => {
     render(<Btn variant="primary">Salvar alterações</Btn>);
     const button = screen.getByRole("button", { name: "Salvar alterações" });

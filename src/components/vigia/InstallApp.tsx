@@ -34,7 +34,7 @@ export function InstallAppButton({ className = "" }: { className?: string }) {
   const [help, setHelp] = useState(false);
   if (!canInstall && !ios) return null;
   return <>
-    <button type="button" onClick={() => canInstall ? void install() : setHelp(true)} title="Instalar o aplicativo CareDigital"
+    <button type="button" onClick={() => canInstall ? void install() : setHelp(true)} title="Instalar o aplicativo NextVita"
       className={`inline-flex h-9 items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-500 px-3 text-sm font-bold text-white shadow-sm transition hover:brightness-110 ${className}`}>
       <Download size={16}/><span className="hidden sm:inline">Instalar app</span>
     </button>

@@ -36,7 +36,7 @@ const copy: Record<ShowcaseKind, Showcase> = {
   medication: {
     icon: Pill, tone: "text-med bg-med/10", eyebrow: "Medicamentos",
     title: "Horários claros, alertas e registros em um só lugar.",
-    description: "O CareDigital reúne as doses programadas para cada paciente, facilita a confirmação da tomada e mantém o histórico vinculado ao prontuário.",
+    description: "O NextVita reúne as doses programadas para cada paciente, facilita a confirmação da tomada e mantém o histórico vinculado ao prontuário.",
     cta: "Acessar minhas medicações",
     preview: ["Doses programadas", "Tomadas registradas", "Histórico pessoal"],
     benefits: [
@@ -70,7 +70,7 @@ const copy: Record<ShowcaseKind, Showcase> = {
   diet: {
     icon: Utensils, tone: "text-meal bg-meal/10", eyebrow: "Alimentação",
     title: "Refeições e lembretes, no momento certo.",
-    description: "O CareDigital reúne os horários de alimentação definidos para cada acompanhamento. O paciente consulta sua rotina e confirma os cuidados realizados em um ambiente protegido.",
+    description: "O NextVita reúne os horários de alimentação definidos para cada acompanhamento. O paciente consulta sua rotina e confirma os cuidados realizados em um ambiente protegido.",
     cta: "Acessar minha rotina",
     preview: ["Refeições do dia", "Alimentos registrados", "Metas de macros"],
     benefits: [
@@ -87,7 +87,7 @@ const copy: Record<ShowcaseKind, Showcase> = {
   protocols: {
     icon: HeartPulse, tone: "text-primary bg-accent", eyebrow: "Como funciona",
     title: "Uma rotina clara, do lembrete ao histórico.",
-    description: "O CareDigital organiza atividades e horários de acompanhamento. Cada paciente consulta suas orientações pessoais somente pelo acesso vinculado ao próprio prontuário.",
+    description: "O NextVita organiza atividades e horários de acompanhamento. Cada paciente consulta suas orientações pessoais somente pelo acesso vinculado ao próprio prontuário.",
     cta: "Acessar meu acompanhamento",
     preview: ["Lembretes do dia", "Cuidados confirmados", "Histórico auditável"],
     benefits: [
@@ -119,7 +119,7 @@ export function PublicCareShowcase({ kind }: { kind: ShowcaseKind }) {
     <div className="relative isolate flex min-h-[160px] shrink-0 items-end overflow-hidden rounded-3xl bg-slate-950 p-5 text-white shadow-pop sm:min-h-[220px] sm:p-8">
       <img src={showcaseImage[kind].src} alt="" aria-hidden="true" width={1200} height={750} loading="eager" style={{ objectPosition: showcaseImage[kind].position }} className="absolute inset-0 -z-20 h-full w-full object-cover"/>
       <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-950/90 via-slate-950/55 to-transparent"/>
-      <div><p className="text-xs font-bold uppercase tracking-[.14em] text-white/75">CareDigital</p>
+      <div><p className="text-xs font-bold uppercase tracking-[.14em] text-white/75">NextVita</p>
         <p className="mt-1 text-3xl font-extrabold leading-tight sm:text-5xl">{info.eyebrow}</p></div>
     </div>
     <section className="grid flex-1 items-center gap-8 lg:grid-cols-[1.1fr_.9fr] lg:gap-10">

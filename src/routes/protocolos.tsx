@@ -3,8 +3,8 @@ import { PublicCareShowcase } from "@/components/vigia/PublicCareShowcase";
 
 export const Route = createFileRoute("/protocolos")({
   head: () => ({ meta: [
-    { title: "Como funcionam os protocolos — CareDigital" },
-    { name: "description", content: "Conheça como o CareDigital organiza a rotina individual de cuidados, confirmações e histórico com acesso protegido." },
+    { title: "Como funcionam os protocolos — NextVita" },
+    { name: "description", content: "Conheça como o NextVita organiza a rotina individual de cuidados, confirmações e histórico com acesso protegido." },
   ] }),
   component: Protocolos,
 });

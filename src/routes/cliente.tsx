@@ -5,7 +5,7 @@ import { LicenseGate } from "@/components/vigia/LicenseGate";
 import { useAccess } from "@/lib/use-access";
 
 export const Route = createFileRoute("/cliente")({
-  head: () => ({ meta: [{ title: "Meu acompanhamento — CareDigital" }] }),
+  head: () => ({ meta: [{ title: "Meu acompanhamento — NextVita" }] }),
   component: ClientPage,
 });
 

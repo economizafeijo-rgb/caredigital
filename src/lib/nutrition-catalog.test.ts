@@ -1,7 +1,7 @@
 import { describe,expect,it } from "vitest";
 import { gramsForMacro,ingredients,menuForDay,portionNutrition,proteinRange,recipeFits,recipes,recipeTotals } from "./nutrition-catalog";
 
-describe("CareDigital nutrition safety and planning",()=>{
+describe("NextVita nutrition safety and planning",()=>{
  it("keeps common regional foods and branded products distinct",()=>{
   expect(ingredients.some(item=>item.id==="banana_prata")).toBe(true);
   expect(ingredients.some(item=>item.id==="macaxeira")).toBe(true);

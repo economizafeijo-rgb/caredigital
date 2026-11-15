@@ -8,7 +8,7 @@ import { AdminClientManager } from "@/components/vigia/AdminClientManager";
 import { ProtocolAdminManager } from "@/components/vigia/ProtocolAdminManager";
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Painel de gestão — CareDigital" }] }),
+  head: () => ({ meta: [{ title: "Painel de gestão — NextVita" }] }),
   component: Admin,
 });
 
@@ -62,7 +62,7 @@ function Admin() {
   }
 
   return <>
-    <PageHeader eyebrow="CareDigital · Espaço protegido" title="Painel de gestão">
+    <PageHeader eyebrow="NextVita · Espaço protegido" title="Painel de gestão">
       {email && <Btn variant="ghost" onClick={() => void signOut()}>Sair</Btn>}
     </PageHeader>
     {message && <Panel><p role="status" className="text-sm">{message} <Link to="/entrar" className="text-primary underline">Entrar</Link></p></Panel>}

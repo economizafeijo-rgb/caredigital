@@ -4,7 +4,7 @@ import {
   foodCategory,beverageCategory,intakeCategory,
 } from "./care-intake-categories";
 
-describe("CareDigital: categorias para consumo de alimentos e líquidos",()=>{
+describe("NextVita: categorias para consumo de alimentos e líquidos",()=>{
   it("mantém 10 tipos de alimentos sem confundi-los com bebidas",()=>{
     expect(foodKinds).toHaveLength(10);
     for(const option of foodKinds){

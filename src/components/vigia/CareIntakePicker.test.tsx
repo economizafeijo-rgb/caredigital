@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { CareIntakePicker } from "./CareIntakePicker";
 
-describe("CareDigital: categorias ilustradas de consumo",()=>{
+describe("NextVita: categorias ilustradas de consumo",()=>{
   it("mostra 13 bebidas com ícone, incluindo energético, shake e suplemento",()=>{
     const html=renderToStaticMarkup(<CareIntakePicker group="beverage" value="cha" onChange={()=>{}}/>);
     expect((html.match(/data-intake-kind=/g)||[]).length).toBe(13);

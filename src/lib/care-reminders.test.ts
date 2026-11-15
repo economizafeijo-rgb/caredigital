@@ -9,7 +9,7 @@ const task=(id:string,category="hidratacao",minutes=0,confirmedAt:string|null=nu
   id,title:"Verificar cuidado",category,scheduled_at:new Date(start+minutes*60000).toISOString(),
   completed_at:confirmedAt,
 });
-describe("CareDigital — lembretes de até 10 minutos",()=>{
+describe("NextVita — lembretes de até 10 minutos",()=>{
   it("fica aguardando antes do horário e inicia aviso ao chegar",()=>{
     const t=task("a");
     expect(careReminderState(t,start-1)).toBe("waiting");

@@ -3,7 +3,7 @@ import { clientSectionFromHash, clientSectionHash, clientSectionLabels, type Cli
 
 const sections:ClientSection[]=["hoje","agenda","hidratacao","historico","alimentacao","cardapios","medicacao","atividade","indicadores"];
 
-describe("CareDigital: páginas independentes do cliente",()=>{
+describe("NextVita: páginas independentes do cliente",()=>{
   it("mapeia cada seção em um endereço único",()=>{
     const hashes=sections.map(clientSectionHash);
     expect(new Set(hashes).size).toBe(sections.length);

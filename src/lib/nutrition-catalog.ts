@@ -1,5 +1,5 @@
 /**
- * Catálogo editorial CareDigital: alimentos regionais do Brasil e estimativas nutricionais.
+ * Catálogo editorial NextVita: alimentos regionais do Brasil e estimativas nutricionais.
  * Valores arredondados por 100 g de parte comestível, de preparos especificados.
  * Referência principal para consulta e validação: TBCA/USP (https://www.tbca.net.br/).
  * Não equivalem a laudo laboratorial, nem a uma integração direta em tempo real.

@@ -1,4 +1,4 @@
-/* CareDigital — actionable clock animation based on approved turquoise/glass reference.
+/* NextVita — actionable clock animation based on approved turquoise/glass reference.
    No external media, patient details or tracking scripts. */
 .care-clock-alert-backdrop {
   position:fixed;inset:0;z-index:10030;
@@ -189,7 +189,7 @@
 .care-clock-decision-form button:disabled{opacity:.55;cursor:not-allowed}
 @media(max-width:540px){.care-clock-alert-backdrop{padding:10px}.care-clock-alert-window{max-height:calc(100dvh - 20px);gap:10px}.care-clock-alert-task{gap:8px}.care-clock-alert-task-symbol{width:35px;height:35px}.care-clock-alert-task-details strong{font-size:14px}.care-clock-button{font-size:11px;min-height:44px}.care-clock-alert-mini-art{right:55px}}
 
-/* CareDigital: modal discreto, legível e adequado a telas pequenas. */
+/* NextVita: modal discreto, legível e adequado a telas pequenas. */
 .care-clock-alert-backdrop{background:rgba(2,15,25,.76);backdrop-filter:blur(9px)}
 .care-clock-alert-window{box-shadow:0 24px 80px rgba(0,0,0,.38);border:1px solid rgba(125,231,221,.48)}
 .care-clock-alert-head h2{line-height:1.15}

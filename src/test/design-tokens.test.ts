@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 const styles = readFileSync(resolve(process.cwd(), "src/styles.css"), "utf8");
 const componentDir = resolve(process.cwd(), "src/components/vigia");
 
-describe("CareDigital semantic design tokens", () => {
+describe("NextVita semantic design tokens", () => {
   it("defines the light theme from semantic variables", () => {
     expect(styles).toMatch(/:root\s*\{[^}]*--background:\s*#f5f7fb/s);
     expect(styles).toMatch(/:root\s*\{[^}]*--primary:\s*#1f5eff/s);

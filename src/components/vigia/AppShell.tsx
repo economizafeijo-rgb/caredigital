@@ -35,7 +35,7 @@ const contentGroup: NavGroup = {
 // Um mapa de navegação por perfil: cada área aparece uma única vez.
 const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
   public: [{
-    title: "CareDigital",
+    title: "NextVita",
     items: [
       { to: "/", label: "Início", icon: Home },
       { to: "/protocolos", label: "Como funciona", icon: HeartPulse },
@@ -72,11 +72,11 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
     ] },
     contentGroup,
   ],
-  unlinked: [{ title: "CareDigital", items: [{ to: "/", label: "Início", icon: Home }] }, contentGroup],
+  unlinked: [{ title: "NextVita", items: [{ to: "/", label: "Início", icon: Home }] }, contentGroup],
 };
 
 function Brand({ onDark = false }: { onDark?: boolean }) {
-  return <Link to="/" className="flex min-w-0 items-center gap-2.5" aria-label="CareDigital — início">
+  return <Link to="/" className="flex min-w-0 items-center gap-2.5" aria-label="NextVita — início">
     <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm"><HeartPulse size={19} strokeWidth={2.4}/></span>
     <span className={`font-display text-[17px] font-extrabold tracking-tight ${onDark ? "text-white" : "text-foreground"}`}>Care<span className={onDark ? "text-[#8fb2ff]" : "text-primary"}>Digital</span></span>
   </Link>;
@@ -183,7 +183,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             {signedIn ? <>
               <button type="button" onClick={() => setMenuOpen(true)} aria-label="Abrir menu" aria-expanded={menuOpen} className={`${iconButton} xl:hidden`}><Menu size={18}/></button>
               <div className="min-w-0 flex-1">
-                <p className="truncate font-display text-[15px] font-bold leading-tight">{current?.label ?? (location.pathname === "/" ? "Página inicial" : "CareDigital")}</p>
+                <p className="truncate font-display text-[15px] font-bold leading-tight">{current?.label ?? (location.pathname === "/" ? "Página inicial" : "NextVita")}</p>
                 <p className="truncate text-[11px] text-muted-foreground">{fmtClock(now)} · horário do Acre</p>
               </div>
             </> : <>
@@ -208,7 +208,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           {shellError && <p role="alert" className="shrink-0 border-b border-destructive/20 bg-destructive/10 px-4 py-2 text-xs font-medium text-destructive">{shellError}</p>}
           <main id="care-content" className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-3 sm:p-4 lg:p-5">{children}
-            {location.pathname !== "/" && <p className="mt-5 border-t border-border pt-3 text-center text-xs text-muted-foreground">CareDigital · Desenvolvido por <strong className="font-semibold text-foreground">Franc D&apos;nis</strong> · Feijó, Acre</p>}
+            {location.pathname !== "/" && <p className="mt-5 border-t border-border pt-3 text-center text-xs text-muted-foreground">NextVita · Desenvolvido por <strong className="font-semibold text-foreground">Franc D&apos;nis</strong> · Feijó, Acre</p>}
           </main>
         </div>
 

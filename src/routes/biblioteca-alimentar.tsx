@@ -111,7 +111,7 @@ function BibliotecaAlimentar(){
  return <section className="mx-auto flex h-[calc(100dvh-116px)] min-h-[540px] w-full max-w-[1680px] flex-col gap-3 overflow-hidden px-1 pb-2 text-foreground sm:px-2" aria-label="Central de nutrição">
   <header className="shrink-0 rounded-2xl border border-border bg-card text-foreground shadow-card">
    <div className="flex min-h-0 flex-wrap items-center justify-between gap-3 px-5 py-4 md:px-7">
-    <div className="flex items-center gap-3"><span className="rounded-2xl border border-border bg-muted p-3 backdrop-blur"><Leaf size={24}/></span><div><p className="text-[11px] font-bold uppercase tracking-[.22em] text-success">CareDigital · Saúde e bem-estar</p><h1 className="text-xl font-bold tracking-tight sm:text-2xl">Central de Nutrição</h1><p className="max-w-xl text-xs text-muted-foreground">Planeje refeições, consulte alimentos e acompanhe sua evolução em um só lugar.</p></div></div>
+    <div className="flex items-center gap-3"><span className="rounded-2xl border border-border bg-muted p-3 backdrop-blur"><Leaf size={24}/></span><div><p className="text-[11px] font-bold uppercase tracking-[.22em] text-success">NextVita · Saúde e bem-estar</p><h1 className="text-xl font-bold tracking-tight sm:text-2xl">Central de Nutrição</h1><p className="max-w-xl text-xs text-muted-foreground">Planeje refeições, consulte alimentos e acompanhe sua evolução em um só lugar.</p></div></div>
     <Link to="/" className="inline-flex items-center gap-2 rounded-xl border border-border bg-muted px-3 py-2 text-xs font-bold text-foreground transition hover:bg-accent"><ArrowLeft size={15}/> Voltar</Link>
    </div>
   </header>

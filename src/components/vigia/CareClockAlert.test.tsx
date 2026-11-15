@@ -18,7 +18,7 @@ function mount(overrides:Partial<ReminderTask>={}){
   return {onDetails,onConfirm,onSnooze,onDismiss,onChanged};
 }
 
-describe("Relógio animado CareDigital",()=>{
+describe("Relógio animado NextVita",()=>{
   it("exibe o compromisso no horário do Acre e apresenta a arte animada",()=>{
     mount();
     expect(screen.getByRole("dialog",{name:"Lembrete de cuidado no horário"})).toBeTruthy();

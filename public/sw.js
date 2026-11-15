@@ -1,4 +1,4 @@
-/* CareDigital service worker: instala o app e mostra uma página offline.
+/* NextVita service worker: instala o app e mostra uma página offline.
    Dados de saúde nunca são guardados em cache: só arquivos estáticos do próprio site. */
 const CACHE = "caredigital-static-v1";
 const PRECACHE = ["/offline.html", "/icons/icon-192.png", "/icons/icon-512.png", "/manifest.webmanifest"];

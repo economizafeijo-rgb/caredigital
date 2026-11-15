@@ -37,7 +37,7 @@ function data():HistorySources {
 }
 const filters:HistoryFilter={group:"todos",subtype:"todos",status:"todos",period:"hoje",query:"",order:"recentes"};
 
-describe("histórico inteligente CareDigital",()=>{
+describe("histórico inteligente NextVita",()=>{
   it("não duplica a água confirmada nem o mesmo consumo manual",()=>{
     const all=assembleCareHistory(data(),now);
     const water=all.filter(e=>e.group==="liquidos"&&e.subtype==="agua"&&e.amountMl);

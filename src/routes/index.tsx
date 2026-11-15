@@ -7,9 +7,9 @@ import { HomeClientMetrics } from "@/components/vigia/HomeClientMetrics";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "CareDigital — Cuidado organizado" },
+      { title: "NextVita — Cuidado organizado" },
       { name: "description", content: "Acompanhe tratamentos, medicação, refeições e hidratação em um só lugar." },
-      { property: "og:title", content: "CareDigital — Cuidado organizado" },
+      { property: "og:title", content: "NextVita — Cuidado organizado" },
       { property: "og:description", content: "Um espaço simples e seguro para sua rotina de cuidados." },
     ],
   }),
@@ -91,7 +91,7 @@ function Homepage() {
     </section>
 
     <footer className="shrink-0 overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-950 px-5 py-4 text-center text-sm text-slate-300">
-      <span className="font-semibold text-white">CareDigital</span> · Plataforma desenvolvida por <strong className="bg-gradient-to-r from-sky-300 to-fuchsia-300 bg-clip-text font-extrabold text-transparent">Franc D&apos;nis</strong> · Feijó, Acre — Brasil · © {new Date().getFullYear()}
+      <span className="font-semibold text-white">NextVita</span> · Plataforma desenvolvida por <strong className="bg-gradient-to-r from-sky-300 to-fuchsia-300 bg-clip-text font-extrabold text-transparent">Franc D&apos;nis</strong> · Feijó, Acre — Brasil · © {new Date().getFullYear()}
     </footer>
   </div>;
 }

@@ -3,8 +3,8 @@ import { PublicCareShowcase } from "@/components/vigia/PublicCareShowcase";
 
 export const Route = createFileRoute("/hidratacao")({
   head: () => ({ meta: [
-    { title: "Hidratação — CareDigital" },
-    { name: "description", content: "Conheça o programa individual de hidratação, lembretes, copos ilustrados e confirmações do CareDigital." },
+    { title: "Hidratação — NextVita" },
+    { name: "description", content: "Conheça o programa individual de hidratação, lembretes, copos ilustrados e confirmações do NextVita." },
   ] }),
   component: Hidratacao,
 });

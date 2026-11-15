@@ -6,7 +6,7 @@ import { Btn, Panel, PageHeader } from "@/components/vigia/ui";
 import { formatAcreDateOnly } from "@/lib/acre-time";
 
 export const Route = createFileRoute("/prontuario")({
-  head: () => ({ meta: [{ title: "Prontuário de acompanhamento — CareDigital" }] }),
+  head: () => ({ meta: [{ title: "Prontuário de acompanhamento — NextVita" }] }),
   component: Prontuario,
 });
 
@@ -246,7 +246,7 @@ function Prontuario() {
   const todayBrazil = new Intl.DateTimeFormat("en-CA", {timeZone:"America/Rio_Branco",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(clockNow));
   const consumedToday = water.filter(w => new Intl.DateTimeFormat("en-CA", {timeZone:"America/Rio_Branco",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(w.recorded_at)) === todayBrazil).reduce((sum,w) => sum + w.amount_ml,0);
   return <>
-    <PageHeader eyebrow="Área protegida · CareDigital" title="Prontuário de acompanhamento" />
+    <PageHeader eyebrow="Área protegida · NextVita" title="Prontuário de acompanhamento" />
     <p className="mb-5 rounded-xl border border-warning/30 bg-warning/10 p-3 text-sm">Registros de acompanhamento, não prescrições. Horários e doses devem seguir orientação profissional validada. Os lembretes nesta tela não são notificações do sistema.</p>
     {confirmTask && <div className="mb-4 rounded-2xl border border-primary/30 bg-background p-4 shadow-sm" role="dialog" aria-modal="true" aria-label="Confirmar cuidado realizado">
       <div className="flex items-start gap-3"><CheckCircle2 size={22} className="shrink-0 text-primary" /><div><h2 className="font-semibold">Confirmar cuidado realizado</h2><p className="mt-1 text-sm">{confirmTask.title} · {fmt(confirmTask.scheduled_at)}</p></div></div>
@@ -310,7 +310,7 @@ function Prontuario() {
               </div>}
               <div className="mb-3 grid grid-cols-3 gap-2 text-center">{[["Próximos", futureMedication.length], ["Sem registro", priorUnconfirmed.length], ["Concluídos", confirmedToday.length]].map(([label, count]) => <div key={label} className="rounded-lg bg-foreground/5 p-2"><strong className="block text-lg">{count}</strong><span className="text-xs text-muted-foreground">{label}</span></div>)}</div>
               {upcoming.length > 0 ? <div className="space-y-2">{upcoming.map(task => <div key={task.id} className="flex items-center gap-3 rounded-xl bg-foreground/5 p-3"><Clock3 size={17} className="shrink-0 text-primary" /><div className="flex-1"><p className="text-sm font-medium">{task.title}</p><p className="text-xs text-muted-foreground">{fmt(task.scheduled_at)} · programado</p></div></div>)}</div> : <p className="text-sm text-muted-foreground">{todayMedication.length ? "Não há outras atividades de medicação previstas para hoje." : "Nenhum horário de medicação cadastrado para hoje."}</p>}
-              <p className="mt-3 text-xs text-muted-foreground">Avisos exibidos exclusivamente dentro do CareDigital. Sem pop-ups do navegador ou solicitações de permissão. Esta central não envia mensagens com o aplicativo fechado.</p>
+              <p className="mt-3 text-xs text-muted-foreground">Avisos exibidos exclusivamente dentro do NextVita. Sem pop-ups do navegador ou solicitações de permissão. Esta central não envia mensagens com o aplicativo fechado.</p>
             </section>}
             {activeSection === "agenda" && <Panel title="Agenda de cuidados" action={<ClipboardList size={19} className="text-primary" />}>
               {tasks.length === 0 && <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-3">
