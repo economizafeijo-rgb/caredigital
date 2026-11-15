@@ -78,7 +78,7 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
 function Brand({ onDark = false }: { onDark?: boolean }) {
   return <Link to="/" className="flex min-w-0 items-center gap-2.5" aria-label="NextVita — início">
     <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm"><HeartPulse size={19} strokeWidth={2.4}/></span>
-    <span className={`font-display text-[17px] font-extrabold tracking-tight ${onDark ? "text-white" : "text-foreground"}`}>Care<span className={onDark ? "text-[#8fb2ff]" : "text-primary"}>Digital</span></span>
+    <span className={`font-display text-[17px] font-extrabold tracking-tight ${onDark ? "text-white" : "text-foreground"}`}>Next<span className={onDark ? "text-[#8fb2ff]" : "text-primary"}>Vita</span></span>
   </Link>;
 }
 
