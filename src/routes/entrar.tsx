@@ -384,17 +384,17 @@ function Entrar() {
         />
         <p className="text-xs font-bold uppercase tracking-[.14em] text-white/70">NextVita</p>
         <h1 className="mt-1 text-2xl font-extrabold leading-tight sm:text-3xl">
-          Seu cuidado organizado, todos os dias.
+          Seu bem-estar organizado, todos os dias.
         </h1>
         <ul className="mt-3 hidden gap-2 text-sm text-slate-200 sm:grid">
           <li className="flex items-center gap-2">
-            <ShieldCheck size={16} /> Medicações, água e refeições com horário e timer
+            <ShieldCheck size={16} /> Nutrição, hidratação e rotina com horários e lembretes
           </li>
           <li className="flex items-center gap-2">
-            <ShieldCheck size={16} /> Peso, nutrição e suplementos acompanhados
+            <ShieldCheck size={16} /> Peso, suplementos e evolução acompanhados
           </li>
           <li className="flex items-center gap-2">
-            <ShieldCheck size={16} /> Acesso individual e protegido
+            <ShieldCheck size={16} /> Dados pessoais em um espaço protegido
           </li>
         </ul>
       </aside>
