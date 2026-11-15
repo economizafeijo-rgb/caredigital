@@ -18,15 +18,16 @@ import { HomeClientMetrics } from "@/components/vigia/HomeClientMetrics";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "NextVita — Cuidado organizado" },
+      { title: "NextVita — Bem-estar organizado" },
       {
         name: "description",
-        content: "Acompanhe tratamentos, medicação, refeições e hidratação em um só lugar.",
+        content:
+          "Organize nutrição, hidratação, peso, suplementos e sua rotina de bem-estar em um só lugar.",
       },
-      { property: "og:title", content: "NextVita — Cuidado organizado" },
+      { property: "og:title", content: "NextVita — Bem-estar organizado" },
       {
         property: "og:description",
-        content: "Um espaço simples e seguro para sua rotina de cuidados.",
+        content: "Um hub pessoal para acompanhar hábitos, evolução e autocuidado com clareza.",
       },
     ],
   }),
@@ -111,18 +112,18 @@ function Homepage() {
         />
         <div className="max-w-xl px-6 py-10 text-white sm:px-10 lg:px-12">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur">
-            <ShieldCheck size={14} /> Acompanhamento individual e protegido
+            <ShieldCheck size={14} /> Bem-estar pessoal, organizado e protegido
           </span>
           <h1
             id="home-title"
             className="mt-4 text-balance text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl"
           >
-            Sua rotina de cuidados,{" "}
+            Sua rotina de bem-estar,{" "}
             <span className="text-[#9be9da]">organizada em um só lugar.</span>
           </h1>
           <p className="mt-4 max-w-[48ch] text-base leading-relaxed text-slate-200">
-            Medicações, refeições e hidratação com horários, lembretes e registros confiáveis — para
-            você e para quem acompanha o seu tratamento.
+            Nutrição, hidratação, peso, suplementos e hábitos acompanhados com horários, lembretes e
+            registros confiáveis.
           </p>
           <div className="mt-6 flex flex-wrap items-center gap-3">
             {panel ? (
@@ -190,11 +191,11 @@ function Homepage() {
                 id="free-signup-title"
                 className="mt-1 text-2xl font-extrabold tracking-tight sm:text-3xl"
               >
-                Organize seus cuidados com mais tranquilidade.
+                Cuide do seu corpo com mais clareza e constância.
               </h2>
               <p className="mt-2 max-w-xl text-sm leading-relaxed text-emerald-50/85">
-                Crie sua conta, registre suas métricas iniciais e acompanhe hidratação, alimentação
-                e medicações em um só lugar.
+                Crie sua conta, registre suas métricas iniciais e acompanhe hidratação, alimentação,
+                peso, suplementos e evolução em um só lugar.
               </p>
             </div>
             <a
