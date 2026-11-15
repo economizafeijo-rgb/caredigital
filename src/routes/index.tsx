@@ -43,7 +43,7 @@ function Homepage() {
           <ShieldCheck size={14}/> Acompanhamento individual e protegido
         </span>
         <h1 id="home-title" className="mt-4 text-balance text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl">
-          Sua rotina de cuidados, <span className="text-[#8fb2ff]">organizada em um só lugar.</span>
+          Sua rotina de cuidados, <span className="text-[#9be9da]">organizada em um só lugar.</span>
         </h1>
         <p className="mt-4 max-w-[48ch] text-base leading-relaxed text-slate-200">
           Medicações, refeições e hidratação com horários, lembretes e registros confiáveis — para você e para quem acompanha o seu tratamento.
