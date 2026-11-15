@@ -14,6 +14,7 @@ import {
 import { useAccess } from "@/lib/use-access";
 import { HomeNextCareCard } from "@/components/vigia/CareTimer";
 import { HomeClientMetrics } from "@/components/vigia/HomeClientMetrics";
+import { SmartMetricsDashboard } from "@/components/vigia/SmartMetricsDashboard";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -220,6 +221,8 @@ function Homepage() {
       )}
 
       {status === "client" && <HomeClientMetrics />}
+
+      {status === "client" && <SmartMetricsDashboard />}
 
       <section
         aria-label="Recursos da plataforma"
