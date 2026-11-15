@@ -80,6 +80,12 @@ function Homepage() {
       </div>
     );
   const panel = status === "client" ? "/cliente" : status === "admin" ? "/admin" : null;
+  const clientTargets: Record<string, string> = {
+    Medicações: "/cliente#medicacao",
+    Hidratação: "/cliente#minha-hidratacao",
+    Alimentação: "/cliente#alimentacao",
+    Histórico: "/cliente#historico",
+  };
 
   return (
     <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col gap-5 lg:gap-6">
@@ -229,9 +235,9 @@ function Homepage() {
         className="grid shrink-0 gap-3 sm:grid-cols-2 lg:grid-cols-4"
       >
         {features.map(({ to, title, description, icon: Icon, tone, image }) => (
-          <Link
+          <a
             key={title}
-            to={to}
+            href={status === "client" ? clientTargets[title] : to}
             className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card transition hover:-translate-y-0.5 hover:border-primary/40"
           >
             <span className="relative block aspect-[16/9] overflow-hidden bg-muted">
@@ -262,7 +268,7 @@ function Homepage() {
                 </span>
               </span>
             </span>
-          </Link>
+          </a>
         ))}
       </section>
 
