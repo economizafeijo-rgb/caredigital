@@ -209,6 +209,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const profile = access.status === "loading" ? "public" : access.status;
   const signedIn = profile !== "public";
+  const internalPage = signedIn && location.pathname !== "/";
   const groups = navByProfile[profile];
   const items = groups.flatMap((group) => group.items);
   const currentHash = location.hash || clientSectionHashes.hoje;
@@ -331,7 +332,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <DialogProvider>
       <HydrationProvider>
         <div className="care-shell flex h-dvh min-h-0 overflow-hidden bg-background text-foreground">
-          {signedIn && (
+          {internalPage && (
             <aside className="hidden w-60 shrink-0 flex-col bg-sidebar xl:flex">
               <div className="flex h-14 shrink-0 items-center border-b border-white/10 px-4">
                 <Brand onDark />
@@ -342,7 +343,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <div className="flex min-w-0 flex-1 flex-col">
             <header className="z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-surface/90 px-3 backdrop-blur sm:px-5">
-              {signedIn ? (
+              {internalPage ? (
                 <>
                   <button
                     type="button"
