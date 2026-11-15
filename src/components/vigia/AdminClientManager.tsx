@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useDialog } from "@/lib/dialog";
 
 type Client = {
+  owner_id: string;
   id: string;
   full_name: string;
   birth_date: string | null;
@@ -224,10 +225,15 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
       "EXCLUIR",
     );
     if (typed !== "EXCLUIR") return;
-    const result = await db.from("care_patients").delete().eq("id", client.id);
-    if (result.error)
-      return setMessage({ ok: false, text: "Não foi possível excluir: " + result.error.message });
-    setMessage({ ok: true, text: `${client.full_name} excluído.` });
+    const { error } = await supabase.functions.invoke("admin-delete-user", {
+      body: { userId: client.owner_id },
+    });
+    if (error)
+      return setMessage({
+        ok: false,
+        text: "Não foi possível excluir o usuário: " + error.message,
+      });
+    setMessage({ ok: true, text: `${client.full_name} e todos os seus dados foram removidos.` });
     setReload((v) => v + 1);
   }
 
