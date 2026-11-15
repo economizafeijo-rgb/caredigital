@@ -484,7 +484,7 @@ function Entrar() {
                   autoComplete: "name",
                   required: true,
                   value: fullName,
-                  onChange: (e) => setFullName(e.target.value),
+                  onChange: (e) => setFullName(e.target.value.toUpperCase()),
                   placeholder: "Seu nome completo",
                   disabled: busy,
                 })}
