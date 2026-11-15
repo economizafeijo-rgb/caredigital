@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useDialog } from "@/lib/dialog";
 
 type Client = {
   id: string;
@@ -77,6 +78,7 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
   const [report, setReport] = useState<{ client: Client; data: Report | null } | null>(null);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [reload, setReload] = useState(0);
+  const { prompt, confirm } = useDialog();
 
   useEffect(() => {
     void (async () => {
@@ -216,8 +218,10 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
   }
 
   async function remove(client: Client) {
-    const typed = window.prompt(
-      `Excluir definitivamente ${client.full_name} e todos os registros? Digite EXCLUIR para confirmar.`,
+    const typed = await prompt(
+      "Excluir cadastro?",
+      `Todos os registros de ${client.full_name} serão removidos. Digite EXCLUIR para confirmar.`,
+      "EXCLUIR",
     );
     if (typed !== "EXCLUIR") return;
     const result = await db.from("care_patients").delete().eq("id", client.id);
@@ -908,7 +912,7 @@ export function LicenseKeyPanel({
     setReload((v) => v + 1);
   }
   async function revoke(code: string) {
-    if (!window.confirm(`Revogar o código ${code}?`)) return;
+    if (!(await confirm("Revogar código?", `O código ${code} deixará de funcionar.`, true))) return;
     await db.from("care_license_keys").update({ revoked: true }).eq("code", code);
     setReload((v) => v + 1);
   }
