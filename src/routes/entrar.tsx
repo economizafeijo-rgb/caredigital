@@ -191,6 +191,7 @@ function Entrar() {
         options: {
           emailRedirectTo: `${window.location.origin}/entrar?confirmed=1`,
           data: {
+            account_type: "client",
             display_name: fullName.trim(),
             nextvita_signup: {
               fullName: fullName.trim(),
