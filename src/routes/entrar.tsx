@@ -47,7 +47,7 @@ function authErrorMessage(error: { message?: string; code?: string; status?: num
   if (code === "over_request_rate_limit" || error.status === 429)
     return "Muitas tentativas em pouco tempo. Aguarde e tente novamente.";
   if (code === "invalid_credentials" || raw.includes("invalid login credentials"))
-    return "E-mail ou senha não conferem. Verifique os dados ou utilize 'Esqueci minha senha'.";
+    return "E-mail ou senha não conferem. Se você acabou de se cadastrar, use o botão para reenviar a confirmação.";
   if (raw.includes("already registered") || raw.includes("user already registered"))
     return "Este e-mail já possui uma conta. Entre ou recupere sua senha.";
   if (raw.includes("failed to fetch") || raw.includes("network"))
@@ -134,7 +134,8 @@ function Entrar() {
       if (error) {
         const confirmationRequired =
           error.code === "email_not_confirmed" ||
-          error.message?.toLowerCase().includes("email not confirmed");
+          error.message?.toLowerCase().includes("email not confirmed") ||
+          error.code === "invalid_credentials";
         setNeedsConfirmation(confirmationRequired);
         setNotice({ type: "error", message: authErrorMessage(error) });
         return;
@@ -245,6 +246,7 @@ function Entrar() {
         return;
       }
       setMode("login");
+      setNeedsConfirmation(true);
       setPassword("");
       setConfirmPassword("");
       setNotice({
@@ -430,7 +432,16 @@ function Entrar() {
               {notice.message}
             </div>
           )}
-          {needsConfirmation && <button type="button" onClick={() => void handleResendConfirmation()} disabled={resendBusy} className="w-full rounded-xl border border-primary/25 bg-primary/5 px-3 py-2.5 text-xs font-bold text-primary transition hover:bg-primary/10 disabled:opacity-50">{resendBusy ? "Reenviando link…" : "Reenviar e-mail de confirmação"}</button>}
+          {needsConfirmation && (
+            <button
+              type="button"
+              onClick={() => void handleResendConfirmation()}
+              disabled={resendBusy}
+              className="w-full rounded-xl border border-primary/25 bg-primary/5 px-3 py-2.5 text-xs font-bold text-primary transition hover:bg-primary/10 disabled:opacity-50"
+            >
+              {resendBusy ? "Reenviando link…" : "Reenviar e-mail de confirmação"}
+            </button>
+          )}
 
           {mode === "login" && (
             <form className="space-y-3" onSubmit={(event) => void handleLogin(event)}>
