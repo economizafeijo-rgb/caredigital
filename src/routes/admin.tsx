@@ -5,7 +5,6 @@ import { Btn, PageHeader, Panel } from "@/components/vigia/ui";
 import { supabase } from "@/integrations/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase-session";
 import { AdminClientManager } from "@/components/vigia/AdminClientManager";
-import { ProtocolAdminManager } from "@/components/vigia/ProtocolAdminManager";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Painel de gestão — NextVita" }] }),
@@ -40,8 +39,8 @@ function Admin() {
         // These tables are protected by RLS: a user sees only records owned by them.
         const db = supabase as unknown as { from: (table: string) => any };
         const [clients, tasks] = await Promise.all([
-          db.from("care_patients").select("id", { count: "exact", head: true }).eq("owner_id", user.id),
-          db.from("care_daily_checklist").select("id", { count: "exact", head: true }).eq("owner_id", user.id),
+          db.from("care_patients").select("id", { count: "exact", head: true }),
+          db.from("care_daily_checklist").select("id", { count: "exact", head: true }),
         ]);
         if (clients.error) throw clients.error;
         if (tasks.error) throw tasks.error;
@@ -74,13 +73,12 @@ function Admin() {
         <h1 className="mt-1 text-3xl font-extrabold tracking-tight">Gestão de clientes</h1>
         <p className="mt-1 max-w-xl text-sm text-slate-200">Cadastre, edite, acompanhe relatórios e gerencie licenças. Conta: {email}</p>
         <div className="mt-4 flex flex-wrap gap-2">
-          <Link to="/prontuario" className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-slate-900 hover:bg-white/90"><HeartPulse size={17}/> Prontuários e agenda</Link>
+          <span className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-slate-900"><HeartPulse size={17}/> Cadastros e usuários</span>
           <span className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 text-sm font-semibold backdrop-blur"><ClipboardList size={17}/> {checklistCount ?? "—"} atividades · {clientCount ?? "—"} clientes</span>
         </div>
       </section>
       <AdminClientManager ownerId={ownerId}/>
-      <ProtocolAdminManager ownerId={ownerId} />
-      <p className="mt-5 rounded-xl border border-warning/30 bg-warning/10 p-3 text-xs">Esta é uma visão dos seus registros, não uma autorização de administrador global. Gestão de profissionais, convites e acesso compartilhado exigem permissões específicas no backend.</p>
+      <p className="mt-5 rounded-xl border border-success/30 bg-success/10 p-3 text-xs">Esta área administra os cadastros da plataforma. O acompanhamento pessoal do administrador permanece separado.</p>
     </>}
   </>;
 }
