@@ -1,8 +1,31 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  Activity, Apple, BookOpen, CalendarDays, ClipboardList, Droplets, Dumbbell, HeartPulse, History, Home,
-  LayoutDashboard, LogIn, LogOut, Maximize, Menu, Minimize, Moon, Pill, Scale, Settings2, Sparkles, Sun, Target, Utensils, X,
+  Activity,
+  Apple,
+  BookOpen,
+  CalendarDays,
+  ClipboardList,
+  Droplets,
+  Dumbbell,
+  HeartPulse,
+  History,
+  Home,
+  LayoutDashboard,
+  LogIn,
+  LogOut,
+  Maximize,
+  Menu,
+  Minimize,
+  Moon,
+  Pill,
+  Scale,
+  Settings2,
+  Sparkles,
+  Sun,
+  Target,
+  Utensils,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,11 +39,19 @@ import { HydrationProvider, HydrationReminder } from "./HydrationTracker";
 type NavItem = { to: string; hash?: string; label: string; icon: LucideIcon };
 type NavGroup = { title: string; items: NavItem[] };
 
-const section = (key: ClientSection, label: string, icon: LucideIcon): NavItem =>
-  ({ to: "/cliente", hash: clientSectionHashes[key], label, icon });
+const section = (key: ClientSection, label: string, icon: LucideIcon): NavItem => ({
+  to: "/cliente",
+  hash: clientSectionHashes[key],
+  label,
+  icon,
+});
 
 const sectionThemeByHash: Record<string, SectionTheme> = Object.fromEntries(
-  (Object.keys(clientSectionHashes) as ClientSection[]).map(key => [clientSectionHashes[key], clientSectionTheme[key]]));
+  (Object.keys(clientSectionHashes) as ClientSection[]).map((key) => [
+    clientSectionHashes[key],
+    clientSectionTheme[key],
+  ]),
+);
 
 const contentGroup: NavGroup = {
   title: "Conteúdo",
@@ -34,60 +65,102 @@ const contentGroup: NavGroup = {
 
 // Um mapa de navegação por perfil: cada área aparece uma única vez.
 const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
-  public: [{
-    title: "NextVita",
-    items: [
-      { to: "/", label: "Início", icon: Home },
-      { to: "/protocolos", label: "Como funciona", icon: HeartPulse },
-      { to: "/medicamentos", label: "Medicamentos", icon: Pill },
-      { to: "/hidratacao", label: "Hidratação", icon: Droplets },
-      { to: "/dietas", label: "Dietas", icon: Utensils },
-      { to: "/nutricao-esportiva", label: "Nutrição esportiva", icon: Dumbbell },
-    ],
-  }],
+  public: [
+    {
+      title: "NextVita",
+      items: [
+        { to: "/", label: "Início", icon: Home },
+        { to: "/protocolos", label: "Como funciona", icon: HeartPulse },
+        { to: "/medicamentos", label: "Medicamentos", icon: Pill },
+        { to: "/hidratacao", label: "Hidratação", icon: Droplets },
+        { to: "/dietas", label: "Dietas", icon: Utensils },
+        { to: "/nutricao-esportiva", label: "Nutrição esportiva", icon: Dumbbell },
+      ],
+    },
+  ],
   client: [
-    { title: "Meu dia", items: [
-      section("hoje", "Visão geral", LayoutDashboard),
-      section("agenda", "Agenda", CalendarDays),
-      section("historico", "Histórico", History),
-    ] },
-    { title: "Cuidados", items: [
-      section("medicacao", "Medicação", Pill),
-      section("hidratacao", "Hidratação", Droplets),
-      section("alimentacao", "Alimentação", Utensils),
-      section("atividade", "Atividade", Activity),
-    ] },
-    { title: "Saúde", items: [
-      section("peso", "Peso e evolução", Scale),
-      section("suplementos", "Suplementos", Sparkles),
-      section("indicadores", "Indicadores", Target),
-      section("cardapios", "Cardápios e dietas", BookOpen),
-      { to: "/biblioteca-alimentar", label: "Biblioteca alimentar", icon: Apple },
-    ] },
+    {
+      title: "Meu dia",
+      items: [
+        section("hoje", "Visão geral", LayoutDashboard),
+        section("agenda", "Agenda", CalendarDays),
+        section("historico", "Histórico", History),
+      ],
+    },
+    {
+      title: "Cuidados",
+      items: [
+        section("medicacao", "Medicação", Pill),
+        section("hidratacao", "Hidratação", Droplets),
+        section("alimentacao", "Alimentação", Utensils),
+        section("atividade", "Atividade", Activity),
+      ],
+    },
+    {
+      title: "Saúde",
+      items: [
+        section("peso", "Peso e evolução", Scale),
+        section("suplementos", "Suplementos", Sparkles),
+        section("indicadores", "Indicadores", Target),
+        section("cardapios", "Cardápios e dietas", BookOpen),
+        { to: "/biblioteca-alimentar", label: "Biblioteca alimentar", icon: Apple },
+      ],
+    },
   ],
   admin: [
-    { title: "Gestão", items: [
-      { to: "/admin", label: "Painel", icon: Settings2 },
-      { to: "/prontuario", label: "Prontuários", icon: ClipboardList },
-    ] },
+    {
+      title: "Gestão",
+      items: [
+        { to: "/admin", label: "Painel", icon: Settings2 },
+        { to: "/prontuario", label: "Prontuários", icon: ClipboardList },
+      ],
+    },
     contentGroup,
   ],
-  unlinked: [{ title: "NextVita", items: [{ to: "/", label: "Início", icon: Home }] }, contentGroup],
+  unlinked: [
+    { title: "NextVita", items: [{ to: "/", label: "Início", icon: Home }] },
+    contentGroup,
+  ],
 };
 
 function Brand({ onDark = false }: { onDark?: boolean }) {
-  return <Link to="/" className="flex min-w-0 items-center gap-2.5" aria-label="NextVita — início">
-    <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm" aria-hidden="true"><svg viewBox="0 0 64 64" className="size-7" fill="none"><path d="M32 58C14 46 6 32 10 18c8 2 16 8 22 20 6-12 14-18 22-20 4 14-4 28-22 40Z" fill="currentColor" opacity=".22"/><path d="M14 34h10l4-8 6 16 4-8h12" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/></svg></span>
-    <span className={`font-display text-[17px] font-extrabold tracking-tight ${onDark ? "text-white" : "text-foreground"}`}>Next<span className={onDark ? "text-[#9be9da]" : "text-primary"}>Vita</span></span>
-  </Link>;
+  return (
+    <Link to="/" className="flex min-w-0 items-center gap-2.5" aria-label="NextVita — início">
+      <span
+        className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm"
+        aria-hidden="true"
+      >
+        <svg viewBox="0 0 64 64" className="size-7" fill="none">
+          <path
+            d="M32 58C14 46 6 32 10 18c8 2 16 8 22 20 6-12 14-18 22-20 4 14-4 28-22 40Z"
+            fill="currentColor"
+            opacity=".22"
+          />
+          <path
+            d="M14 34h10l4-8 6 16 4-8h12"
+            stroke="currentColor"
+            strokeWidth="3.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </span>
+      <span
+        className={`font-display text-[17px] font-extrabold tracking-tight ${onDark ? "text-white" : "text-foreground"}`}
+      >
+        Next<span className={onDark ? "text-[#9be9da]" : "text-primary"}>Vita</span>
+      </span>
+    </Link>
+  );
 }
 
-const iconButton = "grid size-9 shrink-0 place-items-center rounded-lg border border-border bg-surface text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground";
+const iconButton =
+  "grid size-9 shrink-0 place-items-center rounded-lg border border-border bg-surface text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const now = useNow(30000);
   const access = useAccess();
-  const location = useRouterState({ select: state => state.location });
+  const location = useRouterState({ select: (state) => state.location });
   const [menuOpen, setMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [fullScreen, setFullScreen] = useState(false);
@@ -102,7 +175,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     document.addEventListener("fullscreenchange", sync);
     return () => document.removeEventListener("fullscreenchange", sync);
   }, []);
-  useEffect(() => { setMenuOpen(false); }, [location.pathname, location.hash]);
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname, location.hash]);
 
   const toggleTheme = () => {
     const next = !darkMode;
@@ -115,122 +190,331 @@ export function AppShell({ children }: { children: ReactNode }) {
       if (document.fullscreenElement) await document.exitFullscreen();
       else await document.documentElement.requestFullscreen();
       setShellError("");
-    } catch { setShellError("O navegador não permitiu ativar a tela cheia."); }
+    } catch {
+      setShellError("O navegador não permitiu ativar a tela cheia.");
+    }
   };
   async function signOut() {
     if (signingOut) return;
     setSigningOut(true);
     const { error } = await supabase.auth.signOut();
     setSigningOut(false);
-    if (error) { setShellError("Não foi possível sair. Tente novamente."); return; }
+    if (error) {
+      setShellError("Não foi possível sair. Tente novamente.");
+      return;
+    }
     window.location.assign("/");
   }
 
   const profile = access.status === "loading" ? "public" : access.status;
   const signedIn = profile !== "public";
   const groups = navByProfile[profile];
-  const items = groups.flatMap(group => group.items);
+  const items = groups.flatMap((group) => group.items);
   const currentHash = location.hash || clientSectionHashes.hoje;
-  const isActive = (item: NavItem) => item.to === location.pathname && (!item.hash || item.hash === currentHash);
+  const isActive = (item: NavItem) =>
+    item.to === location.pathname && (!item.hash || item.hash === currentHash);
   const current = items.find(isActive);
   const panelHome = profile === "client" ? "/cliente" : profile === "admin" ? "/admin" : null;
 
-  const tools = <>
-    <button type="button" onClick={() => void toggleFullscreen()} aria-pressed={fullScreen} aria-label={fullScreen ? "Sair da tela cheia" : "Ativar tela cheia"} title="Tela cheia" className={`${iconButton} hidden sm:grid`}>{fullScreen ? <Minimize size={17}/> : <Maximize size={17}/>}</button>
-    <button type="button" onClick={toggleTheme} aria-pressed={darkMode} aria-label={darkMode ? "Ativar tema claro" : "Ativar tema escuro"} title={darkMode ? "Tema claro" : "Tema escuro"} className={iconButton}>{darkMode ? <Sun size={17}/> : <Moon size={17}/>}</button>
-  </>;
-  const loginButton = <Link to="/entrar" className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110"><LogIn size={16}/> Entrar</Link>;
+  const tools = (
+    <>
+      <button
+        type="button"
+        onClick={() => void toggleFullscreen()}
+        aria-pressed={fullScreen}
+        aria-label={fullScreen ? "Sair da tela cheia" : "Ativar tela cheia"}
+        title="Tela cheia"
+        className={`${iconButton} hidden sm:grid`}
+      >
+        {fullScreen ? <Minimize size={17} /> : <Maximize size={17} />}
+      </button>
+      <button
+        type="button"
+        onClick={toggleTheme}
+        aria-pressed={darkMode}
+        aria-label={darkMode ? "Ativar tema claro" : "Ativar tema escuro"}
+        title={darkMode ? "Tema claro" : "Tema escuro"}
+        className={iconButton}
+      >
+        {darkMode ? <Sun size={17} /> : <Moon size={17} />}
+      </button>
+    </>
+  );
+  const loginButton = (
+    <Link
+      to="/entrar"
+      className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110"
+    >
+      <LogIn size={16} /> Entrar
+    </Link>
+  );
 
   const sideLink = (item: NavItem) => {
     const active = isActive(item);
     const Icon = item.icon;
     const theme = item.hash ? sectionThemeByHash[item.hash] : undefined;
-    return <Link key={item.to + (item.hash ?? "")} to={item.to} {...(item.hash ? { hash: item.hash } : {})} activeOptions={{ exact: true, includeHash: true }} aria-current={active ? "page" : undefined}
-      className={`flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-[13px] font-medium transition-colors ${active ? `${theme?.pill ?? "bg-primary"} text-white shadow-sm` : "text-slate-300 hover:bg-white/10 hover:text-white"}`}>
-      <span className={`grid size-6 shrink-0 place-items-center rounded-md ${active ? "bg-white/20" : theme ? theme.pill + " text-white opacity-90" : ""}`}><Icon size={14} strokeWidth={2.2}/></span><span className="truncate">{item.label}</span>
-    </Link>;
-  };
-  const sidebarBody = <>
-    <nav className="min-h-0 flex-1 space-y-4 overflow-y-auto px-3 py-3" aria-label="Navegação principal">
-      {groups.map(group => <div key={group.title}>
-        <p className="px-2.5 pb-1.5 text-[10px] font-bold uppercase tracking-[.1em] text-slate-500">{group.title}</p>
-        <div className="grid gap-0.5">{group.items.map(sideLink)}</div>
-      </div>)}
-    </nav>
-    <div className="shrink-0 border-t border-white/10 p-3">
-      <div className="flex items-center gap-2.5 rounded-lg bg-white/5 p-2">
-        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-white" aria-hidden="true">{(access.name || access.email || "C").slice(0, 1).toUpperCase()}</span>
-        <span className="min-w-0 flex-1 leading-tight">
-          <span className="block truncate text-[13px] font-semibold text-white">{access.name || "Conta conectada"}</span>
-          <span className="block truncate text-[11px] text-slate-400">{profile === "admin" ? "Gestão" : profile === "client" ? "Paciente" : "Sem prontuário vinculado"}</span>
+    return (
+      <Link
+        key={item.to + (item.hash ?? "")}
+        to={item.to}
+        {...(item.hash ? { hash: item.hash } : {})}
+        activeOptions={{ exact: true, includeHash: true }}
+        aria-current={active ? "page" : undefined}
+        className={`flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-[13px] font-medium transition-colors ${active ? `${theme?.pill ?? "bg-primary"} text-white shadow-sm` : "text-slate-300 hover:bg-white/10 hover:text-white"}`}
+      >
+        <span
+          className={`grid size-6 shrink-0 place-items-center rounded-md ${active ? "bg-white/20" : theme ? theme.pill + " text-white opacity-90" : ""}`}
+        >
+          <Icon size={14} strokeWidth={2.2} />
         </span>
-        <button type="button" onClick={() => void signOut()} disabled={signingOut} aria-label="Sair da conta" title="Sair da conta" className="grid size-8 shrink-0 place-items-center rounded-lg text-slate-300 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-50"><LogOut size={16}/></button>
+        <span className="truncate">{item.label}</span>
+      </Link>
+    );
+  };
+  const sidebarBody = (
+    <>
+      <nav
+        className="min-h-0 flex-1 space-y-4 overflow-y-auto px-3 py-3"
+        aria-label="Navegação principal"
+      >
+        {groups.map((group) => (
+          <div key={group.title}>
+            <p className="px-2.5 pb-1.5 text-[10px] font-bold uppercase tracking-[.1em] text-slate-500">
+              {group.title}
+            </p>
+            <div className="grid gap-0.5">{group.items.map(sideLink)}</div>
+          </div>
+        ))}
+      </nav>
+      <div className="shrink-0 border-t border-white/10 p-3">
+        <div className="flex items-center gap-2.5 rounded-lg bg-white/5 p-2">
+          <span
+            className="grid size-8 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-white"
+            aria-hidden="true"
+          >
+            {(access.name || access.email || "C").slice(0, 1).toUpperCase()}
+          </span>
+          <span className="min-w-0 flex-1 leading-tight">
+            <span className="block truncate text-[13px] font-semibold text-white">
+              {access.name || "Conta conectada"}
+            </span>
+            <span className="block truncate text-[11px] text-slate-400">
+              {profile === "admin"
+                ? "Gestão"
+                : profile === "client"
+                  ? "Paciente"
+                  : "Sem prontuário vinculado"}
+            </span>
+          </span>
+          <button
+            type="button"
+            onClick={() => void signOut()}
+            disabled={signingOut}
+            aria-label="Sair da conta"
+            title="Sair da conta"
+            className="grid size-8 shrink-0 place-items-center rounded-lg text-slate-300 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-50"
+          >
+            <LogOut size={16} />
+          </button>
+        </div>
+        <p className="mt-2 text-center text-[10px] leading-tight text-slate-500">
+          Desenvolvido por <span className="font-semibold text-slate-300">Franc D&apos;nis</span>
+          <br />
+          Feijó, Acre
+        </p>
       </div>
-      <p className="mt-2 text-center text-[10px] leading-tight text-slate-500">Desenvolvido por <span className="font-semibold text-slate-300">Franc D&apos;nis</span><br/>Feijó, Acre</p>
-    </div>
-  </>;
+    </>
+  );
 
   return (
     <HydrationProvider>
       <div className="care-shell flex h-dvh min-h-0 overflow-hidden bg-background text-foreground">
-        {signedIn && <aside className="hidden w-60 shrink-0 flex-col bg-sidebar xl:flex">
-          <div className="flex h-14 shrink-0 items-center border-b border-white/10 px-4"><Brand onDark/></div>
-          {sidebarBody}
-        </aside>}
+        {signedIn && (
+          <aside className="hidden w-60 shrink-0 flex-col bg-sidebar xl:flex">
+            <div className="flex h-14 shrink-0 items-center border-b border-white/10 px-4">
+              <Brand onDark />
+            </div>
+            {sidebarBody}
+          </aside>
+        )}
 
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-surface/90 px-3 backdrop-blur sm:px-5">
-            {signedIn ? <>
-              <button type="button" onClick={() => setMenuOpen(true)} aria-label="Abrir menu" aria-expanded={menuOpen} className={`${iconButton} xl:hidden`}><Menu size={18}/></button>
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-display text-[15px] font-bold leading-tight">{current?.label ?? (location.pathname === "/" ? "Página inicial" : "NextVita")}</p>
-                <p className="truncate text-[11px] text-muted-foreground">{fmtClock(now)} · horário do Acre</p>
-              </div>
-            </> : <>
-              <Brand/>
-              <nav className="ml-4 hidden min-w-0 flex-1 items-center gap-0.5 lg:flex" aria-label="Navegação principal">
-                {items.map(item => <Link key={item.to} to={item.to} activeOptions={{ exact: item.to === "/" }}
-                  className="rounded-lg px-3 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                  activeProps={{ className: "!bg-accent !text-accent-foreground" }}>{item.label}</Link>)}
-              </nav>
-              <span className="flex-1 lg:hidden"/>
-            </>}
+            {signedIn ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen(true)}
+                  aria-label="Abrir menu"
+                  aria-expanded={menuOpen}
+                  className={`${iconButton} xl:hidden`}
+                >
+                  <Menu size={18} />
+                </button>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-display text-[15px] font-bold leading-tight">
+                    {current?.label ?? (location.pathname === "/" ? "Página inicial" : "NextVita")}
+                  </p>
+                  <p className="truncate text-[11px] text-muted-foreground">
+                    {fmtClock(now)} · horário do Acre
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <Brand />
+                <nav
+                  className="ml-4 hidden min-w-0 flex-1 items-center gap-0.5 lg:flex"
+                  aria-label="Navegação principal"
+                >
+                  {items.map((item) => (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      activeOptions={{ exact: item.to === "/" }}
+                      className="rounded-lg px-3 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      activeProps={{ className: "!bg-accent !text-accent-foreground" }}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </nav>
+                <span className="flex-1 lg:hidden" />
+              </>
+            )}
             <div className="flex shrink-0 items-center gap-1.5">
-              {signedIn && (location.pathname === "/"
-                ? panelHome && <Link to={panelHome} className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110" title="Voltar ao meu painel"><LayoutDashboard size={16}/><span className="hidden sm:inline">Meu painel</span></Link>
-                : <Link to="/" className="inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm font-semibold text-foreground transition hover:border-primary/40" title="Ir à página inicial sem sair da conta"><Home size={16}/><span className="hidden sm:inline">Página inicial</span></Link>)}
-              <InstallAppButton/>
+              {signedIn &&
+                (location.pathname === "/" ? (
+                  panelHome && (
+                    <Link
+                      to={panelHome}
+                      className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110"
+                      title="Voltar ao meu painel"
+                    >
+                      <LayoutDashboard size={16} />
+                      <span className="hidden sm:inline">Meu painel</span>
+                    </Link>
+                  )
+                ) : (
+                  <Link
+                    to="/"
+                    className="inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm font-semibold text-foreground transition hover:border-primary/40"
+                    title="Ir à página inicial sem sair da conta"
+                  >
+                    <Home size={16} />
+                    <span className="hidden sm:inline">Página inicial</span>
+                  </Link>
+                ))}
+              <InstallAppButton />
               {tools}
               {!signedIn && access.status !== "loading" && loginButton}
-              {!signedIn && <button type="button" onClick={() => setMenuOpen(true)} aria-label="Abrir menu" aria-expanded={menuOpen} className={`${iconButton} lg:hidden`}><Menu size={18}/></button>}
+              {!signedIn && (
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen(true)}
+                  aria-label="Abrir menu"
+                  aria-expanded={menuOpen}
+                  className={`${iconButton} lg:hidden`}
+                >
+                  <Menu size={18} />
+                </button>
+              )}
             </div>
           </header>
 
-          {shellError && <p role="alert" className="shrink-0 border-b border-destructive/20 bg-destructive/10 px-4 py-2 text-xs font-medium text-destructive">{shellError}</p>}
-          <main id="care-content" className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-3 sm:p-4 lg:p-5 xl:pr-14">{children}
-            {location.pathname !== "/" && <p className="mt-5 border-t border-border pt-3 text-center text-xs text-muted-foreground">NextVita · Desenvolvido por <strong className="font-semibold text-foreground">Franc D&apos;nis</strong> · Feijó, Acre</p>}
+          {shellError && (
+            <p
+              role="alert"
+              className="shrink-0 border-b border-destructive/20 bg-destructive/10 px-4 py-2 text-xs font-medium text-destructive"
+            >
+              {shellError}
+            </p>
+          )}
+          <main
+            id="care-content"
+            className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-3 sm:p-4 lg:p-5 xl:pl-10 xl:pr-10"
+          >
+            {children}
+            {location.pathname !== "/" && (
+              <p className="mt-5 border-t border-border pt-3 text-center text-xs text-muted-foreground">
+                NextVita · Desenvolvido por{" "}
+                <strong className="font-semibold text-foreground">Franc D&apos;nis</strong> · Feijó,
+                Acre
+              </p>
+            )}
           </main>
         </div>
 
-        <aside aria-label="Assinatura NextVita" className="pointer-events-none fixed right-0 top-14 z-20 hidden h-[calc(100dvh-3.5rem)] w-9 items-center justify-center border-l border-border bg-surface/75 backdrop-blur-sm xl:flex">
-          <p className="[writing-mode:vertical-rl] rotate-180 whitespace-nowrap text-[10px] font-semibold uppercase tracking-[.18em] text-muted-foreground">
-            NextVita · Desenvolvido por Franc D&apos;nis · Feijó, Acre · Cuidar de si também é acompanhar sua evolução
-          </p>
+        <aside
+          aria-label="Marca NextVita"
+          className="pointer-events-none fixed left-0 top-14 z-20 hidden h-[calc(100dvh-3.5rem)] w-7 items-center justify-center border-r border-border bg-surface/70 backdrop-blur-sm xl:flex"
+        >
+          <div className="flex h-full flex-col items-center justify-between py-6">
+            <span className="[writing-mode:vertical-rl] rotate-180 text-[8px] font-extrabold uppercase tracking-[.28em] text-primary">
+              NextVita
+            </span>
+            <span className="h-16 w-px bg-gradient-to-b from-primary/0 via-primary/45 to-primary/0" />
+            <span className="[writing-mode:vertical-rl] rotate-180 text-[7px] font-semibold uppercase tracking-[.16em] text-muted-foreground">
+              Bem-estar conectado
+            </span>
+          </div>
+        </aside>
+        <aside
+          aria-label="Assinatura do desenvolvedor"
+          className="pointer-events-none fixed right-0 top-14 z-20 hidden h-[calc(100dvh-3.5rem)] w-7 items-center justify-center border-l border-border bg-surface/70 backdrop-blur-sm xl:flex"
+        >
+          <div className="flex h-full flex-col items-center justify-between py-6">
+            <span className="[writing-mode:vertical-rl] rotate-180 text-[7px] font-semibold uppercase tracking-[.16em] text-muted-foreground">
+              Desenvolvido por Franc D&apos;nis
+            </span>
+            <span className="h-16 w-px bg-gradient-to-b from-primary/0 via-primary/45 to-primary/0" />
+            <span className="[writing-mode:vertical-rl] rotate-180 text-[7px] font-semibold uppercase tracking-[.16em] text-muted-foreground">
+              Feijó, Acre · Cuidar de si é acompanhar sua evolução
+            </span>
+          </div>
         </aside>
 
-        {menuOpen && <div className={`fixed inset-0 z-50 ${signedIn ? "xl:hidden" : "lg:hidden"}`} role="dialog" aria-modal="true" aria-label="Menu">
-          <button type="button" aria-label="Fechar menu" className="absolute inset-0 cursor-default bg-slate-950/60 backdrop-blur-sm" onClick={() => setMenuOpen(false)}/>
-          <div className="absolute inset-y-0 left-0 flex w-[min(18rem,85vw)] flex-col bg-sidebar shadow-2xl">
-            <div className="flex h-14 shrink-0 items-center justify-between border-b border-white/10 px-4">
-              <Brand onDark/>
-              <button type="button" onClick={() => setMenuOpen(false)} aria-label="Fechar menu" className="grid size-8 place-items-center rounded-lg text-slate-300 hover:bg-white/10 hover:text-white"><X size={18}/></button>
+        {menuOpen && (
+          <div
+            className={`fixed inset-0 z-50 ${signedIn ? "xl:hidden" : "lg:hidden"}`}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu"
+          >
+            <button
+              type="button"
+              aria-label="Fechar menu"
+              className="absolute inset-0 cursor-default bg-slate-950/60 backdrop-blur-sm"
+              onClick={() => setMenuOpen(false)}
+            />
+            <div className="absolute inset-y-0 left-0 flex w-[min(18rem,85vw)] flex-col bg-sidebar shadow-2xl">
+              <div className="flex h-14 shrink-0 items-center justify-between border-b border-white/10 px-4">
+                <Brand onDark />
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen(false)}
+                  aria-label="Fechar menu"
+                  className="grid size-8 place-items-center rounded-lg text-slate-300 hover:bg-white/10 hover:text-white"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+              {signedIn ? (
+                sidebarBody
+              ) : (
+                <nav className="grid gap-0.5 p-3" aria-label="Navegação principal">
+                  {items.map(sideLink)}
+                  <Link
+                    to="/entrar"
+                    className="mt-3 flex h-10 items-center justify-center gap-2 rounded-lg bg-primary text-sm font-semibold text-white"
+                  >
+                    <LogIn size={16} /> Entrar
+                  </Link>
+                </nav>
+              )}
             </div>
-            {signedIn ? sidebarBody : <nav className="grid gap-0.5 p-3" aria-label="Navegação principal">
-              {items.map(sideLink)}
-              <Link to="/entrar" className="mt-3 flex h-10 items-center justify-center gap-2 rounded-lg bg-primary text-sm font-semibold text-white"><LogIn size={16}/> Entrar</Link>
-            </nav>}
           </div>
-        </div>}
+        )}
 
         {profile === "admin" && <HydrationReminder />}
       </div>
