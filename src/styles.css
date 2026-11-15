@@ -368,3 +368,12 @@ iframe[title*="Lovable" i][title*="badge" i] { display: none !important; visibil
   .care-shell section[aria-label="Painel de acompanhamento individual"] { height: auto; }
   #care-client-tab-panel { overflow: visible; }
 }
+@media (min-width: 1280px) {
+  .sidebar-shell:not(:hover) nav p,
+  .sidebar-shell:not(:hover) nav a > span:last-child,
+  .sidebar-shell:not(:hover) .sidebar-account-copy,
+  .sidebar-shell:not(:hover) .sidebar-account-action { display: none; }
+  .sidebar-shell:not(:hover) nav a { justify-content: center; padding-inline: .5rem; }
+  .sidebar-shell:not(:hover) nav a > span:first-child { margin-inline: auto; }
+  .sidebar-shell:not(:hover) .sidebar-brand-wordmark { display: none; }
+}
