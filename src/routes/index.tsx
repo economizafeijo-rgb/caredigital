@@ -70,7 +70,7 @@ const features = [
 ] as const;
 
 function Homepage() {
-  const { status } = useAccess();
+  const { status, name } = useAccess();
 
   if (status === "loading")
     return (
@@ -118,12 +118,23 @@ function Homepage() {
             id="home-title"
             className="mt-4 text-balance text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl"
           >
-            Sua rotina de bem-estar,{" "}
-            <span className="text-[#9be9da]">organizada em um só lugar.</span>
+            {status === "client" ? (
+              <>
+                Olá, <span className="text-[#9be9da]">{(name || "usuário").split(" ")[0]}</span>.
+                <br />
+                Veja sua evolução em um só lugar.
+              </>
+            ) : (
+              <>
+                Sua rotina de bem-estar,{" "}
+                <span className="text-[#9be9da]">organizada em um só lugar.</span>
+              </>
+            )}
           </h1>
           <p className="mt-4 max-w-[48ch] text-base leading-relaxed text-slate-200">
-            Nutrição, hidratação, peso, suplementos e hábitos acompanhados com horários, lembretes e
-            registros confiáveis.
+            {status === "client"
+              ? "Acompanhe suas métricas, hábitos, hidratação, alimentação, suplementos e evolução ao longo do tempo."
+              : "Nutrição, hidratação, peso, suplementos e hábitos acompanhados com horários, lembretes e registros confiáveis."}
           </p>
           <div className="mt-6 flex flex-wrap items-center gap-3">
             {panel ? (
