@@ -5,9 +5,17 @@ export const Route = createFileRoute("/nutricao-esportiva")({
   head: () => ({
     meta: [
       { title: "Nutrição esportiva — NextVita" },
-      { name: "description", content: "Conheça como o NextVita apresenta objetivos alimentares, horários de refeições e acompanhamento de forma educativa e privada." },
+      {
+        name: "description",
+        content:
+          "Conheça como o NextVita combina nutrição, treino, suplementos e evolução de forma educativa e privada.",
+      },
       { property: "og:title", content: "Nutrição esportiva — NextVita" },
-      { property: "og:description", content: "Uma introdução clara à organização da rotina alimentar para quem pratica atividades físicas." },
+      {
+        property: "og:description",
+        content:
+          "Uma introdução clara à organização da rotina alimentar para quem pratica atividades físicas.",
+      },
     ],
   }),
   component: NutricaoEsportiva,
