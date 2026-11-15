@@ -70,6 +70,8 @@ function Entrar() {
   const [heightCm, setHeightCm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [resendBusy, setResendBusy] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
   const configurationIssue = getSupabaseConfigurationIssue();
 
@@ -123,12 +125,17 @@ function Entrar() {
     if (busy || configurationIssue) return;
     setBusy(true);
     setNotice(null);
+    setNeedsConfirmation(false);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password,
       });
       if (error) {
+        const confirmationRequired =
+          error.code === "email_not_confirmed" ||
+          error.message?.toLowerCase().includes("email not confirmed");
+        setNeedsConfirmation(confirmationRequired);
         setNotice({ type: "error", message: authErrorMessage(error) });
         return;
       }
@@ -150,6 +157,30 @@ function Entrar() {
       });
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function handleResendConfirmation() {
+    if (resendBusy || !email.trim()) return;
+    setResendBusy(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: email.trim().toLowerCase(),
+      });
+      setNotice(
+        error
+          ? { type: "error", message: authErrorMessage(error) }
+          : { type: "success", message: "Novo link enviado. Verifique também a caixa de spam." },
+      );
+      setNeedsConfirmation(false);
+    } catch {
+      setNotice({
+        type: "error",
+        message: "Não foi possível reenviar o link agora. Tente novamente.",
+      });
+    } finally {
+      setResendBusy(false);
     }
   }
 
@@ -399,6 +430,7 @@ function Entrar() {
               {notice.message}
             </div>
           )}
+          {needsConfirmation && <button type="button" onClick={() => void handleResendConfirmation()} disabled={resendBusy} className="w-full rounded-xl border border-primary/25 bg-primary/5 px-3 py-2.5 text-xs font-bold text-primary transition hover:bg-primary/10 disabled:opacity-50">{resendBusy ? "Reenviando link…" : "Reenviar e-mail de confirmação"}</button>}
 
           {mode === "login" && (
             <form className="space-y-3" onSubmit={(event) => void handleLogin(event)}>
