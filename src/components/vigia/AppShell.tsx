@@ -147,7 +147,7 @@ function Brand({ onDark = false }: { onDark?: boolean }) {
         </svg>
       </span>
       <span
-        className={`font-display text-[17px] font-extrabold tracking-tight ${onDark ? "text-white" : "text-foreground"}`}
+        className={`sidebar-brand-wordmark font-display text-[17px] font-extrabold tracking-tight ${onDark ? "text-white" : "text-foreground"}`}
       >
         Next<span className={onDark ? "text-[#9be9da]" : "text-primary"}>Vita</span>
       </span>
@@ -163,6 +163,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const access = useAccess();
   const location = useRouterState({ select: (state) => state.location });
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [fullScreen, setFullScreen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -334,8 +335,14 @@ export function AppShell({ children }: { children: ReactNode }) {
       <HydrationProvider>
         <div className="care-shell flex h-dvh min-h-0 overflow-hidden bg-background text-foreground">
           {internalPage && (
-            <aside className="hidden w-60 shrink-0 flex-col bg-sidebar xl:flex">
-              <div className="flex h-14 shrink-0 items-center border-b border-white/10 px-4">
+            <aside
+              onMouseEnter={() => setSidebarExpanded(true)}
+              onMouseLeave={() => setSidebarExpanded(false)}
+              className={`sidebar-shell hidden shrink-0 flex-col bg-sidebar transition-[width] duration-200 xl:flex ${sidebarExpanded ? "w-60" : "w-16"}`}
+            >
+              <div
+                className={`flex h-14 shrink-0 items-center border-b border-white/10 ${sidebarExpanded ? "px-4" : "justify-center px-2"}`}
+              >
                 <Brand onDark />
               </div>
               {sidebarBody}
