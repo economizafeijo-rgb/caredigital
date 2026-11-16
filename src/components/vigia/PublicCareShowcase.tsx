@@ -2,6 +2,9 @@ import { Link } from "@tanstack/react-router";
 import {
   Activity,
   ArrowRight,
+  BedDouble,
+  Bluetooth,
+  Moon,
   BarChart3,
   BellRing,
   CalendarClock,
@@ -35,7 +38,8 @@ export type ShowcaseKind =
   | "metrics"
   | "weight"
   | "supplements"
-  | "training";
+  | "training"
+  | "sleep";
 
 type Showcase = {
   icon: LucideIcon;
@@ -312,6 +316,28 @@ const copy: Record<ShowcaseKind, Showcase> = {
     ],
     privacy: "A localização só é usada durante o treino, com a sua permissão, e o percurso fica na sua área privada.",
   },
+  sleep: {
+    icon: BedDouble,
+    tone: "text-primary bg-primary/10",
+    eyebrow: "Monitoramento do sono",
+    title: "Durma melhor com dados de verdade, noite após noite.",
+    description:
+      "Registre suas noites e receba uma nota do sono com horas dormidas, regularidade e débito acumulado. Conecte uma cinta ou relógio com Bluetooth e acompanhe seus batimentos em tempo real enquanto dorme.",
+    cta: "Monitorar meu sono",
+    preview: ["Nota do sono de 0 a 100", "Batimentos ao vivo", "Evolução de 30 dias"],
+    benefits: [
+      { icon: Moon, title: "Nota do sono", text: "Duração, qualidade e despertares resumidos em um número fácil de acompanhar." },
+      { icon: Bluetooth, title: "Sensor em tempo real", text: "Compatível com aparelhos que transmitem frequência cardíaca por Bluetooth." },
+      { icon: TrendingUp, title: "Evolução e regularidade", text: "Gráficos interativos mostram suas horas, seus horários e o débito de sono." },
+    ],
+    steps: [
+      { name: "Conectar", detail: "Sensor opcional" },
+      { name: "Dormir", detail: "Iniciar a noite" },
+      { name: "Acordar", detail: "Encerrar e avaliar" },
+      { name: "Evoluir", detail: "Nota e orientações" },
+    ],
+    privacy: "Os registros de sono ficam na sua área privada. A nota é educativa e não substitui avaliação médica nem exame do sono.",
+  },
 };
 
 /** Fotografias ilustrativas (Unsplash, licença livre) servidas localmente em /public/images. */
@@ -324,6 +350,7 @@ const showcaseImage: Record<ShowcaseKind, { src: string; position: string }> = {
   metrics: { src: "/images/show-metricas.webp", position: "50% 55%" },
   weight: { src: "/images/show-peso.webp", position: "60% 22%" },
   supplements: { src: "/images/show-suplementos.webp", position: "50% 60%" },
+  sleep: { src: "/images/show-sono.webp", position: "50% 35%" },
   training: { src: "/images/show-treinos.webp", position: "40% 45%" },
 };
 

@@ -1,3 +1,4 @@
+import { LiveWorkoutVisual, type LivePoint } from "./LiveWorkoutVisual";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity,
@@ -17,7 +18,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useDialog } from "@/lib/dialog";
 
-type GpsPoint = { latitude: number; longitude: number; accuracy?: number };
+type GpsPoint = LivePoint;
 type ActivityEntry = {
   id: string;
   happened_at: string;
@@ -83,6 +84,9 @@ export function ClientActivityPage({
   } | null>(null);
   const watchRef = useRef<number | null>(null);
   const startedRef = useRef(0);
+  const pausedRef = useRef(false);
+  const pauseAtRef = useRef(0);
+  pausedRef.current = paused;
   const { confirm } = useDialog();
 
   useEffect(() => {
@@ -172,9 +176,17 @@ export function ClientActivityPage({
     setTracking(true);
     setPaused(false);
     watchRef.current = navigator.geolocation.watchPosition(
-      (position) => setRoute((current) => [...current, position.coords]),
+      (position) => {
+        // Ignora leituras imprecisas e não soma distância enquanto estiver pausado.
+        const c = position.coords;
+        if (pausedRef.current || (c.accuracy && c.accuracy > 40)) return;
+        setRoute((current) => [
+          ...current,
+          { latitude: c.latitude, longitude: c.longitude, accuracy: c.accuracy, speed: c.speed, t: position.timestamp },
+        ]);
+      },
       () => setError("Permita o acesso à localização para registrar o percurso."),
-      { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 },
+      { enableHighAccuracy: true, maximumAge: 1000, timeout: 15000 },
     );
   }
   async function stopGps() {
@@ -308,6 +320,15 @@ export function ClientActivityPage({
                 </div>
               ))}
             </div>
+            {!summary && (
+              <LiveWorkoutVisual
+                route={route}
+                elapsed={elapsed}
+                paused={paused}
+                type={type}
+                distanceKm={routeDistance}
+              />
+            )}
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               {summary ? (
                 <>
@@ -333,7 +354,12 @@ export function ClientActivityPage({
                 <>
                   <button
                     type="button"
-                    onClick={() => setPaused((value) => !value)}
+                    onClick={() => {
+                      // O tempo pausado não conta: ao retomar, o início é deslocado.
+                      if (paused) startedRef.current += Date.now() - pauseAtRef.current;
+                      else pauseAtRef.current = Date.now();
+                      setPaused((value) => !value);
+                    }}
                     className="inline-flex items-center gap-2 rounded-xl border border-white/20 px-6 py-3 text-sm font-bold"
                   >
                     {paused ? <Play size={17} /> : <Pause size={17} />}{" "}
