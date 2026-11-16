@@ -1,6 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import {
+  Activity,
   ArrowRight,
+  BarChart3,
   BellRing,
   CalendarClock,
   Check,
@@ -10,15 +12,30 @@ import {
   Dumbbell,
   HeartPulse,
   LockKeyhole,
+  MapPin,
   Pill,
+  Scale,
   ShieldCheck,
+  Sparkles,
+  Target,
+  Timer,
+  TrendingUp,
   UserRoundCheck,
   Utensils,
   type LucideIcon,
 } from "lucide-react";
 
 /** Apresentação pública e explicativa: nunca lê nem altera registros pessoais de um usuário. */
-export type ShowcaseKind = "hydration" | "medication" | "sports" | "diet" | "protocols";
+export type ShowcaseKind =
+  | "hydration"
+  | "medication"
+  | "sports"
+  | "diet"
+  | "protocols"
+  | "metrics"
+  | "weight"
+  | "supplements"
+  | "training";
 
 type Showcase = {
   icon: LucideIcon;
@@ -207,6 +224,94 @@ const copy: Record<ShowcaseKind, Showcase> = {
     ],
     privacy: "Protocolos e registros pessoais não são exibidos nesta página pública.",
   },
+  metrics: {
+    icon: BarChart3,
+    tone: "text-primary bg-primary/10",
+    eyebrow: "Métricas e gráficos",
+    title: "Seus números de saúde em gráficos claros.",
+    description:
+      "Calorias, proteínas, água, peso e atividade viram indicadores e gráficos fáceis de ler, comparados com a meta do seu objetivo. Um painel só para entender como está a sua semana.",
+    cta: "Ver minhas métricas",
+    preview: ["Calorias e macronutrientes", "Hidratação do dia", "Atividade da semana"],
+    benefits: [
+      { icon: TrendingUp, title: "Evolução visual", text: "Gráficos de tendência mostram o que mudou nos últimos dias e meses." },
+      { icon: Target, title: "Metas por objetivo", text: "Emagrecer, manter, ganhar peso ou hipertrofia: cada meta se ajusta ao seu objetivo." },
+      { icon: BarChart3, title: "Tudo em um painel", text: "Nutrição, água, peso e treinos reunidos na mesma tela." },
+    ],
+    steps: [
+      { name: "Registrar", detail: "Refeições, água e peso" },
+      { name: "Calcular", detail: "Nutrientes automáticos" },
+      { name: "Comparar", detail: "Com a sua meta" },
+      { name: "Evoluir", detail: "Ajustes semanais" },
+    ],
+    privacy: "Os gráficos mostram apenas os seus registros, na sua área protegida. Valores são estimativas educativas.",
+  },
+  weight: {
+    icon: Scale,
+    tone: "text-activity bg-activity/10",
+    eyebrow: "Controle de peso",
+    title: "Acompanhe seu peso e veja a evolução de verdade.",
+    description:
+      "Registre seu peso por data e acompanhe a linha de evolução, a média móvel, o IMC e a distância até a sua meta. Simples para registrar, claro para entender.",
+    cta: "Registrar meu peso",
+    preview: ["Peso e variação", "IMC e classificação", "Distância da meta"],
+    benefits: [
+      { icon: TrendingUp, title: "Gráfico de evolução", text: "Linha do peso, média móvel e faixa de peso adequado em um só gráfico." },
+      { icon: Scale, title: "IMC automático", text: "Cálculo e classificação a cada registro, com a sua altura." },
+      { icon: Target, title: "Meta de peso", text: "Veja quanto falta para chegar ao objetivo definido." },
+    ],
+    steps: [
+      { name: "Pesar", detail: "Informe peso e data" },
+      { name: "Registrar", detail: "Um toque para salvar" },
+      { name: "Gráfico", detail: "Evolução atualizada" },
+      { name: "Meta", detail: "Acompanhe o objetivo" },
+    ],
+    privacy: "Peso e medidas são dados pessoais e ficam apenas na sua área protegida. Não substitui avaliação profissional.",
+  },
+  supplements: {
+    icon: Sparkles,
+    tone: "text-primary bg-primary/10",
+    eyebrow: "Controle de suplementação",
+    title: "Suplementos com dose, horário e timer.",
+    description:
+      "Programe creatina, whey, ômega 3, vitamina D e outros com a dose e os horários do seu plano. Receba o timer da próxima dose, registre o que tomou e consulte dicas de uso.",
+    cta: "Programar meus suplementos",
+    preview: ["Programação do dia", "Timer da próxima dose", "Biblioteca com dicas"],
+    benefits: [
+      { icon: Timer, title: "Timer da próxima dose", text: "Contagem regressiva até o horário de cada suplemento." },
+      { icon: ClipboardCheck, title: "Registro de doses", text: "Marque o que tomou e acompanhe sua constância no dia." },
+      { icon: Sparkles, title: "Biblioteca de referência", text: "Doses usuais, melhor horário, dicas e cuidados de cada suplemento." },
+    ],
+    steps: [
+      { name: "Escolher", detail: "Na biblioteca" },
+      { name: "Programar", detail: "Dose e horários" },
+      { name: "Tomar", detail: "Com timer" },
+      { name: "Registrar", detail: "Constância diária" },
+    ],
+    privacy: "Suplementos não substituem alimentação nem orientação profissional. Doses reais devem ser definidas por quem acompanha você.",
+  },
+  training: {
+    icon: Activity,
+    tone: "text-activity bg-activity/10",
+    eyebrow: "Treinos e corridas",
+    title: "Caminhadas, corridas e treinos com rastreio por GPS.",
+    description:
+      "Acompanhe distância, tempo e ritmo da sua caminhada ou corrida em tempo real, com resumo ao final. Registre também musculação, ciclismo e natação.",
+    cta: "Registrar um treino",
+    preview: ["Distância e ritmo ao vivo", "Resumo da sessão", "Histórico de treinos"],
+    benefits: [
+      { icon: MapPin, title: "Rastreio por GPS", text: "Métricas ao vivo de caminhadas e corridas, também em tela cheia." },
+      { icon: Activity, title: "Vários esportes", text: "Corrida, caminhada, ciclismo, musculação, natação e mais." },
+      { icon: TrendingUp, title: "Evolução semanal", text: "Minutos de atividade somados na semana, com a meta de referência da OMS." },
+    ],
+    steps: [
+      { name: "Escolher", detail: "O tipo de treino" },
+      { name: "Iniciar", detail: "Com GPS ou manual" },
+      { name: "Acompanhar", detail: "Métricas ao vivo" },
+      { name: "Resumo", detail: "Salvo no histórico" },
+    ],
+    privacy: "A localização só é usada durante o treino, com a sua permissão, e o percurso fica na sua área privada.",
+  },
 };
 
 /** Fotografias ilustrativas (Unsplash, licença livre) servidas localmente em /public/images. */
@@ -215,7 +320,11 @@ const showcaseImage: Record<ShowcaseKind, { src: string; position: string }> = {
   medication: { src: "/images/caredigital-medicamentos.webp", position: "50% 50%" },
   sports: { src: "/images/caredigital-esporte.webp", position: "50% 40%" },
   diet: { src: "/images/caredigital-alimentacao.webp", position: "50% 50%" },
-  protocols: { src: "/images/caredigital-historico.webp", position: "40% 50%" },
+  protocols: { src: "/images/caredigital-care-hero.webp", position: "70% 25%" },
+  metrics: { src: "/images/show-metricas.webp", position: "50% 50%" },
+  weight: { src: "/images/show-peso.webp", position: "50% 50%" },
+  supplements: { src: "/images/show-suplementos.webp", position: "50% 50%" },
+  training: { src: "/images/show-treinos.webp", position: "50% 60%" },
 };
 
 export function PublicCareShowcase({ kind }: { kind: ShowcaseKind }) {
@@ -280,18 +389,7 @@ export function PublicCareShowcase({ kind }: { kind: ShowcaseKind }) {
         </div>
 
         <div aria-hidden="true" className="relative mx-auto w-full max-w-[400px]">
-          <div className="absolute -inset-5 -z-10 rounded-[36px] bg-gradient-to-br from-primary/15 via-transparent to-water/10 blur-2xl" />
-          <img
-            src={showcaseImage[kind].src}
-            alt=""
-            width={1200}
-            height={750}
-            loading="eager"
-            decoding="async"
-            style={{ objectPosition: showcaseImage[kind].position }}
-            className="aspect-[16/10] w-full rounded-2xl object-cover shadow-pop"
-          />
-          <div className="relative -mt-16 mx-3 rounded-2xl border border-border bg-card/95 p-4 shadow-pop backdrop-blur">
+          <div className="relative rounded-2xl border border-border bg-card p-4 shadow-pop">
             <div className="flex items-center gap-3">
               <span className={`grid size-12 place-items-center rounded-xl ${info.tone}`}>
                 <Icon size={24} />
