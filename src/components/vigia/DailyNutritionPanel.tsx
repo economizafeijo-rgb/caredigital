@@ -13,7 +13,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { acreDateKey } from "@/lib/acre-time";
+import { acreDateKey, DAY_CUTOFF_HOUR } from "@/lib/acre-time";
 import {
   goalAdvice,
   goalTargets,
@@ -147,7 +147,11 @@ export function useDailyNutrition(
             },
           });
         }
-        list.sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
+        // Refeições e líquidos contam somente até o fechamento do dia (22h, horário do Acre).
+      const dayCutoff = Date.parse(acreDateKey() + `T${String(DAY_CUTOFF_HOUR).padStart(2, "0")}:00:00-05:00`);
+      const counted = list.filter(entry => Date.parse(entry.at) < dayCutoff);
+      counted.sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
+      list.length = 0; list.push(...counted);
         setEntries(list);
         const p = pref.data ?? {};
         const num = (v: unknown) =>

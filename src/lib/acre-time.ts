@@ -85,3 +85,6 @@ export function formatAcreDateOnly(
     timeZone: ACRE_TIME_ZONE,
   }).format(acreDateAtTime(dateKey, "12:00"));
 }
+
+/** Hora (Acre) em que o dia fecha: meta de água e refeições contam até este horário. */
+export const DAY_CUTOFF_HOUR = 22;
