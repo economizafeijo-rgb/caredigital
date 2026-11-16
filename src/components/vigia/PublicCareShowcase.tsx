@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { ScreenPreview } from "./ScreenPreviews";
 import {
   Activity,
   ArrowRight,
@@ -418,40 +419,8 @@ export function PublicCareShowcase({ kind }: { kind: ShowcaseKind }) {
             </div>
           </div>
 
-          {/* Prévia do recurso, no mesmo estilo dos cartões do painel */}
-          <div
-            aria-hidden="true"
-            className="w-full max-w-sm justify-self-center rounded-3xl border border-white/15 bg-white/10 p-5 shadow-2xl backdrop-blur-md lg:justify-self-end"
-          >
-            <div className="flex items-center gap-3">
-              <span className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-300 text-slate-950">
-                <Icon size={24} />
-              </span>
-              <div>
-                <p className="font-display text-base font-bold">{info.eyebrow}</p>
-                <p className="text-xs text-white/70">O que você acompanha</p>
-              </div>
-            </div>
-            <ul className="mt-4 grid gap-2">
-              {info.preview.map((item, index) => (
-                <li
-                  key={item}
-                  className="flex items-center gap-3 rounded-2xl bg-white/10 px-3.5 py-3"
-                >
-                  <span className="grid size-6 shrink-0 place-items-center rounded-full bg-emerald-400 text-slate-950">
-                    <Check size={14} strokeWidth={3} />
-                  </span>
-                  <span className="flex-1 text-sm font-semibold">{item}</span>
-                  <span className="h-1.5 w-12 overflow-hidden rounded-full bg-white/20">
-                    <i
-                      className="block h-full rounded-full bg-emerald-300"
-                      style={{ width: `${55 + index * 20}%` }}
-                    />
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* Prévia fiel da própria tela do painel */}
+          <ScreenPreview kind={kind} />
         </div>
       </section>
 
