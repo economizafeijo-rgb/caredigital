@@ -17,11 +17,15 @@ import { Route as DietasRouteImport } from './routes/dietas'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as HidratacaoRouteImport } from './routes/hidratacao'
 import { Route as MedicamentosRouteImport } from './routes/medicamentos'
+import { Route as MetricasRouteImport } from './routes/metricas'
 import { Route as NutricaoEsportivaRouteImport } from './routes/nutricao-esportiva'
 import { Route as PacientesRouteImport } from './routes/pacientes'
+import { Route as PesoRouteImport } from './routes/peso'
 import { Route as ProntuarioRouteImport } from './routes/prontuario'
 import { Route as ProtocolosRouteImport } from './routes/protocolos'
+import { Route as SuplementosRouteImport } from './routes/suplementos'
 import { Route as TesteGratisRouteImport } from './routes/teste-gratis'
+import { Route as TreinosRouteImport } from './routes/treinos'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -63,6 +67,11 @@ const MedicamentosRoute = MedicamentosRouteImport.update({
   path: '/medicamentos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MetricasRoute = MetricasRouteImport.update({
+  id: '/metricas',
+  path: '/metricas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NutricaoEsportivaRoute = NutricaoEsportivaRouteImport.update({
   id: '/nutricao-esportiva',
   path: '/nutricao-esportiva',
@@ -71,6 +80,11 @@ const NutricaoEsportivaRoute = NutricaoEsportivaRouteImport.update({
 const PacientesRoute = PacientesRouteImport.update({
   id: '/pacientes',
   path: '/pacientes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PesoRoute = PesoRouteImport.update({
+  id: '/peso',
+  path: '/peso',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProntuarioRoute = ProntuarioRouteImport.update({
@@ -83,9 +97,19 @@ const ProtocolosRoute = ProtocolosRouteImport.update({
   path: '/protocolos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SuplementosRoute = SuplementosRouteImport.update({
+  id: '/suplementos',
+  path: '/suplementos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TesteGratisRoute = TesteGratisRouteImport.update({
   id: '/teste-gratis',
   path: '/teste-gratis',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TreinosRoute = TreinosRouteImport.update({
+  id: '/treinos',
+  path: '/treinos',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -98,11 +122,15 @@ export interface FileRoutesByFullPath {
   '/entrar': typeof EntrarRoute
   '/hidratacao': typeof HidratacaoRoute
   '/medicamentos': typeof MedicamentosRoute
+  '/metricas': typeof MetricasRoute
   '/nutricao-esportiva': typeof NutricaoEsportivaRoute
   '/pacientes': typeof PacientesRoute
+  '/peso': typeof PesoRoute
   '/prontuario': typeof ProntuarioRoute
   '/protocolos': typeof ProtocolosRoute
+  '/suplementos': typeof SuplementosRoute
   '/teste-gratis': typeof TesteGratisRoute
+  '/treinos': typeof TreinosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -113,11 +141,15 @@ export interface FileRoutesByTo {
   '/entrar': typeof EntrarRoute
   '/hidratacao': typeof HidratacaoRoute
   '/medicamentos': typeof MedicamentosRoute
+  '/metricas': typeof MetricasRoute
   '/nutricao-esportiva': typeof NutricaoEsportivaRoute
   '/pacientes': typeof PacientesRoute
+  '/peso': typeof PesoRoute
   '/prontuario': typeof ProntuarioRoute
   '/protocolos': typeof ProtocolosRoute
+  '/suplementos': typeof SuplementosRoute
   '/teste-gratis': typeof TesteGratisRoute
+  '/treinos': typeof TreinosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -129,11 +161,15 @@ export interface FileRoutesById {
   '/entrar': typeof EntrarRoute
   '/hidratacao': typeof HidratacaoRoute
   '/medicamentos': typeof MedicamentosRoute
+  '/metricas': typeof MetricasRoute
   '/nutricao-esportiva': typeof NutricaoEsportivaRoute
   '/pacientes': typeof PacientesRoute
+  '/peso': typeof PesoRoute
   '/prontuario': typeof ProntuarioRoute
   '/protocolos': typeof ProtocolosRoute
+  '/suplementos': typeof SuplementosRoute
   '/teste-gratis': typeof TesteGratisRoute
+  '/treinos': typeof TreinosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -146,11 +182,15 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/hidratacao'
     | '/medicamentos'
+    | '/metricas'
     | '/nutricao-esportiva'
     | '/pacientes'
+    | '/peso'
     | '/prontuario'
     | '/protocolos'
+    | '/suplementos'
     | '/teste-gratis'
+    | '/treinos'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -161,11 +201,15 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/hidratacao'
     | '/medicamentos'
+    | '/metricas'
     | '/nutricao-esportiva'
     | '/pacientes'
+    | '/peso'
     | '/prontuario'
     | '/protocolos'
+    | '/suplementos'
     | '/teste-gratis'
+    | '/treinos'
   id:
     | '__root__'
     | '/'
@@ -176,11 +220,15 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/hidratacao'
     | '/medicamentos'
+    | '/metricas'
     | '/nutricao-esportiva'
     | '/pacientes'
+    | '/peso'
     | '/prontuario'
     | '/protocolos'
+    | '/suplementos'
     | '/teste-gratis'
+    | '/treinos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -192,11 +240,15 @@ export interface RootRouteChildren {
   EntrarRoute: typeof EntrarRoute
   HidratacaoRoute: typeof HidratacaoRoute
   MedicamentosRoute: typeof MedicamentosRoute
+  MetricasRoute: typeof MetricasRoute
   NutricaoEsportivaRoute: typeof NutricaoEsportivaRoute
   PacientesRoute: typeof PacientesRoute
+  PesoRoute: typeof PesoRoute
   ProntuarioRoute: typeof ProntuarioRoute
   ProtocolosRoute: typeof ProtocolosRoute
+  SuplementosRoute: typeof SuplementosRoute
   TesteGratisRoute: typeof TesteGratisRoute
+  TreinosRoute: typeof TreinosRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -257,6 +309,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MedicamentosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/metricas': {
+      id: '/metricas'
+      path: '/metricas'
+      fullPath: '/metricas'
+      preLoaderRoute: typeof MetricasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/nutricao-esportiva': {
       id: '/nutricao-esportiva'
       path: '/nutricao-esportiva'
@@ -269,6 +328,13 @@ declare module '@tanstack/react-router' {
       path: '/pacientes'
       fullPath: '/pacientes'
       preLoaderRoute: typeof PacientesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/peso': {
+      id: '/peso'
+      path: '/peso'
+      fullPath: '/peso'
+      preLoaderRoute: typeof PesoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/prontuario': {
@@ -285,11 +351,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtocolosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/suplementos': {
+      id: '/suplementos'
+      path: '/suplementos'
+      fullPath: '/suplementos'
+      preLoaderRoute: typeof SuplementosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/teste-gratis': {
       id: '/teste-gratis'
       path: '/teste-gratis'
       fullPath: '/teste-gratis'
       preLoaderRoute: typeof TesteGratisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/treinos': {
+      id: '/treinos'
+      path: '/treinos'
+      fullPath: '/treinos'
+      preLoaderRoute: typeof TreinosRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -304,11 +384,15 @@ const rootRouteChildren: RootRouteChildren = {
   EntrarRoute: EntrarRoute,
   HidratacaoRoute: HidratacaoRoute,
   MedicamentosRoute: MedicamentosRoute,
+  MetricasRoute: MetricasRoute,
   NutricaoEsportivaRoute: NutricaoEsportivaRoute,
   PacientesRoute: PacientesRoute,
+  PesoRoute: PesoRoute,
   ProntuarioRoute: ProntuarioRoute,
   ProtocolosRoute: ProtocolosRoute,
+  SuplementosRoute: SuplementosRoute,
   TesteGratisRoute: TesteGratisRoute,
+  TreinosRoute: TreinosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
