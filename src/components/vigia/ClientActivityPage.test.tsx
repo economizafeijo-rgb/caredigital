@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ClientActivityPage } from "./ClientActivityPage";
+import { DialogProvider } from "@/lib/dialog";
 
 const mocks=vi.hoisted(()=>({from:vi.fn(),rpc:vi.fn()}));
 vi.mock("@/integrations/supabase/client",()=>({supabase:{from:mocks.from,rpc:mocks.rpc}}));
@@ -11,7 +12,7 @@ function setup(){
   query.limit=vi.fn().mockResolvedValue({data:[],error:null});
   mocks.from.mockReturnValue(query);
   const onRecorded=vi.fn();
-  render(<ClientActivityPage patientId="patient-1" ownerId="owner-1" revision={0} onRecorded={onRecorded}/>);
+  render(<DialogProvider><ClientActivityPage patientId="patient-1" ownerId="owner-1" revision={0} onRecorded={onRecorded}/></DialogProvider>);
   return {onRecorded,query};
 }
 
