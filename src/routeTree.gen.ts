@@ -21,6 +21,7 @@ import { Route as NutricaoEsportivaRouteImport } from './routes/nutricao-esporti
 import { Route as PacientesRouteImport } from './routes/pacientes'
 import { Route as ProntuarioRouteImport } from './routes/prontuario'
 import { Route as ProtocolosRouteImport } from './routes/protocolos'
+import { Route as TesteGratisRouteImport } from './routes/teste-gratis'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -82,6 +83,11 @@ const ProtocolosRoute = ProtocolosRouteImport.update({
   path: '/protocolos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TesteGratisRoute = TesteGratisRouteImport.update({
+  id: '/teste-gratis',
+  path: '/teste-gratis',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/pacientes': typeof PacientesRoute
   '/prontuario': typeof ProntuarioRoute
   '/protocolos': typeof ProtocolosRoute
+  '/teste-gratis': typeof TesteGratisRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/pacientes': typeof PacientesRoute
   '/prontuario': typeof ProntuarioRoute
   '/protocolos': typeof ProtocolosRoute
+  '/teste-gratis': typeof TesteGratisRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/pacientes': typeof PacientesRoute
   '/prontuario': typeof ProntuarioRoute
   '/protocolos': typeof ProtocolosRoute
+  '/teste-gratis': typeof TesteGratisRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/pacientes'
     | '/prontuario'
     | '/protocolos'
+    | '/teste-gratis'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
     | '/pacientes'
     | '/prontuario'
     | '/protocolos'
+    | '/teste-gratis'
   id:
     | '__root__'
     | '/'
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
     | '/pacientes'
     | '/prontuario'
     | '/protocolos'
+    | '/teste-gratis'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -184,6 +196,7 @@ export interface RootRouteChildren {
   PacientesRoute: typeof PacientesRoute
   ProntuarioRoute: typeof ProntuarioRoute
   ProtocolosRoute: typeof ProtocolosRoute
+  TesteGratisRoute: typeof TesteGratisRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -272,6 +285,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtocolosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/teste-gratis': {
+      id: '/teste-gratis'
+      path: '/teste-gratis'
+      fullPath: '/teste-gratis'
+      preLoaderRoute: typeof TesteGratisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -288,6 +308,7 @@ const rootRouteChildren: RootRouteChildren = {
   PacientesRoute: PacientesRoute,
   ProntuarioRoute: ProntuarioRoute,
   ProtocolosRoute: ProtocolosRoute,
+  TesteGratisRoute: TesteGratisRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

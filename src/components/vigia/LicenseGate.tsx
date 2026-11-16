@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { BadgeCheck, KeyRound, Loader2, ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { TrialTour } from "./TrialStart";
 import { acreDateKey } from "@/lib/acre-time";
 
 type License = { plan: string; status: string; expires: string | null };
@@ -89,6 +90,7 @@ export function LicenseGate({ children }: { children: ReactNode }) {
       <div className="w-full sm:w-auto">{redeemForm}</div>
       {message && <p role="status" className="w-full text-sm font-medium">{message.text}</p>}
     </div>}
+    {state === "teste" && <TrialTour daysLeft={left}/>}
     {children}
   </>;
 }
