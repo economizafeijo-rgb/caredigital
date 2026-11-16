@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { currentStreak, fillDays } from "@/components/vigia/SectionInsights";
+import { currentStreak, fillDays, withTrend } from "@/components/vigia/SectionInsights";
 
 describe("gráficos por área", () => {
   it("preenche dias sem registro com zero, em ordem", () => {
@@ -13,5 +13,9 @@ describe("gráficos por área", () => {
     expect(currentStreak(mk([1, 1, 1, 0]))).toBe(3);
     expect(currentStreak(mk([1, 0, 1, 0]))).toBe(1);
     expect(currentStreak(mk([0, 0, 0, 0]))).toBe(0);
+  });
+  it("calcula a linha de tendência como média móvel de 3 dias", () => {
+    const rows = withTrend([3, 6, 9, 0].map((a, i) => ({ day: String(i), a, b: 0 })));
+    expect(rows.map(r => r.t)).toEqual([3, 4.5, 6, 5]);
   });
 });

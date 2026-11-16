@@ -8,7 +8,7 @@ import { acreDateKey } from "@/lib/acre-time";
 import { parseFoodText, sumNutrients } from "@/lib/food-parser";
 import type { ClientSection } from "@/lib/client-pages";
 
-type Row = { day: string; a: number; b: number };
+type Row = { day: string; a: number; b: number; t?: number };
 type Config = { title: string; subtitle: string; unit: string; a: { label: string; color: string; to: string }; b?: { label: string; color: string; to: string }; goalLabel?: string };
 export type InsightSection = "agenda" | "hidratacao" | "medicacao" | "alimentacao" | "atividade" | "suplementos" | "historico";
 
@@ -36,6 +36,14 @@ export function fillDays(map: Map<string, { a: number; b: number }>, days: numbe
     const key = new Date(end - (days - 1 - index) * 86_400_000).toISOString().slice(0, 10);
     const value = map.get(key);
     return { day: key, a: value?.a ?? 0, b: value?.b ?? 0 };
+  });
+}
+
+/** Média móvel de 3 dias da série principal: a linha de tendência desenhada sobre as barras. */
+export function withTrend(rows: Row[]): Row[] {
+  return rows.map((row, index) => {
+    const slice = rows.slice(Math.max(0, index - 2), index + 1);
+    return { ...row, t: Number((slice.reduce((sum, item) => sum + item.a, 0) / slice.length).toFixed(1)) };
   });
 }
 
@@ -105,7 +113,7 @@ export function SectionInsights({ section, patientId, ownerId, revision = 0 }: {
   const [data, setData] = useState<{ map: Map<string, { a: number; b: number }>; goal: number | null } | null>(null);
   const [days, setDays] = useState<7 | 14 | 30>(14);
   const [kind, setKind] = useState<ChartKind>("bar");
-  const [hidden, setHidden] = useState<{ a: boolean; b: boolean }>({ a: false, b: false });
+  const [hidden, setHidden] = useState<{ a: boolean; b: boolean; t: boolean }>({ a: false, b: false, t: false });
   const [selected, setSelected] = useState<string | null>(null);
   const [open, setOpen] = useState(true);
 
@@ -114,9 +122,13 @@ export function SectionInsights({ section, patientId, ownerId, revision = 0 }: {
     void load(section, patientId, ownerId).then(result => { if (active) setData(result); }, () => { if (active) setData({ map: new Map(), goal: null }); });
     return () => { active = false; };
   }, [section, patientId, ownerId, revision]);
-  useEffect(() => { setSelected(null); setHidden({ a: false, b: false }); }, [section]);
+  useEffect(() => { setSelected(null); setHidden({ a: false, b: false, t: false }); }, [section]);
 
-  const rows = useMemo(() => fillDays(data?.map ?? new Map(), days), [data, days]);
+  const rows = useMemo(() => withTrend(fillDays(data?.map ?? new Map(), days)), [data, days]);
+  // Onde a segunda série já é uma linha (alimentação e atividade), ela faz o papel da linha do gráfico.
+  const hasTrend = section !== "alimentacao" && section !== "atividade";
+  // Em Medicação as barras já são vermelhas: a linha usa índigo para contrastar.
+  const TREND = { label: "Tendência (média de 3 dias)", color: section === "medicacao" ? "#4f46e5" : "#f43f5e" };
   const previous = useMemo(() => fillDays(data?.map ?? new Map(), days * 2).slice(0, days), [data, days]);
   const total = rows.reduce((sum, row) => sum + row.a, 0);
   const previousTotal = previous.reduce((sum, row) => sum + row.a, 0);
@@ -185,13 +197,14 @@ export function SectionInsights({ section, patientId, ownerId, revision = 0 }: {
                   if (!active || !payload?.length) return null;
                   return <div className="rounded-2xl border border-border bg-card/95 px-3.5 py-2.5 text-sm shadow-pop backdrop-blur">
                     <p className="font-bold capitalize">{weekday(String(label))}, {short(String(label))}</p>
-                    {payload.map(item => <p key={String(item.dataKey)} className="mt-0.5 flex items-center gap-2"><i className="size-2.5 rounded-full" style={{ background: (item.dataKey === "a" ? config.a : config.b)?.color }}/>{item.name}: <strong className="tabular-nums">{fmt(Number(item.value))}{item.dataKey === "a" && config.unit ? " " + config.unit : ""}</strong></p>)}
+                    {payload.map(item => <p key={String(item.dataKey)} className="mt-0.5 flex items-center gap-2"><i className="size-2.5 rounded-full" style={{ background: item.dataKey === "t" ? TREND.color : (item.dataKey === "a" ? config.a : config.b)?.color }}/>{item.name}: <strong className="tabular-nums">{fmt(Number(item.value))}{item.dataKey === "a" && config.unit ? " " + config.unit : ""}</strong></p>)}
                     {data.goal && section === "hidratacao" && <p className="mt-1 text-xs text-muted-foreground">{Math.round(Number(payload[0].payload.a) / data.goal * 100)}% da meta</p>}
                   </div>;
                 }}/>
                 {data.goal && !hidden.a && <ReferenceLine yAxisId="left" y={data.goal} stroke={config.a.color} strokeDasharray="6 5" strokeOpacity={0.7} label={{ value: `${config.goalLabel ?? "Referência"} ${fmt(data.goal)}`, position: "insideTopRight", fontSize: 11, fontWeight: 700, fill: config.a.color }}/>}
                 {selected && <ReferenceLine yAxisId="left" x={selected} stroke={config.a.color} strokeOpacity={0.35} strokeWidth={22}/>}
                 {series("a")}{series("b")}
+                {hasTrend && !hidden.t && <Line yAxisId="left" dataKey="t" name={TREND.label} type="monotone" stroke={TREND.color} strokeWidth={3} dot={{ r: 3.5, fill: "#fff", stroke: TREND.color, strokeWidth: 2 }} activeDot={{ r: 7, fill: TREND.color, stroke: "#fff", strokeWidth: 2 }} animationDuration={500}/>}
               </ComposedChart>
             </ResponsiveContainer>}
         </div>
@@ -199,6 +212,9 @@ export function SectionInsights({ section, patientId, ownerId, revision = 0 }: {
           {(["a", "b"] as const).map(key => { const item = key === "a" ? config.a : config.b; return item && <button key={key} type="button" aria-pressed={!hidden[key]} onClick={() => setHidden(value => ({ ...value, [key]: !value[key] }))}
             className={`inline-flex h-9 items-center gap-2 rounded-full border px-3 text-sm font-semibold transition ${hidden[key] ? "border-border text-muted-foreground line-through opacity-60" : "border-transparent bg-muted text-foreground"}`}>
             <i className="size-3 rounded-full" style={{ background: `linear-gradient(135deg, ${item.color}, ${item.to})` }}/>{item.label}</button>; })}
+          {hasTrend && <button type="button" aria-pressed={!hidden.t} onClick={() => setHidden(value => ({ ...value, t: !value.t }))}
+            className={`inline-flex h-9 items-center gap-2 rounded-full border px-3 text-sm font-semibold transition ${hidden.t ? "border-border text-muted-foreground line-through opacity-60" : "border-transparent bg-muted text-foreground"}`}>
+            <i className="h-1 w-4 rounded-full" style={{ background: TREND.color }}/>{TREND.label}</button>}
           <span className="ml-auto self-center text-xs text-muted-foreground">Toque nas legendas para ocultar uma série.</span>
         </div>
       </div>
@@ -211,6 +227,8 @@ export function SectionInsights({ section, patientId, ownerId, revision = 0 }: {
         {config.b && <p className="mt-2 text-sm text-white/90"><strong className="tabular-nums">{fmt(picked.b)}</strong> {config.b.label.toLowerCase()}</p>}
         {data?.goal && <div className="mt-3"><div className="h-2 overflow-hidden rounded-full bg-white/25"><i className="block h-full rounded-full bg-white transition-[width] duration-500" style={{ width: Math.min(100, Math.round(picked.a / data.goal * 100)) + "%" }}/></div>
           <p className="mt-1 text-xs text-white/85">{Math.round(picked.a / data.goal * 100)}% de {fmt(data.goal)} {config.unit}</p></div>}
+        {hasTrend && <p className="mt-2 text-sm text-white/90">Tendência: <strong className="tabular-nums">{fmt(picked.t ?? 0)}</strong>{config.unit ? " " + config.unit : ""} (média de 3 dias)</p>}
+        {data?.goal && <p className="mt-1 text-sm text-white/90"><strong className="tabular-nums">{rows.filter(row => row.a >= data.goal!).length}</strong> de {days} dias atingiram a meta</p>}
         <p className="mt-auto pt-3 text-xs text-white/80">{average > 0 ? (picked.a >= average ? `Acima da sua média (${fmt(average)}).` : `Abaixo da sua média (${fmt(average)}).`) : "Sem média ainda."}</p>
         {selected && <button type="button" onClick={() => setSelected(null)} className="mt-2 h-9 rounded-xl bg-white/20 text-sm font-bold hover:bg-white/30">Voltar para hoje</button>}
       </aside>

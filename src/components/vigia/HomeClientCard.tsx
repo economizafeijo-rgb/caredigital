@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
@@ -228,6 +228,8 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
     };
   }, []);
 
+  const hasClientRef = useRef(false);
+  hasClientRef.current = Boolean(client);
   useEffect(() => {
     if (!owner) {
       setClient(null);
@@ -242,7 +244,10 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
         .eq("user_id", owner)
         .limit(1);
       if (grants.error) {
-        if (active) setNotice("Não foi possível verificar o vínculo de acesso.");
+        // Falha passageira numa atualização automática não deve cobrir a tela:
+        // o aviso só aparece quando o painel ainda não conseguiu carregar nada.
+        if (active && !hasClientRef.current)
+          setNotice("Não foi possível verificar o vínculo de acesso.");
         return;
       }
       const assignedId = grants.data?.[0]?.patient_id;
