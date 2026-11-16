@@ -354,139 +354,185 @@ const showcaseImage: Record<ShowcaseKind, { src: string; position: string }> = {
   training: { src: "/images/show-treinos.webp", position: "40% 45%" },
 };
 
+const related: Record<ShowcaseKind, { to: string; label: string }> = {
+  protocols: { to: "/protocolos", label: "Como funciona" },
+  medication: { to: "/medicamentos", label: "Medicamentos" },
+  hydration: { to: "/hidratacao", label: "Hidratação" },
+  diet: { to: "/dietas", label: "Dietas" },
+  sports: { to: "/nutricao-esportiva", label: "Nutrição esportiva" },
+  supplements: { to: "/suplementos", label: "Suplementos" },
+  weight: { to: "/peso", label: "Peso" },
+  sleep: { to: "/sono", label: "Sono" },
+  training: { to: "/treinos", label: "Treinos" },
+  metrics: { to: "/metricas", label: "Métricas" },
+};
+
 export function PublicCareShowcase({ kind }: { kind: ShowcaseKind }) {
   const info = copy[kind];
   const Icon = info.icon;
+  const image = showcaseImage[kind];
+  const others = (Object.keys(related) as ShowcaseKind[]).filter((key) => key !== kind);
   return (
-    <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col gap-5">
-      <div className="relative isolate flex min-h-[160px] shrink-0 items-end overflow-hidden rounded-3xl bg-slate-950 p-5 text-white shadow-pop sm:min-h-[220px] sm:p-8">
+    <div className="mx-auto flex min-h-full w-full max-w-[1320px] flex-col gap-4 lg:h-[calc(100%-49px)] lg:min-h-0 lg:gap-3">
+      {/* Destaque: foto do serviço, título, descrição e ações */}
+      <section className="showcase-hero relative isolate flex overflow-hidden rounded-3xl bg-[#062c2b] text-white shadow-pop lg:min-h-0 lg:flex-1">
         <img
-          src={showcaseImage[kind].src}
+          src={image.src}
           alt=""
           aria-hidden="true"
-          width={1200}
-          height={750}
+          width={1600}
+          height={900}
           loading="eager"
-          style={{ objectPosition: showcaseImage[kind].position }}
-          className="absolute inset-0 -z-20 h-full w-full object-cover"
+          decoding="async"
+          style={{ objectPosition: image.position }}
+          className="absolute inset-y-0 right-0 -z-20 h-full w-full object-cover lg:w-[58%]"
         />
         <div
           aria-hidden="true"
-          className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-950/90 via-slate-950/55 to-transparent"
+          className="absolute inset-0 -z-10 bg-gradient-to-r from-[#062c2b] from-45% via-[#062c2b]/85 to-[#062c2b]/10 max-lg:bg-[#062c2b]/85"
         />
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[.14em] text-white/75">NextVita</p>
-          <p className="mt-1 text-3xl font-extrabold leading-tight sm:text-5xl">{info.eyebrow}</p>
-        </div>
-      </div>
-      <section className="grid flex-1 items-center gap-8 lg:grid-cols-[1.1fr_.9fr] lg:gap-10">
-        <div>
-          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-xs font-semibold">
-            <span className={`grid size-5 place-items-center rounded-full ${info.tone}`}>
-              <Icon size={12} />
+        <div className="grid w-full gap-6 p-6 sm:p-9 lg:grid-cols-[1.15fr_.85fr] lg:items-center lg:px-10 lg:py-6">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[.14em] backdrop-blur">
+              <Icon size={15} /> {info.eyebrow}
             </span>
-            {info.eyebrow}
-          </span>
-          <h1 className="mt-4 max-w-[20ch] text-balance text-3xl font-extrabold leading-[1.12] tracking-tight sm:text-4xl">
-            {info.title}
-          </h1>
-          <p className="mt-4 max-w-[56ch] text-[15px] leading-relaxed text-muted-foreground">
-            {info.description}
-          </p>
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <Link
-              to="/cliente"
-              className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110"
-            >
-              <LockKeyhole size={16} />
-              {info.cta}
-              <ArrowRight size={16} />
-            </Link>
-            <Link
-              to="/"
-              className="inline-flex h-11 items-center rounded-xl border border-border bg-surface px-5 text-sm font-semibold transition-colors hover:border-primary/40 hover:bg-accent"
-            >
-              Voltar ao início
-            </Link>
+            <h1 className="mt-4 max-w-[18ch] text-balance font-display text-3xl font-extrabold leading-[1.08] tracking-tight sm:text-4xl xl:text-[2.75rem]">
+              {info.title}
+            </h1>
+            <p className="mt-3 max-w-[58ch] text-base leading-relaxed text-emerald-50/90">
+              {info.description}
+            </p>
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <a
+                href="/entrar?mode=signup"
+                className="inline-flex h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-300 px-6 text-sm font-extrabold text-slate-950 shadow-lg transition hover:brightness-110"
+              >
+                Testar grátis por 7 dias <ArrowRight size={17} />
+              </a>
+              <Link
+                to="/cliente"
+                className="inline-flex h-12 items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-5 text-sm font-bold backdrop-blur transition hover:bg-white/20"
+              >
+                <LockKeyhole size={16} /> {info.cta}
+              </Link>
+            </div>
           </div>
-          <p className="mt-5 flex max-w-[60ch] items-start gap-2 text-[13px] text-muted-foreground">
-            <ShieldCheck size={16} className="mt-0.5 shrink-0 text-primary" />
-            {info.privacy}
-          </p>
-        </div>
 
-        <div aria-hidden="true" className="relative mx-auto w-full max-w-[400px]">
-          <div className="relative rounded-2xl border border-border bg-card p-4 shadow-pop">
+          {/* Prévia do recurso, no mesmo estilo dos cartões do painel */}
+          <div
+            aria-hidden="true"
+            className="w-full max-w-sm justify-self-center rounded-3xl border border-white/15 bg-white/10 p-5 shadow-2xl backdrop-blur-md lg:justify-self-end"
+          >
             <div className="flex items-center gap-3">
-              <span className={`grid size-12 place-items-center rounded-xl ${info.tone}`}>
+              <span className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-300 text-slate-950">
                 <Icon size={24} />
               </span>
               <div>
                 <p className="font-display text-base font-bold">{info.eyebrow}</p>
-                <p className="text-xs text-muted-foreground">Rotina individual de cuidados</p>
+                <p className="text-xs text-white/70">O que você acompanha</p>
               </div>
             </div>
             <ul className="mt-4 grid gap-2">
               {info.preview.map((item, index) => (
                 <li
                   key={item}
-                  className="flex items-center gap-3 rounded-xl border border-border bg-surface px-3 py-2.5"
+                  className="flex items-center gap-3 rounded-2xl bg-white/10 px-3.5 py-3"
                 >
-                  <span className="grid size-5 shrink-0 place-items-center rounded-full bg-success text-white">
-                    <Check size={12} strokeWidth={3} />
+                  <span className="grid size-6 shrink-0 place-items-center rounded-full bg-emerald-400 text-slate-950">
+                    <Check size={14} strokeWidth={3} />
                   </span>
-                  <span className="flex-1 text-[13px] font-medium">{item}</span>
-                  <span
-                    className="h-1.5 rounded-full bg-muted"
-                    style={{ width: `${48 + index * 14}px` }}
-                  />
+                  <span className="flex-1 text-sm font-semibold">{item}</span>
+                  <span className="h-1.5 w-12 overflow-hidden rounded-full bg-white/20">
+                    <i
+                      className="block h-full rounded-full bg-emerald-300"
+                      style={{ width: `${55 + index * 20}%` }}
+                    />
+                  </span>
                 </li>
               ))}
             </ul>
           </div>
-          <p className="mt-2 text-center text-[11px] text-muted-foreground">
-            Exemplo visual, sem informações pessoais
-          </p>
         </div>
       </section>
 
-      <section aria-label="Recursos" className="grid shrink-0 gap-3 sm:grid-cols-3">
+      {/* Benefícios */}
+      <section aria-label="Recursos" className="grid shrink-0 gap-3 md:grid-cols-3">
         {info.benefits.map(({ icon: BenefitIcon, title, text }) => (
           <article
             key={title}
-            className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4 shadow-card"
+            className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4 shadow-card transition hover:border-primary/40"
           >
-            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent text-accent-foreground">
-              <BenefitIcon size={19} />
+            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-emerald-600 to-teal-500 text-white shadow-sm">
+              <BenefitIcon size={20} />
             </span>
             <div className="min-w-0">
-              <h2 className="text-sm font-bold">{title}</h2>
-              <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{text}</p>
+              <h2 className="font-display text-base font-bold leading-tight">{title}</h2>
+              <p className="mt-0.5 text-sm leading-snug text-muted-foreground">{text}</p>
             </div>
           </article>
         ))}
       </section>
 
+      {/* Passo a passo */}
       <section
         aria-label="Como funciona"
         className="shrink-0 rounded-2xl border border-border bg-card p-4 shadow-card"
       >
-        <ol className="grid grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-4">
+        <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {info.steps.map((step, index) => (
             <li key={step.name} className="flex items-center gap-3">
-              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary font-display text-sm font-bold text-primary-foreground">
+              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-emerald-600 to-teal-500 font-display text-base font-extrabold text-white">
                 {index + 1}
               </span>
-              <span className="min-w-0 flex-1">
-                <strong className="block text-sm font-semibold leading-tight">{step.name}</strong>
-                <span className="block text-xs text-muted-foreground">{step.detail}</span>
+              <span className="min-w-0 flex-1 leading-tight">
+                <strong className="block text-sm">{step.name}</strong>
+                <span className="text-xs text-muted-foreground">{step.detail}</span>
               </span>
               {index < info.steps.length - 1 && (
-                <ArrowRight size={16} className="hidden shrink-0 text-muted-foreground md:block" />
+                <ArrowRight size={16} className="hidden shrink-0 text-muted-foreground lg:block" />
               )}
             </li>
           ))}
         </ol>
+      </section>
+
+      {/* Outros recursos, privacidade e chamada final */}
+      <section className="grid shrink-0 gap-3 lg:grid-cols-[1.6fr_1fr]">
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="mr-1 text-sm font-bold">Outros recursos:</span>
+            {others.map((key) => {
+              const OtherIcon = copy[key].icon;
+              return (
+                <Link
+                  key={key}
+                  to={related[key].to}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border bg-surface px-3 text-xs font-semibold transition hover:border-primary/50 hover:text-primary"
+                >
+                  <OtherIcon size={13} /> {related[key].label}
+                </Link>
+              );
+            })}
+          </div>
+          <p className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground">
+            <ShieldCheck size={14} className="mt-0.5 shrink-0 text-primary" />
+            {info.privacy}
+          </p>
+        </div>
+        <a
+          href="/entrar?mode=signup"
+          className="group flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-500 p-4 text-white shadow-card transition hover:brightness-105"
+        >
+          <span>
+            <strong className="block font-display text-lg font-extrabold leading-tight">
+              Comece hoje, grátis por 7 dias
+            </strong>
+            <span className="text-sm text-white/90">Painel completo, sem cartão.</span>
+          </span>
+          <span className="grid size-11 shrink-0 place-items-center rounded-full bg-white/20 transition group-hover:translate-x-1">
+            <ArrowRight size={20} />
+          </span>
+        </a>
       </section>
     </div>
   );
