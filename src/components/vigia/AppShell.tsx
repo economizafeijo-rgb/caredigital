@@ -11,6 +11,7 @@ import { useAccess, type AccessStatus } from "@/lib/use-access";
 import { clientSectionTheme, type SectionTheme } from "@/lib/client-section-theme";
 import { fmtClock, useNow } from "./ui";
 import { InstallAppButton } from "./InstallApp";
+import { LogoMark } from "./Logo";
 import { HydrationProvider, HydrationReminder } from "./HydrationTracker";
 
 type NavItem = { to: string; hash?: string; label: string; icon: LucideIcon };
@@ -77,8 +78,11 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
 
 function Brand({ onDark = false }: { onDark?: boolean }) {
   return <Link to="/" className="flex min-w-0 items-center gap-2.5" aria-label="CareDigital — início">
-    <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm"><HeartPulse size={19} strokeWidth={2.4}/></span>
-    <span className={`font-display text-[17px] font-extrabold tracking-tight ${onDark ? "text-white" : "text-foreground"}`}>Care<span className={onDark ? "text-[#8fb2ff]" : "text-primary"}>Digital</span></span>
+    <LogoMark size={38} className="shrink-0 drop-shadow-sm"/>
+    <span className="flex min-w-0 flex-col leading-none">
+      <span className={`font-display text-[19px] font-extrabold tracking-tight ${onDark ? "text-white" : "text-foreground"}`}>Care<span className={onDark ? "text-[#8fb2ff]" : "bg-gradient-to-r from-indigo-600 to-sky-500 bg-clip-text text-transparent"}>Digital</span></span>
+      <span className={`mt-1 text-[9px] font-bold uppercase tracking-[.2em] ${onDark ? "text-slate-400" : "text-muted-foreground"}`}>Cuidado conectado</span>
+    </span>
   </Link>;
 }
 
