@@ -1,3 +1,4 @@
+import { DAY_CUTOFF_HOUR } from "./acre-time";
 export type HydrationGoalStatus = "sem_meta" | "em_andamento" | "atingida" | "nao_atingida";
 export type HydrationGoalSnapshot = {
   goal_date: string;
@@ -35,29 +36,29 @@ export function hydrationGoalNotice(goal: HydrationGoalSnapshot | null, now: num
   const remaining = Math.max(0, target-consumed);
   if (!goal || goal.status === "sem_meta" || target <= 0) {
     return {kind:"unconfigured",title:"Meta ainda não definida",
-      message:"Defina uma meta individual para receber o resumo do dia às 23h."};
+      message:"Defina uma meta individual para receber o resumo do dia às 22h."};
   }
   if (goal.status === "atingida") return {
     kind:"met",title:"Meta diária atingida",
     message:goal.closed_at
-      ? `${format(consumed)} de ${format(target)} ml até as 23h. Resultado salvo no histórico de ${goal.goal_date.split("-").reverse().join("/")}.`
+      ? `${format(consumed)} de ${format(target)} ml até as 22h. Resultado salvo no histórico de ${goal.goal_date.split("-").reverse().join("/")}.`
       : `${format(consumed)} de ${format(target)} ml registrados. O resultado aparecerá no histórico do dia.`
   };
   if (goal.status === "nao_atingida") return {
-    kind:"missed",title:"Dia encerrado às 23h",
+    kind:"missed",title:"Dia encerrado às 22h",
     message:`${format(consumed)} de ${format(target)} ml registrados; ${format(remaining)} ml abaixo da meta estimada. Resultado salvo no histórico de ${goal.goal_date.split("-").reverse().join("/")}.`
   };
   const reachedDeadline = acreCalendarDay(now)>goal.goal_date ||
-    (acreCalendarDay(now)===goal.goal_date && acreHour(now)>=23);
-  if (reachedDeadline) return {kind:"pending",title:"Fechamento das 23h",
-    message:"Atualizando o resultado diário. Os consumos posteriores às 23h permanecem registrados, mas não alteram a meta encerrada."};
-  return {kind:"pending",title:"Meta aberta até 23h",
+    (acreCalendarDay(now)===goal.goal_date && acreHour(now)>=DAY_CUTOFF_HOUR);
+  if (reachedDeadline) return {kind:"pending",title:"Fechamento das 22h",
+    message:"Atualizando o resultado diário. Os consumos posteriores às 22h permanecem registrados, mas não alteram a meta encerrada."};
+  return {kind:"pending",title:"Meta aberta até 22h",
     message:`${format(consumed)} de ${format(target)} ml · ${format(remaining)} ml restantes. Meta estimada, respeite suas necessidades e orientação profissional.`};
 }
 
 /**
  * Estima o horário e o volume da próxima hidratação a partir do último líquido
- * registrado, do volume restante da meta e do tempo disponível até o corte das 23h.
+ * registrado, do volume restante da meta e do tempo disponível até o corte das 22h.
  * - Porções confortáveis de ~250 ml (máx. 350 ml);
  * - intervalo mínimo proporcional ao volume ingerido (~800 ml/h de absorção);
  * - intervalo máximo de 2h para manter a regularidade.

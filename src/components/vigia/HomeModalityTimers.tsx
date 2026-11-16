@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Droplets, Pill, Sparkles, UtensilsCrossed, type LucideIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { acreDateKey } from "@/lib/acre-time";
+import { acreDateKey, DAY_CUTOFF_HOUR } from "@/lib/acre-time";
 import { estimateNextHydration } from "@/lib/hydration-goal";
 import { clientSectionHashes, type ClientSection } from "@/lib/client-pages";
 import { CareTimer, useTicker } from "./CareTimer";
@@ -39,7 +39,7 @@ export function HomeModalityTimers() {
       if (!patientId || !active) return;
       const day = acreDateKey(), now = Date.now();
       const start = new Date(day + "T00:00:00-05:00"), end = new Date(start.getTime() + 86_400_000);
-      const cutoff = Date.parse(day + "T23:00:00-05:00");
+      const cutoff = Date.parse(day + `T${String(DAY_CUTOFF_HOUR).padStart(2, "0")}:00:00-05:00`);
       const [goal, water, tasks, meds, medTaken, sups, supTaken] = await Promise.all([
         db.rpc("care_sync_hydration_goal", { p_patient_id: patientId }),
         db.from("care_hydration").select("amount_ml,recorded_at").eq("patient_id", patientId).gte("recorded_at", start.toISOString()).order("recorded_at", { ascending: false }).limit(1),

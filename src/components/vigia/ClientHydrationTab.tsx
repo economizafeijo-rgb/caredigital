@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ClientQuickIntake } from "./ClientQuickIntake";
+import { DAY_CUTOFF_HOUR } from "@/lib/acre-time";
 import { CareTaskRecordModal } from "./CareTaskRecordModal";
 import {
   acreCalendarDay,
@@ -145,7 +146,7 @@ export function ClientHydrationTab({
     const timer = window.setInterval(() => setClock(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, []);
-  // Force a final server read when the 23:00 deadline passes or the Acre date changes.
+  // Força a leitura final do servidor quando o fechamento das 22h passa ou muda a data do Acre.
   useEffect(() => {
     const day = acreCalendarDay(clock);
     const changed = Boolean(dailyGoal && dailyGoal.goal_date !== day);
@@ -153,7 +154,7 @@ export function ClientHydrationTab({
       dailyGoal &&
       dailyGoal.goal_date === day &&
       dailyGoal.status === "em_andamento" &&
-      acreHour(clock) >= 23,
+      acreHour(clock) >= DAY_CUTOFF_HOUR,
     );
     if ((changed || passed) && lastDeadlineRefresh.current !== day) {
       lastDeadlineRefresh.current = day;
@@ -265,14 +266,14 @@ export function ClientHydrationTab({
   const calculation = useMemo(() => estimate(profile), [profile]);
   const planValid = Boolean(configured && profile.target_ml && !profile.fluid_restriction);
   const goal = dailyGoal?.target_ml ?? (planValid ? profile.target_ml! : 0);
-  const cutoffUtc = Date.parse(acreCalendarDay(clock) + "T23:00:00-05:00");
+  const cutoffUtc = Date.parse(acreCalendarDay(clock) + `T${String(DAY_CUTOFF_HOUR).padStart(2, "0")}:00:00-05:00`);
   const intake =
     dailyGoal?.consumed_ml ??
     drinks
       .filter((item) => Date.parse(item.recorded_at) < cutoffUtc)
       .reduce((total, item) => total + Number(item.amount_ml), 0);
   const goalSummary = hydrationGoalNotice(dailyGoal, clock);
-  const dayClosed = acreHour(clock) >= 23;
+  const dayClosed = acreHour(clock) >= DAY_CUTOFF_HOUR;
   const remaining = goal ? Math.max(0, goal - intake) : 0;
   const percent = goal ? Math.min(100, Math.round((intake / goal) * 100)) : 0;
   const schedule = useMemo(
@@ -549,7 +550,7 @@ export function ClientHydrationTab({
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-bold uppercase tracking-[.14em] text-white/70">
-              Minha hidratação · até 23h (Acre)
+              Minha hidratação · até 22h (Acre)
             </p>
             <p className="mt-1 text-3xl font-extrabold tabular-nums">
               {intake.toLocaleString("pt-BR")}{" "}
@@ -806,7 +807,7 @@ export function ClientHydrationTab({
             </>
           )}{" "}
           Cálculo automático: {remaining.toLocaleString("pt-BR")} ml restantes divididos em ~
-          {nextPlan?.portions} porções até 23h
+          {nextPlan?.portions} porções até 22h
           {lastWater
             ? `, a partir do último líquido (${Number(lastWater.amount_ml)} ml às ${time(lastWater.recorded_at)})`
             : ""}
@@ -863,7 +864,7 @@ export function ClientHydrationTab({
       )}
       {!loading && !dailyGoal && goal > 0 && (
         <p className="text-[11px] text-muted-foreground">
-          Meta até 23h (Acre). O resumo automático não está disponível no momento.
+          Meta até 22h (Acre). O resumo automático não está disponível no momento.
         </p>
       )}
       <div className="rounded-xl border border-border bg-card/70 p-2.5">
@@ -1072,8 +1073,8 @@ export function ClientHydrationTab({
           <Info size={13} /> Orientações e referências
         </summary>
         <p className="mt-2 leading-relaxed">
-          A meta é avaliada às 23h (Acre) e considera somente registros de água feitos entre 00h e
-          23h. Consumos depois das 23h continuam no prontuário, mas não alteram o resultado já
+          A meta é avaliada às 22h (Acre) e considera somente registros de água feitos entre 00h e
+          22h. Consumos depois das 22h continuam no prontuário, mas não alteram o resultado já
           encerrado. A necessidade de água varia conforme peso, idade, atividade física, temperatura
           e orientações médicas. A meta é estimativa, não obrigação. Evite grandes volumes de uma só
           vez e respeite qualquer restrição prescrita.
