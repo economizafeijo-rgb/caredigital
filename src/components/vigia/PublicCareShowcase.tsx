@@ -316,15 +316,15 @@ const copy: Record<ShowcaseKind, Showcase> = {
 
 /** Fotografias ilustrativas (Unsplash, licença livre) servidas localmente em /public/images. */
 const showcaseImage: Record<ShowcaseKind, { src: string; position: string }> = {
-  hydration: { src: "/images/caredigital-hidratacao.webp", position: "50% 40%" },
+  hydration: { src: "/images/show-hidratacao-banner.webp", position: "50% 50%" },
   medication: { src: "/images/caredigital-medicamentos.webp", position: "50% 50%" },
   sports: { src: "/images/caredigital-esporte.webp", position: "50% 40%" },
   diet: { src: "/images/caredigital-alimentacao.webp", position: "50% 50%" },
   protocols: { src: "/images/caredigital-care-hero.webp", position: "70% 25%" },
-  metrics: { src: "/images/show-metricas.webp", position: "50% 40%" },
-  weight: { src: "/images/show-peso.webp", position: "50% 50%" },
-  supplements: { src: "/images/show-suplementos.webp", position: "50% 50%" },
-  training: { src: "/images/show-treinos.webp", position: "50% 60%" },
+  metrics: { src: "/images/show-metricas-banner.webp", position: "50% 50%" },
+  weight: { src: "/images/show-peso-banner.webp", position: "50% 50%" },
+  supplements: { src: "/images/show-suplementos-banner.webp", position: "50% 50%" },
+  training: { src: "/images/show-treinos-banner.webp", position: "50% 50%" },
 };
 
 export function PublicCareShowcase({ kind }: { kind: ShowcaseKind }) {
