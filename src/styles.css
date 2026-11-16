@@ -377,3 +377,21 @@ iframe[title*="Lovable" i][title*="badge" i] { display: none !important; visibil
   .sidebar-shell:not(:hover) nav a > span:first-child { margin-inline: auto; }
   .sidebar-shell:not(:hover) .sidebar-brand-wordmark { display: none; }
 }
+
+/* Páginas de explicação: em telas largas e baixas, o destaque encolhe para tudo caber sem rolagem. */
+@media (min-width: 1024px) and (max-height: 860px) {
+  .showcase-hero > div { padding: 1rem 2rem; gap: 1.25rem; }
+  .showcase-hero h1 { font-size: 2rem; margin-top: 0.6rem; }
+  .showcase-hero h1 + p { font-size: 0.9rem; line-height: 1.45; margin-top: 0.5rem; }
+  .showcase-hero h1 + p + div { margin-top: 0.9rem; }
+  .showcase-hero h1 + p + div a { height: 2.6rem; }
+  .showcase-hero ul { margin-top: 0.6rem; gap: 0.35rem; }
+  .showcase-hero ul li { padding: 0.45rem 0.8rem; }
+  .showcase-hero [aria-hidden="true"].w-full { padding: 0.9rem; }
+}
+@media (min-width: 1024px) and (max-height: 750px) {
+  .showcase-hero > div { padding: 0.75rem 1.75rem; }
+  .showcase-hero h1 { font-size: 1.5rem; }
+  .showcase-hero h1 + p { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .showcase-hero ul li:nth-child(n + 3) { display: none; }
+}
