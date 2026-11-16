@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 type Client = {
   id: string; full_name: string; birth_date: string | null; condition_notes: string | null; status: string | null;
   contact_email: string | null; phone?: string | null; weight_kg: number | null; height_cm: number | null; care_goal: string | null;
-  license_plan?: string | null; license_status?: string | null; license_expires_on?: string | null; created_at?: string;
+  signup_source?: string | null; license_plan?: string | null; license_status?: string | null; license_expires_on?: string | null; created_at?: string;
 };
 type Report = { total: number; done: number; meds: number; medsDone: number; waterMl: number; last: string | null };
 const db = supabase as any;
@@ -36,7 +36,7 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
 
   useEffect(() => {
     void (async () => {
-      const full = await db.from("care_patients").select("id,full_name,birth_date,condition_notes,status,contact_email,phone,weight_kg,height_cm,care_goal,license_plan,license_status,license_expires_on,created_at").eq("owner_id", ownerId).order("created_at", { ascending: false });
+      const full = await db.from("care_patients").select("id,full_name,birth_date,condition_notes,status,contact_email,phone,weight_kg,height_cm,care_goal,license_plan,license_status,license_expires_on,created_at,signup_source").eq("owner_id", ownerId).order("created_at", { ascending: false });
       if (!full.error) { setLicenseColumns(true); setClients(full.data ?? []); return; }
       const basic = await db.from("care_patients").select("id,full_name,birth_date,condition_notes,status,contact_email,weight_kg,height_cm,care_goal,created_at").eq("owner_id", ownerId).order("created_at", { ascending: false });
       setLicenseColumns(false); setClients(basic.data ?? []);
@@ -124,9 +124,9 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
   const pct = (a: number, b: number) => b ? Math.round(a / b * 100) : 0;
   const input = "mt-1 block h-11 w-full rounded-xl border border-border bg-surface px-3 text-sm";
   return <section className="mt-6 flex flex-col gap-4" aria-label="Gestão de clientes">
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
       {[{ label: "Clientes", value: stats.total, icon: Users, g: "from-indigo-600 to-blue-500" }, { label: "Licenças ativas", value: stats.ativa, icon: BadgeCheck, g: "from-emerald-600 to-teal-500" },
-        { label: "Vencem em 7 dias", value: stats.vencendo, icon: CalendarClock, g: "from-amber-500 to-orange-500" }, { label: "Suspensas/expiradas", value: stats.alerta, icon: ShieldAlert, g: "from-rose-600 to-pink-500" }]
+        { label: "Em teste grátis", value: stats.teste, icon: UserPlus, g: "from-sky-600 to-cyan-500" }, { label: "Vencem em 7 dias", value: stats.vencendo, icon: CalendarClock, g: "from-amber-500 to-orange-500" }, { label: "Suspensas/expiradas", value: stats.alerta, icon: ShieldAlert, g: "from-rose-600 to-pink-500" }]
         .map(({ label, value, icon: Icon, g }) => <div key={label} className="rounded-2xl border border-border bg-card p-4 shadow-card">
           <span className={`grid size-10 place-items-center rounded-xl bg-gradient-to-br text-white ${g}`}><Icon size={19}/></span>
           <p className="mt-3 text-sm font-semibold text-muted-foreground">{label}</p><p className="text-3xl font-extrabold tabular-nums">{value}</p>
@@ -156,7 +156,7 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
             {shown.length === 0 && <tr><td colSpan={6} className="py-8 text-center text-muted-foreground">Nenhum cliente encontrado.</td></tr>}
             {shown.map(c => { const lic = effectiveLicense(c); return <tr key={c.id} className="border-t border-border">
               <td className="py-3"><div className="flex items-center gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-indigo-500 to-fuchsia-500 font-bold text-white">{c.full_name.slice(0, 1).toUpperCase()}</span>
-                <span className="min-w-0"><strong className="block truncate">{c.full_name}</strong><span className="block truncate text-xs text-muted-foreground">{c.contact_email ?? "sem e-mail"}{c.phone ? ` · ${c.phone}` : ""}</span></span></div></td>
+                <span className="min-w-0"><strong className="block truncate">{c.full_name}{c.signup_source === "teste_gratis" && <span className="ml-2 rounded-full bg-sky-500/15 px-2 py-0.5 text-[10px] font-bold text-sky-700 dark:text-sky-300">Auto-cadastro</span>}</strong><span className="block truncate text-xs text-muted-foreground">{c.contact_email ?? "sem e-mail"}{c.phone ? ` · ${c.phone}` : ""}</span></span></div></td>
               <td>{goals[c.care_goal ?? ""] ?? "—"}</td>
               <td>{plans[c.license_plan ?? ""] ?? "—"}</td>
               <td><span className={`rounded-full px-2.5 py-1 text-xs font-bold capitalize ${statusStyle[lic] ?? "bg-muted"}`}>{lic}</span></td>

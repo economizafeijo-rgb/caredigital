@@ -214,6 +214,7 @@ function Entrar() {
           <button type="button" onClick={()=>{setMode("forgot");setNotice(null)}} className="text-xs font-semibold text-primary hover:underline">Solicitar outro link</button>
         </form>}
 
+        <Link to="/teste-gratis" className="flex h-11 items-center justify-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-sm font-bold text-emerald-700 hover:bg-emerald-500/15 dark:text-emerald-300">Ainda não tem conta? Teste grátis por 7 dias</Link>
         <div className="flex items-center justify-between gap-3 border-t border-border pt-3 text-xs text-muted-foreground">
           <Link to="/" className="inline-flex items-center gap-1.5 font-semibold text-primary hover:underline"><ArrowLeft size={14}/> Voltar à homepage</Link>
           <span className="inline-flex items-center gap-1"><ShieldCheck size={14} className="text-primary"/> Acesso individual</span>

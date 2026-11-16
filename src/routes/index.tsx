@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, CalendarCheck, Clock3, Droplets, History, LayoutDashboard, LockKeyhole, Pill, ShieldCheck, Utensils } from "lucide-react";
+import { ArrowRight, CalendarCheck, Clock3, Droplets, Gift, History, LayoutDashboard, LockKeyhole, Pill, ShieldCheck, Utensils } from "lucide-react";
 import { useAccess } from "@/lib/use-access";
 import { HomeNextCareCard } from "@/components/vigia/CareTimer";
 import { HomeClientMetrics } from "@/components/vigia/HomeClientMetrics";
@@ -56,6 +56,7 @@ function Homepage() {
             : <Link to="/entrar" className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-white shadow-sm transition hover:brightness-110">
                 <LockKeyhole size={17}/> Acessar minha conta <ArrowRight size={16}/>
               </Link>}
+          {!panel && <Link to="/teste-gratis" className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 px-5 text-sm font-bold text-slate-950 shadow-sm transition hover:brightness-110"><Gift size={17}/> Testar grátis por 7 dias</Link>}
           <Link to="/protocolos" className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20">
             Como funciona
           </Link>
