@@ -55,9 +55,9 @@ const copy: Record<ShowcaseKind, Showcase> = {
     icon: Droplets,
     tone: "text-water bg-water/10",
     eyebrow: "Hidratação",
-    title: "Um jeito claro de acompanhar a água ao longo do dia.",
+    title: "Hidratação com meta diária e o horário do próximo copo.",
     description:
-      "Metas orientativas, lembretes e copos ilustrados fazem parte da rotina individual. O usuário registra cada consumo na própria área protegida.",
+      "Defina sua meta pelo peso e pela rotina, registre cada copo com um toque e veja quanto falta. A cada registro, o NextVita calcula o horário e o volume sugeridos para a próxima ingestão.",
     cta: "Acessar minha hidratação",
     preview: ["Meta diária", "Consumo registrado", "Próximo lembrete"],
     benefits: [
@@ -90,9 +90,9 @@ const copy: Record<ShowcaseKind, Showcase> = {
     icon: Pill,
     tone: "text-med bg-med/10",
     eyebrow: "Medicamentos",
-    title: "Horários claros, alertas e registros em um só lugar.",
+    title: "Medicamentos no horário certo, com timer e confirmação.",
     description:
-      "O NextVita oferece uma área opcional para organizar doses, horários e registros pessoais com clareza.",
+      "Cadastre seus medicamentos, defina os horários de cada dose e confirme o que tomou. O timer mostra a próxima dose e o histórico guarda cada registro com data e hora reais.",
     cta: "Acessar minhas medicações",
     preview: ["Doses programadas", "Tomadas registradas", "Histórico pessoal"],
     benefits: [
@@ -125,9 +125,9 @@ const copy: Record<ShowcaseKind, Showcase> = {
     icon: Dumbbell,
     tone: "text-activity bg-activity/10",
     eyebrow: "Nutrição esportiva",
-    title: "Alimentação, treino e acompanhamento com clareza.",
+    title: "Nutrição esportiva alinhada ao seu objetivo.",
     description:
-      "Organize refeições e horários para acompanhar seus objetivos. Orientações nutricionais e ajustes são individuais e devem ser definidos com profissionais habilitados.",
+      "Metas de calorias e proteínas para emagrecer, manter, ganhar peso ou hipertrofiar. Registre as refeições e veja os macronutrientes calculados automaticamente, ao lado dos seus treinos.",
     cta: "Acessar meu acompanhamento",
     preview: ["Plano alimentar", "Rotina de treino", "Acompanhamento"],
     benefits: [
@@ -160,9 +160,9 @@ const copy: Record<ShowcaseKind, Showcase> = {
     icon: Utensils,
     tone: "text-meal bg-meal/10",
     eyebrow: "Alimentação",
-    title: "Refeições e lembretes, no momento certo.",
+    title: "Alimentação registrada, nutrientes calculados.",
     description:
-      "O NextVita organiza refeições, horários e registros para ajudar cada pessoa a acompanhar sua rotina alimentar.",
+      "Descreva o que comeu e o NextVita estima calorias, proteínas, carboidratos, gorduras, fibras, vitaminas e minerais. Cardápios, receitas regionais e uma biblioteca de alimentos apoiam o seu plano.",
     cta: "Acessar minha rotina",
     preview: ["Refeições do dia", "Alimentos registrados", "Metas de macros"],
     benefits: [
@@ -194,9 +194,9 @@ const copy: Record<ShowcaseKind, Showcase> = {
     icon: HeartPulse,
     tone: "text-primary bg-accent",
     eyebrow: "Como funciona",
-    title: "Uma rotina clara, do lembrete ao histórico.",
+    title: "Toda a sua rotina de saúde em uma única plataforma.",
     description:
-      "O NextVita reúne hábitos, metas, lembretes e registros para acompanhar a evolução pessoal ao longo do tempo.",
+      "Agenda do dia, medicamentos, hidratação, alimentação, suplementos, peso e treinos, com timers, gráficos interativos e histórico completo. Comece com 7 dias grátis e um roteiro guiado.",
     cta: "Acessar meu acompanhamento",
     preview: ["Lembretes do dia", "Cuidados confirmados", "Histórico auditável"],
     benefits: [
@@ -316,15 +316,15 @@ const copy: Record<ShowcaseKind, Showcase> = {
 
 /** Fotografias ilustrativas (Unsplash, licença livre) servidas localmente em /public/images. */
 const showcaseImage: Record<ShowcaseKind, { src: string; position: string }> = {
-  hydration: { src: "/images/show-hidratacao-banner.webp", position: "50% 50%" },
+  hydration: { src: "/images/caredigital-hidratacao.webp", position: "50% 45%" },
   medication: { src: "/images/caredigital-medicamentos.webp", position: "50% 50%" },
   sports: { src: "/images/caredigital-esporte.webp", position: "50% 40%" },
   diet: { src: "/images/caredigital-alimentacao.webp", position: "50% 50%" },
   protocols: { src: "/images/caredigital-care-hero.webp", position: "70% 25%" },
-  metrics: { src: "/images/show-metricas-banner.webp", position: "50% 50%" },
-  weight: { src: "/images/show-peso-banner.webp", position: "50% 50%" },
-  supplements: { src: "/images/show-suplementos-banner.webp", position: "50% 50%" },
-  training: { src: "/images/show-treinos-banner.webp", position: "50% 50%" },
+  metrics: { src: "/images/show-metricas.webp", position: "50% 55%" },
+  weight: { src: "/images/show-peso.webp", position: "50% 55%" },
+  supplements: { src: "/images/show-suplementos.webp", position: "50% 60%" },
+  training: { src: "/images/show-treinos.webp", position: "40% 45%" },
 };
 
 export function PublicCareShowcase({ kind }: { kind: ShowcaseKind }) {
