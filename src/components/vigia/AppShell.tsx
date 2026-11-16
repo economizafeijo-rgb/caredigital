@@ -29,6 +29,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
+import { LogoMark } from "./Logo";
 import { supabase } from "@/integrations/supabase/client";
 import { clientSectionHashes, type ClientSection } from "@/lib/client-pages";
 import { useAccess, type AccessStatus } from "@/lib/use-access";
@@ -131,29 +132,20 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
 function Brand({ onDark = false }: { onDark?: boolean }) {
   return (
     <Link to="/" className="flex min-w-0 items-center gap-2.5" aria-label="NextVita — início">
+      <LogoMark size={38} className="shrink-0 drop-shadow-sm" />
       <span
-        className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm"
-        aria-hidden="true"
+        className={`sidebar-brand-wordmark font-display text-[19px] font-extrabold tracking-tight ${onDark ? "text-white" : "text-foreground"}`}
       >
-        <svg viewBox="0 0 64 64" className="size-7" fill="none">
-          <path
-            d="M32 58C14 46 6 32 10 18c8 2 16 8 22 20 6-12 14-18 22-20 4 14-4 28-22 40Z"
-            fill="currentColor"
-            opacity=".22"
-          />
-          <path
-            d="M14 34h10l4-8 6 16 4-8h12"
-            stroke="currentColor"
-            strokeWidth="3.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </span>
-      <span
-        className={`sidebar-brand-wordmark font-display text-[17px] font-extrabold tracking-tight ${onDark ? "text-white" : "text-foreground"}`}
-      >
-        Next<span className={onDark ? "text-[#9be9da]" : "text-primary"}>Vita</span>
+        Next
+        <span
+          className={
+            onDark
+              ? "text-[#9be9da]"
+              : "bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent"
+          }
+        >
+          Vita
+        </span>
       </span>
     </Link>
   );

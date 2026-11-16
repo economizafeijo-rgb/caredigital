@@ -26,6 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CompactTreatmentBlister } from "./CompactTreatmentBlister";
 import { PatientActivityHistory } from "./PatientActivityHistory";
 import { ClientHydrationTab } from "./ClientHydrationTab";
+import { SectionInsights, isInsightSection } from "./SectionInsights";
 import { ClientAgendaPage } from "./ClientAgendaPage";
 import { ClientMealsPage } from "./ClientMealsPage";
 import { ClientNutritionStudio } from "./ClientNutritionStudio";
@@ -1308,6 +1309,14 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                 " min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain p-3 sm:p-4 lg:min-h-0"
               }
             >
+              {isInsightSection(activeTab) && (
+                <SectionInsights
+                  section={activeTab}
+                  patientId={client.id}
+                  ownerId={client.owner_id}
+                  revision={tick}
+                />
+              )}
               {activeTab === "agenda" && (
                 <ClientAgendaPage
                   tasks={tasks}
