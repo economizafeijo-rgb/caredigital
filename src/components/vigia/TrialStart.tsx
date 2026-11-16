@@ -30,7 +30,7 @@ export function ActivateTrialCard() {
   }
   return <section className="mx-auto mt-8 w-full max-w-xl overflow-hidden rounded-3xl border border-border bg-card shadow-pop">
     <div className="bg-gradient-to-br from-emerald-600 to-teal-500 p-6 text-white"><Gift size={34}/>
-      <h1 className="mt-3 text-2xl font-extrabold">Teste o CareDigital por 7 dias</h1>
+      <h1 className="mt-3 text-2xl font-extrabold">Teste o NextVita por 7 dias</h1>
       <p className="mt-1 text-sm text-white/90">Sua conta está criada. Ative o teste grátis para liberar o painel completo, sem cartão e sem compromisso.</p></div>
     <div className="p-6">
       <button type="button" disabled={busy} onClick={() => void run()} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-base font-bold text-white shadow-sm hover:brightness-110 disabled:opacity-60">

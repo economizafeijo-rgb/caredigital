@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { startTrial } from "@/components/vigia/TrialStart";
 
 export const Route = createFileRoute("/teste-gratis")({
-  head: () => ({ meta: [{ title: "Teste grátis por 7 dias — CareDigital" }, { name: "description", content: "Crie sua conta e use o CareDigital completo por 7 dias, sem cartão." }] }),
+  head: () => ({ meta: [{ title: "Teste grátis por 7 dias — NextVita" }, { name: "description", content: "Crie sua conta e use o NextVita completo por 7 dias, sem cartão." }] }),
   component: FreeTrial,
 });
 
@@ -48,7 +48,7 @@ function FreeTrial() {
       <img src="/images/caredigital-care-hero.webp" alt="" aria-hidden="true" className="absolute inset-0 -z-20 h-full w-full object-cover object-[70%_20%]"/>
       <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-emerald-950 via-emerald-950/65 to-transparent"/>
       <span className="inline-flex w-fit items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-bold backdrop-blur"><Gift size={14}/> 7 dias grátis · sem cartão</span>
-      <h1 className="mt-3 text-3xl font-extrabold leading-tight">Experimente o CareDigital completo.</h1>
+      <h1 className="mt-3 text-3xl font-extrabold leading-tight">Experimente o NextVita completo.</h1>
       <ul className="mt-3 grid gap-2 text-sm text-slate-100">
         {["Medicações com timer e confirmação", "Hidratação com meta e próximo copo calculado", "Nutrição automática, peso com gráficos e suplementos", "Roteiro de primeiros passos para conhecer tudo"].map(item => <li key={item} className="flex items-center gap-2"><CheckCircle2 size={16} className="shrink-0 text-emerald-300"/>{item}</li>)}
       </ul>
@@ -65,7 +65,7 @@ function FreeTrial() {
           {busy ? <Loader2 size={18} className="animate-spin"/> : <Gift size={18}/>} Começar meu teste grátis <ArrowRight size={17}/></button>
       </div>
       <p className="mt-4 text-center text-sm text-muted-foreground">Já tem conta? <Link to="/entrar" className="font-bold text-primary hover:underline">Entrar</Link></p>
-      <p className="mt-2 text-center text-xs text-muted-foreground">O CareDigital organiza sua rotina e não substitui orientação médica.</p>
+      <p className="mt-2 text-center text-xs text-muted-foreground">O NextVita organiza sua rotina e não substitui orientação médica.</p>
     </form>
   </main>;
 }
