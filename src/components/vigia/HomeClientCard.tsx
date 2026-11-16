@@ -27,6 +27,8 @@ import { CompactTreatmentBlister } from "./CompactTreatmentBlister";
 import { PatientActivityHistory } from "./PatientActivityHistory";
 import { ClientHydrationTab } from "./ClientHydrationTab";
 import { SectionInsights, isInsightSection } from "./SectionInsights";
+import { ClientSleepPage } from "./ClientSleepPage";
+import { WeightExplorer } from "./WeightExplorer";
 import { ClientAgendaPage } from "./ClientAgendaPage";
 import { ClientMealsPage } from "./ClientMealsPage";
 import { ClientNutritionStudio } from "./ClientNutritionStudio";
@@ -1436,6 +1438,12 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                   tasks={tasks}
                   onConfirm={askConfirm}
                 />
+              )}
+              {activeTab === "sono" && (
+                <ClientSleepPage patientId={client.id} ownerId={client.owner_id} />
+              )}
+              {activeTab === "peso" && (
+                <WeightExplorer patientId={client.id} ownerId={client.owner_id} revision={tick} />
               )}
               {activeTab === "peso" && (
                 <ClientWeightPage

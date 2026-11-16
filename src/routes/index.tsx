@@ -3,6 +3,7 @@ import {
   Activity,
   ArrowRight,
   BarChart3,
+  BedDouble,
   CalendarCheck,
   Clock3,
   Droplets,
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 import { useAccess } from "@/lib/use-access";
 import { HomeNextCareCard } from "@/components/vigia/CareTimer";
+import { HomeModalityTimers } from "@/components/vigia/HomeModalityTimers";
 import { HomeClientMetrics } from "@/components/vigia/HomeClientMetrics";
 import { SmartMetricsDashboard } from "@/components/vigia/SmartMetricsDashboard";
 
@@ -88,6 +90,14 @@ const features = [
     icon: Activity,
     tone: "text-activity bg-activity/10",
     image: "/images/show-treinos.webp",
+  },
+  {
+    to: "/sono",
+    title: "Monitoramento do sono",
+    description: "Novo: nota do sono e batimentos ao vivo com sensor Bluetooth.",
+    icon: BedDouble,
+    tone: "text-primary bg-primary/10",
+    image: "/images/show-sono.webp",
   },
   {
     to: "/metricas",
@@ -235,6 +245,38 @@ function Homepage() {
           <HomeNextCareCard panel="/cliente" />
         </div>
       )}
+
+      {status === "client" && <HomeModalityTimers />}
+
+      <a
+        href={status === "client" ? "/cliente#sono" : "/sono"}
+        className="group relative isolate flex min-h-[150px] shrink-0 flex-col justify-center overflow-hidden rounded-3xl bg-indigo-950 p-6 text-white shadow-card sm:p-8"
+      >
+        <img
+          src="/images/show-sono.webp"
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+          className="absolute inset-y-0 right-0 -z-20 h-full w-full object-cover object-[50%_35%] transition duration-700 group-hover:scale-105 sm:w-3/5"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 -z-10 bg-gradient-to-r from-indigo-950 from-40% via-indigo-950/80 to-violet-900/20"
+        />
+        <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-amber-400 px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-slate-950">
+          <BedDouble size={14} /> Novidade
+        </span>
+        <strong className="mt-2 font-display text-2xl font-extrabold sm:text-3xl">
+          Monitoramento do sono em tempo real
+        </strong>
+        <span className="mt-1 max-w-xl text-sm text-indigo-100">
+          Nota do sono, horas dormidas, regularidade e batimentos ao vivo com cinta ou relógio
+          Bluetooth.
+        </span>
+        <span className="mt-3 inline-flex h-10 w-fit items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-indigo-950">
+          {status === "client" ? "Abrir meu sono" : "Conhecer o recurso"} <ArrowRight size={16} />
+        </span>
+      </a>
 
       {status === "public" && (
         <section

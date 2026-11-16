@@ -4,6 +4,7 @@ import {
   Activity,
   Apple,
   BarChart3,
+  BedDouble,
   BookOpen,
   CalendarDays,
   ClipboardList,
@@ -79,6 +80,7 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
         { to: "/dietas", label: "Dietas", icon: Utensils },
         { to: "/suplementos", label: "Suplementos", icon: Sparkles },
         { to: "/peso", label: "Peso", icon: Scale },
+        { to: "/sono", label: "Sono", icon: BedDouble },
         { to: "/treinos", label: "Treinos", icon: Activity },
         { to: "/metricas", label: "Métricas", icon: BarChart3 },
       ],
@@ -106,6 +108,7 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
       title: "Saúde",
       items: [
         section("peso", "Peso e evolução", Scale),
+        section("sono", "Sono", BedDouble),
         section("suplementos", "Suplementos", Sparkles),
         section("indicadores", "Indicadores", Target),
         section("cardapios", "Cardápios e dietas", BookOpen),

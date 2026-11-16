@@ -23,6 +23,7 @@ import { Route as PacientesRouteImport } from './routes/pacientes'
 import { Route as PesoRouteImport } from './routes/peso'
 import { Route as ProntuarioRouteImport } from './routes/prontuario'
 import { Route as ProtocolosRouteImport } from './routes/protocolos'
+import { Route as SonoRouteImport } from './routes/sono'
 import { Route as SuplementosRouteImport } from './routes/suplementos'
 import { Route as TesteGratisRouteImport } from './routes/teste-gratis'
 import { Route as TreinosRouteImport } from './routes/treinos'
@@ -97,6 +98,11 @@ const ProtocolosRoute = ProtocolosRouteImport.update({
   path: '/protocolos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SonoRoute = SonoRouteImport.update({
+  id: '/sono',
+  path: '/sono',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SuplementosRoute = SuplementosRouteImport.update({
   id: '/suplementos',
   path: '/suplementos',
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/peso': typeof PesoRoute
   '/prontuario': typeof ProntuarioRoute
   '/protocolos': typeof ProtocolosRoute
+  '/sono': typeof SonoRoute
   '/suplementos': typeof SuplementosRoute
   '/teste-gratis': typeof TesteGratisRoute
   '/treinos': typeof TreinosRoute
@@ -147,6 +154,7 @@ export interface FileRoutesByTo {
   '/peso': typeof PesoRoute
   '/prontuario': typeof ProntuarioRoute
   '/protocolos': typeof ProtocolosRoute
+  '/sono': typeof SonoRoute
   '/suplementos': typeof SuplementosRoute
   '/teste-gratis': typeof TesteGratisRoute
   '/treinos': typeof TreinosRoute
@@ -167,6 +175,7 @@ export interface FileRoutesById {
   '/peso': typeof PesoRoute
   '/prontuario': typeof ProntuarioRoute
   '/protocolos': typeof ProtocolosRoute
+  '/sono': typeof SonoRoute
   '/suplementos': typeof SuplementosRoute
   '/teste-gratis': typeof TesteGratisRoute
   '/treinos': typeof TreinosRoute
@@ -188,6 +197,7 @@ export interface FileRouteTypes {
     | '/peso'
     | '/prontuario'
     | '/protocolos'
+    | '/sono'
     | '/suplementos'
     | '/teste-gratis'
     | '/treinos'
@@ -207,6 +217,7 @@ export interface FileRouteTypes {
     | '/peso'
     | '/prontuario'
     | '/protocolos'
+    | '/sono'
     | '/suplementos'
     | '/teste-gratis'
     | '/treinos'
@@ -226,6 +237,7 @@ export interface FileRouteTypes {
     | '/peso'
     | '/prontuario'
     | '/protocolos'
+    | '/sono'
     | '/suplementos'
     | '/teste-gratis'
     | '/treinos'
@@ -246,6 +258,7 @@ export interface RootRouteChildren {
   PesoRoute: typeof PesoRoute
   ProntuarioRoute: typeof ProntuarioRoute
   ProtocolosRoute: typeof ProtocolosRoute
+  SonoRoute: typeof SonoRoute
   SuplementosRoute: typeof SuplementosRoute
   TesteGratisRoute: typeof TesteGratisRoute
   TreinosRoute: typeof TreinosRoute
@@ -351,6 +364,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtocolosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sono': {
+      id: '/sono'
+      path: '/sono'
+      fullPath: '/sono'
+      preLoaderRoute: typeof SonoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/suplementos': {
       id: '/suplementos'
       path: '/suplementos'
@@ -390,6 +410,7 @@ const rootRouteChildren: RootRouteChildren = {
   PesoRoute: PesoRoute,
   ProntuarioRoute: ProntuarioRoute,
   ProtocolosRoute: ProtocolosRoute,
+  SonoRoute: SonoRoute,
   SuplementosRoute: SuplementosRoute,
   TesteGratisRoute: TesteGratisRoute,
   TreinosRoute: TreinosRoute,
