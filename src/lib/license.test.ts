@@ -13,6 +13,9 @@ describe("licenças", () => {
     expect(licenseState({ plan: "premium", status: "ativa", expires: "2026-11-10" }, "2026-11-12")).toBe("expirada");
     expect(licenseState({ plan: "premium", status: "ativa", expires: "2026-11-12" }, "2026-11-12")).toBe("ativa");
     expect(licenseState(null)).toBe("ativa");
+    // o teste grátis também expira quando a validade passa
+    expect(licenseState({ plan: "premium", status: "teste", expires: "2026-11-10" }, "2026-11-12")).toBe("expirada");
+    expect(licenseState({ plan: "premium", status: "teste", expires: "2026-11-19" }, "2026-11-12")).toBe("teste");
   });
   it("calcula dias restantes", () => {
     expect(daysLeft("2026-11-20", "2026-11-12")).toBe(8);

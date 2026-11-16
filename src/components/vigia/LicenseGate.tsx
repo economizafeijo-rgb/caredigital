@@ -7,10 +7,10 @@ import { acreDateKey } from "@/lib/acre-time";
 type License = { plan: string; status: string; expires: string | null };
 const planLabel: Record<string, string> = { basico: "Básico", premium: "Premium", profissional: "Profissional" };
 
-/** Situação efetiva: licença ativa com validade vencida conta como expirada. */
+/** Situação efetiva: licença ativa ou em teste com a validade vencida conta como expirada. */
 export function licenseState(license: License | null, today = acreDateKey()) {
   if (!license) return "ativa";
-  if (license.status === "ativa" && license.expires && license.expires < today) return "expirada";
+  if ((license.status === "ativa" || license.status === "teste") && license.expires && license.expires < today) return "expirada";
   return license.status;
 }
 export const daysLeft = (expires: string | null, today = acreDateKey()) =>

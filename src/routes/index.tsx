@@ -190,12 +190,12 @@ function Homepage() {
               </Link>
             ) : (
               <>
-                <Link
-                  to="/teste-gratis"
+                <a
+                  href="/entrar?mode=signup"
                   className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 px-5 text-sm font-bold text-slate-950 shadow-sm transition hover:brightness-110"
                 >
                   <Gift size={17} /> Testar grátis por 7 dias
-                </Link>
+                </a>
                 <Link
                   to="/entrar"
                   className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-white shadow-sm transition hover:brightness-110"
@@ -257,15 +257,15 @@ function Homepage() {
                 Cuide do seu corpo com mais clareza e constância.
               </h2>
               <p className="mt-2 max-w-xl text-sm leading-relaxed text-emerald-50/85">
-                Crie sua conta, registre suas métricas iniciais e acompanhe hidratação, alimentação,
-                peso, suplementos e evolução em um só lugar.
+                Teste grátis por 7 dias: registre suas métricas iniciais e acompanhe hidratação,
+                alimentação, peso, suplementos e evolução em um só lugar.
               </p>
             </div>
             <a
               href="/entrar?mode=signup"
               className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-[#0a6d58] shadow-sm transition hover:bg-emerald-50"
             >
-              <ShieldCheck size={17} /> Criar conta grátis <ArrowRight size={16} />
+              <Gift size={17} /> Testar grátis por 7 dias <ArrowRight size={16} />
             </a>
           </div>
         </section>

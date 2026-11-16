@@ -67,7 +67,9 @@ const today = () => new Date().toISOString().slice(0, 10);
 const plusDays = (days: number) =>
   new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
 export const effectiveLicense = (c: Pick<Client, "license_status" | "license_expires_on">) =>
-  c.license_status === "ativa" && c.license_expires_on && c.license_expires_on < today()
+  (c.license_status === "ativa" || c.license_status === "teste") &&
+  c.license_expires_on &&
+  c.license_expires_on < today()
     ? "expirada"
     : (c.license_status ?? "ativa");
 
