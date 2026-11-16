@@ -4,6 +4,7 @@ import {
   CalendarCheck,
   Clock3,
   Droplets,
+  Gift,
   History,
   LayoutDashboard,
   LockKeyhole,
@@ -152,12 +153,20 @@ function Homepage() {
                 <LayoutDashboard size={17} /> Voltar ao meu painel <ArrowRight size={16} />
               </Link>
             ) : (
-              <Link
-                to="/entrar"
-                className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-white shadow-sm transition hover:brightness-110"
-              >
-                <LockKeyhole size={17} /> Acessar minha conta <ArrowRight size={16} />
-              </Link>
+              <>
+                <Link
+                  to="/teste-gratis"
+                  className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 px-5 text-sm font-bold text-slate-950 shadow-sm transition hover:brightness-110"
+                >
+                  <Gift size={17} /> Testar grátis por 7 dias
+                </Link>
+                <Link
+                  to="/entrar"
+                  className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-white shadow-sm transition hover:brightness-110"
+                >
+                  <LockKeyhole size={17} /> Acessar minha conta <ArrowRight size={16} />
+                </Link>
+              </>
             )}
             <Link
               to="/protocolos"

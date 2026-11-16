@@ -750,6 +750,12 @@ function Entrar() {
             </form>
           )}
 
+          <Link
+            to="/teste-gratis"
+            className="flex h-11 items-center justify-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-sm font-bold text-emerald-700 hover:bg-emerald-500/15 dark:text-emerald-300"
+          >
+            Ainda não tem conta? Teste grátis por 7 dias
+          </Link>
           <div className="flex items-center justify-between gap-3 border-t border-border pt-3 text-xs text-muted-foreground">
             <Link
               to="/"

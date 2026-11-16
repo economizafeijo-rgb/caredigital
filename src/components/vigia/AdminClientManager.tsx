@@ -32,6 +32,7 @@ type Client = {
   weight_kg: number | null;
   height_cm: number | null;
   care_goal: string | null;
+  signup_source?: string | null;
   license_plan?: string | null;
   license_status?: string | null;
   license_expires_on?: string | null;
@@ -86,7 +87,7 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
       const full = await db
         .from("care_patients")
         .select(
-          "id,full_name,birth_date,condition_notes,status,contact_email,phone,weight_kg,height_cm,care_goal,license_plan,license_status,license_expires_on,created_at",
+          "id,full_name,birth_date,condition_notes,status,contact_email,phone,weight_kg,height_cm,care_goal,license_plan,license_status,license_expires_on,created_at,signup_source",
         )
         .order("created_at", { ascending: false });
       if (!full.error) {
@@ -317,7 +318,7 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
   const input = "mt-1 block h-11 w-full rounded-xl border border-border bg-surface px-3 text-sm";
   return (
     <section className="mt-6 flex flex-col gap-4" aria-label="Gestão de clientes">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         {[
           { label: "Clientes", value: stats.total, icon: Users, g: "from-indigo-600 to-blue-500" },
           {
@@ -325,6 +326,12 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
             value: stats.ativa,
             icon: BadgeCheck,
             g: "from-emerald-600 to-teal-500",
+          },
+          {
+            label: "Em teste grátis",
+            value: stats.teste,
+            icon: UserPlus,
+            g: "from-sky-600 to-cyan-500",
           },
           {
             label: "Vencem em 7 dias",
@@ -452,7 +459,14 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
                           {c.full_name.slice(0, 1).toUpperCase()}
                         </span>
                         <span className="min-w-0">
-                          <strong className="block truncate">{c.full_name}</strong>
+                          <strong className="block truncate">
+                            {c.full_name}
+                            {c.signup_source === "teste_gratis" && (
+                              <span className="ml-2 rounded-full bg-sky-500/15 px-2 py-0.5 text-[10px] font-bold text-sky-700 dark:text-sky-300">
+                                Auto-cadastro
+                              </span>
+                            )}
+                          </strong>
                           <span className="block truncate text-xs text-muted-foreground">
                             {c.contact_email ?? "sem e-mail"}
                             {c.phone ? ` · ${c.phone}` : ""}
