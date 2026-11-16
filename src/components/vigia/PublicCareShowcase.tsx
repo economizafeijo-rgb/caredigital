@@ -323,7 +323,7 @@ const showcaseImage: Record<ShowcaseKind, { src: string; position: string }> = {
   protocols: { src: "/images/caredigital-care-hero.webp", position: "70% 25%" },
   metrics: { src: "/images/show-metricas.webp", position: "50% 50%" },
   weight: { src: "/images/show-peso.webp", position: "50% 50%" },
-  supplements: { src: "/images/show-suplementos.webp", position: "50% 50%" },
+  supplements: { src: "/images/show-suplementos.webp", position: "50% 45%" },
   training: { src: "/images/show-treinos.webp", position: "50% 60%" },
 };
 
