@@ -32,7 +32,7 @@ import {
 } from "@/lib/public-signup-validation";
 
 export const Route = createFileRoute("/entrar")({
-  head: () => ({ meta: [{ title: "Entrar ou criar conta — NextVita" }] }),
+  head: () => ({ meta: [{ title: "Entrar ou testar grátis por 7 dias — NextVita" }] }),
   component: Entrar,
 });
 
@@ -352,7 +352,7 @@ function Entrar() {
     mode === "login"
       ? "Acesse seu acompanhamento"
       : mode === "signup"
-        ? "Crie sua conta gratuita"
+        ? "Comece seus 7 dias grátis"
         : mode === "forgot"
           ? "Recuperar acesso"
           : "Criar nova senha";
@@ -415,7 +415,7 @@ function Entrar() {
             {mode === "login"
               ? "Entre com o e-mail e a senha cadastrados."
               : mode === "signup"
-                ? "Crie sua conta gratuita e receba as orientações para o primeiro acesso."
+                ? "Preencha seus dados e use o NextVita completo por 7 dias, sem cartão e sem compromisso."
                 : mode === "forgot"
                   ? "Informe o e-mail da conta para solicitar um link seguro de recuperação."
                   : "Defina uma senha nova e segura para sua conta."}
@@ -519,7 +519,7 @@ function Entrar() {
                 }}
                 className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-primary/25 bg-primary/5 px-4 text-sm font-bold text-primary transition hover:bg-primary/10"
               >
-                <UserPlus size={17} /> Criar conta grátis
+                <UserPlus size={17} /> Testar grátis por 7 dias
               </button>
             </form>
           )}
@@ -653,7 +653,7 @@ function Entrar() {
                 disabled={busy || !!configurationIssue}
                 className="flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:opacity-50 sm:col-span-2"
               >
-                {busy ? "Criando sua conta…" : "Criar conta gratuita"}
+                {busy ? "Criando sua conta…" : "Começar meus 7 dias grátis"}
               </button>
               <button
                 type="button"
@@ -750,12 +750,6 @@ function Entrar() {
             </form>
           )}
 
-          <Link
-            to="/teste-gratis"
-            className="flex h-11 items-center justify-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-sm font-bold text-emerald-700 hover:bg-emerald-500/15 dark:text-emerald-300"
-          >
-            Ainda não tem conta? Teste grátis por 7 dias
-          </Link>
           <div className="flex items-center justify-between gap-3 border-t border-border pt-3 text-xs text-muted-foreground">
             <Link
               to="/"
