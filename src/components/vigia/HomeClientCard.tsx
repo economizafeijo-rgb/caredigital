@@ -907,7 +907,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
       ) : (
         <>
           <nav
-            className="-mx-1 flex shrink-0 gap-1.5 overflow-x-auto px-1 pb-1 xl:hidden"
+            className="-mx-1 flex shrink-0 items-center gap-1 overflow-x-auto rounded-xl border border-border/70 bg-surface/80 p-1 shadow-sm backdrop-blur xl:hidden"
             aria-label="Áreas do acompanhamento"
           >
             {sections.map(({ key, label, icon: Icon }) => (
@@ -916,19 +916,19 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                 type="button"
                 onClick={() => openSection(key)}
                 aria-current={activeTab === key ? "page" : undefined}
-                className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors ${activeTab === key ? `border-transparent text-white shadow-sm ${clientSectionTheme[key].pill}` : "border-border bg-surface text-muted-foreground hover:text-foreground"}`}
+                className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border px-2.5 text-[11px] font-semibold transition-all ${activeTab === key ? `border-transparent text-white shadow-sm ${clientSectionTheme[key].pill}` : "border-transparent bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground"}`}
               >
                 <span
-                  className={`grid size-5 place-items-center rounded-full ${activeTab === key ? "bg-white/20" : clientSectionTheme[key].chip}`}
+                  className={`grid size-5 place-items-center rounded-md ${activeTab === key ? "bg-white/20" : clientSectionTheme[key].chip}`}
                 >
-                  <Icon size={12} />
+                  <Icon size={11} />
                 </span>
                 {label}
               </button>
             ))}
           </nav>
 
-          <header className="relative isolate flex min-h-[96px] shrink-0 flex-wrap items-end justify-between gap-x-3 gap-y-1.5 overflow-hidden rounded-2xl bg-slate-950 px-4 py-3 text-white shadow-card [&_p]:!text-slate-200">
+          <header className="relative isolate flex min-h-[88px] shrink-0 flex-wrap items-end justify-between gap-x-3 gap-y-1 overflow-hidden rounded-2xl bg-slate-950 px-4 py-2.5 text-white shadow-card [&_p]:!text-slate-200">
             <img
               key={activeTab}
               src={clientSectionTheme[activeTab].image}
@@ -950,9 +950,9 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                 return (
                   <span
                     aria-hidden="true"
-                    className={`hidden size-12 shrink-0 place-items-center rounded-2xl text-white shadow-lg ring-1 ring-white/25 sm:grid ${clientSectionTheme[activeTab].pill}`}
+                    className={`hidden size-10 shrink-0 place-items-center rounded-xl text-white shadow-lg ring-1 ring-white/25 sm:grid ${clientSectionTheme[activeTab].pill}`}
                   >
-                    <HeaderIcon size={24} />
+                    <HeaderIcon size={20} />
                   </span>
                 );
               })()}
@@ -960,12 +960,12 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                 <p className="!text-[10px] font-bold uppercase tracking-[.14em] !text-white/70">
                   {clientSectionLabels[activeTab].tagline}
                 </p>
-                <h1 className="truncate text-xl font-bold tracking-tight sm:text-2xl">
+                <h1 className="truncate text-lg font-bold tracking-tight sm:text-xl">
                   {activeTab === "hoje"
                     ? `Olá, ${(patientName || client.full_name).split(" ")[0]}`
                     : clientSectionLabels[activeTab].title}
                 </h1>
-                <p className="truncate text-[13px] text-muted-foreground first-letter:uppercase">
+                <p className="truncate text-xs text-muted-foreground first-letter:uppercase">
                   {activeTab === "hoje"
                     ? `${today} · ${completed} de ${tasks.length} cuidados concluídos`
                     : clientSectionLabels[activeTab].subtitle}
