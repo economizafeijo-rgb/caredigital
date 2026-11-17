@@ -139,8 +139,8 @@ const mosaicAreas = [
 
 function HeroMosaic() {
   return (
-    <div className="relative order-last px-4 pb-5 sm:order-first sm:p-6 sm:pb-0 lg:order-last lg:p-8 lg:pl-0">
-      <div className="relative grid grid-cols-4 grid-rows-3 gap-2 max-sm:grid-rows-2 sm:h-[26rem] sm:gap-3 lg:h-[min(56vh,31rem)]">
+    <div className="relative order-last px-3 pb-4 sm:order-first sm:p-5 sm:pb-0 lg:order-last lg:p-5 lg:pl-0">
+      <div className="relative grid grid-cols-4 grid-rows-3 gap-2 max-sm:grid-rows-2 sm:h-[22rem] sm:gap-2.5 lg:h-[min(50vh,28rem)]">
         {mosaicAreas.map((area) => (
           <Link key={area.to} to={area.to} aria-label={area.label}
             className={`group relative isolate overflow-hidden rounded-2xl bg-slate-900 shadow-lg ring-1 ring-white/15 max-sm:aspect-[3/4] max-sm:!col-span-1 max-sm:!row-span-1 ${area.cls}`}>
@@ -181,7 +181,7 @@ function Homepage() {
   };
 
   return (
-    <div className="mx-auto flex min-h-full w-full max-w-none flex-col gap-5 lg:gap-6">
+    <div className="mx-auto flex min-h-full w-full max-w-none flex-col gap-4 lg:gap-5">
       {status === "unlinked" && (
         <p
           role="status"
@@ -196,11 +196,11 @@ function Homepage() {
 
       <section
         aria-labelledby="home-title"
-        className="relative isolate hidden overflow-hidden rounded-3xl bg-gradient-to-br from-[#041f1d] via-[#0a3f39] to-[#0e6b5c] shadow-pop sm:grid lg:min-h-[min(68vh,620px)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-center"
+        className="relative isolate hidden overflow-hidden rounded-3xl bg-gradient-to-br from-[#041f1d] via-[#0a3f39] to-[#0e6b5c] shadow-pop sm:grid lg:min-h-[min(58vh,560px)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-center"
       >
         <div aria-hidden="true" className="pointer-events-none absolute -left-24 -top-24 -z-10 size-96 rounded-full bg-emerald-400/20 blur-3xl" />
         <div aria-hidden="true" className="pointer-events-none absolute -bottom-28 right-10 -z-10 size-96 rounded-full bg-teal-300/15 blur-3xl" />
-        <div className="px-5 pb-7 pt-5 text-white sm:px-10 sm:py-8 lg:px-12 lg:py-10">
+        <div className="px-4 pb-5 pt-4 text-white sm:px-8 sm:py-6 lg:px-10 lg:py-7">
           <div className="flex flex-wrap items-center gap-2">
             <Link to="/loja" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-300 to-amber-400 px-3.5 py-1.5 text-xs font-extrabold uppercase tracking-wider text-slate-950 shadow-[0_10px_30px_-10px_rgba(251,191,36,.9)] transition hover:brightness-105">
               <span className="relative flex size-2" aria-hidden="true"><span className="absolute inline-flex size-full animate-ping rounded-full bg-slate-900 opacity-60" /><span className="relative inline-flex size-2 rounded-full bg-slate-900" /></span>
@@ -212,7 +212,7 @@ function Homepage() {
           </div>
           <h1
             id="home-title"
-            className="mt-4 text-balance text-[1.9rem] font-extrabold leading-[1.1] tracking-tight sm:text-5xl"
+            className="mt-3 text-balance text-[1.8rem] font-extrabold leading-[1.08] tracking-tight sm:text-4xl lg:text-[clamp(2.5rem,4vw,3.75rem)]"
           >
             {status === "client" ? (
               <>
@@ -227,17 +227,17 @@ function Homepage() {
               </>
             )}
           </h1>
-          <p className="mt-3 max-w-[48ch] text-sm leading-relaxed text-slate-200 sm:mt-4 sm:text-base">
+          <p className="mt-2.5 max-w-[48ch] text-sm leading-snug text-slate-200 sm:mt-3 sm:text-[15px]">
             {status === "client"
               ? "Acompanhe suas métricas, hábitos, hidratação, alimentação, suplementos e evolução ao longo do tempo."
               : "Nutrição, hidratação, peso, suplementos e hábitos acompanhados com horários, lembretes e registros confiáveis."}
           </p>
-          <div className="mt-5 flex flex-wrap items-center gap-3 max-sm:flex-col max-sm:items-stretch max-sm:[&>a]:justify-center sm:mt-6">
+          <div className="mt-4 flex flex-wrap items-center gap-2 max-sm:flex-col max-sm:items-stretch max-sm:[&>a]:justify-center sm:mt-4">
             {panel ? (
               <>
                 <Link
                   to={panel}
-                  className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110"
+                  className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110"
                 >
                   <LayoutDashboard size={17} /> Voltar ao meu painel <ArrowRight size={16} />
                 </Link>
@@ -261,19 +261,19 @@ function Homepage() {
             )}
             <Link
               to="/loja"
-              className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-amber-300 to-amber-400 px-5 text-sm font-extrabold text-slate-950 shadow-[0_12px_32px_-12px_rgba(251,191,36,.95)] transition hover:-translate-y-0.5 hover:brightness-105"
+              className="inline-flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-amber-300 to-amber-400 px-4 text-sm font-extrabold text-slate-950 shadow-[0_12px_32px_-12px_rgba(251,191,36,.95)] transition hover:-translate-y-0.5 hover:brightness-105"
             >
               <ShoppingBag size={17} /> Visitar a loja
             </Link>
             <Link
               to="/parceiros"
-              className="inline-flex h-11 items-center gap-2 rounded-xl border border-amber-300/60 bg-amber-300/10 px-5 text-sm font-bold text-amber-200 backdrop-blur transition hover:bg-amber-300/20"
+              className="inline-flex h-10 items-center gap-2 rounded-xl border border-amber-300/60 bg-amber-300/10 px-4 text-sm font-bold text-amber-200 backdrop-blur transition hover:bg-amber-300/20"
             >
               <Store size={17} /> Quero vender · grátis
             </Link>
             <Link
               to="/protocolos"
-              className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
+              className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
             >
               Como funciona
             </Link>
