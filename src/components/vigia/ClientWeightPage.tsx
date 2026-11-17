@@ -3,9 +3,12 @@ import {
   Area, Bar, BarChart, CartesianGrid, Cell, ComposedChart, Line, ReferenceArea, ReferenceLine,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { Activity, CalendarDays, Flag, Plus, Ruler, Scale, TrendingDown, TrendingUp, Minus } from "lucide-react";
+import {
+  Activity, CalendarDays, Check, Flag, Lock, LockOpen, Minus, Pencil, Plus, Ruler, Scale, Trash2, TrendingDown, TrendingUp, X,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { acreDateKey } from "@/lib/acre-time";
+import { useDialog } from "@/lib/dialog";
 
 type Point = { id: string; recorded_on: string; weight_kg: number; height_cm: number };
 type Props = { patientId: string; ownerId: string; heightCm: number | null; currentWeight: number | null; onRecorded?: () => void };
@@ -15,6 +18,8 @@ const nf = (value: number, digits = 1) => value.toLocaleString("pt-BR", { minimu
 const shortDate = (iso: string) => iso.slice(8, 10) + "/" + iso.slice(5, 7);
 const longDate = (iso: string) => iso.split("-").reverse().join("/");
 const bmiOf = (kg: number, cm: number) => kg / ((cm / 100) ** 2);
+/** Tempo em que a edição dos registros fica liberada depois da confirmação. */
+const UNLOCK_SECONDS = 60;
 
 export function bmiCategory(bmi: number): { label: string; color: string } {
   if (bmi < 18.5) return { label: "Abaixo do peso", color: "#38bdf8" };
@@ -55,7 +60,34 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
   const [height, setHeight] = useState(heightCm ? String(heightCm) : "");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  const [listMessage, setListMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [reload, setReload] = useState(0);
+  const dialog = useDialog();
+  // Cadeado: os registros salvos só podem ser editados ou excluídos depois de uma confirmação,
+  // e voltam a ficar bloqueados sozinhos.
+  const [unlockedUntil, setUnlockedUntil] = useState<number | null>(null);
+  const [now, setNow] = useState(() => Date.now());
+  const [editing, setEditing] = useState<{ id: string; weight: string; height: string } | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+  const unlocked = unlockedUntil !== null && now < unlockedUntil;
+  const secondsLeft = unlocked && unlockedUntil !== null ? Math.max(0, Math.ceil((unlockedUntil - now) / 1000)) : 0;
+
+  useEffect(() => {
+    if (unlockedUntil === null) return;
+    const timer = window.setInterval(() => {
+      const current = Date.now();
+      setNow(current);
+      if (current >= unlockedUntil) { setUnlockedUntil(null); setEditing(null); }
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [unlockedUntil]);
+
+  useEffect(() => {
+    if (!highlightId) return;
+    const timer = window.setTimeout(() => setHighlightId(null), 5000);
+    return () => window.clearTimeout(timer);
+  }, [highlightId]);
 
   useEffect(() => {
     let active = true;
@@ -89,15 +121,77 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
     if (!Number.isFinite(kg) || kg < 20 || kg > 350) { setMessage({ ok: false, text: "Informe um peso entre 20 e 350 kg." }); return; }
     if (!Number.isFinite(cm) || cm < 100 || cm > 230) { setMessage({ ok: false, text: "Informe a altura entre 100 e 230 cm." }); return; }
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date > acreDateKey()) { setMessage({ ok: false, text: "Escolha uma data válida que não esteja no futuro." }); return; }
+    // Inserir nunca sobrescreve: uma data já registrada fica protegida pelo cadeado.
+    const existing = points.find(point => point.recorded_on === date);
+    if (existing) { blockDuplicate(existing); return; }
     setSaving(true); setMessage(null);
     const auth = await supabase.auth.getUser();
     if (!auth.data.user) { setSaving(false); setMessage({ ok: false, text: "Entre na sua conta para registrar o peso." }); return; }
-    const result = await (supabase as any).from("care_body_measurements").upsert({
+    const result = await (supabase as any).from("care_body_measurements").insert({
       patient_id: patientId, owner_id: ownerId, recorded_by: auth.data.user.id, recorded_on: date, weight_kg: kg, height_cm: cm,
-    }, { onConflict: "patient_id,recorded_on" });
+    });
     setSaving(false);
-    if (result.error) { setMessage({ ok: false, text: "Não foi possível salvar. Verifique sua conexão e permissões." }); return; }
-    setMessage({ ok: true, text: `${nf(kg)} kg registrados em ${longDate(date)}.` });
+    if (result.error) {
+      if (result.error.code === "23505") { setReload(value => value + 1); setMessage({ ok: false, text: `Já existe um registro em ${longDate(date)}. Libere a edição com o cadeado para corrigi-lo.` }); return; }
+      setMessage({ ok: false, text: "Não foi possível salvar. Verifique sua conexão e permissões." }); return;
+    }
+    setMessage({ ok: true, text: `${nf(kg)} kg inseridos em ${longDate(date)}.` });
+    setReload(value => value + 1);
+    onRecorded?.();
+  }
+
+  function blockDuplicate(existing: Point) {
+    setHighlightId(existing.id);
+    setMessage({ ok: false, text: `Já existe um registro em ${longDate(existing.recorded_on)} (${nf(existing.weight_kg)} kg). Registros salvos ficam protegidos: libere a edição com o cadeado em “Registros” para corrigir o valor.` });
+  }
+
+  function lockNow() { setUnlockedUntil(null); setEditing(null); }
+
+  async function requestUnlock() {
+    const ok = await dialog.confirm(
+      "Liberar a edição dos registros?",
+      `Os registros de peso ficam protegidos contra alterações acidentais. Ao continuar, você poderá corrigir ou excluir registros por ${UNLOCK_SECONDS} segundos.`,
+    );
+    if (!ok) return;
+    const current = Date.now();
+    setNow(current); setUnlockedUntil(current + UNLOCK_SECONDS * 1000); setListMessage(null);
+  }
+
+  async function saveEdit() {
+    if (!editing || busyId || !unlocked) return;
+    const kg = Number(editing.weight.replace(",", "."));
+    const cm = Number(editing.height.replace(",", "."));
+    if (!Number.isFinite(kg) || kg < 20 || kg > 350) { setListMessage({ ok: false, text: "Informe um peso entre 20 e 350 kg." }); return; }
+    if (!Number.isFinite(cm) || cm < 100 || cm > 230) { setListMessage({ ok: false, text: "Informe a altura entre 100 e 230 cm." }); return; }
+    setBusyId(editing.id); setListMessage(null);
+    const auth = await supabase.auth.getUser();
+    if (!auth.data.user) { setBusyId(null); setListMessage({ ok: false, text: "Entre na sua conta para alterar o registro." }); return; }
+    const result = await (supabase as any).from("care_body_measurements")
+      .update({ weight_kg: kg, height_cm: cm, recorded_by: auth.data.user.id })
+      .eq("id", editing.id).eq("patient_id", patientId).eq("owner_id", ownerId).select("id");
+    setBusyId(null);
+    if (result.error || !result.data?.length) { setListMessage({ ok: false, text: "Não foi possível alterar o registro. Verifique sua conexão e permissões." }); return; }
+    setListMessage({ ok: true, text: "Registro alterado. A edição foi bloqueada novamente." });
+    lockNow();
+    setReload(value => value + 1);
+    onRecorded?.();
+  }
+
+  async function removePoint(point: Point) {
+    if (busyId || !unlocked) return;
+    const ok = await dialog.confirm(
+      "Excluir registro de peso?",
+      `O registro de ${nf(point.weight_kg)} kg em ${longDate(point.recorded_on)} será removido definitivamente.`,
+      true,
+    );
+    if (!ok) return;
+    setBusyId(point.id); setListMessage(null);
+    const result = await (supabase as any).from("care_body_measurements").delete()
+      .eq("id", point.id).eq("patient_id", patientId).eq("owner_id", ownerId).select("id");
+    setBusyId(null);
+    if (result.error || !result.data?.length) { setListMessage({ ok: false, text: "Não foi possível excluir o registro. Verifique sua conexão e permissões." }); return; }
+    setListMessage({ ok: true, text: `Registro de ${longDate(point.recorded_on)} excluído. A edição foi bloqueada novamente.` });
+    lockNow();
     setReload(value => value + 1);
     onRecorded?.();
   }
@@ -210,8 +304,8 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
       </section>
 
       <aside className="flex flex-col gap-3">
-        <section className="rounded-2xl border border-border bg-card p-4 shadow-card" aria-label="Registrar peso">
-          <h3 className="flex items-center gap-2 font-display text-base font-bold"><span className="grid size-8 place-items-center rounded-xl bg-gradient-to-br from-fuchsia-500 to-pink-500 text-white"><Plus size={16}/></span>Registrar peso</h3>
+        <section className="rounded-2xl border border-border bg-card p-4 shadow-card" aria-label="Inserir peso">
+          <h3 className="flex items-center gap-2 font-display text-base font-bold"><span className="grid size-8 place-items-center rounded-xl bg-gradient-to-br from-fuchsia-500 to-pink-500 text-white"><Plus size={16}/></span>Inserir peso</h3>
           <div className="mt-3 grid gap-2">
             <label className="text-xs font-semibold">Data
               <span className="relative mt-1 block"><CalendarDays size={15} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"/>
@@ -229,9 +323,9 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
             </div>
             <button type="button" disabled={saving} onClick={() => void save()}
               className="mt-1 inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-500 text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:opacity-60">
-              <Scale size={16}/>{saving ? "Salvando…" : "Salvar registro"}
+              <Scale size={16}/>{saving ? "Salvando…" : "Inserir registro"}
             </button>
-            <p className="text-[11px] text-muted-foreground">Um registro por dia; salvar novamente na mesma data substitui o valor.</p>
+            <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground"><Lock size={12} className="mt-0.5 shrink-0"/>Um registro por dia. Inserir nunca substitui um valor já salvo: para corrigir, libere a edição com o cadeado em “Registros”.</p>
             {message && <p role="status" className={`rounded-lg px-2.5 py-2 text-xs font-medium ${message.ok ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-destructive/10 text-destructive"}`}>{message.text}</p>}
           </div>
         </section>
@@ -269,24 +363,62 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
         </div>
       </section>
       <section className="rounded-2xl border border-border bg-card p-4 shadow-card" aria-label="Registros de peso">
-        <h3 className="font-display text-sm font-bold">Últimos registros</h3>
-        <div className="mt-2 max-h-[200px] overflow-y-auto">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 className="font-display text-sm font-bold">Registros</h3>
+            <p className="text-[11px] text-muted-foreground">{unlocked ? "Edição liberada: corrija ou exclua um registro." : "Protegidos por cadeado contra alterações acidentais."}</p>
+          </div>
+          <button type="button" aria-pressed={unlocked} onClick={() => { if (unlocked) lockNow(); else void requestUnlock(); }}
+            className={`inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold transition ${unlocked ? "bg-amber-500/15 text-amber-800 ring-1 ring-amber-500/40 dark:text-amber-300" : "bg-muted text-foreground hover:bg-muted/70"}`}>
+            {unlocked ? <LockOpen size={14}/> : <Lock size={14}/>}
+            {unlocked ? `Liberado · ${secondsLeft}s · Bloquear` : "Bloqueado · Liberar edição"}
+          </button>
+        </div>
+        <div className="mt-2 max-h-[260px] overflow-y-auto">
           {points.length === 0 ? <p className="py-6 text-center text-xs text-muted-foreground">Nenhum registro ainda.</p>
             : <table className="w-full text-left text-xs">
-              <thead className="sticky top-0 bg-card text-muted-foreground"><tr><th className="py-1.5">Data</th><th>Peso</th><th>Variação</th><th>IMC</th></tr></thead>
-              <tbody>{points.slice().reverse().slice(0, 30).map((point, index, list) => {
+              <thead className="sticky top-0 bg-card text-muted-foreground"><tr><th className="py-1.5">Data</th><th>Peso</th><th>Variação</th><th>IMC</th><th className="text-right">Ações</th></tr></thead>
+              <tbody>{points.slice().reverse().slice(0, 60).map((point, index, list) => {
                 const previous = list[index + 1];
                 const diff = previous ? point.weight_kg - previous.weight_kg : null;
                 const pointBmi = bmiOf(point.weight_kg, point.height_cm);
-                return <tr key={point.id} className="border-t border-border">
-                  <td className="py-1.5">{longDate(point.recorded_on)}</td>
+                const label = longDate(point.recorded_on);
+                const busy = busyId === point.id;
+                if (editing?.id === point.id) {
+                  return <tr key={point.id} className="border-t border-border bg-amber-500/5">
+                    <td colSpan={5} className="py-2">
+                      <div className="flex flex-wrap items-end gap-2">
+                        <span className="pb-2 text-xs font-semibold">{label}</span>
+                        <label className="text-[11px] font-semibold">Peso (kg)
+                          <input inputMode="decimal" aria-label={`Novo peso de ${label}`} value={editing.weight} onChange={event => setEditing({ ...editing, weight: event.target.value })} className="mt-0.5 block h-9 w-24 rounded-lg border border-border bg-surface px-2 text-sm"/></label>
+                        <label className="text-[11px] font-semibold">Altura (cm)
+                          <input inputMode="numeric" aria-label={`Nova altura de ${label}`} value={editing.height} onChange={event => setEditing({ ...editing, height: event.target.value })} className="mt-0.5 block h-9 w-24 rounded-lg border border-border bg-surface px-2 text-sm"/></label>
+                        <button type="button" disabled={busy} onClick={() => void saveEdit()} className="inline-flex h-9 items-center gap-1 rounded-lg bg-emerald-600 px-3 text-xs font-bold text-white disabled:opacity-60"><Check size={14}/>{busy ? "Salvando…" : "Salvar alteração"}</button>
+                        <button type="button" onClick={() => setEditing(null)} className="inline-flex h-9 items-center gap-1 rounded-lg border border-border px-3 text-xs font-semibold"><X size={14}/>Cancelar</button>
+                      </div>
+                    </td>
+                  </tr>;
+                }
+                return <tr key={point.id} className={`border-t border-border ${highlightId === point.id ? "bg-fuchsia-500/10 ring-1 ring-fuchsia-500/40" : ""}`}>
+                  <td className="py-1.5"><span className="inline-flex items-center gap-1">{!unlocked && <Lock size={11} aria-hidden="true" className="text-muted-foreground"/>}{label}</span></td>
                   <td className="font-semibold tabular-nums">{nf(point.weight_kg)} kg</td>
                   <td className={`tabular-nums ${diff === null ? "text-muted-foreground" : diff <= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-orange-600 dark:text-orange-400"}`}>{diff === null ? "—" : `${diff > 0 ? "+" : ""}${nf(diff)}`}</td>
                   <td><span className="rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-white" style={{ background: bmiCategory(pointBmi).color }}>{nf(pointBmi)}</span></td>
+                  <td className="text-right">
+                    <span className="inline-flex gap-1">
+                      <button type="button" disabled={!unlocked || busy} aria-label={`Editar registro de ${label}`} title={unlocked ? "Editar" : "Bloqueado: libere a edição com o cadeado"}
+                        onClick={() => setEditing({ id: point.id, weight: String(point.weight_kg).replace(".", ","), height: String(point.height_cm).replace(".", ",") })}
+                        className="grid size-8 place-items-center rounded-lg border border-border text-foreground transition enabled:hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"><Pencil size={14}/></button>
+                      <button type="button" disabled={!unlocked || busy} aria-label={`Excluir registro de ${label}`} title={unlocked ? "Excluir" : "Bloqueado: libere a edição com o cadeado"}
+                        onClick={() => void removePoint(point)}
+                        className="grid size-8 place-items-center rounded-lg border border-border text-destructive transition enabled:hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-40"><Trash2 size={14}/></button>
+                    </span>
+                  </td>
                 </tr>;
               })}</tbody>
             </table>}
         </div>
+        {listMessage && <p role="status" className={`mt-2 rounded-lg px-2.5 py-2 text-xs font-medium ${listMessage.ok ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-destructive/10 text-destructive"}`}>{listMessage.text}</p>}
       </section>
     </div>
   </div>;
