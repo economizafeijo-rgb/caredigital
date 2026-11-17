@@ -236,6 +236,6 @@ export function SectionInsights({ section, patientId, ownerId, revision = 0 }: {
         {selected && <button type="button" onClick={() => setSelected(null)} className="mt-2 h-9 rounded-xl bg-white/20 text-sm font-bold hover:bg-white/30">Voltar para hoje</button>}
       </aside>
     </div>}
-    <DayDetailDialog patientId={patientId} ownerId={ownerId} day={detailDay} waterTarget={data?.goal && section === "hidratacao" ? data.goal : null} onClose={() => setDetailDay(null)}/>
+    <DayDetailDialog patientId={patientId} ownerId={ownerId} focus={section === "agenda" || section === "historico" ? undefined : section} day={detailDay} waterTarget={data?.goal && section === "hidratacao" ? data.goal : null} onClose={() => setDetailDay(null)}/>
   </section>;
 }

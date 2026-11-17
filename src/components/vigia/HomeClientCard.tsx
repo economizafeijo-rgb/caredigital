@@ -48,6 +48,7 @@ import { ClientHealthProfile } from "./ClientHealthProfile";
 import { ClientOverviewIndicators } from "./ClientOverviewIndicators";
 import { GoalFxProvider } from "./GoalFx";
 import { GoalWatcher } from "./GoalWatcher";
+import { EvolutionHub } from "./EvolutionHub";
 import { ClientWeightPage } from "./ClientWeightPage";
 import { ClientMedicationManager } from "./ClientMedicationManager";
 import { MissedDoseRegularizer } from "./MissedDoseRegularizer";
@@ -1025,7 +1026,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
             <div
               id="care-client-tab-panel"
               data-client-page="hoje"
-              className="flex min-h-0 flex-1 flex-col gap-3"
+              className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain lg:pr-0.5"
             >
               <div className="grid shrink-0 grid-cols-2 gap-3 lg:grid-cols-4">
                 {kpis.map(({ key, label, icon: Icon, tone, bar, percent, value, note }) => (
@@ -1068,7 +1069,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                 ))}
               </div>
 
-              <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-3">
+              <div className="grid min-h-0 flex-1 gap-3 lg:min-h-[34rem] lg:grid-cols-3">
                 <div className="flex min-h-0 flex-col gap-3 lg:overflow-y-auto lg:pr-0.5">
                   <section
                     aria-label="Próximo cuidado"
@@ -1317,6 +1318,22 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                   </section>
                 </div>
               </div>
+              <section aria-label="Panorama geral das métricas" className="shrink-0">
+                <div className="care-overview-section-heading">
+                  <div>
+                    <span className="care-overview-eyebrow">Visão geral</span>
+                    <h3>Panorama das métricas</h3>
+                  </div>
+                  <span className="care-overview-heading-note">Todas as áreas reunidas · cada área abre só o que é dela</span>
+                </div>
+                <EvolutionHub
+                  patientId={client.id}
+                  ownerId={client.owner_id}
+                  waterTarget={hydrationTarget || null}
+                  revision={tick}
+                  defaultView="dia"
+                />
+              </section>
             </div>
           ) : (
             <section

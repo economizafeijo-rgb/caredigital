@@ -426,6 +426,6 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
         {listMessage && <p role="status" className={`mt-2 rounded-lg px-2.5 py-2 text-xs font-medium ${listMessage.ok ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-destructive/10 text-destructive"}`}>{listMessage.text}</p>}
       </section>
     </div>
-    <DayDetailDialog patientId={patientId} ownerId={ownerId} day={detailDay} onClose={() => setDetailDay(null)} />
+    <DayDetailDialog patientId={patientId} ownerId={ownerId} focus="peso" day={detailDay} onClose={() => setDetailDay(null)} />
   </div>;
 }

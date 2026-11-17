@@ -106,6 +106,6 @@ export function WeightExplorer({ patientId, ownerId, revision = 0 }: { patientId
         </div>
       </aside>
     </div>
-    <DayDetailDialog patientId={patientId} ownerId={ownerId} day={detail} onClose={() => setDetail(null)} />
+    <DayDetailDialog patientId={patientId} ownerId={ownerId} focus="peso" day={detail} onClose={() => setDetail(null)} />
   </section>;
 }
