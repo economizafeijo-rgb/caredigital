@@ -32,6 +32,7 @@ import {
   X,
   type LucideIcon,
   ShoppingBag,
+  Store,
 } from "lucide-react";
 import { LogoMark } from "./Logo";
 import { supabase } from "@/integrations/supabase/client";
@@ -69,6 +70,7 @@ const contentGroup: NavGroup = {
     { to: "/nutricao-esportiva", label: "Nutrição esportiva", icon: Dumbbell },
     { to: "/biblioteca-alimentar", label: "Biblioteca alimentar", icon: Apple },
     { to: "/loja", label: "Loja", icon: ShoppingBag },
+    { to: "/lojista", label: "Seja lojista", icon: Store },
   ],
 };
 
@@ -89,6 +91,7 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
         { to: "/treinos", label: "Treinos", icon: Activity },
         { to: "/metricas", label: "Métricas", icon: BarChart3 },
         { to: "/loja", label: "Loja", icon: ShoppingBag },
+    { to: "/lojista", label: "Seja lojista", icon: Store },
         { to: "/sobre", label: "Sobre", icon: Info },
       ],
     },
@@ -121,6 +124,7 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
         section("cardapios", "Cardápios e dietas", BookOpen),
         { to: "/biblioteca-alimentar", label: "Biblioteca alimentar", icon: Apple },
         { to: "/loja", label: "Loja", icon: ShoppingBag },
+    { to: "/lojista", label: "Seja lojista", icon: Store },
       ],
     },
   ],

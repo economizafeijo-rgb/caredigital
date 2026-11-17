@@ -1,6 +1,6 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, BadgeCheck, CheckCircle2, CreditCard, FileText, Minus, Plus, QrCode, ShieldCheck, ShoppingBag, ShoppingCart, Trash2, Truck, X, Construction, MessageCircle } from "lucide-react";
+import { ArrowRight, BadgeCheck, CheckCircle2, CreditCard, FileText, Minus, Plus, QrCode, ShieldCheck, ShoppingBag, ShoppingCart, Store, Trash2, Truck, X, Construction, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cart, categories, categoryLabel, money, orderTotal, paymentMethods, products, STORE_WHATSAPP, useCart, type PaymentKey, type Product, type StoreCategory } from "@/lib/store";
 import { useAccess } from "@/lib/use-access";
@@ -199,6 +199,11 @@ export function StorePage() {
       <section aria-label="Produtos" className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6">
         {list.map((p) => <ProductCard key={p.id} p={p} />)}
       </section>
+
+      <aside className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-emerald-500/30 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 p-4 sm:p-5">
+        <div className="flex items-center gap-3"><span className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white"><Store size={24} /></span><div><strong className="block text-base">Tem uma loja ou vende produtos de saúde e fitness?</strong><span className="text-sm text-muted-foreground">Venda na NextVita com vitrine própria, selo da loja, avaliações e painel de vendas.</span></div></div>
+        <Link to="/lojista" className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-600 px-5 text-sm font-bold text-white shadow">Quero vender aqui <ArrowRight size={16} /></Link>
+      </aside>
 
       <button type="button" onClick={() => setCartOpen(true)} aria-label={`Abrir carrinho, ${count} itens`} className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-4 z-[90] inline-flex h-14 items-center gap-2 rounded-full bg-slate-950 px-5 text-sm font-extrabold text-white shadow-xl ring-4 ring-white/70 dark:ring-slate-900/70">
         <ShoppingCart size={22} /> Carrinho{count > 0 && <span className="grid size-6 place-items-center rounded-full bg-emerald-400 text-xs text-slate-950">{count}</span>}
