@@ -1182,7 +1182,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                       Ver agenda <ArrowRight size={13} />
                     </button>
                   </div>
-                  <ul className="-mx-1 min-h-0 flex-1 overflow-y-auto overscroll-contain px-1">
+                  <ul className="-mx-1 px-1">
                     {tasks.map((task) => {
                       const info = supplement(task)
                         ? { label: "Suplemento", icon: Sparkles }
@@ -1258,7 +1258,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
 
                 <div className="flex min-h-0 flex-col gap-3">
                   <div
-                    className="shrink-0 lg:max-h-[55%] lg:overflow-y-auto"
+                    className="shrink-0"
                     id="care-overview-medication"
                   >
                     <CompactTreatmentBlister
@@ -1311,7 +1311,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                         </button>
                       ))}
                     </div>
-                    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+                    <div className="min-h-0">
                       <CareRecentHistory
                         patientId={client.id}
                         ownerId={client.owner_id}
@@ -1347,7 +1347,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
               aria-label={clientSectionLabels[activeTab].title}
               className={
                 card +
-                " min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain p-3 sm:p-4 lg:min-h-0"
+                " min-w-0 p-3 sm:p-4"
               }
             >
               {isInsightSection(activeTab) && (
@@ -1391,7 +1391,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                       </button>
                     ))}
                   </div>
-                  <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+                  <div className="min-h-0">
                     {hydrationView === "agua" ? (
                       <ClientHydrationTab
                         patientId={client.id}
