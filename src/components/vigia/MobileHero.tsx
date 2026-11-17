@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { LiveModeLauncher } from "./LiveMode";
 import { StoreBannerCarousel } from "./StoreBannerCarousel";
-import { Activity, ArrowRight, BarChart3, BedDouble, Droplets, Gift, LayoutDashboard, LockKeyhole, Pill, Scale, ShieldCheck, ShoppingBag, Sparkles, Utensils } from "lucide-react";
+import { HeroShowcase } from "./HeroShowcase";
+import { Activity, ArrowRight, BarChart3, BedDouble, Droplets, Gift, LayoutDashboard, LockKeyhole, Pill, Scale, ShieldCheck, ShoppingBag, Sparkles, Store, Utensils } from "lucide-react";
 
 const areas = [
   { to: "/loja", label: "Loja virtual", text: "Suplementos, vitaminas e moda fitness", icon: ShoppingBag, img: "/loja/mulher1.webp", tone: "from-amber-500 to-orange-500" },
@@ -41,8 +42,11 @@ export function MobileHero({ client, name, panel }: { client: boolean; name: str
             </>
           )}
           <Link to="/loja" className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-400 text-[15px] font-extrabold text-slate-950 shadow-[0_12px_32px_-12px_rgba(251,191,36,.95)] active:scale-95"><ShoppingBag size={18} /> Visitar a loja</Link>
+          <Link to="/parceiros" className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-amber-300/60 bg-amber-300/10 text-[15px] font-bold text-amber-200 backdrop-blur"><Store size={18} /> Quero vender · cadastro grátis</Link>
         </div>
       </section>
+
+      <HeroShowcase />
 
       <StoreBannerCarousel />
 

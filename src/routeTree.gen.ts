@@ -22,6 +22,7 @@ import { Route as MedicamentosRouteImport } from './routes/medicamentos'
 import { Route as MetricasRouteImport } from './routes/metricas'
 import { Route as NutricaoEsportivaRouteImport } from './routes/nutricao-esportiva'
 import { Route as PacientesRouteImport } from './routes/pacientes'
+import { Route as ParceirosRouteImport } from './routes/parceiros'
 import { Route as PesoRouteImport } from './routes/peso'
 import { Route as ProntuarioRouteImport } from './routes/prontuario'
 import { Route as ProtocolosRouteImport } from './routes/protocolos'
@@ -96,6 +97,11 @@ const PacientesRoute = PacientesRouteImport.update({
   path: '/pacientes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ParceirosRoute = ParceirosRouteImport.update({
+  id: '/parceiros',
+  path: '/parceiros',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PesoRoute = PesoRouteImport.update({
   id: '/peso',
   path: '/peso',
@@ -151,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/metricas': typeof MetricasRoute
   '/nutricao-esportiva': typeof NutricaoEsportivaRoute
   '/pacientes': typeof PacientesRoute
+  '/parceiros': typeof ParceirosRoute
   '/peso': typeof PesoRoute
   '/prontuario': typeof ProntuarioRoute
   '/protocolos': typeof ProtocolosRoute
@@ -174,6 +181,7 @@ export interface FileRoutesByTo {
   '/metricas': typeof MetricasRoute
   '/nutricao-esportiva': typeof NutricaoEsportivaRoute
   '/pacientes': typeof PacientesRoute
+  '/parceiros': typeof ParceirosRoute
   '/peso': typeof PesoRoute
   '/prontuario': typeof ProntuarioRoute
   '/protocolos': typeof ProtocolosRoute
@@ -198,6 +206,7 @@ export interface FileRoutesById {
   '/metricas': typeof MetricasRoute
   '/nutricao-esportiva': typeof NutricaoEsportivaRoute
   '/pacientes': typeof PacientesRoute
+  '/parceiros': typeof ParceirosRoute
   '/peso': typeof PesoRoute
   '/prontuario': typeof ProntuarioRoute
   '/protocolos': typeof ProtocolosRoute
@@ -223,6 +232,7 @@ export interface FileRouteTypes {
     | '/metricas'
     | '/nutricao-esportiva'
     | '/pacientes'
+    | '/parceiros'
     | '/peso'
     | '/prontuario'
     | '/protocolos'
@@ -246,6 +256,7 @@ export interface FileRouteTypes {
     | '/metricas'
     | '/nutricao-esportiva'
     | '/pacientes'
+    | '/parceiros'
     | '/peso'
     | '/prontuario'
     | '/protocolos'
@@ -269,6 +280,7 @@ export interface FileRouteTypes {
     | '/metricas'
     | '/nutricao-esportiva'
     | '/pacientes'
+    | '/parceiros'
     | '/peso'
     | '/prontuario'
     | '/protocolos'
@@ -293,6 +305,7 @@ export interface RootRouteChildren {
   MetricasRoute: typeof MetricasRoute
   NutricaoEsportivaRoute: typeof NutricaoEsportivaRoute
   PacientesRoute: typeof PacientesRoute
+  ParceirosRoute: typeof ParceirosRoute
   PesoRoute: typeof PesoRoute
   ProntuarioRoute: typeof ProntuarioRoute
   ProtocolosRoute: typeof ProtocolosRoute
@@ -396,6 +409,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PacientesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/parceiros': {
+      id: '/parceiros'
+      path: '/parceiros'
+      fullPath: '/parceiros'
+      preLoaderRoute: typeof ParceirosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/peso': {
       id: '/peso'
       path: '/peso'
@@ -469,6 +489,7 @@ const rootRouteChildren: RootRouteChildren = {
   MetricasRoute: MetricasRoute,
   NutricaoEsportivaRoute: NutricaoEsportivaRoute,
   PacientesRoute: PacientesRoute,
+  ParceirosRoute: ParceirosRoute,
   PesoRoute: PesoRoute,
   ProntuarioRoute: ProntuarioRoute,
   ProtocolosRoute: ProtocolosRoute,
