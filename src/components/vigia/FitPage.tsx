@@ -5,7 +5,7 @@ import { useEffect, useRef, type ReactNode } from "react";
  * Mede a altura natural do conteúdo e, se ela não couber, reduz a escala proporcionalmente.
  * No celular não faz nada e a página rola normalmente.
  */
-export function FitPage({ children, className = "", reserve = 49 }: { children: ReactNode; className?: string; reserve?: number }) {
+export function FitPage({ children, className = "", reserve = 49, label }: { children: ReactNode; className?: string; reserve?: number; label?: string }) {
   const outer = useRef<HTMLDivElement>(null);
   const inner = useRef<HTMLDivElement>(null);
 
@@ -39,7 +39,7 @@ export function FitPage({ children, className = "", reserve = 49 }: { children: 
 
   return (
     <div ref={outer} className="lg:overflow-hidden">
-      <div ref={inner} className={className}>{children}</div>
+      <div ref={inner} className={className} {...(label ? { role: "region", "aria-label": label } : {})}>{children}</div>
     </div>
   );
 }

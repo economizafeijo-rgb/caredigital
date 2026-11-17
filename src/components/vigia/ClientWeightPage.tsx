@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { acreDateKey } from "@/lib/acre-time";
 import { useDialog } from "@/lib/dialog";
 import { weightGuidance } from "@/lib/nutrition-science";
+import { DayDetailDialog } from "./DayDetailDialog";
 
 type Point = { id: string; recorded_on: string; weight_kg: number; height_cm: number };
 type Props = { patientId: string; ownerId: string; heightCm: number | null; currentWeight: number | null; ageYears?: number | null; onRecorded?: () => void };
@@ -70,6 +71,7 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
   const [now, setNow] = useState(() => Date.now());
   const [editing, setEditing] = useState<{ id: string; weight: string; height: string } | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [detailDay, setDetailDay] = useState<string | null>(null);
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const unlocked = unlockedUntil !== null && now < unlockedUntil;
   const secondsLeft = unlocked && unlockedUntil !== null ? Math.max(0, Math.ceil((unlockedUntil - now) / 1000)) : 0;
@@ -212,7 +214,7 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
   }, [filtered]);
 
   const changes = useMemo(() => filtered.slice(1).map((point, index) => ({
-    label: shortDate(point.recorded_on), delta: Number((point.weight_kg - filtered[index].weight_kg).toFixed(2)),
+    date: point.recorded_on, label: shortDate(point.recorded_on), delta: Number((point.weight_kg - filtered[index].weight_kg).toFixed(2)),
   })).slice(-14), [filtered]);
 
   const last = points.at(-1);
@@ -266,7 +268,7 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
           {!loaded ? <div className="h-full animate-pulse rounded-xl bg-muted/60"/> : chart.length === 0
             ? <div className="grid h-full place-items-center rounded-xl border border-dashed border-border text-center text-sm text-muted-foreground"><span><Scale className="mx-auto mb-2 text-fuchsia-500" size={28}/>Nenhum registro neste período.<br/>Use o formulário para registrar seu peso.</span></div>
             : <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={chart} margin={{ top: 10, right: 12, left: -8, bottom: 0 }}>
+              <ComposedChart data={chart} margin={{ top: 10, right: 12, left: -8, bottom: 0 }} style={{ cursor: "pointer" }} onClick={(state: any) => { const row = state?.activePayload?.[0]?.payload; if (row?.date) setDetailDay(row.date); }}>
                 <defs>
                   <linearGradient id="weightFill" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#d946ef" stopOpacity={0.45}/>
@@ -348,11 +350,11 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
     <div className="grid gap-3 lg:grid-cols-2">
       <section className="rounded-2xl border border-border bg-card p-4 shadow-card" aria-label="Variação entre registros">
         <h3 className="font-display text-sm font-bold">Variação entre registros</h3>
-        <p className="text-xs text-muted-foreground">Diferença em kg em relação ao registro anterior (últimos 14)</p>
+        <p className="text-xs text-muted-foreground">Diferença em kg em relação ao registro anterior (últimos 14) · toque numa barra para abrir o dia</p>
         <div className="mt-3 h-[180px]">
           {changes.length === 0 ? <p className="grid h-full place-items-center text-xs text-muted-foreground">São necessários pelo menos dois registros.</p>
             : <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={changes} margin={{ top: 5, right: 8, left: -18, bottom: 0 }}>
+              <BarChart data={changes} margin={{ top: 5, right: 8, left: -18, bottom: 0 }} style={{ cursor: "pointer" }} onClick={(state: any) => { const row = state?.activePayload?.[0]?.payload; if (row?.date) setDetailDay(row.date); }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-border" vertical={false}/>
                 <XAxis dataKey="label" tick={{ fontSize: 10, fill: "currentColor" }} className="text-muted-foreground" tickLine={false} axisLine={false}/>
                 <YAxis tick={{ fontSize: 10, fill: "currentColor" }} className="text-muted-foreground" tickLine={false} axisLine={false}/>
@@ -424,5 +426,6 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
         {listMessage && <p role="status" className={`mt-2 rounded-lg px-2.5 py-2 text-xs font-medium ${listMessage.ok ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-destructive/10 text-destructive"}`}>{listMessage.text}</p>}
       </section>
     </div>
+    <DayDetailDialog patientId={patientId} ownerId={ownerId} day={detailDay} onClose={() => setDetailDay(null)} />
   </div>;
 }

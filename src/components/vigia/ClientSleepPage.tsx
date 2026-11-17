@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Area, AreaChart, Bar, CartesianGrid, Cell, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { AlarmClock, BedDouble, Bluetooth, BluetoothOff, HeartPulse, Lightbulb, Moon, Save, Sparkles, Star, Sunrise, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { DayDetailDialog } from "./DayDetailDialog";
 import { acreDateKey } from "@/lib/acre-time";
 
 export type SleepLog = { id: string; sleep_date: string; bed_at: string; wake_at: string; quality: number; awakenings: number; avg_hr: number | null; min_hr: number | null; source: string; notes: string | null };
@@ -54,6 +55,7 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
   const [loaded, setLoaded] = useState(false);
   const [range, setRange] = useState<7 | 14 | 30>(14);
   const [selected, setSelected] = useState<string | null>(null);
+  const [detail, setDetail] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const yesterdayNight = () => { const d = new Date(); d.setHours(d.getHours() - 8); return d; };
@@ -233,6 +235,7 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
       <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
         {[["#10b981", "Excelente"], ["#6366f1", "Bom"], ["#f59e0b", "Regular"], ["#ef4444", "Atenção"]].map(([c, l]) => <span key={l} className="inline-flex items-center gap-1.5"><i className="size-3 rounded" style={{ background: c }}/>{l}</span>)}
         <span className="inline-flex items-center gap-1.5"><i className="h-0.5 w-4 rounded bg-violet-400"/>Nota</span>
+        {selected && <button type="button" onClick={() => setDetail(selected)} className="inline-flex h-8 items-center gap-1 rounded-lg bg-indigo-600 px-2.5 font-semibold text-white hover:brightness-110">Ver dia completo</button>}
         {selected && focus && <button type="button" onClick={() => void remove(focus)} className="ml-auto inline-flex h-8 items-center gap-1 rounded-lg border border-border px-2.5 font-semibold text-destructive hover:bg-destructive/10"><Trash2 size={13}/> Excluir noite de {short(focus.sleep_date)}</button>}
       </div>
     </section>
@@ -251,5 +254,6 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
       {message && <p role="status" className={`mt-3 rounded-xl px-3 py-2 text-sm font-medium ${message.ok ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-destructive/10 text-destructive"}`}>{message.text}</p>}
       <p className="mt-3 text-xs text-muted-foreground">A nota do sono é uma estimativa educativa (duração, qualidade percebida e despertares). Não substitui avaliação médica nem exame do sono.</p>
     </section>
+    <DayDetailDialog patientId={patientId} ownerId={ownerId} day={detail} onClose={() => setDetail(null)} />
   </div>;
 }

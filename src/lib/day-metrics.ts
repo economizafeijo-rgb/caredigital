@@ -227,7 +227,8 @@ function buildOne(index: Map<string, Slot>, plans: PlanInfo[], day: string, ctx:
   const finish = (status: GoalStatus, met: boolean): GoalStatus => (met ? "atingida" : !hasData && closed ? "sem_registro" : closed ? "nao_atingida" : status);
 
   // Hidratação: a meta do servidor do dia vence a meta atual (a meta pode ter mudado ao longo do tempo).
-  const waterTarget = s.waterGoal?.target ?? (day >= now.day ? targets.waterMl : null);
+  // Dias sem meta guardada no servidor usam a meta atual de referência (melhor do que esconder a meta).
+  const waterTarget = s.waterGoal?.target ?? targets.waterMl;
   if (waterTarget && waterTarget > 0) {
     goals.push({
       metric: "hidratacao", label: GOAL_INFO.hidratacao.label, unit: "ml", target: waterTarget, actual: waterMl, pct: pctOf(waterMl, waterTarget),

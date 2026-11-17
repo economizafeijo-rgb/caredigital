@@ -1,3 +1,4 @@
+import { FitPage } from "@/components/vigia/FitPage";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent, type InputHTMLAttributes } from "react";
 import {
@@ -365,11 +366,11 @@ function Entrar() {
   );
 
   return (
-    <main
-      className="mx-auto grid h-full min-h-0 w-full max-w-5xl items-center gap-5 py-2 sm:py-3 lg:h-[calc(100dvh-3.5rem)] lg:grid-cols-2 lg:overflow-hidden"
-      aria-label="Acesso NextVita"
+    <FitPage
+      label="Acesso NextVita"
+      className="mx-auto grid w-full max-w-5xl items-stretch gap-5 py-1 lg:grid-cols-[1.05fr_1fr]"
     >
-      <aside className="relative isolate flex min-h-[180px] flex-col justify-end overflow-hidden rounded-3xl bg-slate-950 p-6 text-white shadow-pop lg:h-full lg:min-h-0 lg:p-8">
+      <aside className="relative isolate flex min-h-[260px] flex-col justify-end overflow-hidden rounded-3xl bg-slate-950 p-6 text-white shadow-pop lg:min-h-0 lg:p-8">
         <img
           src="/images/caredigital-care-hero.webp"
           alt=""
@@ -382,6 +383,17 @@ function Entrar() {
           aria-hidden="true"
           className="absolute inset-0 -z-10 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent"
         />
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[linear-gradient(160deg,rgba(4,31,29,.7),rgba(10,63,57,.35))]" />
+        <div aria-hidden="true" className="nv-float absolute left-5 top-5 hidden w-60 rounded-2xl border border-white/25 bg-slate-950/55 p-3 shadow-2xl backdrop-blur-md sm:block lg:left-7 lg:top-7">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-300">Agenda de hoje</p>
+          {[["08:00", "Losartana 50 mg", true], ["10:30", "Água · 250 ml", true], ["12:30", "Almoço", false]].map(([time, name, done]) => (
+            <div key={String(time)} className="mt-1.5 flex items-center gap-2 rounded-xl bg-white/10 px-2.5 py-1.5 text-xs"><span className="font-mono font-bold text-white/70">{time}</span><span className="flex-1 truncate font-semibold">{name}</span>{done ? <CheckCircle2 size={14} className="text-emerald-300" /> : <i className="size-3 rounded-full border-2 border-amber-300" />}</div>
+          ))}
+        </div>
+        <div aria-hidden="true" className="nv-float absolute right-5 top-32 hidden items-center gap-2.5 rounded-2xl border border-emerald-300/40 bg-emerald-500/25 px-3 py-2 text-white shadow-2xl backdrop-blur-md sm:flex lg:right-7 lg:top-40" style={{ animationDelay: "-3s" }}>
+          <span className="grid size-8 place-items-center rounded-xl bg-emerald-400 text-slate-950"><ShieldCheck size={16} /></span>
+          <div><p className="text-sm font-extrabold leading-tight">Meta atingida!</p><p className="text-[11px] text-emerald-100">5 de 6 metas hoje</p></div>
+        </div>
         <p className="text-xs font-bold uppercase tracking-[.14em] text-white/70">NextVita</p>
         <h1 className="mt-1 text-2xl font-extrabold leading-tight sm:text-3xl">
           Seu bem-estar organizado, todos os dias.
@@ -398,7 +410,7 @@ function Entrar() {
           </li>
         </ul>
       </aside>
-      <section className="min-h-0 max-h-full overflow-hidden rounded-2xl border border-border bg-card shadow-pop">
+      <section className="flex min-h-0 flex-col justify-center overflow-hidden rounded-2xl border border-border bg-card shadow-pop">
         <div className="flex items-center gap-3 border-b border-border px-4 py-2.5 sm:px-5">
           <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
             <LockKeyhole size={21} />
@@ -763,6 +775,6 @@ function Entrar() {
           </div>
         </div>
       </section>
-    </main>
+    </FitPage>
   );
 }

@@ -265,12 +265,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         {...(item.hash ? { hash: item.hash } : {})}
         activeOptions={{ exact: true, includeHash: true }}
         aria-current={active ? "page" : undefined}
-        className={`flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-[13px] font-medium transition-colors ${active ? `${theme?.pill ?? "bg-primary"} text-white shadow-sm` : "text-slate-300 hover:bg-white/10 hover:text-white"}`}
+        className={`group relative flex h-10 items-center gap-3 rounded-xl px-2.5 text-[13px] font-semibold transition-all ${active ? `${theme?.pill ?? "bg-primary"} text-white shadow-lg ring-1 ring-white/20` : "text-slate-300 hover:translate-x-0.5 hover:bg-white/[.07] hover:text-white"}`}
       >
         <span
-          className={`grid size-6 shrink-0 place-items-center rounded-md ${active ? "bg-white/20" : theme ? theme.pill + " text-white opacity-90" : ""}`}
+          className={`grid size-7 shrink-0 place-items-center rounded-lg transition ${active ? "bg-white/25" : theme ? theme.pill + " text-white opacity-90 group-hover:opacity-100" : "bg-white/10"}`}
         >
-          <Icon size={14} strokeWidth={2.2} />
+          <Icon size={15} strokeWidth={2.2} />
         </span>
         <span className="truncate">{item.label}</span>
       </Link>
@@ -279,13 +279,13 @@ export function AppShell({ children }: { children: ReactNode }) {
   const sidebarBody = (
     <>
       <nav
-        className="min-h-0 flex-1 space-y-4 overflow-y-auto px-3 py-3"
+        className="min-h-0 flex-1 space-y-5 overflow-y-auto px-3 py-4"
         aria-label="Navegação principal"
       >
         {groups.map((group) => (
           <div key={group.title}>
-            <p className="px-2.5 pb-1.5 text-[10px] font-bold uppercase tracking-[.1em] text-slate-500">
-              {group.title}
+            <p className="flex items-center gap-2 px-2.5 pb-2 text-[10px] font-bold uppercase tracking-[.16em] text-slate-500">
+              {group.title}<i className="h-px flex-1 bg-white/10" />
             </p>
             <div className="grid gap-0.5">{group.items.map(sideLink)}</div>
           </div>

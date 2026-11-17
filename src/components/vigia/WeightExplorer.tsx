@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Area, Brush, CartesianGrid, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { CalendarClock, Flag, MousePointerClick, TrendingDown, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { DayDetailDialog } from "./DayDetailDialog";
 
 type Point = { day: string; weight: number; bmi: number; avg: number };
 const nf = (v: number, d = 1) => v.toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -30,6 +31,7 @@ export function WeightExplorer({ patientId, ownerId, revision = 0 }: { patientId
   const [target, setTarget] = useState<number | null>(null);
   const [show, setShow] = useState({ weight: true, avg: true, bmi: false });
   const [picked, setPicked] = useState<string | null>(null);
+  const [detail, setDetail] = useState<string | null>(null);
   useEffect(() => {
     let active = true;
     const db = supabase as any;
@@ -87,7 +89,8 @@ export function WeightExplorer({ patientId, ownerId, revision = 0 }: { patientId
           <p className="mt-1 font-bold">{focus ? long(focus.day) : "—"}</p>
           <p className="mt-2 text-4xl font-extrabold tabular-nums leading-none">{focus ? nf(focus.weight) : "—"}<span className="ml-1 text-base font-semibold text-white/80">kg</span></p>
           {focus && <p className="mt-2 text-sm text-white/90">IMC {nf(focus.bmi)}{prev ? ` · ${focus.weight - prev.weight > 0 ? "+" : ""}${nf(focus.weight - prev.weight)} kg desde ${short(prev.day)}` : ""}</p>}
-          {picked && <button type="button" onClick={() => setPicked(null)} className="mt-3 h-9 w-full rounded-xl bg-white/20 text-sm font-bold hover:bg-white/30">Voltar ao último</button>}
+          <button type="button" onClick={() => setDetail((picked ?? points[points.length - 1]?.day) || null)} className="mt-3 h-10 w-full rounded-xl bg-white text-sm font-extrabold text-slate-900 shadow hover:bg-white/90">Ver dia completo</button>
+          {picked && <button type="button" onClick={() => setPicked(null)} className="mt-2 h-9 w-full rounded-xl bg-white/20 text-sm font-bold hover:bg-white/30">Voltar ao último</button>}
         </div>
         <div className="rounded-2xl bg-muted/50 p-4">
           <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">{trend !== null && trend < 0 ? <TrendingDown size={14} className="text-emerald-500"/> : <TrendingUp size={14} className="text-orange-500"/>} Ritmo atual</p>
@@ -103,5 +106,6 @@ export function WeightExplorer({ patientId, ownerId, revision = 0 }: { patientId
         </div>
       </aside>
     </div>
+    <DayDetailDialog patientId={patientId} ownerId={ownerId} day={detail} onClose={() => setDetail(null)} />
   </section>;
 }
