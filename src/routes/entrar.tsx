@@ -1,4 +1,5 @@
 import { FitPage } from "@/components/vigia/FitPage";
+import { endOtherSessions } from "@/components/vigia/SessionGuard";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent, type InputHTMLAttributes } from "react";
 import {
@@ -74,6 +75,11 @@ function Entrar() {
   const [resendBusy, setResendBusy] = useState(false);
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
+  // Aparelho desconectado porque a conta entrou em outro dispositivo.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("reason") === "other-device")
+      setNotice({ type: "error", message: "Sua conta foi conectada em outro dispositivo e esta sessão foi encerrada. Por segurança, só um dispositivo fica conectado por vez. Entre novamente para continuar aqui." });
+  }, []);
   const configurationIssue = getSupabaseConfigurationIssue();
 
   useEffect(() => {
@@ -157,6 +163,8 @@ function Entrar() {
         });
         return;
       }
+      // Sessão única: este login passa a ser o único ativo da conta.
+      await endOtherSessions();
       if (data.user.user_metadata?.nextvita_signup) await bootstrapPublicSignup(data.user);
       await openAuthenticatedArea(data.user.id, data.user.email ?? "");
     } catch (error: any) {

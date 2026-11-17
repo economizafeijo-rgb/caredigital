@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
+import { MANUAL_SIGNOUT_KEY } from "./SessionGuard";
 import {
   Activity,
   Apple,
@@ -200,9 +201,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   async function signOut() {
     if (signingOut) return;
     setSigningOut(true);
+    try { window.sessionStorage.setItem(MANUAL_SIGNOUT_KEY, "1"); } catch { /* sem armazenamento */ }
     const { error } = await supabase.auth.signOut();
     setSigningOut(false);
     if (error) {
+      try { window.sessionStorage.removeItem(MANUAL_SIGNOUT_KEY); } catch { /* sem armazenamento */ }
       setShellError("Não foi possível sair. Tente novamente.");
       return;
     }
@@ -420,6 +423,19 @@ export function AppShell({ children }: { children: ReactNode }) {
                   ))}
                 <InstallAppButton />
                 {tools}
+                {signedIn && (
+                  <button
+                    type="button"
+                    onClick={() => void signOut()}
+                    disabled={signingOut}
+                    aria-label="Sair da conta"
+                    title="Sair da conta"
+                    className="inline-flex h-9 items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 text-sm font-semibold text-destructive transition hover:bg-destructive/20 disabled:opacity-50"
+                  >
+                    <LogOut size={16} />
+                    <span className="hidden sm:inline">{signingOut ? "Saindo…" : "Sair"}</span>
+                  </button>
+                )}
                 {!signedIn && access.status !== "loading" && loginButton}
                 {!signedIn && (
                   <button
