@@ -34,14 +34,32 @@ export function fmtClock(d: Date | null) {
   return `${time} · ${date}`;
 }
 
-type Variant = "dark" | "primary" | "ghost" | "glass" | "danger";
+type Variant = "dark" | "primary" | "ghost" | "glass" | "danger" | "light";
 const variants: Record<Variant, string> = {
   dark: "bg-primary text-primary-foreground shadow-sm hover:brightness-110",
   primary: "bg-primary text-primary-foreground shadow-sm hover:brightness-110",
   ghost: "border border-border bg-surface text-foreground hover:border-primary/40 hover:bg-accent",
-  glass: "bg-primary-foreground/10 text-primary-foreground ring-1 ring-primary-foreground/15 hover:bg-primary-foreground/15",
+  glass: "border border-white/30 bg-white/10 font-bold text-white backdrop-blur hover:bg-white/20",
   danger: "bg-destructive/10 text-destructive hover:bg-destructive/15",
+  light: "bg-white font-extrabold text-slate-900 shadow-lg hover:-translate-y-0.5",
 };
+
+export function btnClass(variant: Variant = "dark", size: "sm" | "lg" = "sm", className?: string) {
+  return cn(
+    "inline-flex items-center justify-center gap-2 font-semibold transition-colors disabled:opacity-50",
+    size === "sm"
+      ? "min-h-10 rounded-lg px-3 py-2 text-sm"
+      : "min-h-11 rounded-xl px-5 py-3 text-sm",
+    variants[variant],
+    className,
+  );
+}
+
+/** Shared surface with Panel: card, border and shadow. */
+export const cardClass = "panel rounded-3xl";
+export const tileClass = "panel rounded-2xl";
+/** Same surface without Panel padding, for media that must bleed to the edge. */
+export const cardFrame = "rounded-3xl border border-border bg-card shadow-card";
 
 export function Btn({
   variant = "dark",
@@ -49,19 +67,7 @@ export function Btn({
   className,
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: "sm" | "lg" }) {
-  return (
-    <button
-      {...props}
-      className={cn(
-        "inline-flex items-center justify-center gap-2 font-semibold transition-colors disabled:opacity-50",
-        size === "sm"
-          ? "min-h-10 rounded-lg px-3 py-2 text-sm"
-          : "min-h-11 rounded-xl px-5 py-3 text-sm",
-        variants[variant],
-        className,
-      )}
-    />
-  );
+  return <button {...props} className={btnClass(variant, size, className)} />;
 }
 
 const tones = {

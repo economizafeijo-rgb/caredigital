@@ -22,11 +22,23 @@ export function DialogProvider({ children }: { children: ReactNode }) {
   const [request, setRequest] = useState<DialogRequest | null>(null);
   const confirm = (title: string, message: string, danger = false) =>
     new Promise<boolean>((resolve) =>
-      setRequest({ kind: "confirm", title, message, danger, resolve }),
+      setRequest({
+        kind: "confirm",
+        title,
+        message,
+        danger,
+        resolve: (value) => resolve(Boolean(value)),
+      }),
     );
   const prompt = (title: string, message: string, placeholder = "") =>
     new Promise<string | null>((resolve) =>
-      setRequest({ kind: "prompt", title, message, placeholder, resolve }),
+      setRequest({
+        kind: "prompt",
+        title,
+        message,
+        placeholder,
+        resolve: (value) => resolve(typeof value === "string" ? value : null),
+      }),
     );
   const close = (value: boolean | string | null) => {
     request?.resolve(value);
