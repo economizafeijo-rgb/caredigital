@@ -34,11 +34,11 @@ import {
 } from "@/lib/public-signup-validation";
 
 export const Route = createFileRoute("/entrar")({
-  head: () => ({ meta: [{ title: "Entrar ou grátis para teste — NextVita" }] }),
+  head: () => ({ meta: [{ title: "Entrar ou criar conta grátis — NextVita" }] }),
   component: Entrar,
 });
 
-type Mode = "login" | "signup" | "forgot" | "reset";
+type Mode = "login" | "signup" | "vendor" | "forgot" | "reset";
 type Notice = { type: "error" | "success"; message: string } | null;
 
 function authErrorMessage(error: { message?: string; code?: string; status?: number }): string {
@@ -104,6 +104,7 @@ function Entrar() {
     } else if (window.location.hash.includes("type=recovery") || params.get("type") === "recovery")
       setMode("reset");
     else if (params.get("mode") === "signup") setMode("signup");
+    else if (params.get("mode") === "lojista") setMode("vendor");
     return () => subscription.unsubscribe();
   }, []);
 
@@ -121,6 +122,12 @@ function Entrar() {
         return;
       }
     } catch { /* sem armazenamento */ }
+    // Conta criada pelo cadastro de lojista vai direto para o painel da loja.
+    const { data: current } = await supabase.auth.getUser();
+    if (current.user?.user_metadata?.account_type === "vendor") {
+      await navigate({ to: "/lojista" });
+      return;
+    }
     const { data: grants, error } = await (supabase as any)
       .from("care_patient_access")
       .select("patient_id")
@@ -209,6 +216,53 @@ function Entrar() {
       });
     } finally {
       setResendBusy(false);
+    }
+  }
+
+  async function handleVendorSignup(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (busy || configurationIssue) return;
+    setNotice(null);
+    const normalizedPhone = normalizeBrazilPhone(phone);
+    if (fullName.trim().length < 3)
+      return setNotice({ type: "error", message: "Informe o seu nome." });
+    if (!isValidBrazilPhone(normalizedPhone))
+      return setNotice({ type: "error", message: "Informe um WhatsApp brasileiro válido com DDD." });
+    if (password.length < 8)
+      return setNotice({ type: "error", message: "Use uma senha com pelo menos 8 caracteres." });
+    if (password !== confirmPassword)
+      return setNotice({ type: "error", message: "As senhas informadas não são iguais." });
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim().toLowerCase(),
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/entrar?confirmed=1`,
+          data: { account_type: "vendor", display_name: fullName.trim(), phone: normalizedPhone },
+        },
+      });
+      if (error) {
+        setNotice({ type: "error", message: authErrorMessage(error) });
+        return;
+      }
+      if (data.user && data.session) {
+        await openAuthenticatedArea(data.user.id, data.user.email ?? email);
+        return;
+      }
+      setMode("login");
+      setNeedsConfirmation(true);
+      setPassword("");
+      setConfirmPassword("");
+      setNotice({
+        type: "success",
+        message:
+          "Conta de lojista criada. Enviamos um link de confirmação para o seu e-mail. Confirme e entre para cadastrar a sua loja.",
+      });
+    } catch {
+      setNotice({ type: "error", message: "Não foi possível concluir o cadastro. Tente novamente." });
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -370,8 +424,10 @@ function Entrar() {
     mode === "login"
       ? "Acesse seu acompanhamento"
       : mode === "signup"
-        ? "Comece grátis para teste"
-        : mode === "forgot"
+        ? "Crie sua conta grátis"
+        : mode === "vendor"
+          ? "Cadastro de lojista"
+          : mode === "forgot"
           ? "Recuperar acesso"
           : "Criar nova senha";
   const field = "field mt-1.5";
@@ -445,7 +501,9 @@ function Entrar() {
               ? "Entre com o e-mail e a senha cadastrados."
               : mode === "signup"
                 ? "Preencha seus dados e use o NextVita completo, gratuitamente e sem prazo de validade."
-                : mode === "forgot"
+                : mode === "vendor"
+                  ? "Crie a sua conta de lojista em poucos segundos. Depois você cadastra a loja e os produtos. É grátis."
+                  : mode === "forgot"
                   ? "Informe o e-mail da conta para solicitar um link seguro de recuperação."
                   : "Defina uma senha nova e segura para sua conta."}
           </p>
@@ -548,7 +606,7 @@ function Entrar() {
                 }}
                 className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-primary/25 bg-primary/5 px-4 text-sm font-bold text-primary transition hover:bg-primary/10"
               >
-                <UserPlus size={17} /> Grátis para teste
+                <UserPlus size={17} /> Criar conta grátis
               </button>
             </form>
           )}
@@ -682,7 +740,7 @@ function Entrar() {
                 disabled={busy || !!configurationIssue}
                 className="flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:opacity-50 sm:col-span-2"
               >
-                {busy ? "Criando sua conta…" : "Começar grátis para teste"}
+                {busy ? "Criando sua conta…" : "Criar minha conta grátis"}
               </button>
               <button
                 type="button"
@@ -692,6 +750,40 @@ function Entrar() {
                 }}
                 className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline sm:col-span-2"
               >
+                <ArrowLeft size={14} /> Já tenho uma conta
+              </button>
+            </form>
+          )}
+
+          {mode === "vendor" && (
+            <form className="grid gap-2 sm:grid-cols-2" onSubmit={(event) => void handleVendorSignup(event)}>
+              <label className="block text-xs font-bold text-foreground sm:col-span-2">
+                Seu nome
+                {iconField(User, { type: "text", autoComplete: "name", required: true, value: fullName, onChange: (e) => setFullName(e.target.value), placeholder: "Nome do responsável", disabled: busy })}
+              </label>
+              <label className="block text-xs font-bold text-foreground">
+                E-mail
+                {iconField(Mail, { type: "email", autoComplete: "email", required: true, value: email, onChange: (e) => setEmail(e.target.value), placeholder: "seuemail@exemplo.com", disabled: busy })}
+              </label>
+              <label className="block text-xs font-bold text-foreground">
+                WhatsApp
+                {iconField(Phone, { type: "tel", inputMode: "tel", autoComplete: "tel", required: true, value: formatBrazilPhone(phone), onChange: (e) => setPhone(e.target.value), placeholder: "(68) 99999-9999", disabled: busy })}
+              </label>
+              <label className="block text-xs font-bold text-foreground">
+                Senha
+                {iconField(KeyRound, { type: "password", autoComplete: "new-password", minLength: 8, required: true, value: password, onChange: (e) => setPassword(e.target.value), disabled: busy })}
+              </label>
+              <label className="block text-xs font-bold text-foreground">
+                Confirmar senha
+                {iconField(KeyRound, { type: "password", autoComplete: "new-password", minLength: 8, required: true, value: confirmPassword, onChange: (e) => setConfirmPassword(e.target.value), disabled: busy })}
+              </label>
+              <p className="text-[11px] leading-relaxed text-muted-foreground sm:col-span-2">
+                Sem CPF, peso ou altura: aqui só pedimos o necessário para abrir a sua loja. O e-mail é confirmado antes do primeiro acesso.
+              </p>
+              <button type="submit" disabled={busy || !!configurationIssue} className="flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:opacity-50 sm:col-span-2">
+                {busy ? "Criando sua conta…" : "Criar conta de lojista"}
+              </button>
+              <button type="button" onClick={() => { setMode("login"); setNotice(null); }} className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline sm:col-span-2">
                 <ArrowLeft size={14} /> Já tenho uma conta
               </button>
             </form>
