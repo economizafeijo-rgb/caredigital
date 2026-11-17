@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ClientQuickIntake } from "./ClientQuickIntake";
+import { HydrationEntries } from "./HydrationEntries";
 import { WATER_LAST_RECOMMENDED_HOUR } from "@/lib/nutrition-science";
 import { CareTaskRecordModal } from "./CareTaskRecordModal";
 import {
@@ -744,45 +745,7 @@ export function ClientHydrationTab({
           </div>
         ))}
       </div>
-      {drinks.length > 0 && (
-        <section
-          className="rounded-xl border border-border bg-card/70 p-3"
-          aria-label="Gráfico de consumo de água"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[.14em] text-primary">
-                Acompanhamento
-              </p>
-              <h4 className="text-sm font-bold">Consumo de hoje</h4>
-            </div>
-            <span className="text-[11px] font-semibold text-muted-foreground">
-              {drinks.length} registros
-            </span>
-          </div>
-          <div
-            className="mt-3 flex h-24 items-end gap-1.5"
-            role="img"
-            aria-label="Barras de consumo de água por registro"
-          >
-            {drinks.slice(-12).map((drink) => {
-              const max = Math.max(...drinks.map((item) => item.amount_ml), 1);
-              return (
-                <div key={drink.id} className="flex min-w-0 flex-1 flex-col items-center gap-1">
-                  <div
-                    className="w-full rounded-t-md bg-gradient-to-t from-cyan-600 to-cyan-300 transition-[height]"
-                    style={{ height: `${Math.max(12, (drink.amount_ml / max) * 76)}px` }}
-                    title={`${drink.amount_ml} ml às ${time(drink.recorded_at)}`}
-                  />
-                  <span className="truncate text-[9px] text-muted-foreground">
-                    {time(drink.recorded_at)}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
+      <HydrationEntries patientId={patientId} water={drinks} beverages={otherDrinks} goal={goal} onChanged={() => setReload((v) => v + 1)} />
       {nextHydrationAt && nextHydrationAt <= cutoffUtc && remaining > 0 && !dayClosed && (
         <p
           aria-live="off"

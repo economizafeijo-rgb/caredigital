@@ -99,7 +99,7 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
     void Promise.all([
       db.from("care_body_measurements").select("id,recorded_on,weight_kg,height_cm")
         .eq("patient_id", patientId).eq("owner_id", ownerId).order("recorded_on", { ascending: true }).limit(730),
-      db.from("care_nutrition_preferences").select("target_weight_kg")
+      db.from("care_nutrition_preferences").select("*")
         .eq("patient_id", patientId).eq("owner_id", ownerId).maybeSingle(),
     ]).then(([rows, prefs]: any[]) => {
       if (!active) return;
@@ -107,6 +107,14 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
       else {
         setUnavailable(false);
         const list = (rows.data ?? []).map((row: Point) => ({ ...row, weight_kg: Number(row.weight_kg), height_cm: Number(row.height_cm) }));
+        // O peso informado no primeiro cadastro fica no perfil; entra no histórico como ponto inicial para ser contabilizado.
+        const initialKg = Number(prefs.data?.weight_kg);
+        const createdIso = prefs.data?.created_at ?? prefs.data?.updated_at;
+        const knownHeight = Number(heightCm) || list.find((row: Point) => row.height_cm > 0)?.height_cm || 0;
+        if (Number.isFinite(initialKg) && initialKg >= 20 && initialKg <= 350 && createdIso && knownHeight > 0) {
+          const day = acreDateKey(createdIso);
+          if (!list.some((row: Point) => row.recorded_on <= day)) list.unshift({ id: "initial", recorded_on: day, weight_kg: initialKg, height_cm: knownHeight });
+        }
         setPoints(list);
         const lastHeight = list.at(-1)?.height_cm;
         if (!heightCm && lastHeight) setHeight(previous => previous || String(lastHeight));
@@ -352,16 +360,16 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
                   </tr>;
                 }
                 return <tr key={point.id} className={`border-t border-border ${highlightId === point.id ? "bg-fuchsia-500/10 ring-1 ring-fuchsia-500/40" : ""}`}>
-                  <td className="py-1.5"><span className="inline-flex items-center gap-1">{!unlocked && <Lock size={11} aria-hidden="true" className="text-muted-foreground"/>}{label}</span></td>
+                  <td className="py-1.5"><span className="inline-flex items-center gap-1">{!unlocked && <Lock size={11} aria-hidden="true" className="text-muted-foreground"/>}{label}{point.id === "initial" && <span className="rounded-full bg-sky-500/15 px-1.5 py-0.5 text-[10px] font-bold text-sky-700 dark:text-sky-300">1º cadastro</span>}</span></td>
                   <td className="font-semibold tabular-nums">{nf(point.weight_kg)} kg</td>
                   <td className={`tabular-nums ${diff === null ? "text-muted-foreground" : diff <= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-orange-600 dark:text-orange-400"}`}>{diff === null ? "—" : `${diff > 0 ? "+" : ""}${nf(diff)}`}</td>
                   <td><span className="rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-white" style={{ background: bmiCategory(pointBmi).color }}>{nf(pointBmi)}</span></td>
                   <td className="text-right">
                     <span className="inline-flex gap-1">
-                      <button type="button" disabled={!unlocked || busy} aria-label={`Editar registro de ${label}`} title={unlocked ? "Editar" : "Bloqueado: libere a edição com o cadeado"}
+                      <button type="button" disabled={!unlocked || busy || point.id === "initial"} aria-label={`Editar registro de ${label}`} title={unlocked ? "Editar" : "Bloqueado: libere a edição com o cadeado"}
                         onClick={() => setEditing({ id: point.id, weight: String(point.weight_kg).replace(".", ","), height: String(point.height_cm).replace(".", ",") })}
                         className="grid size-8 place-items-center rounded-lg border border-border text-foreground transition enabled:hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"><Pencil size={14}/></button>
-                      <button type="button" disabled={!unlocked || busy} aria-label={`Excluir registro de ${label}`} title={unlocked ? "Excluir" : "Bloqueado: libere a edição com o cadeado"}
+                      <button type="button" disabled={!unlocked || busy || point.id === "initial"} aria-label={`Excluir registro de ${label}`} title={unlocked ? "Excluir" : "Bloqueado: libere a edição com o cadeado"}
                         onClick={() => void removePoint(point)}
                         className="grid size-8 place-items-center rounded-lg border border-border text-destructive transition enabled:hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-40"><Trash2 size={14}/></button>
                     </span>
