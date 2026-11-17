@@ -36,7 +36,7 @@ type Task = {
   scheduled_at: string;
   completed_at: string | null;
 };
-type Drink = { id: string; amount_ml: number; recorded_at: string };
+type Drink = { id: string; amount_ml: number; recorded_at: string; kind?: string; name?: string };
 type Response = { task_id: string; recorded_at: string };
 type Profile = {
   sex: "male" | "female" | "unspecified";
@@ -194,7 +194,7 @@ export function ClientHydrationTab({
           .limit(120),
         db
           .from("care_client_beverages")
-          .select("id,amount_ml,consumed_at")
+          .select("id,kind,name,amount_ml,consumed_at")
           .eq("patient_id", patientId)
           .eq("owner_id", ownerId)
           .gte("consumed_at", start.toISOString())
@@ -221,10 +221,12 @@ export function ClientHydrationTab({
         beverages.error
           ? []
           : (beverages.data ?? []).map(
-              (row: { id: string; amount_ml: number; consumed_at: string }) => ({
+              (row: { id: string; kind: string; name: string; amount_ml: number; consumed_at: string }) => ({
                 id: row.id,
                 amount_ml: row.amount_ml,
                 recorded_at: row.consumed_at,
+                kind: row.kind,
+                name: row.name,
               }),
             ),
       );
