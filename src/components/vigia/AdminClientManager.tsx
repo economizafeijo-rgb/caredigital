@@ -904,6 +904,7 @@ export function LicenseKeyPanel({
   const [fresh, setFresh] = useState<string[]>([]);
   const [msg, setMsg] = useState("");
   const [reload, setReload] = useState(0);
+  const { confirm } = useDialog();
   useEffect(() => {
     void db
       .from("care_license_keys")
