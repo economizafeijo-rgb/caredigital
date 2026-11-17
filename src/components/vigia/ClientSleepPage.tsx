@@ -4,6 +4,7 @@ import { AlarmClock, BedDouble, Bluetooth, BluetoothOff, HeartPulse, Lightbulb, 
 import { supabase } from "@/integrations/supabase/client";
 import { DayDetailDialog } from "./DayDetailDialog";
 import { acreDateKey } from "@/lib/acre-time";
+import { useDialog } from "@/lib/dialog";
 
 export type SleepLog = { id: string; sleep_date: string; bed_at: string; wake_at: string; quality: number; awakenings: number; avg_hr: number | null; min_hr: number | null; source: string; notes: string | null };
 const GOAL_HOURS = 8;
@@ -50,6 +51,7 @@ function ScoreRing({ score }: { score: number }) {
 }
 
 export function ClientSleepPage({ patientId, ownerId }: { patientId: string; ownerId: string }) {
+  const dialog = useDialog();
   const [logs, setLogs] = useState<SleepLog[]>([]);
   const [remote, setRemote] = useState(true);
   const [loaded, setLoaded] = useState(false);
@@ -136,7 +138,7 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
     setSensorHr(null); setNotes(""); setReload(v => v + 1);
   }
   async function remove(log: SleepLog) {
-    if (!window.confirm(`Excluir o registro de sono de ${short(log.sleep_date)}?`)) return;
+    if (!(await dialog.confirm("Excluir registro de sono?", `O registro de ${short(log.sleep_date)} será removido definitivamente.`, true))) return;
     if (remote) await db.from("care_sleep_logs").delete().eq("id", log.id);
     else try { localStorage.setItem(localKey(patientId), JSON.stringify(logs.filter(l => l.id !== log.id))); } catch { /* ok */ }
     setSelected(null); setReload(v => v + 1);

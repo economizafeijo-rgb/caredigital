@@ -6,11 +6,12 @@ type DialogRequest = {
   title: string;
   message: string;
   danger?: boolean;
+  confirmLabel?: string;
   placeholder?: string;
   resolve: (value: boolean | string | null) => void;
 };
 const DialogContext = createContext<{
-  confirm: (title: string, message: string, danger?: boolean) => Promise<boolean>;
+  confirm: (title: string, message: string, danger?: boolean, confirmLabel?: string) => Promise<boolean>;
   prompt: (title: string, message: string, placeholder?: string) => Promise<string | null>;
 } | null>(null);
 export function useDialog() {
@@ -20,13 +21,14 @@ export function useDialog() {
 }
 export function DialogProvider({ children }: { children: ReactNode }) {
   const [request, setRequest] = useState<DialogRequest | null>(null);
-  const confirm = (title: string, message: string, danger = false) =>
+  const confirm = (title: string, message: string, danger = false, confirmLabel?: string) =>
     new Promise<boolean>((resolve) =>
       setRequest({
         kind: "confirm",
         title,
         message,
         danger,
+        confirmLabel,
         resolve: (value) => resolve(Boolean(value)),
       }),
     );
@@ -117,7 +119,7 @@ function DialogOverlay({
               onClick={() => close(request.kind === "confirm" ? true : value)}
               className={`rounded-xl px-4 py-2.5 text-sm font-bold text-white ${request.danger ? "bg-destructive" : "bg-primary"}`}
             >
-              {request.kind === "prompt" ? "Confirmar" : request.danger ? "Excluir" : "Continuar"}
+              {request.confirmLabel ?? (request.kind === "prompt" ? "Confirmar" : request.danger ? "Excluir" : "Continuar")}
             </button>
           </div>
         </div>

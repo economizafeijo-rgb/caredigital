@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { CalendarCheck2, History, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useDialog } from "@/lib/dialog";
 
 /** Permite ao paciente confirmar, de uma vez, doses passadas que esqueceu de registrar. */
 export function MissedDoseRegularizer({ patientId, onDone }: { patientId: string; onDone: () => void }) {
+  const dialog = useDialog();
   const [since, setSince] = useState("");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
   async function run() {
     if (busy) return;
-    if (!window.confirm("Confirmar todas as doses passadas sem registro como tomadas no horário programado? Use apenas se você realmente tomou essas doses.")) return;
+    if (!(await dialog.confirm("Confirmar doses passadas?", "As doses vencidas sem registro serão marcadas como tomadas no horário programado e identificadas como retroativas. Use apenas se você realmente tomou essas doses.", false, "Sim, tomei"))) return;
     setBusy(true); setResult(null);
     const { data, error } = await (supabase as any).rpc("care_confirm_missed_medication", { p_patient_id: patientId, p_since: since || null });
     setBusy(false);

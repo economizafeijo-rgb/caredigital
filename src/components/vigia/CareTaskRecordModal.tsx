@@ -488,7 +488,7 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
         aria-modal="true"
         aria-labelledby="care-task-record-title"
         data-care-type={task.category}
-        className="care-record-modal-dialog care-detail-dialog-v4 flex w-full max-w-[680px] flex-col overflow-hidden rounded-[20px] border border-border/70 bg-card text-card-foreground shadow-[0_28px_100px_rgba(0,0,0,.35)]"
+        className="care-record-modal-dialog care-detail-dialog-v4 flex max-h-[94dvh] w-full max-w-[680px] flex-col overflow-hidden rounded-[20px] border border-border/70 bg-card text-card-foreground shadow-[0_28px_100px_rgba(0,0,0,.35)]"
       >
         <header className="care-detail-header shrink-0 border-b border-border px-4 py-4 sm:px-5">
           <div className="flex items-start justify-between gap-4">

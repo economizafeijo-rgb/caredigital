@@ -1,6 +1,7 @@
 import { useEffect,useMemo,useRef,useState } from "react";
 import { AlertTriangle,Calculator,CheckCircle2,ChevronLeft,ChevronRight,ClipboardCheck,Droplets,RefreshCw,Search,Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useDialog } from "@/lib/dialog";
 import { foodMacroLabels,gramsForMacro,ingredients,portionNutrition,proteinRange,
   type FoodMacro,type Goal,type Ingredient } from "@/lib/nutrition-catalog";
 
@@ -25,6 +26,7 @@ const groups=[{id:"todos",label:"Todos"},{id:"frutas",label:"Frutas"},{id:"cerea
  {id:"proteinas",label:"Proteínas"},{id:"legumes",label:"Verduras"},{id:"bebidas",label:"Bebidas"}] as const;
 
 export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,avoided,targets,onTargetsChange,onLogged}:Props){
+ const dialog=useDialog();
  const [foods,setFoods]=useState<Ingredient[]>(ingredients);
  const [logs,setLogs]=useState<FoodLog[]>([]);
  const [sourceError,setSourceError]=useState("");
@@ -188,7 +190,7 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
   setNotice("Refeição carregada. Ajuste as porções e confirme para substituir o registro anterior.");
  }
  async function deleteMeal(group:{id:string;name:string}){
-  if(saving||!window.confirm("Excluir a refeição "+group.name+" e todos os seus alimentos?"))return;
+  if(saving||!(await dialog.confirm("Excluir refeição?","A refeição "+group.name+" e todos os seus alimentos serão removidos definitivamente.",true)))return;
   setSaving(true);
   const result=await (supabase as any).rpc("care_delete_food_meal",{p_group_id:group.id,p_verified:true});
   setSaving(false);
