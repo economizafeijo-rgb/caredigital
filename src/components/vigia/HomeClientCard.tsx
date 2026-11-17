@@ -977,15 +977,22 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 [&_button]:!border-white/25 [&_button]:!bg-white/15 [&_button]:!text-white [&_button]:backdrop-blur hover:[&_button]:!bg-white/25">
-              <ClientQuickIntake
-                patientId={client.id}
-                mode="water"
-                onRecorded={() => setTick((value) => value + 1)}
-              />
-              <ClientQuickIntake
-                patientId={client.id}
-                onRecorded={() => setTick((value) => value + 1)}
-              />
+              {/* Cada área mostra só o registro da sua área, direto no formulário certo (sem painel de escolha).
+                  Hidratação e Alimentação já têm o próprio botão dentro da página; as demais áreas têm o formulário próprio. */}
+              {activeTab === "hoje" && (
+                <ClientQuickIntake
+                  patientId={client.id}
+                  mode="water"
+                  onRecorded={() => setTick((value) => value + 1)}
+                />
+              )}
+              {(activeTab === "hoje" || activeTab === "cardapios") && (
+                <ClientQuickIntake
+                  patientId={client.id}
+                  mode="food"
+                  onRecorded={() => setTick((value) => value + 1)}
+                />
+              )}
               <button
                 type="button"
                 onClick={() => setShowHealthProfile(true)}
