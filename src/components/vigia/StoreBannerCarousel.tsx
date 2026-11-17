@@ -47,21 +47,21 @@ export function StoreBannerCarousel({ className = "" }: { className?: string }) 
   }, [index, playing, go]);
 
   return (
-    <section role="region" aria-roledescription="carrossel" aria-label="Ofertas e novidades da loja NextVita" className={`group relative isolate overflow-hidden rounded-[2rem] bg-slate-950 text-white shadow-pop ${className}`}
+    <section role="region" aria-roledescription="carrossel" aria-label="Ofertas e novidades da loja NextVita" className={`group relative isolate overflow-hidden rounded-3xl bg-slate-950 text-white shadow-pop ${className}`}
       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onFocus={() => setHover(true)} onBlur={() => setHover(false)}
       onPointerDown={(e) => { startX.current = e.clientX; }}
       onPointerUp={(e) => { if (startX.current === null) return; const dx = e.clientX - startX.current; startX.current = null; if (Math.abs(dx) > 60) go(dx < 0 ? 1 : -1); }}>
-      <div className="relative min-h-[38rem] sm:min-h-[26rem] lg:min-h-[27rem]">
+      <div className="relative min-h-[35rem] sm:min-h-[26rem] lg:min-h-[27rem]">
         {slides.map((s, i) => {
           const active = i === index;
           return (
             <article key={s.id} role="group" aria-roledescription="slide" aria-label={`${i + 1} de ${slides.length}`} aria-hidden={!active} inert={!active}
               className={`absolute inset-0 bg-gradient-to-br ${s.tone} transition-[opacity,transform] duration-700 ${active ? "z-10 translate-x-0 opacity-100" : "pointer-events-none z-0 translate-x-6 opacity-0"}`}>
               <img src={s.images[0]} alt="" aria-hidden="true" loading={i === 0 ? "eager" : "lazy"} className={`nv-kenburns absolute inset-0 -z-10 size-full object-cover opacity-20 blur-[2px] ${active ? "" : "[animation:none]"}`} style={active ? { animation: `nv-kenburns ${DURATION * 1.6}ms ease-out forwards` } : undefined} />
-              <div className="grid h-full gap-4 p-5 pb-16 sm:grid-cols-[1.15fr_.85fr] sm:items-center sm:gap-6 sm:p-9 sm:pb-16 lg:p-11 lg:pb-16">
+              <div className="grid h-full gap-3 p-4 pb-14 sm:grid-cols-[1.15fr_.85fr] sm:items-center sm:gap-6 sm:p-9 sm:pb-16 lg:p-11 lg:pb-16">
                 <div className={`transition-all duration-700 delay-150 ${active ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"}`}>
                   <span className="inline-flex items-center gap-2 rounded-full bg-amber-300 px-3.5 py-1.5 text-[11px] font-extrabold uppercase tracking-[.16em] text-slate-950 shadow">{s.badge}</span>
-                  <h2 className="mt-3 text-balance font-display text-[1.7rem] font-extrabold leading-[1.08] tracking-tight sm:text-4xl lg:text-[2.6rem]">{s.title}</h2>
+                  <h2 className="mt-3 text-balance font-display text-[1.45rem] font-extrabold leading-[1.08] tracking-tight sm:text-4xl lg:text-[2.6rem]">{s.title}</h2>
                   <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/85 sm:text-base">{s.text}</p>
                   {s.chips && <ul className="mt-3 flex flex-wrap gap-2">{s.chips.map((c) => <li key={c} className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-bold backdrop-blur">{c}</li>)}</ul>}
                   <div className="mt-4 flex flex-wrap items-center gap-2.5">
