@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { NiceSelect } from "./NiceSelect";
 import {
   BookOpen, Check, CheckCircle2, Clock, Dumbbell, Fish, Flame, Leaf, Lightbulb, Moon, Pencil, Plus, ShieldCheck,
   Sparkles, Sun, Trash2, Undo2, UtensilsCrossed, X, Zap, type LucideIcon,
@@ -245,7 +246,7 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
           <label className="font-semibold">Nome<input value={editing.name ?? ""} onChange={e => setEditing({ ...editing, name: e.target.value })} className="mt-1 block h-11 w-full rounded-xl border border-border bg-surface px-3" placeholder="Ex.: Creatina"/></label>
           <div className="grid grid-cols-2 gap-3">
             <label className="font-semibold">Dose<input inputMode="decimal" value={editing.dose ?? ""} onChange={e => setEditing({ ...editing, dose: Number(e.target.value.replace(",", ".")) })} className="mt-1 block h-11 w-full rounded-xl border border-border bg-surface px-3"/></label>
-            <label className="font-semibold">Unidade<select value={editing.unit ?? "g"} onChange={e => setEditing({ ...editing, unit: e.target.value as Unit })} className="mt-1 block h-11 w-full rounded-xl border border-border bg-surface px-3">{units.map(u => <option key={u}>{u}</option>)}</select></label>
+            <label className="font-semibold">Unidade<NiceSelect className="mt-1 h-11" ariaLabel="Unidade" value={editing.unit ?? "g"} onChange={v => setEditing({ ...editing, unit: v as Unit })} options={units.map(u => ({ value: u, label: u }))}/></label>
           </div>
           <div><span className="font-semibold">Horários</span>
             <div className="mt-1 flex flex-wrap gap-2">

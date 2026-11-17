@@ -1,4 +1,5 @@
 import { LiveWorkoutVisual, type LivePoint } from "./LiveWorkoutVisual";
+import { NiceSelect } from "./NiceSelect";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity,
@@ -506,15 +507,17 @@ export function ClientActivityPage({
             </label>
             <label className="col-span-2 text-xs font-semibold">
               Intensidade
-              <select
+              <NiceSelect
+                className="mt-1"
+                ariaLabel="Intensidade"
                 value={intensity}
-                onChange={(e) => setIntensity(e.target.value)}
-                className="field mt-1 w-full"
-              >
-                <option value="leve">Leve</option>
-                <option value="moderada">Moderada</option>
-                <option value="intensa">Intensa</option>
-              </select>
+                onChange={setIntensity}
+                options={[
+                  { value: "leve", label: "Leve" },
+                  { value: "moderada", label: "Moderada" },
+                  { value: "intensa", label: "Intensa" },
+                ]}
+              />
             </label>
             <label className="col-span-2 text-xs font-semibold">
               Observações
@@ -558,18 +561,13 @@ export function ClientActivityPage({
             </div>
             <label className="flex items-center gap-1.5 text-xs">
               <Search size={14} />
-              <select
+              <NiceSelect
+                className="h-9 min-w-[9rem]"
+                ariaLabel="Filtrar atividades"
                 value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                className="field h-9"
-              >
-                <option value="todos">Todas</option>
-                {activityOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+                onChange={setFilter}
+                options={[{ value: "todos", label: "Todas" }, ...activityOptions.map((option) => ({ value: option.value, label: option.label }))]}
+              />
             </label>
           </div>
           <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { NiceSelect } from "./NiceSelect";
 import { AlertTriangle, BookOpen, Check, CheckCircle2, Clock, Pencil, Pill, Plus, Trash2, Undo2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { acreDateKey } from "@/lib/acre-time";
@@ -200,7 +201,7 @@ export function ClientMedicationManager({ patientId, ownerId }: { patientId: str
           <label>Nome<input className={field} value={draft.name ?? ""} onChange={e => setDraft({ ...draft, name: e.target.value })} placeholder="Ex.: Losartana"/></label>
           <div className="grid grid-cols-2 gap-3">
             <label>Dose<input className={field} value={draft.dose ?? ""} onChange={e => setDraft({ ...draft, dose: e.target.value })} placeholder="Ex.: 50 mg"/></label>
-            <label>Categoria<select className={field} value={draft.category ?? "outros"} onChange={e => setDraft({ ...draft, category: e.target.value })}>{medicationLibrary.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}<option value="outros">Outros</option></select></label>
+            <label>Categoria<NiceSelect className="mt-1 h-11" ariaLabel="Categoria" value={draft.category ?? "outros"} onChange={v => setDraft({ ...draft, category: v })} options={[...medicationLibrary.map(c => ({ value: c.key, label: c.label })), { value: "outros", label: "Outros" }]}/></label>
           </div>
           <div>Horários<div className="mt-1 flex flex-wrap gap-2">
             {(draft.times ?? []).map((t, i) => <span key={i} className="inline-flex items-center rounded-xl border border-border bg-surface pl-2">

@@ -41,6 +41,7 @@ import {
 } from "@/lib/client-pages";
 import { ClientBeverageTracker } from "./ClientBeverageTracker";
 import { ClientQuickIntake } from "./ClientQuickIntake";
+import { LiveModeButton } from "./LiveMode";
 import { QuickRegisterFab } from "./QuickRegisterFab";
 import { CareTaskRecordModal } from "./CareTaskRecordModal";
 import { CareReminderBeacon } from "./CareReminderBeacon";
@@ -995,6 +996,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                   onRecorded={() => setTick((value) => value + 1)}
                 />
               )}
+              <LiveModeButton patientId={client.id} ownerId={client.owner_id} heightCm={client.height_cm} name={patientName || client.full_name} />
               <button
                 type="button"
                 onClick={() => setShowHealthProfile(true)}

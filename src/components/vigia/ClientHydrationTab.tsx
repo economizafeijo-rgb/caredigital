@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { NiceSelect } from "./NiceSelect";
 import {
   Droplets,
   CheckCircle2,
@@ -604,15 +605,17 @@ export function ClientHydrationTab({
           <div className="grid grid-cols-2 gap-2">
             <label className="text-[11px]">
               Sexo para referência
-              <select
-                className="field mt-1"
+              <NiceSelect
+                className="mt-1"
+                ariaLabel="Sexo para referência"
                 value={profile.sex}
-                onChange={(e) => update({ sex: e.target.value as Profile["sex"] })}
-              >
-                <option value="unspecified">Prefiro não informar</option>
-                <option value="male">Masculino</option>
-                <option value="female">Feminino</option>
-              </select>
+                onChange={(v) => update({ sex: v as Profile["sex"] })}
+                options={[
+                  { value: "unspecified", label: "Prefiro não informar" },
+                  { value: "male", label: "Masculino" },
+                  { value: "female", label: "Feminino" },
+                ]}
+              />
             </label>
             <label className="text-[11px]">
               Idade (anos)
@@ -641,15 +644,17 @@ export function ClientHydrationTab({
             </label>
             <label className="text-[11px]">
               Objetivo
-              <select
-                className="field mt-1"
+              <NiceSelect
+                className="mt-1"
+                ariaLabel="Objetivo"
                 value={profile.objective}
-                onChange={(e) => update({ objective: e.target.value as Profile["objective"] })}
-              >
-                <option value="recovery">Hidratação e recuperação</option>
-                <option value="muscle">Ganho de massa muscular</option>
-                <option value="weight">Controle do peso</option>
-              </select>
+                onChange={(v) => update({ objective: v as Profile["objective"] })}
+                options={[
+                  { value: "recovery", label: "Hidratação e recuperação" },
+                  { value: "muscle", label: "Ganho de massa muscular" },
+                  { value: "weight", label: "Controle do peso" },
+                ]}
+              />
             </label>
             <label className="text-[11px]">
               Treino (min/dia)
@@ -664,15 +669,17 @@ export function ClientHydrationTab({
             </label>
             <label className="text-[11px]">
               Transpiração
-              <select
-                className="field mt-1"
+              <NiceSelect
+                className="mt-1"
+                ariaLabel="Transpiração"
                 value={profile.sweat}
-                onChange={(e) => update({ sweat: e.target.value as Profile["sweat"] })}
-              >
-                <option value="low">Pouca</option>
-                <option value="normal">Moderada</option>
-                <option value="high">Intensa</option>
-              </select>
+                onChange={(v) => update({ sweat: v as Profile["sweat"] })}
+                options={[
+                  { value: "low", label: "Pouca" },
+                  { value: "normal", label: "Moderada" },
+                  { value: "high", label: "Intensa" },
+                ]}
+              />
             </label>
             <label className="col-span-2 flex gap-2 rounded-lg border border-border p-2 text-xs">
               <input

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { NiceSelect } from "./NiceSelect";
 import {
   CalendarClock, CheckCircle2, ChevronLeft, ChevronRight, Clock3, Droplets,
   Filter, Moon, Pill, Search, Sparkles, Sun, Sunrise, UtensilsCrossed,
@@ -130,15 +131,9 @@ export function ClientAgendaPage({tasks,resolved={},now=Date.now(),onView,onConf
         </label>
         <label className="relative min-w-0">
           <Filter size={13} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground"/>
-          <select aria-label="Filtrar agenda por situação" value={status}
-            onChange={e=>changeStatus(e.target.value as StatusFilter)}
-            className="h-9 w-full min-w-0 rounded-lg border border-border bg-background pl-6 pr-1 text-[11px] font-semibold text-foreground">
-            <option value="todos">Todas</option>
-            <option value="confirmados">Confirmados</option>
-            <option value="pendentes">Sem resposta</option>
-            <option value="resolvidos">Já respondidos</option>
-            <option value="futuros">Programados</option>
-          </select>
+          <NiceSelect ariaLabel="Filtrar agenda por situação" value={status}
+            onChange={v=>changeStatus(v as StatusFilter)} className="h-9 pl-6 text-[11px]"
+            options={[{value:"todos",label:"Todas"},{value:"confirmados",label:"Confirmados"},{value:"pendentes",label:"Sem resposta"},{value:"resolvidos",label:"Já respondidos"},{value:"futuros",label:"Programados"}]}/>
         </label>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { NiceSelect } from "./NiceSelect";
 import { Activity, Save, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { estimateActivityFactor } from "@/lib/objective-nutrition";
@@ -139,12 +140,11 @@ export function ClientHealthProfile({patientId,ownerId,initial,onSaved,onClose}:
    <label className="text-xs font-semibold text-foreground">Altura cadastrada (cm)<div className="mt-1 flex min-h-10 items-center rounded-lg border border-border bg-card px-3 text-sm">{initial.height??"Não informada"}</div><small className="text-muted-foreground">Alteração pelo cadastro do prontuário.</small></label>
    {input("Idade (anos)",age,setAge,"Ex.: 30")}
    <label className="text-xs font-semibold text-foreground">Atividade física diária estimada
-    <select value={activityMinutes} onChange={e=>setActivityMinutes(e.target.value)} className="mt-1 block min-h-10 w-full min-w-0 rounded-lg border border-border bg-card px-2 text-sm text-foreground">
-     {[{value:"0",label:"Baixa · menos de 20 min/dia"},{value:"30",label:"Leve · 20–44 min/dia"},{value:"60",label:"Moderada · 45–89 min/dia"},{value:"100",label:"Alta · 90 min ou mais/dia"}].map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
-    </select>
+    <NiceSelect className="mt-1" ariaLabel="Atividade física diária" value={activityMinutes} onChange={setActivityMinutes}
+     options={[{value:"0",label:"Baixa · menos de 20 min/dia"},{value:"30",label:"Leve · 20–44 min/dia"},{value:"60",label:"Moderada · 45–89 min/dia"},{value:"100",label:"Alta · 90 min ou mais/dia"}]}/>
     <small className="text-muted-foreground">Fator energético aproximado: ×{activityFactor.toLocaleString("pt-BR")}. Atividade diária não substitui avaliação profissional.</small>
    </label>
-   <label className="text-xs font-semibold text-foreground">Objetivo alimentar<select value={objective} onChange={e=>{setObjective(e.target.value);setConfirmMismatch(false);}} className="mt-1 block min-h-10 w-full min-w-0 rounded-lg border border-border bg-card px-2 text-base text-foreground">{goals.map(([v,label])=><option key={v} value={v}>{label}</option>)}</select></label>
+   <label className="text-xs font-semibold text-foreground">Objetivo alimentar<NiceSelect className="mt-1" ariaLabel="Objetivo alimentar" value={objective} onChange={v=>{setObjective(v);setConfirmMismatch(false);}} options={goals.map(([v,label])=>({value:v,label}))}/></label>
   </div>}
   {tab==="metas"&&<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
    <div className="col-span-full rounded-lg border border-primary/30 bg-accent p-3 text-xs">Referências iniciais por peso para {selectedGoal.label.toLowerCase()}: proteína {suggestedProtein??"—"} g · carboidratos {suggestedCarbs??"—"} g · gorduras {suggestedFat??"—"} g · energia correspondente {suggestedKcal?.toLocaleString("pt-BR")??"—"} kcal. Não representam necessariamente déficit ou superávit energético: para isso é preciso estimar manutenção com sexo, idade, altura e atividade. Campos preenchidos manualmente têm prioridade.</div>
