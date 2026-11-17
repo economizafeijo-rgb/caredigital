@@ -426,3 +426,12 @@ iframe[title*="Lovable" i][title*="badge" i] { display: none !important; visibil
 @keyframes nv-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
 .nv-float { animation: nv-float 6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .nv-float { animation: none; } }
+
+/* ---------- Gráficos de peso: pulso no último ponto, rótulos e cartões que entram suavemente ---------- */
+@keyframes nv-ping { 0% { transform: scale(1); opacity: 0.55; } 80%, 100% { transform: scale(3.2); opacity: 0; } }
+@keyframes nv-label-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes nv-rise-in { from { opacity: 0; transform: translateY(10px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.nv-ping { transform-box: fill-box; transform-origin: center; animation: nv-ping 1.9s ease-out infinite; }
+.nv-label-in { opacity: 0; animation: nv-label-in 0.5s ease-out forwards; }
+.nv-rise { animation: nv-rise-in 0.55s var(--ease) both; }
+@media (prefers-reduced-motion: reduce) { .nv-ping { animation: none; opacity: 0; } .nv-label-in { opacity: 1; animation: none; } .nv-rise { animation: none; } }

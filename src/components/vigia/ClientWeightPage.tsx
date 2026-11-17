@@ -11,6 +11,7 @@ import { acreDateKey } from "@/lib/acre-time";
 import { useDialog } from "@/lib/dialog";
 import { weightGuidance } from "@/lib/nutrition-science";
 import { DayDetailDialog } from "./DayDetailDialog";
+import { WeightEvolutionChart, WeightVariationPanel } from "./WeightCharts";
 
 type Point = { id: string; recorded_on: string; weight_kg: number; height_cm: number };
 type Props = { patientId: string; ownerId: string; heightCm: number | null; currentWeight: number | null; ageYears?: number | null; onRecorded?: () => void };
@@ -210,6 +211,7 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
     return filtered.map((point, index) => ({
       date: point.recorded_on, label: shortDate(point.recorded_on), weight: point.weight_kg,
       average: Number(avg[index].toFixed(2)), bmi: Number(bmiOf(point.weight_kg, point.height_cm).toFixed(1)),
+      delta: index > 0 ? Number((point.weight_kg - filtered[index - 1].weight_kg).toFixed(2)) : null,
     }));
   }, [filtered]);
 
@@ -257,54 +259,17 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h3 className="font-display text-base font-bold">Evolução do peso</h3>
-            <p className="text-xs text-muted-foreground">Peso registrado, média móvel de 7 registros e faixa de peso adequado (IMC 18,5–24,9)</p>
+            <p className="text-xs text-muted-foreground">Valor e variação em cada medida, média móvel de 7 registros e faixa de peso adequado (IMC 18,5–24,9)</p>
           </div>
           <div role="group" aria-label="Período do gráfico" className="flex gap-1 rounded-xl bg-muted p-1">
             {ranges.map(item => <button key={item.key} type="button" aria-pressed={range === item.key} onClick={() => setRange(item.key)}
               className={`h-8 rounded-lg px-2.5 text-[11px] font-semibold transition ${range === item.key ? "bg-gradient-to-r from-fuchsia-600 to-pink-500 text-white shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>{item.label}</button>)}
           </div>
         </div>
-        <div className="mt-3 h-[300px] w-full">
-          {!loaded ? <div className="h-full animate-pulse rounded-xl bg-muted/60"/> : chart.length === 0
-            ? <div className="grid h-full place-items-center rounded-xl border border-dashed border-border text-center text-sm text-muted-foreground"><span><Scale className="mx-auto mb-2 text-fuchsia-500" size={28}/>Nenhum registro neste período.<br/>Use o formulário para registrar seu peso.</span></div>
-            : <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={chart} margin={{ top: 10, right: 12, left: -8, bottom: 0 }} style={{ cursor: "pointer" }} onClick={(state: any) => { const row = state?.activePayload?.[0]?.payload; if (row?.date) setDetailDay(row.date); }}>
-                <defs>
-                  <linearGradient id="weightFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#d946ef" stopOpacity={0.45}/>
-                    <stop offset="100%" stopColor="#ec4899" stopOpacity={0.02}/>
-                  </linearGradient>
-                  <linearGradient id="weightStroke" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#a855f7"/><stop offset="100%" stopColor="#ec4899"/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-border" vertical={false}/>
-                {healthyMin && healthyMax && <ReferenceArea y1={Math.max(yMin, healthyMin)} y2={Math.min(yMax, healthyMax)} fill="#10b981" fillOpacity={0.08} ifOverflow="hidden"/>}
-                <XAxis dataKey="label" tick={{ fontSize: 11, fill: "currentColor" }} className="text-muted-foreground" tickLine={false} axisLine={false} minTickGap={16}/>
-                <YAxis domain={[yMin, yMax]} tick={{ fontSize: 11, fill: "currentColor" }} className="text-muted-foreground" tickLine={false} axisLine={false} width={44} unit=" kg"/>
-                <Tooltip cursor={{ stroke: "#d946ef", strokeOpacity: 0.3 }}
-                  content={({ active, payload }) => {
-                    if (!active || !payload?.length) return null;
-                    const row = payload[0].payload as (typeof chart)[number];
-                    return <div className="rounded-xl border border-border bg-card px-3 py-2 text-xs shadow-pop">
-                      <p className="font-bold">{longDate(row.date)}</p>
-                      <p className="mt-1"><span className="inline-block size-2 rounded-full bg-fuchsia-500"/> Peso: <strong>{nf(row.weight)} kg</strong></p>
-                      <p><span className="inline-block size-2 rounded-full bg-indigo-500"/> Média: {nf(row.average)} kg</p>
-                      <p className="text-muted-foreground">IMC {nf(row.bmi)} · {bmiCategory(row.bmi).label}</p>
-                    </div>;
-                  }}/>
-                {target && <ReferenceLine y={target} stroke="#8b5cf6" strokeDasharray="6 4" label={{ value: `Meta ${nf(target)} kg`, position: "insideTopRight", fill: "#8b5cf6", fontSize: 11, fontWeight: 700 }}/>}
-                <Area type="monotone" dataKey="weight" stroke="url(#weightStroke)" strokeWidth={3} fill="url(#weightFill)"
-                  dot={{ r: 3.5, fill: "#fff", stroke: "#d946ef", strokeWidth: 2 }} activeDot={{ r: 6, fill: "#d946ef", stroke: "#fff", strokeWidth: 2 }} isAnimationActive={false}/>
-                <Line type="monotone" dataKey="average" stroke="#6366f1" strokeWidth={2} strokeDasharray="4 3" dot={false} isAnimationActive={false}/>
-              </ComposedChart>
-            </ResponsiveContainer>}
-        </div>
-        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
-          <span className="inline-flex items-center gap-1.5"><span className="h-1 w-4 rounded bg-gradient-to-r from-purple-500 to-pink-500"/>Peso</span>
-          <span className="inline-flex items-center gap-1.5"><span className="h-0.5 w-4 border-t-2 border-dashed border-indigo-500"/>Média móvel</span>
-          <span className="inline-flex items-center gap-1.5"><span className="size-3 rounded bg-emerald-500/20"/>Faixa de peso adequado</span>
-          {target && <span className="inline-flex items-center gap-1.5"><span className="h-0.5 w-4 border-t-2 border-dashed border-violet-500"/>Meta</span>}
+        <div className="mt-3 w-full">
+          {!loaded ? <div className="h-[320px] animate-pulse rounded-xl bg-muted/60"/> : chart.length === 0
+            ? <div className="grid h-[320px] place-items-center rounded-xl border border-dashed border-border text-center text-sm text-muted-foreground"><span><Scale className="mx-auto mb-2 text-fuchsia-500" size={28}/>Nenhum registro neste período.<br/>Use o formulário para registrar seu peso.</span></div>
+            : <WeightEvolutionChart rows={chart} target={target} healthy={healthyMin && healthyMax ? [healthyMin, healthyMax] : null} onPick={setDetailDay}/>}
         </div>
       </section>
 
@@ -347,26 +312,8 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
       </aside>
     </div>
 
-    <div className="grid gap-3 lg:grid-cols-2">
-      <section className="rounded-2xl border border-border bg-card p-4 shadow-card" aria-label="Variação entre registros">
-        <h3 className="font-display text-sm font-bold">Variação entre registros</h3>
-        <p className="text-xs text-muted-foreground">Diferença em kg em relação ao registro anterior (últimos 14) · toque numa barra para abrir o dia</p>
-        <div className="mt-3 h-[180px]">
-          {changes.length === 0 ? <p className="grid h-full place-items-center text-xs text-muted-foreground">São necessários pelo menos dois registros.</p>
-            : <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={changes} margin={{ top: 5, right: 8, left: -18, bottom: 0 }} style={{ cursor: "pointer" }} onClick={(state: any) => { const row = state?.activePayload?.[0]?.payload; if (row?.date) setDetailDay(row.date); }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-border" vertical={false}/>
-                <XAxis dataKey="label" tick={{ fontSize: 10, fill: "currentColor" }} className="text-muted-foreground" tickLine={false} axisLine={false}/>
-                <YAxis tick={{ fontSize: 10, fill: "currentColor" }} className="text-muted-foreground" tickLine={false} axisLine={false}/>
-                <ReferenceLine y={0} stroke="currentColor" className="text-border"/>
-                <Tooltip formatter={(value: number) => [`${value > 0 ? "+" : ""}${nf(value)} kg`, "Variação"]} contentStyle={{ borderRadius: 12, fontSize: 12 }}/>
-                <Bar dataKey="delta" radius={[6, 6, 6, 6]} isAnimationActive={false}>
-                  {changes.map(item => <Cell key={item.label + item.delta} fill={item.delta <= 0 ? "#10b981" : "#f97316"}/>)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>}
-        </div>
-      </section>
+    <div className="grid gap-3 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+      <WeightVariationPanel points={filtered.map(point => ({ date: point.recorded_on, kg: point.weight_kg }))} onPick={setDetailDay}/>
       <section className="rounded-2xl border border-border bg-card p-4 shadow-card" aria-label="Registros de peso">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
