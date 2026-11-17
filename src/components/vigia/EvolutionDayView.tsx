@@ -1,6 +1,7 @@
 import { Activity, BedDouble, ClipboardList, Play, Scale, Star } from "lucide-react";
 import { Area, Bar, CartesianGrid, Cell, ComposedChart, Pie, PieChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { DAY_CUTOFF_HOUR } from "@/lib/acre-time";
+import { WATER_LAST_RECOMMENDED_HOUR } from "@/lib/nutrition-science";
 import { acreDayHour, goalObservation, goalValue, type DayMetrics, type PeriodRaw, type Targets } from "@/lib/day-metrics";
 import { goalFxItem, useGoalFx } from "./GoalFx";
 import { ChartTip, clock, hm, METRIC_STYLE, nf, Panel, ProgressRing, StatusBadge, STATUS_STYLE } from "./evolution-ui";
@@ -64,7 +65,7 @@ export function EvolutionDayView({ metrics: m, raw, targets }: { metrics: DayMet
       </Panel>
 
       <div className="grid items-start gap-3 xl:grid-cols-2">
-        <Panel title="Hidratação nas 24 horas" note={water ? `Meta ${nf(water.target)} ml · consumo contado até as ${DAY_CUTOFF_HOUR}h` : "Barras: volume por hora · área: acumulado do dia"}>
+        <Panel title="Hidratação nas 24 horas" note={water ? `Meta ${nf(water.target)} ml · registros liberados nas 24 horas · ideal concluir até as ${WATER_LAST_RECOMMENDED_HOUR}h` : "Barras: volume por hora · área: acumulado do dia"}>
           {m.water.length === 0 ? <Empty>Nenhum copo registrado neste dia.</Empty> : (
             <div className="h-60 w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -75,11 +76,11 @@ export function EvolutionDayView({ metrics: m, raw, targets }: { metrics: DayMet
                   <YAxis yAxisId="left" tick={axis} className="text-muted-foreground" tickLine={false} axisLine={false} width={44} />
                   <YAxis yAxisId="right" orientation="right" tick={axis} className="text-muted-foreground" tickLine={false} axisLine={false} width={44} />
                   <Tooltip content={<ChartTip title={(r) => `${r.hour} · acumulado do dia`} rows={(r) => [["Nesta hora", `${nf(r.ml)} ml`, "#0ea5e9"], ["Acumulado", `${nf(r.cum)} ml`, "#0369a1"], ...(r.pct !== null ? [["Da meta", `${r.pct}%`] as [string, string]] : [])]} />} />
-                  <ReferenceLine x={`${pad(DAY_CUTOFF_HOUR)}h`} yAxisId="left" stroke="#94a3b8" strokeDasharray="4 4" label={{ value: "22h", position: "top", fontSize: 10, fill: "#94a3b8" }} />
+                  <ReferenceLine x={`${pad(WATER_LAST_RECOMMENDED_HOUR)}h`} yAxisId="left" stroke="#f59e0b" strokeDasharray="4 4" label={{ value: `Ideal até ${WATER_LAST_RECOMMENDED_HOUR}h`, position: "top", fontSize: 10, fill: "#b45309" }} />
                   {water && <ReferenceLine y={water.target} yAxisId="right" stroke="#10b981" strokeDasharray="6 4" label={{ value: `Meta ${nf(water.target)} ml`, position: "insideTopRight", fontSize: 10, fontWeight: 700, fill: "#10b981" }} />}
                   <Area yAxisId="right" type="monotone" dataKey="cum" stroke="#0369a1" strokeWidth={2.5} fill="url(#evWater)" isAnimationActive={false} />
                   <Bar yAxisId="left" dataKey="ml" radius={[5, 5, 0, 0]} maxBarSize={18}>
-                    {waterHours.map((row, i) => <Cell key={i} fill={i >= DAY_CUTOFF_HOUR ? "#94a3b8" : "#0ea5e9"} />)}
+                    {waterHours.map((row, i) => <Cell key={i} fill={i >= WATER_LAST_RECOMMENDED_HOUR ? "#f59e0b" : "#0ea5e9"} />)}
                   </Bar>
                 </ComposedChart>
               </ResponsiveContainer>
@@ -88,8 +89,8 @@ export function EvolutionDayView({ metrics: m, raw, targets }: { metrics: DayMet
           {m.water.length > 0 && (
             <ul className="mt-2 grid max-h-36 gap-1 overflow-y-auto text-xs sm:grid-cols-2">
               {m.water.map((entry, i) => {
-                const late = acreDayHour(entry.at).hour >= DAY_CUTOFF_HOUR;
-                return <li key={i} className="flex items-center justify-between rounded-lg bg-muted/50 px-2.5 py-1.5"><span className="font-mono font-bold">{clock(entry.at)}</span><span className="tabular-nums">+{nf(entry.ml)} ml</span>{late && <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">após o fechamento</span>}</li>;
+                const late = acreDayHour(entry.at).hour >= WATER_LAST_RECOMMENDED_HOUR;
+                return <li key={i} className="flex items-center justify-between rounded-lg bg-muted/50 px-2.5 py-1.5"><span className="font-mono font-bold">{clock(entry.at)}</span><span className="tabular-nums">+{nf(entry.ml)} ml</span>{late && <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground"title="Beber muito perto da hora de dormir pode causar despertares para urinar. O registro é mantido e conta na meta.">após as {WATER_LAST_RECOMMENDED_HOUR}h</span>}</li>;
               })}
             </ul>
           )}

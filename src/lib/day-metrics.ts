@@ -82,9 +82,9 @@ export type DayMetrics = {
   closed: boolean;
   future: boolean;
   hasData: boolean;
-  /** Água somada até o fechamento do dia (22h), a mesma regra da meta. */
+  /** Água somada nas 24 horas do dia: todos os registros contam para a meta. */
   waterMl: number;
-  /** Água somada nas 24 horas, incluindo o que passou do fechamento. */
+  /** Igual a waterMl (mantido por compatibilidade com as telas). */
   waterAllMl: number;
   hours: Hour[];
   foods: FoodEntry[];
@@ -195,7 +195,7 @@ function buildOne(index: Map<string, Slot>, plans: PlanInfo[], day: string, ctx:
     const { hour } = acreDayHour(entry.at);
     hours[hour].water += entry.ml;
     waterAllMl += entry.ml;
-    if (hour < DAY_CUTOFF_HOUR) waterMl += entry.ml;
+    waterMl += entry.ml; // a janela de registro é de 24 h; o horário ideal é só uma orientação
   }
   const counted = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
   for (const food of s.foods) {
@@ -231,7 +231,8 @@ function buildOne(index: Map<string, Slot>, plans: PlanInfo[], day: string, ctx:
   if (waterTarget && waterTarget > 0) {
     goals.push({
       metric: "hidratacao", label: GOAL_INFO.hidratacao.label, unit: "ml", target: waterTarget, actual: waterMl, pct: pctOf(waterMl, waterTarget),
-      status: finish("em_andamento", waterMl >= waterTarget), rule: "beber a meta de água até as 22h", monotonic: true,
+      status: waterMl >= waterTarget ? "atingida" : !hasData && day < now.day ? "sem_registro" : day < now.day ? "nao_atingida" : "em_andamento",
+      rule: "beber a meta de água ao longo do dia (registros liberados nas 24 horas)", monotonic: true,
     });
   }
   if (targets.kcal && targets.kcal > 0 && !future) {

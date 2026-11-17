@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Droplets, Pill, Sparkles, UtensilsCrossed, type LucideIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { acreDateKey, DAY_CUTOFF_HOUR } from "@/lib/acre-time";
+import { acreDateKey } from "@/lib/acre-time";
+import { WATER_LAST_RECOMMENDED_HOUR } from "@/lib/nutrition-science";
 import { estimateNextHydration } from "@/lib/hydration-goal";
 import { clientSectionHashes, type ClientSection } from "@/lib/client-pages";
 import { CareTimer, useTicker } from "./CareTimer";
@@ -39,7 +40,7 @@ export function HomeModalityTimers() {
       if (!patientId || !active) return;
       const day = acreDateKey(), now = Date.now();
       const start = new Date(day + "T00:00:00-05:00"), end = new Date(start.getTime() + 86_400_000);
-      const cutoff = Date.parse(day + `T${String(DAY_CUTOFF_HOUR).padStart(2, "0")}:00:00-05:00`);
+      const cutoff = Date.parse(day + `T${String(WATER_LAST_RECOMMENDED_HOUR).padStart(2, "0")}:00:00-05:00`);
       const [goal, water, tasks, meds, medTaken, sups, supTaken] = await Promise.all([
         db.rpc("care_sync_hydration_goal", { p_patient_id: patientId }),
         db.from("care_hydration").select("amount_ml,recorded_at").eq("patient_id", patientId).gte("recorded_at", start.toISOString()).order("recorded_at", { ascending: false }).limit(1),
@@ -55,7 +56,7 @@ export function HomeModalityTimers() {
       const lastWater = water.data?.[0];
       const plan = target > 0 ? estimateNextHydration({ remainingMl: Math.max(0, target - consumed), lastIntakeAt: lastWater ? Date.parse(lastWater.recorded_at) : null, lastAmountMl: lastWater ? Number(lastWater.amount_ml) : 0, now, cutoff }) : null;
       list.push({ key: "water", section: "hidratacao", label: "Hora da água", icon: Droplets, at: plan?.at ?? null,
-        title: plan ? `Beber cerca de ${plan.suggestedMl} ml` : target > 0 ? (consumed >= target ? "Meta de hoje atingida" : "Dia de hidratação encerrado") : "Defina sua meta de água",
+        title: plan ? `Beber cerca de ${plan.suggestedMl} ml` : target > 0 ? (consumed >= target ? "Meta de hoje atingida" : `Ideal beber até as ${WATER_LAST_RECOMMENDED_HOUR}h · registre se beber`) : "Defina sua meta de água",
         note: target > 0 ? `${consumed.toLocaleString("pt-BR")} de ${target.toLocaleString("pt-BR")} ml hoje` : "Abra a hidratação para calcular a meta" });
       const first = (category: string) => (tasks.data ?? []).find((t: any) => t.category === category);
       const medTask = first("medicacao");

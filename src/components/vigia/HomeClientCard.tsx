@@ -1462,6 +1462,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                   ownerId={client.owner_id}
                   heightCm={client.height_cm}
                   currentWeight={healthProfile.weightKg ?? client.weight_kg}
+                  ageYears={healthProfile.age}
                   onRecorded={() => setTick((value) => value + 1)}
                 />
               )}

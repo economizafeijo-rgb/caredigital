@@ -6,7 +6,7 @@ const pending: HydrationGoalSnapshot = {
   goal_date: day, status: "em_andamento", target_ml: 2550, consumed_ml: 590,
   remaining_ml: 1960, closed_at: null, cutoff_local: "23:00",
 };
-describe("Fechamento diário da hidratação às 22h no Acre",()=>{
+describe("Fechamento diário da hidratação à meia-noite no Acre (janela de 24 h)",()=>{
   it("respeita a data do Acre, sem usar a data UTC",()=>{
     expect(acreCalendarDay("2026-11-03T03:59:59Z")).toBe("2026-11-02");
     expect(acreHour("2026-11-03T02:59:59Z")).toBe(21);
@@ -15,13 +15,20 @@ describe("Fechamento diário da hidratação às 22h no Acre",()=>{
     expect(acreHour("2026-11-03T04:00:00Z")).toBe(23);
     expect(acreCalendarDay("2026-11-03T05:00:00Z")).toBe("2026-11-03");
   });
-  it("não declara falha antes das 22h",()=>{
+  it("não declara falha durante o dia",()=>{
     const note=hydrationGoalNotice(pending,Date.parse("2026-11-03T02:59:59Z"));
     expect(note.kind).toBe("pending");
     expect(note.message).toContain("1.960");
   });
-  it("indica fechamento em processamento após 22h até confirmação do servidor",()=>{
+  it("às 22h o dia continua aberto: registros em qualquer horário contam na meta",()=>{
     const note=hydrationGoalNotice(pending,Date.parse("2026-11-03T03:00:01Z"));
+    expect(note.kind).toBe("pending");
+    expect(note.title).toBe("Meta aberta");
+    expect(note.message).toContain("a qualquer hora");
+    expect(note.message).toContain("20h");
+  });
+  it("indica fechamento em processamento depois da meia-noite até confirmação do servidor",()=>{
+    const note=hydrationGoalNotice(pending,Date.parse("2026-11-03T05:00:01Z"));
     expect(note.kind).toBe("pending");
     expect(note.title).toContain("Fechamento");
   });

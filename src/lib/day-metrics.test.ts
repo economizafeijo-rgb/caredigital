@@ -28,13 +28,14 @@ describe("tempo do Acre", () => {
 });
 
 describe("métricas das 24 horas", () => {
-  it("soma por hora e respeita o fechamento das 22h na meta, mantendo o total do dia", () => {
+  it("soma por hora e conta todos os registros das 24 horas na meta de água", () => {
     const day = "2026-11-10";
     const result = buildDay(raw({
       water: [{ at: at(day, "08:10"), ml: 300 }, { at: at(day, "08:50"), ml: 200 }, { at: at(day, "21:59"), ml: 250 }, { at: at(day, "22:30"), ml: 500 }],
     }), day, ctxAt("2026-11-17", "15:00"));
     expect(result.hours[8].water).toBe(500);
-    expect(result.waterMl).toBe(750);
+    expect(result.hours[22].water).toBe(500);
+    expect(result.waterMl).toBe(1250); // a janela é de 24 h: nada fica fora da meta
     expect(result.waterAllMl).toBe(1250);
     expect(result.hasData).toBe(true);
   });
@@ -58,11 +59,11 @@ describe("metas do dia", () => {
     expect(water.monotonic).toBe(true);
   });
 
-  it("mantém em andamento até as 22h e vira não atingida depois do fechamento", () => {
+  it("mantém a água em andamento até o fim do dia e só vira não atingida na virada", () => {
     const today = "2026-11-17";
-    const rawToday = raw({ water: [{ at: at(today, "09:00"), ml: 1000 }] });
-    const before = buildDay(rawToday, today, ctxAt(today, "21:59")).goals.find((goal) => goal.metric === "hidratacao")!;
-    const after = buildDay(rawToday, today, ctxAt(today, "22:00")).goals.find((goal) => goal.metric === "hidratacao")!;
+    const rawToday = raw({ water: [{ at: at(today, "09:00"), ml: 1000 }], waterGoals: [{ day: today, target: 2500, consumed: 1000, status: "em_andamento" }] });
+    const before = buildDay(rawToday, today, ctxAt(today, "23:59")).goals.find((goal) => goal.metric === "hidratacao")!;
+    const after = buildDay(rawToday, today, ctxAt("2026-11-18", "00:01")).goals.find((goal) => goal.metric === "hidratacao")!;
     expect(before.status).toBe("em_andamento");
     expect(after.status).toBe("nao_atingida");
     expect(after.pct).toBe(40);

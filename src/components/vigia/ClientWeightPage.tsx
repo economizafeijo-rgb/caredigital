@@ -9,9 +9,10 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { acreDateKey } from "@/lib/acre-time";
 import { useDialog } from "@/lib/dialog";
+import { weightGuidance } from "@/lib/nutrition-science";
 
 type Point = { id: string; recorded_on: string; weight_kg: number; height_cm: number };
-type Props = { patientId: string; ownerId: string; heightCm: number | null; currentWeight: number | null; onRecorded?: () => void };
+type Props = { patientId: string; ownerId: string; heightCm: number | null; currentWeight: number | null; ageYears?: number | null; onRecorded?: () => void };
 type Range = "30" | "90" | "365" | "all";
 
 const nf = (value: number, digits = 1) => value.toLocaleString("pt-BR", { minimumFractionDigits: digits, maximumFractionDigits: digits });
@@ -49,7 +50,7 @@ function StatCard({ icon: Icon, label, value, note, gradient }: { icon: typeof S
   </div>;
 }
 
-export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, onRecorded }: Props) {
+export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, ageYears = null, onRecorded }: Props) {
   const [points, setPoints] = useState<Point[]>([]);
   const [target, setTarget] = useState<number | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -219,6 +220,8 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
   const refHeight = Number(height.replace(",", ".")) || last?.height_cm || heightCm || 0;
   const bmi = last && refHeight ? bmiOf(last.weight_kg, refHeight) : null;
   const category = bmi ? bmiCategory(bmi) : null;
+  const weeks = first && last ? (Date.parse(last.recorded_on) - Date.parse(first.recorded_on)) / 604_800_000 : 0;
+  const guidance = weightGuidance({ ageYears, heightCm: refHeight || null, weightKg: last?.weight_kg ?? null, trendKgPerWeek: first && last && weeks >= 1 ? (last.weight_kg - first.weight_kg) / weeks : null });
   const delta = last && first && first.id !== last.id ? last.weight_kg - first.weight_kg : null;
   const healthyMin = refHeight ? 18.5 * (refHeight / 100) ** 2 : null;
   const healthyMax = refHeight ? 24.9 * (refHeight / 100) ** 2 : null;
@@ -336,8 +339,8 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
             {bmi && <span className="absolute top-1/2 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white shadow-md" style={{ left: `${bmiPercent}%`, background: category?.color }}/>}
           </div>
           <div className="mt-1.5 flex justify-between text-[10px] text-muted-foreground"><span>15</span><span>18,5</span><span>25</span><span>30</span><span>40</span></div>
-          <p className="mt-2 text-xs">{bmi ? <>IMC <strong>{nf(bmi)}</strong> · <strong style={{ color: category?.color }}>{category?.label}</strong>{healthyMin && healthyMax ? ` · faixa adequada: ${nf(healthyMin)}–${nf(healthyMax)} kg` : ""}</> : "Registre peso e altura para calcular."}</p>
-          <p className="mt-1 text-[10px] text-muted-foreground">Referência populacional (OMS). Não substitui avaliação profissional.</p>
+          <p className="mt-2 text-xs">{bmi ? <>IMC <strong>{nf(bmi)}</strong> · <strong style={{ color: guidance.adultBmi ? category?.color : undefined }}>{guidance.adultBmi ? category?.label : "avaliar por percentil de idade"}</strong>{guidance.healthyRangeKg ? ` · faixa adequada: ${nf(guidance.healthyRangeKg[0])}–${nf(guidance.healthyRangeKg[1])} kg` : ""}</> : "Registre peso e altura para calcular."}</p>
+          <p className={`mt-1 text-[10px] ${guidance.pace === "fast_loss" || guidance.pace === "fast_gain" ? "font-semibold text-amber-600" : "text-muted-foreground"}`}>{guidance.message} Não substitui avaliação profissional.</p>
         </section>
       </aside>
     </div>

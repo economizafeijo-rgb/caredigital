@@ -1,3 +1,5 @@
+import { fluidTargetMl } from "./nutrition-science";
+
 export type SexForReference = "female" | "male" | "intersex" | "unspecified";
 
 export type BodyMetrics = {
@@ -23,17 +25,15 @@ export function calculateBodyMetrics(input: {
         : bmi < 30 ? "Acima da faixa de referência"
           : "Faixa elevada — avaliar com profissional";
 
-  const waterReferenceMl = validAdult && sex === "female" ? 2700
-    : validAdult && sex === "male" ? 3700
-      : null;
+  const waterReferenceMl = fluidTargetMl(sex, ageYears);
 
   return {
     bmi,
     bmiLabel,
     waterReferenceMl,
     waterNote: waterReferenceMl === null
-      ? "Defina a meta de hidratação individualmente com um profissional."
-      : "Referência populacional de água total (alimentos e bebidas), não uma prescrição de água pura. Ajuste com o profissional; objetivo físico, peso e IMC não determinam sozinhos a necessidade.",
+      ? "Informe sexo e idade para ver a referência de líquidos; defina a meta com um profissional."
+      : "Referência EFSA (2010) de líquidos para beber: cerca de 80% da água total (2,5 L homens, 2,0 L mulheres; crianças por idade), pois o restante vem dos alimentos. Calor, treino, gestação ou doenças mudam a necessidade: ajuste com o profissional.",
   };
 }
 
