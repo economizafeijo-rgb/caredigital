@@ -46,6 +46,8 @@ import { CareReminderBeacon } from "./CareReminderBeacon";
 import { CareRecentHistory } from "./CareRecentHistory";
 import { ClientHealthProfile } from "./ClientHealthProfile";
 import { ClientOverviewIndicators } from "./ClientOverviewIndicators";
+import { GoalFxProvider } from "./GoalFx";
+import { GoalWatcher } from "./GoalWatcher";
 import { ClientWeightPage } from "./ClientWeightPage";
 import { ClientMedicationManager } from "./ClientMedicationManager";
 import { MissedDoseRegularizer } from "./MissedDoseRegularizer";
@@ -864,6 +866,10 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
   const supplement = (task: Task) => task.category === "outro";
 
   return (
+    <GoalFxProvider onOpenHistory={() => openSection("indicadores")}>
+      {owner && client && (
+        <GoalWatcher patientId={client.id} ownerId={client.owner_id} waterTarget={hydrationTarget || null} revision={tick} />
+      )}
     <section
       aria-label="Painel de acompanhamento individual"
       className="flex min-h-full w-full flex-col gap-3 lg:h-full lg:min-h-0"
@@ -1814,5 +1820,6 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
           document.body,
         )}
     </section>
+    </GoalFxProvider>
   );
 }

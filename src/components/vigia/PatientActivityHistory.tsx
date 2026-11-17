@@ -94,7 +94,7 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
       // Reconcile the 23h result before reading the dated daily-history snapshots.
       const sync=await db.rpc("care_sync_hydration_goal",{p_patient_id:patientId});
       if(!live)return;
-      const [tasks,water,meals,drinks,observations,audit,responses,dailyGoals,resolutions]=await Promise.all([
+      const [tasks,water,meals,drinks,observations,audit,responses,dailyGoals,resolutions,goalReviews]=await Promise.all([
         db.from("care_daily_checklist").select("id,category,title,scheduled_at,completed_at")
           .eq("patient_id",patientId).eq("owner_id",ownerId)
           .gte("scheduled_at",since).order("scheduled_at",{ascending:false}).limit(400),
@@ -121,7 +121,11 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
           .order("goal_date",{ascending:false}).limit(90),
         db.from("care_task_resolutions").select("task_id,status,reason,scheduled_at,resolved_at")
           .eq("patient_id",patientId).eq("owner_id",ownerId)
-          .gte("scheduled_at",since).order("resolved_at",{ascending:false}).limit(300)
+          .gte("scheduled_at",since).order("resolved_at",{ascending:false}).limit(300),
+        // Observações registradas pelo sistema quando uma meta do dia não é atingida (fecham às 22h, Acre).
+        db.from("care_goal_reviews").select("id,day,observation")
+          .eq("patient_id",patientId).eq("owner_id",ownerId).eq("status","nao_atingida")
+          .gte("day",acreCalendarDay(Date.now()-31*86400000)).order("day",{ascending:false}).limit(200)
       ]);
       if(!live)return;
       if(tasks.error){
@@ -137,7 +141,9 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
       setPartial(failed.length>0);
       const raw:HistorySources={
         checklist:tasks.data??[],water:water.data??[],meals:meals.data??[],
-        drinks:drinks.data??[],observations:observations.data??[],
+        drinks:drinks.data??[],
+        observations:[...(observations.data??[]),...(goalReviews.error?[]:(goalReviews.data??[]).map((row:{id:string;day:string;observation:string})=>
+          ({id:"meta-"+row.id,observation_type:"Meta não atingida",notes:row.observation,recorded_at:row.day+"T22:00:00-05:00"})))],
         audit:audit.data??[],responses:responses.data??[],resolutions:resolutions.data??[],dailyGoals:dailyGoals.data??[]
       };
       try{

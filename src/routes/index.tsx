@@ -135,7 +135,7 @@ function Homepage() {
   };
 
   return (
-    <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col gap-5 lg:gap-6">
+    <div className="mx-auto flex min-h-full w-full max-w-[1400px] flex-col gap-5 lg:gap-6">
       {status === "unlinked" && (
         <p
           role="status"
@@ -148,23 +148,33 @@ function Homepage() {
 
       <section
         aria-labelledby="home-title"
-        className="relative isolate flex min-h-[400px] flex-1 items-center overflow-hidden rounded-3xl bg-slate-950 shadow-pop"
+        className="relative isolate flex min-h-[440px] flex-1 flex-col overflow-hidden rounded-3xl bg-slate-950 shadow-pop md:flex-row md:items-center lg:min-h-[min(68vh,620px)]"
       >
         <img
-          src="/images/caredigital-care-hero.webp"
+          src="/images/nextvita-hero-2200.webp"
+          srcSet="/images/nextvita-hero-1100.webp 1100w, /images/nextvita-hero-2200.webp 2200w"
+          sizes="(min-width: 1400px) 1400px, 100vw"
           alt=""
           aria-hidden="true"
-          width={1672}
-          height={941}
+          width={2200}
+          height={1467}
           loading="eager"
           decoding="async"
-          className="absolute inset-0 -z-20 h-full w-full object-cover object-[72%_25%]"
+          className="relative h-60 w-full object-cover object-[78%_35%] md:absolute md:inset-0 md:-z-20 md:h-full md:object-[72%_45%]"
         />
         <div
           aria-hidden="true"
-          className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-950/95 via-slate-950/70 to-slate-950/5 max-md:bg-slate-950/75"
+          className="absolute inset-0 -z-10 hidden bg-gradient-to-r from-slate-950/90 via-slate-950/55 via-45% to-slate-950/0 md:block"
         />
-        <div className="max-w-xl px-6 py-10 text-white sm:px-10 lg:px-12">
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 bottom-0 -z-10 hidden h-1/3 bg-gradient-to-t from-slate-950/60 to-transparent md:block"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-36 h-24 bg-gradient-to-b from-transparent to-slate-950 md:hidden"
+        />
+        <div className="max-w-2xl px-6 pb-8 pt-2 text-white sm:px-10 md:py-10 lg:px-12">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur">
             <ShieldCheck size={14} /> Bem-estar pessoal, organizado e protegido
           </span>
@@ -180,7 +190,7 @@ function Homepage() {
               </>
             ) : (
               <>
-                Sua rotina de bem-estar,{" "}
+                Sua rotina de <span className="whitespace-nowrap">bem-estar</span>,{" "}
                 <span className="text-[#9be9da]">organizada em um só lugar.</span>
               </>
             )}
@@ -236,6 +246,22 @@ function Homepage() {
         {status === "client" && (
           <div className="absolute bottom-6 right-6 hidden w-[380px] lg:block">
             <HomeNextCareCard panel="/cliente" />
+          </div>
+        )}
+        {status !== "client" && (
+          <div aria-hidden="true" className="absolute bottom-6 right-6 hidden w-[300px] grid-cols-[minmax(0,1fr)] gap-2.5 text-white lg:grid">
+            <div className="rounded-2xl border border-white/25 bg-slate-950/45 p-4 shadow-xl backdrop-blur-md">
+              <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-widest text-sky-200">
+                <span>Hidratação de hoje</span><span className="rounded-full bg-white/15 px-2 py-0.5 text-[10px] normal-case tracking-normal text-white/80">exemplo</span>
+              </div>
+              <p className="mt-1.5 text-2xl font-extrabold tabular-nums">1.700 <span className="text-sm font-semibold text-white/70">de 2.500 ml</span></p>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/20"><i className="block h-full w-[68%] rounded-full bg-gradient-to-r from-sky-400 to-cyan-300" /></div>
+              <p className="mt-2 text-xs text-white/75">Próximo copo às 15:40</p>
+            </div>
+            <div className="flex items-center gap-3 rounded-2xl border border-white/25 bg-slate-950/45 px-4 py-3 shadow-xl backdrop-blur-md">
+              <span className="grid size-9 place-items-center rounded-xl bg-emerald-400/25 text-emerald-200"><CalendarCheck size={18} /></span>
+              <div className="min-w-0 flex-1"><p className="text-[11px] font-bold uppercase tracking-widest text-emerald-200">Próximo cuidado</p><p className="truncate text-sm font-semibold">14:00 · Confirme na hora certa</p></div>
+            </div>
           </div>
         )}
       </section>
