@@ -117,6 +117,43 @@ const features = [
   },
 ] as const;
 
+/** Mosaico das áreas da plataforma: cada foto leva à página da área e mostra tudo o que o NextVita oferece. */
+const mosaicAreas = [
+  { to: "/dietas", label: "Alimentação", icon: Utensils, img: "/images/hero-alimentacao.webp", cls: "col-span-2 row-span-2", wide: true },
+  { to: "/hidratacao", label: "Hidratação", icon: Droplets, img: "/images/hero-hidratacao.webp", cls: "", wide: false },
+  { to: "/medicamentos", label: "Medicação", icon: Pill, img: "/images/hero-medicamentos.webp", cls: "", wide: false },
+  { to: "/suplementos", label: "Suplementos", icon: Sparkles, img: "/images/hero-suplementos.webp", cls: "", wide: false },
+  { to: "/peso", label: "Peso", icon: Scale, img: "/images/hero-peso.webp", cls: "", wide: false },
+  { to: "/treinos", label: "Treinos", icon: Activity, img: "/images/hero-treinos.webp", cls: "col-span-2", wide: true },
+  { to: "/sono", label: "Sono", icon: BedDouble, img: "/images/hero-sono.webp", cls: "", wide: false },
+  { to: "/metricas", label: "Métricas", icon: BarChart3, img: "/images/hero-metricas.webp", cls: "", wide: false },
+] as const;
+
+function HeroMosaic() {
+  return (
+    <div className="relative p-4 pt-0 sm:p-6 sm:pt-0 lg:p-8 lg:pl-0">
+      <div className="relative grid h-[22rem] grid-cols-4 grid-rows-3 gap-2 sm:h-[26rem] sm:gap-3 lg:h-[min(56vh,31rem)]">
+        {mosaicAreas.map((area) => (
+          <Link key={area.to} to={area.to} aria-label={area.label}
+            className={`group relative isolate overflow-hidden rounded-2xl bg-slate-900 shadow-lg ring-1 ring-white/15 ${area.cls}`}>
+            <img src={area.img} alt="" aria-hidden="true" width={area.wide ? 960 : 640} height={area.wide ? 600 : 400} loading="eager" decoding="async"
+              className="absolute inset-0 -z-10 size-full object-cover transition duration-700 group-hover:scale-105" />
+            <span aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-slate-950/80 via-slate-950/10 to-transparent" />
+            <span className="absolute inset-x-1.5 bottom-1.5 flex items-center gap-1.5 rounded-xl bg-slate-950/55 px-2 py-1.5 text-[11px] font-bold text-white backdrop-blur sm:inset-x-2 sm:bottom-2 sm:text-xs">
+              <area.icon size={14} className="shrink-0 text-emerald-300" />
+              <span className={area.wide ? "" : "hidden sm:inline"}>{area.label}</span>
+            </span>
+          </Link>
+        ))}
+        <div aria-hidden="true" className="pointer-events-none absolute left-3 top-3 z-10 hidden items-center gap-2.5 rounded-2xl border border-white/30 bg-slate-950/70 px-3 py-2 text-white shadow-2xl backdrop-blur-md sm:flex">
+          <svg viewBox="0 0 44 44" className="size-9 -rotate-90"><circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,.2)" strokeWidth="5" /><circle cx="22" cy="22" r="18" fill="none" stroke="#34d399" strokeWidth="5" strokeLinecap="round" strokeDasharray="113" strokeDashoffset="19" /></svg>
+          <div><p className="text-[10px] font-bold uppercase tracking-widest text-emerald-300">Tudo em um só lugar</p><p className="text-sm font-bold">5 de 6 metas hoje</p></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Homepage() {
   const { status, name } = useAccess();
 
@@ -148,33 +185,11 @@ function Homepage() {
 
       <section
         aria-labelledby="home-title"
-        className="relative isolate flex min-h-[440px] flex-1 flex-col overflow-hidden rounded-3xl bg-slate-950 shadow-pop md:flex-row md:items-center lg:min-h-[min(68vh,620px)]"
+        className="relative isolate grid overflow-hidden rounded-3xl bg-gradient-to-br from-[#041f1d] via-[#0a3f39] to-[#0e6b5c] shadow-pop lg:min-h-[min(68vh,620px)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-center"
       >
-        <img
-          src="/images/nextvita-hero-2200.webp"
-          srcSet="/images/nextvita-hero-1100.webp 1100w, /images/nextvita-hero-2200.webp 2200w"
-          sizes="(min-width: 1400px) 1400px, 100vw"
-          alt=""
-          aria-hidden="true"
-          width={2200}
-          height={1467}
-          loading="eager"
-          decoding="async"
-          className="relative h-60 w-full object-cover object-[78%_35%] md:absolute md:inset-0 md:-z-20 md:h-full md:object-[72%_45%]"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 -z-10 hidden bg-gradient-to-r from-slate-950/90 via-slate-950/55 via-45% to-slate-950/0 md:block"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute inset-x-0 bottom-0 -z-10 hidden h-1/3 bg-gradient-to-t from-slate-950/60 to-transparent md:block"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-36 h-24 bg-gradient-to-b from-transparent to-slate-950 md:hidden"
-        />
-        <div className="max-w-2xl px-6 pb-8 pt-2 text-white sm:px-10 md:py-10 lg:px-12">
+        <div aria-hidden="true" className="pointer-events-none absolute -left-24 -top-24 -z-10 size-96 rounded-full bg-emerald-400/20 blur-3xl" />
+        <div aria-hidden="true" className="pointer-events-none absolute -bottom-28 right-10 -z-10 size-96 rounded-full bg-teal-300/15 blur-3xl" />
+        <div className="px-6 py-8 text-white sm:px-10 lg:px-12 lg:py-10">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur">
             <ShieldCheck size={14} /> Bem-estar pessoal, organizado e protegido
           </span>
@@ -243,31 +258,11 @@ function Homepage() {
             </li>
           </ul>
         </div>
-        {status === "client" && (
-          <div className="absolute bottom-6 right-6 hidden w-[380px] lg:block">
-            <HomeNextCareCard panel="/cliente" />
-          </div>
-        )}
-        {status !== "client" && (
-          <div aria-hidden="true" className="absolute bottom-6 right-6 hidden w-[300px] grid-cols-[minmax(0,1fr)] gap-2.5 text-white lg:grid">
-            <div className="rounded-2xl border border-white/25 bg-slate-950/45 p-4 shadow-xl backdrop-blur-md">
-              <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-widest text-sky-200">
-                <span>Hidratação de hoje</span><span className="rounded-full bg-white/15 px-2 py-0.5 text-[10px] normal-case tracking-normal text-white/80">exemplo</span>
-              </div>
-              <p className="mt-1.5 text-2xl font-extrabold tabular-nums">1.700 <span className="text-sm font-semibold text-white/70">de 2.500 ml</span></p>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/20"><i className="block h-full w-[68%] rounded-full bg-gradient-to-r from-sky-400 to-cyan-300" /></div>
-              <p className="mt-2 text-xs text-white/75">Próximo copo às 15:40</p>
-            </div>
-            <div className="flex items-center gap-3 rounded-2xl border border-white/25 bg-slate-950/45 px-4 py-3 shadow-xl backdrop-blur-md">
-              <span className="grid size-9 place-items-center rounded-xl bg-emerald-400/25 text-emerald-200"><CalendarCheck size={18} /></span>
-              <div className="min-w-0 flex-1"><p className="text-[11px] font-bold uppercase tracking-widest text-emerald-200">Próximo cuidado</p><p className="truncate text-sm font-semibold">14:00 · Confirme na hora certa</p></div>
-            </div>
-          </div>
-        )}
+        <HeroMosaic />
       </section>
 
       {status === "client" && (
-        <div className="rounded-3xl bg-gradient-to-br from-indigo-950 to-slate-900 p-1 lg:hidden">
+        <div className="rounded-3xl bg-gradient-to-br from-indigo-950 to-slate-900 p-1">
           <HomeNextCareCard panel="/cliente" />
         </div>
       )}
