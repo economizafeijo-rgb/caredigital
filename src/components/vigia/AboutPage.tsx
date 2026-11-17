@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Code2, LineChart, Mail, MapPin, MessageCircle, Phone, Smartphone, Sparkles } from "lucide-react";
 import { LogoMark } from "./Logo";
+import { FitPage } from "./FitPage";
 
 const EMAIL = "aplicativosfj@gmail.com";
 const PHONE_LABEL = "(68) 99203-1340";
@@ -16,7 +17,7 @@ const values = [
 /** Página "Sobre": o projeto, o desenvolvedor e o contato para novos projetos. */
 export function AboutPage() {
   return (
-    <div className="mx-auto grid w-full max-w-[1500px] gap-3 lg:min-h-[max(34rem,calc(100%-49px))] lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)_auto] lg:gap-4">
+    <FitPage className="mx-auto grid w-full max-w-[1500px] gap-3 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)_auto] lg:gap-4">
       <section aria-labelledby="about-title" className="relative isolate flex min-h-[26rem] flex-col justify-end overflow-hidden rounded-3xl bg-slate-950 text-white shadow-pop lg:min-h-0 lg:row-span-1">
         <img src="/images/sobre-acre.webp" alt="" aria-hidden="true" width={1500} height={1000} loading="eager" decoding="async" className="absolute inset-0 -z-20 size-full object-cover object-[55%_30%]" />
         <div aria-hidden="true" className="nv-shade-b absolute inset-0 -z-10" />
@@ -82,6 +83,6 @@ export function AboutPage() {
           </li>
         ))}
       </ul>
-    </div>
+    </FitPage>
   );
 }
