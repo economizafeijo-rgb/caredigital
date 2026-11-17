@@ -13,6 +13,7 @@ import {
   HeartPulse,
   History,
   Home,
+  Info,
   LayoutDashboard,
   LogIn,
   LogOut,
@@ -83,6 +84,7 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
         { to: "/sono", label: "Sono", icon: BedDouble },
         { to: "/treinos", label: "Treinos", icon: Activity },
         { to: "/metricas", label: "Métricas", icon: BarChart3 },
+        { to: "/sobre", label: "Sobre", icon: Info },
       ],
     },
   ],
@@ -449,7 +451,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               {location.pathname !== "/" && (
                 <p className="mt-5 border-t border-border pt-3 text-center text-xs text-muted-foreground">
                   NextVita · Desenvolvido por{" "}
-                  <strong className="font-semibold text-foreground">Franc D&apos;nis</strong> ·
+                  <Link to="/sobre" className="font-semibold text-foreground underline-offset-2 hover:underline">Franc D&apos;nis</Link> ·
                   Feijó, Acre
                 </p>
               )}

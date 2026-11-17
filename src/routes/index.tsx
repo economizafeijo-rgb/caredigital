@@ -382,7 +382,7 @@ function Homepage() {
 
       <footer className="shrink-0 rounded-2xl border border-border bg-card px-5 py-4 text-center text-sm text-muted-foreground">
         <span className="font-semibold text-foreground">NextVita</span> · Plataforma desenvolvida por{" "}
-        <strong className="font-extrabold text-primary">Franc D&apos;nis</strong>{" "}
+        <Link to="/sobre" className="font-extrabold text-primary underline-offset-2 hover:underline">Franc D&apos;nis</Link>{" "}
         · Feijó, Acre — Brasil · © {new Date().getFullYear()}
       </footer>
     </div>

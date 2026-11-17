@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import type { ReactElement, ReactNode } from "react";
 import {
   Activity, ArrowRight, BedDouble, Bike, BookOpen, CalendarClock, Check, CheckCircle2, ClipboardCheck, Droplets, Dumbbell,
@@ -67,24 +68,29 @@ function Feature({ icon: Icon, title, text, tone }: { icon: LucideIcon; title: s
   );
 }
 
-/** Gráfico de área que preenche o espaço sem distorcer: o traço tem espessura fixa e os pontos são HTML. */
-function AreaChart({ values, min, max, color, id }: { values: number[]; min: number; max: number; color: string; id: string }) {
+/** Gráfico de área que preenche o espaço sem distorcer: o traço tem espessura fixa, os pontos e os rótulos são HTML. */
+function AreaChart({ values, min, max, color, id, unit }: { values: number[]; min: number; max: number; color: string; id: string; unit?: string }) {
   const pts = values.map((v, i) => [(i / (values.length - 1)) * 100, 100 - ((v - min) / (max - min)) * 84 - 8] as const);
   const line = pts.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(2)} ${y.toFixed(2)}`).join(" ");
   const last = pts[pts.length - 1];
+  const ticks = [0, 1, 2, 3].map((i) => ({ top: 8 + i * 28, value: max - (i * 28 / 84) * (max - min) }));
   return (
     <div className="relative size-full">
-      {[0, 1, 2, 3].map((i) => <div key={i} className="absolute inset-x-0 border-t border-dashed border-border" style={{ top: `${8 + i * 28}%` }} />)}
-      <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" className="absolute inset-0 size-full overflow-visible">
-        <defs>
-          <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor={color} stopOpacity=".38" /><stop offset="1" stopColor={color} stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <path d={`${line} L100 100 L0 100 Z`} fill={`url(#${id})`} />
-        <path d={line} fill="none" stroke={color} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-      </svg>
-      <span className="absolute size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white shadow-md" style={{ left: `${last[0]}%`, top: `${last[1]}%`, background: color }} />
+      {unit && ticks.map((t) => <span key={t.top} className="absolute left-0 -translate-y-1/2 text-[10px] font-semibold tabular-nums text-muted-foreground" style={{ top: `${t.top}%` }}>{t.value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}</span>)}
+      <div className={`absolute inset-y-0 right-0 ${unit ? "left-9" : "left-0"}`}>
+        {ticks.map((t) => <div key={t.top} className="absolute inset-x-0 border-t border-dashed border-border" style={{ top: `${t.top}%` }} />)}
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" className="absolute inset-0 size-full overflow-visible">
+          <defs>
+            <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor={color} stopOpacity=".42" /><stop offset="1" stopColor={color} stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <path d={`${line} L100 100 L0 100 Z`} fill={`url(#${id})`} />
+          <path d={line} fill="none" stroke={color} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+        </svg>
+        <span className="absolute size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white shadow-md" style={{ left: `${last[0]}%`, top: `${last[1]}%`, background: color }} />
+        <span className="absolute -translate-x-[calc(100%+0.9rem)] -translate-y-1/2 whitespace-nowrap rounded-lg bg-slate-950/80 px-2 py-0.5 text-[11px] font-extrabold tabular-nums text-white shadow" style={{ left: `${last[0]}%`, top: `${last[1]}%` }}>79,2 kg</span>
+      </div>
     </div>
   );
 }
@@ -384,7 +390,7 @@ function Weight() {
             <p className="font-bold">Evolução do peso</p>
             <span className="inline-flex items-center gap-1 rounded-full bg-fuchsia-100 dark:bg-fuchsia-500/20 px-2.5 py-1 text-xs font-bold text-fuchsia-700 dark:text-fuchsia-300"><TrendingDown size={13} /> −0,35 kg por semana</span>
           </div>
-          <div className="mt-3 min-h-0 flex-1"><AreaChart values={values} min={78} max={83} color="#c026d3" id="area-peso" /></div>
+          <div className="mt-3 min-h-0 flex-1"><AreaChart values={values} min={78} max={83} color="#d946ef" id="area-peso" unit="kg" /></div>
           <div className="mt-2 flex justify-between text-[11px] font-semibold text-muted-foreground"><span>há 10 semanas</span><span>5 sem.</span><span>hoje</span></div>
         </section>
         <div className="grid gap-3 sm:grid-cols-3">
@@ -458,6 +464,7 @@ function Sleep() {
               ))}
             </div>
           </div>
+          <div className="ml-[5.25rem] mt-1.5 flex justify-between text-[10px] font-semibold text-indigo-200/80"><span>23h</span><span>01h</span><span>03h</span><span>05h</span><span>06:30</span></div>
         </section>
         <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 lg:grid-rows-3 lg:gap-4">
           {([[Moon, "Duração", "7h20", "meta de 8 horas", "bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300"], [BedDouble, "Regularidade", "±18 min", "no horário de dormir", "bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300"], [Waves, "Despertares", "1", "na última noite", "bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300"]] as [LucideIcon, string, string, string, string][]).map(([Icon, label, value, note, tone]) => (
@@ -478,6 +485,14 @@ function Sleep() {
 /* ------------------------------------------------------------------ */
 
 function Training() {
+  const pathRef = useRef<SVGPathElement>(null);
+  const [marks, setMarks] = useState<{ x: number; y: number }[]>([]);
+  useEffect(() => {
+    const el = pathRef.current;
+    if (!el) return;
+    const length = el.getTotalLength();
+    setMarks([0.24, 0.48, 0.72, 0.9].map((f) => { const point = el.getPointAtLength(length * f); return { x: point.x, y: point.y }; }));
+  }, []);
   const route = "M12 82 C 38 56, 52 94, 78 66 S 116 18, 130 48 S 146 72, 150 28";
   return (
     <Page className="lg:grid-cols-[minmax(0,.95fr)_minmax(0,1.25fr)]">
@@ -503,7 +518,8 @@ function Training() {
               <ellipse cx="30" cy="80" rx="30" ry="15" fill="rgba(16,185,129,.13)" />
               <ellipse cx="132" cy="26" rx="26" ry="15" fill="rgba(56,189,248,.13)" />
               <path d={route} fill="none" stroke="rgba(0,0,0,.6)" strokeWidth="5.5" strokeLinecap="round" />
-              <path d={route} fill="none" stroke="url(#trk)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+              <path ref={pathRef} d={route} fill="none" stroke="url(#trk)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+              {marks.map((m, i) => <g key={i}><circle cx={m.x} cy={m.y} r="3.6" fill="#0f172a" stroke="#fff" strokeWidth="0.8" /><text x={m.x} y={m.y + 1.3} textAnchor="middle" fontSize="3.6" fontWeight="700" fill="#fff">{i + 1}</text></g>)}
               <circle cx="12" cy="82" r="3" fill="#fff" stroke="#34d399" strokeWidth="1.4" />
               <circle cx="150" cy="28" r="3.2" fill="#0ea5e9" stroke="#fff" strokeWidth="1.4" />
               <circle cx="150" cy="28" r="3.2" fill="none" stroke="#38bdf8" strokeWidth="1">
@@ -514,9 +530,9 @@ function Training() {
             </div>
           </div>
         </section>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-3">
+        <div className="grid grid-cols-5 gap-2 sm:gap-3">
           {([[Activity, "Corrida"], [Waves, "Natação"], [Bike, "Ciclismo"], [Dumbbell, "Musculação"], [Zap, "Caminhada"]] as [LucideIcon, string][]).map(([Icon, t]) => (
-            <div key={t} className={`${CARD} flex items-center gap-2 px-3 py-3`}><Icon size={18} className="shrink-0 text-emerald-600" /><span className="whitespace-nowrap text-sm font-bold">{t}</span></div>
+            <div key={t} className={`${CARD} flex flex-col items-center gap-1.5 px-1.5 py-3 text-center`}><span className="grid size-9 place-items-center rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-300"><Icon size={18} /></span><span className="text-[11px] font-bold leading-tight sm:text-sm">{t}</span></div>
           ))}
         </div>
       </div>
