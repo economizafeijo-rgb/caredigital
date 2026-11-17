@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useAccess } from "@/lib/use-access";
 import { StoreHighlight } from "@/components/vigia/StoreHighlight";
+import { LiveModeLauncher } from "@/components/vigia/LiveMode";
 import { MobileHero } from "@/components/vigia/MobileHero";
 import { HomeNextCareCard } from "@/components/vigia/CareTimer";
 import { HomeModalityTimers } from "@/components/vigia/HomeModalityTimers";
@@ -221,12 +222,15 @@ function Homepage() {
           </p>
           <div className="mt-5 flex flex-wrap items-center gap-3 max-sm:flex-col max-sm:items-stretch max-sm:[&>a]:justify-center sm:mt-6">
             {panel ? (
-              <Link
-                to={panel}
-                className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110"
-              >
-                <LayoutDashboard size={17} /> Voltar ao meu painel <ArrowRight size={16} />
-              </Link>
+              <>
+                <Link
+                  to={panel}
+                  className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110"
+                >
+                  <LayoutDashboard size={17} /> Voltar ao meu painel <ArrowRight size={16} />
+                </Link>
+                {status === "client" && <LiveModeLauncher className="!h-11 !px-5 !text-sm" />}
+              </>
             ) : (
               <>
                 <a
