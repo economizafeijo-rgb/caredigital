@@ -3,21 +3,42 @@ import { Download, Share, Smartphone, X } from "lucide-react";
 
 type InstallEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: "accepted" | "dismissed" }> };
 
+let savedPrompt: InstallEvent | null = null;
+let swStarted = false;
+/** Registra o service worker uma única vez (produção) e guarda o convite de instalação mesmo que o botão monte depois. */
+export function startPwa() {
+  if (typeof window === "undefined" || swStarted) return;
+  swStarted = true;
+  if ("serviceWorker" in navigator && import.meta.env.PROD) {
+    const register = () => navigator.serviceWorker.register("/sw.js", { scope: "/" }).then((reg) => {
+      reg.addEventListener("updatefound", () => {
+        const worker = reg.installing;
+        worker?.addEventListener("statechange", () => { if (worker.state === "installed" && navigator.serviceWorker.controller) worker.postMessage("skipWaiting"); });
+      });
+    }).catch(() => undefined);
+    if (document.readyState === "complete") void register(); else window.addEventListener("load", () => void register(), { once: true });
+  }
+  window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); savedPrompt = e as InstallEvent; window.dispatchEvent(new Event("nv-install-ready")); });
+  window.addEventListener("appinstalled", () => { savedPrompt = null; });
+}
+if (typeof window !== "undefined") startPwa();
+
 /** Registra o service worker e oferece a instalação do app (Android/desktop: botão; iPhone: instruções). */
 export function useInstallApp() {
   const [event, setEvent] = useState<InstallEvent | null>(null);
   const [installed, setInstalled] = useState(false);
   const [ios, setIos] = useState(false);
   useEffect(() => {
-    if ("serviceWorker" in navigator && import.meta.env.PROD) void navigator.serviceWorker.register("/sw.js").catch(() => undefined);
+    startPwa();
+    setEvent(savedPrompt);
     const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as { standalone?: boolean }).standalone === true;
     setInstalled(standalone);
     setIos(/iphone|ipad|ipod/i.test(navigator.userAgent) && !standalone);
-    const onPrompt = (e: Event) => { e.preventDefault(); setEvent(e as InstallEvent); };
+    const onPrompt = () => setEvent(savedPrompt);
     const onInstalled = () => { setInstalled(true); setEvent(null); };
-    window.addEventListener("beforeinstallprompt", onPrompt);
+    window.addEventListener("nv-install-ready", onPrompt);
     window.addEventListener("appinstalled", onInstalled);
-    return () => { window.removeEventListener("beforeinstallprompt", onPrompt); window.removeEventListener("appinstalled", onInstalled); };
+    return () => { window.removeEventListener("nv-install-ready", onPrompt); window.removeEventListener("appinstalled", onInstalled); };
   }, []);
   async function install() {
     if (!event) return false;
