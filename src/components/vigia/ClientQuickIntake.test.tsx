@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { ClientQuickIntake } from "./ClientQuickIntake";
+import { DialogProvider } from "@/lib/dialog";
 
 vi.mock("@/integrations/supabase/client", () => ({ supabase: { rpc: vi.fn() } }));
 afterEach(() => cleanup());
@@ -8,7 +9,7 @@ afterEach(() => cleanup());
 const kinds = () => Array.from(document.querySelectorAll("[data-intake-kind]")).map((el) => el.getAttribute("data-intake-kind"));
 const groups = () => new Set(Array.from(document.querySelectorAll("[data-intake-group]")).map((el) => el.getAttribute("data-intake-group")));
 const open = (mode: "water" | "food" | "drink") => {
-  render(<ClientQuickIntake patientId="p1" mode={mode} />);
+  render(<DialogProvider><ClientQuickIntake patientId="p1" mode={mode} /></DialogProvider>);
   fireEvent.click(screen.getByRole("button", { name: /Registrar (água|alimento|bebida)/ }));
 };
 

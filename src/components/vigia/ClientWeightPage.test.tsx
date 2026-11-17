@@ -67,6 +67,8 @@ describe("Registro de peso com cadeado", () => {
     fireEvent.change(screen.getByLabelText(/^Data/), { target: { value: "2026-01-13" } });
     fireEvent.change(screen.getByPlaceholderText("75,5"), { target: { value: "78,9" } });
     fireEvent.click(screen.getByRole("button", { name: /Inserir registro/ }));
+    expect(callsOf("insert")).toHaveLength(0); // antes de confirmar, nada é gravado
+    fireEvent.click(await screen.findByRole("button", { name: "Confirmar registro" }));
     await waitFor(() => expect(callsOf("insert")).toHaveLength(1));
     expect(callsOf("insert")[0].args[0]).toMatchObject({ recorded_on: "2026-01-13", weight_kg: 78.9, recorded_by: "user-1" });
   });

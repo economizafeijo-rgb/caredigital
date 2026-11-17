@@ -126,6 +126,7 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
     const h = (wakeAt.getTime() - bedAt.getTime()) / 3_600_000;
     if (!(h > 0.5 && h <= 20)) return setMessage({ ok: false, text: "Confira os horários: o sono precisa ter entre 30 minutos e 20 horas." });
     if (wakeAt.getTime() > Date.now() + 60_000) return setMessage({ ok: false, text: "O horário de acordar não pode estar no futuro." });
+    if (!(await dialog.confirm("Confirmar registro de sono?", `Registrar ${hm(h)} de sono: dormiu às ${clock(bedAt.toISOString())} e acordou às ${clock(wakeAt.toISOString())}?`, false, "Confirmar registro"))) return;
     const row = { sleep_date: acreDateKey(wakeAt), bed_at: bedAt.toISOString(), wake_at: wakeAt.toISOString(), quality, awakenings, avg_hr: sensorHr?.avg ?? null, min_hr: sensorHr?.min ?? null, source: sensorHr ? "sensor" : "manual", notes: notes.trim() || null };
     if (remote) {
       const r = await db.from("care_sleep_logs").upsert({ ...row, patient_id: patientId, owner_id: ownerId }, { onConflict: "patient_id,sleep_date" });

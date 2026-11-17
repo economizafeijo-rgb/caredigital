@@ -139,6 +139,7 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
   if(!enteredGrams||enteredGrams<1||enteredGrams>2000){
    setNotice("Informe uma porção entre 1 g e 2.000 g.");return;
   }
+  if(!(await dialog.confirm("Confirmar registro?","Registrar "+enteredGrams+" g de "+food.name+" agora?",false,"Confirmar registro")))return;
   setSaving(true);setNotice("");
   try{
    const result=await (supabase as any).rpc("care_log_food_portion",{
@@ -162,6 +163,7 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
  }
  async function recordMeal(){
   if(saving||!mealBasket.length)return;
+  if(!(await dialog.confirm("Confirmar registro da refeição?","Registrar "+(mealName.trim()||"a refeição")+" com "+mealBasket.length+" alimento(s) agora?",false,"Confirmar registro")))return;
   setSaving(true);setNotice("");
   try{
    const request=mealRequestIds.current[0]??(mealRequestIds.current[0]=crypto.randomUUID());

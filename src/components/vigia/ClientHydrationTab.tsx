@@ -11,6 +11,7 @@ import {
   Info,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useDialog } from "@/lib/dialog";
 import { ClientQuickIntake } from "./ClientQuickIntake";
 import { HydrationEntries } from "./HydrationEntries";
 import { WATER_LAST_RECOMMENDED_HOUR } from "@/lib/nutrition-science";
@@ -126,6 +127,7 @@ export function ClientHydrationTab({
   const [configured, setConfigured] = useState(false);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const dialog = useDialog();
   const [drinks, setDrinks] = useState<Drink[]>([]);
   const [otherDrinks, setOtherDrinks] = useState<Drink[]>([]);
   const [suggestedByTask, setSuggestedByTask] = useState<
@@ -443,6 +445,7 @@ export function ClientHydrationTab({
   }
   async function quickDrink(ml: number) {
     if (action) return;
+    if (!(await dialog.confirm("Confirmar registro?", `Registrar ${ml} ml de água agora?`, false, "Confirmar registro"))) return;
     setAction("quick");
     setError("");
     setNotice("");

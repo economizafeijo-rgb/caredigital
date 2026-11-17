@@ -7,6 +7,7 @@ import { CareIntakePicker, CareIntakeIcon } from "./CareIntakePicker";
 import { foodCategory,beverageCategory,isFoodKind,type IntakeKind,type FoodKind,type BeverageKind } from "@/lib/care-intake-categories";
 import { parseFoodText, sumNutrients } from "@/lib/food-parser";
 import { supabase } from "@/integrations/supabase/client";
+import { useDialog } from "@/lib/dialog";
 
 type Props = { patientId: string; onRecorded?: () => void; variant?: "home" | "panel"; mode?: "all" | "water" | "food" | "drink"; /** Increment to open the existing form from a dashboard card. */ openSignal?: number };
 const zone = "America/Rio_Branco";
@@ -26,6 +27,7 @@ const acreInputValue = (date = new Date()) => {
 
 /** Registros avulsos não criam tarefas e não confirmam horários da programação. */
 export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mode = "all", openSignal = 0 }: Props) {
+  const dialog = useDialog();
   const [open, setOpen] = useState(false);
   const [reportOpen,setReportOpen]=useState(false);
   const [kind, setKind] = useState<IntakeKind>("lanche");
@@ -103,6 +105,9 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
       return;
     }
     setError("");
+    const when = manualTime ? `em ${consumedAt.replace("T", " às ")}` : "agora";
+    const summary = isWater ? `${volume} ml de água ${when}` : isFood ? `${label.toLowerCase()}: ${formDescription} ${when}` : `${label.toLowerCase()}: ${formDescription} (${volume} ml) ${when}`;
+    if (!(await dialog.confirm("Confirmar registro?", `Registrar ${summary} (horário do Acre)?`, false, "Confirmar registro"))) return;
     setSaving(true);
     try {
       const { data, error: failure } = await (supabase as any).rpc("care_log_unscheduled_intake", {
