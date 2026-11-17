@@ -21,7 +21,7 @@ const FEATURE_ROW = "grid grid-cols-[repeat(auto-fit,minmax(13rem,1fr))] gap-3";
 
 /** A página ocupa toda a janela em telas largas; em telas baixas ou no celular ela rola normalmente. */
 function Page({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <FitPage className={`mx-auto grid w-full max-w-[1760px] gap-3 lg:gap-4 ${className}`}>{children}</FitPage>;
+  return <FitPage className={`mx-auto grid w-full gap-3 lg:gap-4 ${className}`}>{children}</FitPage>;
 }
 
 function Cta({ label, tone }: { label: string; tone: string }) {

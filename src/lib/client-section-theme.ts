@@ -43,7 +43,7 @@ export const clientSectionTheme: Record<ClientSection, SectionTheme> = {
     overlay: "from-indigo-950 via-indigo-900/80 to-violet-600/10", pill: "bg-gradient-to-r from-indigo-600 to-violet-500", chip: "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300" },
   suplementos: { label: "Suplementos", icon: Sparkles, image: "/images/painel-suplementos.webp", position: "50% 50%",
     overlay: "from-violet-950 via-purple-900/80 to-amber-500/10", pill: "bg-gradient-to-r from-violet-600 to-amber-500", chip: "bg-violet-500/15 text-violet-600 dark:text-violet-300" },
-  indicadores: { label: "Indicadores", icon: Target, image: "/images/painel-indicadores.webp", position: "50% 50%",
+  indicadores: { label: "Indicadores", icon: Target, image: "/images/show-metricas.webp", position: "55% 45%",
     overlay: "from-teal-950 via-teal-900/80 to-emerald-500/10", pill: "bg-gradient-to-r from-teal-600 to-emerald-500", chip: "bg-teal-500/15 text-teal-600 dark:text-teal-300" },
   cardapios: { label: "Cardápios", icon: BookOpen, image: "/images/painel-cardapios.webp", position: "50% 50%",
     overlay: "from-amber-950 via-amber-900/80 to-yellow-500/10", pill: "bg-gradient-to-r from-amber-600 to-yellow-500", chip: "bg-amber-500/15 text-amber-600 dark:text-amber-300" },

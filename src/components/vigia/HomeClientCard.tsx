@@ -41,6 +41,7 @@ import {
 } from "@/lib/client-pages";
 import { ClientBeverageTracker } from "./ClientBeverageTracker";
 import { ClientQuickIntake } from "./ClientQuickIntake";
+import { QuickRegisterFab } from "./QuickRegisterFab";
 import { CareTaskRecordModal } from "./CareTaskRecordModal";
 import { CareReminderBeacon } from "./CareReminderBeacon";
 import { CareRecentHistory } from "./CareRecentHistory";
@@ -1004,6 +1005,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
             </div>
           </header>
 
+          <QuickRegisterFab patientId={client.id} area={activeTab} onRecorded={() => setTick((value) => value + 1)} />
           <div className="shrink-0 empty:hidden">
             <CareReminderBeacon
               tasks={tasks}
@@ -1444,7 +1446,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                 />
               )}
               {activeTab === "medicacao" && (
-                <div className="mx-auto w-full max-w-5xl">
+                <div className="w-full">
                   <MissedDoseRegularizer
                     patientId={client.id}
                     onDone={() => setTick((value) => value + 1)}
