@@ -112,6 +112,15 @@ function Entrar() {
       await navigate({ to: "/admin" });
       return;
     }
+    // Quem veio de "Seja lojista" volta para lá depois de entrar.
+    try {
+      const back = window.sessionStorage.getItem("nv_after_login");
+      window.sessionStorage.removeItem("nv_after_login");
+      if (back && /^\/[a-z0-9\-/]*$/i.test(back) && !back.startsWith("//")) {
+        await navigate({ to: back as "/lojista" });
+        return;
+      }
+    } catch { /* sem armazenamento */ }
     const { data: grants, error } = await (supabase as any)
       .from("care_patient_access")
       .select("patient_id")

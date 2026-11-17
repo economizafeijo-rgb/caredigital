@@ -4,6 +4,7 @@ import { ClipboardList, HeartPulse } from "lucide-react";
 import { Btn, PageHeader, Panel } from "@/components/vigia/ui";
 import { supabase } from "@/integrations/supabase/client";
 import { StoreAdminDashboard } from "@/components/vigia/StoreAdminDashboard";
+import { AdminMarketplace } from "@/components/vigia/AdminMarketplace";
 import { isSupabaseConfigured } from "@/lib/supabase-session";
 import { AdminClientManager } from "@/components/vigia/AdminClientManager";
 
@@ -164,6 +165,7 @@ function Admin() {
               </section>
             )}
             <StoreAdminDashboard />
+            <AdminMarketplace />
             <AdminClientManager ownerId={ownerId} />
             <p className="mt-5 rounded-xl border border-success/30 bg-success/10 p-3 text-xs">
               Esta área administra os cadastros da plataforma. O acompanhamento pessoal do
