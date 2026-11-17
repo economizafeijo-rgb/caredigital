@@ -11,6 +11,31 @@ const GHOST = "inline-flex h-12 items-center gap-2 rounded-xl border border-whit
 const PAGE = "mx-auto grid w-full max-w-[1320px] gap-4 lg:h-[calc(100%-49px)] lg:min-h-0";
 const FOOT = "mt-1 flex items-start gap-2 text-xs text-white/70";
 
+const heroPhotos: Record<ShowcaseKind, { src: string; pos: string }> = {
+  hydration: { src: "/images/caredigital-hidratacao.webp", pos: "50% 45%" },
+  medication: { src: "/images/caredigital-medicamentos.webp", pos: "50% 50%" },
+  diet: { src: "/images/caredigital-alimentacao.webp", pos: "50% 50%" },
+  sports: { src: "/images/caredigital-esporte.webp", pos: "50% 40%" },
+  supplements: { src: "/images/show-suplementos.webp", pos: "50% 60%" },
+  weight: { src: "/images/show-peso.webp", pos: "60% 22%" },
+  sleep: { src: "/images/show-sono.webp", pos: "50% 35%" },
+  training: { src: "/images/show-treinos.webp", pos: "40% 45%" },
+  metrics: { src: "/images/show-metricas.webp", pos: "50% 55%" },
+  protocols: { src: "/images/caredigital-care-hero.webp", pos: "70% 25%" },
+};
+
+/** Foto profissional de fundo do destaque, com véu escuro para o texto. */
+function HeroPhoto({ kind }: { kind: ShowcaseKind }) {
+  const p = heroPhotos[kind];
+  return (
+    <>
+      <img src={p.src} alt="" aria-hidden="true" width={1600} height={900} loading="eager" decoding="async"
+        style={{ objectPosition: p.pos }} className="absolute inset-0 -z-10 h-full w-full object-cover" />
+      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-950/90 via-slate-950/70 to-slate-950/30" />
+    </>
+  );
+}
+
 function Cta({ cta, tone }: { cta: string; tone: string }) {
   return (
     <div className="mt-6 flex flex-wrap gap-3">
@@ -24,9 +49,10 @@ function Cta({ cta, tone }: { cta: string; tone: string }) {
 function Hydration() {
   return (
     <div className={`${PAGE} lg:grid-cols-[1.05fr_1fr]`}>
-      <section className="relative flex flex-col justify-center overflow-hidden rounded-3xl bg-gradient-to-br from-sky-950 via-sky-900 to-cyan-700 p-8 text-white shadow-pop lg:p-10">
+      <section className="relative isolate overflow-hidden relative flex flex-col justify-center overflow-hidden rounded-3xl bg-gradient-to-br from-sky-950 via-sky-900 to-cyan-700 p-8 text-white shadow-pop lg:p-10">
+        <HeroPhoto kind="hydration" />
         <p className="text-xs font-bold uppercase tracking-[.2em] text-sky-200">Hidratação</p>
-        <h1 className="mt-3 text-4xl font-extrabold leading-[1.05] xl:text-5xl">Beber água nunca foi tão simples.</h1>
+        <h1 className="mt-3 text-4xl font-extrabold leading-[1.05] lg:text-4xl 2xl:text-5xl">Beber água nunca foi tão simples.</h1>
         <p className="mt-4 max-w-xl text-base text-sky-100/90">Sua meta do dia, o que já foi bebido e o horário do próximo copo, sempre à vista. A cada registro, o NextVita recalcula quanto e quando beber, até as 22h.</p>
         <Cta cta="Acessar minha hidratação" tone="text-sky-900" />
         <p className={FOOT}><ShieldCheck size={14} className="mt-0.5 shrink-0" /> Metas são orientativas e devem considerar a orientação profissional.</p>
@@ -63,9 +89,10 @@ function Medication() {
   const doses: [string, string, "ok" | "next" | "todo"][] = [["07:00", "Omeprazol 20 mg", "ok"], ["08:00", "Losartana 50 mg", "ok"], ["14:00", "Amoxicilina 500 mg", "next"], ["20:00", "Metformina 850 mg", "todo"]];
   return (
     <div className={`${PAGE} lg:grid-cols-[1fr_1fr]`}>
-      <section className="flex flex-col justify-center rounded-3xl bg-gradient-to-br from-rose-900 via-rose-700 to-pink-500 p-8 text-white shadow-pop lg:p-10">
+      <section className="relative isolate overflow-hidden flex flex-col justify-center rounded-3xl bg-gradient-to-br from-rose-900 via-rose-700 to-pink-500 p-8 text-white shadow-pop lg:p-10">
+        <HeroPhoto kind="medication" />
         <p className="text-xs font-bold uppercase tracking-[.2em] text-rose-100">Medicação</p>
-        <h1 className="mt-3 text-4xl font-extrabold leading-[1.05] xl:text-5xl">Cada dose no horário certo, sem esquecer.</h1>
+        <h1 className="mt-3 text-4xl font-extrabold leading-[1.05] lg:text-4xl 2xl:text-5xl">Cada dose no horário certo, sem esquecer.</h1>
         <p className="mt-4 max-w-xl text-base text-rose-50/90">Cadastre seus remédios com dose e horários, veja o timer da próxima tomada e confirme cada dose. O histórico guarda data e hora reais.</p>
         <Cta cta="Acessar meus medicamentos" tone="text-rose-700" />
       </section>
@@ -101,9 +128,10 @@ function Medication() {
 function Diet() {
   return (
     <div className={`${PAGE} lg:grid-cols-[1.1fr_1fr]`}>
-      <section className="flex flex-col justify-center rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-800 to-lime-600 p-8 text-white shadow-pop lg:p-10">
+      <section className="relative isolate overflow-hidden flex flex-col justify-center rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-800 to-lime-600 p-8 text-white shadow-pop lg:p-10">
+        <HeroPhoto kind="diet" />
         <p className="text-xs font-bold uppercase tracking-[.2em] text-emerald-100">Alimentação e dietas</p>
-        <h1 className="mt-3 text-4xl font-extrabold leading-[1.05] xl:text-5xl">Você descreve o que comeu. O resto é calculado.</h1>
+        <h1 className="mt-3 text-4xl font-extrabold leading-[1.05] lg:text-4xl 2xl:text-5xl">Você descreve o que comeu. O resto é calculado.</h1>
         <p className="mt-4 max-w-xl text-base text-emerald-50/90">Escreva a refeição em texto natural. O NextVita reconhece os alimentos, estima calorias, macronutrientes, fibras e vitaminas, e compara com o seu objetivo.</p>
         <div className="mt-5 rounded-2xl bg-white/10 p-4 font-mono text-sm text-emerald-50">“150 g de arroz, feijão, frango e 2 ovos”</div>
         <Cta cta="Acessar minha rotina" tone="text-emerald-800" />
@@ -136,10 +164,11 @@ function Sports() {
   const goals = ["Emagrecer", "Manter", "Ganhar peso", "Hipertrofia"];
   return (
     <div className={`${PAGE} lg:grid-rows-[1fr_auto]`}>
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-950 via-orange-800 to-amber-500 p-8 text-white shadow-pop lg:p-12">
+      <section className="relative isolate overflow-hidden relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-950 via-orange-800 to-amber-500 p-8 text-white shadow-pop lg:p-12">
+        <HeroPhoto kind="sports" />
         <div aria-hidden="true" className="absolute -right-20 -top-20 size-96 rounded-full bg-amber-300/25 blur-3xl" />
         <p className="relative text-xs font-bold uppercase tracking-[.2em] text-amber-100">Nutrição esportiva</p>
-        <h1 className="relative mt-3 max-w-3xl text-4xl font-extrabold leading-[1.05] xl:text-6xl">Alimente o treino com a meta certa para o seu objetivo.</h1>
+        <h1 className="relative mt-3 max-w-3xl text-4xl font-extrabold leading-[1.05] lg:text-5xl 2xl:text-6xl">Alimente o treino com a meta certa para o seu objetivo.</h1>
         <div className="relative mt-6 flex flex-wrap gap-2">{goals.map((g, i) => <span key={g} className={`rounded-full px-4 py-2 text-sm font-bold ${i === 3 ? "bg-white text-orange-800" : "bg-white/15 text-white"}`}>{g}</span>)}</div>
         <div className="relative mt-8 grid gap-4 sm:grid-cols-3">
           {[["1.920", "kcal por dia"], ["138 g", "de proteína (1,8 g/kg)"], ["210 g", "de carboidrato"]].map(([v, l]) => <div key={l} className="rounded-2xl bg-black/20 p-4"><p className="text-3xl font-extrabold tabular-nums">{v}</p><p className="text-sm text-orange-100">{l}</p></div>)}
@@ -161,10 +190,11 @@ function Supplements() {
   const items = [["Creatina", "3 g", "08:00", "from-violet-500 to-fuchsia-500"], ["Whey protein", "30 g", "16:00", "from-sky-500 to-indigo-500"], ["Ômega 3", "1 cápsula", "12:00", "from-cyan-500 to-teal-500"], ["Magnésio", "300 mg", "22:00", "from-indigo-500 to-purple-600"]] as const;
   return (
     <div className={`${PAGE} lg:grid-rows-[auto_1fr]`}>
-      <section className="flex flex-wrap items-end justify-between gap-6 rounded-3xl bg-gradient-to-r from-violet-950 via-violet-800 to-amber-600 p-8 text-white shadow-pop lg:p-10">
+      <section className="relative isolate overflow-hidden flex flex-wrap items-end justify-between gap-6 rounded-3xl bg-gradient-to-r from-violet-950 via-violet-800 to-amber-600 p-8 text-white shadow-pop lg:p-10">
+        <HeroPhoto kind="supplements" />
         <div className="max-w-2xl">
           <p className="text-xs font-bold uppercase tracking-[.2em] text-violet-200">Controle de suplementação</p>
-          <h1 className="mt-3 text-4xl font-extrabold leading-[1.05] xl:text-5xl">Dose, horário e timer para cada suplemento.</h1>
+          <h1 className="mt-3 text-4xl font-extrabold leading-[1.05] lg:text-4xl 2xl:text-5xl">Dose, horário e timer para cada suplemento.</h1>
           <p className="mt-3 text-base text-violet-100/90">Programe o que você usa, marque o que já tomou e veja a próxima dose. A biblioteca traz dicas de uso e cuidados.</p>
         </div>
         <Cta cta="Programar meus suplementos" tone="text-violet-800" />
@@ -191,10 +221,11 @@ function Weight() {
   const path = pts.map((v, i) => `${i === 0 ? "M" : "L"}${(i / (pts.length - 1)) * 600},${140 - ((v - min) / (max - min)) * 130}`).join(" ");
   return (
     <div className={`${PAGE} lg:grid-cols-[1fr_1.15fr]`}>
-      <section className="flex flex-col justify-between rounded-3xl bg-gradient-to-br from-fuchsia-950 via-fuchsia-800 to-pink-500 p-8 text-white shadow-pop lg:p-10">
+      <section className="relative isolate overflow-hidden flex flex-col justify-between rounded-3xl bg-gradient-to-br from-fuchsia-950 via-fuchsia-800 to-pink-500 p-8 text-white shadow-pop lg:p-10">
+        <HeroPhoto kind="weight" />
         <div>
           <p className="text-xs font-bold uppercase tracking-[.2em] text-fuchsia-200">Controle de peso</p>
-          <h1 className="mt-3 text-4xl font-extrabold leading-[1.05] xl:text-5xl">Veja a sua evolução, não só o número de hoje.</h1>
+          <h1 className="mt-3 text-4xl font-extrabold leading-[1.05] lg:text-4xl 2xl:text-5xl">Veja a sua evolução, não só o número de hoje.</h1>
           <p className="mt-4 text-base text-fuchsia-100/90">Registre o peso por data. O gráfico mostra a tendência, o IMC e quanto falta para a sua meta, com a data estimada de chegada.</p>
         </div>
         <div className="mt-6 flex items-end gap-4"><p className="text-6xl font-extrabold tabular-nums">79,2<span className="ml-1 text-xl font-bold text-fuchsia-200">kg</span></p><p className="pb-2 text-sm text-fuchsia-100">−3,2 kg em 10 semanas</p></div>
@@ -224,11 +255,12 @@ function Weight() {
 function Sleep() {
   return (
     <div className={`${PAGE} lg:grid-cols-[1fr_1fr]`}>
-      <section className="relative flex flex-col justify-center overflow-hidden rounded-3xl bg-gradient-to-b from-indigo-950 via-violet-950 to-slate-950 p-8 text-white shadow-pop lg:p-10">
+      <section className="relative isolate overflow-hidden relative flex flex-col justify-center overflow-hidden rounded-3xl bg-gradient-to-b from-indigo-950 via-violet-950 to-slate-950 p-8 text-white shadow-pop lg:p-10">
+        <HeroPhoto kind="sleep" />
         <div aria-hidden="true" className="absolute inset-0 opacity-60" style={{ backgroundImage: "radial-gradient(1.5px 1.5px at 12% 22%, #fff, transparent), radial-gradient(1px 1px at 38% 12%, #fff, transparent), radial-gradient(1.5px 1.5px at 64% 30%, #fff, transparent), radial-gradient(1px 1px at 84% 16%, #fff, transparent), radial-gradient(1px 1px at 74% 62%, #fff, transparent), radial-gradient(1.5px 1.5px at 22% 70%, #fff, transparent)" }} />
         <Moon className="relative text-indigo-200" size={36} />
         <p className="relative mt-4 text-xs font-bold uppercase tracking-[.2em] text-indigo-200">Monitoramento do sono</p>
-        <h1 className="relative mt-3 text-4xl font-extrabold leading-[1.05] xl:text-5xl">Descanse melhor com dados de verdade.</h1>
+        <h1 className="relative mt-3 text-4xl font-extrabold leading-[1.05] lg:text-4xl 2xl:text-5xl">Descanse melhor com dados de verdade.</h1>
         <p className="relative mt-4 text-base text-indigo-100/90">Registre a noite, veja a nota de 0 a 100 e acompanhe a regularidade do horário de dormir. Com um sensor Bluetooth, os batimentos aparecem ao vivo.</p>
         <div className="relative mt-5 flex items-center gap-3 rounded-2xl bg-white/10 p-4"><HeartPulse className="text-rose-300" /><b className="text-2xl tabular-nums">54</b><span className="text-sm text-indigo-100">bpm ao vivo, com cinta ou relógio</span></div>
         <Cta cta="Monitorar meu sono" tone="text-indigo-900" />
@@ -253,7 +285,8 @@ function Sleep() {
 function Training() {
   return (
     <div className={`${PAGE} lg:grid-rows-[1fr_auto]`}>
-      <section className="relative overflow-hidden rounded-3xl bg-slate-950 text-white shadow-pop">
+      <section className="relative isolate overflow-hidden relative overflow-hidden rounded-3xl bg-slate-950 text-white shadow-pop">
+        <HeroPhoto kind="training" />
         <svg viewBox="0 0 1200 500" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 size-full">
           <defs><pattern id="tgrid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#fff" strokeOpacity=".06" /></pattern><linearGradient id="trg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#34d399" /><stop offset="1" stopColor="#38bdf8" /></linearGradient></defs>
           <rect width="1200" height="500" fill="url(#tgrid)" />
@@ -264,7 +297,7 @@ function Training() {
         <div className="relative flex min-h-[320px] flex-col justify-between gap-6 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent p-8 lg:p-10">
           <div className="max-w-xl">
             <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[.2em] text-emerald-300"><MapPin size={14} /> Treinos e corridas</p>
-            <h1 className="mt-3 text-4xl font-extrabold leading-[1.05] xl:text-5xl">Cada passo registrado pelo GPS do seu aparelho.</h1>
+            <h1 className="mt-3 text-4xl font-extrabold leading-[1.05] lg:text-4xl 2xl:text-5xl">Cada passo registrado pelo GPS do seu aparelho.</h1>
             <p className="mt-4 text-base text-slate-300">Veja o percurso sendo desenhado em tempo real, com velocidade, ritmo e tempo por quilômetro. Um corredor animado acompanha o seu ritmo.</p>
             <Cta cta="Registrar um treino" tone="text-slate-900" />
           </div>
@@ -287,9 +320,10 @@ function Training() {
 function Metrics() {
   return (
     <div className={`${PAGE} lg:grid-cols-[1.2fr_1fr] lg:grid-rows-[auto_1fr]`}>
-      <section className="flex flex-col justify-center rounded-3xl bg-gradient-to-br from-indigo-950 via-indigo-800 to-cyan-600 p-8 text-white shadow-pop lg:col-span-2 lg:p-10">
+      <section className="relative isolate overflow-hidden flex flex-col justify-center rounded-3xl bg-gradient-to-br from-indigo-950 via-indigo-800 to-cyan-600 p-8 text-white shadow-pop lg:col-span-2 lg:p-10">
+        <HeroPhoto kind="metrics" />
         <p className="text-xs font-bold uppercase tracking-[.2em] text-cyan-200">Métricas e gráficos</p>
-        <h1 className="mt-3 max-w-3xl text-4xl font-extrabold leading-[1.05] xl:text-5xl">Todos os seus números de saúde em um único painel.</h1>
+        <h1 className="mt-3 max-w-3xl text-4xl font-extrabold leading-[1.05] lg:text-4xl 2xl:text-5xl">Todos os seus números de saúde em um único painel.</h1>
         <p className="mt-3 max-w-2xl text-base text-indigo-100/90">Calorias, proteína, água, peso, treino e sono lado a lado, com metas e tendências. Toque em um dia para ver os detalhes.</p>
         <Cta cta="Ver minhas métricas" tone="text-indigo-900" />
       </section>
@@ -312,9 +346,10 @@ function Journey() {
   const steps = [["1", "Vinculação", "Seu perfil e o acesso ao acompanhamento."], ["2", "Programação", "Medicamentos, água, refeições e treinos nos horários certos."], ["3", "Confirmação", "Você confirma o que fez, no momento em que fez."], ["4", "Histórico", "Tudo guardado com data e hora reais."]];
   return (
     <div className={`${PAGE} lg:grid-rows-[auto_1fr]`}>
-      <section className="rounded-3xl bg-gradient-to-r from-emerald-950 via-teal-800 to-emerald-600 p-8 text-white shadow-pop lg:p-10">
+      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-950 via-teal-800 to-emerald-600 p-8 text-white shadow-pop lg:p-10">
+        <HeroPhoto kind="protocols" />
         <p className="text-xs font-bold uppercase tracking-[.2em] text-emerald-100">Como funciona</p>
-        <h1 className="mt-3 max-w-3xl text-4xl font-extrabold leading-[1.05] xl:text-5xl">Da programação ao histórico, em quatro passos.</h1>
+        <h1 className="mt-3 max-w-3xl text-4xl font-extrabold leading-[1.05] lg:text-4xl 2xl:text-5xl">Da programação ao histórico, em quatro passos.</h1>
         <Cta cta="Acessar meu acompanhamento" tone="text-emerald-800" />
       </section>
       <section className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
