@@ -1,0 +1,83 @@
+import { useSyncExternalStore } from "react";
+
+export type StoreCategory = "suplementos" | "vitaminas" | "nutricao" | "roupas-masculinas" | "roupas-femininas" | "acessorios";
+export type Product = { id: string; name: string; category: StoreCategory; priceCents: number; oldPriceCents?: number; img: string; tag?: string; text: string };
+
+export const categories: { key: StoreCategory | "todos"; label: string }[] = [
+  { key: "todos", label: "Tudo" },
+  { key: "suplementos", label: "Suplementos" },
+  { key: "vitaminas", label: "Vitaminas" },
+  { key: "nutricao", label: "Nutrição" },
+  { key: "roupas-masculinas", label: "Masculino" },
+  { key: "roupas-femininas", label: "Feminino" },
+  { key: "acessorios", label: "Acessórios" },
+];
+export const categoryLabel: Record<StoreCategory, string> = {
+  suplementos: "Suplementos", vitaminas: "Vitaminas", nutricao: "Nutrição", "roupas-masculinas": "Moda masculina", "roupas-femininas": "Moda feminina", acessorios: "Acessórios",
+};
+
+/** Catálogo inicial (vitrine em desenvolvimento): preços de demonstração até a loja abrir oficialmente. */
+export const products: Product[] = [
+  { id: "whey-900", name: "Whey Protein 900 g", category: "suplementos", priceCents: 14990, oldPriceCents: 17990, img: "/loja/whey2.webp", tag: "Mais vendido", text: "Proteína de alto valor biológico para recuperação muscular." },
+  { id: "whey-shaker", name: "Kit Whey + Coqueteleira", category: "suplementos", priceCents: 16990, img: "/loja/whey.webp", tag: "Kit", text: "Whey com coqueteleira para levar ao treino." },
+  { id: "pre-treino", name: "Pré-treino 300 g", category: "suplementos", priceCents: 11990, oldPriceCents: 13990, img: "/loja/pre.webp", text: "Energia e foco para treinos intensos." },
+  { id: "proteina-vegetal", name: "Proteína Vegetal 500 g", category: "nutricao", priceCents: 12990, img: "/loja/whey3.webp", tag: "Novo", text: "Opção sem lactose para o dia a dia." },
+  { id: "multivitaminico", name: "Multivitamínico 120 cápsulas", category: "vitaminas", priceCents: 6990, img: "/loja/vit2.webp", tag: "Essencial", text: "Complexo de vitaminas e minerais para a rotina." },
+  { id: "vitamina-d", name: "Vitamina D3 60 cápsulas", category: "vitaminas", priceCents: 4990, oldPriceCents: 5990, img: "/loja/vit1.webp", text: "Apoio à saúde óssea e imunidade." },
+  { id: "camiseta-regata", name: "Regata Dry Fit Masculina", category: "roupas-masculinas", priceCents: 7990, img: "/loja/homem1.webp", tag: "Dry Fit", text: "Tecido leve que seca rápido, ideal para musculação." },
+  { id: "conjunto-treino-m", name: "Conjunto Treino Masculino", category: "roupas-masculinas", priceCents: 15990, oldPriceCents: 18990, img: "/loja/homem2.webp", text: "Camiseta e bermuda de alta mobilidade." },
+  { id: "camiseta-oversized", name: "Camiseta Performance", category: "roupas-masculinas", priceCents: 8990, img: "/loja/homem3.webp", text: "Conforto e respirabilidade para todo treino." },
+  { id: "conjunto-fem-1", name: "Conjunto Top + Legging Preto", category: "roupas-femininas", priceCents: 17990, img: "/loja/mulher1.webp", tag: "Destaque", text: "Top com sustentação e legging de cintura alta." },
+  { id: "conjunto-fem-2", name: "Conjunto Rosé Seamless", category: "roupas-femininas", priceCents: 18990, oldPriceCents: 21990, img: "/loja/mulher2.webp", text: "Modelagem sem costura, toque macio." },
+  { id: "conjunto-fem-3", name: "Conjunto Azul Marinho", category: "roupas-femininas", priceCents: 19990, img: "/loja/mulher3.webp", tag: "Novo", text: "Conjunto com jaqueta para o antes e depois do treino." },
+  { id: "legging", name: "Legging Compressão", category: "roupas-femininas", priceCents: 11990, img: "/loja/mulher4.webp", text: "Compressão confortável e cós alto." },
+  { id: "halteres", name: "Par de Halteres Emborrachados", category: "acessorios", priceCents: 12990, img: "/loja/halter.webp", text: "Peso fixo com revestimento antiderrapante." },
+  { id: "kit-barra", name: "Kit Anilhas e Barra", category: "acessorios", priceCents: 39990, img: "/loja/gym2.webp", tag: "Kit", text: "Para treino de força completo em casa." },
+  { id: "tapete", name: "Tapete de Treino Antiderrapante", category: "acessorios", priceCents: 8990, img: "/loja/gym.webp", text: "Alta aderência para alongamento e funcional." },
+  { id: "coqueteleira", name: "Coqueteleira 600 ml", category: "acessorios", priceCents: 3990, img: "/loja/whey.webp", text: "Tampa de segurança e misturador interno." },
+];
+
+export const money = (cents: number) => (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+export const paymentMethods = [
+  { key: "pix", label: "Pix", note: "5% de desconto · confirmação rápida" },
+  { key: "cartao", label: "Cartão de crédito", note: "Em até 3x sem juros" },
+  { key: "boleto", label: "Boleto bancário", note: "Vence em 2 dias úteis" },
+] as const;
+export type PaymentKey = (typeof paymentMethods)[number]["key"];
+export const PIX_DISCOUNT = 0.05;
+export function orderTotal(subtotal: number, method: PaymentKey) { return method === "pix" ? Math.round(subtotal * (1 - PIX_DISCOUNT)) : subtotal; }
+
+export const STORE_WHATSAPP = "5568992031340";
+
+/* Carrinho: guardado no aparelho e compartilhado entre componentes. */
+export type CartLine = { id: string; qty: number };
+const KEY = "nextvita.cart.v1";
+let lines: CartLine[] = [];
+let loaded = false;
+const listeners = new Set<() => void>();
+function load() {
+  if (loaded || typeof window === "undefined") return;
+  loaded = true;
+  try { const raw = JSON.parse(window.localStorage.getItem(KEY) || "[]"); if (Array.isArray(raw)) lines = raw.filter((l) => l && typeof l.id === "string" && l.qty > 0 && products.some((p) => p.id === l.id)); } catch { /* sem armazenamento */ }
+}
+function commit(next: CartLine[]) {
+  lines = next;
+  try { window.localStorage.setItem(KEY, JSON.stringify(next)); } catch { /* sem armazenamento */ }
+  listeners.forEach((l) => l());
+}
+export const cart = {
+  add(id: string, qty = 1) { load(); const found = lines.find((l) => l.id === id); commit(found ? lines.map((l) => (l.id === id ? { ...l, qty: Math.min(20, l.qty + qty) } : l)) : [...lines, { id, qty }]); },
+  setQty(id: string, qty: number) { load(); commit(qty <= 0 ? lines.filter((l) => l.id !== id) : lines.map((l) => (l.id === id ? { ...l, qty: Math.min(20, qty) } : l))); },
+  remove(id: string) { load(); commit(lines.filter((l) => l.id !== id)); },
+  clear() { load(); commit([]); },
+};
+const subscribe = (cb: () => void) => { load(); listeners.add(cb); return () => { listeners.delete(cb); }; };
+const empty: CartLine[] = [];
+export function useCart() {
+  const current = useSyncExternalStore(subscribe, () => { load(); return lines; }, () => empty);
+  const detailed = current.flatMap((l) => { const p = products.find((x) => x.id === l.id); return p ? [{ ...l, product: p }] : []; });
+  const count = detailed.reduce((s, l) => s + l.qty, 0);
+  const subtotal = detailed.reduce((s, l) => s + l.qty * l.product.priceCents, 0);
+  return { lines: detailed, count, subtotal };
+}
