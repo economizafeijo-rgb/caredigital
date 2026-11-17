@@ -65,7 +65,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 
 // Endereço oficial (sem redirecionamento): é o que redes sociais e buscadores devem usar.
 const SITE_URL = "https://www.nextvita.life";
-const SHARE_IMAGE = `${SITE_URL}/share-card-v2.jpg`;
+const SHARE_IMAGE = `${SITE_URL}/share-card-v3.jpg`;
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
@@ -92,12 +92,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:image:type", content: "image/jpeg" },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
-      { property: "og:image:alt", content: "NextVita: medicação, hidratação, peso, sono, treinos e suplementos em uma rotina só" },
+      { property: "og:image:alt", content: "NextVita: seu corpo, sua saúde e sua rotina em um só app, agora com loja de suplementos e moda fitness. Grátis para teste." },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "NextVita — Bem-estar conectado" },
       { name: "twitter:description", content: "Medicação, hidratação, alimentação, treinos, sono e peso em uma rotina só. Grátis para teste." },
       { name: "twitter:image", content: SHARE_IMAGE },
-      { name: "twitter:image:alt", content: "NextVita: bem-estar conectado" },
+      { name: "twitter:image:alt", content: "NextVita: seu corpo, sua saúde e sua rotina em um só app, agora com loja. Grátis para teste." },
       { name: "theme-color", content: "#0e8a6a" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
