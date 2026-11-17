@@ -254,6 +254,6 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
       {message && <p role="status" className={`mt-3 rounded-xl px-3 py-2 text-sm font-medium ${message.ok ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-destructive/10 text-destructive"}`}>{message.text}</p>}
       <p className="mt-3 text-xs text-muted-foreground">A nota do sono é uma estimativa educativa (duração, qualidade percebida e despertares). Não substitui avaliação médica nem exame do sono.</p>
     </section>
-    <DayDetailDialog patientId={patientId} ownerId={ownerId} day={detail} onClose={() => setDetail(null)} />
+    <DayDetailDialog patientId={patientId} ownerId={ownerId} focus="sono" day={detail} onClose={() => setDetail(null)} />
   </div>;
 }

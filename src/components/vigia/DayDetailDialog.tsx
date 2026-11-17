@@ -4,15 +4,15 @@ import { acreAddDays, acreDateAtTime, ACRE_TIME_ZONE } from "@/lib/acre-time";
 import { acreDayHour, buildDay } from "@/lib/day-metrics";
 import { loadPeriodRaw, resolveTargets, type PeriodData } from "@/lib/period-data";
 import { supabase } from "@/integrations/supabase/client";
-import { EvolutionDayView } from "./EvolutionDayView";
+import { EvolutionDayView, FOCUS_LABEL, type MetricFocus } from "./EvolutionDayView";
 
-type Props = { patientId: string; ownerId: string; day: string | null; waterTarget?: number | null; onClose: () => void };
+type Props = { patientId: string; ownerId: string; day: string | null; waterTarget?: number | null; focus?: MetricFocus; onClose: () => void };
 
 /**
  * Painel de detalhes de um dia (24 horas): abre ao clicar numa barra ou ponto de qualquer gráfico.
  * Mostra metas, hidratação e alimentação hora a hora, suplementos, medicação, sono, peso, atividade e observações.
  */
-export function DayDetailDialog({ patientId, ownerId, day: initialDay, waterTarget = null, onClose }: Props) {
+export function DayDetailDialog({ patientId, ownerId, day: initialDay, waterTarget = null, focus, onClose }: Props) {
   const [day, setDay] = useState<string | null>(initialDay);
   const [data, setData] = useState<{ day: string; result: PeriodData; water: number | null } | null>(null);
   const [failed, setFailed] = useState(false);
@@ -50,7 +50,7 @@ export function DayDetailDialog({ patientId, ownerId, day: initialDay, waterTarg
         <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-border bg-card px-4 py-3 sm:px-5">
           <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary"><CalendarDays size={19} /></span>
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-primary">Detalhes do dia · 24 horas</p>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-primary">{focus ? `${FOCUS_LABEL[focus]} · detalhes do dia` : "Detalhes do dia · 24 horas · todas as métricas"}</p>
             <h2 id="day-detail-title" className="truncate font-display text-lg font-extrabold capitalize leading-tight">{title}</h2>
           </div>
           <div className="flex items-center gap-1.5">
@@ -62,7 +62,7 @@ export function DayDetailDialog({ patientId, ownerId, day: initialDay, waterTarg
         <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-5">
           {failed ? <p role="alert" className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">Não foi possível carregar este dia. Verifique a conexão e tente novamente.</p>
             : !metrics || !data || !targets ? <p role="status" className="flex items-center justify-center gap-2 p-12 text-sm text-muted-foreground"><Loader2 size={16} className="animate-spin" /> Carregando o dia…</p>
-              : <EvolutionDayView metrics={metrics} raw={data.result.raw} targets={targets} />}
+              : <EvolutionDayView metrics={metrics} raw={data.result.raw} targets={targets} focus={focus} />}
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@ import { Activity, BedDouble, ClipboardList, Play, Scale, Star } from "lucide-re
 import { Area, Bar, CartesianGrid, Cell, ComposedChart, Pie, PieChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { DAY_CUTOFF_HOUR } from "@/lib/acre-time";
 import { WATER_LAST_RECOMMENDED_HOUR } from "@/lib/nutrition-science";
-import { acreDayHour, goalObservation, goalValue, type DayMetrics, type PeriodRaw, type Targets } from "@/lib/day-metrics";
+import { acreDayHour, goalObservation, goalValue, type DayMetrics, type GoalMetric, type PeriodRaw, type Targets } from "@/lib/day-metrics";
 import { goalFxItem, useGoalFx } from "./GoalFx";
 import { ChartTip, clock, hm, METRIC_STYLE, nf, Panel, ProgressRing, StatusBadge, STATUS_STYLE } from "./evolution-ui";
 
@@ -13,7 +13,19 @@ function Empty({ children }: { children: string }) {
   return <p className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">{children}</p>;
 }
 
-export function EvolutionDayView({ metrics: m, raw, targets }: { metrics: DayMetrics; raw: PeriodRaw; targets: Targets }) {
+/** Área cujos números devem aparecer sozinhos. Sem área, a visão mostra todas as métricas reunidas. */
+export type MetricFocus = "hidratacao" | "alimentacao" | "suplementos" | "medicacao" | "sono" | "peso" | "atividade";
+const FOCUS_GOALS: Record<MetricFocus, GoalMetric[]> = {
+  hidratacao: ["hidratacao"], alimentacao: ["calorias", "proteina"], suplementos: ["suplementos"],
+  medicacao: ["medicacao"], sono: ["sono"], peso: [], atividade: [],
+};
+export const FOCUS_LABEL: Record<MetricFocus, string> = {
+  hidratacao: "Hidratação", alimentacao: "Alimentação", suplementos: "Suplementos", medicacao: "Medicação", sono: "Sono", peso: "Peso", atividade: "Atividade física",
+};
+
+export function EvolutionDayView({ metrics: m, raw, targets, focus }: { metrics: DayMetrics; raw: PeriodRaw; targets: Targets; focus?: MetricFocus }) {
+  const on = (area: MetricFocus) => !focus || focus === area;
+  const shownGoals = focus ? m.goals.filter((goal) => FOCUS_GOALS[focus].includes(goal.metric)) : m.goals;
   const fx = useGoalFx();
   const water = m.goals.find((goal) => goal.metric === "hidratacao");
   const kcal = m.goals.find((goal) => goal.metric === "calorias");
@@ -31,15 +43,15 @@ export function EvolutionDayView({ metrics: m, raw, targets }: { metrics: DayMet
   const plansFor = (kind: "suplemento" | "medicacao") => raw.plans.filter((plan) => plan.kind === kind && plan.active && plan.createdDay <= m.day);
   const taken = (list: DayMetrics["supplements"]["entries"], name: string, slot: string) => list.some((dose) => dose.name === name && dose.slot === slot);
 
-  const misses = m.goals.filter((goal) => goal.status === "nao_atingida");
+  const misses = shownGoals.filter((goal) => goal.status === "nao_atingida");
   const savedMetrics = new Set(m.reviews.map((review) => review.metric));
 
   return (
     <div className="grid gap-3">
-      <Panel title="Metas do dia" note={m.closed ? "Dia encerrado (horário do Acre)" : "Em andamento · a água fecha à meia-noite; refeições contam até as 22h"}>
-        {m.goals.length === 0 ? <Empty>Ainda não há metas programadas para este dia.</Empty> : (
+      {(!focus || shownGoals.length > 0) && <Panel title="Metas do dia" note={m.closed ? "Dia encerrado (horário do Acre)" : "Em andamento · a água fecha à meia-noite; refeições contam até as 22h"}>
+        {shownGoals.length === 0 ? <Empty>Ainda não há metas programadas para este dia.</Empty> : (
           <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
-            {m.goals.map((goal) => {
+            {shownGoals.map((goal) => {
               const style = METRIC_STYLE[goal.metric];
               const Icon = style.icon;
               const replay = goal.status === "atingida" || goal.status === "nao_atingida";
@@ -62,10 +74,10 @@ export function EvolutionDayView({ metrics: m, raw, targets }: { metrics: DayMet
             })}
           </div>
         )}
-      </Panel>
+      </Panel>}
 
-      <div className="grid items-start gap-3 xl:grid-cols-2">
-        <Panel title="Hidratação nas 24 horas" note={water ? `Meta ${nf(water.target)} ml · registros liberados nas 24 horas · ideal concluir até as ${WATER_LAST_RECOMMENDED_HOUR}h` : "Barras: volume por hora · área: acumulado do dia"}>
+      {(on("hidratacao") || on("alimentacao")) && <div className={`grid gap-3 ${focus ? "" : "xl:grid-cols-2"}`}>
+        {on("hidratacao") && <Panel title="Hidratação nas 24 horas" note={water ? `Meta ${nf(water.target)} ml · registros liberados nas 24 horas · ideal concluir até as ${WATER_LAST_RECOMMENDED_HOUR}h` : "Barras: volume por hora · área: acumulado do dia"}>
           {m.water.length === 0 ? <Empty>Nenhum copo registrado neste dia.</Empty> : (
             <div className="h-60 w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -95,9 +107,9 @@ export function EvolutionDayView({ metrics: m, raw, targets }: { metrics: DayMet
             </ul>
           )}
           <p className="mt-2 text-[11px] text-muted-foreground">Total nas 24 horas: <strong className="text-foreground">{nf(m.waterAllMl)} ml</strong></p>
-        </Panel>
+        </Panel>}
 
-        <Panel title="Alimentação nas 24 horas" note={kcal ? `Meta ${nf(kcal.target)} kcal · ${kcal.rule}` : "Calorias por hora e acumulado do dia"}>
+        {on("alimentacao") && <Panel title="Alimentação nas 24 horas" note={kcal ? `Meta ${nf(kcal.target)} kcal · ${kcal.rule}` : "Calorias por hora e acumulado do dia"}>
           {m.foods.length === 0 ? <Empty>Nenhum alimento registrado neste dia.</Empty> : (
             <>
               <div className="h-60 w-full">
@@ -145,11 +157,11 @@ export function EvolutionDayView({ metrics: m, raw, targets }: { metrics: DayMet
               </ul>
             </>
           )}
-        </Panel>
-      </div>
+        </Panel>}
+      </div>}
 
-      <div className="grid gap-3 lg:grid-cols-2">
-        <Panel title="Suplementação" note={`${m.supplements.taken} de ${m.supplements.planned} doses programadas`}>
+      {(on("suplementos") || on("medicacao")) && <div className={`grid gap-3 ${focus ? "" : "lg:grid-cols-2"}`}>
+        {on("suplementos") && <Panel title="Suplementação" note={`${m.supplements.taken} de ${m.supplements.planned} doses programadas`}>
           {plansFor("suplemento").length === 0 && m.supplements.entries.length === 0 ? <Empty>Nenhum suplemento programado neste dia.</Empty> : (
             <ul className="grid gap-2">
               {plansFor("suplemento").map((plan) => (
@@ -162,8 +174,8 @@ export function EvolutionDayView({ metrics: m, raw, targets }: { metrics: DayMet
               ))}
             </ul>
           )}
-        </Panel>
-        <Panel title="Medicação" note={`${m.medication.taken} de ${m.medication.planned} doses confirmadas`}>
+        </Panel>}
+        {on("medicacao") && <Panel title="Medicação" note={`${m.medication.taken} de ${m.medication.planned} doses confirmadas`}>
           {m.medication.planned === 0 && m.medication.entries.length === 0 ? <Empty>Nenhuma dose de medicação programada neste dia.</Empty> : (
             <ul className="grid gap-2">
               {m.medication.tasks.map((task, i) => (
@@ -182,11 +194,11 @@ export function EvolutionDayView({ metrics: m, raw, targets }: { metrics: DayMet
               ))}
             </ul>
           )}
-        </Panel>
-      </div>
+        </Panel>}
+      </div>}
 
-      <div className="grid gap-3 md:grid-cols-3">
-        <Panel title="Sono" note="Noite registrada neste dia">
+      {(on("sono") || on("peso") || on("atividade")) && <div className={`grid gap-3 ${focus ? "" : "md:grid-cols-3"}`}>
+        {on("sono") && <Panel title="Sono" note="Noite registrada neste dia">
           {m.sleep ? (
             <div className="grid gap-1 text-xs">
               <p className="inline-flex items-center gap-2 text-2xl font-extrabold tabular-nums"><BedDouble size={20} className="text-indigo-500" />{hm(m.sleep.hours)}</p>
@@ -194,16 +206,19 @@ export function EvolutionDayView({ metrics: m, raw, targets }: { metrics: DayMet
               <p className="inline-flex items-center gap-1">{Array.from({ length: 5 }, (_, i) => <Star key={i} size={13} className={i < m.sleep!.quality ? "fill-amber-400 text-amber-400" : "text-muted-foreground/40"} />)}<span className="ml-1 text-muted-foreground">{m.sleep.awakenings} despertar(es)</span></p>
             </div>
           ) : <Empty>Sem registro de sono.</Empty>}
-        </Panel>
-        <Panel title="Peso" note="Medição deste dia">
+        </Panel>}
+        {on("peso") && <Panel title="Peso" note="Medição deste dia">
           {m.weightKg !== null ? <p className="inline-flex items-center gap-2 text-2xl font-extrabold tabular-nums"><Scale size={20} className="text-fuchsia-500" />{nf(m.weightKg, 1)} kg</p> : <Empty>Sem medição neste dia.</Empty>}
-        </Panel>
-        <Panel title="Atividade física" note="Treinos registrados">
-          {m.activityMinutes > 0 ? <p className="inline-flex items-center gap-2 text-2xl font-extrabold tabular-nums"><Activity size={20} className="text-emerald-500" />{nf(m.activityMinutes)} min{m.activityKm > 0 && <span className="text-sm font-semibold text-muted-foreground">· {nf(m.activityKm, 1)} km</span>}</p> : <Empty>Sem treino registrado.</Empty>}
-        </Panel>
-      </div>
+        </Panel>}
+        {on("atividade") && <Panel title="Atividade física" note="Treinos registrados">
+          {m.activityMinutes > 0 ? <>
+            <p className="inline-flex items-center gap-2 text-2xl font-extrabold tabular-nums"><Activity size={20} className="text-emerald-500" />{nf(m.activityMinutes)} min{m.activityKm > 0 && <span className="text-sm font-semibold text-muted-foreground">· {nf(m.activityKm, 1)} km</span>}</p>
+            <ul className="mt-2 grid gap-1 text-xs">{raw.activities.filter((item) => acreDayHour(item.at).day === m.day).map((item, i) => <li key={i} className="flex items-center justify-between rounded-lg bg-muted/50 px-2.5 py-1.5"><span className="font-mono font-bold">{clock(item.at)}</span><span className="flex-1 px-2 capitalize">{item.type}</span><span className="font-semibold tabular-nums">{nf(item.minutes)} min{item.km ? ` · ${nf(item.km, 1)} km` : ""}</span></li>)}</ul>
+          </> : <Empty>Sem treino registrado.</Empty>}
+        </Panel>}
+      </div>}
 
-      <Panel title="Observações do dia" note="O sistema registra uma observação quando uma meta não é atingida">
+      {(!focus || shownGoals.length > 0) && <Panel title="Observações do dia" note="O sistema registra uma observação quando uma meta não é atingida">
         {misses.length === 0 ? <Empty>{m.closed ? "Nenhuma meta deixou de ser atingida neste dia." : "As observações aparecem aqui quando o dia fechar, caso alguma meta não seja atingida."}</Empty> : (
           <ul className="grid gap-2">
             {misses.map((goal) => (
@@ -215,7 +230,7 @@ export function EvolutionDayView({ metrics: m, raw, targets }: { metrics: DayMet
             ))}
           </ul>
         )}
-      </Panel>
+      </Panel>}
     </div>
   );
 }

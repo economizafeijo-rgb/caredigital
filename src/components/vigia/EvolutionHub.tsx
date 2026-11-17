@@ -12,6 +12,8 @@ type Props = {
   ownerId: string;
   waterTarget: number | null;
   revision?: number;
+  /** Visão inicial: o panorama da Visão geral abre no dia de hoje, com todas as métricas. */
+  defaultView?: View;
   /** Permite trocar a origem dos dados (testes e pré-visualização). */
   loader?: (patientId: string, ownerId: string, from: string, to: string) => Promise<PeriodData>;
 };
@@ -20,10 +22,10 @@ const pad = (value: number) => String(value).padStart(2, "0");
 const VIEWS: { key: View; label: string }[] = [{ key: "dia", label: "Dia" }, { key: "mes", label: "Mês" }, { key: "ano", label: "Ano" }];
 const YEARS_BACK = 5;
 
-export function EvolutionHub({ patientId, ownerId, waterTarget, revision = 0, loader = loadPeriodRaw }: Props) {
+export function EvolutionHub({ patientId, ownerId, waterTarget, revision = 0, defaultView = "mes", loader = loadPeriodRaw }: Props) {
   const today = acreDayHour(Date.now()).day;
   const thisYear = Number(today.slice(0, 4));
-  const [view, setView] = useState<View>("mes");
+  const [view, setView] = useState<View>(defaultView);
   const [cursor, setCursor] = useState(today);
   const [data, setData] = useState<{ result: PeriodData; from: string; to: string } | null>(null);
   const [loading, setLoading] = useState(true);
