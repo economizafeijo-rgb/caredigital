@@ -377,7 +377,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <>
                   <Brand />
                   <nav
-                    className="ml-4 hidden min-w-0 flex-1 items-center gap-0.5 lg:flex"
+                    className="ml-2 hidden min-w-0 flex-1 items-center justify-start gap-0 overflow-hidden min-[1180px]:flex xl:ml-4 xl:gap-0.5"
                     aria-label="Navegação principal"
                   >
                     {publicItems.map((item) => (
@@ -385,14 +385,14 @@ export function AppShell({ children }: { children: ReactNode }) {
                         key={item.to}
                         to={item.to}
                         activeOptions={{ exact: item.to === "/" }}
-                        className="rounded-lg px-3 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        className="shrink-0 whitespace-nowrap rounded-lg px-2 py-2 text-[12.5px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground xl:px-3 xl:text-[13px]"
                         activeProps={{ className: "!bg-accent !text-accent-foreground" }}
                       >
                         {item.label}
                       </Link>
                     ))}
                   </nav>
-                  <span className="flex-1 lg:hidden" />
+                  <span className="flex-1 min-[1180px]:hidden" />
                 </>
               )}
               <div className="flex shrink-0 items-center gap-1.5">
@@ -427,7 +427,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     onClick={() => setMenuOpen(true)}
                     aria-label="Abrir menu"
                     aria-expanded={menuOpen}
-                    className={`${iconButton} lg:hidden`}
+                    className={`${iconButton} min-[1180px]:hidden`}
                   >
                     <Menu size={18} />
                   </button>
@@ -487,7 +487,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           {menuOpen && (
             <div
-              className={`fixed inset-0 z-50 ${signedIn ? "xl:hidden" : "lg:hidden"}`}
+              className={`fixed inset-0 z-50 ${signedIn ? "xl:hidden" : "min-[1180px]:hidden"}`}
               role="dialog"
               aria-modal="true"
               aria-label="Menu"
