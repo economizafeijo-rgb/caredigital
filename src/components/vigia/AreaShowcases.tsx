@@ -27,7 +27,7 @@ function Page({ children, className = "" }: { children: ReactNode; className?: s
 function Cta({ label, tone }: { label: string; tone: string }) {
   return (
     <div className="mt-1 flex flex-wrap gap-2.5">
-      <a href="/entrar?mode=signup" className={`${BTN_PRIMARY} ${tone}`}>Testar grátis por 7 dias <ArrowRight size={17} /></a>
+      <a href="/entrar?mode=signup" className={`${BTN_PRIMARY} ${tone}`}>Grátis para teste <ArrowRight size={17} /></a>
       <Link to="/cliente" className={BTN_GHOST}><LockKeyhole size={16} /> {label}</Link>
     </div>
   );

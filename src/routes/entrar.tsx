@@ -34,7 +34,7 @@ import {
 } from "@/lib/public-signup-validation";
 
 export const Route = createFileRoute("/entrar")({
-  head: () => ({ meta: [{ title: "Entrar ou testar grátis por 7 dias — NextVita" }] }),
+  head: () => ({ meta: [{ title: "Entrar ou grátis para teste — NextVita" }] }),
   component: Entrar,
 });
 
@@ -361,7 +361,7 @@ function Entrar() {
     mode === "login"
       ? "Acesse seu acompanhamento"
       : mode === "signup"
-        ? "Comece seus 7 dias grátis"
+        ? "Comece grátis para teste"
         : mode === "forgot"
           ? "Recuperar acesso"
           : "Criar nova senha";
@@ -539,7 +539,7 @@ function Entrar() {
                 }}
                 className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-primary/25 bg-primary/5 px-4 text-sm font-bold text-primary transition hover:bg-primary/10"
               >
-                <UserPlus size={17} /> Testar grátis por 7 dias
+                <UserPlus size={17} /> Grátis para teste
               </button>
             </form>
           )}
@@ -673,7 +673,7 @@ function Entrar() {
                 disabled={busy || !!configurationIssue}
                 className="flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:opacity-50 sm:col-span-2"
               >
-                {busy ? "Criando sua conta…" : "Começar meus 7 dias grátis"}
+                {busy ? "Criando sua conta…" : "Começar grátis para teste"}
               </button>
               <button
                 type="button"

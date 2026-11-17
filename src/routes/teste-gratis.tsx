@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 
 /** Endereço antigo do teste grátis: o cadastro agora é único e fica em /entrar. */
 export const Route = createFileRoute("/teste-gratis")({
-  head: () => ({ meta: [{ title: "Teste grátis por 7 dias — NextVita" }] }),
+  head: () => ({ meta: [{ title: "Grátis para teste — NextVita" }] }),
   component: FreeTrialRedirect,
 });
 
