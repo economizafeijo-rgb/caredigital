@@ -456,3 +456,8 @@ svg.lucide { stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; 
   #care-content .recharts-text { font-size: 10px; }
   #care-content button.h-11, #care-content a.h-11 { height: 2.5rem; }
 }
+
+/* Banner da loja: zoom lento da foto e barra de progresso do slide */
+@keyframes nv-kenburns { from { transform: scale(1.04); } to { transform: scale(1.16); } }
+@keyframes nv-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) { .nv-kenburns, .nv-progress { animation: none !important; } }
