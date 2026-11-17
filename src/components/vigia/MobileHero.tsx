@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { LiveModeLauncher } from "./LiveMode";
+import { StoreBannerCarousel } from "./StoreBannerCarousel";
 import { Activity, ArrowRight, BarChart3, BedDouble, Droplets, Gift, LayoutDashboard, LockKeyhole, Pill, Scale, ShieldCheck, ShoppingBag, Sparkles, Utensils } from "lucide-react";
 
 const areas = [
@@ -21,7 +22,8 @@ export function MobileHero({ client, name, panel }: { client: boolean; name: str
       <section aria-labelledby="m-hero-title" className="relative isolate flex min-h-[30rem] flex-col justify-end overflow-hidden rounded-[1.75rem] bg-slate-950 p-5 text-white shadow-2xl">
         <img src="/images/caredigital-care-hero.webp" alt="" aria-hidden="true" width={1200} height={752} className="absolute inset-0 -z-20 size-full object-cover" />
         <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-slate-950 via-slate-950/70 to-emerald-950/20" />
-        <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-slate-950/45 px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest backdrop-blur"><ShieldCheck size={14} className="text-emerald-300" /> Bem-estar protegido</span>
+        <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-slate-950/45 px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest backdrop-blur"><ShieldCheck size={14} className="text-emerald-300" /> Protegido</span>
+        <Link to="/loja" className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-300 to-amber-400 px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-slate-950 shadow-[0_10px_30px_-10px_rgba(251,191,36,.95)]"><span className="relative flex size-2" aria-hidden="true"><span className="absolute inline-flex size-full animate-ping rounded-full bg-slate-900 opacity-60" /><span className="relative inline-flex size-2 rounded-full bg-slate-900" /></span> Novidade · Loja</Link>
         <h1 id="m-hero-title" className="text-balance text-[2.6rem] font-extrabold leading-[1.02] tracking-tight">
           {client ? <>Olá, <span className="text-emerald-300">{(name || "usuário").split(" ")[0]}</span>. Sua evolução em um só lugar.</> : <>Sua rotina de bem-estar, <span className="text-emerald-300">organizada.</span></>}
         </h1>
@@ -38,8 +40,11 @@ export function MobileHero({ client, name, panel }: { client: boolean; name: str
               <Link to="/entrar" className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-white/30 bg-white/10 text-[15px] font-bold backdrop-blur"><LockKeyhole size={18} /> Acessar minha conta</Link>
             </>
           )}
+          <Link to="/loja" className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-400 text-[15px] font-extrabold text-slate-950 shadow-[0_12px_32px_-12px_rgba(251,191,36,.95)] active:scale-95"><ShoppingBag size={18} /> Visitar a loja</Link>
         </div>
       </section>
+
+      <StoreBannerCarousel />
 
       <section aria-label="Áreas da plataforma">
         <div className="flex items-end justify-between px-2">
