@@ -489,3 +489,40 @@ svg.lucide { stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; 
 #care-client-tab-panel[data-page="hoje"] .overflow-y-auto {
   overflow: visible;
 }
+
+
+/* Cliente: o documento não rola; somente a área de conteúdo ocupa o espaço restante. */
+html:has(.care-shell #care-client-tab-panel),
+body:has(.care-shell #care-client-tab-panel) {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+.care-shell:has(#care-client-tab-panel) {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+.care-shell:has(#care-client-tab-panel) > div:has(> #care-content) {
+  min-height: 0;
+  overflow: hidden;
+}
+.care-shell:has(#care-client-tab-panel) #care-content {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.care-shell #care-client-tab-panel {
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
+}
+#care-client-tab-panel[data-client-page="hoje"] :is(.overflow-y-auto, .care-history-list):not([role="dialog"] *) {
+  max-height: none;
+  overflow: visible;
+}
