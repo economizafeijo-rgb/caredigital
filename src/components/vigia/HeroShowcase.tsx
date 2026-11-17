@@ -34,14 +34,14 @@ function Card({ id }: { id: string }) {
 /** Vitrine de vendas da página inicial: produtos com preço, carrinho e compartilhar, mais o convite para lojistas. */
 export function HeroShowcase({ className = "" }: { className?: string }) {
   return (
-    <section aria-labelledby="showcase-title" className={`relative isolate overflow-hidden rounded-[1.75rem] bg-gradient-to-br from-[#2a1204] via-[#7c2d12] to-[#d97706] p-4 text-white shadow-2xl sm:p-6 ${className}`}>
+    <section aria-labelledby="showcase-title" className={`relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-[#2a1204] via-[#7c2d12] to-[#d97706] p-3.5 text-white shadow-2xl sm:p-6 ${className}`}>
       <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-16 -z-10 size-64 rounded-full bg-amber-300/30 blur-3xl" />
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <span className="inline-flex items-center gap-2 rounded-full bg-amber-300 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[.16em] text-slate-950">
             <span className="relative flex size-2" aria-hidden="true"><span className="absolute inline-flex size-full animate-ping rounded-full bg-slate-900 opacity-60" /><span className="relative inline-flex size-2 rounded-full bg-slate-900" /></span> Loja virtual · no ar
           </span>
-          <h2 id="showcase-title" className="mt-2 font-display text-2xl font-extrabold leading-tight sm:text-3xl">Vitrine NextVita: compre sem sair do app.</h2>
+          <h2 id="showcase-title" className="mt-2 font-display text-xl font-extrabold leading-tight sm:text-3xl">Vitrine NextVita: compre sem sair do app.</h2>
           <p className="text-sm text-white/85">Suplementos, vitaminas, moda fitness e acessórios. Pix com 5% de desconto.</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -49,7 +49,7 @@ export function HeroShowcase({ className = "" }: { className?: string }) {
           <Link to="/parceiros" className="inline-flex h-11 items-center gap-2 rounded-2xl border border-white/40 bg-white/10 px-5 text-sm font-bold backdrop-blur transition hover:bg-white/20"><Store size={16} /> Quero vender aqui · grátis</Link>
         </div>
       </header>
-      <div className="-mx-4 mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 lg:grid-cols-6 [&::-webkit-scrollbar]:hidden">
+      <div className="-mx-3.5 mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-3.5 pb-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 lg:grid-cols-6 [&::-webkit-scrollbar]:hidden">
         {featured.map((p) => <Card key={p.id} id={p.id} />)}
       </div>
     </section>

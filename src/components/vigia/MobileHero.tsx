@@ -19,30 +19,32 @@ const areas = [
 /** Abertura da página inicial no celular: foto grande com chamada forte e carrossel de áreas em cartões amplos. */
 export function MobileHero({ client, name, panel }: { client: boolean; name: string; panel: string | null }) {
   return (
-    <div className="-mx-1 flex flex-col gap-5 sm:hidden">
-      <section aria-labelledby="m-hero-title" className="relative isolate flex min-h-[30rem] flex-col justify-end overflow-hidden rounded-[1.75rem] bg-slate-950 p-5 text-white shadow-2xl">
+    <div className="flex flex-col gap-3 sm:hidden">
+      <section aria-labelledby="m-hero-title" className="relative isolate overflow-hidden rounded-3xl bg-slate-950 p-4 text-white shadow-xl">
         <img src="/images/caredigital-care-hero.webp" alt="" aria-hidden="true" width={1200} height={752} className="absolute inset-0 -z-20 size-full object-cover" />
-        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-slate-950 via-slate-950/70 to-emerald-950/20" />
-        <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-slate-950/45 px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest backdrop-blur"><ShieldCheck size={14} className="text-emerald-300" /> Protegido</span>
-        <Link to="/loja" className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-300 to-amber-400 px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-slate-950 shadow-[0_10px_30px_-10px_rgba(251,191,36,.95)]"><span className="relative flex size-2" aria-hidden="true"><span className="absolute inline-flex size-full animate-ping rounded-full bg-slate-900 opacity-60" /><span className="relative inline-flex size-2 rounded-full bg-slate-900" /></span> Novidade · Loja</Link>
-        <h1 id="m-hero-title" className="text-balance text-[2.6rem] font-extrabold leading-[1.02] tracking-tight">
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-b from-slate-950/85 via-slate-950/80 to-slate-950/95" />
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider backdrop-blur"><ShieldCheck size={12} className="text-emerald-300" /> Protegido</span>
+          <Link to="/loja" className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-300 to-amber-400 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-950"><span className="relative flex size-1.5" aria-hidden="true"><span className="absolute inline-flex size-full animate-ping rounded-full bg-slate-900 opacity-60" /><span className="relative inline-flex size-1.5 rounded-full bg-slate-900" /></span> Novidade · Loja</Link>
+        </div>
+        <h1 id="m-hero-title" className="mt-3 text-balance text-[1.75rem] font-extrabold leading-[1.08] tracking-tight">
           {client ? <>Olá, <span className="text-emerald-300">{(name || "usuário").split(" ")[0]}</span>. Sua evolução em um só lugar.</> : <>Sua rotina de bem-estar, <span className="text-emerald-300">organizada.</span></>}
         </h1>
-        <p className="mt-3 text-[15px] leading-snug text-slate-200">Nutrição, hidratação, peso, suplementos e hábitos com horários, lembretes e registros confiáveis.</p>
-        <div className="mt-5 grid gap-2.5">
+        <p className="mt-1.5 text-[13px] leading-snug text-slate-300">Nutrição, hidratação, peso, suplementos e hábitos, com lembretes e registros confiáveis.</p>
+        <div className="mt-3.5 grid grid-cols-2 gap-2">
           {panel ? (
             <>
-              <Link to={panel} className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-300 text-base font-extrabold text-slate-950 shadow-lg"><LayoutDashboard size={20} /> Abrir meu painel <ArrowRight size={18} /></Link>
-              {client && <LiveModeLauncher className="!h-12 justify-center !rounded-2xl !text-[15px]" />}
+              <Link to={panel} className="col-span-2 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-300 text-[15px] font-extrabold text-slate-950 shadow-lg active:scale-[.98]"><LayoutDashboard size={18} /> Abrir meu painel <ArrowRight size={16} /></Link>
+              {client ? <LiveModeLauncher className="!h-11 justify-center !rounded-xl !px-2 !text-sm" /> : <span />}
             </>
           ) : (
             <>
-              <a href="/entrar?mode=signup" className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-300 text-base font-extrabold text-slate-950 shadow-lg"><Gift size={20} /> Grátis para teste</a>
-              <Link to="/entrar" className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-white/30 bg-white/10 text-[15px] font-bold backdrop-blur"><LockKeyhole size={18} /> Acessar minha conta</Link>
+              <a href="/entrar?mode=signup" className="col-span-2 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-300 text-[15px] font-extrabold text-slate-950 shadow-lg active:scale-[.98]"><Gift size={18} /> Criar conta grátis</a>
+              <Link to="/entrar" className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl border border-white/30 bg-white/10 text-sm font-bold backdrop-blur"><LockKeyhole size={16} /> Entrar</Link>
             </>
           )}
-          <Link to="/loja" className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-400 text-[15px] font-extrabold text-slate-950 shadow-[0_12px_32px_-12px_rgba(251,191,36,.95)] active:scale-95"><ShoppingBag size={18} /> Visitar a loja</Link>
-          <Link to="/parceiros" className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-amber-300/60 bg-amber-300/10 text-[15px] font-bold text-amber-200 backdrop-blur"><Store size={18} /> Quero vender · cadastro grátis</Link>
+          <Link to="/loja" className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-300 to-amber-400 text-sm font-extrabold text-slate-950 active:scale-[.98]"><ShoppingBag size={16} /> Visitar a loja</Link>
+          <Link to="/parceiros" className="col-span-2 inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-amber-300/50 bg-amber-300/10 text-[13px] font-bold text-amber-200"><Store size={15} /> Quero vender · cadastro grátis</Link>
         </div>
       </section>
 
@@ -57,7 +59,7 @@ export function MobileHero({ client, name, panel }: { client: boolean; name: str
         </div>
         <div className="-mx-3 mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {areas.map((a) => (
-            <Link key={a.to} to={a.to} className="group relative isolate h-[21rem] w-[76vw] max-w-[22rem] shrink-0 snap-center overflow-hidden rounded-[1.75rem] bg-slate-900 text-white shadow-xl">
+            <Link key={a.to} to={a.to} className="group relative isolate h-[15rem] w-[72vw] max-w-[18rem] shrink-0 snap-center overflow-hidden rounded-3xl bg-slate-900 text-white shadow-xl">
               <img src={a.img} alt="" aria-hidden="true" loading="lazy" className="absolute inset-0 -z-20 size-full object-cover transition duration-700 group-active:scale-105" />
               <span aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-slate-950 via-slate-950/35 to-transparent" />
               <span className={`absolute left-4 top-4 grid size-12 place-items-center rounded-2xl bg-gradient-to-br ${a.tone} shadow-lg ring-1 ring-white/30`}><a.icon size={24} /></span>

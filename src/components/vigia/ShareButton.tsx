@@ -39,7 +39,7 @@ export function ShareButton({ title, text, path = "/loja", label = "Compartilhar
 
   const item = "flex h-10 w-full items-center gap-2 rounded-lg px-3 text-left text-sm font-semibold text-slate-900 hover:bg-slate-100";
   return (
-    <span ref={box} className={`relative inline-flex ${className}`} onClick={(e) => e.stopPropagation()}>
+    <span ref={box} className={`${className.includes("absolute") ? "" : "relative"} inline-flex ${className}`} onClick={(e) => e.stopPropagation()}>
       <button type="button" onClick={(e) => void click(e)} aria-haspopup="menu" aria-expanded={open} aria-label={`${label}: ${title}`}
         className={variant === "pill"
           ? "inline-flex h-11 items-center gap-2 rounded-2xl border border-white/35 bg-white/10 px-4 text-sm font-bold text-white backdrop-blur transition hover:bg-white/20 active:scale-95"
