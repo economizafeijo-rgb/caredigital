@@ -14,11 +14,13 @@ import {
   Pill,
   Scale,
   ShieldCheck,
+  ShoppingBag,
   Sparkles,
   Utensils,
 } from "lucide-react";
 import { useAccess } from "@/lib/use-access";
 import { StoreBannerCarousel } from "@/components/vigia/StoreBannerCarousel";
+import { StoreHeroSticker } from "@/components/vigia/StoreHeroSticker";
 import { LiveModeLauncher } from "@/components/vigia/LiveMode";
 import { TrialAd } from "@/components/vigia/TrialAd";
 import { MobileHero } from "@/components/vigia/MobileHero";
@@ -149,6 +151,7 @@ function HeroMosaic() {
             </span>
           </Link>
         ))}
+        <StoreHeroSticker className="-bottom-7 right-1 lg:right-3" />
         <div aria-hidden="true" className="pointer-events-none absolute left-3 top-3 z-10 hidden items-center gap-2.5 rounded-2xl border border-white/30 bg-slate-950/70 px-3 py-2 text-white shadow-2xl backdrop-blur-md sm:flex">
           <svg viewBox="0 0 44 44" className="size-9 -rotate-90"><circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,.2)" strokeWidth="5" /><circle cx="22" cy="22" r="18" fill="none" stroke="#34d399" strokeWidth="5" strokeLinecap="round" strokeDasharray="113" strokeDashoffset="19" /></svg>
           <div><p className="text-[10px] font-bold uppercase tracking-widest text-emerald-300">Tudo em um só lugar</p><p className="text-sm font-bold">5 de 6 metas hoje</p></div>
@@ -196,9 +199,15 @@ function Homepage() {
         <div aria-hidden="true" className="pointer-events-none absolute -left-24 -top-24 -z-10 size-96 rounded-full bg-emerald-400/20 blur-3xl" />
         <div aria-hidden="true" className="pointer-events-none absolute -bottom-28 right-10 -z-10 size-96 rounded-full bg-teal-300/15 blur-3xl" />
         <div className="px-5 pb-7 pt-5 text-white sm:px-10 sm:py-8 lg:px-12 lg:py-10">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur">
-            <ShieldCheck size={14} /> Bem-estar pessoal, organizado e protegido
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link to="/loja" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-300 to-amber-400 px-3.5 py-1.5 text-xs font-extrabold uppercase tracking-wider text-slate-950 shadow-[0_10px_30px_-10px_rgba(251,191,36,.9)] transition hover:brightness-105">
+              <span className="relative flex size-2" aria-hidden="true"><span className="absolute inline-flex size-full animate-ping rounded-full bg-slate-900 opacity-60" /><span className="relative inline-flex size-2 rounded-full bg-slate-900" /></span>
+              Novidade · Loja NextVita <ArrowRight size={13} />
+            </Link>
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur">
+              <ShieldCheck size={14} /> Bem-estar protegido
+            </span>
+          </div>
           <h1
             id="home-title"
             className="mt-4 text-balance text-[1.9rem] font-extrabold leading-[1.1] tracking-tight sm:text-5xl"
@@ -249,6 +258,12 @@ function Homepage() {
               </>
             )}
             <Link
+              to="/loja"
+              className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-amber-300 to-amber-400 px-5 text-sm font-extrabold text-slate-950 shadow-[0_12px_32px_-12px_rgba(251,191,36,.95)] transition hover:-translate-y-0.5 hover:brightness-105"
+            >
+              <ShoppingBag size={17} /> Visitar a loja
+            </Link>
+            <Link
               to="/protocolos"
               className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
             >
@@ -270,7 +285,7 @@ function Homepage() {
         <HeroMosaic />
       </section>
 
-      <StoreBannerCarousel />
+      <div className="hidden sm:block"><StoreBannerCarousel /></div>
 
       {status === "client" && (
         <div className="rounded-3xl bg-gradient-to-br from-indigo-950 to-slate-900 p-1">
