@@ -1,24 +1,139 @@
 {
-  "name": "NextVita — Cuidado conectado",
+  "name": "NextVita — Saúde, bem-estar e loja",
   "short_name": "NextVita",
-  "description": "Medicações, hidratação, alimentação e acompanhamento de saúde em um só lugar.",
+  "description": "Medicações, hidratação, alimentação, treinos, sono, peso e loja virtual em um só app. Gratuito.",
   "id": "/",
   "start_url": "/cliente",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "background_color": "#071a1d",
   "theme_color": "#0e8a6a",
   "lang": "pt-BR",
-  "categories": ["health", "medical", "lifestyle"],
+  "categories": [
+    "health",
+    "fitness",
+    "lifestyle",
+    "shopping"
+  ],
   "icons": [
-    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ],
   "shortcuts": [
-    { "name": "Agenda de hoje", "short_name": "Agenda", "url": "/cliente#agenda", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Registrar água", "short_name": "Hidratação", "url": "/cliente#minha-hidratacao", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Medicação", "short_name": "Medicação", "url": "/cliente#medicacao", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+    {
+      "name": "Agenda de hoje",
+      "short_name": "Agenda",
+      "url": "/cliente#agenda",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Registrar água",
+      "short_name": "Hidratação",
+      "url": "/cliente#minha-hidratacao",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Medicação",
+      "short_name": "Medicação",
+      "url": "/cliente#medicacao",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Loja NextVita",
+      "short_name": "Loja",
+      "url": "/loja",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Vender na NextVita",
+      "short_name": "Vender",
+      "url": "/parceiros",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "prefer_related_applications": false,
+  "dir": "ltr",
+  "screenshots": [
+    {
+      "src": "/screenshots/home-mobile.jpg",
+      "sizes": "540x1170",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Página inicial"
+    },
+    {
+      "src": "/screenshots/loja-mobile.jpg",
+      "sizes": "540x1170",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Loja virtual"
+    },
+    {
+      "src": "/screenshots/parceiros-mobile.jpg",
+      "sizes": "540x1170",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Venda na NextVita"
+    },
+    {
+      "src": "/screenshots/home-desktop.jpg",
+      "sizes": "1280x720",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "Página inicial no computador"
+    },
+    {
+      "src": "/screenshots/loja-desktop.jpg",
+      "sizes": "1280x720",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "Loja virtual no computador"
+    }
   ]
 }
