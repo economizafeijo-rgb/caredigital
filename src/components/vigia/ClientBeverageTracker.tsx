@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { NiceSelect } from "./NiceSelect";
 import { CheckCircle2, Clock3, Coffee, Droplets, Save } from "lucide-react";
 import { CareIntakePicker, CareIntakeIcon } from "./CareIntakePicker";
 import { beverageKinds,beverageCategory,type BeverageKind } from "@/lib/care-intake-categories";
@@ -142,12 +143,9 @@ export function ClientBeverageTracker({
     <div className="space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h4 className="text-xs font-bold text-foreground">Últimas bebidas registradas</h4>
-        <select aria-label="Filtrar bebidas por categoria" value={historyKind}
-          onChange={e=>setHistoryKind(e.target.value as "todos"|BeverageKind)}
-          className="max-w-[180px] rounded-lg border border-border bg-card px-2 py-1.5 text-[11px] font-semibold text-foreground">
-          <option value="todos">Todas as categorias</option>
-          {beverageKinds.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}
-        </select>
+        <NiceSelect ariaLabel="Filtrar bebidas por categoria" value={historyKind}
+          onChange={v=>setHistoryKind(v as "todos"|BeverageKind)} className="h-9 w-auto min-w-[11rem] text-xs"
+          options={[{value:"todos",label:"Todas as categorias"},...beverageKinds.map(choice=>({value:choice.value,label:choice.label,hint:choice.hint}))]}/>
       </div>
       {loading ? <p className="text-xs text-muted-foreground">Carregando bebidas…</p>
         : items.filter(item=>historyKind==="todos"||item.kind===historyKind).length === 0 ? <p className="rounded-lg border border-border p-3 text-xs text-muted-foreground">Nenhuma bebida nesta categoria. A água também aparece na aba Minha meta de água.</p>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { NiceSelect } from "./NiceSelect";
 import { Activity, AlertTriangle, Droplets, Dumbbell, Info, ShieldAlert } from "lucide-react";
 
 const KEY = "caredigital-hydration-profile-v1";
@@ -45,8 +46,8 @@ export function HydrationPersonalPlan({currentTarget,onApply}:{currentTarget:num
     <label className="text-xs font-semibold">Idade (anos)<input type="number" min={18} max={110} value={p.age} onChange={e=>change({age:e.target.value})} placeholder="Informar" className="field mt-1" /></label>
     <label className="text-xs font-semibold">Peso atual (kg)<input type="number" min={30} max={250} step=".5" value={p.weight} onChange={e=>change({weight:e.target.value})} placeholder="Informar" className="field mt-1" /></label>
     <label className="text-xs font-semibold">Treino hoje (min)<input type="number" min={0} max={480} step={10} value={p.exercise} onChange={e=>change({exercise:e.target.value})} className="field mt-1" /></label>
-    <label className="text-xs font-semibold">Quanto suou?<select className="field mt-1" value={p.sweat} onChange={e=>change({sweat:e.target.value as Profile["sweat"]})}><option value="low">Pouco</option><option value="normal">Moderado</option><option value="high">Muito</option></select></label>
-    <label className="col-span-2 text-xs font-semibold">Objetivo<select className="field mt-1" value={p.objective} onChange={e=>change({objective:e.target.value as Profile["objective"]})}><option value="recovery">Hidratação e recuperação</option><option value="muscle">Ganhar massa muscular</option></select></label>
+    <label className="text-xs font-semibold">Quanto suou?<NiceSelect className="mt-1" ariaLabel="Quanto suou?" value={p.sweat} onChange={v=>change({sweat:v as Profile["sweat"]})} options={[{value:"low",label:"Pouco"},{value:"normal",label:"Moderado"},{value:"high",label:"Muito"}]}/></label>
+    <label className="col-span-2 text-xs font-semibold">Objetivo<NiceSelect className="mt-1" ariaLabel="Objetivo" value={p.objective} onChange={v=>change({objective:v as Profile["objective"]})} options={[{value:"recovery",label:"Hidratação e recuperação"},{value:"muscle",label:"Ganhar massa muscular"}]}/></label>
     <label className="col-span-2 flex items-start gap-2 rounded-lg bg-muted/60 p-2.5 text-xs"><input type="checkbox" checked={p.restrictions} onChange={e=>change({restrictions:e.target.checked})} className="mt-0.5"/><span>Tenho orientação para limitar líquidos, doença renal/cardíaca ou retenção de líquidos.</span></label>
    </div>
   </div>
