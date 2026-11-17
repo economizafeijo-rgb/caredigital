@@ -172,7 +172,7 @@ function Homepage() {
   };
 
   return (
-    <div className="mx-auto flex min-h-full w-full max-w-[1400px] flex-col gap-5 lg:gap-6">
+    <div className="mx-auto flex min-h-full w-full max-w-none flex-col gap-5 lg:gap-6">
       {status === "unlinked" && (
         <p
           role="status"

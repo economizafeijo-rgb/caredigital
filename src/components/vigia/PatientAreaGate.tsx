@@ -40,7 +40,7 @@ function GateArt() {
 
 export function PatientAreaGate() {
   return (
-    <section aria-labelledby="gate-title" className="mx-auto mt-2 grid w-full max-w-[1180px] overflow-hidden rounded-3xl border border-border bg-card shadow-pop lg:mt-6 lg:grid-cols-[1.1fr_1fr]">
+    <section aria-labelledby="gate-title" className="mx-auto mt-2 grid w-full overflow-hidden rounded-3xl border border-border bg-card shadow-pop lg:mt-6 lg:grid-cols-[1.1fr_1fr]">
       <GateArt />
       <div className="flex flex-col justify-center p-6 sm:p-10 lg:p-12">
         <span className="grid size-12 place-items-center rounded-2xl bg-accent text-accent-foreground"><UserRound size={24} /></span>

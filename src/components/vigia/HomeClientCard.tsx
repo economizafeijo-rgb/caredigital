@@ -1446,7 +1446,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                 />
               )}
               {activeTab === "medicacao" && (
-                <div className="mx-auto w-full max-w-5xl">
+                <div className="w-full">
                   <MissedDoseRegularizer
                     patientId={client.id}
                     onDone={() => setTick((value) => value + 1)}
