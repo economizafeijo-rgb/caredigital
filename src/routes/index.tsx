@@ -18,6 +18,7 @@ import {
   Utensils,
 } from "lucide-react";
 import { useAccess } from "@/lib/use-access";
+import { MobileHero } from "@/components/vigia/MobileHero";
 import { HomeNextCareCard } from "@/components/vigia/CareTimer";
 import { HomeModalityTimers } from "@/components/vigia/HomeModalityTimers";
 import { HomeClientMetrics } from "@/components/vigia/HomeClientMetrics";
@@ -183,9 +184,11 @@ function Homepage() {
         </p>
       )}
 
+      <MobileHero client={status === "client"} name={name || ""} panel={panel} />
+
       <section
         aria-labelledby="home-title"
-        className="relative isolate grid overflow-hidden rounded-3xl bg-gradient-to-br from-[#041f1d] via-[#0a3f39] to-[#0e6b5c] shadow-pop lg:min-h-[min(68vh,620px)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-center"
+        className="relative isolate hidden overflow-hidden rounded-3xl bg-gradient-to-br from-[#041f1d] via-[#0a3f39] to-[#0e6b5c] shadow-pop sm:grid lg:min-h-[min(68vh,620px)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-center"
       >
         <div aria-hidden="true" className="pointer-events-none absolute -left-24 -top-24 -z-10 size-96 rounded-full bg-emerald-400/20 blur-3xl" />
         <div aria-hidden="true" className="pointer-events-none absolute -bottom-28 right-10 -z-10 size-96 rounded-full bg-teal-300/15 blur-3xl" />
