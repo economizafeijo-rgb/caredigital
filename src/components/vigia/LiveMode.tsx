@@ -8,6 +8,7 @@ import { buildDays, type DayMetrics } from "@/lib/day-metrics";
 import { loadPeriodRaw, resolveTargets, type PeriodData } from "@/lib/period-data";
 import { enterFullscreen, exitFullscreen, fullscreenSupported, isFullscreen, isStandaloneApp } from "@/lib/fullscreen";
 import { bmiCategory } from "./ClientWeightPage";
+import { QrShareCard } from "./QrShareCard";
 
 type Props = { patientId: string; ownerId: string; heightCm?: number | null; name?: string };
 type MetricKey = "score" | "agua" | "peso" | "imc" | "metapeso" | "sono" | "exercicio" | "semana" | "calorias" | "proteina" | "carbs" | "gordura" | "supl" | "med" | "streak";
@@ -260,6 +261,7 @@ function LiveDashboard({ patientId, ownerId, heightCm, name, onClose }: Props & 
   };
   const chart = CHART[selected]; const chartData = series[chart.src] as { label: string; v: number | null }[];
   const tip = { background: "#0f172a", border: "1px solid rgba(255,255,255,.2)", borderRadius: 12, color: "#fff" } as const;
+  const tipText = { itemStyle: { color: "#fff" }, labelStyle: { color: "rgba(255,255,255,.75)" } } as const;
 
   const ui = (
     <div ref={root} className="fixed inset-0 z-[500] overflow-y-auto overscroll-contain bg-[radial-gradient(ellipse_at_top,#0b3b3a_0%,#020617_62%)] text-white" role="dialog" aria-modal="true" aria-label="Painel ao vivo">
@@ -399,7 +401,7 @@ function LiveDashboard({ patientId, ownerId, heightCm, name, onClose }: Props & 
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,.1)" />
                       <XAxis dataKey="label" tick={{ fontSize: 11, fill: "rgba(255,255,255,.6)" }} interval="preserveStartEnd" />
                       <YAxis tick={{ fontSize: 10, fill: "rgba(255,255,255,.6)" }} width={44} />
-                      <Tooltip cursor={{ fill: "rgba(255,255,255,.08)" }} contentStyle={tip} formatter={(v: number) => [`${nf(v, chart.unit === "h" ? 1 : 0)} ${chart.unit}`.trim(), chart.title]} />
+                      <Tooltip cursor={{ fill: "rgba(255,255,255,.08)" }} contentStyle={tip} {...tipText} formatter={(v: number) => [`${nf(v, chart.unit === "h" ? 1 : 0)} ${chart.unit}`.trim(), chart.title]} />
                       {chart.goal ? <ReferenceLine y={chart.goal} stroke="#34d399" strokeDasharray="5 4" label={{ value: "Meta", fill: "#34d399", fontSize: 11, position: "insideTopRight" }} /> : null}
                       <Bar dataKey="v" radius={[8, 8, 0, 0]} maxBarSize={36} animationDuration={800}>{chartData.map((d, i) => <Cell key={i} fill={chart.goal && d.v != null && d.v >= chart.goal ? "#34d399" : chart.color} />)}</Bar>
                     </BarChart>
@@ -409,7 +411,7 @@ function LiveDashboard({ patientId, ownerId, heightCm, name, onClose }: Props & 
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,.1)" />
                       <XAxis dataKey="label" tick={{ fontSize: 11, fill: "rgba(255,255,255,.6)" }} interval="preserveStartEnd" />
                       <YAxis tick={{ fontSize: 10, fill: "rgba(255,255,255,.6)" }} width={44} domain={["auto", "auto"]} />
-                      <Tooltip contentStyle={tip} formatter={(v: number) => [`${nf(v, 1)} ${chart.unit}`.trim(), chart.title]} />
+                      <Tooltip contentStyle={tip} {...tipText} formatter={(v: number) => [`${nf(v, 1)} ${chart.unit}`.trim(), chart.title]} />
                       {chart.goal ? <ReferenceLine y={chart.goal} stroke="#34d399" strokeDasharray="5 4" label={{ value: "Meta", fill: "#34d399", fontSize: 11, position: "insideTopRight" }} /> : null}
                       <Area type="monotone" dataKey="v" stroke={chart.color} strokeWidth={3} fill="url(#liveArea)" dot={{ r: 3, fill: chart.color }} activeDot={{ r: 7 }} animationDuration={900} />
                     </AreaChart>
@@ -417,6 +419,7 @@ function LiveDashboard({ patientId, ownerId, heightCm, name, onClose }: Props & 
                 </ResponsiveContainer>
               </div>
             </section>
+            <QrShareCard variant="live" dark className="mx-auto w-full max-w-3xl" />
             <p className="text-center text-[11px] text-white/40">Atualiza sozinho a cada {REFRESH_MS / 1000} segundos · última leitura {clockFmt.format(data.at)}</p>
           </>
         )}
