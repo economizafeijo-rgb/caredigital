@@ -19,7 +19,7 @@ const FEATURE_ROW = "grid grid-cols-[repeat(auto-fit,minmax(13rem,1fr))] gap-3";
 
 /** A página ocupa toda a janela em telas largas; em telas baixas ou no celular ela rola normalmente. */
 function Page({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`mx-auto grid w-full max-w-[1760px] gap-3 lg:h-[calc(100%-49px)] lg:min-h-[27rem] lg:gap-4 ${className}`}>{children}</div>;
+  return <div className={`mx-auto grid w-full max-w-[1760px] gap-3 lg:min-h-[max(30rem,calc(100%-49px))] lg:gap-4 ${className}`}>{children}</div>;
 }
 
 function Cta({ label, tone }: { label: string; tone: string }) {
@@ -125,14 +125,14 @@ function Hydration() {
               <p className="mt-1 text-xs text-sky-100/90">Calculado pelo seu ritmo do dia e pela meta restante.</p>
             </div>
             <div className="grid grid-cols-3 gap-2">
-              {["+150 ml", "+250 ml", "+500 ml"].map((b) => <span key={b} className="rounded-xl bg-white py-2.5 text-center text-sm font-bold text-sky-700 shadow-sm ring-1 ring-sky-200 dark:bg-sky-950 dark:text-sky-200 dark:ring-sky-800">{b}</span>)}
+              {["+150 ml", "+250 ml", "+500 ml"].map((b) => <span key={b} className="rounded-xl bg-white py-2.5 text-center text-sm font-bold text-sky-700 dark:text-sky-300 shadow-sm ring-1 ring-sky-200 dark:bg-sky-950 dark:text-sky-200 dark:ring-sky-800">{b}</span>)}
             </div>
           </div>
         </section>
         <div className={FEATURE_ROW}>
-          <Feature icon={Droplets} title="Meta personalizada" text="Calculada pelo seu peso, rotina e orientação profissional." tone="bg-sky-100 text-sky-700" />
-          <Feature icon={Timer} title="Timer do próximo copo" text="Uma contagem regressiva mostra a hora de beber." tone="bg-cyan-100 text-cyan-700" />
-          <Feature icon={CheckCircle2} title="Um toque para registrar" text="Confirme o copo e veja o total do dia mudar na hora." tone="bg-emerald-100 text-emerald-700" />
+          <Feature icon={Droplets} title="Meta personalizada" text="Calculada pelo seu peso, rotina e orientação profissional." tone="bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300" />
+          <Feature icon={Timer} title="Timer do próximo copo" text="Uma contagem regressiva mostra a hora de beber." tone="bg-cyan-100 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300" />
+          <Feature icon={CheckCircle2} title="Um toque para registrar" text="Confirme o copo e veja o total do dia mudar na hora." tone="bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300" />
         </div>
       </div>
     </Page>
@@ -151,7 +151,7 @@ function Medication() {
     { time: "20:00", name: "Metformina 850 mg", note: "1 comprimido · após o jantar", state: "todo" },
   ];
   const label = { ok: "Tomado", next: "Tomar agora", todo: "Agendado" } as const;
-  const chip = { ok: "bg-emerald-100 text-emerald-700", next: "bg-rose-600 text-white", todo: "bg-slate-200 text-slate-600" } as const;
+  const chip = { ok: "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300", next: "bg-rose-600 text-white", todo: "bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-200" } as const;
   return (
     <Page className="lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
       <Hero photo="/images/caredigital-medicamentos.webp" pos="50% 50%" eyebrow="Medicação" eyebrowTone="text-rose-200"
@@ -162,7 +162,7 @@ function Medication() {
         <section className={`${CARD} flex min-h-[20rem] flex-col p-5 lg:p-6`}>
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs font-bold uppercase tracking-widest text-rose-600">Linha do dia</p>
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">2 de 4 doses tomadas</span>
+            <span className="rounded-full bg-emerald-100 dark:bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-300">2 de 4 doses tomadas</span>
           </div>
           <ol className="relative mt-4 grid flex-1 grid-rows-4 gap-3 border-l-2 border-rose-200 pl-7">
             {doses.map(({ time, name, note, state }) => (
@@ -170,7 +170,7 @@ function Medication() {
                 <span className={`absolute -left-[39px] top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-full ring-4 ring-card ${state === "ok" ? "bg-emerald-500" : state === "next" ? "animate-pulse bg-rose-600" : "bg-slate-300"}`}>
                   {state === "ok" && <Check size={14} className="text-white" strokeWidth={3} />}
                 </span>
-                <div className="flex w-full items-center justify-between gap-3 rounded-2xl bg-rose-50/70 px-4 py-2 dark:bg-rose-950/30">
+                <div className="flex w-full items-center justify-between gap-3 rounded-2xl bg-rose-50/70 px-4 py-2 dark:bg-white/[.05] dark:ring-1 dark:ring-white/10">
                   <div className="min-w-0">
                     <p className="font-mono text-xs font-bold text-rose-700 dark:text-rose-300">{time}</p>
                     <p className="truncate text-base font-bold">{name}</p>
@@ -183,9 +183,9 @@ function Medication() {
           </ol>
         </section>
         <div className={FEATURE_ROW}>
-          <Feature icon={Pill} title="Biblioteca de remédios" text="Dor, estômago, pressão, diabetes, alergia e antibióticos." tone="bg-rose-100 text-rose-700" />
-          <Feature icon={Timer} title="Timer da dose" text="Contagem regressiva até a próxima tomada." tone="bg-amber-100 text-amber-700" />
-          <Feature icon={ClipboardCheck} title="Esqueceu de confirmar?" text="Regularize doses passadas com uma confirmação." tone="bg-sky-100 text-sky-700" />
+          <Feature icon={Pill} title="Biblioteca de remédios" text="Dor, estômago, pressão, diabetes, alergia e antibióticos." tone="bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300" />
+          <Feature icon={Timer} title="Timer da dose" text="Contagem regressiva até a próxima tomada." tone="bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300" />
+          <Feature icon={ClipboardCheck} title="Esqueceu de confirmar?" text="Regularize doses passadas com uma confirmação." tone="bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300" />
         </div>
       </div>
     </Page>
@@ -262,8 +262,8 @@ function Diet() {
           </div>
         </section>
         <div className="grid gap-3 sm:grid-cols-2">
-          <Feature icon={BookOpen} title="Cardápios e receitas" text="Planos por objetivo e receitas regionais com macros calculados." tone="bg-emerald-100 text-emerald-700" />
-          <Feature icon={Utensils} title="Vitaminas e minerais" text="Vitamina C, ferro, cálcio e potássio conferidos a cada refeição." tone="bg-lime-100 text-lime-700" />
+          <Feature icon={BookOpen} title="Cardápios e receitas" text="Planos por objetivo e receitas regionais com macros calculados." tone="bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300" />
+          <Feature icon={Utensils} title="Vitaminas e minerais" text="Vitamina C, ferro, cálcio e potássio conferidos a cada refeição." tone="bg-lime-100 dark:bg-lime-500/20 text-lime-700 dark:text-lime-300" />
         </div>
       </div>
     </Page>
@@ -349,7 +349,7 @@ function Supplements() {
         </div>
         <section className={`${CARD} flex flex-wrap items-center justify-between gap-3 px-5 py-4`}>
           <div className="flex items-center gap-3">
-            <span className="grid size-11 place-items-center rounded-2xl bg-violet-100 text-violet-700"><Timer size={21} /></span>
+            <span className="grid size-11 place-items-center rounded-2xl bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300"><Timer size={21} /></span>
             <div><p className="font-bold leading-tight">Próxima dose: Whey protein às 16:00</p><p className="text-xs text-muted-foreground">em 1h20 · timer na tela inicial</p></div>
           </div>
           <div className="flex items-center gap-1.5" aria-label="3 de 5 doses de hoje">
@@ -382,7 +382,7 @@ function Weight() {
         <section className={`${CARD} flex min-h-[18rem] flex-col p-5 lg:p-6`}>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="font-bold">Evolução do peso</p>
-            <span className="inline-flex items-center gap-1 rounded-full bg-fuchsia-100 px-2.5 py-1 text-xs font-bold text-fuchsia-700"><TrendingDown size={13} /> −0,35 kg por semana</span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-fuchsia-100 dark:bg-fuchsia-500/20 px-2.5 py-1 text-xs font-bold text-fuchsia-700 dark:text-fuchsia-300"><TrendingDown size={13} /> −0,35 kg por semana</span>
           </div>
           <div className="mt-3 min-h-0 flex-1"><AreaChart values={values} min={78} max={83} color="#c026d3" id="area-peso" /></div>
           <div className="mt-2 flex justify-between text-[11px] font-semibold text-muted-foreground"><span>há 10 semanas</span><span>5 sem.</span><span>hoje</span></div>
@@ -460,7 +460,7 @@ function Sleep() {
           </div>
         </section>
         <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 lg:grid-rows-3 lg:gap-4">
-          {([[Moon, "Duração", "7h20", "meta de 8 horas", "bg-indigo-100 text-indigo-700"], [BedDouble, "Regularidade", "±18 min", "no horário de dormir", "bg-violet-100 text-violet-700"], [Waves, "Despertares", "1", "na última noite", "bg-sky-100 text-sky-700"]] as [LucideIcon, string, string, string, string][]).map(([Icon, label, value, note, tone]) => (
+          {([[Moon, "Duração", "7h20", "meta de 8 horas", "bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300"], [BedDouble, "Regularidade", "±18 min", "no horário de dormir", "bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300"], [Waves, "Despertares", "1", "na última noite", "bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300"]] as [LucideIcon, string, string, string, string][]).map(([Icon, label, value, note, tone]) => (
             <div key={label} className={`${CARD} flex items-center gap-4 p-4`}>
               <span className={`grid size-11 shrink-0 place-items-center rounded-2xl ${tone}`}><Icon size={21} /></span>
               <div className="min-w-0 flex-1"><p className="font-bold leading-tight">{label}</p><p className="text-xs text-muted-foreground">{note}</p></div>
@@ -553,7 +553,7 @@ function Metrics() {
           ))}
         </div>
         <section className={`${CARD} flex min-h-[16rem] flex-col p-5 lg:p-6`}>
-          <div className="flex items-center justify-between gap-2"><p className="font-bold">Calorias da semana</p><span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-bold text-indigo-700"><Flame size={13} /> meta 2.000 kcal</span></div>
+          <div className="flex items-center justify-between gap-2"><p className="font-bold">Calorias da semana</p><span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 dark:bg-indigo-500/20 px-2.5 py-1 text-xs font-bold text-indigo-700 dark:text-indigo-300"><Flame size={13} /> meta 2.000 kcal</span></div>
           <div className="relative mt-4 min-h-0 flex-1">
             <div className="absolute inset-x-0 border-t-2 border-dashed border-orange-400/70" style={{ top: "26%" }} />
             <div className="absolute inset-0 flex items-end gap-2 sm:gap-3">
