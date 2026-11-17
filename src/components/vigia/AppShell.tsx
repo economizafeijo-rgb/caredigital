@@ -42,6 +42,7 @@ import { clientSectionTheme, type SectionTheme } from "@/lib/client-section-them
 import { fmtClock, useNow } from "./ui";
 import { InstallAppButton } from "./InstallApp";
 import { LiveModeLauncher } from "./LiveMode";
+import { QrShareCard } from "./QrShareCard";
 import { HydrationProvider, HydrationReminder } from "./HydrationTracker";
 import { DialogProvider } from "@/lib/dialog";
 
@@ -474,6 +475,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-3 sm:p-4 lg:p-5"
             >
               {children}
+              <QrShareCard variant="footer" className="nv-qr-footer mx-auto mt-6 max-w-3xl" />
               {location.pathname !== "/" && (
                 <p className="mt-5 border-t border-border pt-3 text-center text-xs text-muted-foreground">
                   NextVita · Desenvolvido por{" "}

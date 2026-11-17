@@ -15,6 +15,7 @@ export function FitPage({ children, className = "", reserve = 49, label }: { chi
     if (!box || !content) return;
     const main = box.parentElement;
     let frame = 0;
+    document.body.dataset.fitPage = "1"; // o QR Code do rodapé some nestas páginas fixas (telas largas) para não criar rolagem
     const fit = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
@@ -34,7 +35,7 @@ export function FitPage({ children, className = "", reserve = 49, label }: { chi
     const observer = new ResizeObserver(fit);
     if (main) observer.observe(main);
     window.addEventListener("resize", fit);
-    return () => { cancelAnimationFrame(frame); observer.disconnect(); window.removeEventListener("resize", fit); };
+    return () => { cancelAnimationFrame(frame); observer.disconnect(); window.removeEventListener("resize", fit); delete document.body.dataset.fitPage; };
   }, [reserve]);
 
   return (
