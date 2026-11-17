@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { acreDateAtTime, acreDateKey, ACRE_TIME_ZONE } from "@/lib/acre-time";
 import { beverageKinds, beverageCategory, isBeverageKind } from "@/lib/care-intake-categories";
 import { beverageNutrients } from "@/lib/beverage-nutrients";
+import { NiceSelect } from "./NiceSelect";
 
 export type WaterEntry = { id: string; amount_ml: number; recorded_at: string; kind?: string; name?: string };
 type Entry = WaterEntry & { source: "water" | "beverage" };
@@ -93,9 +94,8 @@ export function HydrationEntries({ patientId, water, beverages, goal, onChanged 
                 {e.source === "beverage" && (
                   <div className="grid gap-2 sm:grid-cols-[1fr_1.4fr]">
                     <label className="text-[11px] font-semibold">Tipo de líquido
-                      <select value={kind} onChange={(ev) => setKind(ev.target.value)} className="mt-0.5 block h-10 w-full rounded-lg border border-border bg-surface px-2 text-sm">
-                        {beverageKinds.filter((k) => k.value !== "agua").map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}
-                      </select></label>
+                      <NiceSelect className="mt-0.5" ariaLabel="Tipo de líquido" value={kind} onChange={setKind}
+                        options={beverageKinds.filter((k) => k.value !== "agua").map((k) => ({ value: k.value, label: k.label, hint: k.hint }))} /></label>
                     <label className="text-[11px] font-semibold">Nome / descrição
                       <input value={name} onChange={(ev) => setName(ev.target.value)} maxLength={100} placeholder={beverageCategory(kind)?.example ?? "Descreva a bebida"} className="mt-0.5 block h-10 w-full rounded-lg border border-border bg-surface px-2 text-sm" /></label>
                     {/* Nutrientes são recalculados pelo nome; sem alimento conhecido, usa a estimativa do tipo. */}
