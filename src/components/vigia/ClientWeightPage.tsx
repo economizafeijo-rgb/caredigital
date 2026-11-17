@@ -176,6 +176,8 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
     const cm = Number(editing.height.replace(",", "."));
     if (!Number.isFinite(kg) || kg < 20 || kg > 350) { setListMessage({ ok: false, text: "Informe um peso entre 20 e 350 kg." }); return; }
     if (!Number.isFinite(cm) || cm < 100 || cm > 230) { setListMessage({ ok: false, text: "Informe a altura entre 100 e 230 cm." }); return; }
+    const target = points.find(point => point.id === editing.id);
+    if (!(await dialog.confirm("Salvar alteração?", `Alterar o registro${target ? ` de ${longDate(target.recorded_on)}` : ""} para ${nf(kg)} kg (altura ${nf(cm, 0)} cm)?`, false, "Salvar alteração"))) return;
     setBusyId(editing.id); setListMessage(null);
     const auth = await supabase.auth.getUser();
     if (!auth.data.user) { setBusyId(null); setListMessage({ ok: false, text: "Entre na sua conta para alterar o registro." }); return; }

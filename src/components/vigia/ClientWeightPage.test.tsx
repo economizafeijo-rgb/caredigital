@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { ClientWeightPage } from "./ClientWeightPage";
 import { DialogProvider } from "@/lib/dialog";
 
@@ -104,6 +104,8 @@ describe("Registro de peso com cadeado", () => {
     fireEvent.click(edit);
     fireEvent.change(screen.getByLabelText("Novo peso de 12/01/2026"), { target: { value: "78,2" } });
     fireEvent.click(screen.getByRole("button", { name: /Salvar alteração/ }));
+    expect(callsOf("update")).toHaveLength(0); // nada é gravado antes de confirmar
+    fireEvent.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Salvar alteração" }));
     await waitFor(() => expect(callsOf("update")).toHaveLength(1));
     expect(callsOf("update")[0].args[0]).toMatchObject({ weight_kg: 78.2, recorded_by: "user-1" });
     expect(await screen.findByText(/bloqueada novamente/)).toBeTruthy();

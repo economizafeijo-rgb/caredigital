@@ -188,6 +188,7 @@ function LiveDashboard({ patientId, ownerId, heightCm, name, onClose }: Props & 
   const waterShown = useCountUp(today?.waterMl ?? 0);
   const scoreShown = useCountUp(today?.score ?? 0);
 
+  // REGRA: toda gravação do modo ao vivo (inserir, alterar ou remover) só acontece aqui, depois de o usuário tocar em "Confirmar" na folha de confirmação.
   async function runPending() {
     if (!pending || busy) return;
     setBusy(true);
