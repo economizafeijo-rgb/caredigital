@@ -89,10 +89,12 @@ export function SmartMetricsDashboard() {
           .gte("taken_at", since)
           .limit(1000),
       ]);
-      const hydrationRows = (water.data ?? []).map((r: any) => ({
-        day: String(r.recorded_at).slice(0, 10),
-        amount_ml: r.amount_ml,
-      }));
+      const hydrationRows: { day: string; amount_ml: number }[] = (water.data ?? []).map(
+        (r: any) => ({
+          day: String(r.recorded_at).slice(0, 10),
+          amount_ml: Number(r.amount_ml ?? 0),
+        }),
+      );
       const macroMap = new Map<string, Point>();
       for (const r of meals.data ?? []) {
         const day = String(r.recorded_at).slice(0, 10);
