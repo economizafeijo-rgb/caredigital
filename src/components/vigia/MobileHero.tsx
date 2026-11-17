@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { Activity, ArrowRight, BarChart3, BedDouble, Droplets, Gift, LayoutDashboard, LockKeyhole, Pill, Scale, ShieldCheck, Sparkles, Utensils } from "lucide-react";
+import { Activity, ArrowRight, BarChart3, BedDouble, Droplets, Gift, LayoutDashboard, LockKeyhole, Pill, Scale, ShieldCheck, ShoppingBag, Sparkles, Utensils } from "lucide-react";
 
 const areas = [
+  { to: "/loja", label: "Loja virtual", text: "Suplementos, vitaminas e moda fitness", icon: ShoppingBag, img: "/loja/mulher1.webp", tone: "from-amber-500 to-orange-500" },
   { to: "/dietas", label: "Alimentação", text: "Refeições, calorias e proteína do dia", icon: Utensils, img: "/images/caredigital-alimentacao.webp", tone: "from-emerald-500 to-teal-500" },
   { to: "/hidratacao", label: "Hidratação", text: "Meta de água e próximo copo", icon: Droplets, img: "/images/caredigital-hidratacao.webp", tone: "from-sky-500 to-cyan-500" },
   { to: "/medicamentos", label: "Medicação", text: "Doses e horários sem esquecer", icon: Pill, img: "/images/caredigital-medicamentos.webp", tone: "from-rose-500 to-pink-500" },
