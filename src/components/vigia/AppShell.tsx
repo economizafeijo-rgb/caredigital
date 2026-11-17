@@ -40,6 +40,7 @@ import { useAccess, type AccessStatus } from "@/lib/use-access";
 import { clientSectionTheme, type SectionTheme } from "@/lib/client-section-theme";
 import { fmtClock, useNow } from "./ui";
 import { InstallAppButton } from "./InstallApp";
+import { LiveModeLauncher } from "./LiveMode";
 import { HydrationProvider, HydrationReminder } from "./HydrationTracker";
 import { DialogProvider } from "@/lib/dialog";
 
@@ -425,6 +426,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                       <span className="hidden sm:inline">Página inicial</span>
                     </Link>
                   ))}
+                {access.status === "client" && <LiveModeLauncher iconOnlyOnMobile />}
                 <InstallAppButton />
                 {tools}
                 {signedIn && (

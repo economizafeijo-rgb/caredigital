@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { LiveModeLauncher } from "./LiveMode";
 import { Activity, ArrowRight, BarChart3, BedDouble, Droplets, Gift, LayoutDashboard, LockKeyhole, Pill, Scale, ShieldCheck, ShoppingBag, Sparkles, Utensils } from "lucide-react";
 
 const areas = [
@@ -27,7 +28,10 @@ export function MobileHero({ client, name, panel }: { client: boolean; name: str
         <p className="mt-3 text-[15px] leading-snug text-slate-200">Nutrição, hidratação, peso, suplementos e hábitos com horários, lembretes e registros confiáveis.</p>
         <div className="mt-5 grid gap-2.5">
           {panel ? (
-            <Link to={panel} className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-300 text-base font-extrabold text-slate-950 shadow-lg"><LayoutDashboard size={20} /> Abrir meu painel <ArrowRight size={18} /></Link>
+            <>
+              <Link to={panel} className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-300 text-base font-extrabold text-slate-950 shadow-lg"><LayoutDashboard size={20} /> Abrir meu painel <ArrowRight size={18} /></Link>
+              {client && <LiveModeLauncher className="!h-12 justify-center !rounded-2xl !text-[15px]" />}
+            </>
           ) : (
             <>
               <a href="/entrar?mode=signup" className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-300 text-base font-extrabold text-slate-950 shadow-lg"><Gift size={20} /> Testar grátis por 7 dias</a>

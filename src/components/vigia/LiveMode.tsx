@@ -66,13 +66,14 @@ function Tile({ k, on, onPick, icon: Icon, tone, title, children }: { k: MetricK
   );
 }
 
-export function LiveModeButton(props: Props) {
+export function LiveModeButton({ iconOnlyOnMobile = false, className = "", ...props }: Props & { iconOnlyOnMobile?: boolean; className?: string }) {
   const [open, setOpen] = useState(false);
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} title="Abrir o painel ao vivo em tela cheia"
-        className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 px-3 text-xs font-extrabold text-slate-950 shadow-lg ring-1 ring-white/30 transition hover:brightness-110 active:scale-95">
-        <Radio size={15} className="animate-pulse" /> <span>Ao vivo</span> <Maximize2 size={14} />
+        aria-label="Abrir painel ao vivo em tela cheia"
+        className={`inline-flex h-9 items-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 px-3 text-xs font-extrabold text-slate-950 shadow-lg ring-1 ring-white/30 transition hover:brightness-110 active:scale-95 ${className}`}>
+        <Radio size={15} className="animate-pulse" /> <span className={iconOnlyOnMobile ? "hidden sm:inline" : ""}>Ao vivo</span> <Maximize2 size={14} className={iconOnlyOnMobile ? "hidden sm:block" : ""} />
       </button>
       {open && <LiveDashboard {...props} onClose={() => setOpen(false)} />}
     </>
@@ -302,4 +303,26 @@ function LiveDashboard({ patientId, ownerId, heightCm, name, onClose }: Props & 
     </div>
   );
   return typeof document === "undefined" ? null : createPortal(ui, document.body);
+}
+
+/** Botão "Ao vivo" que encontra sozinho o prontuário da conta: pode ser colocado em qualquer tela do cliente. */
+export function LiveModeLauncher(props: { iconOnlyOnMobile?: boolean; className?: string }) {
+  const [link, setLink] = useState<{ patientId: string; ownerId: string; name: string; heightCm: number | null } | null>(null);
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      const db = supabase as any;
+      const { data } = await supabase.auth.getUser();
+      if (!data.user) return;
+      const grant = await db.from("care_patient_access").select("patient_id").eq("user_id", data.user.id).limit(1);
+      const id = grant.data?.[0]?.patient_id;
+      const patient = id ? await db.from("care_patients").select("id,owner_id,full_name,height_cm").eq("id", id).limit(1)
+        : await db.from("care_patients").select("id,owner_id,full_name,height_cm").eq("owner_id", data.user.id).limit(1);
+      const row = patient.data?.[0];
+      if (active && row) setLink({ patientId: row.id, ownerId: row.owner_id, name: row.full_name, heightCm: Number(row.height_cm) || null });
+    })();
+    return () => { active = false; };
+  }, []);
+  if (!link) return null;
+  return <LiveModeButton patientId={link.patientId} ownerId={link.ownerId} heightCm={link.heightCm} name={link.name} {...props} />;
 }
