@@ -1,3 +1,5 @@
+import { beverageNutrients } from "./beverage-nutrients";
+import { isBeverageKind } from "./care-intake-categories";
 /**
  * Acesso aos dados de qualquer período (dia, mês, ano) para o histórico e para o observador de metas.
  * Tabelas ainda não criadas no banco não derrubam a tela: a fonte vira vazia e é listada em `warnings`.
@@ -88,7 +90,10 @@ export async function loadPeriodRaw(patientId: string, ownerId: string, from: st
   }
   for (const row of beverages.rows) {
     const text = String(row.name || row.kind || "Bebida");
-    const total = sumNutrients(parseFoodText(text, Number(row.amount_ml)).map((food) => food.nutrients));
+    // Primeiro tenta reconhecer o alimento pelo nome; se não reconhecer, usa a estimativa do tipo de líquido.
+    const named = parseFoodText(text, Number(row.amount_ml)).map((food) => food.nutrients);
+    const byKind = isBeverageKind(String(row.kind)) ? beverageNutrients(row.kind, Number(row.amount_ml)) : null;
+    const total = named.length ? sumNutrients(named) : (byKind ?? { kcal: 0, protein: 0, carbs: 0, fat: 0 });
     raw.foods.push({ at: row.consumed_at, label: `${text} · ${Number(row.amount_ml)} ml`, source: "Bebida", kcal: total.kcal, protein: total.protein, carbs: total.carbs, fat: total.fat });
   }
   for (const row of portions.rows) {

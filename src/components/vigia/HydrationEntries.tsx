@@ -3,18 +3,22 @@ import { Bar, CartesianGrid, Cell, ComposedChart, Line, ReferenceLine, Responsiv
 import { Check, Droplets, Pencil, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { acreDateAtTime, acreDateKey, ACRE_TIME_ZONE } from "@/lib/acre-time";
+import { beverageKinds, beverageCategory, isBeverageKind } from "@/lib/care-intake-categories";
+import { beverageNutrients } from "@/lib/beverage-nutrients";
 
-export type WaterEntry = { id: string; amount_ml: number; recorded_at: string };
-type Entry = WaterEntry & { kind: "water" | "beverage" };
+export type WaterEntry = { id: string; amount_ml: number; recorded_at: string; kind?: string; name?: string };
+type Entry = WaterEntry & { source: "water" | "beverage" };
 const hhmm = (iso: string) => new Intl.DateTimeFormat("pt-BR", { timeZone: ACRE_TIME_ZONE, hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso));
 const ml = (v: number) => `${Math.round(v).toLocaleString("pt-BR")} ml`;
 
 /** Registros de hoje: gráfico interativo (barras por registro + acumulado x meta) e lista com editar/excluir sempre à vista. */
 export function HydrationEntries({ patientId, water, beverages, goal, onChanged }: { patientId: string; water: WaterEntry[]; beverages: WaterEntry[]; goal: number; onChanged: () => void }) {
-  const entries = useMemo<Entry[]>(() => [...water.map((e) => ({ ...e, kind: "water" as const })), ...beverages.map((e) => ({ ...e, kind: "beverage" as const }))].sort((a, b) => Date.parse(a.recorded_at) - Date.parse(b.recorded_at)), [water, beverages]);
+  const entries = useMemo<Entry[]>(() => [...water.map((e) => ({ ...e, source: "water" as const })), ...beverages.map((e) => ({ ...e, source: "beverage" as const }))].sort((a, b) => Date.parse(a.recorded_at) - Date.parse(b.recorded_at)), [water, beverages]);
   const [selected, setSelected] = useState<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [amount, setAmount] = useState("");
+  const [kind, setKind] = useState("");
+  const [name, setName] = useState("");
   const [when, setWhen] = useState("");
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -22,28 +26,35 @@ export function HydrationEntries({ patientId, water, beverages, goal, onChanged 
 
   const data = useMemo(() => {
     let sum = 0;
-    return entries.map((e) => { sum += Number(e.amount_ml); return { id: e.id, label: hhmm(e.recorded_at), ml: Number(e.amount_ml), total: sum, kind: e.kind }; });
+    return entries.map((e) => { sum += Number(e.amount_ml); return { id: e.id, label: hhmm(e.recorded_at), ml: Number(e.amount_ml), total: sum, source: e.source }; });
   }, [entries]);
   const total = data.at(-1)?.total ?? 0;
   const pct = goal ? Math.min(100, Math.round((total / goal) * 100)) : 0;
   if (entries.length === 0) return null;
 
-  function startEdit(e: Entry) { setEditing(e.id); setSelected(e.id); setAmount(String(Math.round(Number(e.amount_ml)))); setWhen(hhmm(e.recorded_at)); setError(""); setConfirmId(null); }
+  function startEdit(e: Entry) {
+    setEditing(e.id); setSelected(e.id); setAmount(String(Math.round(Number(e.amount_ml)))); setWhen(hhmm(e.recorded_at));
+    setKind(e.source === "beverage" && e.kind && isBeverageKind(e.kind) ? e.kind : "outra");
+    setName(e.name ?? ""); setError(""); setConfirmId(null);
+  }
   async function save(e: Entry) {
     const value = Math.round(Number(amount.replace(",", ".")));
     if (!Number.isFinite(value) || value < 1 || value > 5000) { setError("Informe um volume entre 1 e 5000 ml."); return; }
+    if (e.source === "beverage" && (name.trim().length < 2 || name.trim().length > 100)) { setError("Informe o nome da bebida (2 a 100 caracteres)."); return; }
     if (!/^\d{2}:\d{2}$/.test(when)) { setError("Informe o horário (hh:mm)."); return; }
     const at = acreDateAtTime(acreDateKey(e.recorded_at), when);
     if (at.getTime() > Date.now() + 60_000) { setError("O horário não pode estar no futuro."); return; }
     setBusy(true); setError("");
-    const { error: err } = await (supabase as any).rpc("care_update_intake_entry", { p_patient_id: patientId, p_entry_type: e.kind, p_entry_id: e.id, p_description: e.kind === "water" ? null : "Bebida", p_amount_ml: value, p_consumed_at: at.toISOString() });
+    const { error: err } = e.source === "water"
+      ? await (supabase as any).rpc("care_update_intake_entry", { p_patient_id: patientId, p_entry_type: "water", p_entry_id: e.id, p_description: null, p_amount_ml: value, p_consumed_at: at.toISOString() })
+      : await (supabase as any).rpc("care_update_client_beverage", { p_patient_id: patientId, p_entry_id: e.id, p_kind: kind, p_name: name.trim(), p_amount_ml: value, p_consumed_at: at.toISOString() });
     setBusy(false);
     if (err) { setError(err.message || "Não foi possível salvar a alteração."); return; }
     setEditing(null); onChanged();
   }
   async function remove(e: Entry) {
     setBusy(true); setError("");
-    const { error: err } = await (supabase as any).rpc("care_delete_intake_entry", { p_patient_id: patientId, p_entry_type: e.kind, p_entry_id: e.id });
+    const { error: err } = await (supabase as any).rpc("care_delete_intake_entry", { p_patient_id: patientId, p_entry_type: e.source, p_entry_id: e.id });
     setBusy(false);
     if (err) { setError(err.message || "Não foi possível excluir o registro."); return; }
     setConfirmId(null); setSelected(null); onChanged();
@@ -66,7 +77,7 @@ export function HydrationEntries({ patientId, water, beverages, goal, onChanged 
             {goal > 0 && <ReferenceLine yAxisId="total" y={goal} stroke="#10b981" strokeDasharray="5 4" label={{ value: "Meta", position: "insideTopRight", fontSize: 10, fill: "#10b981" }} />}
             <Tooltip cursor={{ fill: "rgba(56,189,248,.12)" }} formatter={(v: number, name: string) => [ml(v), name]} />
             <Bar yAxisId="ml" dataKey="ml" name="Registro" radius={[8, 8, 0, 0]} maxBarSize={44} animationDuration={700} onClick={(d: any) => setSelected(d?.id ?? null)} cursor="pointer">
-              {data.map((d) => <Cell key={d.id} fill={selected === d.id ? "#f59e0b" : d.kind === "water" ? "url(#hydBar)" : "#8b5cf6"} />)}
+              {data.map((d) => <Cell key={d.id} fill={selected === d.id ? "#f59e0b" : d.source === "water" ? "url(#hydBar)" : "#8b5cf6"} />)}
             </Bar>
             <Line yAxisId="total" type="monotone" dataKey="total" name="Acumulado" stroke="#0ea5e9" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 6 }} animationDuration={900} />
           </ComposedChart>
@@ -78,17 +89,30 @@ export function HydrationEntries({ patientId, water, beverages, goal, onChanged 
         {[...entries].reverse().map((e) => (
           <li key={e.id} className={`rounded-xl border bg-card px-3 py-2 ${selected === e.id ? "border-amber-400 ring-2 ring-amber-400/30" : "border-border"}`}>
             {editing === e.id ? (
-              <div className="flex flex-wrap items-end gap-2">
+              <div className="grid gap-2">
+                {e.source === "beverage" && (
+                  <div className="grid gap-2 sm:grid-cols-[1fr_1.4fr]">
+                    <label className="text-[11px] font-semibold">Tipo de líquido
+                      <select value={kind} onChange={(ev) => setKind(ev.target.value)} className="mt-0.5 block h-10 w-full rounded-lg border border-border bg-surface px-2 text-sm">
+                        {beverageKinds.filter((k) => k.value !== "agua").map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}
+                      </select></label>
+                    <label className="text-[11px] font-semibold">Nome / descrição
+                      <input value={name} onChange={(ev) => setName(ev.target.value)} maxLength={100} placeholder={beverageCategory(kind)?.example ?? "Descreva a bebida"} className="mt-0.5 block h-10 w-full rounded-lg border border-border bg-surface px-2 text-sm" /></label>
+                    {/* Nutrientes são recalculados pelo nome; sem alimento conhecido, usa a estimativa do tipo. */}
+                  </div>
+                )}
+                <div className="flex flex-wrap items-end gap-2">
                 <label className="text-[11px] font-semibold">Volume (ml)<input inputMode="numeric" value={amount} onChange={(ev) => setAmount(ev.target.value)} className="mt-0.5 block h-10 w-24 rounded-lg border border-border bg-surface px-2 text-sm" /></label>
                 <label className="text-[11px] font-semibold">Horário<input type="time" value={when} onChange={(ev) => setWhen(ev.target.value)} className="mt-0.5 block h-10 rounded-lg border border-border bg-surface px-2 text-sm" /></label>
                 <button type="button" disabled={busy} onClick={() => void save(e)} className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 text-xs font-bold text-white disabled:opacity-60"><Check size={15} /> {busy ? "Salvando…" : "Salvar"}</button>
                 <button type="button" onClick={() => setEditing(null)} className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-semibold"><X size={15} /> Cancelar</button>
+                </div>
               </div>
             ) : (
               <div className="flex items-center gap-3">
                 <button type="button" onClick={() => setSelected(e.id)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-                  <span className={`grid size-9 shrink-0 place-items-center rounded-xl text-white ${e.kind === "water" ? "bg-sky-500" : "bg-violet-500"}`}><Droplets size={17} /></span>
-                  <span className="min-w-0"><strong className="block text-sm tabular-nums">{ml(Number(e.amount_ml))}</strong><span className="text-[11px] text-muted-foreground">{hhmm(e.recorded_at)} · {e.kind === "water" ? "Água" : "Outra bebida"}</span></span>
+                  <span className={`grid size-9 shrink-0 place-items-center rounded-xl text-white ${e.source === "water" ? "bg-sky-500" : "bg-violet-500"}`}><Droplets size={17} /></span>
+                  <span className="min-w-0"><strong className="block text-sm tabular-nums">{ml(Number(e.amount_ml))}</strong><span className="text-[11px] text-muted-foreground">{hhmm(e.recorded_at)} · {e.source === "water" ? "Água" : (e.name ? `${e.name} · ` : "") + (beverageCategory(e.kind ?? "outra")?.label ?? "Bebida")}{e.source === "beverage" && isBeverageKind(e.kind ?? "") ? ` · ~${beverageNutrients(e.kind as any, Number(e.amount_ml)).kcal} kcal` : ""}</span></span>
                 </button>
                 {confirmId === e.id ? (
                   <span className="flex items-center gap-1.5"><button type="button" disabled={busy} onClick={() => void remove(e)} className="h-9 rounded-lg bg-rose-600 px-3 text-xs font-bold text-white disabled:opacity-60">{busy ? "Excluindo…" : "Confirmar exclusão"}</button><button type="button" onClick={() => setConfirmId(null)} className="h-9 rounded-lg border border-border px-2.5 text-xs font-semibold">Voltar</button></span>
