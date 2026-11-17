@@ -71,7 +71,7 @@ export function HydrationEntries({ patientId, water, beverages, goal, onChanged 
         <div><p className="text-[11px] font-bold uppercase tracking-[.14em] text-sky-600 dark:text-sky-300">Acompanhamento</p><h4 className="text-base font-extrabold">Consumo de hoje</h4></div>
         <div className="text-right"><strong className="text-xl font-extrabold tabular-nums">{ml(total)}</strong>{goal > 0 && <span className="block text-[11px] text-muted-foreground">{pct}% de {ml(goal)}</span>}</div>
       </header>
-      <div className="h-52 sm:h-60" role="img" aria-label="Consumo de água por registro e total acumulado">
+      <div className="h-40 sm:h-48" role="img" aria-label="Consumo de água por registro e total acumulado">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={data} margin={{ top: 10, right: 6, left: -8, bottom: 0 }}>
             <defs><linearGradient id="hydBar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#38bdf8" /><stop offset="100%" stopColor="#0284c7" /></linearGradient></defs>
