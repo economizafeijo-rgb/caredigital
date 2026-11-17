@@ -70,7 +70,7 @@ export async function loadPeriodRaw(patientId: string, ownerId: string, from: st
     fetchAll((a, b) => scope(db.from("care_sleep_logs").select("sleep_date,bed_at,wake_at,quality,awakenings")).gte("sleep_date", from).lte("sleep_date", to).order("sleep_date").range(a, b)),
     fetchAll((a, b) => scope(db.from("care_body_measurements").select("recorded_on,weight_kg")).gte("recorded_on", from).lte("recorded_on", to).order("recorded_on").range(a, b)),
     fetchAll((a, b) => scope(db.from("care_goal_reviews").select("day,metric,status,target,actual,unit,observation")).gte("day", from).lte("day", to).order("day").range(a, b)),
-    scope(db.from("care_nutrition_preferences").select("objective,weight_kg,target_kcal,target_protein_g,target_carbs_g,target_fat_g,target_weight_kg")).maybeSingle(),
+    scope(db.from("care_nutrition_preferences").select("*")).maybeSingle(),
   ]);
 
   note("hidratação", water.failed); note("metas de hidratação", waterGoals.failed); note("refeições", meals.failed); note("atividade", activities.failed);
@@ -113,6 +113,13 @@ export async function loadPeriodRaw(patientId: string, ownerId: string, from: st
   raw.reviews = reviews.rows.map((row) => ({ day: row.day, metric: row.metric as GoalMetric, status: row.status, target: Number(row.target), actual: Number(row.actual), unit: row.unit, observation: row.observation }));
 
   const p = prefsRow?.data ?? {};
+  // Peso do primeiro cadastro: entra no histórico no dia do cadastro, se ainda não houver medida registrada até esse dia.
+  const initialKg = Number(p.weight_kg);
+  const createdIso = p.created_at ?? p.updated_at;
+  if (Number.isFinite(initialKg) && initialKg >= 20 && initialKg <= 350 && createdIso) {
+    const day = acreDayHour(createdIso).day;
+    if (day >= from && day <= to && !raw.weights.some((row) => row.day <= day)) raw.weights.unshift({ day, kg: initialKg });
+  }
   const prefs: PrefsInfo = { objective: p.objective ?? null, weightKg: num(p.weight_kg), kcal: num(p.target_kcal), protein: num(p.target_protein_g), carbs: num(p.target_carbs_g), fat: num(p.target_fat_g), targetWeightKg: num(p.target_weight_kg) };
   return { raw, prefs, warnings };
 }
