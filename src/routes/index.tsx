@@ -131,17 +131,17 @@ const mosaicAreas = [
 
 function HeroMosaic() {
   return (
-    <div className="relative order-first p-3 pb-0 sm:p-6 sm:pb-0 lg:order-last lg:p-8 lg:pl-0">
-      <div className="relative grid h-[13.5rem] grid-cols-4 grid-rows-3 gap-1.5 sm:h-[26rem] sm:gap-3 lg:h-[min(56vh,31rem)]">
+    <div className="relative order-last px-4 pb-5 sm:order-first sm:p-6 sm:pb-0 lg:order-last lg:p-8 lg:pl-0">
+      <div className="relative grid grid-cols-4 grid-rows-3 gap-2 max-sm:grid-rows-2 sm:h-[26rem] sm:gap-3 lg:h-[min(56vh,31rem)]">
         {mosaicAreas.map((area) => (
           <Link key={area.to} to={area.to} aria-label={area.label}
-            className={`group relative isolate overflow-hidden rounded-2xl bg-slate-900 shadow-lg ring-1 ring-white/15 ${area.cls}`}>
+            className={`group relative isolate overflow-hidden rounded-2xl bg-slate-900 shadow-lg ring-1 ring-white/15 max-sm:aspect-[3/4] max-sm:!col-span-1 max-sm:!row-span-1 ${area.cls}`}>
             <img src={area.img} alt="" aria-hidden="true" width={area.wide ? 960 : 640} height={area.wide ? 600 : 400} loading="eager" decoding="async"
               className="absolute inset-0 -z-10 size-full object-cover transition duration-700 group-hover:scale-105" />
             <span aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-slate-950/80 via-slate-950/10 to-transparent" />
-            <span className="absolute inset-x-1.5 bottom-1.5 flex items-center gap-1.5 rounded-xl bg-slate-950/55 px-2 py-1.5 text-[11px] font-bold text-white backdrop-blur sm:inset-x-2 sm:bottom-2 sm:text-xs">
+            <span className="absolute inset-x-1 bottom-1 flex items-center gap-1.5 rounded-xl bg-slate-950/60 px-2 py-1.5 text-[11px] font-bold text-white backdrop-blur max-sm:flex-col max-sm:gap-0.5 max-sm:px-0.5 max-sm:text-[10px] sm:inset-x-2 sm:bottom-2 sm:text-xs">
               <area.icon size={14} className="shrink-0 text-emerald-300" />
-              <span className={area.wide ? "" : "hidden sm:inline"}>{area.label}</span>
+              <span className="max-sm:max-w-full max-sm:truncate">{area.label}</span>
             </span>
           </Link>
         ))}
@@ -195,7 +195,7 @@ function Homepage() {
           </span>
           <h1
             id="home-title"
-            className="mt-4 text-balance text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl"
+            className="mt-4 text-balance text-[1.9rem] font-extrabold leading-[1.1] tracking-tight sm:text-5xl"
           >
             {status === "client" ? (
               <>
@@ -210,12 +210,12 @@ function Homepage() {
               </>
             )}
           </h1>
-          <p className="mt-4 max-w-[48ch] text-base leading-relaxed text-slate-200">
+          <p className="mt-3 max-w-[48ch] text-sm leading-relaxed text-slate-200 sm:mt-4 sm:text-base">
             {status === "client"
               ? "Acompanhe suas métricas, hábitos, hidratação, alimentação, suplementos e evolução ao longo do tempo."
               : "Nutrição, hidratação, peso, suplementos e hábitos acompanhados com horários, lembretes e registros confiáveis."}
           </p>
-          <div className="mt-6 flex flex-wrap items-center gap-3">
+          <div className="mt-5 flex flex-wrap items-center gap-3 max-sm:flex-col max-sm:items-stretch max-sm:[&>a]:justify-center sm:mt-6">
             {panel ? (
               <Link
                 to={panel}
@@ -246,7 +246,7 @@ function Homepage() {
               Como funciona
             </Link>
           </div>
-          <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-slate-200">
+          <ul className="mt-6 hidden flex-wrap gap-x-5 sm:flex gap-y-2 text-[13px] text-slate-200">
             <li className="inline-flex items-center gap-1.5">
               <CalendarCheck size={15} /> Rotina por horários
             </li>

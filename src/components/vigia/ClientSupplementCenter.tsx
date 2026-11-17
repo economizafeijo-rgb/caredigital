@@ -154,7 +154,7 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
             : <p className="py-6 text-base text-white/85">{doses.length ? "Todas as doses de hoje foram registradas. Excelente!" : "Monte sua programação para ativar o timer das próximas doses."}</p>}
         </div>
         <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/15"><i className="block h-full rounded-full bg-gradient-to-r from-violet-400 to-amber-400 transition-[width]" style={{ width: percent + "%" }}/></div>
-        {next && <button type="button" onClick={() => void toggleDose(next.plan, next.slot, false)} className="mt-4 inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-violet-900 shadow-sm transition hover:bg-white/90"><CheckCircle2 size={18}/> Registrar dose agora</button>}
+        {next && <button type="button" data-register-target="Registrar dose" onClick={() => void toggleDose(next.plan, next.slot, false)} className="mt-4 inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-violet-900 shadow-sm transition hover:bg-white/90"><CheckCircle2 size={18}/> Registrar dose agora</button>}
       </section>
 
       <section className="rounded-3xl border border-border bg-card p-5 shadow-card" aria-label="Doses de hoje">

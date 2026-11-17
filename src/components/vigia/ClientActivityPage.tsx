@@ -410,7 +410,7 @@ export function ClientActivityPage({
       </div>
 
       <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[minmax(280px,.8fr)_minmax(0,1.2fr)]">
-        <section className="rounded-2xl border border-border bg-card p-3 sm:p-4">
+        <section data-register-target="Registrar atividade" className="rounded-2xl border border-border bg-card p-3 sm:p-4">
           <div className="flex items-center gap-2">
             <span className="grid size-9 place-items-center rounded-xl bg-primary/10 text-primary">
               <Plus size={18} />

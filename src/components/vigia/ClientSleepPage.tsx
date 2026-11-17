@@ -240,7 +240,7 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
       </div>
     </section>
 
-    <section className="rounded-3xl border border-border bg-card p-5 shadow-card" aria-label="Registrar noite">
+    <section className="rounded-3xl border border-border bg-card p-5 shadow-card" aria-label="Registrar noite" data-register-target="Registrar noite">
       <h3 className="flex items-center gap-2 text-lg font-bold"><Sparkles size={20} className="text-indigo-500"/> Registrar noite de sono</h3>
       <div className="mt-3 grid gap-3 text-sm font-semibold sm:grid-cols-2 lg:grid-cols-4">
         <label>Fui dormir<input type="datetime-local" className={field} value={bed} onChange={e => setBed(e.target.value)}/></label>

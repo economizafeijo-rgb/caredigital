@@ -141,7 +141,7 @@ export function ClientMedicationManager({ patientId, ownerId }: { patientId: str
         <div className="flex items-center justify-between gap-2"><p className="text-xs font-bold uppercase tracking-[.14em] text-white/70">Próxima dose</p><span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">{done} de {doses.length} hoje</span></div>
         <div className="mt-4">{next ? <CareTimer target={next.at} title={`${next.med.name} · ${next.med.dose}`} subtitle={next.med.instructions ?? "Conforme a receita"} tone="med" dark windowMs={3 * 3600_000}/>
           : <p className="py-5 text-base text-white/85">{doses.length ? "Todas as doses de hoje foram registradas." : "Cadastre seus medicamentos para ativar o timer."}</p>}</div>
-        {next && <button type="button" onClick={() => setPending({ kind: "take", med: next.med, slot: next.slot, taken: false })} className="mt-4 inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-rose-900 hover:bg-white/90"><CheckCircle2 size={18}/> Registrar dose</button>}
+        {next && <button type="button" data-register-target="Registrar dose" onClick={() => setPending({ kind: "take", med: next.med, slot: next.slot, taken: false })} className="mt-4 inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-rose-900 hover:bg-white/90"><CheckCircle2 size={18}/> Registrar dose</button>}
       </div>
       <div className="rounded-3xl border border-border bg-card p-5 shadow-card">
         <div className="flex items-center justify-between gap-2"><h3 className="flex items-center gap-2 text-lg font-bold"><Clock size={20} className="text-rose-500"/> Horários de hoje</h3>

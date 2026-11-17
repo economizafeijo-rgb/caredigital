@@ -274,7 +274,7 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
       </section>
 
       <aside className="flex flex-col gap-3">
-        <section className="rounded-2xl border border-border bg-card p-4 shadow-card" aria-label="Inserir peso">
+        <section className="rounded-2xl border border-border bg-card p-4 shadow-card" aria-label="Inserir peso" data-register-target="Inserir peso">
           <h3 className="flex items-center gap-2 font-display text-base font-bold"><span className="grid size-8 place-items-center rounded-xl bg-gradient-to-br from-fuchsia-500 to-pink-500 text-white"><Plus size={16}/></span>Inserir peso</h3>
           <div className="mt-3 grid gap-2">
             <label className="text-xs font-semibold">Data
