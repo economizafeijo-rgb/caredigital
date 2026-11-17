@@ -202,7 +202,7 @@ const copy: Record<ShowcaseKind, Showcase> = {
     eyebrow: "Como funciona",
     title: "Toda a sua rotina de saúde em uma única plataforma.",
     description:
-      "Agenda do dia, medicamentos, hidratação, alimentação, suplementos, peso e treinos, com timers, gráficos interativos e histórico completo. Comece com 7 dias grátis e um roteiro guiado.",
+      "Agenda do dia, medicamentos, hidratação, alimentação, suplementos, peso e treinos, com timers, gráficos interativos e histórico completo. Acesso gratuito, sem prazo, com um roteiro guiado.",
     cta: "Acessar meu acompanhamento",
     preview: ["Lembretes do dia", "Cuidados confirmados", "Histórico auditável"],
     benefits: [

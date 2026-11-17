@@ -444,7 +444,7 @@ function Entrar() {
             {mode === "login"
               ? "Entre com o e-mail e a senha cadastrados."
               : mode === "signup"
-                ? "Preencha seus dados e use o NextVita completo por 7 dias, sem cartão e sem compromisso."
+                ? "Preencha seus dados e use o NextVita completo, gratuitamente e sem prazo de validade."
                 : mode === "forgot"
                   ? "Informe o e-mail da conta para solicitar um link seguro de recuperação."
                   : "Defina uma senha nova e segura para sua conta."}

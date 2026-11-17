@@ -9,13 +9,13 @@ describe("licenças", () => {
   it("formata o código digitado", () => {
     expect(formatLicenseCode("care ab12cd34ef56")).toBe("CARE-AB12-CD34-EF56");
   });
-  it("licença ativa vencida conta como expirada", () => {
-    expect(licenseState({ plan: "premium", status: "ativa", expires: "2026-11-10" }, "2026-11-12")).toBe("expirada");
-    expect(licenseState({ plan: "premium", status: "ativa", expires: "2026-11-12" }, "2026-11-12")).toBe("ativa");
+  it("a plataforma é gratuita: a validade não bloqueia, só a suspensão", () => {
+    expect(licenseState({ plan: "premium", status: "ativa", expires: "2026-11-10" })).toBe("ativa");
+    expect(licenseState({ plan: "premium", status: "teste", expires: "2026-11-10" })).toBe("gratuita");
+    expect(licenseState({ plan: "premium", status: "expirada", expires: null })).toBe("gratuita");
+    expect(licenseState({ plan: "premium", status: "gratuita", expires: null })).toBe("gratuita");
+    expect(licenseState({ plan: "premium", status: "suspensa", expires: null })).toBe("suspensa");
     expect(licenseState(null)).toBe("ativa");
-    // o teste grátis também expira quando a validade passa
-    expect(licenseState({ plan: "premium", status: "teste", expires: "2026-11-10" }, "2026-11-12")).toBe("expirada");
-    expect(licenseState({ plan: "premium", status: "teste", expires: "2026-11-19" }, "2026-11-12")).toBe("teste");
   });
   it("calcula dias restantes", () => {
     expect(daysLeft("2026-11-20", "2026-11-12")).toBe(8);

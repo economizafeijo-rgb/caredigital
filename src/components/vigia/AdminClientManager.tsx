@@ -66,12 +66,9 @@ const goals = {
 const today = () => new Date().toISOString().slice(0, 10);
 const plusDays = (days: number) =>
   new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
+/** A plataforma é gratuita: a validade não derruba o acesso; "teste" e "expirada" antigos contam como gratuita. */
 export const effectiveLicense = (c: Pick<Client, "license_status" | "license_expires_on">) =>
-  (c.license_status === "ativa" || c.license_status === "teste") &&
-  c.license_expires_on &&
-  c.license_expires_on < today()
-    ? "expirada"
-    : (c.license_status ?? "ativa");
+  c.license_status === "teste" || c.license_status === "expirada" ? "gratuita" : (c.license_status ?? "ativa");
 
 export function AdminClientManager({ ownerId }: { ownerId: string }) {
   const [clients, setClients] = useState<Client[]>([]);
@@ -113,7 +110,7 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
     return {
       total: clients.length,
       ativa: lic.filter((s) => s === "ativa").length,
-      teste: lic.filter((s) => s === "teste").length,
+      teste: lic.filter((s) => s === "gratuita").length,
       alerta: lic.filter((s) => s === "suspensa" || s === "expirada").length,
       vencendo: clients.filter(
         (c) =>
@@ -330,7 +327,7 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
             g: "from-emerald-600 to-teal-500",
           },
           {
-            label: "Em teste grátis",
+            label: "Contas gratuitas",
             value: stats.teste,
             icon: UserPlus,
             g: "from-sky-600 to-cyan-500",
@@ -377,8 +374,8 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
             onClick={() =>
               setEditing({
                 license_plan: "basico",
-                license_status: "teste",
-                license_expires_on: plusDays(14),
+                license_status: "gratuita",
+                license_expires_on: null,
               })
             }
             className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-500 px-5 text-sm font-bold text-white shadow-sm hover:brightness-110"
