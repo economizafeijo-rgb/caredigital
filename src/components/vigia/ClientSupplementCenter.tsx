@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { acreDateKey } from "@/lib/acre-time";
+import { useDialog } from "@/lib/dialog";
 import { CareTimer } from "./CareTimer";
 
 type Unit = "g" | "mg" | "mcg" | "UI" | "cápsula" | "comprimido" | "ml" | "scoop";
@@ -51,6 +52,7 @@ export function buildDoses(plans: SupplementPlan[], intakes: Intake[], day: stri
 }
 
 export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }: Props) {
+  const dialog = useDialog();
   const [plans, setPlans] = useState<SupplementPlan[]>([]);
   const [intakes, setIntakes] = useState<Intake[]>([]);
   const [remote, setRemote] = useState(true);
@@ -112,7 +114,7 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
   }
 
   async function removePlan(plan: SupplementPlan) {
-    if (!window.confirm(`Remover ${plan.name} da programação?`)) return;
+    if (!(await dialog.confirm("Remover suplemento?", `${plan.name} sai da sua programação e os horários deixam de aparecer. Os registros já feitos continuam no histórico.`, true, "Remover"))) return;
     if (remote) { const result = await db.from("care_supplement_plans").delete().eq("id", plan.id); if (result.error) return setMessage("Não foi possível remover."); }
     else writeLocal(localKey(patientId, "plans"), plans.filter(item => item.id !== plan.id));
     setReload(value => value + 1);
