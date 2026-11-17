@@ -131,8 +131,8 @@ const mosaicAreas = [
 
 function HeroMosaic() {
   return (
-    <div className="relative p-4 pt-0 sm:p-6 sm:pt-0 lg:p-8 lg:pl-0">
-      <div className="relative grid h-[22rem] grid-cols-4 grid-rows-3 gap-2 sm:h-[26rem] sm:gap-3 lg:h-[min(56vh,31rem)]">
+    <div className="relative order-first p-3 pb-0 sm:p-6 sm:pb-0 lg:order-last lg:p-8 lg:pl-0">
+      <div className="relative grid h-[13.5rem] grid-cols-4 grid-rows-3 gap-1.5 sm:h-[26rem] sm:gap-3 lg:h-[min(56vh,31rem)]">
         {mosaicAreas.map((area) => (
           <Link key={area.to} to={area.to} aria-label={area.label}
             className={`group relative isolate overflow-hidden rounded-2xl bg-slate-900 shadow-lg ring-1 ring-white/15 ${area.cls}`}>
@@ -189,7 +189,7 @@ function Homepage() {
       >
         <div aria-hidden="true" className="pointer-events-none absolute -left-24 -top-24 -z-10 size-96 rounded-full bg-emerald-400/20 blur-3xl" />
         <div aria-hidden="true" className="pointer-events-none absolute -bottom-28 right-10 -z-10 size-96 rounded-full bg-teal-300/15 blur-3xl" />
-        <div className="px-6 py-8 text-white sm:px-10 lg:px-12 lg:py-10">
+        <div className="px-5 pb-7 pt-5 text-white sm:px-10 sm:py-8 lg:px-12 lg:py-10">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur">
             <ShieldCheck size={14} /> Bem-estar pessoal, organizado e protegido
           </span>
