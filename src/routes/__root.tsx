@@ -62,6 +62,10 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   );
 }
 
+// Endereço oficial (sem redirecionamento): é o que redes sociais e buscadores devem usar.
+const SITE_URL = "https://www.nextvita.life";
+const SHARE_IMAGE = `${SITE_URL}/share-card-v2.jpg`;
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
@@ -80,15 +84,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content: "Seu hub pessoal para cuidar do corpo, acompanhar hábitos e evoluir com clareza.",
       },
       { property: "og:site_name", content: "NextVita" },
+      { property: "og:url", content: SITE_URL },
       { property: "og:locale", content: "pt_BR" },
-      { property: "og:image", content: "https://nextvita.life/share-card.jpg" },
-      { property: "og:image:secure_url", content: "https://nextvita.life/share-card.jpg" },
+      { property: "og:image", content: SHARE_IMAGE },
+      { property: "og:image:secure_url", content: SHARE_IMAGE },
       { property: "og:image:type", content: "image/jpeg" },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
       { property: "og:image:alt", content: "NextVita: medicação, hidratação, peso, sono, treinos e suplementos em uma rotina só" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:image", content: "https://nextvita.life/share-card.jpg" },
+      { name: "twitter:title", content: "NextVita — Bem-estar conectado" },
+      { name: "twitter:description", content: "Medicação, hidratação, alimentação, treinos, sono e peso em uma rotina só. Teste grátis por 7 dias." },
+      { name: "twitter:image", content: SHARE_IMAGE },
       { name: "twitter:image:alt", content: "NextVita: bem-estar conectado" },
       { name: "theme-color", content: "#0e8a6a" },
       { name: "mobile-web-app-capable", content: "yes" },
@@ -104,6 +111,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap",
       },
       { rel: "stylesheet", href: appCss },
+      { rel: "canonical", href: SITE_URL },
       { rel: "icon", href: "/caredigital-icon.svg", type: "image/svg+xml" },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" },
