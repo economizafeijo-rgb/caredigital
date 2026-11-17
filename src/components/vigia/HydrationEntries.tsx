@@ -6,6 +6,7 @@ import { acreDateAtTime, acreDateKey, ACRE_TIME_ZONE } from "@/lib/acre-time";
 import { beverageKinds, beverageCategory, isBeverageKind } from "@/lib/care-intake-categories";
 import { beverageNutrients } from "@/lib/beverage-nutrients";
 import { NiceSelect } from "./NiceSelect";
+import { useDialog } from "@/lib/dialog";
 
 export type WaterEntry = { id: string; amount_ml: number; recorded_at: string; kind?: string; name?: string };
 type Entry = WaterEntry & { source: "water" | "beverage" };
@@ -14,6 +15,7 @@ const ml = (v: number) => `${Math.round(v).toLocaleString("pt-BR")} ml`;
 
 /** Registros de hoje: gráfico interativo (barras por registro + acumulado x meta) e lista com editar/excluir sempre à vista. */
 export function HydrationEntries({ patientId, water, beverages, goal, onChanged }: { patientId: string; water: WaterEntry[]; beverages: WaterEntry[]; goal: number; onChanged: () => void }) {
+  const dialog = useDialog();
   const entries = useMemo<Entry[]>(() => [...water.map((e) => ({ ...e, source: "water" as const })), ...beverages.map((e) => ({ ...e, source: "beverage" as const }))].sort((a, b) => Date.parse(a.recorded_at) - Date.parse(b.recorded_at)), [water, beverages]);
   const [selected, setSelected] = useState<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
@@ -45,6 +47,8 @@ export function HydrationEntries({ patientId, water, beverages, goal, onChanged 
     if (!/^\d{2}:\d{2}$/.test(when)) { setError("Informe o horário (hh:mm)."); return; }
     const at = acreDateAtTime(acreDateKey(e.recorded_at), when);
     if (at.getTime() > Date.now() + 60_000) { setError("O horário não pode estar no futuro."); return; }
+    const what = e.source === "beverage" ? `${beverageCategory(kind)?.label ?? "Bebida"}: ${name.trim()}, ${value} ml` : `${value} ml de água`;
+    if (!(await dialog.confirm("Salvar alteração?", `Alterar este registro para ${what} às ${when}?`, false, "Salvar alteração"))) return;
     setBusy(true); setError("");
     const { error: err } = e.source === "water"
       ? await (supabase as any).rpc("care_update_intake_entry", { p_patient_id: patientId, p_entry_type: "water", p_entry_id: e.id, p_description: null, p_amount_ml: value, p_consumed_at: at.toISOString() })

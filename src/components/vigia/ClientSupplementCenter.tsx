@@ -122,6 +122,8 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
   }
 
   async function toggleDose(plan: SupplementPlan, slot: string, taken: boolean) {
+    const ok = await dialog.confirm(taken ? "Desfazer registro?" : "Confirmar dose?", taken ? `O registro de ${plan.name} das ${slot} será desfeito e a dose volta a ficar pendente.` : `Registrar ${plan.name} (${fmtDose(plan)}) das ${slot} como tomado agora?`, taken, taken ? "Desfazer" : "Confirmar dose");
+    if (!ok) return;
     if (remote) {
       const result = taken
         ? await db.from("care_supplement_intakes").delete().eq("plan_id", plan.id).eq("taken_on", day).eq("slot", slot)
