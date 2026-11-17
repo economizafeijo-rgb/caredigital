@@ -464,3 +464,22 @@ svg.lucide { stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; 
 
 /* QR Code do rodapé: não aparece nas páginas fixas (sem rolagem) em telas largas */
 @media (min-width: 1024px) { body[data-fit-page] .nv-qr-footer { display: none; } }
+
+
+/* O painel do cliente acompanha o conteúdo completo em telas grandes. */
+@media (min-width: 1024px) {
+  .care-shell section[aria-label="Painel de acompanhamento individual"] {
+    height: auto;
+    min-height: 100%;
+  }
+
+  #care-client-tab-panel {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  #care-client-tab-panel > .grid {
+    min-height: 0;
+  }
+}
