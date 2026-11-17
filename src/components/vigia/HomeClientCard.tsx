@@ -875,7 +875,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
       )}
     <section
       aria-label="Painel de acompanhamento individual"
-      className="flex min-h-full w-full flex-col gap-3 lg:h-full lg:min-h-0"
+      className="flex min-h-full w-full flex-col gap-3"
     >
       {loading ? (
         <p role="status" className="grid flex-1 place-items-center text-sm text-muted-foreground">
@@ -1030,7 +1030,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
             <div
               id="care-client-tab-panel"
               data-client-page="hoje"
-              className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain lg:pr-0.5"
+              className="flex flex-col gap-3 overscroll-contain lg:pr-0.5"
             >
               <div className="grid shrink-0 grid-cols-2 gap-3 lg:grid-cols-4">
                 {kpis.map(({ key, label, icon: Icon, tone, bar, percent, value, note }) => (
@@ -1073,8 +1073,8 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                 ))}
               </div>
 
-              <div className="grid min-h-0 flex-1 gap-3 lg:min-h-[34rem] lg:grid-cols-3">
-                <div className="flex min-h-0 flex-col gap-3 lg:overflow-y-auto lg:pr-0.5">
+              <div className="grid gap-3 lg:grid-cols-3">
+                <div className="flex flex-col gap-3 lg:pr-0.5">
                   <section
                     aria-label="Próximo cuidado"
                     className="relative shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-950 via-indigo-900 to-blue-800 p-4 text-white shadow-card"
@@ -1167,7 +1167,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
 
                 <section
                   aria-label="Agenda de hoje"
-                  className={card + " flex min-h-[320px] flex-col p-4 lg:min-h-0"}
+                  className={card + " flex min-h-[280px] flex-col p-4"}
                 >
                   <div className="care-overview-section-heading shrink-0">
                     <div>
