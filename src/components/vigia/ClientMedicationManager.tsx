@@ -123,12 +123,17 @@ export function ClientMedicationManager({ patientId, ownerId }: { patientId: str
       text = `${p.med.name} excluído.`;
     } else {
       if (remote) error = (p.taken ? await db.from("care_client_medication_intakes").delete().eq("medication_id", p.med.id).eq("taken_on", day).eq("slot", p.slot)
-        : await db.from("care_client_medication_intakes").insert({ medication_id: p.med.id, patient_id: patientId, owner_id: ownerId, taken_on: day, slot: p.slot })).error;
+        : await db.from("care_client_medication_intakes").upsert({ medication_id: p.med.id, patient_id: patientId, owner_id: ownerId, taken_on: day, slot: p.slot }, { onConflict: "medication_id,taken_on,slot", ignoreDuplicates: true })).error;
+      // Atualiza a tela na hora: a dose aparece como tomada (ou pendente) sem esperar a nova leitura.
+      if (!error) setIntakes(prev => p.taken
+        ? prev.filter(x => !(x.medication_id === p.med.id && x.slot === p.slot))
+        : (prev.some(x => x.medication_id === p.med.id && x.slot === p.slot) ? prev : [...prev, { medication_id: p.med.id, taken_on: day, slot: p.slot }]));
       else { const all = readLocal<Intake>(localKey(patientId, "intakes")).filter(x => x.taken_on === day);
         writeLocal(localKey(patientId, "intakes"), p.taken ? all.filter(x => !(x.medication_id === p.med.id && x.slot === p.slot)) : [...all, { medication_id: p.med.id, taken_on: day, slot: p.slot }]); }
       text = p.taken ? `Registro de ${p.med.name} (${p.slot}) desfeito.` : `${p.med.name} ${p.med.dose} das ${p.slot} registrado como tomado.`;
     }
-    setMessage(error ? { ok: false, text: "Não foi possível concluir. Tente novamente." } : { ok: true, text });
+    const reason = (error as { message?: string } | null)?.message;
+    setMessage(error ? { ok: false, text: `Não foi possível concluir${reason ? `: ${reason}` : ". Tente novamente."}` } : { ok: true, text });
     setReload(v => v + 1);
   }
 
