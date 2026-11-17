@@ -928,7 +928,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
             ))}
           </nav>
 
-          <header className="relative isolate flex min-h-[132px] shrink-0 flex-wrap items-end justify-between gap-x-4 gap-y-2 overflow-hidden rounded-2xl bg-slate-950 px-5 py-5 text-white shadow-card [&_p]:!text-slate-200">
+          <header className="relative isolate flex min-h-[96px] shrink-0 flex-wrap items-end justify-between gap-x-3 gap-y-1.5 overflow-hidden rounded-2xl bg-slate-950 px-4 py-3 text-white shadow-card [&_p]:!text-slate-200">
             <img
               key={activeTab}
               src={clientSectionTheme[activeTab].image}
