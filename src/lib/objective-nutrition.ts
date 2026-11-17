@@ -1,6 +1,7 @@
 /** Coarse activity estimate from self-reported daily movement minutes.
  * Not a validated exercise-energy measurement; avoids assuming everyone is sedentary.
  */
+import { proteinTarget } from "./nutrition-science";
 export function estimateActivityFactor(minutes:number|null|undefined){
  if(minutes===null||minutes===undefined||!Number.isFinite(minutes))return 1.2;
  if(minutes<20)return 1.2;
@@ -26,9 +27,8 @@ export function estimateObjectiveNutrition(args:{weight:number|null;age:number|n
  const maintenance=basal===null?null:Math.round(basal*factor);
  const adjustment=objective==="emagrecimento"?.9:objective==="ganho_peso"||objective==="hipertrofia"?1.1:1;
  const target=maintenance===null?null:Math.round(maintenance*adjustment);
- const proteinFactor=objective==="hipertrofia"?1.6:objective==="emagrecimento"?1.5:objective==="ganho_peso"?1.3:1;
  const fatFactor=objective==="ganho_peso"?1:objective==="hipertrofia"?.9:.8;
- const protein=weight!==null&&weight>0?Math.round(weight*proteinFactor):null;
+ const protein=proteinTarget({ageYears:age,sex:offset===5?"male":offset===-161?"female":null,weightKg:weight,heightCm,objective})?.grams??null;
  const fat=weight!==null&&weight>0?Math.round(weight*fatFactor):null;
  const carbs=target!==null&&protein!==null&&fat!==null&&target>protein*4+fat*9?Math.round((target-protein*4-fat*9)/4):null;
  return {basal,maintenance,target,protein,fat,carbs,adjustment,activityFactor:factor,valid};

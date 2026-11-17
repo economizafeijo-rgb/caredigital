@@ -109,7 +109,7 @@ export const microTargets: Record<keyof Micros, { label: string; unit: string; t
 export function goalTargets(objective: string | null | undefined, weightKg: number | null) {
   const w = weightKg && weightKg >= 30 && weightKg <= 250 ? weightKg : 70;
   const kcalPerKg = objective === "emagrecimento" ? 25 : objective === "ganho_peso" ? 35 : objective === "hipertrofia" ? 33 : 30;
-  const proteinPerKg = objective === "hipertrofia" ? 1.8 : objective === "emagrecimento" ? 1.6 : objective === "ganho_peso" ? 1.4 : 1.0;
+  const proteinPerKg = objective === "hipertrofia" ? 1.6 : objective === "emagrecimento" ? 1.4 : objective === "ganho_peso" ? 1.4 : 1.0; // ISSN 2017 / RDA
   const kcal = Math.round(w * kcalPerKg / 50) * 50;
   const protein = Math.round(w * proteinPerKg);
   const fat = Math.round(kcal * .28 / 9);

@@ -11,7 +11,7 @@ export const clientSectionLabels: Record<ClientSection,{title:string;subtitle:st
   peso:{title:"Peso e composição",subtitle:"Registre seu peso e acompanhe a evolução com gráficos, IMC e metas",tagline:"Evolução corporal"},
   sono:{title:"Monitoramento do sono",subtitle:"Nota do sono, horas dormidas, regularidade e batimentos em tempo real com sensor Bluetooth",tagline:"Descanso e recuperação"},
   suplementos:{title:"Central de suplementação",subtitle:"Seus suplementos, doses, horários com timer, dicas e biblioteca de referência",tagline:"Suplementação inteligente"},
-  indicadores:{title:"Indicadores de saúde",subtitle:"Acompanhe medidas corporais, hidratação, nutrição e atividade com dados registrados",tagline:"Evolução e resultados"}
+  indicadores:{title:"Evolução e métricas",subtitle:"Métricas do dia, do mês e do ano com gráficos interativos, metas atingidas e observações registradas",tagline:"Histórico e resultados"}
 };
 export const clientSectionHashes:Record<ClientSection,string>={
   hoje:"visao-geral",agenda:"agenda",hidratacao:"minha-hidratacao",historico:"historico",

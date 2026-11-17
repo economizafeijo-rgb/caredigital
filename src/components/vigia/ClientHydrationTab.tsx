@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ClientQuickIntake } from "./ClientQuickIntake";
-import { DAY_CUTOFF_HOUR } from "@/lib/acre-time";
+import { WATER_LAST_RECOMMENDED_HOUR } from "@/lib/nutrition-science";
 import { CareTaskRecordModal } from "./CareTaskRecordModal";
 import {
   acreCalendarDay,
@@ -146,17 +146,11 @@ export function ClientHydrationTab({
     const timer = window.setInterval(() => setClock(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, []);
-  // Força a leitura final do servidor quando o fechamento das 22h passa ou muda a data do Acre.
+  // Força a leitura final do servidor quando muda a data do Acre (o dia fecha à meia-noite).
   useEffect(() => {
     const day = acreCalendarDay(clock);
     const changed = Boolean(dailyGoal && dailyGoal.goal_date !== day);
-    const passed = Boolean(
-      dailyGoal &&
-      dailyGoal.goal_date === day &&
-      dailyGoal.status === "em_andamento" &&
-      acreHour(clock) >= DAY_CUTOFF_HOUR,
-    );
-    if ((changed || passed) && lastDeadlineRefresh.current !== day) {
+    if (changed && lastDeadlineRefresh.current !== day) {
       lastDeadlineRefresh.current = day;
       setReload((v) => v + 1);
     }
@@ -266,14 +260,13 @@ export function ClientHydrationTab({
   const calculation = useMemo(() => estimate(profile), [profile]);
   const planValid = Boolean(configured && profile.target_ml && !profile.fluid_restriction);
   const goal = dailyGoal?.target_ml ?? (planValid ? profile.target_ml! : 0);
-  const cutoffUtc = Date.parse(acreCalendarDay(clock) + `T${String(DAY_CUTOFF_HOUR).padStart(2, "0")}:00:00-05:00`);
+  // Horário ideal para concluir a água (orientação: líquidos em volume 3 h antes de dormir). Os registros não são limitados.
+  const cutoffUtc = Date.parse(acreCalendarDay(clock) + `T${String(WATER_LAST_RECOMMENDED_HOUR).padStart(2, "0")}:00:00-05:00`);
   const intake =
     dailyGoal?.consumed_ml ??
-    drinks
-      .filter((item) => Date.parse(item.recorded_at) < cutoffUtc)
-      .reduce((total, item) => total + Number(item.amount_ml), 0);
+    drinks.reduce((total, item) => total + Number(item.amount_ml), 0);
   const goalSummary = hydrationGoalNotice(dailyGoal, clock);
-  const dayClosed = acreHour(clock) >= DAY_CUTOFF_HOUR;
+  const dayClosed = acreHour(clock) >= WATER_LAST_RECOMMENDED_HOUR; // passou o horário ideal: só deixa de sugerir novos horários
   const remaining = goal ? Math.max(0, goal - intake) : 0;
   const percent = goal ? Math.min(100, Math.round((intake / goal) * 100)) : 0;
   const schedule = useMemo(
@@ -550,7 +543,7 @@ export function ClientHydrationTab({
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-bold uppercase tracking-[.14em] text-white/70">
-              Minha hidratação · até 22h (Acre)
+              Minha hidratação · registre a qualquer hora
             </p>
             <p className="mt-1 text-3xl font-extrabold tabular-nums">
               {intake.toLocaleString("pt-BR")}{" "}
@@ -560,7 +553,9 @@ export function ClientHydrationTab({
             </p>
             <p className="text-sm text-white/80">
               {dayClosed
-                ? "Dia encerrado"
+                ? remaining === 0 && goal
+                  ? "Meta de hoje atingida! 🎉"
+                  : `Ideal beber até as ${WATER_LAST_RECOMMENDED_HOUR}h · registre quando beber`
                 : remaining === 0 && goal
                   ? "Meta de hoje atingida! 🎉"
                   : goal
@@ -730,7 +725,7 @@ export function ClientHydrationTab({
           {
             label: "Próxima recomendação",
             value: dayClosed
-              ? "Dia encerrado"
+              ? remaining === 0 ? "Meta atingida" : `Ideal até ${WATER_LAST_RECOMMENDED_HOUR}h`
               : remaining === 0
                 ? "Meta atingida"
                 : nextPlan
@@ -807,7 +802,7 @@ export function ClientHydrationTab({
             </>
           )}{" "}
           Cálculo automático: {remaining.toLocaleString("pt-BR")} ml restantes divididos em ~
-          {nextPlan?.portions} porções até 22h
+          {nextPlan?.portions} porções até as 20h
           {lastWater
             ? `, a partir do último líquido (${Number(lastWater.amount_ml)} ml às ${time(lastWater.recorded_at)})`
             : ""}
@@ -864,7 +859,7 @@ export function ClientHydrationTab({
       )}
       {!loading && !dailyGoal && goal > 0 && (
         <p className="text-[11px] text-muted-foreground">
-          Meta até 22h (Acre). O resumo automático não está disponível no momento.
+          Meta do dia (24 h). O resumo automático não está disponível no momento.
         </p>
       )}
       <div className="rounded-xl border border-border bg-card/70 p-2.5">
@@ -1073,11 +1068,14 @@ export function ClientHydrationTab({
           <Info size={13} /> Orientações e referências
         </summary>
         <p className="mt-2 leading-relaxed">
-          A meta é avaliada às 22h (Acre) e considera somente registros de água feitos entre 00h e
-          22h. Consumos depois das 22h continuam no prontuário, mas não alteram o resultado já
-          encerrado. A necessidade de água varia conforme peso, idade, atividade física, temperatura
-          e orientações médicas. A meta é estimativa, não obrigação. Evite grandes volumes de uma só
-          vez e respeite qualquer restrição prescrita.
+          Você pode registrar água a qualquer hora: todo registro do dia (00h às 24h, horário do
+          Acre) conta na meta e aparece no relatório. A referência de líquidos segue a EFSA (2010):
+          cerca de 2,0 L para homens e 1,6 L para mulheres adultos, menos para crianças, pois ~20%
+          da água vem dos alimentos. Não há um horário de relógio único: o ideal é beber ao longo
+          do dia e reduzir líquidos de 2 a 4 horas antes de dormir (padrão: concluir até as 20h)
+          para evitar despertares para urinar. A necessidade varia com peso, idade, atividade
+          física, calor e orientação médica; a meta é estimativa, não obrigação. Evite grandes
+          volumes de uma só vez e respeite qualquer restrição prescrita.
         </p>
         <p className="mt-1">
           Referências:{" "}

@@ -24,13 +24,14 @@ export function ClientBodyHistory({patientId,ownerId,currentWeight,height}:Props
   const kg=Number(weight.replace(",","."));
   if(!Number.isFinite(kg)||kg<20||kg>350||height===null||height<100||height>230){setMessage("Informe um peso válido e confirme que a altura está cadastrada no prontuário.");return;}
   if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date>acreDateKey()){setMessage("Selecione uma data válida que não esteja no futuro.");return;}
+  if(points.some(p=>p.recorded_on===date)){setMessage("Já existe um registro nesta data. Registros salvos ficam protegidos: para corrigir, use a página Peso e libere a edição com o cadeado.");return;}
   setSaving(true);setMessage("");
   const auth=await supabase.auth.getUser();
   if(!auth.data.user){setMessage("Entre na sua conta para registrar a evolução.");setSaving(false);return;}
-  const r=await (supabase as any).from("care_body_measurements").upsert({
+  const r=await (supabase as any).from("care_body_measurements").insert({
    patient_id:patientId,owner_id:ownerId,recorded_by:auth.data.user.id,
    recorded_on:date,weight_kg:kg,height_cm:height
-  },{onConflict:"patient_id,recorded_on"});
+  });
   if(r.error)setMessage("Não foi possível registrar a medição. Verifique as permissões ou a configuração do histórico.");
   else{setMessage("Medição registrada com sucesso.");await reload();}
   setSaving(false);
