@@ -421,3 +421,8 @@ iframe[title*="Lovable" i][title*="badge" i] { display: none !important; visibil
   .nv-fx-card, .nv-fx-ring, .nv-fx-check, .nv-fx-particle, .nv-fx-glow, .nv-fx-shake, .nv-fx-marker { animation: none !important; }
   .nv-fx-particle, .nv-fx-glow { display: none; }
 }
+
+/* Cartões flutuantes das artes de apresentação. */
+@keyframes nv-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+.nv-float { animation: nv-float 6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .nv-float { animation: none; } }

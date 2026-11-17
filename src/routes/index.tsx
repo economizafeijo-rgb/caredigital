@@ -219,7 +219,7 @@ function Homepage() {
             {panel ? (
               <Link
                 to={panel}
-                className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-white shadow-sm transition hover:brightness-110"
+                className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110"
               >
                 <LayoutDashboard size={17} /> Voltar ao meu painel <ArrowRight size={16} />
               </Link>
@@ -233,7 +233,7 @@ function Homepage() {
                 </a>
                 <Link
                   to="/entrar"
-                  className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-white shadow-sm transition hover:brightness-110"
+                  className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110"
                 >
                   <LockKeyhole size={17} /> Acessar minha conta <ArrowRight size={16} />
                 </Link>
@@ -340,7 +340,7 @@ function Homepage() {
 
       <section
         aria-label="Recursos da plataforma"
-        className="grid shrink-0 gap-3 sm:grid-cols-2 lg:grid-cols-4"
+        className="grid shrink-0 gap-3 sm:grid-cols-2 lg:grid-cols-3"
       >
         {features.map(({ to, title, description, icon: Icon, tone, image }) => (
           <a
@@ -380,11 +380,9 @@ function Homepage() {
         ))}
       </section>
 
-      <footer className="shrink-0 overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-950 px-5 py-4 text-center text-sm text-slate-300">
-        <span className="font-semibold text-white">NextVita</span> · Plataforma desenvolvida por{" "}
-        <strong className="bg-gradient-to-r from-sky-300 to-fuchsia-300 bg-clip-text font-extrabold text-transparent">
-          Franc D&apos;nis
-        </strong>{" "}
+      <footer className="shrink-0 rounded-2xl border border-border bg-card px-5 py-4 text-center text-sm text-muted-foreground">
+        <span className="font-semibold text-foreground">NextVita</span> · Plataforma desenvolvida por{" "}
+        <Link to="/sobre" className="font-extrabold text-primary underline-offset-2 hover:underline">Franc D&apos;nis</Link>{" "}
         · Feijó, Acre — Brasil · © {new Date().getFullYear()}
       </footer>
     </div>

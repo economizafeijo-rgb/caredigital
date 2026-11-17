@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import type { ReactElement, ReactNode } from "react";
 import {
   Activity, ArrowRight, BedDouble, Bike, BookOpen, CalendarClock, Check, CheckCircle2, ClipboardCheck, Droplets, Dumbbell,
@@ -19,7 +20,7 @@ const FEATURE_ROW = "grid grid-cols-[repeat(auto-fit,minmax(13rem,1fr))] gap-3";
 
 /** A página ocupa toda a janela em telas largas; em telas baixas ou no celular ela rola normalmente. */
 function Page({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`mx-auto grid w-full max-w-[1760px] gap-3 lg:h-[calc(100%-49px)] lg:min-h-[27rem] lg:gap-4 ${className}`}>{children}</div>;
+  return <div className={`mx-auto grid w-full max-w-[1760px] gap-3 lg:min-h-[max(30rem,calc(100%-49px))] lg:gap-4 ${className}`}>{children}</div>;
 }
 
 function Cta({ label, tone }: { label: string; tone: string }) {
@@ -67,24 +68,29 @@ function Feature({ icon: Icon, title, text, tone }: { icon: LucideIcon; title: s
   );
 }
 
-/** Gráfico de área que preenche o espaço sem distorcer: o traço tem espessura fixa e os pontos são HTML. */
-function AreaChart({ values, min, max, color, id }: { values: number[]; min: number; max: number; color: string; id: string }) {
+/** Gráfico de área que preenche o espaço sem distorcer: o traço tem espessura fixa, os pontos e os rótulos são HTML. */
+function AreaChart({ values, min, max, color, id, unit }: { values: number[]; min: number; max: number; color: string; id: string; unit?: string }) {
   const pts = values.map((v, i) => [(i / (values.length - 1)) * 100, 100 - ((v - min) / (max - min)) * 84 - 8] as const);
   const line = pts.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(2)} ${y.toFixed(2)}`).join(" ");
   const last = pts[pts.length - 1];
+  const ticks = [0, 1, 2, 3].map((i) => ({ top: 8 + i * 28, value: max - (i * 28 / 84) * (max - min) }));
   return (
     <div className="relative size-full">
-      {[0, 1, 2, 3].map((i) => <div key={i} className="absolute inset-x-0 border-t border-dashed border-border" style={{ top: `${8 + i * 28}%` }} />)}
-      <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" className="absolute inset-0 size-full overflow-visible">
-        <defs>
-          <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor={color} stopOpacity=".38" /><stop offset="1" stopColor={color} stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <path d={`${line} L100 100 L0 100 Z`} fill={`url(#${id})`} />
-        <path d={line} fill="none" stroke={color} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-      </svg>
-      <span className="absolute size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white shadow-md" style={{ left: `${last[0]}%`, top: `${last[1]}%`, background: color }} />
+      {unit && ticks.map((t) => <span key={t.top} className="absolute left-0 -translate-y-1/2 text-[10px] font-semibold tabular-nums text-muted-foreground" style={{ top: `${t.top}%` }}>{t.value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}</span>)}
+      <div className={`absolute inset-y-0 right-0 ${unit ? "left-9" : "left-0"}`}>
+        {ticks.map((t) => <div key={t.top} className="absolute inset-x-0 border-t border-dashed border-border" style={{ top: `${t.top}%` }} />)}
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" className="absolute inset-0 size-full overflow-visible">
+          <defs>
+            <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor={color} stopOpacity=".42" /><stop offset="1" stopColor={color} stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <path d={`${line} L100 100 L0 100 Z`} fill={`url(#${id})`} />
+          <path d={line} fill="none" stroke={color} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+        </svg>
+        <span className="absolute size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white shadow-md" style={{ left: `${last[0]}%`, top: `${last[1]}%`, background: color }} />
+        <span className="absolute -translate-x-[calc(100%+0.9rem)] -translate-y-1/2 whitespace-nowrap rounded-lg bg-slate-950/80 px-2 py-0.5 text-[11px] font-extrabold tabular-nums text-white shadow" style={{ left: `${last[0]}%`, top: `${last[1]}%` }}>79,2 kg</span>
+      </div>
     </div>
   );
 }
@@ -125,14 +131,14 @@ function Hydration() {
               <p className="mt-1 text-xs text-sky-100/90">Calculado pelo seu ritmo do dia e pela meta restante.</p>
             </div>
             <div className="grid grid-cols-3 gap-2">
-              {["+150 ml", "+250 ml", "+500 ml"].map((b) => <span key={b} className="rounded-xl bg-white py-2.5 text-center text-sm font-bold text-sky-700 shadow-sm ring-1 ring-sky-200 dark:bg-sky-950 dark:text-sky-200 dark:ring-sky-800">{b}</span>)}
+              {["+150 ml", "+250 ml", "+500 ml"].map((b) => <span key={b} className="rounded-xl bg-white py-2.5 text-center text-sm font-bold text-sky-700 dark:text-sky-300 shadow-sm ring-1 ring-sky-200 dark:bg-sky-950 dark:text-sky-200 dark:ring-sky-800">{b}</span>)}
             </div>
           </div>
         </section>
         <div className={FEATURE_ROW}>
-          <Feature icon={Droplets} title="Meta personalizada" text="Calculada pelo seu peso, rotina e orientação profissional." tone="bg-sky-100 text-sky-700" />
-          <Feature icon={Timer} title="Timer do próximo copo" text="Uma contagem regressiva mostra a hora de beber." tone="bg-cyan-100 text-cyan-700" />
-          <Feature icon={CheckCircle2} title="Um toque para registrar" text="Confirme o copo e veja o total do dia mudar na hora." tone="bg-emerald-100 text-emerald-700" />
+          <Feature icon={Droplets} title="Meta personalizada" text="Calculada pelo seu peso, rotina e orientação profissional." tone="bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300" />
+          <Feature icon={Timer} title="Timer do próximo copo" text="Uma contagem regressiva mostra a hora de beber." tone="bg-cyan-100 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300" />
+          <Feature icon={CheckCircle2} title="Um toque para registrar" text="Confirme o copo e veja o total do dia mudar na hora." tone="bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300" />
         </div>
       </div>
     </Page>
@@ -151,7 +157,7 @@ function Medication() {
     { time: "20:00", name: "Metformina 850 mg", note: "1 comprimido · após o jantar", state: "todo" },
   ];
   const label = { ok: "Tomado", next: "Tomar agora", todo: "Agendado" } as const;
-  const chip = { ok: "bg-emerald-100 text-emerald-700", next: "bg-rose-600 text-white", todo: "bg-slate-200 text-slate-600" } as const;
+  const chip = { ok: "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300", next: "bg-rose-600 text-white", todo: "bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-200" } as const;
   return (
     <Page className="lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
       <Hero photo="/images/caredigital-medicamentos.webp" pos="50% 50%" eyebrow="Medicação" eyebrowTone="text-rose-200"
@@ -162,7 +168,7 @@ function Medication() {
         <section className={`${CARD} flex min-h-[20rem] flex-col p-5 lg:p-6`}>
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs font-bold uppercase tracking-widest text-rose-600">Linha do dia</p>
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">2 de 4 doses tomadas</span>
+            <span className="rounded-full bg-emerald-100 dark:bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-300">2 de 4 doses tomadas</span>
           </div>
           <ol className="relative mt-4 grid flex-1 grid-rows-4 gap-3 border-l-2 border-rose-200 pl-7">
             {doses.map(({ time, name, note, state }) => (
@@ -170,7 +176,7 @@ function Medication() {
                 <span className={`absolute -left-[39px] top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-full ring-4 ring-card ${state === "ok" ? "bg-emerald-500" : state === "next" ? "animate-pulse bg-rose-600" : "bg-slate-300"}`}>
                   {state === "ok" && <Check size={14} className="text-white" strokeWidth={3} />}
                 </span>
-                <div className="flex w-full items-center justify-between gap-3 rounded-2xl bg-rose-50/70 px-4 py-2 dark:bg-rose-950/30">
+                <div className="flex w-full items-center justify-between gap-3 rounded-2xl bg-rose-50/70 px-4 py-2 dark:bg-white/[.05] dark:ring-1 dark:ring-white/10">
                   <div className="min-w-0">
                     <p className="font-mono text-xs font-bold text-rose-700 dark:text-rose-300">{time}</p>
                     <p className="truncate text-base font-bold">{name}</p>
@@ -183,9 +189,9 @@ function Medication() {
           </ol>
         </section>
         <div className={FEATURE_ROW}>
-          <Feature icon={Pill} title="Biblioteca de remédios" text="Dor, estômago, pressão, diabetes, alergia e antibióticos." tone="bg-rose-100 text-rose-700" />
-          <Feature icon={Timer} title="Timer da dose" text="Contagem regressiva até a próxima tomada." tone="bg-amber-100 text-amber-700" />
-          <Feature icon={ClipboardCheck} title="Esqueceu de confirmar?" text="Regularize doses passadas com uma confirmação." tone="bg-sky-100 text-sky-700" />
+          <Feature icon={Pill} title="Biblioteca de remédios" text="Dor, estômago, pressão, diabetes, alergia e antibióticos." tone="bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300" />
+          <Feature icon={Timer} title="Timer da dose" text="Contagem regressiva até a próxima tomada." tone="bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300" />
+          <Feature icon={ClipboardCheck} title="Esqueceu de confirmar?" text="Regularize doses passadas com uma confirmação." tone="bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300" />
         </div>
       </div>
     </Page>
@@ -262,8 +268,8 @@ function Diet() {
           </div>
         </section>
         <div className="grid gap-3 sm:grid-cols-2">
-          <Feature icon={BookOpen} title="Cardápios e receitas" text="Planos por objetivo e receitas regionais com macros calculados." tone="bg-emerald-100 text-emerald-700" />
-          <Feature icon={Utensils} title="Vitaminas e minerais" text="Vitamina C, ferro, cálcio e potássio conferidos a cada refeição." tone="bg-lime-100 text-lime-700" />
+          <Feature icon={BookOpen} title="Cardápios e receitas" text="Planos por objetivo e receitas regionais com macros calculados." tone="bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300" />
+          <Feature icon={Utensils} title="Vitaminas e minerais" text="Vitamina C, ferro, cálcio e potássio conferidos a cada refeição." tone="bg-lime-100 dark:bg-lime-500/20 text-lime-700 dark:text-lime-300" />
         </div>
       </div>
     </Page>
@@ -349,7 +355,7 @@ function Supplements() {
         </div>
         <section className={`${CARD} flex flex-wrap items-center justify-between gap-3 px-5 py-4`}>
           <div className="flex items-center gap-3">
-            <span className="grid size-11 place-items-center rounded-2xl bg-violet-100 text-violet-700"><Timer size={21} /></span>
+            <span className="grid size-11 place-items-center rounded-2xl bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300"><Timer size={21} /></span>
             <div><p className="font-bold leading-tight">Próxima dose: Whey protein às 16:00</p><p className="text-xs text-muted-foreground">em 1h20 · timer na tela inicial</p></div>
           </div>
           <div className="flex items-center gap-1.5" aria-label="3 de 5 doses de hoje">
@@ -382,9 +388,9 @@ function Weight() {
         <section className={`${CARD} flex min-h-[18rem] flex-col p-5 lg:p-6`}>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="font-bold">Evolução do peso</p>
-            <span className="inline-flex items-center gap-1 rounded-full bg-fuchsia-100 px-2.5 py-1 text-xs font-bold text-fuchsia-700"><TrendingDown size={13} /> −0,35 kg por semana</span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-fuchsia-100 dark:bg-fuchsia-500/20 px-2.5 py-1 text-xs font-bold text-fuchsia-700 dark:text-fuchsia-300"><TrendingDown size={13} /> −0,35 kg por semana</span>
           </div>
-          <div className="mt-3 min-h-0 flex-1"><AreaChart values={values} min={78} max={83} color="#c026d3" id="area-peso" /></div>
+          <div className="mt-3 min-h-0 flex-1"><AreaChart values={values} min={78} max={83} color="#d946ef" id="area-peso" unit="kg" /></div>
           <div className="mt-2 flex justify-between text-[11px] font-semibold text-muted-foreground"><span>há 10 semanas</span><span>5 sem.</span><span>hoje</span></div>
         </section>
         <div className="grid gap-3 sm:grid-cols-3">
@@ -458,9 +464,10 @@ function Sleep() {
               ))}
             </div>
           </div>
+          <div className="ml-[5.25rem] mt-1.5 flex justify-between text-[10px] font-semibold text-indigo-200/80"><span>23h</span><span>01h</span><span>03h</span><span>05h</span><span>06:30</span></div>
         </section>
         <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 lg:grid-rows-3 lg:gap-4">
-          {([[Moon, "Duração", "7h20", "meta de 8 horas", "bg-indigo-100 text-indigo-700"], [BedDouble, "Regularidade", "±18 min", "no horário de dormir", "bg-violet-100 text-violet-700"], [Waves, "Despertares", "1", "na última noite", "bg-sky-100 text-sky-700"]] as [LucideIcon, string, string, string, string][]).map(([Icon, label, value, note, tone]) => (
+          {([[Moon, "Duração", "7h20", "meta de 8 horas", "bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300"], [BedDouble, "Regularidade", "±18 min", "no horário de dormir", "bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300"], [Waves, "Despertares", "1", "na última noite", "bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300"]] as [LucideIcon, string, string, string, string][]).map(([Icon, label, value, note, tone]) => (
             <div key={label} className={`${CARD} flex items-center gap-4 p-4`}>
               <span className={`grid size-11 shrink-0 place-items-center rounded-2xl ${tone}`}><Icon size={21} /></span>
               <div className="min-w-0 flex-1"><p className="font-bold leading-tight">{label}</p><p className="text-xs text-muted-foreground">{note}</p></div>
@@ -478,6 +485,14 @@ function Sleep() {
 /* ------------------------------------------------------------------ */
 
 function Training() {
+  const pathRef = useRef<SVGPathElement>(null);
+  const [marks, setMarks] = useState<{ x: number; y: number }[]>([]);
+  useEffect(() => {
+    const el = pathRef.current;
+    if (!el) return;
+    const length = el.getTotalLength();
+    setMarks([0.24, 0.48, 0.72, 0.9].map((f) => { const point = el.getPointAtLength(length * f); return { x: point.x, y: point.y }; }));
+  }, []);
   const route = "M12 82 C 38 56, 52 94, 78 66 S 116 18, 130 48 S 146 72, 150 28";
   return (
     <Page className="lg:grid-cols-[minmax(0,.95fr)_minmax(0,1.25fr)]">
@@ -503,7 +518,8 @@ function Training() {
               <ellipse cx="30" cy="80" rx="30" ry="15" fill="rgba(16,185,129,.13)" />
               <ellipse cx="132" cy="26" rx="26" ry="15" fill="rgba(56,189,248,.13)" />
               <path d={route} fill="none" stroke="rgba(0,0,0,.6)" strokeWidth="5.5" strokeLinecap="round" />
-              <path d={route} fill="none" stroke="url(#trk)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+              <path ref={pathRef} d={route} fill="none" stroke="url(#trk)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+              {marks.map((m, i) => <g key={i}><circle cx={m.x} cy={m.y} r="3.6" fill="#0f172a" stroke="#fff" strokeWidth="0.8" /><text x={m.x} y={m.y + 1.3} textAnchor="middle" fontSize="3.6" fontWeight="700" fill="#fff">{i + 1}</text></g>)}
               <circle cx="12" cy="82" r="3" fill="#fff" stroke="#34d399" strokeWidth="1.4" />
               <circle cx="150" cy="28" r="3.2" fill="#0ea5e9" stroke="#fff" strokeWidth="1.4" />
               <circle cx="150" cy="28" r="3.2" fill="none" stroke="#38bdf8" strokeWidth="1">
@@ -514,9 +530,9 @@ function Training() {
             </div>
           </div>
         </section>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-3">
+        <div className="grid grid-cols-5 gap-2 sm:gap-3">
           {([[Activity, "Corrida"], [Waves, "Natação"], [Bike, "Ciclismo"], [Dumbbell, "Musculação"], [Zap, "Caminhada"]] as [LucideIcon, string][]).map(([Icon, t]) => (
-            <div key={t} className={`${CARD} flex items-center gap-2 px-3 py-3`}><Icon size={18} className="shrink-0 text-emerald-600" /><span className="whitespace-nowrap text-sm font-bold">{t}</span></div>
+            <div key={t} className={`${CARD} flex flex-col items-center gap-1.5 px-1.5 py-3 text-center`}><span className="grid size-9 place-items-center rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-300"><Icon size={18} /></span><span className="text-[11px] font-bold leading-tight sm:text-sm">{t}</span></div>
           ))}
         </div>
       </div>
@@ -553,7 +569,7 @@ function Metrics() {
           ))}
         </div>
         <section className={`${CARD} flex min-h-[16rem] flex-col p-5 lg:p-6`}>
-          <div className="flex items-center justify-between gap-2"><p className="font-bold">Calorias da semana</p><span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-bold text-indigo-700"><Flame size={13} /> meta 2.000 kcal</span></div>
+          <div className="flex items-center justify-between gap-2"><p className="font-bold">Calorias da semana</p><span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 dark:bg-indigo-500/20 px-2.5 py-1 text-xs font-bold text-indigo-700 dark:text-indigo-300"><Flame size={13} /> meta 2.000 kcal</span></div>
           <div className="relative mt-4 min-h-0 flex-1">
             <div className="absolute inset-x-0 border-t-2 border-dashed border-orange-400/70" style={{ top: "26%" }} />
             <div className="absolute inset-0 flex items-end gap-2 sm:gap-3">
