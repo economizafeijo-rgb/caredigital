@@ -483,3 +483,9 @@ svg.lucide { stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; 
     min-height: 0;
   }
 }
+
+
+/* A visão geral usa somente a rolagem principal da página. */
+#care-client-tab-panel[data-page="hoje"] .overflow-y-auto {
+  overflow: visible;
+}
