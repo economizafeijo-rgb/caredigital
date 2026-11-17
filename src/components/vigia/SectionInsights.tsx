@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { acreDateKey } from "@/lib/acre-time";
 import { parseFoodText, sumNutrients } from "@/lib/food-parser";
 import type { ClientSection } from "@/lib/client-pages";
+import { DayDetailDialog } from "./DayDetailDialog";
 
 type Row = { day: string; a: number; b: number; t?: number };
 type Config = { title: string; subtitle: string; unit: string; a: { label: string; color: string; to: string }; b?: { label: string; color: string; to: string }; goalLabel?: string };
@@ -116,6 +117,7 @@ export function SectionInsights({ section, patientId, ownerId, revision = 0 }: {
   const [hidden, setHidden] = useState<{ a: boolean; b: boolean; t: boolean }>({ a: false, b: false, t: false });
   const [selected, setSelected] = useState<string | null>(null);
   const [open, setOpen] = useState(true);
+  const [detailDay, setDetailDay] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -185,7 +187,7 @@ export function SectionInsights({ section, patientId, ownerId, revision = 0 }: {
           {!data ? <div className="h-full animate-pulse rounded-2xl bg-muted/60"/> : empty
             ? <div className="grid h-full place-items-center rounded-2xl border border-dashed border-border px-4 text-center text-sm text-muted-foreground">Ainda não há registros neste período.<br/>Assim que você registrar, o gráfico aparece aqui.</div>
             : <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={rows} margin={{ top: 12, right: twoAxes ? 0 : 8, left: -14, bottom: 0 }} onClick={(state: any) => { if (state?.activeLabel) setSelected(String(state.activeLabel)); }}>
+              <ComposedChart data={rows} margin={{ top: 12, right: twoAxes ? 0 : 8, left: -14, bottom: 0 }} onClick={(state: any) => { if (state?.activeLabel) { setSelected(String(state.activeLabel)); setDetailDay(String(state.activeLabel)); } }}>
                 <defs>
                   {(["a", "b"] as const).map(key => { const item = key === "a" ? config.a : config.b; return item && <linearGradient key={key} id={`${gid}-${key}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={item.to} stopOpacity={1}/><stop offset="100%" stopColor={item.color} stopOpacity={kind === "area" ? 0.15 : 0.92}/></linearGradient>; })}
                 </defs>
@@ -215,7 +217,7 @@ export function SectionInsights({ section, patientId, ownerId, revision = 0 }: {
           {hasTrend && <button type="button" aria-pressed={!hidden.t} onClick={() => setHidden(value => ({ ...value, t: !value.t }))}
             className={`inline-flex h-9 items-center gap-2 rounded-full border px-3 text-sm font-semibold transition ${hidden.t ? "border-border text-muted-foreground line-through opacity-60" : "border-transparent bg-muted text-foreground"}`}>
             <i className="h-1 w-4 rounded-full" style={{ background: TREND.color }}/>{TREND.label}</button>}
-          <span className="ml-auto self-center text-xs text-muted-foreground">Toque nas legendas para ocultar uma série.</span>
+          <span className="ml-auto self-center text-xs text-muted-foreground">Toque numa barra para abrir os detalhes do dia.</span>
         </div>
       </div>
 
@@ -230,8 +232,10 @@ export function SectionInsights({ section, patientId, ownerId, revision = 0 }: {
         {hasTrend && <p className="mt-2 text-sm text-white/90">Tendência: <strong className="tabular-nums">{fmt(picked.t ?? 0)}</strong>{config.unit ? " " + config.unit : ""} (média de 3 dias)</p>}
         {data?.goal && <p className="mt-1 text-sm text-white/90"><strong className="tabular-nums">{rows.filter(row => row.a >= data.goal!).length}</strong> de {days} dias atingiram a meta</p>}
         <p className="mt-auto pt-3 text-xs text-white/80">{average > 0 ? (picked.a >= average ? `Acima da sua média (${fmt(average)}).` : `Abaixo da sua média (${fmt(average)}).`) : "Sem média ainda."}</p>
+        <button type="button" onClick={() => setDetailDay(picked.day)} className="mt-2 h-10 rounded-xl bg-white text-sm font-extrabold text-slate-900 shadow hover:bg-white/90">Ver detalhes do dia</button>
         {selected && <button type="button" onClick={() => setSelected(null)} className="mt-2 h-9 rounded-xl bg-white/20 text-sm font-bold hover:bg-white/30">Voltar para hoje</button>}
       </aside>
     </div>}
+    <DayDetailDialog patientId={patientId} ownerId={ownerId} day={detailDay} waterTarget={data?.goal && section === "hidratacao" ? data.goal : null} onClose={() => setDetailDay(null)}/>
   </section>;
 }

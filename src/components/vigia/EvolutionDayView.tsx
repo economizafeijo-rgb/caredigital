@@ -36,7 +36,7 @@ export function EvolutionDayView({ metrics: m, raw, targets }: { metrics: DayMet
 
   return (
     <div className="grid gap-3">
-      <Panel title="Metas do dia" note={m.closed ? "Dia fechado às 22h (horário do Acre)" : `Em andamento · fecha às ${DAY_CUTOFF_HOUR}h`}>
+      <Panel title="Metas do dia" note={m.closed ? "Dia encerrado (horário do Acre)" : "Em andamento · a água fecha à meia-noite; refeições contam até as 22h"}>
         {m.goals.length === 0 ? <Empty>Ainda não há metas programadas para este dia.</Empty> : (
           <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
             {m.goals.map((goal) => {
@@ -69,7 +69,7 @@ export function EvolutionDayView({ metrics: m, raw, targets }: { metrics: DayMet
           {m.water.length === 0 ? <Empty>Nenhum copo registrado neste dia.</Empty> : (
             <div className="h-60 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={waterHours} margin={{ top: 8, right: 4, left: -14, bottom: 0 }}>
+                <ComposedChart data={waterHours} margin={{ top: 24, right: 4, left: -14, bottom: 0 }}>
                   <defs><linearGradient id="evWater" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#0ea5e9" stopOpacity={0.4} /><stop offset="1" stopColor="#0ea5e9" stopOpacity={0.02} /></linearGradient></defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-border" vertical={false} />
                   <XAxis dataKey="hour" tick={axis} className="text-muted-foreground" tickLine={false} axisLine={false} interval={2} />
@@ -102,7 +102,7 @@ export function EvolutionDayView({ metrics: m, raw, targets }: { metrics: DayMet
             <>
               <div className="h-60 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={foodHours} margin={{ top: 8, right: 4, left: -14, bottom: 0 }}>
+                  <ComposedChart data={foodHours} margin={{ top: 24, right: 4, left: -14, bottom: 0 }}>
                     <defs><linearGradient id="evFood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#f97316" stopOpacity={0.4} /><stop offset="1" stopColor="#f97316" stopOpacity={0.02} /></linearGradient></defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-border" vertical={false} />
                     <XAxis dataKey="hour" tick={axis} className="text-muted-foreground" tickLine={false} axisLine={false} interval={2} />
