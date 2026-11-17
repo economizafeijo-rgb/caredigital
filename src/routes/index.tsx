@@ -18,7 +18,7 @@ import {
   Utensils,
 } from "lucide-react";
 import { useAccess } from "@/lib/use-access";
-import { StoreHighlight } from "@/components/vigia/StoreHighlight";
+import { StoreBannerCarousel } from "@/components/vigia/StoreBannerCarousel";
 import { LiveModeLauncher } from "@/components/vigia/LiveMode";
 import { TrialAd } from "@/components/vigia/TrialAd";
 import { MobileHero } from "@/components/vigia/MobileHero";
@@ -270,7 +270,7 @@ function Homepage() {
         <HeroMosaic />
       </section>
 
-      <StoreHighlight />
+      <StoreBannerCarousel />
 
       {status === "client" && (
         <div className="rounded-3xl bg-gradient-to-br from-indigo-950 to-slate-900 p-1">
