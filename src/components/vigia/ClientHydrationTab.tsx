@@ -527,14 +527,14 @@ export function ClientHydrationTab({
       className="care-premium-hydration care-hydration-responsive flex min-h-0 w-full min-w-0 flex-col gap-2"
       aria-label="Programa personalizado de hidratação"
     >
-      <header className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-sky-950 via-sky-900 to-cyan-800 p-5 text-white shadow-card">
+      <header className="relative isolate overflow-hidden rounded-2xl bg-gradient-to-br from-sky-950 via-sky-900 to-cyan-800 p-3 sm:p-4 text-white shadow-card">
         <div
           aria-hidden="true"
           className="absolute -right-16 -top-20 size-56 rounded-full bg-cyan-300/10 blur-3xl"
         />
-        <div className="flex flex-wrap items-center gap-5">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
           <div
-            className="relative h-36 w-24 shrink-0 overflow-hidden rounded-b-[2.5rem] rounded-t-xl border-[3px] border-white/70 bg-white/10"
+            className="relative h-24 w-16 shrink-0 overflow-hidden rounded-b-[2rem] rounded-t-lg border-2 border-white/70 bg-white/10 sm:h-28 sm:w-20"
             role="img"
             aria-label={`Copo ${percent}% cheio`}
           >
