@@ -24,7 +24,7 @@ export function LojistaPage() {
   function start() {
     if (state === "out") {
       try { window.sessionStorage.setItem("nv_after_login", "/lojista"); } catch { /* ok */ }
-      window.location.assign("/entrar?mode=signup");
+      window.location.assign("/entrar?mode=lojista");
       return;
     }
     form.current?.scrollIntoView({ behavior: "smooth", block: "start" });
