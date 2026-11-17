@@ -95,7 +95,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:image:alt", content: "NextVita: medicação, hidratação, peso, sono, treinos e suplementos em uma rotina só" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "NextVita — Bem-estar conectado" },
-      { name: "twitter:description", content: "Medicação, hidratação, alimentação, treinos, sono e peso em uma rotina só. Teste grátis por 7 dias." },
+      { name: "twitter:description", content: "Medicação, hidratação, alimentação, treinos, sono e peso em uma rotina só. Grátis para teste." },
       { name: "twitter:image", content: SHARE_IMAGE },
       { name: "twitter:image:alt", content: "NextVita: bem-estar conectado" },
       { name: "theme-color", content: "#0e8a6a" },

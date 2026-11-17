@@ -20,6 +20,7 @@ import {
 import { useAccess } from "@/lib/use-access";
 import { StoreHighlight } from "@/components/vigia/StoreHighlight";
 import { LiveModeLauncher } from "@/components/vigia/LiveMode";
+import { TrialAd } from "@/components/vigia/TrialAd";
 import { MobileHero } from "@/components/vigia/MobileHero";
 import { HomeNextCareCard } from "@/components/vigia/CareTimer";
 import { HomeModalityTimers } from "@/components/vigia/HomeModalityTimers";
@@ -237,7 +238,7 @@ function Homepage() {
                   href="/entrar?mode=signup"
                   className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 px-5 text-sm font-bold text-slate-950 shadow-sm transition hover:brightness-110"
                 >
-                  <Gift size={17} /> Testar grátis por 7 dias
+                  <Gift size={17} /> Grátis para teste
                 </a>
                 <Link
                   to="/entrar"
@@ -309,40 +310,7 @@ function Homepage() {
         </span>
       </a>
 
-      {status === "public" && (
-        <section
-          aria-labelledby="free-signup-title"
-          className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-[#0b302d] via-[#0e5f54] to-[#0e8a6a] px-6 py-6 text-white shadow-pop sm:px-8 sm:py-7"
-        >
-          <div
-            aria-hidden="true"
-            className="absolute -right-10 -top-16 size-48 rounded-full bg-white/10 blur-2xl"
-          />
-          <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="max-w-2xl">
-              <p className="text-[11px] font-bold uppercase tracking-[.16em] text-emerald-100/80">
-                NextVita · acesso gratuito
-              </p>
-              <h2
-                id="free-signup-title"
-                className="mt-1 text-2xl font-extrabold tracking-tight sm:text-3xl"
-              >
-                Cuide do seu corpo com mais clareza e constância.
-              </h2>
-              <p className="mt-2 max-w-xl text-sm leading-relaxed text-emerald-50/85">
-                Teste grátis por 7 dias: registre suas métricas iniciais e acompanhe hidratação,
-                alimentação, peso, suplementos e evolução em um só lugar.
-              </p>
-            </div>
-            <a
-              href="/entrar?mode=signup"
-              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-[#0a6d58] shadow-sm transition hover:bg-emerald-50"
-            >
-              <Gift size={17} /> Testar grátis por 7 dias <ArrowRight size={16} />
-            </a>
-          </div>
-        </section>
-      )}
+      {status === "public" && <TrialAd />}
 
       {status === "client" && <HomeClientMetrics />}
 

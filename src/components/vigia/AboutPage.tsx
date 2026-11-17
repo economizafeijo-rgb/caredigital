@@ -26,7 +26,7 @@ export function AboutPage() {
           <p className="text-[11px] font-bold uppercase tracking-[.22em] text-emerald-200">Sobre o NextVita</p>
           <h1 id="about-title" className="nv-h1">Cuidado digital, feito no coração do Acre.</h1>
           <p className="nv-lead max-w-[36rem] text-white/85">O NextVita nasceu em Feijó para reunir num só lugar o que faz diferença no dia a dia: medicação, água, alimentação, treinos, sono e a sua evolução.</p>
-          <div className="mt-1"><a href="/entrar?mode=signup" className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-emerald-800 shadow-lg transition hover:-translate-y-0.5">Testar grátis por 7 dias <ArrowRight size={17} /></a></div>
+          <div className="mt-1"><a href="/entrar?mode=signup" className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-emerald-800 shadow-lg transition hover:-translate-y-0.5">Grátis para teste <ArrowRight size={17} /></a></div>
         </div>
       </section>
 

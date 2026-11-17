@@ -51,7 +51,7 @@ export function PatientAreaGate() {
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link to="/entrar" className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-6 text-sm font-bold text-primary-foreground shadow-sm transition hover:brightness-110"><LogIn size={17} /> Entrar</Link>
-          <a href="/entrar?mode=signup" className="inline-flex h-12 items-center gap-2 rounded-xl border border-border bg-surface px-5 text-sm font-bold transition hover:bg-muted"><Gift size={17} /> Testar grátis por 7 dias <ArrowRight size={16} /></a>
+          <a href="/entrar?mode=signup" className="inline-flex h-12 items-center gap-2 rounded-xl border border-border bg-surface px-5 text-sm font-bold transition hover:bg-muted"><Gift size={17} /> Grátis para teste <ArrowRight size={16} /></a>
         </div>
         <ul className="mt-8 grid gap-3 text-sm">
           {([[ShieldCheck, "Acesso individual e protegido"], [Clock3, "Cada registro com a hora real"], [LineChart, "Metas e evolução com gráficos interativos"]] as const).map(([Icon, text]) => (

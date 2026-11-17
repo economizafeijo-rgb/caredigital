@@ -34,7 +34,7 @@ export function MobileHero({ client, name, panel }: { client: boolean; name: str
             </>
           ) : (
             <>
-              <a href="/entrar?mode=signup" className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-300 text-base font-extrabold text-slate-950 shadow-lg"><Gift size={20} /> Testar grátis por 7 dias</a>
+              <a href="/entrar?mode=signup" className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-300 text-base font-extrabold text-slate-950 shadow-lg"><Gift size={20} /> Grátis para teste</a>
               <Link to="/entrar" className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-white/30 bg-white/10 text-[15px] font-bold backdrop-blur"><LockKeyhole size={18} /> Acessar minha conta</Link>
             </>
           )}
