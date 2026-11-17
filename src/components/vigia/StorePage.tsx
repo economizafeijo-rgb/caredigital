@@ -4,6 +4,7 @@ import { ArrowRight, BadgeCheck, CheckCircle2, CreditCard, FileText, Minus, Plus
 import { supabase } from "@/integrations/supabase/client";
 import { cart, categories, categoryLabel, money, orderTotal, paymentMethods, products, STORE_WHATSAPP, useCart, type PaymentKey, type Product, type StoreCategory } from "@/lib/store";
 import { useAccess } from "@/lib/use-access";
+import { ShareButton } from "./ShareButton";
 
 const payIcon = { pix: QrCode, cartao: CreditCard, boleto: FileText } as const;
 
@@ -24,7 +25,8 @@ function ProductCard({ p }: { p: Product }) {
       <div className="relative aspect-[4/5] overflow-hidden bg-muted md:aspect-square">
         <img src={p.img} alt={p.name} loading="lazy" className="size-full object-cover transition duration-700 group-hover:scale-105" />
         {p.tag && <span className="absolute left-2 top-2 rounded-full bg-slate-950/80 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur">{p.tag}</span>}
-        {off > 0 && <span className="absolute right-2 top-2 rounded-full bg-rose-600 px-2 py-1 text-[11px] font-extrabold text-white">-{off}%</span>}
+        {off > 0 && <span className="absolute bottom-2 left-2 rounded-full bg-rose-600 px-2 py-1 text-[11px] font-extrabold text-white">-{off}%</span>}
+        <ShareButton className="absolute right-2 top-2" title={p.name} text={`Olha esse produto na Loja NextVita: ${p.name} por ${money(p.priceCents)}.`} path="/loja" />
       </div>
       <div className="flex flex-1 flex-col gap-1 p-3">
         <span className="text-[10px] font-bold uppercase tracking-widest text-primary">{categoryLabel[p.category]}</span>

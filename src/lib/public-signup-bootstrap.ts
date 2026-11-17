@@ -17,13 +17,6 @@ export type PublicSignupMetadata = {
   heightCm: number;
 };
 
-/** Último dia do teste: hoje (Acre, UTC-5) mais 7 dias. */
-export function trialEndDate(now: Date = new Date()): string {
-  const acre = new Date(now.getTime() - 5 * 3_600_000);
-  acre.setUTCDate(acre.getUTCDate() + 7);
-  return acre.toISOString().slice(0, 10);
-}
-
 export function parseSignupMetadata(user: User): PublicSignupMetadata | null {
   const raw = user.user_metadata?.nextvita_signup;
   if (!raw || typeof raw !== "object") return null;
@@ -97,10 +90,10 @@ export async function bootstrapPublicSignup(user: User): Promise<{ patientId: st
         phone: metadata.phone,
         height_cm: metadata.heightCm,
         weight_kg: metadata.weightKg,
-        // Todo cadastro novo começa pelo teste grátis de 7 dias (contado no horário do Acre).
+        // A plataforma é gratuita: todo cadastro novo recebe acesso completo, sem prazo de validade.
         license_plan: "premium",
-        license_status: "teste",
-        license_expires_on: trialEndDate(),
+        license_status: "gratuita",
+        license_expires_on: null,
         signup_source: "teste_gratis",
         trial_started_at: new Date().toISOString(),
       })

@@ -5,12 +5,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { clientSectionHashes, type ClientSection } from "@/lib/client-pages";
 
 export const trialErrorMessage = (message: string) =>
-  /already used/i.test(message) ? "Este e-mail já utilizou o teste grátis. Peça um código de licença ao administrador."
+  /already used/i.test(message) ? "Este e-mail já ativou o acesso gratuito. Entre na sua conta para continuar."
   : /already linked/i.test(message) ? "Sua conta já tem um acompanhamento. Abra o painel."
   : /does not exist|schema cache|function/i.test(message) ? "O teste grátis ainda não foi habilitado no servidor. Tente mais tarde."
   : "Não foi possível iniciar o teste agora. Tente novamente.";
 
-/** Ativa o teste de 7 dias para a conta logada e recarrega o painel. */
+/** Ativa o acesso gratuito para a conta logada e recarrega o painel. */
 export async function startTrial(name?: string) {
   const { data, error } = await (supabase as any).rpc("care_start_trial", { p_name: name ?? null });
   if (error) throw new Error(trialErrorMessage(error.message ?? ""));
@@ -30,11 +30,11 @@ export function ActivateTrialCard() {
   }
   return <section className="mx-auto mt-8 w-full max-w-xl overflow-hidden rounded-3xl border border-border bg-card shadow-pop">
     <div className="bg-gradient-to-br from-emerald-600 to-teal-500 p-6 text-white"><Gift size={34}/>
-      <h1 className="mt-3 text-2xl font-extrabold">Teste o NextVita por 7 dias</h1>
-      <p className="mt-1 text-sm text-white/90">Sua conta está criada. Ative o teste grátis para liberar o painel completo, sem cartão e sem compromisso.</p></div>
+      <h1 className="mt-3 text-2xl font-extrabold">O NextVita é gratuito para você</h1>
+      <p className="mt-1 text-sm text-white/90">Sua conta está criada. Ative o acesso para liberar o painel completo, sem cartão, sem mensalidade e sem prazo.</p></div>
     <div className="p-6">
       <button type="button" disabled={busy} onClick={() => void run()} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-base font-bold text-white shadow-sm hover:brightness-110 disabled:opacity-60">
-        {busy ? <Loader2 size={18} className="animate-spin"/> : <Sparkles size={18}/>} Ativar meus 7 dias grátis</button>
+        {busy ? <Loader2 size={18} className="animate-spin"/> : <Sparkles size={18}/>} Ativar meu acesso gratuito</button>
       {error && <p role="alert" className="mt-3 rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>}
       <p className="mt-3 text-xs text-muted-foreground">Já é cliente? Peça ao administrador para vincular seu e-mail ao seu prontuário.</p>
     </div>
@@ -51,8 +51,8 @@ const steps: { key: string; section: ClientSection; icon: typeof Pill; title: st
 const storeKey = "caredigital-trial-tour";
 const readDone = (): string[] => { try { return JSON.parse(localStorage.getItem(storeKey) ?? "[]"); } catch { return []; } };
 
-/** Roteiro de primeiros passos mostrado durante o teste: guia o visitante pelas áreas principais. */
-export function TrialTour({ daysLeft }: { daysLeft: number | null }) {
+/** Roteiro de primeiros passos para quem acabou de entrar: guia o visitante pelas áreas principais. */
+export function TrialTour() {
   const [done, setDone] = useState<string[]>(readDone);
   const [hidden, setHidden] = useState(() => { try { return localStorage.getItem(storeKey + "-hidden") === "1"; } catch { return false; } });
   if (hidden) return null;
@@ -62,7 +62,7 @@ export function TrialTour({ daysLeft }: { daysLeft: number | null }) {
   return <section className="mb-3 overflow-hidden rounded-3xl border border-emerald-500/30 bg-card shadow-card" aria-label="Primeiros passos">
     <div className="flex flex-wrap items-center gap-3 bg-gradient-to-r from-emerald-600 to-teal-500 p-4 text-white">
       <Gift size={24}/>
-      <div className="min-w-0 flex-1"><h2 className="text-lg font-extrabold">Bem-vindo ao seu teste grátis{daysLeft !== null ? ` · ${Math.max(0, daysLeft)} dia(s) restantes` : ""}</h2>
+      <div className="min-w-0 flex-1"><h2 className="text-lg font-extrabold">Bem-vindo ao NextVita · acesso gratuito</h2>
         <p className="text-sm text-white/90">Siga os 5 passos para conhecer a plataforma em poucos minutos.</p></div>
       <span className="rounded-full bg-white/20 px-3 py-1 text-sm font-bold">{done.length}/{steps.length} · {pct}%</span>
       <button type="button" onClick={hide} aria-label="Ocultar primeiros passos" className="grid size-9 place-items-center rounded-lg hover:bg-white/15"><X size={18}/></button>

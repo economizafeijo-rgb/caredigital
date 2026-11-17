@@ -16,11 +16,13 @@ import {
   ShieldCheck,
   ShoppingBag,
   Sparkles,
+  Store,
   Utensils,
 } from "lucide-react";
 import { useAccess } from "@/lib/use-access";
 import { StoreBannerCarousel } from "@/components/vigia/StoreBannerCarousel";
 import { StoreHeroSticker } from "@/components/vigia/StoreHeroSticker";
+import { HeroShowcase } from "@/components/vigia/HeroShowcase";
 import { LiveModeLauncher } from "@/components/vigia/LiveMode";
 import { TrialAd } from "@/components/vigia/TrialAd";
 import { MobileHero } from "@/components/vigia/MobileHero";
@@ -264,6 +266,12 @@ function Homepage() {
               <ShoppingBag size={17} /> Visitar a loja
             </Link>
             <Link
+              to="/parceiros"
+              className="inline-flex h-11 items-center gap-2 rounded-xl border border-amber-300/60 bg-amber-300/10 px-5 text-sm font-bold text-amber-200 backdrop-blur transition hover:bg-amber-300/20"
+            >
+              <Store size={17} /> Quero vender · grátis
+            </Link>
+            <Link
               to="/protocolos"
               className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
             >
@@ -284,6 +292,8 @@ function Homepage() {
         </div>
         <HeroMosaic />
       </section>
+
+      <HeroShowcase className="hidden sm:block" />
 
       <div className="hidden sm:block"><StoreBannerCarousel /></div>
 

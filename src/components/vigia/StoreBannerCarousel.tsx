@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, ChevronLeft, ChevronRight, Mail, MessageCircle, Pause, Play, ShoppingBag, Store } from "lucide-react";
+import { ShareButton } from "./ShareButton";
 import { money, products, type StoreCategory } from "@/lib/store";
 
 const EMAIL = "aplicativosfj@gmail.com";
@@ -10,7 +11,7 @@ const DURATION = 6500;
 
 const from = (...cats: StoreCategory[]) => money(Math.min(...products.filter((p) => cats.includes(p.category)).map((p) => p.priceCents)));
 
-type Cta = { label: string; to?: "/loja" | "/lojista"; href?: string; icon?: typeof Store; ghost?: boolean };
+type Cta = { label: string; to?: "/loja" | "/lojista" | "/parceiros"; href?: string; icon?: typeof Store; ghost?: boolean };
 type Slide = { id: string; tone: string; badge: string; title: string; text: string; price?: string; priceNote?: string; chips?: string[]; images: string[]; ctas: Cta[] };
 
 const slides: Slide[] = [
@@ -20,7 +21,7 @@ const slides: Slide[] = [
   { id: "feminina", tone: "from-[#500724] via-[#9d174d] to-[#ec4899]", badge: "Moda fitness feminina", title: "Conjuntos e leggings para treinar com estilo.", text: "Top, legging e conjuntos com conforto e modelagem que acompanha o movimento.", price: from("roupas-femininas"), priceNote: "a partir de", chips: ["Novidades toda semana"], images: ["/loja/mulher1.webp", "/loja/mulher2.webp", "/loja/mulher3.webp"], ctas: [{ label: "Ver moda feminina", to: "/loja", icon: ShoppingBag }] },
   { id: "masculina", tone: "from-[#082f49] via-[#075985] to-[#0ea5e9]", badge: "Moda fitness masculina", title: "Regatas, camisetas e conjuntos dry fit.", text: "Tecido leve que seca rápido, ideal para musculação, corrida e treino funcional.", price: from("roupas-masculinas"), priceNote: "a partir de", chips: ["Dry fit"], images: ["/loja/homem1.webp", "/loja/homem2.webp", "/loja/homem3.webp"], ctas: [{ label: "Ver moda masculina", to: "/loja", icon: ShoppingBag }] },
   { id: "acessorios", tone: "from-[#1c1917] via-[#44403c] to-[#0e8a6a]", badge: "Acessórios para academia", title: "Halteres, tapetes e coqueteleiras para treinar em casa.", text: "Monte o seu cantinho de treino com acessórios que duram.", price: from("acessorios"), priceNote: "a partir de", chips: ["Entrega ou retirada"], images: ["/loja/halter.webp", "/loja/gym2.webp", "/loja/gym.webp"], ctas: [{ label: "Ver acessórios", to: "/loja", icon: ShoppingBag }] },
-  { id: "vender", tone: "from-[#022c22] via-[#065f46] to-[#fbbf24]", badge: "Para comerciantes e autônomos", title: "Quer vender os seus produtos aqui? Fale com o desenvolvedor.", text: "Lojas de roupas fitness, suplementos, farmácias e produtos naturais: abra a sua loja na NextVita, com vitrine própria, selo da loja e avaliações do público.", chips: ["Planos a partir de R$ 0/mês", "Painel de vendas"], images: ["/loja/halter.webp", "/loja/mulher3.webp", "/loja/vit2.webp"], ctas: [{ label: "Cadastrar minha loja", to: "/lojista", icon: Store }, { label: "WhatsApp", href: WHATSAPP, icon: MessageCircle, ghost: true }, { label: "E-mail", href: `mailto:${EMAIL}?subject=${encodeURIComponent("Quero vender na NextVita")}`, icon: Mail, ghost: true }] },
+  { id: "vender", tone: "from-[#022c22] via-[#065f46] to-[#fbbf24]", badge: "Para comerciantes e autônomos", title: "Quer vender os seus produtos aqui? Fale com o desenvolvedor.", text: "Lojas de roupas fitness, suplementos, farmácias e produtos naturais: abra a sua loja na NextVita, com vitrine própria, selo da loja e avaliações do público.", chips: ["Planos a partir de R$ 0/mês", "Painel de vendas"], images: ["/loja/halter.webp", "/loja/mulher3.webp", "/loja/vit2.webp"], ctas: [{ label: "Quero vender · grátis", to: "/parceiros", icon: Store }, { label: "WhatsApp", href: WHATSAPP, icon: MessageCircle, ghost: true }, { label: "E-mail", href: `mailto:${EMAIL}?subject=${encodeURIComponent("Quero vender na NextVita")}`, icon: Mail, ghost: true }] },
 ];
 
 function useReducedMotion() {
@@ -70,6 +71,7 @@ export function StoreBannerCarousel({ className = "" }: { className?: string }) 
                       const base = `inline-flex h-12 items-center gap-2 rounded-2xl px-5 text-sm font-extrabold transition active:scale-95 ${cls}`;
                       return c.to ? <Link key={c.label} to={c.to} className={base}>{inner}</Link> : <a key={c.label} href={c.href} target={c.href?.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className={base}>{inner}</a>;
                     })}
+                    <ShareButton variant="pill" title={s.title} text={`${s.title} ${s.text}`} path={s.id === "vender" ? "/parceiros" : "/loja"} className="[&>button]:h-12 [&>button]:rounded-2xl" />
                   </div>
                 </div>
                 <div className={`relative mx-auto grid w-full max-w-md grid-cols-3 gap-2.5 transition-all duration-700 delay-300 sm:grid-cols-2 ${active ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`} aria-hidden="true">
