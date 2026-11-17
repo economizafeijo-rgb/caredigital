@@ -472,7 +472,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             )}
             <main
               id="care-content"
-              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-2 sm:p-4 lg:p-5"
+              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-2 sm:p-3 lg:p-4"
             >
               {children}
               {location.pathname === "/" && (
