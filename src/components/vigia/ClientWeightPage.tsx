@@ -136,6 +136,7 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
     // Inserir nunca sobrescreve: uma data já registrada fica protegida pelo cadeado.
     const existing = points.find(point => point.recorded_on === date);
     if (existing) { blockDuplicate(existing); return; }
+    if (!(await dialog.confirm("Confirmar registro de peso?", `Registrar ${nf(kg)} kg (altura ${nf(cm, 0)} cm) em ${longDate(date)}?`, false, "Confirmar registro"))) return;
     setSaving(true); setMessage(null);
     const auth = await supabase.auth.getUser();
     if (!auth.data.user) { setSaving(false); setMessage({ ok: false, text: "Entre na sua conta para registrar o peso." }); return; }

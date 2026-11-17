@@ -239,6 +239,7 @@ export function ClientActivityPage({
       setError("As observações podem ter até 500 caracteres.");
       return;
     }
+    if (!(await confirm("Confirmar registro?", `Registrar ${type} de ${minutes} min${km !== null ? ` (${km.toLocaleString("pt-BR")} km)` : ""} agora?`, false, "Confirmar registro"))) return;
     setSaving(true);
     setError("");
     setNotice("");

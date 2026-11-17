@@ -4,6 +4,7 @@ import { CheckCircle2, Clock3, Coffee, Droplets, Save } from "lucide-react";
 import { CareIntakePicker, CareIntakeIcon } from "./CareIntakePicker";
 import { beverageKinds,beverageCategory,type BeverageKind } from "@/lib/care-intake-categories";
 import { supabase } from "@/integrations/supabase/client";
+import { useDialog } from "@/lib/dialog";
 
 type Beverage = {
   id: string;
@@ -28,6 +29,7 @@ export function ClientBeverageTracker({
   revision: number;
   onRecorded?: () => void;
 }) {
+  const dialog = useDialog();
   const [kind, setKind] = useState<BeverageKind>("cha");
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("200");
@@ -71,6 +73,8 @@ export function ClientBeverageTracker({
       setError("As observações devem ter no máximo 300 caracteres.");
       return;
     }
+    const label = (beverageCategory(kind)?.label ?? "bebida").toLowerCase();
+    if (!(await dialog.confirm("Confirmar registro?", kind === "agua" ? `Registrar ${volume} ml de água agora?` : `Registrar ${label}: ${name.trim()} (${volume} ml) agora?`, false, "Confirmar registro"))) return;
     setSaving(true);
     setError(""); setNotice("");
     try {

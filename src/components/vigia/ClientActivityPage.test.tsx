@@ -37,6 +37,8 @@ describe("Área de atividade física do cliente",()=>{
     fireEvent.change(screen.getByLabelText("Duração (min)"),{target:{value:"45"}});
     fireEvent.change(screen.getByLabelText("Distância (km)"),{target:{value:"6,5"}});
     fireEvent.click(screen.getByRole("button",{name:"Salvar atividade"}));
+    expect(mocks.rpc).not.toHaveBeenCalledWith("care_log_client_activity",expect.anything());
+    fireEvent.click(await screen.findByRole("button",{name:"Confirmar registro"}));
     expect(await screen.findByText("Atividade registrada no seu prontuário.")).toBeTruthy();
     expect(mocks.rpc).toHaveBeenCalledWith("care_log_client_activity",expect.objectContaining({
       p_patient_id:"patient-1",p_activity_type:"corrida",p_duration_minutes:45,p_distance_km:6.5,
@@ -49,6 +51,7 @@ describe("Área de atividade física do cliente",()=>{
     const {onRecorded}=setup();
     await screen.findByText("Nenhuma atividade registrada neste filtro.");
     fireEvent.click(screen.getByRole("button",{name:"Salvar atividade"}));
+    fireEvent.click(await screen.findByRole("button",{name:"Confirmar registro"}));
     expect(await screen.findByRole("alert")).toBeTruthy();
     expect(onRecorded).not.toHaveBeenCalled();
   });
