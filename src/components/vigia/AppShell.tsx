@@ -426,8 +426,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                       <span className="hidden sm:inline">Página inicial</span>
                     </Link>
                   ))}
-                {access.status === "client" && <LiveModeLauncher iconOnlyOnMobile />}
-                <InstallAppButton />
+                {signedIn && <LiveModeLauncher iconOnlyOnMobile />}
+                <InstallAppButton className="max-sm:!hidden" />
                 {tools}
                 {signedIn && (
                   <button
