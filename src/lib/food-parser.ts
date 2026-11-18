@@ -27,6 +27,7 @@ const micros: Record<string, [number, number, number, number, number]> = {
 /** Palavras-chave → alimento do catálogo. Ordem importa: termos mais específicos primeiro. */
 const aliases: Array<[RegExp, string]> = [
   [/arroz integral/, "arroz_integral"], [/arroz/, "arroz"], [/feij[aã]o preto/, "feijao_preto"], [/feij[aã]o/, "feijao"],
+  [/caf[eé][ _]com[ _]leite (de gado|de vaca|fresco|da fazenda)/, "cafe_leite_gado"], [/caf[eé][ _]com[ _]leite em p[oó]|leite em p[oó]|leite ninho/, "cafe_leite_po"],
   [/caf[eé][ _]com[ _]leite|pingado/, "cafe_com_leite"], [/achocolatado|nescau|toddy|chocolate quente/, "achocolatado"],
   [/p[aã]o integral|p[aã]o de forma/, "pao_integral"], [/p[aã]o|p[aã]ozinho|cacetinho/, "pao_frances"], [/manteiga/, "manteiga"], [/margarina/, "margarina"],
   [/queijo coalho|queijo assado/, "queijo_coalho"], [/requeij[aã]o/, "requeijao"], [/queijo|mu[cç]arela|mussarela/, "queijo_minas"], [/presunto|peito de peru/, "presunto"],
@@ -55,7 +56,7 @@ const defaultPortion: Record<string, number> = {
   laranja: 150, acerola: 100, goiaba: 150, manga: 150, mamão: 150, maca: 130, melancia: 200, abacaxi: 100, uva: 100, abacate: 100, acai: 200,
   pao_frances: 50, pao_integral: 50, manteiga: 10, margarina: 10, queijo_coalho: 40, queijo_minas: 30, requeijao: 15, presunto: 30,
   cafe_com_leite: 200, achocolatado: 200, bolo_simples: 60, biscoito_salgado: 30, macarrao: 150, carne_moida: 100, linguica: 60,
-  agua_coco: 300, refrigerante: 350, pirarucu: 120, tambaqui: 120, baixaria: 250, banana_cozida: 120,
+  cafe_leite_gado: 200, cafe_leite_po: 200, agua_coco: 300, refrigerante: 350, pirarucu: 120, tambaqui: 120, baixaria: 250, banana_cozida: 120,
   cupuacu: 100, buriti: 50, tucuma: 50, pupunha: 100, graviola: 100, bacuri: 80, "tapereba": 100, jambu: 30, tacaca: 400, caldo_piranha: 300,
   galinha_caipira: 120, carne_sol: 100, pacoca_carne_sol: 80, matrinxa: 120, jaraqui: 120, mingau_banana: 250, beiju: 50, chibe: 250, farinha_agua: 30, milho_cozido: 100, quibe_arroz: 80,
   alface: 40, tomate: 60, cuscuz: 150, tapioca: 80, macaxeira: 150, batata: 130, batata_doce: 130, aveia: 30, farofa: 30, azeite: 8, castanha_para: 10, amendoim: 30,
@@ -147,3 +148,10 @@ export function goalAdvice(objective: string | null | undefined, total: Nutrient
 
 /** Porção usual (g ou ml) de um alimento, usada como "1 unidade/porção" na calculadora. */
 export const typicalPortion = (id: string) => defaultPortion[id] ?? 100;
+
+const liquidIds = new Set(["leite", "caldo_piranha", "tacaca", "iogurte"]);
+/** Líquidos são medidos em ml (densidade ≈ 1 g/ml); sólidos em g. */
+export function isLiquid(id: string): boolean {
+  return liquidIds.has(id) || ingredientById.get(id)?.group === "bebidas";
+}
+export const measureUnit = (id: string) => (isLiquid(id) ? "ml" : "g");

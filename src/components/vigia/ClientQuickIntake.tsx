@@ -5,7 +5,7 @@ import { CareCategoryReport } from "./CareCategoryReport";
 import { BarChart3 } from "lucide-react";
 import { CareIntakePicker, CareIntakeIcon } from "./CareIntakePicker";
 import { foodCategory,beverageCategory,isFoodKind,typicalFoods,typicalDrinks,type IntakeKind,type FoodKind,type BeverageKind } from "@/lib/care-intake-categories";
-import { parseFoodText, sumNutrients } from "@/lib/food-parser";
+import { parseFoodText, sumNutrients, measureUnit } from "@/lib/food-parser";
 import { supabase } from "@/integrations/supabase/client";
 import { useDialog } from "@/lib/dialog";
 
@@ -169,7 +169,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
       <div className="care-intake-modal-overlay fixed inset-0 z-[150] flex items-center justify-center overflow-hidden bg-slate-950/60 p-3 backdrop-blur-sm"
         onMouseDown={event => { if (event.target === event.currentTarget) closeForm(); }}>
         <section role="dialog" aria-modal="true" aria-labelledby="quick-intake-title"
-          className="care-premium-intake-dialog care-intake-responsive-v2 care-intake-oneview flex h-[min(94dvh,860px)] max-h-[94dvh] w-full max-w-[min(1200px,96vw)] min-w-0 flex-col overflow-hidden rounded-[24px] border border-border bg-card p-4 text-card-foreground shadow-2xl sm:p-5">
+          className={"care-premium-intake-dialog care-intake-responsive-v2 care-intake-oneview flex max-h-[94dvh] w-full min-w-0 "+(mode==="water"?"max-w-[560px]":"h-[min(94dvh,860px)] max-w-[min(1200px,96vw)]")+" flex-col overflow-hidden rounded-[24px] border border-border bg-card p-4 text-card-foreground shadow-2xl sm:p-5"}>
           <div className="care-premium-intake-header flex shrink-0 items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <span className="grid size-9 place-items-center rounded-xl bg-primary/10 text-primary">
@@ -183,8 +183,8 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
             <button type="button" aria-label="Fechar" disabled={saving} onClick={closeForm}
               className="grid size-8 place-items-center rounded-lg border border-border"><X size={18}/></button>
           </div>
-          <button type="button" onClick={()=>setReportOpen(true)} className="mt-3 inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-primary/30 bg-accent px-3 py-2.5 text-xs font-bold text-primary hover:bg-accent"><BarChart3 size={17}/> Relatório diário, mensal e anual</button>
-          <form className="care-intake-oneview-form mt-2 grid min-h-0 flex-1 content-start gap-3 overflow-y-auto overscroll-contain pr-1 lg:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)] lg:overflow-hidden" onSubmit={event => void save(event)}>
+          {mode!=="water"&&<button type="button" onClick={()=>setReportOpen(true)} className="mt-3 inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-primary/30 bg-accent px-3 py-2.5 text-xs font-bold text-primary hover:bg-accent"><BarChart3 size={17}/> Relatório diário, mensal e anual</button>}
+          <form className={"care-intake-oneview-form mt-2 grid min-h-0 flex-1 content-start gap-3 overflow-y-auto overscroll-contain pr-1 "+(mode==="water"?"":" lg:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)] lg:overflow-hidden")} onSubmit={event => void save(event)}>
             <div className="grid min-w-0 content-start gap-2 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
             {mode==="all"&&<div role="group" aria-label="Selecionar tipo de consumo" className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-muted/35 p-1">
               <button type="button" aria-pressed={group==="food"}
@@ -263,11 +263,33 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
             {!isWater && (()=>{const foods=parseFoodText(isFood?`${portion} ${description}`:description,isFood?null:Number(amount));if(!foods.length)return null;const t=sumNutrients(foods.map(f=>f.nutrients));
               return <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/[.07] p-3 text-xs" aria-live="polite">
                 <p className="font-bold text-emerald-800 dark:text-emerald-200">Cálculo automático</p>
-                <p className="mt-1 text-muted-foreground">{foods.map(f=>`${f.name.split(",")[0]} ${f.grams} g`).join(" · ")}</p>
+                <p className="mt-1 text-muted-foreground">{foods.map(f=>`${f.name.split(",")[0]} ${f.grams} ${measureUnit(f.id)}`).join(" · ")}</p>
                 <div className="mt-2 grid grid-cols-4 gap-1.5 text-center">{[["kcal",t.kcal,"text-orange-600"],["Prot.",t.protein,"text-rose-600"],["Carb.",t.carbs,"text-amber-600"],["Gord.",t.fat,"text-violet-600"]].map(([l,v,c])=><span key={l as string} className="rounded-lg bg-card px-1 py-1.5"><strong className={`block text-sm ${c}`}>{Math.round(v as number)}{l==="kcal"?"":"g"}</strong>{l}</span>)}</div>
               </div>;})()}
-            {!isFood && <div aria-label="Volumes sugeridos para facilitar o registro" className="grid grid-cols-4 gap-1.5">{[100,200,300,500].map(value=><button key={value} type="button" onClick={()=>setAmount(String(value))} aria-pressed={amount===String(value)} className={`rounded-lg border px-1 py-2 text-[11px] font-bold ${amount===String(value)?"border-primary bg-primary/10 text-primary":"border-border bg-muted/50 text-foreground"}`}>{value} ml</button>)}</div>}
-            {!isFood && <label className="text-xs font-semibold">Quantidade consumida (ml)
+            {isWater && (()=>{const ml=Math.max(0,Number(amount)||0);const cups:[number,string,number][]=[[100,"Gole",.55],[200,"Copo",.75],[300,"Copo grande",.9],[500,"Garrafa",1]];
+              return <div className="grid gap-3">
+                <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-label="Volume">
+                  {cups.map(([v,l,h])=>{const on=ml===v;return <button key={v} type="button" role="radio" aria-checked={on} onClick={()=>setAmount(String(v))}
+                    className={"group flex flex-col items-center gap-1 rounded-2xl border p-2 pt-3 transition active:scale-95 "+(on?"border-sky-500 bg-sky-500/10 shadow-[0_8px_24px_-12px_rgba(14,165,233,.8)]":"border-border hover:border-sky-500/40 hover:bg-sky-500/[.05]")}>
+                    <svg viewBox="0 0 40 52" className="h-12 w-auto" aria-hidden="true">
+                      {v===500?<path d="M15 4h10v6l4 5v33a3 3 0 0 1-3 3H14a3 3 0 0 1-3-3V15l4-5z" fill="none" stroke="currentColor" strokeWidth="2" className="text-sky-500/70"/>
+                        :<path d={`M${8+(1-h)*6} ${50-46*h}h${24-(1-h)*12}l-2.5 ${46*h-3}a3 3 0 0 1-3 3h-10a3 3 0 0 1-3-3z`} fill="none" stroke="currentColor" strokeWidth="2" className="text-sky-500/70"/>}
+                      <clipPath id={"cup"+v}>{v===500?<path d="M15 4h10v6l4 5v33a3 3 0 0 1-3 3H14a3 3 0 0 1-3-3V15l4-5z"/>:<path d={`M${8+(1-h)*6} ${50-46*h}h${24-(1-h)*12}l-2.5 ${46*h-3}a3 3 0 0 1-3 3h-10a3 3 0 0 1-3-3z`}/>}</clipPath>
+                      <rect x="0" y={on?18:44} width="40" height="40" clipPath={`url(#cup${v})`} className="fill-sky-400 group-hover:fill-sky-300" style={{transition:"y .5s ease, fill .2s"}}/>
+                    </svg>
+                    <strong className="text-sm tabular-nums">{v} ml</strong><span className="text-[10px] text-muted-foreground">{l}</span>
+                  </button>;})}
+                </div>
+                <div className="flex items-center justify-center gap-3 rounded-2xl bg-sky-500/[.07] p-3">
+                  <button type="button" aria-label="Menos 50 ml" onClick={()=>setAmount(String(Math.max(10,ml-50)))} className="grid size-11 place-items-center rounded-full border border-border bg-card text-lg font-bold transition hover:bg-muted active:scale-90">−</button>
+                  <label className="flex items-baseline gap-1"><span className="sr-only">Quantidade consumida em ml</span>
+                    <input type="number" min={10} max={1500} step={10} required value={amount} onChange={event=>setAmount(event.target.value)} className="w-28 bg-transparent text-center text-4xl font-extrabold tabular-nums outline-none"/>
+                    <span className="text-lg font-semibold text-muted-foreground">ml</span></label>
+                  <button type="button" aria-label="Mais 50 ml" onClick={()=>setAmount(String(Math.min(1500,ml+50)))} className="grid size-11 place-items-center rounded-full border border-border bg-card text-lg font-bold transition hover:bg-muted active:scale-90">+</button>
+                </div>
+              </div>;})()}
+            {!isFood && !isWater && <div aria-label="Volumes sugeridos" className="grid grid-cols-4 gap-1.5">{[100,200,300,500].map(value=><button key={value} type="button" onClick={()=>setAmount(String(value))} aria-pressed={amount===String(value)} className={"rounded-lg border px-2 py-2 text-xs font-bold transition "+(amount===String(value)?"border-primary bg-primary/10 text-primary":"border-border hover:bg-muted")}>{value} ml</button>)}</div>}
+            {!isFood && !isWater && <label className="text-xs font-semibold">Quantidade consumida (ml)
                 <input type="number" min={10} max={1500} step={1} required
                   className="field mt-1 w-full" value={amount}
                   onChange={event => setAmount(event.target.value)}/>
@@ -276,14 +298,9 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
               <label className="block min-w-0 max-w-full text-xs font-semibold">Data e hora do consumo · horário do Acre (UTC−5)
                 <input type="datetime-local" required value={consumedAt} onChange={event=>{setConsumedAt(event.target.value);setManualTime(true);}} className="field care-intake-datetime mt-1 block w-full min-w-0 max-w-full" style={{boxSizing:"border-box",minWidth:0,maxWidth:"100%"}}/>
               </label>
-              <p className="text-[11px] text-foreground/80">O campo já vem preenchido com o horário atual do Acre. Se você não alterar, o sistema usa o relógio oficial do servidor; se editar, salva a data e a hora escolhidas. A data do lançamento também fica registrada no prontuário.</p>
+              <p className="text-[11px] text-muted-foreground">Já vem com o horário atual. Altere só se o consumo foi em outro momento.</p>
             </div>
-            <p className="rounded-lg border border-primary/30 bg-card px-3 py-2 text-[11px] font-medium leading-relaxed text-foreground dark:bg-card dark:text-foreground">
-              O consumo será salvo com o horário informado (ou o horário atual) e a data do lançamento.
-              {isWater
-                ? "Água e outras bebidas entram no total diário de líquidos. Este registro não confirma horários programados; não registre o mesmo copo novamente na agenda."
-                : isFood?"Selecione o tipo correto (Almoço, Jantar etc.). O registro aparece no histórico e será conciliado com a programação correspondente quando houver.":"Chás, energéticos, suplementos líquidos e shakes ficam no histórico, e entram no total de líquidos consumidos."}
-            </p>
+            {!isWater && <p className="text-[11px] text-muted-foreground">{isFood?"Escolha o tipo certo (Almoço, Jantar…) para conciliar com a sua programação.":"Entra no total de líquidos do dia."}</p>}
             {error && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive">{error}</p>}
             <div className="grid grid-cols-2 gap-2">
               <button type="button" disabled={saving} onClick={closeForm}

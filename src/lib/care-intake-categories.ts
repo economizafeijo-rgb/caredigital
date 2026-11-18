@@ -97,11 +97,11 @@ const drinkSet = (...items: [string, string][]) => items.map(([label, text]) => 
 const juices = drinkSet(["Suco de laranja", "1 copo de suco de laranja"], ["Suco de cupuaçu", "1 copo de suco de cupuaçu"], ["Suco de acerola", "1 copo de suco de acerola"], ["Suco de maracujá", "1 copo de suco de maracujá"], ["Suco de taperebá", "1 copo de suco de taperebá"]);
 /** Bebidas que costumam acompanhar cada refeição; entram na mesma descrição e no cálculo. */
 export const typicalDrinks: Record<FoodKind, { label: string; text: string }[]> = {
-  cafe_manha: [...drinkSet(["Café preto", "1 xícara de café"], ["Café com leite", "1 xícara de café com leite"], ["Leite", "1 copo de leite"], ["Achocolatado", "1 copo de achocolatado"], ["Chá", "1 xícara de chá"]), ...juices.slice(0, 3)],
+  cafe_manha: [...drinkSet(["Café preto", "1 xícara de café"], ["Café com leite", "1 xícara de café com leite"], ["Café com leite de gado", "1 xícara de café com leite de gado"], ["Café com leite em pó", "1 xícara de café com leite em pó"], ["Leite", "1 copo de leite"], ["Achocolatado", "1 copo de achocolatado"], ["Chá", "1 xícara de chá"]), ...juices.slice(0, 3)],
   almoco: [...juices, ...drinkSet(["Água de coco", "1 copo de água de coco"], ["Refrigerante", "1 copo de refrigerante"])],
   jantar: [...juices.slice(0, 4), ...drinkSet(["Café com leite", "1 xícara de café com leite"], ["Chá", "1 xícara de chá"])],
-  lanche: [...drinkSet(["Café com leite", "1 xícara de café com leite"], ["Achocolatado", "1 copo de achocolatado"], ["Vitamina de banana", "1 copo de vitamina de banana"], ["Iogurte líquido", "1 copo de iogurte"]), ...juices.slice(0, 3)],
-  ceia: drinkSet(["Leite morno", "1 copo de leite"], ["Chá", "1 xícara de chá"], ["Café com leite", "1 xícara de café com leite"]),
+  lanche: [...drinkSet(["Café com leite", "1 xícara de café com leite"], ["Café com leite de gado", "1 xícara de café com leite de gado"], ["Café com leite em pó", "1 xícara de café com leite em pó"], ["Achocolatado", "1 copo de achocolatado"], ["Vitamina de banana", "1 copo de vitamina de banana"], ["Iogurte líquido", "1 copo de iogurte"]), ...juices.slice(0, 3)],
+  ceia: drinkSet(["Leite morno", "1 copo de leite"], ["Chá", "1 xícara de chá"], ["Café com leite", "1 xícara de café com leite"], ["Café com leite de gado", "1 xícara de café com leite de gado"]),
   fruta: juices.slice(0, 3),
   refeicao: [...juices.slice(0, 4), ...drinkSet(["Refrigerante", "1 copo de refrigerante"])],
   salada: juices.slice(0, 2),

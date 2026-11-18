@@ -22,8 +22,7 @@ import {
   parseFoodText,
   sumNutrients,
   type Nutrients,
-  type ParsedFood,
-} from "@/lib/food-parser";
+  type ParsedFood, isLiquid, measureUnit } from "@/lib/food-parser";
 import { objectiveLabel } from "@/lib/objective-nutrition";
 import { useDialog } from "@/lib/dialog";
 
@@ -130,7 +129,7 @@ export function useDailyNutrition(
           list.push({
             at: row.recorded_at,
             source: "Biblioteca alimentar",
-            text: `${row.food_id.replace(/_/g, " ")} · Porção: ${Number(row.grams)} g`,
+            text: `${row.food_id.replace(/_/g, " ")} · Porção: ${Number(row.grams)} ${measureUnit(row.food_id)}`,
             foods: [],
             entryType: "food",
             entryId: row.id,
@@ -485,8 +484,8 @@ export function DailyNutritionPanel({
                             const n = entry.direct ?? sumNutrients(entry.foods.map((f) => f.nutrients));
                             const fmt = (v: number, d = 0) => v.toLocaleString("pt-BR", { maximumFractionDigits: d });
                             return [
-                              ...(entry.foods.length ? [{ label: "Consumido", value: entry.foods.map((f) => `${f.name} (${fmt(f.grams)} g${f.estimatedPortion ? ", porção estimada" : ""})`).join(", ") }] : []),
-                              ...(entry.amountMl ? [{ label: "Quantidade", value: `${fmt(entry.amountMl)} ml` }] : entry.foods.length ? [{ label: "Quantidade", value: `${fmt(entry.foods.reduce((a, f) => a + f.grams, 0))} g no total` }] : []),
+                              ...(entry.foods.length ? [{ label: "Consumido", value: entry.foods.map((f) => `${f.name} (${fmt(f.grams)} ${measureUnit(f.id)}${f.estimatedPortion ? ", porção estimada" : ""})`).join(", ") }] : []),
+                              ...(entry.amountMl ? [{ label: "Quantidade", value: `${fmt(entry.amountMl)} ml` }] : entry.foods.length ? [{ label: "Quantidade", value: [["g", entry.foods.filter((f) => !isLiquid(f.id)).reduce((a, f) => a + f.grams, 0)], ["ml", entry.foods.filter((f) => isLiquid(f.id)).reduce((a, f) => a + f.grams, 0)]].filter(([, v]) => Number(v) > 0).map(([u, v]) => `${fmt(Number(v))} ${u}`).join(" + ") }] : []),
                               ...(n.kcal > 0 ? [{ label: "Energia", value: `${fmt(n.kcal)} kcal` }, { label: "Macros", value: `P ${fmt(n.protein, 1)} g · C ${fmt(n.carbs, 1)} g · G ${fmt(n.fat, 1)} g` }] : []),
                               ...(n.fiber > 0 ? [{ label: "Fibras", value: `${fmt(n.fiber, 1)} g` }] : []),
                               { label: "Origem", value: entry.source },
@@ -531,7 +530,7 @@ export function DailyNutritionPanel({
                             key={i}
                             className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:text-emerald-200"
                           >
-                            {food.name.split(",")[0]} {food.grams} g
+                            {food.name.split(",")[0]} {food.grams} {measureUnit(food.id)}
                             {food.estimatedPortion ? "*" : ""} · {Math.round(food.nutrients.kcal)}{" "}
                             kcal
                           </span>

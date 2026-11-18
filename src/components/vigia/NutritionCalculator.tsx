@@ -4,7 +4,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ingredients, gramsForMacro, regionalFoodIds, type Ingredient } from "@/lib/nutrition-catalog";
-import { microTargets, nutrientsFor, typicalPortion, type Nutrients } from "@/lib/food-parser";
+import { isLiquid, microTargets, nutrientsFor, typicalPortion, type Nutrients } from "@/lib/food-parser";
 import { useDialog } from "@/lib/dialog";
 import { parseDecimal } from "@/lib/public-signup-validation";
 import type { DailyNutrition } from "./DailyNutritionPanel";
@@ -26,6 +26,12 @@ const norm = (v: string) => v.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCa
 const n = (v: number, d = 0) => v.toLocaleString("pt-BR", { maximumFractionDigits: d });
 
 type Unit = { key: string; label: string; grams: (f: Ingredient) => number };
+const liquidUnits: Unit[] = [
+  { key: "copo", label: "Copo", grams: () => 200 },
+  { key: "xicara", label: "Xícara", grams: () => 160 },
+  { key: "garrafa", label: "Garrafa", grams: () => 500 },
+  { key: "g", label: "Mililitros", grams: () => 1 },
+];
 const units: Unit[] = [
   { key: "porcao", label: "Porção", grams: (f) => typicalPortion(f.id) },
   { key: "g", label: "Gramas", grams: () => 1 },
@@ -118,7 +124,10 @@ export function NutritionCalculator({ patientId, nutrition, onLogged }: { patien
     (!query.trim() || norm(f.name).includes(norm(query.trim())))
   ).sort((a, b) => Number(customIds.has(b.id)) - Number(customIds.has(a.id)) || Number(regionalFoodIds.has(b.id)) - Number(regionalFoodIds.has(a.id)) || a.name.localeCompare(b.name, "pt-BR")), [usable, group, query, customIds]);
   const food = usable.find((f) => f.id === foodId) ?? usable[0];
-  const u = units.find((x) => x.key === unit) ?? units[0];
+  const liquid = food.group === "bebidas" || isLiquid(food.id);
+  const U = liquid ? "ml" : "g";
+  const unitList = liquid ? liquidUnits : units;
+  const u = unitList.find((x) => x.key === unit) ?? unitList[0];
   const grams = Math.max(1, Math.round(u.grams(food) * qty));
   const nut = useMemo(() => nutrientsFor(food, grams), [food, grams]);
   const per100 = useMemo(() => nutrientsFor(food, 100), [food]);
@@ -137,7 +146,7 @@ export function NutritionCalculator({ patientId, nutrition, onLogged }: { patien
     return { items: top, max: Math.max(1, ...top.map(val)), val };
   }, [usable, food, compareBy]);
 
-  useEffect(() => { setQty(1); setUnit("porcao"); setNotice(null); requestId.current = null; }, [foodId]);
+  useEffect(() => { setQty(1); setUnit(food.group === "bebidas" || isLiquid(food.id) ? "copo" : "porcao"); setNotice(null); requestId.current = null; }, [foodId]);
 
   async function createFood() {
     const base = parseDecimal(draft.base);
@@ -166,13 +175,13 @@ export function NutritionCalculator({ patientId, nutrition, onLogged }: { patien
   }
   async function logNow() {
     if (busy) return;
-    if (!(await dialog.confirm("Registrar consumo?", `Registrar ${n(grams)} g de ${food.name} agora?`, false, "Registrar"))) return;
+    if (!(await dialog.confirm("Registrar consumo?", `Registrar ${n(grams)} ${U} de ${food.name} agora?`, false, "Registrar"))) return;
     setBusy(true); setNotice(null);
     try {
       const r = await (supabase as any).rpc("care_log_food_portion", { p_patient_id: patientId, p_food_id: food.id, p_grams: grams, p_request_id: (requestId.current ??= crypto.randomUUID()) });
       if (r.error || !r.data?.id) throw new Error(r.error?.message ?? "Registro não confirmado.");
       requestId.current = null;
-      setNotice({ ok: true, text: `${food.name} (${n(grams)} g) registrado no seu dia.` });
+      setNotice({ ok: true, text: `${food.name} (${n(grams)} ${U}) registrado no seu dia.` });
       nutrition.refresh(); onLogged?.();
     } catch (e) { setNotice({ ok: false, text: e instanceof Error ? e.message : "Não foi possível registrar." }); }
     finally { setBusy(false); }
@@ -213,7 +222,7 @@ export function NutritionCalculator({ patientId, nutrition, onLogged }: { patien
             style={group === g.key ? { background: g.color } : undefined}><g.icon size={13} />{g.label}</button>)}
         </div>
         <div className="mt-2 flex items-center justify-between gap-2">
-          <p className="text-[11px] text-muted-foreground">{list.length} alimentos · valores por 100 g</p>
+          <p className="text-[11px] text-muted-foreground">{list.length} alimentos · valores por 100 g ou 100 ml</p>
           <button type="button" onClick={() => setCreating((v) => !v)} aria-expanded={creating} className="inline-flex h-8 items-center gap-1 rounded-lg border border-border px-2.5 text-xs font-semibold text-primary transition hover:bg-primary/10"><Plus size={13} /> Criar alimento</button>
         </div>
         {creating && (
@@ -274,9 +283,9 @@ export function NutritionCalculator({ patientId, nutrition, onLogged }: { patien
           {/* Medida */}
           <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
             <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Medida">
-              {units.map((x) => <button key={x.key} type="button" role="radio" aria-checked={unit === x.key} onClick={() => { setUnit(x.key); setQty(x.key === "g" ? Math.round(grams) : 1); }}
+              {unitList.map((x) => <button key={x.key} type="button" role="radio" aria-checked={unit === x.key} onClick={() => { setUnit(x.key); setQty(x.key === "g" ? Math.round(grams) : 1); }}
                 className={`h-9 rounded-xl border px-3 text-xs font-semibold transition active:scale-95 ${unit === x.key ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary/40"}`}>
-                {x.label}{x.key !== "g" && <span className={unit === x.key ? "text-primary-foreground/70" : "text-muted-foreground"}> · {n(x.grams(food))} g</span>}
+                {x.label}{x.key !== "g" && <span className={unit === x.key ? "text-primary-foreground/70" : "text-muted-foreground"}> · {n(x.grams(food))} {U}</span>}
               </button>)}
             </div>
             <div className="flex items-center gap-2">
@@ -285,10 +294,10 @@ export function NutritionCalculator({ patientId, nutrition, onLogged }: { patien
               <input id="nv-calc-qty" inputMode="decimal" value={qty} onChange={(e) => { const v = Number(e.target.value.replace(",", ".")); if (Number.isFinite(v) && v >= 0) setQty(Math.min(unit === "g" ? 2000 : 20, v)); }}
                 className="h-10 w-20 rounded-xl border border-border bg-background text-center text-lg font-bold tabular-nums outline-none focus:border-primary" />
               <button type="button" aria-label="Aumentar quantidade" onClick={() => setQty((q) => Math.min(unit === "g" ? 2000 : 20, +(q + (unit === "g" ? 10 : 0.5)).toFixed(1)))} className="grid size-10 place-items-center rounded-xl border border-border transition hover:bg-muted active:scale-90"><Plus size={16} /></button>
-              <span className="min-w-[4.5rem] text-sm font-semibold tabular-nums text-muted-foreground">= {n(grams)} g</span>
+              <span className="min-w-[4.5rem] text-sm font-semibold tabular-nums text-muted-foreground">= {n(grams)} {U}</span>
             </div>
           </div>
-          <input type="range" min={5} max={600} step={5} value={Math.min(600, grams)} aria-label="Quantidade em gramas" onChange={(e) => { setUnit("g"); setQty(Number(e.target.value)); }}
+          <input type="range" min={5} max={600} step={5} value={Math.min(600, grams)} aria-label={liquid ? "Quantidade em mililitros" : "Quantidade em gramas"} onChange={(e) => { setUnit("g"); setQty(Number(e.target.value)); }}
             className="nv-range mt-3 w-full" style={{ ["--nv-pct" as string]: `${(Math.min(600, grams) / 600) * 100}%` }} />
 
           {/* Energia e macros */}
@@ -353,7 +362,7 @@ export function NutritionCalculator({ patientId, nutrition, onLogged }: { patien
             </p>
             <p className="relative mt-1 text-[11px] text-white/45">Meta: {n(target.protein)} g de proteína e {n(target.kcal)} kcal · já consumido hoje: {n(total.protein)} g e {n(total.kcal)} kcal.</p>
             <div className="relative mt-4 flex flex-wrap gap-2">
-              <button type="button" onClick={() => void logNow()} disabled={busy} className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-white px-4 text-sm font-bold text-[#062019] transition hover:bg-emerald-50 active:scale-[.97] disabled:opacity-60">{busy ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />} Registrar {n(grams)} g</button>
+              <button type="button" onClick={() => void logNow()} disabled={busy} className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-white px-4 text-sm font-bold text-[#062019] transition hover:bg-emerald-50 active:scale-[.97] disabled:opacity-60">{busy ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />} Registrar {n(grams)} {U}</button>
               <button type="button" onClick={() => setTray((t) => [...t, { id: food.id, name: food.name, grams, food }])} className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-white/20 px-4 text-sm font-bold text-white transition hover:bg-white/10 active:scale-[.97]"><Plus size={15} /> Adicionar ao prato</button>
             </div>
             {notice && <p role="status" className={`relative mt-3 rounded-lg px-3 py-2 text-xs font-semibold ${notice.ok ? "bg-emerald-400/15 text-emerald-200" : "bg-rose-500/20 text-rose-100"}`}>{notice.text}</p>}
@@ -383,7 +392,7 @@ export function NutritionCalculator({ patientId, nutrition, onLogged }: { patien
               );
             })}
           </ul>
-          <p className="mt-2 text-[11px] text-muted-foreground">Por 100 g de {food.name.toLowerCase()}: {n(per100.kcal)} kcal · proteína {n(per100.protein, 1)} g · carboidrato {n(per100.carbs, 1)} g · gordura {n(per100.fat, 1)} g. Toque em outro alimento para trocar.</p>
+          <p className="mt-2 text-[11px] text-muted-foreground">Por 100 {U} de {food.name.toLowerCase()}: {n(per100.kcal)} kcal · proteína {n(per100.protein, 1)} g · carboidrato {n(per100.carbs, 1)} g · gordura {n(per100.fat, 1)} g. Toque em outro alimento para trocar.</p>
         </div>
 
         {/* Prato */}
@@ -396,7 +405,7 @@ export function NutritionCalculator({ patientId, nutrition, onLogged }: { patien
               </select>
             </div>
             <ul className="mt-2 grid gap-1">
-              {tray.map((t, i) => <li key={i} className="flex items-center gap-2 rounded-lg bg-card px-2 py-1.5 text-sm"><FoodBadge food={t.food} size={26} /><span className="min-w-0 flex-1 truncate">{t.name}</span><span className="tabular-nums text-muted-foreground">{n(t.grams)} g</span>
+              {tray.map((t, i) => <li key={i} className="flex items-center gap-2 rounded-lg bg-card px-2 py-1.5 text-sm"><FoodBadge food={t.food} size={26} /><span className="min-w-0 flex-1 truncate">{t.name}</span><span className="tabular-nums text-muted-foreground">{n(t.grams)} {t.food.group === "bebidas" || isLiquid(t.food.id) ? "ml" : "g"}</span>
                 <button type="button" aria-label={`Remover ${t.name}`} onClick={() => setTray((x) => x.filter((_, j) => j !== i))} className="grid size-7 place-items-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 size={14} /></button></li>)}
             </ul>
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
