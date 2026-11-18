@@ -94,16 +94,18 @@ const SCENES: Scene[] = [
     ),
   },
   {
-    key: "medidas", label: "Medidas", icon: Ruler, color: "#22d3ee", cursor: ["82%", "33%"],
+    key: "medidas", label: "Medidas", icon: Ruler, color: "#22d3ee", cursor: ["84%", "14%"],
     render: () => (
-      <div className="grid h-full grid-cols-2 content-center gap-2 px-5">
+      <div className="flex h-full flex-col justify-center gap-2 px-5">
+        <div className="flex items-center justify-between gap-2"><span className="text-[11px] text-white/55">Medição de hoje</span><span className="nv-demo-press rounded-lg bg-cyan-300 px-2.5 py-1 text-[11px] font-bold text-slate-950">Salvar medidas</span></div>
+        <div className="grid grid-cols-2 gap-2">
         {[["Cintura", "97,0", "92,5"], ["Abdômen", "101,0", "96,8"], ["Braço", "34,0", "35,5"], ["Coxa", "58,0", "59,2"]].map(([l, a, b], i) => (
-          <div key={l} className={`rounded-xl px-3 py-2 ${i === 0 ? "bg-cyan-400/10 ring-1 ring-cyan-300/40" : "bg-white/[.05]"}`}>
+          <div key={l} className={`rounded-xl px-3 py-1.5 ${i === 0 ? "bg-cyan-400/10 ring-1 ring-cyan-300/40" : "bg-white/[.05]"}`}>
             <p className="text-[10px] text-white/55">{l}</p>
             <p className="relative h-6 text-base font-extrabold tabular-nums text-white"><Before className="absolute inset-0">{a} cm</Before><After className="absolute inset-0">{b} cm</After></p>
           </div>
         ))}
-        <span className="nv-demo-press absolute right-5 top-[22%] rounded-lg bg-cyan-300 px-2.5 py-1 text-[11px] font-bold text-slate-950">Salvar medidas</span>
+        </div>
         <Toast color="#67e8f9">−4,5 cm de cintura desde o início</Toast>
       </div>
     ),
