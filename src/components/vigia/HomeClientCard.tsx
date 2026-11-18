@@ -24,7 +24,6 @@ import {
   Clock3,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { CompactTreatmentBlister } from "./CompactTreatmentBlister";
 import { PatientActivityHistory } from "./PatientActivityHistory";
 import { ClientHydrationTab } from "./ClientHydrationTab";
 import { SectionInsights, isInsightSection } from "./SectionInsights";
@@ -174,10 +173,6 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
   };
   const [tick, setTick] = useState(0);
   const [clock, setClock] = useState<Date | null>(null);
-  const [treatmentProgress, setTreatmentProgress] = useState<{
-    confirmed: number;
-    total: number;
-  } | null>(null);
   const [hydrationGoal, setHydrationGoal] = useState<{
     consumed_ml?: number;
     target_ml?: number;
@@ -769,9 +764,6 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
   const mealConfirmed = tasks.filter(
     (task) => task.category === "refeicao" && Boolean(task.completed_at),
   ).length;
-  const progressPercent = treatmentProgress
-    ? Math.min(100, Math.round((treatmentProgress.confirmed / treatmentProgress.total) * 100))
-    : 0;
   const hydrationTarget = Number(hydrationGoal?.target_ml) || 0;
   const hydrationConsumed = Number(hydrationGoal?.consumed_ml) || 0;
   const hydrationPercent =
@@ -782,14 +774,10 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
         : 0;
   const mealTotal = meals.length;
   const mealPercent = mealTotal ? Math.round((mealConfirmed / mealTotal) * 100) : 0;
-  const medicinePercent = treatmentProgress
-    ? progressPercent
-    : medicineTasks.length
-      ? Math.round((medicineConfirmed / medicineTasks.length) * 100)
-      : 0;
-  const medicineValue = treatmentProgress
-    ? `${treatmentProgress.confirmed}/${treatmentProgress.total}`
-    : `${medicineConfirmed}/${medicineTasks.length}`;
+  const medicinePercent = medicineTasks.length
+    ? Math.round((medicineConfirmed / medicineTasks.length) * 100)
+    : 0;
+  const medicineValue = `${medicineConfirmed}/${medicineTasks.length}`;
   const sections = clientSectionOrder.map((key) => ({
     key,
     label: clientSectionTheme[key].label,
@@ -1226,19 +1214,6 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                 </section>
 
                 <div className="flex min-h-0 flex-col gap-3">
-                  <div
-                    className="shrink-0"
-                    id="care-overview-medication"
-                  >
-                    <CompactTreatmentBlister
-                      patientId={client.id}
-                      ownerId={client.owner_id}
-                      revision={tick}
-                      onConfirm={askConfirm}
-                      dashboardMode
-                      onProgressChange={setTreatmentProgress}
-                    />
-                  </div>
                   <section
                     aria-label="Histórico recente"
                     className={card + " flex min-h-[220px] flex-1 flex-col p-4 lg:min-h-0"}
@@ -1421,12 +1396,6 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                   <MissedDoseRegularizer
                     patientId={client.id}
                     onDone={() => setTick((value) => value + 1)}
-                  />
-                  <CompactTreatmentBlister
-                    patientId={client.id}
-                    ownerId={client.owner_id}
-                    revision={tick}
-                    onConfirm={askConfirm}
                   />
                   <ClientMedicationManager patientId={client.id} ownerId={client.owner_id} />
                 </div>
