@@ -35,7 +35,7 @@ export function LojistaPage() {
   return (
     <div className="grid gap-6">
       {state === "error" && <p role="alert" className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm">Não foi possível consultar a sua loja. A atualização do banco para lojistas ainda precisa ser aplicada.</p>}
-      <LojistaLanding onStart={start} />
+      <LojistaLanding onStart={start} fit={state !== "none"} />
       {state === "none" && <div ref={form} id="cadastro"><LojistaSignup onCreated={() => void load()} /></div>}
     </div>
   );
