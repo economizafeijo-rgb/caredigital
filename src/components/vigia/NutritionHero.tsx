@@ -1,4 +1,5 @@
-import { useMemo, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { EvoChart, EvoLegend } from "./EvoChart";
+import { useMemo, type ReactNode } from "react";
 import { Beef, Droplet, Flame, Target, Wheat } from "lucide-react";
 import { sumNutrients, type Nutrients } from "@/lib/food-parser";
 import { objectiveLabel } from "@/lib/objective-nutrition";
@@ -105,70 +106,55 @@ export function NutritionHero({ data, actions, onRegister }: { data: DailyNutrit
   );
 }
 
-/** Gráfico do dia: calorias de cada registro por horário, acumulado e ritmo de referência. */
+/** Evolução do dia: calorias acumuladas a cada registro, com a referência diária. */
 export function NutritionDayChart({ data }: { data: DailyNutrition }) {
   const { entries, target } = data;
-  const W = 640, H = 170, L = 40, R = 10, T = 12, B = 22, H0 = 5, H1 = 24;
+  const H0 = 5, H1 = 24;
   const points = useMemo(() => entries.map((e) => ({ h: hourOf(e.at), n: entryNutrients(e), text: e.text })).filter((p) => p.n.kcal > 0).sort((a, b) => a.h - b.h), [entries]);
-  const total = points.reduce((a, p) => a + p.n.kcal, 0);
-  const maxY = Math.max(target.kcal || 0, total, 600) * 1.08;
-  const x = (h: number) => L + ((Math.min(Math.max(h, H0), H1) - H0) / (H1 - H0)) * (W - L - R);
-  const y = (v: number) => T + (1 - v / maxY) * (H - T - B);
-  const [hover, setHover] = useState<number | null>(null);
-  let accum = 0;
-  const cum = points.map((p) => (accum += p.n.kcal));
-  const steps = [`M${x(H0)} ${y(0)}`, ...points.flatMap((p, i) => [`L${x(p.h)} ${y(i ? cum[i - 1] : 0)}`, `L${x(p.h)} ${y(cum[i])}`]), `L${x(Math.max(H0, Math.min(H1, hourOf(new Date().toISOString()))))} ${y(cum[cum.length - 1] ?? 0)}`].join(" ");
-  const onMove = (e: ReactPointerEvent<SVGSVGElement>) => {
-    if (!points.length) return;
-    const r = e.currentTarget.getBoundingClientRect();
-    const px = ((e.clientX - r.left) / r.width) * W;
-    let best = 0;
-    points.forEach((p, i) => { if (Math.abs(x(p.h) - px) < Math.abs(x(points[best].h) - px)) best = i; });
-    setHover(Math.abs(x(points[best].h) - px) < 40 ? best : null);
-  };
-  const hp = hover === null ? null : points[hover];
-  const tipX = hp ? Math.min(Math.max(x(hp.h) - 90, L), W - R - 180) : 0;
+  const nowH = hourOf(new Date().toISOString());
+  let acc = 0;
+  const line = [{ x: Math.min(H0, points[0]?.h ?? H0), y: 0 }, ...points.map((p) => ({ x: p.h, y: (acc += p.n.kcal) }))];
+  const total = acc;
+  if (nowH > line[line.length - 1].x) line.push({ x: nowH, y: total });
+  const pace = target.kcal > 0 ? [{ x: H0, y: 0 }, { x: 7, y: 0 }, { x: 21, y: target.kcal }, { x: H1, y: target.kcal }] : [];
+  const hm = (h: number) => `${String(Math.floor(h)).padStart(2, "0")}:${String(Math.round((h % 1) * 60) % 60).padStart(2, "0")}`;
   return (
-    <figure className="rounded-2xl border border-border bg-card p-3 sm:p-4">
-      <figcaption className="flex flex-wrap items-center justify-between gap-2">
+    <figure className="min-w-0 rounded-2xl border border-border bg-card p-3 sm:p-4">
+      <figcaption className="mb-1 flex flex-wrap items-start justify-between gap-2">
         <span>
-          <strong className="block text-sm font-bold">Calorias ao longo do dia</strong>
-          <span className="text-xs text-muted-foreground">{points.length ? "Passe o mouse sobre cada registro" : "Os registros de hoje aparecem aqui"}</span>
+          <strong className="block text-sm font-bold">Evolução das calorias</strong>
+          <span className="text-xs text-muted-foreground">{points.length ? `${n0(total)} kcal em ${points.length} registro${points.length === 1 ? "" : "s"}` : "Os registros de hoje aparecem aqui"}</span>
         </span>
-        <span className="flex gap-3 text-[11px] font-semibold text-muted-foreground">
-          <span className="inline-flex items-center gap-1.5"><i className="size-2.5 rounded-full bg-orange-400" /> Registro</span>
-          <span className="inline-flex items-center gap-1.5"><i className="h-0.5 w-4 rounded bg-emerald-500" /> Acumulado</span>
-        </span>
+        <EvoLegend items={[{ label: "Acumulado", color: "#10b981" }, ...(pace.length ? [{ label: "Ritmo de referência", color: "#f97316", dashed: true }] : [])]} />
       </figcaption>
-      <svg viewBox={`0 0 ${W} ${H}`} className="mt-2 w-full touch-none select-none" onPointerMove={onMove} onPointerDown={onMove} onPointerLeave={() => setHover(null)} role="img" aria-label={`Calorias hoje: ${n0(total)} kcal`}>
-        <defs><linearGradient id="nv-kcal-area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#10b981" stopOpacity=".25" /><stop offset="1" stopColor="#10b981" stopOpacity="0" /></linearGradient></defs>
-        {[0.25, 0.5, 0.75, 1].map((f) => (
-          <g key={f}>
-            <line x1={L} x2={W - R} y1={y((maxY * f) / 1.08)} y2={y((maxY * f) / 1.08)} stroke="currentColor" className="text-border" strokeDasharray="2 5" />
-            <text x={L - 6} y={y((maxY * f) / 1.08) + 3} textAnchor="end" fontSize="9" fill="currentColor" className="text-muted-foreground">{n0((maxY * f) / 1.08)}</text>
-          </g>
-        ))}
-        {target.kcal > 0 && (
-          <g>
-            <line x1={L} x2={W - R} y1={y(target.kcal)} y2={y(target.kcal)} stroke="#f97316" strokeDasharray="5 5" opacity=".7" />
-            <text x={W - R} y={y(target.kcal) - 5} textAnchor="end" fontSize="10" fontWeight="700" fill="#f97316">Referência {n0(target.kcal)} kcal</text>
-          </g>
-        )}
-        {points.length > 0 && <path d={`${steps} L${x(Math.max(H0, Math.min(H1, hourOf(new Date().toISOString()))))} ${y(0)}Z`} fill="url(#nv-kcal-area)" />}
-        {points.length > 0 && <path d={steps} fill="none" stroke="#10b981" strokeWidth="3" strokeLinejoin="round" pathLength={1} className="nv-evo-line nv-draw-now" />}
-        {points.map((p, i) => (
-          <circle key={i} cx={x(p.h)} cy={y(cum[i])} r={hover === i ? 8 : Math.max(4, Math.min(9, p.n.kcal / 90))} fill="#fb923c" stroke="var(--card)" strokeWidth="2" className="nv-dot-in" style={{ animationDelay: `${300 + i * 80}ms`, transition: "r .2s" }} />
-        ))}
-        {[6, 9, 12, 15, 18, 21, 24].map((h) => <text key={h} x={x(h)} y={H - 6} textAnchor="middle" fontSize="10" fill="currentColor" className="text-muted-foreground">{String(h % 24).padStart(2, "0")}h</text>)}
-        {hp && (
-          <g pointerEvents="none" transform={`translate(${tipX} ${T + 2})`}>
-            <rect width="180" height="54" rx="9" fill="#0f172a" />
-            <text x="10" y="16" fontSize="10" fill="#94a3b8">{String(Math.floor(hp.h)).padStart(2, "0")}:{String(Math.round((hp.h % 1) * 60)).padStart(2, "0")} · {n0(hp.n.kcal)} kcal</text>
-            <text x="10" y="31" fontSize="11" fontWeight="700" fill="#fff">{hp.text.length > 28 ? `${hp.text.slice(0, 27)}…` : hp.text || "Registro"}</text>
-            <text x="10" y="46" fontSize="10" fill="#cbd5e1">P {n0(hp.n.protein)} g · C {n0(hp.n.carbs)} g · G {n0(hp.n.fat)} g</text>
-          </g>
-        )}
-      </svg>
+      <EvoChart
+        height={220}
+        ariaLabel={`Calorias hoje: ${n0(total)} kcal`}
+        xMin={H0}
+        xMax={H1}
+        xTicks={[6, 9, 12, 15, 18, 21, 24].map((h) => ({ x: h, label: `${String(h % 24).padStart(2, "0")}h` }))}
+        formatX={hm}
+        formatY={(v) => n0(v)}
+        goal={target.kcal > 0 ? { y: target.kcal, label: `Referência ${n0(target.kcal)} kcal`, color: "#f97316" } : undefined}
+        nowX={nowH}
+        series={[
+          { id: "kcal", label: "Acumulado (kcal)", color: "#10b981", points: line.map((p, i) => (i > 0 && i <= points.length ? { ...p, color: "#f97316" } : p)), area: true, dots: true, live: true },
+          ...(pace.length ? [{ id: "pace", label: "Referência", color: "#f97316", points: pace, dashed: true, linear: true }] : []),
+        ]}
+        tip={(h) => {
+          const hit = points.filter((p) => Math.abs(p.h - h) < 1 / 120);
+          return hit.length ? (
+            <div className="mt-1.5 grid gap-1 border-t border-border pt-1.5">
+              {hit.map((p, i) => (
+                <div key={i}>
+                  <p className="flex gap-2"><span className="truncate font-semibold">{p.text || "Registro"}</span><strong className="ml-auto shrink-0 tabular-nums text-orange-500">+{n0(p.n.kcal)} kcal</strong></p>
+                  <p className="text-muted-foreground">P {n0(p.n.protein)} g · C {n0(p.n.carbs)} g · G {n0(p.n.fat)} g</p>
+                </div>
+              ))}
+            </div>
+          ) : null;
+        }}
+      />
     </figure>
   );
 }

@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { EvoChart, EvoLegend } from "./EvoChart";
+import { useMemo } from "react";
 import { Flame, Footprints, MapPin, Timer, Trophy } from "lucide-react";
 import { NextUpClock } from "./NextUpClock";
 
@@ -89,9 +90,8 @@ export function ActivityHero({ items, onStartGps, gpsLabel }: { items: Item[]; o
   );
 }
 
-/** Barras dos últimos 14 dias com minutos por dia; passe o mouse para ver os detalhes. */
+/** Linha dos últimos 14 dias com minutos por dia e o ritmo necessário para a meta semanal. */
 export function ActivityDaysChart({ items }: { items: Item[] }) {
-  const [hover, setHover] = useState<number | null>(null);
   const days = useMemo(() => {
     const map = new Map<string, { min: number; km: number; n: number }>();
     for (const it of items) {
@@ -102,33 +102,35 @@ export function ActivityDaysChart({ items }: { items: Item[] }) {
     }
     return Array.from({ length: 14 }, (_, i) => {
       const d = new Date(Date.now() - (13 - i) * 86_400_000);
-      return { label: new Intl.DateTimeFormat("pt-BR", { timeZone: tz, weekday: "narrow" }).format(d), date: new Intl.DateTimeFormat("pt-BR", { timeZone: tz, day: "2-digit", month: "2-digit" }).format(d), ...(map.get(dayKey(d)) ?? { min: 0, km: 0, n: 0 }) };
+      return { x: i, date: new Intl.DateTimeFormat("pt-BR", { timeZone: tz, day: "2-digit", month: "2-digit" }).format(d), wd: new Intl.DateTimeFormat("pt-BR", { timeZone: tz, weekday: "short" }).format(d).replace(".", ""), ...(map.get(dayKey(d)) ?? { min: 0, km: 0, n: 0 }) };
     });
   }, [items]);
-  const max = Math.max(45, ...days.map((d) => d.min));
   const daily = Math.round(WEEK_GOAL / 7);
+  const week = days.slice(7).reduce((a, d) => a + d.min, 0);
   return (
-    <figure className="shrink-0 rounded-2xl border border-border bg-card p-3 sm:p-4">
-      <figcaption className="flex items-center justify-between gap-2">
-        <span><strong className="block text-sm font-bold">Últimos 14 dias</strong><span className="text-xs text-muted-foreground">Minutos de atividade por dia</span></span>
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground"><i className="h-0.5 w-4 border-t-2 border-dashed border-teal-500" /> Ritmo da meta ({daily} min/dia)</span>
+    <figure className="min-w-0 shrink-0 rounded-2xl border border-border bg-card p-3 sm:p-4">
+      <figcaption className="mb-1 flex flex-wrap items-start justify-between gap-2">
+        <span><strong className="block text-sm font-bold">Últimos 14 dias</strong><span className="text-xs text-muted-foreground">{week} min nos últimos 7 dias · meta {WEEK_GOAL} min/semana</span></span>
+        <EvoLegend items={[{ label: "Minutos por dia", color: "#0d9488" }, { label: `Ritmo da meta (${daily} min/dia)`, color: "#84cc16", dashed: true }]} />
       </figcaption>
-      <div className="relative mt-3 flex h-32 items-end gap-1.5" onPointerLeave={() => setHover(null)}>
-        <span aria-hidden="true" className="absolute inset-x-0 border-t-2 border-dashed border-teal-500/50" style={{ bottom: `${(daily / max) * 100}%` }} />
-        {days.map((d, i) => (
-          <button key={i} type="button" onPointerEnter={() => setHover(i)} onFocus={() => setHover(i)} onBlur={() => setHover(null)} aria-label={`${d.date}: ${d.min} minutos`}
-            className="group relative flex h-full flex-1 flex-col justify-end focus-visible:outline-none">
-            <span className={`nv-bar block w-full rounded-t-md transition-[filter,opacity] ${i >= 7 ? "bg-gradient-to-t from-teal-600 to-lime-400" : "bg-teal-500/35"} ${hover !== null && hover !== i ? "opacity-50" : ""} group-focus-visible:ring-2 group-focus-visible:ring-teal-400`}
-              style={{ height: d.min ? `${Math.max(4, (d.min / max) * 100)}%` : "3px", animationDelay: `${i * 35}ms` }} />
-            {hover === i && (
-              <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 w-32 -translate-x-1/2 rounded-xl bg-slate-900 px-2.5 py-1.5 text-left text-[11px] text-white shadow-lg">
-                <strong className="block">{d.date}</strong>{d.min} min · {d.n} {d.n === 1 ? "sessão" : "sessões"}{d.km > 0 && <span className="block text-white/70">{d.km.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} km</span>}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
-      <div className="mt-1 flex gap-1.5 text-center text-[10px] font-semibold uppercase text-muted-foreground">{days.map((d, i) => <span key={i} className="flex-1">{d.label}</span>)}</div>
+      <EvoChart
+        height={200}
+        ariaLabel={`Minutos de atividade nos últimos 14 dias; ${week} nos últimos 7`}
+        xMin={-0.3}
+        xMax={13.3}
+        xTicks={days.filter((_, i) => (13 - i) % 2 === 0).map((d) => ({ x: d.x, label: d.date }))}
+        formatX={(x) => `${days[Math.round(x)]?.wd ?? ""}, ${days[Math.round(x)]?.date ?? ""}`}
+        formatY={(v) => `${Math.round(v)}`}
+        yFloor={daily * 1.5}
+        series={[
+          { id: "min", label: "Minutos", color: "#0d9488", points: days.map((d) => ({ x: d.x, y: d.min })), area: true, dots: true, live: true },
+          { id: "goal", label: "Ritmo da meta", color: "#84cc16", points: [{ x: -0.3, y: daily }, { x: 13.3, y: daily }], dashed: true, linear: true },
+        ]}
+        tip={(x) => {
+          const d = days[Math.round(x)];
+          return d ? <p className="mt-1.5 border-t border-border pt-1.5 text-muted-foreground">{d.n} {d.n === 1 ? "sessão" : "sessões"}{d.km > 0 ? ` · ${d.km.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} km` : ""}</p> : null;
+        }}
+      />
     </figure>
   );
 }

@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { Bar, CartesianGrid, Cell, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Check, Droplets, Pencil, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { acreDateAtTime, acreDateKey, ACRE_TIME_ZONE } from "@/lib/acre-time";
@@ -14,7 +13,7 @@ type Entry = WaterEntry & { source: "water" | "beverage" };
 const hhmm = (iso: string) => new Intl.DateTimeFormat("pt-BR", { timeZone: ACRE_TIME_ZONE, hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso));
 const ml = (v: number) => `${Math.round(v).toLocaleString("pt-BR")} ml`;
 
-/** Registros de hoje: gráfico interativo (barras por registro + acumulado x meta) e lista com editar/excluir sempre à vista. */
+/** Registros de hoje em lista compacta, com detalhes, editar e excluir sempre à vista. */
 export function HydrationEntries({ patientId, water, beverages, goal, onChanged }: { patientId: string; water: WaterEntry[]; beverages: WaterEntry[]; goal: number; onChanged: () => void }) {
   const dialog = useDialog();
   const entries = useMemo<Entry[]>(() => [...water.map((e) => ({ ...e, source: "water" as const })), ...beverages.map((e) => ({ ...e, source: "beverage" as const }))].sort((a, b) => Date.parse(a.recorded_at) - Date.parse(b.recorded_at)), [water, beverages]);
@@ -28,12 +27,7 @@ export function HydrationEntries({ patientId, water, beverages, goal, onChanged 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  const data = useMemo(() => {
-    let sum = 0;
-    return entries.map((e) => { sum += Number(e.amount_ml); return { id: e.id, label: hhmm(e.recorded_at), ml: Number(e.amount_ml), total: sum, source: e.source }; });
-  }, [entries]);
-  const total = data.at(-1)?.total ?? 0;
-  const pct = goal ? Math.min(100, Math.round((total / goal) * 100)) : 0;
+  const total = entries.reduce((sum, e) => sum + Number(e.amount_ml), 0);
   if (entries.length === 0) return null;
 
   function startEdit(e: Entry) {
@@ -69,33 +63,15 @@ export function HydrationEntries({ patientId, water, beverages, goal, onChanged 
   }
 
   return (
-    <section className="grid gap-3 rounded-2xl border border-sky-500/25 bg-gradient-to-br from-sky-500/[.07] to-cyan-500/[.03] p-3 sm:p-4" aria-label="Consumo de água de hoje">
-      <header className="flex flex-wrap items-end justify-between gap-2">
-        <div><p className="text-[11px] font-bold uppercase tracking-[.14em] text-sky-600 dark:text-sky-300">Acompanhamento</p><h4 className="text-base font-extrabold">Consumo de hoje</h4></div>
-        <div className="text-right"><strong className="text-xl font-extrabold tabular-nums">{ml(total)}</strong>{goal > 0 && <span className="block text-[11px] text-muted-foreground">{pct}% de {ml(goal)}</span>}</div>
+    <section className="flex min-h-0 min-w-0 flex-col rounded-2xl border border-border bg-card p-3 sm:p-4" aria-label="Registros de hoje">
+      <header className="mb-2 flex items-baseline justify-between gap-2">
+        <strong className="text-sm font-bold">Registros de hoje</strong>
+        <span className="text-xs text-muted-foreground tabular-nums">{entries.length} · {ml(total)}</span>
       </header>
-      <div className="h-40 sm:h-48" role="img" aria-label="Consumo de água por registro e total acumulado">
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={data} margin={{ top: 10, right: 6, left: -8, bottom: 0 }}>
-            <defs><linearGradient id="hydBar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#38bdf8" /><stop offset="100%" stopColor="#0284c7" /></linearGradient></defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.25} />
-            <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-            <YAxis yAxisId="ml" tick={{ fontSize: 10 }} width={42} />
-            <YAxis yAxisId="total" orientation="right" tick={{ fontSize: 10 }} width={42} domain={[0, Math.max(goal, total) * 1.05 || 100]} />
-            {goal > 0 && <ReferenceLine yAxisId="total" y={goal} stroke="#10b981" strokeDasharray="5 4" label={{ value: "Meta", position: "insideTopRight", fontSize: 10, fill: "#10b981" }} />}
-            <Tooltip cursor={{ fill: "rgba(56,189,248,.12)" }} formatter={(v: number, name: string) => [ml(v), name]} />
-            <Bar yAxisId="ml" dataKey="ml" name="Registro" radius={[8, 8, 0, 0]} maxBarSize={44} animationDuration={700} onClick={(d: any) => setSelected(d?.id ?? null)} cursor="pointer">
-              {data.map((d) => <Cell key={d.id} fill={selected === d.id ? "#f59e0b" : d.source === "water" ? "url(#hydBar)" : "#8b5cf6"} />)}
-            </Bar>
-            <Line yAxisId="total" type="monotone" dataKey="total" name="Acumulado" stroke="#0ea5e9" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 6 }} animationDuration={900} />
-          </ComposedChart>
-        </ResponsiveContainer>
-      </div>
-      <p className="text-[11px] text-muted-foreground">Toque numa barra para selecionar o registro. Barras roxas são outras bebidas.</p>
       {error && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">{error}</p>}
-      <ul className="grid gap-1.5" aria-label="Meus registros de hoje">
+      <ul className="-mr-1 grid max-h-[248px] gap-1 overflow-y-auto pr-1 [scrollbar-width:thin]" aria-label="Meus registros de hoje">
         {[...entries].reverse().map((e) => (
-          <li key={e.id} className={`rounded-xl border bg-card px-3 py-2 ${selected === e.id ? "border-amber-400 ring-2 ring-amber-400/30" : "border-border"}`}>
+          <li key={e.id} className={`group rounded-xl border px-2 py-1.5 transition-colors ${selected === e.id ? "border-primary/40 bg-primary/[.05]" : "border-transparent hover:border-border hover:bg-muted/40"}`}>
             {editing === e.id ? (
               <div className="grid gap-2">
                 {e.source === "beverage" && (
@@ -116,15 +92,15 @@ export function HydrationEntries({ patientId, water, beverages, goal, onChanged 
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-3">
-                <button type="button" onClick={() => setSelected(e.id)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-                  <span className={`grid size-9 shrink-0 place-items-center rounded-xl text-white ${e.source === "water" ? "bg-sky-500" : "bg-violet-500"}`}><Droplets size={17} /></span>
-                  <span className="min-w-0"><strong className="block text-sm tabular-nums">{ml(Number(e.amount_ml))}</strong><span className="text-[11px] text-muted-foreground">{hhmm(e.recorded_at)} · {e.source === "water" ? "Água" : (e.name ? `${e.name} · ` : "") + (beverageCategory(e.kind ?? "outra")?.label ?? "Bebida")}{e.source === "beverage" && isBeverageKind(e.kind ?? "") ? ` · ~${beverageNutrients(e.kind as any, Number(e.amount_ml)).kcal} kcal` : ""}</span></span>
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={() => setSelected(e.id)} className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
+                  <span className={`grid size-8 shrink-0 place-items-center rounded-lg ${e.source === "water" ? "bg-sky-500/12 text-sky-600 dark:text-sky-300" : "bg-violet-500/12 text-violet-600 dark:text-violet-300"}`}><Droplets size={15} /></span>
+                  <span className="min-w-0"><strong className="block text-[13px] leading-tight tabular-nums">{ml(Number(e.amount_ml))}</strong><span className="block truncate text-[11px] text-muted-foreground">{hhmm(e.recorded_at)} · {e.source === "water" ? "Água" : (e.name ? `${e.name} · ` : "") + (beverageCategory(e.kind ?? "outra")?.label ?? "Bebida")}{e.source === "beverage" && isBeverageKind(e.kind ?? "") ? ` · ~${beverageNutrients(e.kind as any, Number(e.amount_ml)).kcal} kcal` : ""}</span></span>
                 </button>
                 {confirmId === e.id ? (
                   <span className="flex items-center gap-1.5"><button type="button" disabled={busy} onClick={() => void remove(e)} className="h-9 rounded-lg bg-rose-600 px-3 text-xs font-bold text-white disabled:opacity-60">{busy ? "Excluindo…" : "Confirmar exclusão"}</button><button type="button" onClick={() => setConfirmId(null)} className="h-9 rounded-lg border border-border px-2.5 text-xs font-semibold">Voltar</button></span>
                 ) : (
-                  <span className="flex items-center gap-1.5">
+                  <span className="flex shrink-0 items-center gap-1">
                     <RecordInfo
                       title={e.source === "water" ? `Água · ${ml(Number(e.amount_ml))}` : `${e.name || beverageCategory(e.kind ?? "outra")?.label || "Bebida"} · ${ml(Number(e.amount_ml))}`}
                       at={e.recorded_at}
@@ -138,8 +114,8 @@ export function HydrationEntries({ patientId, water, beverages, goal, onChanged 
                         { label: "Da meta do dia", value: goal > 0 ? `${Math.round((Number(e.amount_ml) / goal) * 100)}%` : "—" },
                       ]}
                     />
-                    <button type="button" onClick={() => startEdit(e)} aria-label={`Editar registro de ${ml(Number(e.amount_ml))} às ${hhmm(e.recorded_at)}`} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 text-xs font-bold hover:border-primary/40"><Pencil size={14} /> <span className="hidden sm:inline">Editar</span></button>
-                    <button type="button" onClick={() => { setEditing(null); setError(""); void remove(e); }} aria-label={`Excluir registro de ${ml(Number(e.amount_ml))} às ${hhmm(e.recorded_at)}`} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 text-xs font-bold text-rose-700 dark:text-rose-300"><Trash2 size={14} /> <span className="hidden sm:inline">Excluir</span></button>
+                    <button type="button" onClick={() => startEdit(e)} aria-label={`Editar registro de ${ml(Number(e.amount_ml))} às ${hhmm(e.recorded_at)}`} title="Editar" className="grid size-8 place-items-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground"><Pencil size={14} /></button>
+                    <button type="button" onClick={() => { setEditing(null); setError(""); void remove(e); }} aria-label={`Excluir registro de ${ml(Number(e.amount_ml))} às ${hhmm(e.recorded_at)}`} title="Excluir" className="grid size-8 place-items-center rounded-lg text-muted-foreground transition hover:bg-rose-500/10 hover:text-rose-600"><Trash2 size={14} /></button>
                   </span>
                 )}
               </div>

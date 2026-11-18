@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  Area, Bar, CartesianGrid, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis,
-} from "recharts";
-import { AreaChart as AreaIcon, BarChart3, ChevronDown, Flame, LineChart as LineIcon, TrendingDown, TrendingUp, Trophy } from "lucide-react";
+import { CalendarDays, ChevronDown, Flame, LineChart as LineIcon, TrendingDown, TrendingUp, Trophy } from "lucide-react";
+import { EvoChart } from "./EvoChart";
 import { supabase } from "@/integrations/supabase/client";
 import { acreDateKey } from "@/lib/acre-time";
 import { parseFoodText, sumNutrients } from "@/lib/food-parser";
@@ -15,7 +13,7 @@ export type InsightSection = "agenda" | "hidratacao" | "medicacao" | "alimentaca
 
 const configs: Record<InsightSection, Config> = {
   agenda: { title: "Cuidados concluídos por dia", subtitle: "Toque em um dia para ver os detalhes", unit: "", a: { label: "Concluídos", color: "#7c3aed", to: "#d946ef" }, b: { label: "Pendentes", color: "#f59e0b", to: "#fbbf24" } },
-  hidratacao: { title: "Água consumida por dia", subtitle: "Compare com a sua meta diária", unit: "ml", a: { label: "Água", color: "#0284c7", to: "#22d3ee" }, goalLabel: "Meta" },
+  hidratacao: { title: "Líquidos por dia", subtitle: "Água e outras bebidas comparadas à sua meta", unit: "ml", a: { label: "Total de líquidos", color: "#0284c7", to: "#22d3ee" }, b: { label: "Outras bebidas", color: "#8b5cf6", to: "#a78bfa" }, goalLabel: "Meta" },
   medicacao: { title: "Adesão às doses por dia", subtitle: "Doses confirmadas e doses sem registro", unit: "", a: { label: "Confirmadas", color: "#e11d48", to: "#fb7185" }, b: { label: "Sem registro", color: "#94a3b8", to: "#cbd5e1" } },
   alimentacao: { title: "Calorias registradas por dia", subtitle: "Estimativa a partir das refeições descritas", unit: "kcal", a: { label: "Calorias", color: "#059669", to: "#84cc16" }, b: { label: "Proteína (g)", color: "#e11d48", to: "#fb7185" } },
   atividade: { title: "Minutos de atividade por dia", subtitle: "Referência da OMS: 150 minutos por semana", unit: "min", a: { label: "Minutos", color: "#ea580c", to: "#fbbf24" }, b: { label: "Distância (km)", color: "#0ea5e9", to: "#38bdf8" } },
@@ -76,11 +74,13 @@ async function load(section: InsightSection, patientId: string, ownerId: string)
       for (const t of own.data ?? []) add(t.taken_on, 1, 0);
     }
   } else if (section === "hidratacao") {
-    const [water, profile] = await Promise.all([
+    const [water, profile, drinks] = await Promise.all([
       db.from("care_hydration").select("amount_ml,recorded_at").eq("patient_id", patientId).eq("owner_id", ownerId).gte("recorded_at", since).limit(3000),
       db.from("care_hydration_profiles").select("target_ml").eq("patient_id", patientId).maybeSingle(),
+      db.from("care_client_beverages").select("amount_ml,consumed_at").eq("patient_id", patientId).eq("owner_id", ownerId).gte("consumed_at", since).limit(3000),
     ]);
     for (const w of water.data ?? []) add(dayOf(w.recorded_at), Number(w.amount_ml));
+    for (const d of drinks?.data ?? []) add(dayOf(d.consumed_at), Number(d.amount_ml), Number(d.amount_ml));
     goal = Number(profile.data?.target_ml) || null;
   } else if (section === "alimentacao") {
     const rows = await db.from("care_activity_log").select("happened_at,details").eq("patient_id", patientId).eq("category", "refeicao").in("event_type", ["confirmed", "logged"]).gte("happened_at", since).limit(2000);
@@ -106,14 +106,18 @@ async function load(section: InsightSection, patientId: string, ownerId: string)
   return { map, goal };
 }
 
-type ChartKind = "bar" | "area" | "line";
 const ranges = [[7, "7 dias"], [14, "14 dias"], [30, "30 dias"]] as const;
+const DAY = 86_400_000;
+const toX = (key: string) => Date.parse(key + "T12:00:00Z");
+const fromX = (x: number) => new Date(x).toISOString().slice(0, 10);
+const compact = (v: number) => v >= 10000 ? `${(v / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} mil` : fmt(Math.round(v * 10) / 10);
+/** Séries com a mesma unidade da principal podem dividir o eixo; as demais aparecem só na dica. */
+const sharesAxis = (s: InsightSection) => s === "agenda" || s === "medicacao" || s === "historico" || s === "hidratacao";
 
 export function SectionInsights({ section, patientId, ownerId, revision = 0 }: { section: InsightSection; patientId: string; ownerId: string; revision?: number }) {
   const config = configs[section];
   const [data, setData] = useState<{ map: Map<string, { a: number; b: number }>; goal: number | null } | null>(null);
   const [days, setDays] = useState<7 | 14 | 30>(14);
-  const [kind, setKind] = useState<ChartKind>("bar");
   const [hidden, setHidden] = useState<{ a: boolean; b: boolean; t: boolean }>({ a: false, b: false, t: false });
   const [selected, setSelected] = useState<string | null>(null);
   const [open, setOpen] = useState(true);
@@ -127,10 +131,7 @@ export function SectionInsights({ section, patientId, ownerId, revision = 0 }: {
   useEffect(() => { setSelected(null); setHidden({ a: false, b: false, t: false }); }, [section]);
 
   const rows = useMemo(() => withTrend(fillDays(data?.map ?? new Map(), days)), [data, days]);
-  // Onde a segunda série já é uma linha (alimentação e atividade), ela faz o papel da linha do gráfico.
-  const hasTrend = section !== "alimentacao" && section !== "atividade";
-  // Em Medicação as barras já são vermelhas: a linha usa índigo para contrastar.
-  const TREND = { label: "Tendência (média de 3 dias)", color: section === "medicacao" ? "#4f46e5" : "#f43f5e" };
+  const TREND = { label: "Média de 3 dias", color: section === "medicacao" ? "#4f46e5" : "#f43f5e" };
   const previous = useMemo(() => fillDays(data?.map ?? new Map(), days * 2).slice(0, days), [data, days]);
   const total = rows.reduce((sum, row) => sum + row.a, 0);
   const previousTotal = previous.reduce((sum, row) => sum + row.a, 0);
@@ -138,105 +139,86 @@ export function SectionInsights({ section, patientId, ownerId, revision = 0 }: {
   const average = activeDays ? total / activeDays : 0;
   const best = rows.reduce((top, row) => row.a > top.a ? row : top, rows[0]);
   const streak = currentStreak(rows);
-  const change = days <= 14 && previousTotal > 0 ? Math.round((total - previousTotal) / previousTotal * 100) : null;
+  const change = previousTotal > 0 ? Math.round((total - previousTotal) / previousTotal * 100) : null;
   const picked = rows.find(row => row.day === selected) ?? rows[rows.length - 1];
-  const gid = `ins-${section}`;
   const empty = total === 0 && rows.every(row => row.b === 0);
+  const unit = config.unit ? " " + config.unit : "";
+  const goalDays = data?.goal ? rows.filter(row => row.a >= data.goal!).length : null;
+  const byX = useMemo(() => new Map(rows.map(r => [toX(r.day), r])), [rows]);
+  const bOnAxis = Boolean(config.b) && sharesAxis(section);
 
-  const series = (key: "a" | "b") => {
-    const item = key === "a" ? config.a : config.b;
-    if (!item || hidden[key]) return null;
-    const fill = `url(#${gid}-${key})`;
-    const common = { dataKey: key, name: item.label, isAnimationActive: true, animationDuration: 500 } as const;
-    if (key === "b" && section !== "agenda" && section !== "medicacao" && section !== "historico")
-      return <Line {...common} yAxisId="right" type="monotone" stroke={item.color} strokeWidth={3} dot={{ r: 3, fill: "#fff", stroke: item.color, strokeWidth: 2 }} activeDot={{ r: 6 }}/>;
-    if (kind === "bar") return <Bar {...common} yAxisId="left" stackId="s" fill={fill} radius={key === "a" && (!config.b || hidden.b || section === "alimentacao" || section === "atividade") ? [8, 8, 8, 8] : key === "b" ? [8, 8, 0, 0] : [0, 0, 8, 8]} maxBarSize={38} cursor="pointer"/>;
-    if (kind === "area") return <Area {...common} yAxisId="left" type="monotone" stackId="s" stroke={item.color} strokeWidth={3} fill={fill} fillOpacity={0.35} activeDot={{ r: 6, fill: item.color, stroke: "#fff", strokeWidth: 2 }}/>;
-    return <Line {...common} yAxisId="left" type="monotone" stroke={item.color} strokeWidth={3.5} dot={{ r: 3.5, fill: "#fff", stroke: item.color, strokeWidth: 2 }} activeDot={{ r: 7, fill: item.color, stroke: "#fff", strokeWidth: 2 }}/>;
-  };
-  const twoAxes = Boolean(config.b) && (section === "alimentacao" || section === "atividade") && !hidden.b;
+  const series = [
+    ...(!hidden.a ? [{ id: "a", label: config.a.label, color: config.a.color, area: true, dots: days <= 14, live: true, points: rows.map(r => ({ x: toX(r.day), y: r.a })) }] : []),
+    ...(config.b && bOnAxis && !hidden.b ? [{ id: "b", label: config.b.label, color: config.b.color, dots: days <= 14, points: rows.map(r => ({ x: toX(r.day), y: r.b })) }] : []),
+    ...(!hidden.t ? [{ id: "t", label: TREND.label, color: TREND.color, dashed: true, points: rows.map(r => ({ x: toX(r.day), y: r.t ?? 0 })) }] : []),
+  ];
+  const tickEvery = days === 7 ? 1 : days === 14 ? 2 : 5;
+  const xTicks = rows.filter((_, i) => (rows.length - 1 - i) % tickEvery === 0).map(r => ({ x: toX(r.day), label: short(r.day) }));
+  const pct = data?.goal ? Math.round(picked.a / data.goal * 100) : null;
 
-  return <section className="mb-4 overflow-hidden rounded-3xl border border-border bg-card shadow-card" aria-label={config.title}>
-    <header className="grid min-w-0 grid-cols-[2.75rem_minmax(0,1fr)] items-center gap-x-3 gap-y-3 p-4 pb-2 sm:flex sm:flex-wrap sm:items-center sm:gap-3 sm:p-5 sm:pb-2">
-      <span className="row-span-1 grid size-11 shrink-0 place-items-center rounded-2xl text-white shadow-md" style={{ background: `linear-gradient(135deg, ${config.a.color}, ${config.a.to})` }}><BarChart3 size={21}/></span>
-      <div className="min-w-0 w-full"><h3 className="break-words text-lg font-bold leading-tight">{config.title}</h3><p className="break-words text-sm text-muted-foreground">{config.subtitle}</p></div>
-      <div className="col-span-2 flex min-w-0 flex-wrap items-center gap-2 sm:ml-auto sm:col-span-1 sm:w-auto">
-        <div role="group" aria-label="Período" className="flex w-fit max-w-full gap-1 rounded-xl bg-muted p-1">
-          {ranges.map(([value, label]) => <button key={value} type="button" aria-pressed={days === value} onClick={() => { setDays(value); setSelected(null); }}
-            className={`h-9 rounded-lg px-3 text-sm font-semibold transition ${days === value ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>{label}</button>)}
-        </div>
-        <div role="group" aria-label="Tipo de gráfico" className="flex shrink-0 gap-1 rounded-xl bg-muted p-1">
-          {([["bar", BarChart3, "Barras"], ["area", AreaIcon, "Área"], ["line", LineIcon, "Linha"]] as const).map(([value, Icon, label]) => <button key={value} type="button" aria-pressed={kind === value} aria-label={label} title={label} onClick={() => setKind(value)}
-            className={`grid size-9 place-items-center rounded-lg transition ${kind === value ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}><Icon size={17}/></button>)}
-        </div>
-        <button type="button" onClick={() => setOpen(value => !value)} aria-expanded={open} aria-label={open ? "Recolher gráfico" : "Mostrar gráfico"} className="grid size-9 shrink-0 place-items-center rounded-lg border border-border text-muted-foreground hover:text-foreground"><ChevronDown size={18} className={`transition ${open ? "rotate-180" : ""}`}/></button>
+  const stats = [
+    { label: `Total · ${days} dias`, value: `${compact(total)}${unit}`, icon: change !== null && change < 0 ? TrendingDown : TrendingUp, note: change === null ? "sem período anterior" : `${change > 0 ? "+" : ""}${change}% vs. anterior`, tone: change === null ? "" : change >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400" },
+    { label: "Média por dia ativo", value: `${compact(average)}${unit}`, icon: LineIcon, note: `${activeDays} de ${days} dias`, tone: "" },
+    { label: "Melhor dia", value: best && best.a > 0 ? `${compact(best.a)}${unit}` : "—", icon: Trophy, note: best && best.a > 0 ? `${weekday(best.day)}, ${short(best.day)}` : "sem registros", tone: "" },
+    { label: goalDays !== null ? "Dias na meta" : "Sequência", value: goalDays !== null ? `${goalDays}/${days}` : `${streak} dia${streak === 1 ? "" : "s"}`, icon: Flame, note: goalDays !== null ? `sequência de ${streak} dia${streak === 1 ? "" : "s"}` : streak > 1 ? "continue assim" : "registre hoje", tone: "" },
+  ];
+
+  return <section className="mb-4 overflow-hidden rounded-2xl border border-border bg-card shadow-card" aria-label={config.title} style={{ ["--ins" as string]: config.a.color }}>
+    <div aria-hidden className="h-1 w-full" style={{ background: `linear-gradient(90deg, ${config.a.color}, ${config.a.to})` }} />
+    <header className="flex flex-wrap items-center gap-3 px-4 pb-2 pt-3 sm:px-5">
+      <span className="grid size-9 shrink-0 place-items-center rounded-xl text-white shadow-sm" style={{ background: `linear-gradient(135deg, ${config.a.color}, ${config.a.to})` }}><LineIcon size={18}/></span>
+      <div className="min-w-0 flex-1"><h3 className="truncate text-base font-bold leading-tight">{config.title}</h3><p className="truncate text-xs text-muted-foreground">{config.subtitle}</p></div>
+      <div role="group" aria-label="Período" className="flex gap-0.5 rounded-lg bg-muted p-0.5">
+        {ranges.map(([value, label]) => <button key={value} type="button" aria-pressed={days === value} onClick={() => { setDays(value); setSelected(null); }}
+          className={`h-7 rounded-md px-2.5 text-xs font-semibold transition ${days === value ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>{label}</button>)}
       </div>
+      <button type="button" onClick={() => setOpen(value => !value)} aria-expanded={open} aria-label={open ? "Recolher gráfico" : "Mostrar gráfico"} className="grid size-8 place-items-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground"><ChevronDown size={17} className={`transition-transform ${open ? "rotate-180" : ""}`}/></button>
     </header>
 
-    {open && <div className="grid gap-4 p-4 pt-2 sm:p-5 sm:pt-2 xl:grid-cols-[1fr_260px]">
-      <div className="min-w-0">
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {[{ label: `Total em ${days} dias`, value: `${fmt(total)}${config.unit ? " " + config.unit : ""}`, icon: change !== null && change < 0 ? TrendingDown : TrendingUp, note: change === null ? "período selecionado" : `${change > 0 ? "+" : ""}${change}% vs. período anterior` },
-            { label: "Média por dia ativo", value: `${fmt(average)}${config.unit ? " " + config.unit : ""}`, icon: BarChart3, note: `${activeDays} de ${days} dias com registro` },
-            { label: "Melhor dia", value: best && best.a > 0 ? `${fmt(best.a)}${config.unit ? " " + config.unit : ""}` : "—", icon: Trophy, note: best && best.a > 0 ? `${weekday(best.day)}, ${short(best.day)}` : "ainda sem registros" },
-            { label: "Sequência atual", value: `${streak} dia${streak === 1 ? "" : "s"}`, icon: Flame, note: streak > 1 ? "continue assim!" : "registre hoje para começar" }]
-            .map(({ label, value, icon: Icon, note }) => <div key={label} className="rounded-2xl bg-muted/50 p-3">
-              <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground"><Icon size={14} style={{ color: config.a.color }}/>{label}</p>
-              <p className="mt-1 text-xl font-extrabold tabular-nums leading-tight">{value}</p><p className="truncate text-xs text-muted-foreground">{note}</p>
-            </div>)}
-        </div>
-        <div className="mt-3 h-[260px] w-full sm:h-[300px]">
-          {!data ? <div className="h-full animate-pulse rounded-2xl bg-muted/60"/> : empty
-            ? <div className="grid h-full place-items-center rounded-2xl border border-dashed border-border px-4 text-center text-sm text-muted-foreground">Ainda não há registros neste período.<br/>Assim que você registrar, o gráfico aparece aqui.</div>
-            : <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={rows} margin={{ top: 12, right: twoAxes ? 0 : 8, left: -14, bottom: 0 }} onClick={(state: any) => { if (state?.activeLabel) { setSelected(String(state.activeLabel)); setDetailDay(String(state.activeLabel)); } }}>
-                <defs>
-                  {(["a", "b"] as const).map(key => { const item = key === "a" ? config.a : config.b; return item && <linearGradient key={key} id={`${gid}-${key}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={item.to} stopOpacity={1}/><stop offset="100%" stopColor={item.color} stopOpacity={kind === "area" ? 0.15 : 0.92}/></linearGradient>; })}
-                </defs>
-                <CartesianGrid strokeDasharray="4 6" vertical={false} stroke="currentColor" className="text-border"/>
-                <XAxis dataKey="day" tickFormatter={short} tick={{ fontSize: 12, fill: "currentColor" }} className="text-muted-foreground" tickLine={false} axisLine={false} minTickGap={14}/>
-                <YAxis yAxisId="left" domain={[0, (max: number) => Math.ceil(Math.max(max, data.goal && !hidden.a ? data.goal * 1.08 : 0))]} tick={{ fontSize: 12, fill: "currentColor" }} className="text-muted-foreground" tickLine={false} axisLine={false} width={48} allowDecimals={false}/>
-                {twoAxes && <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12, fill: "currentColor" }} className="text-muted-foreground" tickLine={false} axisLine={false} width={36}/>}
-                <Tooltip cursor={{ fill: config.a.color, fillOpacity: 0.08 }} content={({ active, payload, label }) => {
-                  if (!active || !payload?.length) return null;
-                  return <div className="rounded-2xl border border-border bg-card/95 px-3.5 py-2.5 text-sm shadow-pop backdrop-blur">
-                    <p className="font-bold capitalize">{weekday(String(label))}, {short(String(label))}</p>
-                    {payload.map(item => <p key={String(item.dataKey)} className="mt-0.5 flex items-center gap-2"><i className="size-2.5 rounded-full" style={{ background: item.dataKey === "t" ? TREND.color : (item.dataKey === "a" ? config.a : config.b)?.color }}/>{item.name}: <strong className="tabular-nums">{fmt(Number(item.value))}{item.dataKey === "a" && config.unit ? " " + config.unit : ""}</strong></p>)}
-                    {data.goal && section === "hidratacao" && <p className="mt-1 text-xs text-muted-foreground">{Math.round(Number(payload[0].payload.a) / data.goal * 100)}% da meta</p>}
-                  </div>;
-                }}/>
-                {data.goal && !hidden.a && <ReferenceLine yAxisId="left" y={data.goal} stroke={config.a.color} strokeDasharray="6 5" strokeOpacity={0.7} label={{ value: `${config.goalLabel ?? "Referência"} ${fmt(data.goal)}`, position: "insideTopRight", fontSize: 11, fontWeight: 700, fill: config.a.color }}/>}
-                {selected && <ReferenceLine yAxisId="left" x={selected} stroke={config.a.color} strokeOpacity={0.35} strokeWidth={22}/>}
-                {series("a")}{series("b")}
-                {hasTrend && !hidden.t && <Line yAxisId="left" dataKey="t" name={TREND.label} type="monotone" stroke={TREND.color} strokeWidth={3} dot={{ r: 3.5, fill: "#fff", stroke: TREND.color, strokeWidth: 2 }} activeDot={{ r: 7, fill: TREND.color, stroke: "#fff", strokeWidth: 2 }} animationDuration={500}/>}
-              </ComposedChart>
-            </ResponsiveContainer>}
-        </div>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {(["a", "b"] as const).map(key => { const item = key === "a" ? config.a : config.b; return item && <button key={key} type="button" aria-pressed={!hidden[key]} onClick={() => setHidden(value => ({ ...value, [key]: !value[key] }))}
-            className={`inline-flex h-9 items-center gap-2 rounded-full border px-3 text-sm font-semibold transition ${hidden[key] ? "border-border text-muted-foreground line-through opacity-60" : "border-transparent bg-muted text-foreground"}`}>
-            <i className="size-3 rounded-full" style={{ background: `linear-gradient(135deg, ${item.color}, ${item.to})` }}/>{item.label}</button>; })}
-          {hasTrend && <button type="button" aria-pressed={!hidden.t} onClick={() => setHidden(value => ({ ...value, t: !value.t }))}
-            className={`inline-flex h-9 items-center gap-2 rounded-full border px-3 text-sm font-semibold transition ${hidden.t ? "border-border text-muted-foreground line-through opacity-60" : "border-transparent bg-muted text-foreground"}`}>
-            <i className="h-1 w-4 rounded-full" style={{ background: TREND.color }}/>{TREND.label}</button>}
-          <span className="ml-auto self-center text-xs text-muted-foreground">Toque numa barra para abrir os detalhes do dia.</span>
-        </div>
-      </div>
+    {open && <div className="px-4 pb-4 sm:px-5">
+      <dl className="grid grid-cols-2 overflow-hidden rounded-xl border border-border sm:grid-cols-4">
+        {stats.map(({ label, value, icon: Icon, note, tone }, i) => <div key={label} className={`min-w-0 px-3 py-2 ${i % 2 ? "border-l" : ""} ${i > 1 ? "border-t sm:border-t-0" : ""} ${i === 2 ? "sm:border-l" : ""} border-border`}>
+          <dt className="flex items-center gap-1.5 truncate text-[11px] font-semibold text-muted-foreground"><Icon size={13} style={{ color: config.a.color }}/>{label}</dt>
+          <dd className="mt-0.5 truncate text-lg font-extrabold tabular-nums leading-tight">{value}</dd>
+          <dd className={`truncate text-[11px] text-muted-foreground ${tone}`}>{note}</dd>
+        </div>)}
+      </dl>
 
-      <aside className="flex flex-col rounded-2xl p-4 text-white" style={{ background: `linear-gradient(160deg, ${config.a.color}, ${config.a.to})` }} aria-live="polite">
-        <p className="text-xs font-bold uppercase tracking-[.14em] text-white/75">{selected ? "Dia selecionado" : "Hoje"}</p>
-        <p className="mt-1 text-lg font-extrabold capitalize">{weekday(picked.day)}, {short(picked.day)}</p>
-        <p className="mt-3 text-4xl font-extrabold tabular-nums leading-none">{fmt(picked.a)}<span className="ml-1 text-base font-semibold text-white/80">{config.unit}</span></p>
-        <p className="text-sm text-white/85">{config.a.label}</p>
-        {config.b && <p className="mt-2 text-sm text-white/90"><strong className="tabular-nums">{fmt(picked.b)}</strong> {config.b.label.toLowerCase()}</p>}
-        {data?.goal && <div className="mt-3"><div className="h-2 overflow-hidden rounded-full bg-white/25"><i className="block h-full rounded-full bg-white transition-[width] duration-500" style={{ width: Math.min(100, Math.round(picked.a / data.goal * 100)) + "%" }}/></div>
-          <p className="mt-1 text-xs text-white/85">{Math.round(picked.a / data.goal * 100)}% de {fmt(data.goal)} {config.unit}</p></div>}
-        {hasTrend && <p className="mt-2 text-sm text-white/90">Tendência: <strong className="tabular-nums">{fmt(picked.t ?? 0)}</strong>{config.unit ? " " + config.unit : ""} (média de 3 dias)</p>}
-        {data?.goal && <p className="mt-1 text-sm text-white/90"><strong className="tabular-nums">{rows.filter(row => row.a >= data.goal!).length}</strong> de {days} dias atingiram a meta</p>}
-        <p className="mt-auto pt-3 text-xs text-white/80">{average > 0 ? (picked.a >= average ? `Acima da sua média (${fmt(average)}).` : `Abaixo da sua média (${fmt(average)}).`) : "Sem média ainda."}</p>
-        <button type="button" onClick={() => setDetailDay(picked.day)} className="mt-2 h-10 rounded-xl bg-white text-sm font-extrabold text-slate-900 shadow hover:bg-white/90">Ver detalhes do dia</button>
-        {selected && <button type="button" onClick={() => setSelected(null)} className="mt-2 h-9 rounded-xl bg-white/20 text-sm font-bold hover:bg-white/30">Voltar para hoje</button>}
-      </aside>
+      <div className="mt-3 grid gap-3 xl:grid-cols-[minmax(0,1fr)_15rem]">
+        <div className="min-w-0">
+          <div className="mb-1 flex flex-wrap items-center gap-1.5">
+            {([["a", config.a.label, config.a.color, false], ...(config.b && bOnAxis ? [["b", config.b.label, config.b.color, false]] : []), ["t", TREND.label, TREND.color, true]] as [keyof typeof hidden, string, string, boolean][]).map(([key, label, color, dashed]) =>
+              <button key={key} type="button" aria-pressed={!hidden[key]} onClick={() => setHidden(v => ({ ...v, [key]: !v[key] }))}
+                className={`inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[11px] font-semibold transition ${hidden[key] ? "text-muted-foreground line-through opacity-60 hover:opacity-100" : "bg-muted text-foreground hover:bg-muted/70"}`}>
+                <i className={`inline-block w-3.5 ${dashed ? "border-t-2 border-dashed" : "h-[3px] rounded-full"}`} style={dashed ? { borderColor: color } : { background: color }}/>{label}</button>)}
+            <span className="ml-auto text-[11px] text-muted-foreground">Toque num ponto para ver o dia</span>
+          </div>
+          {!data ? <div className="h-[230px] animate-pulse rounded-xl bg-muted/60"/> : empty
+            ? <div className="grid h-[230px] place-items-center rounded-xl border border-dashed border-border px-4 text-center text-sm text-muted-foreground">Ainda não há registros neste período.<br/>Assim que você registrar, a linha de evolução aparece aqui.</div>
+            : <EvoChart height={230} ariaLabel={`${config.title} nos últimos ${days} dias`} xMin={toX(rows[0].day) - DAY * 0.3} xMax={toX(rows[rows.length - 1].day) + DAY * 0.3}
+                xTicks={xTicks} formatX={x => `${weekday(fromX(x))}, ${short(fromX(x))}`} formatY={v => compact(v)}
+                goal={data.goal && !hidden.a ? { y: data.goal, label: `${config.goalLabel ?? "Referência"} ${compact(data.goal)}${unit}`, color: "#10b981" } : undefined}
+                series={series} selectedX={selected ? toX(selected) : null} onPick={x => setSelected(fromX(x))}
+                tip={x => { const r = byX.get(x); if (!r) return null; return <>
+                  {config.b && !bOnAxis && <p className="mt-1 flex justify-between gap-3"><span className="text-muted-foreground">{config.b.label}</span><strong className="tabular-nums">{fmt(r.b)}</strong></p>}
+                  {data.goal ? <p className={`mt-1.5 border-t border-border pt-1.5 font-semibold ${r.a >= data.goal ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>{Math.round(r.a / data.goal * 100)}% da meta</p> : null}
+                </>; }}/>}
+        </div>
+
+        <aside className="flex flex-col rounded-xl border border-border p-3" style={{ background: `linear-gradient(160deg, color-mix(in oklab, ${config.a.color} 10%, transparent), transparent 70%)` }} aria-live="polite">
+          <p className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground"><CalendarDays size={13} style={{ color: config.a.color }}/>{selected ? "Dia selecionado" : "Hoje"}</p>
+          <p className="text-sm font-bold capitalize">{weekday(picked.day)}, {short(picked.day)}</p>
+          <p className="mt-2 text-3xl font-extrabold tabular-nums leading-none" style={{ color: config.a.color }}>{compact(picked.a)}<span className="ml-1 text-sm font-semibold text-muted-foreground">{config.unit}</span></p>
+          <p className="text-xs text-muted-foreground">{config.a.label}{config.b ? ` · ${fmt(picked.b)} ${config.b.label.toLowerCase()}` : ""}</p>
+          {pct !== null && <div className="mt-2.5"><div className="h-1.5 overflow-hidden rounded-full bg-muted"><i className="block h-full rounded-full transition-[width] duration-700" style={{ width: Math.min(100, pct) + "%", background: `linear-gradient(90deg, ${config.a.color}, ${config.a.to})` }}/></div>
+            <p className="mt-1 text-[11px] text-muted-foreground">{pct}% de {compact(data!.goal!)}{unit}</p></div>}
+          <p className="mt-2 text-[11px] text-muted-foreground">{average > 0 ? (picked.a >= average ? `Acima da sua média (${compact(average)}).` : `Abaixo da sua média (${compact(average)}).`) : "Sem média ainda."}</p>
+          <div className="mt-auto flex gap-1.5 pt-3">
+            <button type="button" onClick={() => setDetailDay(picked.day)} className="h-8 flex-1 rounded-lg text-xs font-bold text-white shadow-sm transition hover:brightness-110 active:scale-[.98]" style={{ background: `linear-gradient(135deg, ${config.a.color}, ${config.a.to})` }}>Ver detalhes</button>
+            {selected && <button type="button" onClick={() => setSelected(null)} className="h-8 rounded-lg border border-border px-2.5 text-xs font-semibold hover:bg-muted">Hoje</button>}
+          </div>
+        </aside>
+      </div>
     </div>}
     <DayDetailDialog patientId={patientId} ownerId={ownerId} focus={section === "agenda" || section === "historico" ? undefined : section} day={detailDay} waterTarget={data?.goal && section === "hidratacao" ? data.goal : null} onClose={() => setDetailDay(null)}/>
   </section>;

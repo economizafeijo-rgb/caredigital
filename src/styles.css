@@ -791,3 +791,30 @@ button:disabled, [aria-disabled="true"] { cursor: not-allowed; }
 html, #care-content { scrollbar-gutter: stable; }
 /* Gráficos responsivos não podem empurrar a largura da grade (evita redimensionamento em ciclo) */
 .recharts-responsive-container { min-width: 0; overflow: hidden; }
+
+/* ---- Gráficos: dica e cursor no padrão da plataforma (substitui o quadro branco padrão) ---- */
+.recharts-default-tooltip {
+  background: color-mix(in oklab, #0b1720 92%, transparent) !important;
+  border: 1px solid rgba(148, 163, 184, .22) !important;
+  border-radius: 12px !important;
+  padding: 8px 12px !important;
+  box-shadow: 0 12px 32px -12px rgba(2, 8, 23, .55) !important;
+  backdrop-filter: blur(8px);
+  color: #e2e8f0 !important;
+  font-size: 12px !important;
+  line-height: 1.45;
+}
+.recharts-default-tooltip .recharts-tooltip-label { color: #f8fafc !important; font-weight: 700; margin-bottom: 4px !important; text-transform: capitalize; }
+.recharts-default-tooltip .recharts-tooltip-item { padding: 1px 0 !important; color: #cbd5e1 !important; }
+.recharts-default-tooltip .recharts-tooltip-item-value { color: #fff; font-weight: 700; font-variant-numeric: tabular-nums; }
+.recharts-default-tooltip .recharts-tooltip-item-separator { opacity: .6; }
+.recharts-tooltip-wrapper { transition: transform .18s ease-out !important; outline: none; }
+.recharts-tooltip-cursor { fill: rgba(56, 189, 248, .07); stroke: rgba(148, 163, 184, .45); stroke-dasharray: 3 3; }
+.recharts-surface:focus, .recharts-wrapper:focus { outline: none; }
+
+/* EvoChart */
+@keyframes nv-evo-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes nv-evo-ping { 0% { transform: scale(1); opacity: .55; } 80%, 100% { transform: scale(3.2); opacity: 0; } }
+.nv-evo-fade { animation: nv-evo-fade .9s ease-out both; }
+.nv-evo-ping { animation: nv-evo-ping 1.8s cubic-bezier(0, 0, .2, 1) infinite; }
+@media (prefers-reduced-motion: reduce) { .nv-evo-fade, .nv-evo-ping { animation: none; } }

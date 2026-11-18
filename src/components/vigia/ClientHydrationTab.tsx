@@ -530,14 +530,14 @@ export function ClientHydrationTab({
       className="care-premium-hydration care-hydration-responsive flex min-h-0 w-full min-w-0 flex-col gap-2"
       aria-label="Programa personalizado de hidratação"
     >
-      <header className="nv-dark relative isolate overflow-hidden rounded-2xl bg-gradient-to-br from-[#04263a] via-[#06374f] to-[#0b5f7a] p-4 text-white shadow-card sm:p-5">
+      <header className="nv-dark relative isolate overflow-hidden rounded-2xl bg-gradient-to-br from-[#04263a] via-[#06374f] to-[#0b5f7a] p-3.5 text-white shadow-card sm:p-4">
         <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-24 -z-10 size-72 rounded-full bg-cyan-300/15 blur-3xl" />
         <svg aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-16 w-full opacity-30" viewBox="0 0 400 40" preserveAspectRatio="none">
           <path className="nv-hydro-wave" d="M0 20 Q 50 5 100 20 T 200 20 T 300 20 T 400 20 T 500 20 T 600 20 V40 H0Z" fill="#38bdf8" />
         </svg>
         <div className="grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_auto]">
           <div className="flex items-center gap-4">
-            <div className="relative size-28 shrink-0 sm:size-32" role="img" aria-label={`Meta de água ${percent}% concluída`}>
+            <div className="relative size-24 shrink-0 sm:size-[6.5rem]" role="img" aria-label={`Meta de água ${percent}% concluída`}>
               <svg viewBox="0 0 120 120" className="absolute inset-0 -rotate-90">
                 <circle cx="60" cy="60" r="54" fill="none" stroke="#ffffff1f" strokeWidth="8" />
                 <circle cx="60" cy="60" r="54" fill="none" stroke="url(#nv-hydro-ring)" strokeWidth="8" strokeLinecap="round" pathLength={100} strokeDasharray={`${percent} 100`} className="nv-ring-draw" />
@@ -549,20 +549,20 @@ export function ClientHydrationTab({
                 </div>
                 <span className="absolute inset-0 grid place-items-center">
                   <span className="text-center leading-none">
-                    <strong className="block text-2xl font-extrabold tabular-nums drop-shadow">{percent}%</strong>
+                    <strong className="block text-xl font-extrabold tabular-nums drop-shadow">{percent}%</strong>
                     <span className="text-[10px] font-semibold text-white/80">da meta</span>
                   </span>
                 </span>
               </div>
             </div>
             <div className="min-w-0 lg:hidden">
-              <p className="text-3xl font-extrabold tabular-nums">{(intake / 1000).toFixed(2).replace(".", ",")} L</p>
+              <p className="text-2xl font-extrabold tabular-nums">{(intake / 1000).toFixed(2).replace(".", ",")} L</p>
               <p className="text-sm text-white/75">{goal ? `de ${(goal / 1000).toFixed(1).replace(".", ",")} L` : "meta a definir"}</p>
             </div>
           </div>
 
           <div className="min-w-0">
-            <p className="hidden text-4xl font-extrabold tabular-nums lg:block">
+            <p className="hidden text-3xl font-extrabold tabular-nums lg:block">
               {(intake / 1000).toFixed(2).replace(".", ",")} L
               <span className="ml-2 text-lg font-semibold text-white/65">{goal ? `de ${(goal / 1000).toFixed(1).replace(".", ",")} L` : "meta a definir"}</span>
             </p>
@@ -576,16 +576,16 @@ export function ClientHydrationTab({
                   type="button"
                   disabled={Boolean(action)}
                   onClick={() => void quickDrink(ml)}
-                  className="nv-water-chip group relative inline-flex h-11 items-center gap-2 overflow-hidden rounded-2xl bg-white px-4 text-sm font-bold text-sky-900 shadow-lg shadow-sky-950/30 transition active:scale-95 disabled:opacity-60"
+                  className="nv-water-chip group relative inline-flex h-9 items-center gap-1.5 overflow-hidden rounded-xl bg-white px-3 text-[13px] font-bold text-sky-900 shadow-lg shadow-sky-950/30 transition active:scale-95 disabled:opacity-60"
                 >
-                  <span className="grid size-6 place-items-center rounded-full bg-sky-100 text-sky-600 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-110"><Droplets size={14} /></span>
+                  <span className="grid size-5 place-items-center rounded-full bg-sky-100 text-sky-600 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-110"><Droplets size={14} /></span>
                   +{ml} ml
                 </button>
               ))}
-              <span className="[&_button]:!h-11 [&_button]:!rounded-2xl [&_button]:!border [&_button]:!border-white/25 [&_button]:!bg-white/10 [&_button]:!px-4 [&_button]:!text-sm [&_button]:!text-white [&_button]:!shadow-none [&_button]:backdrop-blur hover:[&_button]:!bg-white/20">
+              <span className="[&_button]:!h-9 [&_button]:!rounded-xl [&_button]:!border [&_button]:!border-white/25 [&_button]:!bg-white/10 [&_button]:!px-3 [&_button]:!text-[13px] [&_button]:!text-white [&_button]:!shadow-none [&_button]:backdrop-blur hover:[&_button]:!bg-white/20">
                 <ClientQuickIntake patientId={patientId} mode="water" onRecorded={() => { setReload((n) => n + 1); onRecorded(); }} />
               </span>
-              <span className="[&_button]:!h-11 [&_button]:!rounded-2xl [&_button]:!border [&_button]:!border-white/25 [&_button]:!bg-white/10 [&_button]:!px-4 [&_button]:!text-sm [&_button]:!text-white [&_button]:!shadow-none [&_button]:backdrop-blur hover:[&_button]:!bg-white/20">
+              <span className="[&_button]:!h-9 [&_button]:!rounded-xl [&_button]:!border [&_button]:!border-white/25 [&_button]:!bg-white/10 [&_button]:!px-3 [&_button]:!text-[13px] [&_button]:!text-white [&_button]:!shadow-none [&_button]:backdrop-blur hover:[&_button]:!bg-white/20">
                 <ClientQuickIntake patientId={patientId} mode="drink" onRecorded={() => { setReload((n) => n + 1); onRecorded(); }} />
               </span>
               <button
@@ -594,14 +594,14 @@ export function ClientHydrationTab({
                 aria-label={editing ? "Fechar ajuste da meta" : "Ajustar meta"}
                 title={editing ? "Fechar ajuste da meta" : "Ajustar meta"}
                 onClick={() => setEditing((value) => !value)}
-                className={`grid size-11 place-items-center rounded-2xl border border-white/25 backdrop-blur transition hover:bg-white/20 ${editing ? "bg-white text-sky-900" : "bg-white/10 text-white"}`}
+                className={`grid size-9 place-items-center rounded-xl border border-white/25 backdrop-blur transition hover:bg-white/20 ${editing ? "bg-white text-sky-900" : "bg-white/10 text-white"}`}
               >
                 <SlidersHorizontal size={17} />
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 lg:w-72 lg:grid-cols-1">
+          <div className="grid grid-cols-2 gap-1.5 lg:w-64 lg:grid-cols-1">
             <NextUpClock
               className="col-span-2 lg:col-span-1"
               alertKey="agua"
@@ -614,11 +614,10 @@ export function ClientHydrationTab({
               actionLabel={nextPlan ? `Bebi ${nextPlan.suggestedMl} ml` : "Registrar"}
               onAction={nextPlan ? () => void quickDrink(nextPlan.suggestedMl) : undefined}
             />
-            <div className="rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur">
-              <p className="text-[11px] font-semibold text-white/70">Último registro</p>
-              <p className="mt-0.5 text-lg font-bold tabular-nums">{lastWater ? `${Number(lastWater.amount_ml)} ml` : "—"}</p>
-              <p className="text-[11px] text-white/70">{lastWater ? `às ${time(lastWater.recorded_at)}` : "Nenhum hoje"}</p>
-            </div>
+            <p className="col-span-2 flex items-center justify-between rounded-xl border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] text-white/75 backdrop-blur lg:col-span-1">
+              <span>Último registro</span>
+              <strong className="tabular-nums text-white">{lastWater ? `${Number(lastWater.amount_ml)} ml · ${time(lastWater.recorded_at)}` : "Nenhum hoje"}</strong>
+            </p>
           </div>
         </div>
       </header>
@@ -751,8 +750,22 @@ export function ClientHydrationTab({
           </button>
         </div>
       )}
-      <HydrationDayChart entries={[...drinks, ...otherDrinks]} goal={goal} nowMs={clock} lastHour={WATER_LAST_RECOMMENDED_HOUR} />
-      <HydrationEntries patientId={patientId} water={drinks} beverages={otherDrinks} goal={goal} onChanged={() => setReload((v) => v + 1)} />
+      <div className="grid min-w-0 gap-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
+        <HydrationDayChart
+          entries={[...drinks.map((d) => ({ ...d, source: "water" as const })), ...otherDrinks.map((d) => ({ ...d, source: "beverage" as const }))]}
+          goal={goal}
+          nowMs={clock}
+          lastHour={WATER_LAST_RECOMMENDED_HOUR}
+        />
+        {drinks.length + otherDrinks.length > 0 ? (
+          <HydrationEntries patientId={patientId} water={drinks} beverages={otherDrinks} goal={goal} onChanged={() => setReload((v) => v + 1)} />
+        ) : (
+          <div className="grid place-items-center rounded-2xl border border-dashed border-sky-500/30 bg-sky-500/[.04] p-4 text-center">
+            <span><Droplets className="mx-auto mb-2 text-sky-500" size={26} /><strong className="block text-sm">Nenhum registro hoje</strong>
+            <span className="text-xs text-muted-foreground">Use +150, +250 ou +500 ml acima para começar.</span></span>
+          </div>
+        )}
+      </div>
       {!planValid && (
         <button
           type="button"
@@ -788,10 +801,11 @@ export function ClientHydrationTab({
           Meta do dia (24 h). O resumo automático não está disponível no momento.
         </p>
       )}
+      {schedule.length > 0 && (
       <div className="rounded-xl border border-border bg-card/70 p-2.5">
         <div className="mb-2 flex min-w-0 items-center justify-between gap-2 border-b border-border/70 pb-2">
           <div>
-            <h4 className="text-xs font-bold text-foreground">Horários e registros</h4>
+            <h4 className="text-xs font-bold text-foreground">Horários programados</h4>
             <p className="text-[11px] text-muted-foreground">
               Toque em um registro confirmado para consultar ou corrigir
             </p>
@@ -974,6 +988,7 @@ export function ClientHydrationTab({
           </nav>
         )}
       </div>
+      )}
       {loading && drinks.length === 0 && (
         <p role="status" className="text-[11px] text-muted-foreground">
           Carregando registros de água…
