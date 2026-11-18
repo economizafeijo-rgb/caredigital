@@ -844,3 +844,9 @@ html, #care-content { scrollbar-gutter: stable; }
 @keyframes nv-auth-scan { 0% { top: -6rem; } 100% { top: 100%; } }
 .nv-auth-scan { animation: nv-auth-scan 7s linear infinite; }
 @media (prefers-reduced-motion: reduce) { .nv-float, .nv-auth-scan { animation: none; } }
+/* Vitrine da página inicial: cenas que se dissolvem devagar (sem cortes bruscos) */
+@keyframes nv-scene-in { from { opacity: 0; transform: scale(1.015); } to { opacity: 1; transform: none; } }
+@keyframes nv-scene-out { from { opacity: 1; } to { opacity: 0; } }
+.nv-scene-in { animation: nv-scene-in 1.1s cubic-bezier(.22,.8,.2,1) both; }
+.nv-scene-out { animation: nv-scene-out 1.1s ease both; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .nv-scene-in, .nv-scene-out { animation: none; } }

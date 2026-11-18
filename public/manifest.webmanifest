@@ -3,7 +3,7 @@
   "short_name": "NextVita",
   "description": "Medicações, hidratação, alimentação, treinos, sono, peso e loja virtual em um só app. Gratuito.",
   "id": "/",
-  "start_url": "/cliente",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, BarChart3, Check, ChevronLeft, ChevronRight, Droplets, HeartPulse, MessageCircle, Pause, Pill, Play } from "lucide-react";
 import { money, products, STORE_WHATSAPP, useCart } from "@/lib/store";
@@ -16,9 +17,18 @@ export type Slide = {
   images: string[];
   price?: string;
   tone: string;
+  /** Conteúdo próprio (cena de abertura) no lugar do texto padrão. */
+  custom?: ReactNode;
+  /** Arte própria no lado direito. */
+  art?: ReactNode;
+  /** Foto de fundo da cena. */
+  bg?: string;
+  /** Rótulo curto do capítulo na barra de progresso. */
+  chapter?: string;
 };
 
-const DURATION = 6000;
+const DURATION = 9000;
+const FADE = 1100;
 const img = (id: string) => products.find((p) => p.id === id)?.img ?? "";
 const priceOf = (id: string) => {
   const p = products.find((x) => x.id === id);
@@ -74,29 +84,46 @@ function useReducedMotion() {
   return reduce;
 }
 
-/** Banner inteligente da página inicial: a ordem das propagandas muda com o horário e com o carrinho do visitante. */
-export function SmartBanner({ className = "" }: { className?: string }) {
+/** Vitrine única da página inicial: abre com a apresentação da plataforma e segue com ferramentas,
+ *  loja, propagandas do administrador e anúncios — em cenas longas que se dissolvem devagar. */
+export function SmartBanner({ className = "", intro }: { className?: string; intro?: Slide }) {
   const { count, subtotal } = useCart();
   const [hour, setHour] = useState<number | null>(null);
+  const [ads, setAds] = useState<Slide[]>([]);
   useEffect(() => setHour(new Date().getHours()), []);
+  useEffect(() => {
+    let active = true;
+    try {
+      void (supabase as any).from("care_ads").select("id,title,subtitle,cta_label,link_url,image_url").eq("placement", "inicio").order("priority", { ascending: false }).limit(4)
+        .then((r: any) => {
+          if (!active) return;
+          setAds((r?.data ?? []).map((a: any): Slide => ({
+            id: "ad-" + a.id, kicker: "Patrocinado", chapter: "Anúncio", title: a.title, text: a.subtitle ?? "", cta: a.cta_label || "Saiba mais", to: "/loja",
+            href: a.link_url && /^https?:/i.test(a.link_url) ? a.link_url : undefined, images: [], bg: a.image_url || undefined, tone: "from-[#0b1220] to-[#1e293b]",
+          })));
+        }, () => undefined);
+    } catch { /* sem cliente de dados */ }
+    return () => { active = false; };
+  }, []);
 
   const slides = useMemo(() => {
-    const list: Slide[] = [];
+    const list: Slide[] = intro ? [intro] : [];
     if (count > 0)
-      list.push({ id: "carrinho", kicker: "Seu carrinho", title: `Você tem ${count} ${count === 1 ? "item" : "itens"} esperando`, text: `Subtotal de ${money(subtotal)}. Pagando com Pix, você ganha 5% de desconto.`, cta: "Finalizar compra", to: "/loja", images: [img("whey-900"), img("conjunto-fem-1")], tone: "from-[#052e2b] to-[#0c8063]" });
-    if (hour !== null) list.push(momentSlide(hour));
-    // Intercala ferramentas gratuitas e produtos da loja.
+      list.push({ id: "carrinho", kicker: "Seu carrinho", chapter: "Carrinho", title: `Você tem ${count} ${count === 1 ? "item" : "itens"} esperando`, text: `Subtotal de ${money(subtotal)}. Pagando com Pix, você ganha 5% de desconto.`, cta: "Finalizar compra", to: "/loja", images: [img("whey-900"), img("conjunto-fem-1")], tone: "from-[#052e2b] to-[#0c8063]" });
     const mixed: Slide[] = [];
     const max = Math.max(toolSlides.length, baseSlides.length);
     for (let i = 0; i < max; i++) {
       if (toolSlides[i]) mixed.push(toolSlides[i]);
+      if (i === 0 && hour !== null) mixed.push(momentSlide(hour));
+      if (ads[i]) mixed.push(ads[i]);
       if (baseSlides[i]) mixed.push(baseSlides[i]);
     }
-    mixed.splice(2, 0, devSlide);
-    return [...list, ...mixed];
-  }, [count, subtotal, hour]);
+    mixed.splice(4, 0, devSlide);
+    return [...list, ...mixed, ...ads.slice(max)];
+  }, [count, subtotal, hour, ads, intro]);
 
   const [index, setIndex] = useState(0);
+  const [prev, setPrev] = useState<number | null>(null);
   const [paused, setPaused] = useState(false);
   const [hover, setHover] = useState(false);
   const reduce = useReducedMotion();
@@ -104,20 +131,79 @@ export function SmartBanner({ className = "" }: { className?: string }) {
   const startX = useRef<number | null>(null);
   const safeIndex = index % slides.length;
   const slide = slides[safeIndex];
+  const next = slides[(safeIndex + 1) % slides.length];
 
-  const go = useCallback((n: number) => setIndex((n + slides.length) % slides.length), [slides.length]);
-
+  const go = useCallback((n: number) => {
+    setIndex((cur) => {
+      const target = (n + slides.length) % slides.length;
+      if (target !== cur) setPrev(cur);
+      return target;
+    });
+  }, [slides.length]);
+  useEffect(() => {
+    if (prev === null) return;
+    const t = window.setTimeout(() => setPrev(null), FADE);
+    return () => window.clearTimeout(t);
+  }, [prev, index]);
   useEffect(() => {
     if (!playing) return;
     const t = window.setTimeout(() => go(safeIndex + 1), DURATION);
     return () => window.clearTimeout(t);
   }, [playing, safeIndex, go]);
 
+  const layer = (sl: Slide, state: "in" | "out") => (
+    <div key={sl.id + state} className={`absolute inset-0 bg-gradient-to-br ${sl.tone} ${state === "in" ? "nv-scene-in" : "nv-scene-out"}`} aria-hidden={state === "out" || undefined}>
+      {sl.bg && <img src={sl.bg} alt="" className="nv-kenburns absolute inset-0 size-full object-cover" style={{ animationDuration: `${DURATION + 3000}ms` }} />}
+      {sl.bg && <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,8,14,.92)_0%,rgba(2,8,14,.72)_45%,rgba(2,8,14,.2)_100%)] max-sm:bg-[linear-gradient(180deg,rgba(2,8,14,.25)_0%,rgba(2,8,14,.7)_45%,rgba(2,8,14,.95)_100%)]" />}
+      <div className="absolute inset-0 opacity-[.07] [background-image:radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px]" />
+      <div className="relative grid h-full grid-cols-1 items-center gap-5 p-5 pb-16 sm:grid-cols-[minmax(0,1fr)_auto] sm:p-8 sm:pb-14 lg:px-10">
+        <div className="min-w-0 max-w-[40rem]">
+          {sl.custom ?? (
+            <>
+              <p className="nv-rise inline-flex items-center gap-1.5 text-xs font-semibold text-white/80">
+                {sl.tool && sl.tool !== "dev" && <span className="rounded-full bg-emerald-400 px-2 py-0.5 text-[11px] font-bold text-slate-950">Grátis</span>}
+                {sl.kicker}
+              </p>
+              <h2 style={{ animationDelay: "150ms" }} className="nv-rise mt-1.5 text-balance font-display text-2xl font-extrabold leading-tight sm:text-3xl lg:text-[2.1rem]">{sl.title}</h2>
+              {sl.text && <p style={{ animationDelay: "300ms" }} className="nv-rise mt-2 max-w-[46ch] text-sm leading-relaxed text-white/85 sm:text-[15px]">{sl.text}</p>}
+              {sl.chips && (
+                <ul className="nv-rise mt-3 flex flex-wrap gap-1.5" style={{ animationDelay: "420ms" }}>
+                  {sl.chips.map((c) => <li key={c} className="rounded-full border border-white/25 bg-white/10 px-2.5 py-0.5 text-xs font-semibold backdrop-blur">{c}</li>)}
+                </ul>
+              )}
+              {sl.price && <p style={{ animationDelay: "450ms" }} className="nv-rise mt-2 text-sm text-white/80">a partir de <strong className="text-lg font-extrabold text-white tabular-nums">{sl.price}</strong></p>}
+              {sl.href ? (
+                <a href={sl.href} target="_blank" rel="noopener noreferrer" style={{ animationDelay: "550ms" }} className={`nv-rise mt-4 inline-flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold text-slate-950 hover:brightness-105 ${sl.tool === "dev" ? "bg-[#25d366]" : "bg-white"}`}>
+                  {sl.tool === "dev" ? <MessageCircle size={16} aria-hidden="true" /> : null} {sl.cta} {sl.tool !== "dev" && <ArrowRight size={16} aria-hidden="true" />}
+                </a>
+              ) : (
+                <Link to={sl.to} style={{ animationDelay: "550ms" }} className="nv-rise mt-4 inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-slate-950 hover:bg-white/90">
+                  {sl.cta} <ArrowRight size={16} aria-hidden="true" />
+                </Link>
+              )}
+            </>
+          )}
+        </div>
+        <div className="relative flex h-full items-center justify-center max-sm:order-first max-sm:min-h-[9rem]" aria-hidden="true">
+          {sl.art ?? (sl.tool ? (
+            <ToolDemo kind={sl.tool} />
+          ) : (
+            sl.images.slice(0, 2).map((src, i) => (
+              <span key={src + i} className={`relative block overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/20 ${i === 0 ? "nv-banner-img size-32 sm:size-44 lg:size-52" : "nv-float -ml-10 mt-16 size-24 sm:size-32 lg:size-36"}`}>
+                <img src={src} alt="" width={360} height={360} className="nv-kenburns size-full object-cover" style={{ animationDuration: `${DURATION + 1500}ms` }} />
+              </span>
+            ))
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <section
       aria-roledescription="carrossel"
       aria-label="Destaques NextVita"
-      className={`nv-dark relative isolate overflow-hidden rounded-2xl bg-gradient-to-br text-white ${slide.tone} ${className}`}
+      className={`nv-dark relative isolate min-h-[34rem] overflow-hidden rounded-2xl bg-slate-950 text-white shadow-card sm:min-h-[22rem] lg:min-h-[24rem] ${className}`}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       onFocusCapture={() => setHover(true)}
@@ -130,70 +216,25 @@ export function SmartBanner({ className = "" }: { className?: string }) {
         startX.current = null;
       }}
     >
-      <div key={slide.id} className="nv-fade-in grid h-full min-h-[15rem] grid-cols-1 items-center gap-4 p-5 pb-14 sm:min-h-[17rem] sm:grid-cols-[1fr_auto] sm:p-7 sm:pb-10" aria-live={playing ? "off" : "polite"}>
-        <div className="min-w-0 max-w-[34ch]">
-          <p className="nv-rise inline-flex items-center gap-1.5 text-xs font-semibold text-white/80">
-            {slide.tool && slide.tool !== "dev" && <span className="rounded-full bg-emerald-400 px-2 py-0.5 text-[11px] font-bold text-slate-950">Grátis</span>}
-            {slide.kicker}
-          </p>
-          <h2 style={{ animationDelay: "80ms" }} className="nv-rise mt-1 text-balance font-display text-xl font-extrabold leading-tight sm:text-2xl">{slide.title}</h2>
-          <p style={{ animationDelay: "160ms" }} className="nv-rise mt-2 line-clamp-3 text-sm leading-snug text-white/85">{slide.text}</p>
-          {slide.chips && (
-            <ul className="nv-rise mt-3 flex flex-wrap gap-1.5" style={{ animationDelay: "220ms" }}>
-              {slide.chips.map((c) => <li key={c} className="rounded-full border border-white/25 bg-white/10 px-2.5 py-0.5 text-xs font-semibold backdrop-blur">{c}</li>)}
-            </ul>
-          )}
-          {slide.price && <p style={{ animationDelay: "240ms" }} className="nv-rise mt-2 text-sm text-white/80">a partir de <strong className="text-lg font-extrabold text-white tabular-nums">{slide.price}</strong></p>}
-          {slide.href ? (
-            <a href={slide.href} target="_blank" rel="noopener noreferrer" style={{ animationDelay: "300ms" }} className="nv-rise mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-[#25d366] px-4 text-sm font-bold text-slate-950 hover:brightness-105">
-              <MessageCircle size={16} aria-hidden="true" /> {slide.cta}
-            </a>
-          ) : (
-            <Link to={slide.to} style={{ animationDelay: "300ms" }} className="nv-rise mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-slate-950 hover:bg-white/90">
-              {slide.cta} <ArrowRight size={16} aria-hidden="true" />
-            </Link>
-          )}
-        </div>
-        <div className="relative flex h-full items-center justify-center pb-6 max-sm:order-first max-sm:pb-2" aria-hidden="true">
-          {slide.tool ? (
-            <ToolDemo kind={slide.tool} />
-          ) : (
-            slide.images.slice(0, 2).map((src, i) => (
-              <span key={src + i} className={`relative block overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/20 ${i === 0 ? "nv-banner-img size-28 sm:size-40 lg:size-44" : "nv-float -ml-10 mt-16 size-20 sm:size-28 lg:size-32"}`}>
-                <img src={src} alt="" width={360} height={360} className="nv-kenburns size-full object-cover" style={{ animationDuration: `${DURATION + 800}ms` }} />
-              </span>
-            ))
-          )}
-        </div>
-      </div>
+      {prev !== null && slides[prev] && layer(slides[prev], "out")}
+      {layer(slide, "in")}
+      <p className="sr-only" aria-live={playing ? "off" : "polite"}>{slide.title}</p>
 
-      <div className="absolute inset-x-5 bottom-3 flex items-center gap-2 sm:inset-x-7">
+      <div className="absolute inset-x-5 bottom-3 z-10 flex items-center gap-2 sm:inset-x-8 lg:inset-x-10">
         <div className="flex flex-1 gap-1.5">
           {slides.map((s, i) => (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => go(i)}
-              aria-label={`Destaque ${i + 1} de ${slides.length}: ${s.kicker}`}
-              aria-current={i === safeIndex ? "true" : undefined}
-              className="group relative h-6 flex-1"
-            >
-              <span className="absolute inset-x-0 top-1/2 block h-1 -translate-y-1/2 overflow-hidden rounded-full bg-white/25">
-                {i === safeIndex && (
-                  <span
-                    key={`${s.id}-${playing}`}
-                    className={`block h-full rounded-full bg-white ${playing ? "nv-progress" : "w-full"}`}
-                    style={playing ? { animationDuration: `${DURATION}ms` } : undefined}
-                  />
-                )}
-                {i < safeIndex && <span className="block h-full w-full rounded-full bg-white/70" />}
+            <button key={s.id} type="button" onClick={() => go(i)} aria-label={`Destaque ${i + 1} de ${slides.length}: ${s.kicker}`} aria-current={i === safeIndex ? "true" : undefined} className="group relative h-6 flex-1">
+              <span className="absolute inset-x-0 top-1/2 block h-[3px] -translate-y-1/2 overflow-hidden rounded-full bg-white/20 transition-[height] group-hover:h-1.5">
+                {i === safeIndex && <span key={`${s.id}-${playing}`} className={`block h-full rounded-full bg-white ${playing ? "nv-progress" : "w-full"}`} style={playing ? { animationDuration: `${DURATION}ms` } : undefined} />}
+                {i < safeIndex && <span className="block h-full w-full rounded-full bg-white/60" />}
               </span>
             </button>
           ))}
         </div>
-        <button type="button" onClick={() => go(safeIndex - 1)} aria-label="Destaque anterior" className="grid size-8 place-items-center rounded-full bg-white/15 hover:bg-white/25"><ChevronLeft size={16} /></button>
-        <button type="button" onClick={() => setPaused((p) => !p)} aria-label={paused ? "Retomar destaques" : "Pausar destaques"} className="grid size-8 place-items-center rounded-full bg-white/15 hover:bg-white/25">{paused ? <Play size={14} /> : <Pause size={14} />}</button>
-        <button type="button" onClick={() => go(safeIndex + 1)} aria-label="Próximo destaque" className="grid size-8 place-items-center rounded-full bg-white/15 hover:bg-white/25"><ChevronRight size={16} /></button>
+        <span className="hidden max-w-[12rem] truncate text-[11px] text-white/60 lg:inline">A seguir: <strong className="text-white/85">{next.chapter ?? next.kicker}</strong></span>
+        <button type="button" onClick={() => go(safeIndex - 1)} aria-label="Destaque anterior" className="grid size-8 place-items-center rounded-full bg-white/15 backdrop-blur hover:bg-white/25"><ChevronLeft size={16} /></button>
+        <button type="button" onClick={() => setPaused((p) => !p)} aria-label={paused ? "Retomar destaques" : "Pausar destaques"} className="grid size-8 place-items-center rounded-full bg-white/15 backdrop-blur hover:bg-white/25">{paused ? <Play size={14} /> : <Pause size={14} />}</button>
+        <button type="button" onClick={() => go(safeIndex + 1)} aria-label="Próximo destaque" className="grid size-8 place-items-center rounded-full bg-white/15 backdrop-blur hover:bg-white/25"><ChevronRight size={16} /></button>
       </div>
     </section>
   );

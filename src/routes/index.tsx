@@ -20,7 +20,7 @@ import {
 import { useAccess } from "@/lib/use-access";
 import { LiveModeLauncher } from "@/components/vigia/LiveMode";
 import { HomeStore } from "@/components/vigia/HomeStore";
-import { SmartBanner } from "@/components/vigia/SmartBanner";
+import { SmartBanner, ToolDemo } from "@/components/vigia/SmartBanner";
 import { QrShareCard } from "@/components/vigia/QrShareCard";
 import { PartnerCommercial } from "@/components/vigia/PartnerCommercial";
 import { HomeBottomArt, HomeSideArt } from "@/components/vigia/HomeDecor";
@@ -84,87 +84,53 @@ function Homepage() {
         </p>
       )}
 
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-4">
-        <section aria-labelledby="home-title-m" className="nv-dark relative isolate overflow-hidden rounded-3xl bg-slate-950 text-white sm:hidden">
-          <img src="/images/caredigital-care-hero.webp" alt="" aria-hidden="true" width={1200} height={752} className="absolute inset-0 -z-20 size-full object-cover object-[68%_20%]" />
-          <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-b from-slate-950/30 via-slate-950/75 to-[#04140f]" />
-          <div className="flex min-h-[30rem] flex-col justify-end gap-3 p-5">
-            <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur"><ShieldCheck size={13} className="text-emerald-300" aria-hidden="true" /> Grátis e protegido</span>
-            <h1 id="home-title-m" className="text-balance font-display text-[2rem] font-extrabold leading-[1.05] tracking-tight">
-              {client ? `Olá, ${firstName}. Sua evolução em um só lugar.` : "Sua saúde e sua rotina, organizadas num só app."}
+      <SmartBanner intro={{
+        id: "intro", kicker: "NextVita", chapter: "A plataforma", title: "", text: "", cta: "", to: "/entrar", images: [],
+        bg: "/images/show-treinos.webp", tone: "from-[#041f1d] via-[#0a3f39] to-[#0e6b5c]",
+        custom: (
+          <>
+            <p className="nv-rise inline-flex w-fit items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur"><ShieldCheck size={13} className="text-emerald-300" aria-hidden="true" /> Grátis e protegido</p>
+            <h1 id="home-title" style={{ animationDelay: "150ms" }} className="nv-rise mt-3 text-balance font-display text-[2rem] font-extrabold leading-[1.05] tracking-tight sm:text-[2.4rem] xl:text-[2.9rem]">
+              {client ? `Olá, ${firstName}. Sua evolução em um só lugar.` : "Sua rotina de bem-estar, organizada em um só lugar."}
             </h1>
-            <ul className="grid grid-cols-4 gap-2">
-              {areas.slice(0, 8).map((a) => (
-                <li key={a.to}>
-                  <a href={client ? a.client : a.to} className="flex flex-col items-center gap-1 rounded-2xl border border-white/15 bg-white/10 px-1 py-2.5 text-[11px] font-semibold backdrop-blur active:scale-95">
-                    <span className="grid size-8 place-items-center rounded-xl" style={{ background: `${a.color}33`, color: "#fff" }}><a.icon size={17} aria-hidden="true" /></span>
-                    <span className="max-w-full text-center text-[10px] leading-tight">{a.label}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-            <div className="grid grid-cols-2 gap-2">
+            <p style={{ animationDelay: "300ms" }} className="nv-rise mt-3 max-w-[46ch] text-sm leading-relaxed text-slate-200 sm:text-base">
+              {client ? "Acompanhe métricas, hidratação, alimentação, suplementos e sono ao longo do tempo." : "Nutrição, hidratação, peso, suplementos e hábitos com horários, lembretes e registros confiáveis."}
+            </p>
+            <div style={{ animationDelay: "450ms" }} className="nv-rise mt-5 flex flex-wrap gap-2">
               {panel ? (
-                <Link to={panel} className="col-span-2 inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-emerald-400 text-[15px] font-bold text-slate-950"><LayoutDashboard size={17} aria-hidden="true" /> Abrir meu painel</Link>
+                <>
+                  <Link to={panel} className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-400 px-5 text-sm font-bold text-slate-950 hover:bg-emerald-300"><LayoutDashboard size={16} aria-hidden="true" /> Abrir meu painel</Link>
+                  {client && <LiveModeLauncher className="!h-11 !px-4 !text-sm" />}
+                </>
               ) : (
                 <>
-                  <a href="/entrar?mode=signup" className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-emerald-400 text-[15px] font-bold text-slate-950"><Gift size={17} aria-hidden="true" /> Criar conta</a>
-                  <Link to="/entrar" className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-white/30 text-[15px] font-semibold"><LockKeyhole size={17} aria-hidden="true" /> Entrar</Link>
+                  <a href="/entrar?mode=signup" className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-400 px-5 text-sm font-bold text-slate-950 hover:bg-emerald-300"><Gift size={16} aria-hidden="true" /> Criar conta grátis</a>
+                  <Link to="/entrar" className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/30 bg-white/5 px-5 text-sm font-semibold text-white backdrop-blur hover:bg-white/15"><LockKeyhole size={16} aria-hidden="true" /> Entrar</Link>
                 </>
               )}
             </div>
+            <ul style={{ animationDelay: "600ms" }} className="nv-rise mt-5 flex flex-wrap gap-x-4 gap-y-1.5 text-[13px] text-slate-200">
+              <li className="inline-flex items-center gap-1.5"><CalendarCheck size={14} aria-hidden="true" /> Rotina por horários</li>
+              <li className="inline-flex items-center gap-1.5"><Clock3 size={14} aria-hidden="true" /> Registro com hora real</li>
+              <li className="inline-flex items-center gap-1.5"><ShieldCheck size={14} aria-hidden="true" /> Dados protegidos</li>
+            </ul>
+          </>
+        ),
+        art: (
+          <div className="relative hidden pr-6 sm:block">
+            <div className="nv-float"><ToolDemo kind="agua" /></div>
+            <div className="nv-float absolute -bottom-14 -left-24 hidden lg:block" style={{ animationDelay: "1.4s" }}><ToolDemo kind="medicacao" /></div>
           </div>
-        </section>
+        ),
+      }} />
 
-        <section
-          aria-labelledby="home-title"
-          className="nv-dark relative isolate hidden flex-col justify-center overflow-hidden rounded-2xl sm:flex bg-gradient-to-br from-[#041f1d] via-[#0a3f39] to-[#0e6b5c] p-5 text-white sm:p-7"
-        >
-          <div aria-hidden="true" className="pointer-events-none absolute -left-24 -top-24 -z-10 size-72 rounded-full bg-emerald-400/20 blur-3xl" />
-          <h1 id="home-title" className="text-balance font-display text-[1.7rem] font-extrabold leading-[1.1] tracking-tight sm:text-[2.1rem] xl:text-[2.4rem]">
-            {client ? `Olá, ${firstName}. Sua evolução em um só lugar.` : "Sua rotina de bem-estar, organizada em um só lugar."}
-          </h1>
-          <p className="mt-2.5 max-w-[46ch] text-sm leading-relaxed text-slate-200 sm:text-[15px]">
-            {client
-              ? "Acompanhe métricas, hidratação, alimentação, suplementos e sono ao longo do tempo."
-              : "Nutrição, hidratação, peso, suplementos e hábitos com horários, lembretes e registros confiáveis."}
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {panel ? (
-              <>
-                <Link to={panel} className="inline-flex h-10 items-center gap-2 rounded-xl bg-emerald-400 px-4 text-sm font-bold text-slate-950 hover:bg-emerald-300">
-                  <LayoutDashboard size={16} aria-hidden="true" /> Voltar ao meu painel
-                </Link>
-                {client && <LiveModeLauncher className="!h-10 !px-4 !text-sm" />}
-              </>
-            ) : (
-              <>
-                <a href="/entrar?mode=signup" className="inline-flex h-10 items-center gap-2 rounded-xl bg-emerald-400 px-4 text-sm font-bold text-slate-950 hover:bg-emerald-300">
-                  <Gift size={16} aria-hidden="true" /> Criar conta grátis
-                </a>
-                <Link to="/entrar" className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/30 px-4 text-sm font-semibold text-white hover:bg-white/10">
-                  <LockKeyhole size={16} aria-hidden="true" /> Entrar
-                </Link>
-              </>
-            )}
-          </div>
-          <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5 text-[13px] text-slate-200">
-            <li className="inline-flex items-center gap-1.5"><CalendarCheck size={14} aria-hidden="true" /> Rotina por horários</li>
-            <li className="inline-flex items-center gap-1.5"><Clock3 size={14} aria-hidden="true" /> Registro com hora real</li>
-            <li className="inline-flex items-center gap-1.5"><ShieldCheck size={14} aria-hidden="true" /> Dados protegidos</li>
-          </ul>
-        </section>
-
-        <SmartBanner />
-      </div>
-
-      <nav aria-label="Áreas da plataforma" className="hidden gap-2 sm:grid sm:grid-cols-5 lg:grid-cols-9">
+      <nav aria-label="Áreas da plataforma" className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-9">
         {areas.map((a) => (
           <a
             key={a.to}
             href={client ? a.client : a.to}
             style={{ "--tile": a.color } as React.CSSProperties}
-            className="nv-tile flex shrink-0 items-center gap-2 overflow-hidden rounded-xl border border-border bg-card px-3 py-2.5 text-[13px] font-semibold sm:flex-col sm:gap-1.5 sm:py-3 sm:text-center"
+            className="nv-tile flex shrink-0 flex-col items-center gap-1.5 overflow-hidden rounded-xl border border-border bg-card px-2 py-2.5 text-center text-[12px] font-semibold sm:px-3 sm:py-3 sm:text-[13px]"
           >
             <span className={`nv-tile-icon grid size-8 shrink-0 place-items-center rounded-lg ${a.tone}`}>
               <a.icon size={17} aria-hidden="true" />
