@@ -11,6 +11,7 @@ type Metrics = {
   hydration: Point[];
   weight: Point[];
   macros: Point[];
+  energy: Point[];
   sleep: Point[];
   activity: Point[];
   medicationCount: number;
@@ -75,6 +76,7 @@ export function SmartMetricsDashboard() {
           db.from("care_supplement_intakes").select("id").eq("patient_id", patientId).gte("taken_at", since).limit(1000),
           db.from("care_sleep_logs").select("sleep_date,bed_at,wake_at,quality,awakenings,avg_hr,min_hr").eq("patient_id", patientId).gte("sleep_date", localDay(since)).order("sleep_date", { ascending: true }).limit(1000),
           db.from("care_activity_log").select("happened_at,details,event_type").eq("patient_id", patientId).eq("category", "atividade").gte("happened_at", since).order("happened_at", { ascending: true }).limit(1000),
+          db.from("care_goal_reviews").select("day,metric,actual,unit").eq("patient_id", patientId).in("metric", ["calorias", "proteina"]).gte("day", localDay(since)).limit(1000),
         ]);
         const failed = [water, weights, meals, meds, supplements, sleep, activities, goalReviews].some((result: any) => result.error);
         if (failed) throw new Error("Não foi possível consultar todos os indicadores.");
@@ -90,7 +92,13 @@ export function SmartMetricsDashboard() {
           point.fat! += Number(row.fat_g ?? 0);
           macroMap.set(day, point);
         }
-        const reviewRows = goalReviews.data ?? [];\n        const energyRows = reviewRows.filter((row: any) => row.metric === "calorias" && Number(row.actual) > 0)\n          .map((row: any) => ({ day: row.day, value: Number(row.actual) }));\n        const proteinSnapshots = reviewRows.filter((row: any) => row.metric === "proteina" && Number(row.actual) > 0)\n          .map((row: any) => ({ day: row.day, protein: Number(row.actual), carbs: 0, fat: 0, value: Number(row.actual) }));\n        const measuredMacros = [...macroMap.values()].filter((point) => Number(point.protein) + Number(point.carbs) + Number(point.fat) > 0);\n        const sleepRows = (sleep.data ?? []).flatMap((row: any) => {
+        const reviewRows = goalReviews.data ?? [];
+        const energyRows = reviewRows.filter((row: any) => row.metric === "calorias" && Number(row.actual) > 0)
+          .map((row: any) => ({ day: row.day, value: Number(row.actual) }));
+        const proteinSnapshots = reviewRows.filter((row: any) => row.metric === "proteina" && Number(row.actual) > 0)
+          .map((row: any) => ({ day: row.day, protein: Number(row.actual), carbs: 0, fat: 0, value: Number(row.actual) }));
+        const measuredMacros = [...macroMap.values()].filter((point) => Number(point.protein) + Number(point.carbs) + Number(point.fat) > 0);
+        const sleepRows = (sleep.data ?? []).flatMap((row: any) => {
           const hours = (new Date(row.wake_at).getTime() - new Date(row.bed_at).getTime()) / 3600000;
           return Number.isFinite(hours) && hours > 0 && hours < 24
             ? [{ day: row.sleep_date, value: Number(hours.toFixed(2)) }] : [];
@@ -103,7 +111,8 @@ export function SmartMetricsDashboard() {
         if (!cancelled) setMetrics({
           hydration: group(hydrationRows, "amount_ml"),
           weight: (weights.data ?? []).map((row: any) => ({ day: label(row.recorded_on), value: Number(row.weight_kg) })),
-          macros: (measuredMacros.length ? measuredMacros : proteinSnapshots).sort((a, b) => a.day.localeCompare(b.day)).map((point) => ({ ...point, day: label(point.day) })),\n          energy: group(energyRows, "value"),
+          macros: (measuredMacros.length ? measuredMacros : proteinSnapshots).sort((a, b) => a.day.localeCompare(b.day)).map((point) => ({ ...point, day: label(point.day) })),
+          energy: group(energyRows, "value"),
           sleep: group(sleepRows, "value"),
           activity: group(activityRows, "value"),
           medicationCount: (meds.data ?? []).length,
@@ -136,7 +145,13 @@ export function SmartMetricsDashboard() {
           <Line type="monotone" dataKey="value" name="kg" stroke="var(--primary)" strokeWidth={3} dot={{r:3}}/>
         </LineChart></ResponsiveContainer></div> : <EmptyChart>Você ainda não possui pesagens registradas. O gráfico será preenchido quando houver uma medição salva.</EmptyChart>}
       </ChartCard>
-      <ChartCard title="Energia diária" eyebrow="Calorias · registros e resumos históricos" icon={UtensilsCrossed}>\n        {metrics.energy.length ? <div className={chartClass}><ResponsiveContainer><AreaChart data={metrics.energy}>\n          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)"/><XAxis dataKey="day" tick={{fontSize:10}}/><YAxis tick={{fontSize:10}}/><Tooltip formatter={(value) => [`${value} kcal`, "Energia"]}/>\n          <Area dataKey="value" name="Calorias" stroke="#ea580c" fill="#ea580c" fillOpacity={0.18}/>\n        </AreaChart></ResponsiveContainer></div> : <EmptyChart>Não há resumos calóricos históricos nem refeições com calorias calculadas neste período.</EmptyChart>}\n      </ChartCard>\n      <ChartCard title="Macronutrientes registrados" eyebrow="Nutrição" icon={UtensilsCrossed}>
+      <ChartCard title="Energia diária" eyebrow="Calorias · registros e resumos históricos" icon={UtensilsCrossed}>
+        {metrics.energy.length ? <div className={chartClass}><ResponsiveContainer><AreaChart data={metrics.energy}>
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)"/><XAxis dataKey="day" tick={{fontSize:10}}/><YAxis tick={{fontSize:10}}/><Tooltip formatter={(value) => [`${value} kcal`, "Energia"]}/>
+          <Area dataKey="value" name="Calorias" stroke="#ea580c" fill="#ea580c" fillOpacity={0.18}/>
+        </AreaChart></ResponsiveContainer></div> : <EmptyChart>Não há resumos calóricos históricos nem refeições com calorias calculadas neste período.</EmptyChart>}
+      </ChartCard>
+      <ChartCard title="Macronutrientes registrados" eyebrow="Nutrição" icon={UtensilsCrossed}>
         {metrics.macros.length ? <div className={chartClass}><ResponsiveContainer><BarChart data={metrics.macros}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)"/><XAxis dataKey="day" tick={{fontSize:10}}/><YAxis tick={{fontSize:10}}/><Tooltip/>
           <Bar dataKey="protein" name="Proteína (g)" fill="#0e8a6a"/>{metrics.macros.some((point) => Number(point.carbs) + Number(point.fat) > 0) && <><Bar dataKey="carbs" name="Carboidratos (g)" fill="#168fa8"/><Bar dataKey="fat" name="Gorduras (g)" fill="#c96c28"/></>}
