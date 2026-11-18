@@ -322,7 +322,7 @@ function LiveDashboard({ patientId, ownerId, heightCm, name, onClose }: Props & 
                 <button type="button" onClick={() => setCustomOpen((v) => !v)} aria-expanded={customOpen} className="mt-2 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-xl bg-white/10 text-xs font-bold ring-1 ring-white/15 transition hover:bg-white/20"><Plus size={14} /> Outro valor</button>
                 {customOpen && <div className="mt-2 flex gap-1.5"><input value={customMl} onChange={(e) => setCustomMl(e.target.value.replace(/\D/g, ""))} inputMode="numeric" placeholder="ml" aria-label="Quantidade de água em ml" className="h-11 min-w-0 flex-1 rounded-xl bg-white/10 px-3 text-sm text-white outline-none ring-1 ring-white/15 placeholder:text-white/40 focus:ring-sky-300/60" /><button type="button" disabled={!customMl} onClick={() => askWater(Number(customMl))} className="h-11 rounded-xl bg-gradient-to-r from-sky-400 to-cyan-400 px-4 text-xs font-extrabold text-slate-950 disabled:opacity-40">Registrar</button></div>}
                 {waterPct >= 100 && <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-400/20 px-3 py-1 text-xs font-bold text-emerald-200"><CheckCircle2 size={14} /> Meta batida!</p>}
-              {nextUps.agua && <NextUpClock compact className="mt-3" alertKey="ao-vivo-agua" title="Próximo copo" color="#38bdf8" target={nextUps.agua.at} from={nextUps.agua.from} detail={nextUps.agua.detail} actionLabel="Bebi 250 ml" onAction={() => askWater(250)} />}
+              {nextUps?.agua && <NextUpClock compact className="mt-3" alertKey="ao-vivo-agua" title="Próximo copo" color="#38bdf8" target={nextUps.agua.at} from={nextUps.agua.from} detail={nextUps.agua.detail} actionLabel="Bebi 250 ml" onAction={() => askWater(250)} />}
               </Tile>
 
               <Tile k="peso" on={selected === "peso"} onPick={pick} icon={Scale} tone="linear-gradient(135deg,#d946ef,#ec4899)" title="Peso">
@@ -359,14 +359,14 @@ function LiveDashboard({ patientId, ownerId, heightCm, name, onClose }: Props & 
                 <div className="flex items-center gap-4"><Ring pct={sleep ? (sleep.hours / SLEEP_GOAL) * 100 : 0} color="#818cf8"><div><p className="text-2xl font-extrabold tabular-nums">{sleep ? nf(sleep.hours, 1) : "—"}</p><p className="text-[10px] text-white/60">horas</p></div></Ring>
                   <div className="text-sm text-white/70">{sleep ? <><p>Qualidade {"★".repeat(Math.max(0, Math.min(5, sleep.quality)))}{"☆".repeat(5 - Math.max(0, Math.min(5, sleep.quality)))}</p><p className="text-xs">Meta de {SLEEP_GOAL} h por noite</p>{sleepAvg !== null && <p className="mt-1 text-xs text-indigo-200">Média de 7 noites: {nf(sleepAvg, 1)} h</p>}</> : "Sem noite registrada."}</div></div>
                 <Spark data={series.sono} color="#818cf8" goal={SLEEP_GOAL} />
-              {nextUps.sono && <NextUpClock compact className="mt-3" alertKey="ao-vivo-sono" title="Hora de desacelerar" color="#a5b4fc" target={nextUps.sono.at} from={nextUps.sono.from} detail={nextUps.sono.detail} />}
+              {nextUps?.sono && <NextUpClock compact className="mt-3" alertKey="ao-vivo-sono" title="Hora de desacelerar" color="#a5b4fc" target={nextUps.sono.at} from={nextUps.sono.from} detail={nextUps.sono.detail} />}
               </Tile>
 
               <Tile k="exercicio" on={selected === "exercicio"} onPick={pick} icon={Activity} tone="linear-gradient(135deg,#f97316,#f59e0b)" title="Exercício hoje">
                 <div className="flex items-center gap-4"><Ring pct={((today?.activityMinutes ?? 0) / EXERCISE_GOAL) * 100} color="#fb923c"><div><p className="text-2xl font-extrabold tabular-nums">{today?.activityMinutes ?? 0}</p><p className="text-[10px] text-white/60">min hoje</p></div></Ring>
                   <p className="text-sm text-white/70">{today && today.activityKm > 0 ? `${nf(today.activityKm, 1)} km percorridos. ` : ""}Referência: {EXERCISE_GOAL} min por dia.</p></div>
                 <Spark data={series.exercicio} color="#fb923c" goal={EXERCISE_GOAL} />
-              {nextUps.exercicio && <NextUpClock compact className="mt-3" alertKey="ao-vivo-atividade" title="Hora de se mexer" color="#fdba74" target={nextUps.exercicio.at} from={nextUps.exercicio.from} detail={nextUps.exercicio.detail} />}
+              {nextUps?.exercicio && <NextUpClock compact className="mt-3" alertKey="ao-vivo-atividade" title="Hora de se mexer" color="#fdba74" target={nextUps.exercicio.at} from={nextUps.exercicio.from} detail={nextUps.exercicio.detail} />}
               </Tile>
 
               <Tile k="semana" on={selected === "semana"} onPick={pick} icon={Dumbbell} tone="linear-gradient(135deg,#ef4444,#f97316)" title="Exercício na semana">
@@ -379,7 +379,7 @@ function LiveDashboard({ patientId, ownerId, heightCm, name, onClose }: Props & 
                 <p className="text-4xl font-extrabold tabular-nums">{nf(today?.kcal ?? 0)}<span className="ml-1 text-base font-semibold text-white/60">kcal</span></p>
                 <Bar2 pct={kcalTarget ? ((today?.kcal ?? 0) / kcalTarget) * 100 : 0} from="#fbbf24" to="#f97316" />
                 <p className="mt-1 text-xs text-white/60">{kcalTarget ? `Meta de ${nf(kcalTarget)} kcal` : "Meta não definida"}</p>
-              {nextUps.refeicao && <NextUpClock compact className="mt-3" alertKey="ao-vivo-refeicao" title="Próxima refeição" color="#fdba74" target={nextUps.refeicao.at} from={nextUps.refeicao.from} detail={nextUps.refeicao.detail} />}
+              {nextUps?.refeicao && <NextUpClock compact className="mt-3" alertKey="ao-vivo-refeicao" title="Próxima refeição" color="#fdba74" target={nextUps.refeicao.at} from={nextUps.refeicao.from} detail={nextUps.refeicao.detail} />}
               </Tile>
 
               <Tile k="proteina" on={selected === "proteina"} onPick={pick} icon={Egg} tone="linear-gradient(135deg,#22c55e,#14b8a6)" title="Proteína">
@@ -403,13 +403,13 @@ function LiveDashboard({ patientId, ownerId, heightCm, name, onClose }: Props & 
               <Tile k="med" on={selected === "med"} onPick={pick} icon={Pill} tone="linear-gradient(135deg,#f43f5e,#fb7185)" title="Medicação">
                 <div className="flex items-center gap-4"><Ring pct={today?.medication.planned ? (today.medication.taken / today.medication.planned) * 100 : 0} color="#fb7185" size={96} stroke={9}><div><p className="text-xl font-extrabold tabular-nums">{today?.medication.taken ?? 0}/{today?.medication.planned ?? 0}</p><p className="text-[10px] text-white/60">doses</p></div></Ring>
                   <p className="text-sm text-white/70">{today?.medication.planned ? (today.medication.taken >= today.medication.planned ? "Todas as doses de hoje registradas." : `${today.medication.planned - today.medication.taken} dose(s) para registrar hoje.`) : "Sem medicação programada hoje."}</p></div>
-              {nextUps.med && <NextUpClock compact className="mt-3" alertKey="ao-vivo-medicacao" title="Próxima dose" color="#fb7185" target={nextUps.med.at} from={nextUps.med.from} detail={nextUps.med.detail} />}
+              {nextUps?.med && <NextUpClock compact className="mt-3" alertKey="ao-vivo-medicacao" title="Próxima dose" color="#fb7185" target={nextUps.med.at} from={nextUps.med.from} detail={nextUps.med.detail} />}
               </Tile>
 
               <Tile k="supl" on={selected === "supl"} onPick={pick} icon={Sparkles} tone="linear-gradient(135deg,#a855f7,#6366f1)" title="Suplementos">
                 <div className="flex items-center gap-4"><Ring pct={today?.supplements.planned ? (today.supplements.taken / today.supplements.planned) * 100 : 0} color="#c084fc" size={96} stroke={9}><div><p className="text-xl font-extrabold tabular-nums">{today?.supplements.taken ?? 0}/{today?.supplements.planned ?? 0}</p><p className="text-[10px] text-white/60">doses</p></div></Ring>
                   <p className="text-sm text-white/70">{today?.supplements.planned ? (today.supplements.taken >= today.supplements.planned ? "Suplementação de hoje completa." : `${today.supplements.planned - today.supplements.taken} dose(s) a tomar hoje.`) : "Nenhum suplemento programado hoje."}</p></div>
-              {nextUps.supl && <NextUpClock compact className="mt-3" alertKey="ao-vivo-suplemento" title="Próximo suplemento" color="#c084fc" target={nextUps.supl.at} from={nextUps.supl.from} detail={nextUps.supl.detail} />}
+              {nextUps?.supl && <NextUpClock compact className="mt-3" alertKey="ao-vivo-suplemento" title="Próximo suplemento" color="#c084fc" target={nextUps.supl.at} from={nextUps.supl.from} detail={nextUps.supl.detail} />}
               </Tile>
 
               <Tile k="streak" on={selected === "streak"} onPick={pick} icon={Flame} tone="linear-gradient(135deg,#fbbf24,#f97316)" title="Sequência">
