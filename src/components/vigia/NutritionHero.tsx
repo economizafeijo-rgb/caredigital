@@ -1,6 +1,6 @@
 import { EvoChart, EvoLegend } from "./EvoChart";
 import { useMemo, type ReactNode } from "react";
-import { Beef, Droplet, Flame, Target, Wheat } from "lucide-react";
+import { Beef, Droplet, Target, Wheat } from "lucide-react";
 import { sumNutrients, type Nutrients } from "@/lib/food-parser";
 import { objectiveLabel } from "@/lib/objective-nutrition";
 import type { DailyNutrition } from "./DailyNutritionPanel";
@@ -45,11 +45,11 @@ export function NutritionHero({ data, actions, onRegister }: { data: DailyNutrit
   const mTotal = total.protein * 4 + total.carbs * 4 + total.fat * 9 || 1;
   let acc = 0;
   return (
-    <header className="nv-dark relative isolate overflow-hidden rounded-2xl bg-gradient-to-br from-[#052e1f] via-[#0a4a33] to-[#2f6b1f] p-4 text-white shadow-card sm:p-5">
+    <header className="nv-dark relative isolate overflow-hidden rounded-2xl bg-gradient-to-br from-[#052e1f] via-[#0a4a33] to-[#2f6b1f] p-3.5 text-white shadow-card sm:p-4">
       <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 -z-10 size-80 rounded-full bg-lime-300/15 blur-3xl" />
       <div aria-hidden="true" className="pointer-events-none absolute -bottom-10 left-1/3 -z-10 size-56 rounded-full bg-emerald-300/10 blur-3xl" />
-      <div className="grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_auto]">
-        <div className="relative mx-auto size-32 shrink-0 sm:size-36 lg:mx-0" role="img" aria-label={`${n0(total.kcal)} de ${n0(target.kcal)} kcal hoje`}>
+      <div className="grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_16rem]">
+        <div className="relative mx-auto size-28 shrink-0 lg:mx-0" role="img" aria-label={`${n0(total.kcal)} de ${n0(target.kcal)} kcal hoje`}>
           <svg viewBox="0 0 120 120" className="absolute inset-0 -rotate-90">
             <circle cx="60" cy="60" r="54" fill="none" stroke="#ffffff1c" strokeWidth="8" />
             <circle cx="60" cy="60" r="54" fill="none" stroke="#fb923c" strokeWidth="8" strokeLinecap="round" pathLength={100} strokeDasharray={`${pct} 100`} className="nv-ring-draw" />
@@ -60,47 +60,44 @@ export function NutritionHero({ data, actions, onRegister }: { data: DailyNutrit
               return el;
             })}
           </svg>
-          <div className="absolute inset-[30px] grid place-items-center rounded-full bg-white/[.06] text-center shadow-inner">
+          <div className="absolute inset-[26px] grid place-items-center rounded-full bg-white/[.06] text-center shadow-inner">
             <span className="leading-none">
-              <Flame size={16} className="mx-auto mb-1 text-orange-300" />
-              <strong className="block text-xl font-extrabold tabular-nums">{loaded ? n0(total.kcal) : "…"}</strong>
-              <span className="text-[10px] font-semibold text-white/75">kcal</span>
+              <strong className="block text-lg font-extrabold tabular-nums">{pct}%</strong>
+              <span className="text-[10px] font-semibold text-white/70">da meta</span>
             </span>
           </div>
         </div>
 
-        <div className="min-w-0 text-center lg:text-left">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-lime-100"><Target size={12} /> {objectiveLabel(objective)}</span>
-          <p className="mt-2 text-3xl font-extrabold tabular-nums">
-            {n0(total.kcal)} <span className="text-lg font-semibold text-white/65">de {n0(target.kcal)} kcal</span>
-          </p>
-          <p className="mt-1 text-sm text-white/80">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <p className="text-2xl font-extrabold tabular-nums sm:text-3xl">{loaded ? n0(total.kcal) : "…"} <span className="text-base font-semibold text-white/65">de {n0(target.kcal)} kcal</span></p>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-lime-100"><Target size={12} /> {objectiveLabel(objective)}</span>
+          </div>
+          <p className="mt-0.5 text-sm text-white/80">
             {!entries.length ? "Registre o que comer e o NextVita calcula os nutrientes." : left > 0 ? `Faltam ${n0(left)} kcal para a referência de hoje.` : "Referência de calorias de hoje alcançada."}
           </p>
-          {actions && <div className="mt-3 flex flex-wrap justify-center gap-2 lg:justify-start">{actions}</div>}
+          <ul className="mt-3 grid gap-2 sm:grid-cols-3">
+            {macros.map((m, i) => {
+              const v = total[m.key], t = target[m.key] || 1;
+              const p = Math.min(100, Math.round((v / t) * 100));
+              return (
+                <li key={m.key} className="rounded-xl border border-white/12 bg-white/[.07] px-3 py-2 backdrop-blur transition-colors hover:bg-white/[.12]">
+                  <div className="flex items-center justify-between gap-2 text-[11px] font-semibold text-white/75">
+                    <span className="flex items-center gap-1.5"><m.icon size={13} style={{ color: m.color }} /> {m.label}</span>
+                    <span className="tabular-nums text-white">{n0(v)}<span className="text-white/55">/{n0(t)} g</span></span>
+                  </div>
+                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/15">
+                    <i className="block h-full rounded-full transition-[width] duration-700 ease-out" style={{ width: `${p}%`, background: m.color, transitionDelay: `${i * 120}ms` }} />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          {actions && <div className="mt-3 flex flex-wrap gap-2">{actions}</div>}
         </div>
 
-        <div className="grid gap-2 lg:w-72">
         <NextUpClock alertKey="refeicao" title="Próxima refeição" color="#fdba74" target={plan?.at ?? null} from={plan?.from ?? null}
           detail={plan?.name} emptyText="Refeições do dia encerradas" actionLabel="Registrar refeição" onAction={onRegister} />
-        <ul className="grid gap-2 sm:grid-cols-3 lg:grid-cols-1">
-          {macros.map((m, i) => {
-            const v = total[m.key], t = target[m.key] || 1;
-            const p = Math.min(100, Math.round((v / t) * 100));
-            return (
-              <li key={m.key} className="rounded-2xl border border-white/15 bg-white/10 px-3 py-2 backdrop-blur">
-                <div className="flex items-center justify-between text-[11px] font-semibold text-white/75">
-                  <span className="flex items-center gap-1.5"><m.icon size={13} style={{ color: m.color }} /> {m.label}</span>
-                  <span className="tabular-nums text-white">{n0(v)}<span className="text-white/60"> / {n0(t)} g</span></span>
-                </div>
-                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/15">
-                  <i className="block h-full rounded-full transition-[width] duration-700 ease-out" style={{ width: `${p}%`, background: m.color, transitionDelay: `${i * 120}ms` }} />
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-        </div>
       </div>
     </header>
   );

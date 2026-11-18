@@ -111,11 +111,13 @@ export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,no
       <NutritionDayChart data={nutrition}/>
       <DailyNutritionPanel data={nutrition} hideSummary/>
     </div>
+    {/* Refeições programadas pela equipe: só aparece quando existem (os registros avulsos já estão no painel acima). */}
+    {meals.length>0&&<>
     <div className="flex shrink-0 items-end justify-between gap-2 pt-1">
       <h3 className="flex items-center gap-2 text-sm font-bold text-foreground">
-        <UtensilsCrossed size={17} className="text-emerald-600 dark:text-emerald-300"/> Refeições de hoje
+        <UtensilsCrossed size={17} className="text-emerald-600 dark:text-emerald-300"/> Refeições programadas
       </h3>
-      <span className="text-[11px] text-muted-foreground">{extraMeals.length} {extraMeals.length===1?"registro avulso":"registros avulsos"} · sem horários fixos</span>
+      <span className="text-[11px] text-muted-foreground">{meals.length} programadas pela equipe</span>
     </div>
     <div className="care-page-meals-filters flex shrink-0 flex-wrap items-center gap-2">
       <div className="flex min-w-0 flex-1 items-center gap-1 rounded-xl border border-border bg-muted/35 p-1">
@@ -142,7 +144,7 @@ export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,no
       A agenda foi carregada, mas as descrições das refeições não estão disponíveis no momento.
     </div>}
     <div className="care-page-meals-list min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
-      {filteredExtras.length>0&&<section className="mb-3" aria-label="Refeições e lanches registrados fora da programação">
+      {false&&filteredExtras.length>0&&<section className="mb-3" aria-label="Refeições e lanches registrados fora da programação">
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><h4 className="text-xs font-bold text-foreground">Consumos registrados hoje</h4><span className="rounded-full bg-emerald-500/10 px-2 py-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">{filteredExtras.length} registros avulsos</span></div>
         <div className="grid min-w-0 grid-cols-1 gap-2 md:grid-cols-2">
           {filteredExtras.map(entry=>{const Icon=foodIcon(entry.details?.title??"Refeição");return <article key={entry.id} className="flex min-w-0 items-start gap-3 rounded-2xl border border-emerald-500/25 bg-emerald-500/[.055] p-3">
@@ -225,6 +227,7 @@ export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,no
         className="inline-flex h-8 items-center gap-1 rounded-lg border border-border px-2 text-[11px] font-bold text-foreground disabled:opacity-40">
         Próxima<ChevronRight size={14}/></button>
     </nav>
+    </>}
     <p className="shrink-0 text-[11px] text-muted-foreground">
       As descrições são registros informados pelo paciente. A confirmação do sistema não avalia o valor nutricional da refeição.
     </p>
