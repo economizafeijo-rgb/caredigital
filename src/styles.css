@@ -732,3 +732,10 @@ body:has(.care-shell #care-client-tab-panel) {
 .nv-drawer-item { animation: nv-drawer-item .35s ease-out both; }
 .nv-tab:active { transform: scale(.94); }
 @media (prefers-reduced-motion: reduce) { .nv-drawer, .nv-drawer-item { animation: none; } }
+
+/* ---------- Visão geral: anéis que se desenham e pontos da linha do tempo que surgem ---------- */
+@keyframes nv-ring-draw { from { stroke-dasharray: 0 100; } }
+.nv-ring-draw { animation: nv-ring-draw 1.1s cubic-bezier(.2,.8,.2,1) both; transition: stroke-dasharray .6s; }
+@keyframes nv-dot-in { from { transform: scale(0); } to { transform: scale(1); } }
+.nv-dot-in { transform-box: fill-box; transform-origin: center; animation: nv-dot-in .4s cubic-bezier(.34,1.56,.64,1) both; }
+@media (prefers-reduced-motion: reduce) { .nv-ring-draw, .nv-dot-in { animation: none; } }

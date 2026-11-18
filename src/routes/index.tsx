@@ -98,7 +98,7 @@ function Homepage() {
                 <li key={a.to}>
                   <a href={client ? a.client : a.to} className="flex flex-col items-center gap-1 rounded-2xl border border-white/15 bg-white/10 px-1 py-2.5 text-[11px] font-semibold backdrop-blur active:scale-95">
                     <span className="grid size-8 place-items-center rounded-xl" style={{ background: `${a.color}33`, color: "#fff" }}><a.icon size={17} aria-hidden="true" /></span>
-                    <span className="max-w-full truncate">{a.label}</span>
+                    <span className="max-w-full text-center text-[10px] leading-tight">{a.label}</span>
                   </a>
                 </li>
               ))}

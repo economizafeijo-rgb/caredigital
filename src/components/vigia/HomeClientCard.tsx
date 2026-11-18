@@ -1,3 +1,4 @@
+import { OverviewCommandCenter } from "./OverviewCommandCenter";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
@@ -1032,46 +1033,14 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
               data-client-page="hoje"
               className="flex flex-col gap-3 overscroll-contain lg:pr-0.5"
             >
-              <div className="grid shrink-0 grid-cols-2 gap-3 lg:grid-cols-4">
-                {kpis.map(({ key, label, icon: Icon, tone, bar, percent, value, note }) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => openSection(key)}
-                    aria-label={`${label}: ${value}, ${note}. Abrir área.`}
-                    className={card + " group p-3.5 text-left transition hover:border-primary/40"}
-                  >
-                    <span className="flex items-center justify-between gap-2">
-                      <span className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-                        <span
-                          data-tone={tone}
-                          className={`grid size-8 place-items-center rounded-xl text-white shadow-sm ${clientSectionTheme[key].pill}`}
-                        >
-                          <Icon size={16} />
-                        </span>
-                        {label}
-                      </span>
-                      <ChevronRight
-                        size={15}
-                        className="text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-primary"
-                      />
-                    </span>
-                    <strong className="mt-2 block font-display text-2xl font-bold leading-none tabular-nums">
-                      {value}
-                    </strong>
-                    <span className="mt-1 block truncate text-xs text-muted-foreground">
-                      {note}
-                    </span>
-                    <span className="mt-2.5 block h-1.5 overflow-hidden rounded-full bg-muted">
-                      <i
-                        data-bar={bar}
-                        className={`block h-full rounded-full ${clientSectionTheme[key].pill} transition-[width]`}
-                        style={{ width: percent + "%" }}
-                      />
-                    </span>
-                  </button>
-                ))}
-              </div>
+              <OverviewCommandCenter
+                kpis={kpis}
+                dayPercent={dayPercent}
+                tasks={tasks}
+                nowMs={nowMs}
+                onOpen={(key) => openSection(key as Parameters<typeof openSection>[0])}
+                onTask={(t) => showTaskDetails(t as Task)}
+              />
 
               <div className="grid gap-3 lg:grid-cols-3">
                 <div className="flex flex-col gap-3 lg:pr-0.5">
