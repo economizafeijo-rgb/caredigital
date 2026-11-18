@@ -181,6 +181,7 @@ const resourceLinks = [
   { to: "/treinos", label: "Treinos", icon: Activity },
   { to: "/metricas", label: "Métricas", icon: BarChart3 },
 ] as const;
+const resourceColors: Record<string, string> = { "/medicamentos": "#fb7185", "/hidratacao": "#38bdf8", "/dietas": "#34d399", "/suplementos": "#a78bfa", "/peso": "#e879f9", "/sono": "#818cf8", "/treinos": "#fb923c", "/metricas": "#2dd4bf" };
 
 /** Menu superior para visitantes: poucos itens visíveis e as áreas de saúde agrupadas em "Recursos". */
 function PublicTopNav({ pathname }: { pathname: string }) {
@@ -288,7 +289,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const internalPage = signedIn && location.pathname !== "/";
   const groups = navByProfile[profile];
   const items = groups.flatMap((group) => group.items);
-  const publicItems = navByProfile.public[0].items;
   const currentHash = location.hash || clientSectionHashes.hoje;
   const isActive = (item: NavItem) =>
     item.to === location.pathname && (!item.hash || item.hash === currentHash);
@@ -531,6 +531,26 @@ export function AppShell({ children }: { children: ReactNode }) {
             </main>
           </div>
 
+          {!internalPage && (
+            <nav aria-label="Navegação rápida" className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
+              <div className="mx-auto grid max-w-md grid-cols-4">
+                {[
+                  { key: "home", label: "Início", icon: Home, to: "/" },
+                  { key: "menu", label: "Recursos", icon: LayoutDashboard },
+                  { key: "loja", label: "Loja", icon: ShoppingBag, to: "/loja" },
+                  { key: "conta", label: signedIn ? "Painel" : "Entrar", icon: signedIn ? Settings2 : LogIn, to: panelHome ?? "/entrar" },
+                ].map((it) => {
+                  const active = it.to ? (it.to === "/" ? location.pathname === "/" : location.pathname.startsWith(it.to)) : menuOpen;
+                  const cls = `nv-tab relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-semibold ${active ? "text-primary" : "text-muted-foreground"}`;
+                  const inner = (<><it.icon size={21} className={`transition-transform ${active ? "-translate-y-0.5 scale-110" : ""}`} />{it.label}{active && <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary" />}</>);
+                  return it.to
+                    ? <Link key={it.key} to={it.to} className={cls} aria-current={active ? "page" : undefined}>{inner}</Link>
+                    : <button key={it.key} type="button" onClick={() => setMenuOpen(true)} className={cls} aria-expanded={menuOpen}>{inner}</button>;
+                })}
+              </div>
+            </nav>
+          )}
+
           {menuOpen && (
             <div
               className={`fixed inset-0 z-50 ${signedIn ? "xl:hidden" : "lg:hidden"}`}
@@ -544,7 +564,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 className="absolute inset-0 cursor-default bg-slate-950/60 backdrop-blur-sm"
                 onClick={() => setMenuOpen(false)}
               />
-              <div className="absolute inset-y-0 left-0 flex w-[min(18rem,85vw)] flex-col bg-sidebar shadow-2xl">
+              <div className={`nv-drawer absolute inset-y-0 left-0 flex flex-col bg-sidebar shadow-2xl ${internalPage ? "w-[min(18rem,85vw)]" : "w-[min(22rem,90vw)]"}`}>
                 <div className="flex h-14 shrink-0 items-center justify-between border-b border-white/10 px-4">
                   <Brand onDark />
                   <button
@@ -559,14 +579,36 @@ export function AppShell({ children }: { children: ReactNode }) {
                 {internalPage ? (
                   sidebarBody
                 ) : (
-                  <nav className="grid gap-0.5 p-3" aria-label="Navegação principal">
-                    {publicItems.map(sideLink)}
-                    <Link
-                      to="/entrar"
-                      className="mt-3 flex h-10 items-center justify-center gap-2 rounded-lg bg-primary text-sm font-semibold text-white"
-                    >
-                      <LogIn size={16} /> Entrar
-                    </Link>
+                  <nav className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4 text-white" aria-label="Navegação principal">
+                    <div className="grid grid-cols-2 gap-2">
+                      <a href="/entrar?mode=signup" className="inline-flex h-11 items-center justify-center rounded-xl bg-emerald-400 text-sm font-bold text-slate-950">Criar conta grátis</a>
+                      <Link to="/entrar" className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl border border-white/20 text-sm font-semibold"><LogIn size={16} /> Entrar</Link>
+                    </div>
+                    <div>
+                      <p className="px-1 pb-2 text-xs font-semibold text-slate-400">Navegar</p>
+                      <div className="grid gap-1">
+                        {[{ to: "/", label: "Início", icon: Home }, { to: "/protocolos", label: "Como funciona", icon: HeartPulse }, { to: "/loja", label: "Loja NextVita", icon: ShoppingBag }, { to: "/lojista", label: "Seja lojista", icon: Store }, { to: "/sobre", label: "Sobre", icon: Info }].map((it) => (
+                          <Link key={it.to} to={it.to} activeOptions={{ exact: it.to === "/" }} className="flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-slate-200 hover:bg-white/10" activeProps={{ className: "!bg-white/10 !text-white" }}>
+                            <it.icon size={18} className="text-emerald-300" /> {it.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="px-1 pb-2 text-xs font-semibold text-slate-400">Recursos gratuitos</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {resourceLinks.map((r, i) => (
+                          <Link key={r.to} to={r.to} className="nv-drawer-item flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[.04] p-2.5 text-[13px] font-semibold text-slate-100" style={{ animationDelay: `${i * 35}ms` }} activeProps={{ className: "!border-emerald-300/50 !bg-emerald-400/10" }}>
+                            <span className="grid size-8 shrink-0 place-items-center rounded-lg" style={{ background: `${resourceColors[r.to]}33`, color: resourceColors[r.to] }}><r.icon size={16} /></span>
+                            {r.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                    <a href="https://wa.me/5568992031340" target="_blank" rel="noopener noreferrer" className="mt-auto flex items-center gap-3 rounded-xl border border-white/10 p-3 text-xs text-slate-300">
+                      <span className="grid size-9 place-items-center rounded-lg bg-[#25d366]/20 text-[#25d366]"><Sparkles size={16} /></span>
+                      <span><strong className="block text-sm text-white">Fale com a NextVita</strong>Dúvidas, parcerias e projetos pelo WhatsApp</span>
+                    </a>
                   </nav>
                 )}
               </div>

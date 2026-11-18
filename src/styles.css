@@ -724,3 +724,11 @@ body:has(.care-shell #care-client-tab-panel) {
 @media (prefers-reduced-motion: reduce) {
   .nv-auth-spin, .nv-auth-spin-fast, .nv-auth-spin .nv-auth-counter, .nv-auth-spin-fast .nv-auth-counter, .nv-auth-busy, .nv-auth-shake, .nv-auth-ping, .nv-auth-burst { animation: none; }
 }
+
+/* ---------- Mobile: gaveta de menu deslizando, itens em cascata e barra inferior ---------- */
+@keyframes nv-drawer-in { from { transform: translateX(-100%); } to { transform: none; } }
+@keyframes nv-drawer-item { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.nv-drawer { animation: nv-drawer-in .28s cubic-bezier(.2,.8,.2,1); }
+.nv-drawer-item { animation: nv-drawer-item .35s ease-out both; }
+.nv-tab:active { transform: scale(.94); }
+@media (prefers-reduced-motion: reduce) { .nv-drawer, .nv-drawer-item { animation: none; } }

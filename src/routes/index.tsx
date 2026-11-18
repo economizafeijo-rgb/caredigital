@@ -85,9 +85,40 @@ function Homepage() {
       )}
 
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-4">
+        <section aria-labelledby="home-title-m" className="nv-dark relative isolate overflow-hidden rounded-3xl bg-slate-950 text-white sm:hidden">
+          <img src="/images/caredigital-care-hero.webp" alt="" aria-hidden="true" width={1200} height={752} className="absolute inset-0 -z-20 size-full object-cover object-[68%_20%]" />
+          <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-b from-slate-950/30 via-slate-950/75 to-[#04140f]" />
+          <div className="flex min-h-[30rem] flex-col justify-end gap-3 p-5">
+            <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur"><ShieldCheck size={13} className="text-emerald-300" aria-hidden="true" /> Grátis e protegido</span>
+            <h1 id="home-title-m" className="text-balance font-display text-[2rem] font-extrabold leading-[1.05] tracking-tight">
+              {client ? `Olá, ${firstName}. Sua evolução em um só lugar.` : "Sua saúde e sua rotina, organizadas num só app."}
+            </h1>
+            <ul className="grid grid-cols-4 gap-2">
+              {areas.slice(0, 8).map((a) => (
+                <li key={a.to}>
+                  <a href={client ? a.client : a.to} className="flex flex-col items-center gap-1 rounded-2xl border border-white/15 bg-white/10 px-1 py-2.5 text-[11px] font-semibold backdrop-blur active:scale-95">
+                    <span className="grid size-8 place-items-center rounded-xl" style={{ background: `${a.color}33`, color: "#fff" }}><a.icon size={17} aria-hidden="true" /></span>
+                    <span className="max-w-full truncate">{a.label}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <div className="grid grid-cols-2 gap-2">
+              {panel ? (
+                <Link to={panel} className="col-span-2 inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-emerald-400 text-[15px] font-bold text-slate-950"><LayoutDashboard size={17} aria-hidden="true" /> Abrir meu painel</Link>
+              ) : (
+                <>
+                  <a href="/entrar?mode=signup" className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-emerald-400 text-[15px] font-bold text-slate-950"><Gift size={17} aria-hidden="true" /> Criar conta</a>
+                  <Link to="/entrar" className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-white/30 text-[15px] font-semibold"><LockKeyhole size={17} aria-hidden="true" /> Entrar</Link>
+                </>
+              )}
+            </div>
+          </div>
+        </section>
+
         <section
           aria-labelledby="home-title"
-          className="nv-dark relative isolate flex flex-col justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#041f1d] via-[#0a3f39] to-[#0e6b5c] p-5 text-white sm:p-7"
+          className="nv-dark relative isolate hidden flex-col justify-center overflow-hidden rounded-2xl sm:flex bg-gradient-to-br from-[#041f1d] via-[#0a3f39] to-[#0e6b5c] p-5 text-white sm:p-7"
         >
           <div aria-hidden="true" className="pointer-events-none absolute -left-24 -top-24 -z-10 size-72 rounded-full bg-emerald-400/20 blur-3xl" />
           <h1 id="home-title" className="text-balance font-display text-[1.7rem] font-extrabold leading-[1.1] tracking-tight sm:text-[2.1rem] xl:text-[2.4rem]">
@@ -127,7 +158,7 @@ function Homepage() {
         <SmartBanner />
       </div>
 
-      <nav aria-label="Áreas da plataforma" className="-mx-2 flex gap-2 overflow-x-auto px-2 pb-0.5 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-5 sm:px-0 lg:grid-cols-9 [&::-webkit-scrollbar]:hidden">
+      <nav aria-label="Áreas da plataforma" className="hidden gap-2 sm:grid sm:grid-cols-5 lg:grid-cols-9">
         {areas.map((a) => (
           <a
             key={a.to}

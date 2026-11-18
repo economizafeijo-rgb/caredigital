@@ -130,7 +130,7 @@ export function SmartBanner({ className = "" }: { className?: string }) {
         startX.current = null;
       }}
     >
-      <div key={slide.id} className="nv-fade-in grid h-full min-h-[15rem] grid-cols-[1fr_auto] items-center gap-3 p-5 sm:min-h-[17rem] sm:p-7" aria-live={playing ? "off" : "polite"}>
+      <div key={slide.id} className="nv-fade-in grid h-full min-h-[15rem] grid-cols-1 items-center gap-4 p-5 pb-14 sm:min-h-[17rem] sm:grid-cols-[1fr_auto] sm:p-7 sm:pb-10" aria-live={playing ? "off" : "polite"}>
         <div className="min-w-0 max-w-[34ch]">
           <p className="nv-rise inline-flex items-center gap-1.5 text-xs font-semibold text-white/80">
             {slide.tool && slide.tool !== "dev" && <span className="rounded-full bg-emerald-400 px-2 py-0.5 text-[11px] font-bold text-slate-950">Grátis</span>}
@@ -154,7 +154,7 @@ export function SmartBanner({ className = "" }: { className?: string }) {
             </Link>
           )}
         </div>
-        <div className="relative flex h-full items-center pb-6" aria-hidden="true">
+        <div className="relative flex h-full items-center justify-center pb-6 max-sm:order-first max-sm:pb-2" aria-hidden="true">
           {slide.tool ? (
             <ToolDemo kind={slide.tool} />
           ) : (
