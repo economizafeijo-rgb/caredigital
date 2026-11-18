@@ -777,3 +777,8 @@ body:has(.care-shell #care-client-tab-panel) {
 @keyframes nv-bell { 0%, 50%, 100% { transform: rotate(0); } 10%, 30% { transform: rotate(14deg); } 20%, 40% { transform: rotate(-14deg); } }
 .nv-ring-bell { transform-origin: 50% 10%; animation: nv-bell 1.4s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .nv-due, .nv-ring-bell { animation: none; } }
+
+/* Mãozinha em tudo que é clicável (o reset do Tailwind deixa botões com a seta) */
+button:not(:disabled), [role="button"], [role="radio"], [role="tab"], [role="switch"], [role="slider"], summary, select:not(:disabled),
+label:has(> input[type="checkbox"]), label:has(> input[type="radio"]), input[type="checkbox"], input[type="radio"], input[type="range"], [data-clickable] { cursor: pointer; }
+button:disabled, [aria-disabled="true"] { cursor: not-allowed; }

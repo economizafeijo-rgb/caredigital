@@ -1,17 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Apple, Beef, Carrot, Check, CupSoda, Leaf, Loader2, MapPin, Minus, Plus, Search, Sparkles, Target, Trash2, Wheat, X, type LucideIcon,
+  Apple, Beef, Carrot, Check, CupSoda, Leaf, Loader2, MapPin, Minus, Plus, Search, Sparkles, Target, Trash2, UserRound, Wheat, X, type LucideIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ingredients, gramsForMacro, regionalFoodIds, type Ingredient } from "@/lib/nutrition-catalog";
 import { microTargets, nutrientsFor, typicalPortion, type Nutrients } from "@/lib/food-parser";
 import { useDialog } from "@/lib/dialog";
+import { parseDecimal } from "@/lib/public-signup-validation";
 import type { DailyNutrition } from "./DailyNutritionPanel";
 
-type Group = "todos" | "regionais" | Ingredient["group"];
+type Group = "todos" | "regionais" | "meus" | Ingredient["group"];
 const groups: { key: Group; label: string; icon: LucideIcon; color: string }[] = [
   { key: "todos", label: "Todos", icon: Sparkles, color: "#64748b" },
   { key: "regionais", label: "Do Acre", icon: MapPin, color: "#059669" },
+  { key: "meus", label: "Meus alimentos", icon: UserRound, color: "#0f766e" },
   { key: "frutas", label: "Frutas", icon: Apple, color: "#e11d48" },
   { key: "cereais", label: "Cereais e raízes", icon: Wheat, color: "#d97706" },
   { key: "proteinas", label: "Proteínas", icon: Beef, color: "#be123c" },
@@ -96,11 +98,25 @@ export function NutritionCalculator({ patientId, nutrition, onLogged }: { patien
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
   const requestId = useRef<string | null>(null);
 
-  const usable = useMemo(() => ingredients.filter((f) => f.kcal !== null && f.protein !== null && f.carbs !== null && f.fat !== null), []);
+  const [custom, setCustom] = useState<Ingredient[]>([]);
+  const [reloadCustom, setReloadCustom] = useState(0);
+  const [creating, setCreating] = useState(false);
+  const [draft, setDraft] = useState({ name: "", group: "cereais" as Ingredient["group"], base: "100", kcal: "", protein: "", carbs: "", fat: "", fiber: "" });
+  useEffect(() => {
+    let active = true;
+    void (supabase as any).from("care_food_catalog").select("id,name,food_group,kcal,protein_g,carbs_g,fat_g,fiber_g,flags").eq("owner_patient_id", patientId).order("name")
+      .then(({ data, error }: any) => {
+        if (!active || error) return;
+        setCustom((data ?? []).filter((r: any) => !(r.flags ?? []).includes("arquivado")).map((r: any) => ({ id: r.id, name: r.name, group: r.food_group, kcal: Number(r.kcal), protein: Number(r.protein_g), carbs: Number(r.carbs_g), fat: Number(r.fat_g), fiber: Number(r.fiber_g ?? 0), provenance: "rotulo" as const })));
+      });
+    return () => { active = false; };
+  }, [patientId, reloadCustom]);
+  const customIds = useMemo(() => new Set(custom.map((c) => c.id)), [custom]);
+  const usable = useMemo(() => [...custom, ...ingredients.filter((f) => f.kcal !== null && f.protein !== null && f.carbs !== null && f.fat !== null)], [custom]);
   const list = useMemo(() => usable.filter((f) =>
-    (group === "todos" || (group === "regionais" ? regionalFoodIds.has(f.id) : f.group === group)) &&
+    (group === "todos" || (group === "regionais" ? regionalFoodIds.has(f.id) : group === "meus" ? customIds.has(f.id) : f.group === group)) &&
     (!query.trim() || norm(f.name).includes(norm(query.trim())))
-  ).sort((a, b) => Number(regionalFoodIds.has(b.id)) - Number(regionalFoodIds.has(a.id)) || a.name.localeCompare(b.name, "pt-BR")), [usable, group, query]);
+  ).sort((a, b) => Number(customIds.has(b.id)) - Number(customIds.has(a.id)) || Number(regionalFoodIds.has(b.id)) - Number(regionalFoodIds.has(a.id)) || a.name.localeCompare(b.name, "pt-BR")), [usable, group, query, customIds]);
   const food = usable.find((f) => f.id === foodId) ?? usable[0];
   const u = units.find((x) => x.key === unit) ?? units[0];
   const grams = Math.max(1, Math.round(u.grams(food) * qty));
@@ -123,6 +139,31 @@ export function NutritionCalculator({ patientId, nutrition, onLogged }: { patien
 
   useEffect(() => { setQty(1); setUnit("porcao"); setNotice(null); requestId.current = null; }, [foodId]);
 
+  async function createFood() {
+    const base = parseDecimal(draft.base);
+    const vals = { kcal: parseDecimal(draft.kcal), protein: parseDecimal(draft.protein), carbs: parseDecimal(draft.carbs), fat: parseDecimal(draft.fat), fiber: parseDecimal(draft.fiber || "0") };
+    if (draft.name.trim().length < 2) return setNotice({ ok: false, text: "Dê um nome ao alimento." });
+    if (!base || base < 1 || base > 2000) return setNotice({ ok: false, text: "Informe o tamanho da porção entre 1 e 2.000 g." });
+    if (Object.values(vals).some((v) => v === null || v < 0)) return setNotice({ ok: false, text: "Preencha calorias, proteína, carboidrato e gordura com números (0 se não tiver)." });
+    const k = 100 / base;
+    const per = { kcal: vals.kcal! * k, protein: vals.protein! * k, carbs: vals.carbs! * k, fat: vals.fat! * k, fiber: vals.fiber! * k };
+    if (per.protein + per.carbs + per.fat + per.fiber > 100.5) return setNotice({ ok: false, text: "Os macronutrientes somam mais que o peso da porção. Confira o rótulo." });
+    if (per.kcal > 900) return setNotice({ ok: false, text: "Calorias acima do possível para esse peso. Confira o rótulo." });
+    if (!(await dialog.confirm("Criar alimento?", `${draft.name.trim()}: ${n(per.kcal)} kcal, ${n(per.protein, 1)} g de proteína, ${n(per.carbs, 1)} g de carboidrato e ${n(per.fat, 1)} g de gordura por 100 g.`, false, "Criar alimento"))) return;
+    setBusy(true); setNotice(null);
+    const r = await (supabase as any).rpc("care_create_custom_food", { p_patient_id: patientId, p_name: draft.name.trim(), p_group: draft.group, p_kcal: +per.kcal.toFixed(2), p_protein: +per.protein.toFixed(2), p_carbs: +per.carbs.toFixed(2), p_fat: +per.fat.toFixed(2), p_fiber: +per.fiber.toFixed(2) });
+    setBusy(false);
+    if (r.error) return setNotice({ ok: false, text: r.error.message });
+    setCreating(false); setDraft({ name: "", group: "cereais", base: "100", kcal: "", protein: "", carbs: "", fat: "", fiber: "" });
+    setReloadCustom((v) => v + 1); setGroup("meus"); if (r.data) setFoodId(String(r.data));
+    setNotice({ ok: true, text: "Alimento criado. Ele aparece só para você." });
+  }
+  async function removeFood() {
+    if (!(await dialog.confirm("Remover alimento?", `${food.name} sai da sua lista. Registros antigos continuam no histórico.`, true))) return;
+    const r = await (supabase as any).rpc("care_delete_custom_food", { p_food_id: food.id });
+    if (r.error) return setNotice({ ok: false, text: r.error.message });
+    setFoodId("pirarucu"); setReloadCustom((v) => v + 1);
+  }
   async function logNow() {
     if (busy) return;
     if (!(await dialog.confirm("Registrar consumo?", `Registrar ${n(grams)} g de ${food.name} agora?`, false, "Registrar"))) return;
@@ -171,7 +212,29 @@ export function NutritionCalculator({ patientId, nutrition, onLogged }: { patien
             className={`inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-semibold transition active:scale-95 ${group === g.key ? "text-white shadow-sm" : "bg-muted text-muted-foreground hover:text-foreground"}`}
             style={group === g.key ? { background: g.color } : undefined}><g.icon size={13} />{g.label}</button>)}
         </div>
-        <p className="mt-2 text-[11px] text-muted-foreground">{list.length} alimentos · valores por 100 g</p>
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <p className="text-[11px] text-muted-foreground">{list.length} alimentos · valores por 100 g</p>
+          <button type="button" onClick={() => setCreating((v) => !v)} aria-expanded={creating} className="inline-flex h-8 items-center gap-1 rounded-lg border border-border px-2.5 text-xs font-semibold text-primary transition hover:bg-primary/10"><Plus size={13} /> Criar alimento</button>
+        </div>
+        {creating && (
+          <div className="nv-rise mt-2 grid gap-2 rounded-xl border border-primary/30 bg-primary/[.04] p-3 text-xs">
+            <p className="font-bold">Novo alimento <span className="font-normal text-muted-foreground">· só você vê</span></p>
+            <input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} maxLength={80} placeholder="Nome (ex.: Bolo de macaxeira da vó)" className="h-9 rounded-lg border border-border bg-background px-2 text-sm" />
+            <div className="grid grid-cols-2 gap-2">
+              <label className="font-semibold">Grupo<select value={draft.group} onChange={(e) => setDraft({ ...draft, group: e.target.value as Ingredient["group"] })} className="mt-1 h-9 w-full rounded-lg border border-border bg-background px-2 text-sm">
+                {groups.filter((g) => !["todos", "regionais", "meus"].includes(g.key)).map((g) => <option key={g.key} value={g.key}>{g.label}</option>)}</select></label>
+              <label className="font-semibold">Valores por porção de (g)<input inputMode="decimal" value={draft.base} onChange={(e) => setDraft({ ...draft, base: e.target.value })} className="mt-1 h-9 w-full rounded-lg border border-border bg-background px-2 text-sm" /></label>
+            </div>
+            <div className="grid grid-cols-5 gap-1.5">
+              {([["kcal", "kcal"], ["protein", "Prot. g"], ["carbs", "Carb. g"], ["fat", "Gord. g"], ["fiber", "Fibra g"]] as const).map(([k, l]) => <label key={k} className="font-semibold">{l}<input inputMode="decimal" value={draft[k]} onChange={(e) => setDraft({ ...draft, [k]: e.target.value })} placeholder="0" className="mt-1 h-9 w-full rounded-lg border border-border bg-background px-1.5 text-center text-sm" /></label>)}
+            </div>
+            <p className="text-muted-foreground">Copie do rótulo da embalagem. Use vírgula ou ponto.</p>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setCreating(false)} className="h-9 rounded-lg px-3 font-semibold text-muted-foreground hover:bg-muted">Cancelar</button>
+              <button type="button" onClick={() => void createFood()} disabled={busy} className="inline-flex h-9 items-center gap-1 rounded-lg bg-primary px-3 font-bold text-primary-foreground disabled:opacity-60"><Check size={13} /> Salvar alimento</button>
+            </div>
+          </div>
+        )}
         <ul className="mt-1 -mx-1 max-h-[26rem] min-h-0 flex-1 overflow-y-auto px-1 xl:max-h-[34rem]">
           {list.map((f) => {
             const on = f.id === food.id;
@@ -202,7 +265,8 @@ export function NutritionCalculator({ patientId, nutrition, onLogged }: { patien
               <p className="mt-1 flex flex-wrap gap-1.5 text-[11px] font-semibold">
                 <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">{groupMeta(food.group).label}</span>
                 {regionalFoodIds.has(food.id) && <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-emerald-700 dark:text-emerald-300">Típico do Acre</span>}
-                <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">{food.provenance === "TACO" ? "Tabela TACO" : "Estimativa"}</span>
+                <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">{customIds.has(food.id) ? "Criado por você" : food.provenance === "TACO" ? "Tabela TACO" : "Estimativa"}</span>
+                {customIds.has(food.id) && <button type="button" onClick={() => void removeFood()} className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-destructive hover:bg-destructive/10"><Trash2 size={11} /> Remover</button>}
               </p>
             </div>
           </div>

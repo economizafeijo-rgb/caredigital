@@ -68,13 +68,15 @@ type Props = {
   /** Identifica o tipo de lembrete para não repetir o alerta do mesmo horário. */
   alertKey: string;
   className?: string;
+  /** Versão menor para caber dentro de cartões (ex.: painel ao vivo). */
+  compact?: boolean;
 };
 
 /**
  * Relógio do próximo cuidado: mostrador animado, contagem regressiva e alerta sonoro,
  * com vibração e notificação do navegador quando o horário chega (com a página aberta).
  */
-export function NextUpClock({ target, from, title, detail, color = "#22d3ee", emptyText = "Sem próximo horário", actionLabel, onAction, alertKey, className = "" }: Props) {
+export function NextUpClock({ target, from, title, detail, color = "#22d3ee", emptyText = "Sem próximo horário", actionLabel, onAction, alertKey, className = "", compact = false }: Props) {
   const [now, setNow] = useState(() => Date.now());
   const [snooze, setSnooze] = useState<number | null>(null);
   const sound = useAlertSound();
@@ -107,8 +109,8 @@ export function NextUpClock({ target, from, title, detail, color = "#22d3ee", em
   const sec = new Date(now).getSeconds();
 
   return (
-    <div className={`flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur ${due ? "nv-due" : ""} ${className}`} style={{ ["--due" as string]: color }}>
-      <div className="relative size-[88px] shrink-0" aria-hidden="true">
+    <div className={`flex items-center ${compact ? "gap-2.5 rounded-xl p-2" : "gap-3 rounded-2xl p-3"} border border-white/15 bg-white/10 backdrop-blur ${due ? "nv-due" : ""} ${className}`} style={{ ["--due" as string]: color }}>
+      <div className={`relative shrink-0 ${compact ? "size-[54px]" : "size-[88px]"}`} aria-hidden="true">
         <svg viewBox="0 0 100 100" className="size-full">
           {Array.from({ length: 60 }, (_, i) => {
             const a = (i / 60) * Math.PI * 2, big = i % 5 === 0;
@@ -122,7 +124,7 @@ export function NextUpClock({ target, from, title, detail, color = "#22d3ee", em
           <circle cx="50" cy="50" r="2.6" fill={color} />
         </svg>
         <span className="absolute inset-0 grid place-items-center">
-          {due ? <Bell size={20} className="nv-ring-bell" style={{ color }} /> : <Clock3 size={14} className="mt-7 text-white/50" />}
+          {due ? <Bell size={compact ? 15 : 20} className="nv-ring-bell" style={{ color }} /> : !compact && <Clock3 size={14} className="mt-7 text-white/50" />}
         </span>
       </div>
       <div className="min-w-0 flex-1">
@@ -136,10 +138,10 @@ export function NextUpClock({ target, from, title, detail, color = "#22d3ee", em
         ) : due ? (
           <p className="mt-0.5 text-xl font-extrabold" style={{ color }}>É hora!</p>
         ) : (
-          <p className="mt-0.5 font-mono text-2xl font-bold tabular-nums leading-none">{countdown(when - now)}</p>
+          <p className={`mt-0.5 font-mono font-bold tabular-nums leading-none ${compact ? "text-lg" : "text-2xl"}`}>{countdown(when - now)}</p>
         )}
         {when !== null && <p className="mt-1 truncate text-[11px] text-white/70">às {clockTime(when)}{detail ? ` · ${detail}` : ""}</p>}
-        {when !== null && (due || when - now < 15 * 60_000) && (
+        {when !== null && (due || when - now < 15 * 60_000) && (!compact || due) && (
           <div className="mt-2 flex flex-wrap gap-1.5">
             {onAction && <button type="button" onClick={onAction} className="inline-flex h-8 items-center gap-1 rounded-lg bg-white px-2.5 text-xs font-bold text-slate-900 transition hover:bg-white/90 active:scale-95"><Check size={13} /> {actionLabel ?? "Registrar"}</button>}
             {due && <button type="button" onClick={() => setSnooze(Date.now() + 10 * 60_000)} className="inline-flex h-8 items-center gap-1 rounded-lg border border-white/25 px-2.5 text-xs font-semibold text-white/85 transition hover:bg-white/10 active:scale-95"><TimerReset size={13} /> Adiar 10 min</button>}

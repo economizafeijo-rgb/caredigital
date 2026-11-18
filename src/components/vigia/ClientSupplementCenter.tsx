@@ -131,6 +131,7 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
     if (!editing) return;
     const plan = { name: (editing.name ?? "").trim(), kind: editing.kind ?? "outro", dose: Number(editing.dose), unit: editing.unit ?? "g",
       times: (editing.times ?? []).filter(Boolean).sort(), with_food: Boolean(editing.with_food), notes: editing.notes?.trim() || null, active: editing.active ?? true };
+    if (plan.name.length >= 2 && Number.isFinite(plan.dose) && plan.dose > 0 && plan.times.length && !(await dialog.confirm(editing.id ? "Salvar alterações?" : "Confirmar programação?", `${plan.name} · ${plan.dose.toLocaleString("pt-BR")} ${plan.unit} às ${plan.times.join(", ")}.`, false, editing.id ? "Salvar alterações" : "Confirmar"))) return;
     if (plan.name.length < 2) return setMessage("Informe o nome do suplemento.");
     if (!Number.isFinite(plan.dose) || plan.dose <= 0) return setMessage("Informe uma dose válida.");
     if (!plan.times.length) return setMessage("Escolha pelo menos um horário.");
