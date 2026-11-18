@@ -1075,7 +1075,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                     </div>
                   </section>
                   )}
-                  <div className={card + " shrink-0 p-4"}>
+                  <div className={card + " flex-1 p-4"}>
                     <ClientOverviewIndicators
                       heightCm={client.height_cm}
                       weightKg={healthProfile.weightKg ?? client.weight_kg}

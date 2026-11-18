@@ -206,7 +206,11 @@ iframe[title*="Lovable" i][title*="badge" i] { display: none !important; visibil
 .care-overview-heading-note { font-size: 11px; color: var(--muted-foreground); white-space: nowrap; }
 
 /* ---------- Indicadores de saúde ---------- */
-.care-overview-indicator-grid { display: grid; gap: 0.5rem; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); }
+.care-overview-indicator-grid { display: grid; gap: 0.5rem; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 1fr; flex: 1; }
+@media (max-width: 520px) { .care-overview-indicator-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.care-overview-indicators { display: flex; height: 100%; flex-direction: column; }
+.care-overview-indicator { display: flex; flex-direction: column; justify-content: center; }
+.care-overview-indicator-copy > span, .care-overview-indicator-copy em, .care-overview-indicator-copy strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .care-overview-indicator {
   border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface);
   transition: border-color 0.15s;

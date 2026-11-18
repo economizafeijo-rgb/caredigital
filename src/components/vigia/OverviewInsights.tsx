@@ -116,6 +116,8 @@ function MetricCard({ k, days, keys, goal, scheduled, onOpen, index }: { k: Metr
   );
 }
 
+/** Valor curto para caber na linha da pontuação (ex.: 1,2 L · 4 · 30 min). */
+const short = (v: number, k: MetricKey) => k === "hidratacao" ? (v >= 1000 ? `${(v / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} L` : `${Math.round(v)} ml`) : k === "atividade" ? `${Math.round(v)}` : `${Math.round(v)}`;
 const order: MetricKey[] = ["hidratacao", "alimentacao", "medicacao", "atividade"];
 
 /** Meta de hoje por métrica: água pela meta do perfil, 3 refeições, doses programadas e 1 sessão de atividade. */
@@ -167,10 +169,10 @@ function ScoreCard({ series, waterGoal, scheduled, onOpen }: { series: Series[];
               <button type="button" onClick={() => onOpen(r.k)} className="group grid w-full grid-cols-[auto_1fr_auto] items-center gap-2.5 rounded-xl px-1.5 py-1 text-left transition hover:bg-white/[.06]">
                 <span className="grid size-7 place-items-center rounded-lg" style={{ background: `color-mix(in srgb, ${m.color} 25%, transparent)`, color: m.color }}><m.icon size={14} /></span>
                 <span className="min-w-0">
-                  <span className="flex justify-between text-[11px] font-semibold"><span className="text-white/80">{m.label}</span><span className="tabular-nums text-white/60">{r.pct === null ? "sem doses hoje" : `${m.unit(r.today)} / ${m.unit(r.target)}`}</span></span>
+                  <span className="flex items-baseline justify-between gap-2 whitespace-nowrap text-[11px] font-semibold"><span className="truncate text-white/80">{m.label}</span><span className="shrink-0 tabular-nums text-white/60">{r.pct === null ? "sem doses" : `${short(r.today, r.k)} / ${short(r.target, r.k)}`}</span></span>
                   <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-white/10"><i className="block h-full rounded-full transition-[width] duration-700 ease-out" style={{ width: `${r.pct ?? 0}%`, background: m.color, transitionDelay: `${i * 90}ms` }} /></span>
                 </span>
-                <span className="w-9 text-right text-xs font-bold tabular-nums text-white/85 transition-transform group-hover:translate-x-0.5">{r.pct === null ? "—" : `${r.pct}%`}</span>
+                <span className="w-10 shrink-0 whitespace-nowrap text-right text-xs font-bold tabular-nums text-white/85 transition-transform group-hover:translate-x-0.5">{r.pct === null ? "—" : `${r.pct}%`}</span>
               </button>
             </li>
           );
