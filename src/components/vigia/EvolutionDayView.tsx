@@ -159,9 +159,9 @@ export function EvolutionDayView({ metrics: m, raw, targets, focus }: { metrics:
                   </li>
                 ))}
               </ul>
-              {(kcalReview?.observation || proteinReview?.observation) && <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">Histórico salvo: {[kcalReview?.observation, proteinReview?.observation].filter(Boolean).join(" ")}</p>}
             </>
           )}
+          {(kcalReview?.observation || proteinReview?.observation) && <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">Histórico salvo: {[kcalReview?.observation, proteinReview?.observation].filter(Boolean).join(" ")}</p>}
         </Panel>}
       </div>}
 
