@@ -63,3 +63,41 @@ export function formatBrazilPhone(value: string): string {
   if (subscriber.length > 8) return `(${ddd}) ${subscriber.slice(0, 5)}-${subscriber.slice(5)}`;
   return `(${ddd}) ${subscriber.slice(0, 4)}-${subscriber.slice(4)}`;
 }
+
+/** E-mail com usuário, domínio e extensão (ex.: nome@dominio.com.br). */
+export function isValidEmail(value: string): boolean {
+  const v = value.trim();
+  return v.length <= 254 && /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(v) && !/\.\./.test(v);
+}
+
+export function isValidCnpj(value: string): boolean {
+  const c = value.replace(/\D/g, "");
+  if (c.length !== 14 || /^(\d)\1{13}$/.test(c)) return false;
+  const calc = (len: number) => {
+    const w = len === 12 ? [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2] : [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+    const s = w.reduce((a, wt, i) => a + Number(c[i]) * wt, 0) % 11;
+    return s < 2 ? 0 : 11 - s;
+  };
+  return calc(12) === Number(c[12]) && calc(13) === Number(c[13]);
+}
+
+/** Converte texto numérico em número aceitando vírgula ou ponto ("84,40" → 84.4). */
+export function parseDecimal(value: string | number | null | undefined): number | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  const t = value.trim().replace(/\s/g, "");
+  if (!t) return null;
+  const normalized = t.includes(",") ? t.replace(/\./g, "").replace(",", ".") : t;
+  const n = Number(normalized);
+  return Number.isFinite(n) ? n : null;
+}
+
+/** Idade em anos completos para uma data AAAA-MM-DD. */
+export function ageFromBirthDate(value: string): number | null {
+  if (!isValidBirthDate(value)) return null;
+  const [y, m, d] = value.split("-").map(Number);
+  const now = new Date();
+  let age = now.getFullYear() - y;
+  if (now.getMonth() + 1 < m || (now.getMonth() + 1 === m && now.getDate() < d)) age--;
+  return age;
+}

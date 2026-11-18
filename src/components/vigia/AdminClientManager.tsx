@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { formatBrazilPhone, isValidBirthDate, isValidBrazilPhone, isValidEmail, normalizeBrazilPhone, parseDecimal } from "@/lib/public-signup-validation";
 import { Link } from "@tanstack/react-router";
 import {
   BadgeCheck,
@@ -134,7 +135,14 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
     const name = (editing.full_name ?? "").trim();
     if (name.length < 3)
       return setMessage({ ok: false, text: "Informe o nome completo do cliente." });
-    const num = (v: unknown) => (v === "" || v === null || v === undefined ? null : Number(v));
+    const email = editing.contact_email?.trim() ?? "";
+    if (email && !isValidEmail(email)) return setMessage({ ok: false, text: "E-mail inválido. Confira o endereço." });
+    if (editing.phone?.trim() && !isValidBrazilPhone(editing.phone)) return setMessage({ ok: false, text: "Telefone inválido. Use DDD + número." });
+    if (editing.birth_date && !isValidBirthDate(editing.birth_date)) return setMessage({ ok: false, text: "Data de nascimento inválida." });
+    const num = (v: unknown) => (v === "" || v === null || v === undefined ? null : parseDecimal(String(v)));
+    const w = num(editing.weight_kg), h = num(editing.height_cm);
+    if (w !== null && (w < 30 || w > 300)) return setMessage({ ok: false, text: "Peso deve ficar entre 30 e 300 kg." });
+    if (h !== null && (h < 100 || h > 230)) return setMessage({ ok: false, text: "Altura deve ficar entre 100 e 230 cm." });
     const row: Record<string, unknown> = {
       full_name: name,
       birth_date: editing.birth_date || null,
@@ -146,7 +154,7 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
     };
     if (licenseColumns)
       Object.assign(row, {
-        phone: editing.phone?.trim() || null,
+        phone: editing.phone?.trim() ? normalizeBrazilPhone(editing.phone) : null,
         license_plan: editing.license_plan ?? "basico",
         license_status: editing.license_status ?? "ativa",
         license_expires_on: editing.license_expires_on || null,
@@ -468,7 +476,7 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
                           </strong>
                           <span className="block truncate text-xs text-muted-foreground">
                             {c.contact_email ?? "sem e-mail"}
-                            {c.phone ? ` · ${c.phone}` : ""}
+                            {c.phone ? ` · ${formatBrazilPhone(c.phone)}` : ""}
                           </span>
                         </span>
                       </div>
@@ -639,7 +647,7 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
                 <input
                   className={input}
                   value={editing.phone ?? ""}
-                  onChange={(e) => setEditing({ ...editing, phone: e.target.value })}
+                  onChange={(e) => setEditing({ ...editing, phone: formatBrazilPhone(e.target.value) })}
                   disabled={!licenseColumns}
                 />
               </label>

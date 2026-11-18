@@ -18,6 +18,7 @@ const segmentsLoja = [
 const cities = ["Feijó", "Tarauacá", "Rio Branco", "Cruzeiro do Sul", "Sena Madureira", "Outra"];
 const goals = ["Vender produtos", "Divulgar serviços", "Conseguir alunos ou clientes", "Anunciar a marca"];
 
+import { isValidBrazilPhone, isValidCnpj, isValidCpf, isValidEmail } from "@/lib/public-signup-validation";
 const digits = (v: string) => v.replace(/\D/g, "");
 const fmtPhone = (v: string) => { const d = digits(v).slice(0, 11); return d.length <= 2 ? d : d.length <= 7 ? `(${d.slice(0, 2)}) ${d.slice(2)}` : `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`; };
 const fmtDoc = (v: string) => {
@@ -66,7 +67,7 @@ export function PartnerSignup({ disabled, errorMessage, onSignedIn, onNeedsConfi
     if (step === 1) {
       if (business.trim().length < 2) return setError(`Informe o ${businessLabel.toLowerCase()}.`);
       const d = digits(doc);
-      if (d && d.length !== 11 && d.length !== 14) return setError("Informe um CPF (11 dígitos) ou CNPJ (14 dígitos) válido, ou deixe em branco.");
+      if (d && !(d.length === 11 ? isValidCpf(d) : d.length === 14 ? isValidCnpj(d) : false)) return setError("CPF ou CNPJ inválido. Confira os números ou deixe em branco.");
       if (type === "profissional" && registry.trim().length < 3) return setError("Informe o registro profissional.");
     }
     setStep((s) => s + 1);
@@ -77,7 +78,8 @@ export function PartnerSignup({ disabled, errorMessage, onSignedIn, onNeedsConfi
     if (busy || disabled) return;
     setError("");
     if (name.trim().length < 3) return setError("Informe o nome do responsável.");
-    if (digits(phone).length < 10) return setError("Informe um WhatsApp válido com DDD.");
+    if (!isValidEmail(email)) return setError("Informe um e-mail válido, ex.: contato@seunegocio.com.");
+    if (!isValidBrazilPhone(phone)) return setError("Informe um WhatsApp válido com DDD, ex.: (68) 99999-9999.");
     if (password.length < 8) return setError("Use uma senha com pelo menos 8 caracteres.");
     if (password !== confirm) return setError("As senhas informadas não são iguais.");
     if (!terms) return setError("Confirme que as informações são verdadeiras para continuar.");

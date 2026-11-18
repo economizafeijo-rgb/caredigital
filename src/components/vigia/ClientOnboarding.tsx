@@ -4,6 +4,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { estimateObjectiveNutrition } from "@/lib/objective-nutrition";
+import { formatBrazilPhone, isValidBirthDate, isValidBrazilPhone, normalizeBrazilPhone, parseDecimal } from "@/lib/public-signup-validation";
 
 type Profile = {
   birth_date: string | null; sex: string | null; height_cm: number | null; weight_kg: number | null;
@@ -123,34 +124,42 @@ function LiveRing({ label, value, unit, pct, color, icon }: { label: string; val
 
 /** Régua arrastável: o valor fica sob o marcador central. Também aceita setas do teclado, roda do mouse e botões −/+. */
 function Ruler({ value, onChange, min, max, step, unit, label, accent }: { value: number; onChange: (v: number) => void; min: number; max: number; step: number; unit: string; label: string; accent: string }) {
-  const PX = 12; // pixels por passo
+  const PX = step < 1 ? 9 : 12; // pixels por passo
+  const decimals = step < 1 ? (step < 0.5 ? 2 : 1) : 0;
   const drag = useRef<{ x: number; v: number } | null>(null);
+  const [text, setText] = useState<string | null>(null);
   const clamp = useCallback((v: number) => Math.min(max, Math.max(min, Math.round(v / step) * step)), [min, max, step]);
+  const set = (v: number) => onChange(Number(clamp(v).toFixed(2)));
   const offset = -((value - min) / step) * PX;
-  const ticks = Math.round((max - min) / step);
+  const center = Math.round((value - min) / step);
+  const total = Math.round((max - min) / step);
+  const first = Math.max(0, center - 70), last = Math.min(total, center + 70); // só os traços visíveis
+  const commit = () => { if (text === null) return; const v = parseDecimal(text); if (v !== null) set(v); setText(null); };
   return (
     <div>
       <div className="flex items-end justify-center gap-4">
-        <button type="button" aria-label={`Diminuir ${label}`} onClick={() => onChange(clamp(value - step))} className="mb-2 grid size-10 place-items-center rounded-full border border-white/15 text-white/80 transition hover:bg-white/10 active:scale-90"><Minus size={16} /></button>
-        <p className="text-center leading-none">
-          <span className="font-display text-6xl font-extrabold tabular-nums tracking-tight text-white sm:text-7xl">{fmt(value, step < 1 ? 1 : 0)}</span>
+        <button type="button" aria-label={`Diminuir ${label}`} onClick={() => set(value - step)} className="mb-2 grid size-10 place-items-center rounded-full border border-white/15 text-white/80 transition hover:bg-white/10 active:scale-90"><Minus size={16} /></button>
+        <p className="flex items-baseline justify-center leading-none">
+          <input aria-label={`${label} em ${unit}`} inputMode="decimal" value={text ?? fmt(value, decimals)} onFocus={(e) => { setText(fmt(value, decimals)); e.currentTarget.select(); }}
+            onChange={(e) => setText(e.target.value.replace(/[^\d.,]/g, ""))} onBlur={commit} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); commit(); (e.currentTarget as HTMLInputElement).blur(); } }}
+            className="w-[5.2ch] rounded-xl border border-transparent bg-transparent text-center font-display text-6xl font-extrabold tabular-nums tracking-tight text-white outline-none transition hover:border-white/15 focus:border-white/30 focus:bg-white/[.05] sm:text-7xl" style={{ width: `${Math.max(3, fmt(value, decimals).length) + 0.6}ch` }} />
           <span className="ml-1.5 text-xl font-semibold text-white/50">{unit}</span>
         </p>
-        <button type="button" aria-label={`Aumentar ${label}`} onClick={() => onChange(clamp(value + step))} className="mb-2 grid size-10 place-items-center rounded-full border border-white/15 text-white/80 transition hover:bg-white/10 active:scale-90"><Plus size={16} /></button>
+        <button type="button" aria-label={`Aumentar ${label}`} onClick={() => set(value + step)} className="mb-2 grid size-10 place-items-center rounded-full border border-white/15 text-white/80 transition hover:bg-white/10 active:scale-90"><Plus size={16} /></button>
       </div>
       <div
-        role="slider" tabIndex={0} aria-label={label} aria-valuemin={min} aria-valuemax={max} aria-valuenow={value} aria-valuetext={`${fmt(value, 1)} ${unit}`}
-        onKeyDown={(e) => { if (e.key === "ArrowLeft" || e.key === "ArrowDown") { e.preventDefault(); onChange(clamp(value - step)); } if (e.key === "ArrowRight" || e.key === "ArrowUp") { e.preventDefault(); onChange(clamp(value + step)); } }}
+        role="slider" tabIndex={0} aria-label={label} aria-valuemin={min} aria-valuemax={max} aria-valuenow={value} aria-valuetext={`${fmt(value, decimals)} ${unit}`}
+        onKeyDown={(e) => { if (e.key === "ArrowLeft" || e.key === "ArrowDown") { e.preventDefault(); set(value - step); } if (e.key === "ArrowRight" || e.key === "ArrowUp") { e.preventDefault(); set(value + step); } }}
         onPointerDown={(e) => { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); drag.current = { x: e.clientX, v: value }; }}
-        onPointerMove={(e) => { if (!drag.current) return; onChange(clamp(drag.current.v - ((e.clientX - drag.current.x) / PX) * step)); }}
+        onPointerMove={(e) => { if (!drag.current) return; set(drag.current.v - ((e.clientX - drag.current.x) / PX) * step); }}
         onPointerUp={() => { drag.current = null; }}
         onPointerCancel={() => { drag.current = null; }}
         className="relative mt-5 h-20 cursor-grab touch-none select-none overflow-hidden rounded-2xl border border-white/10 bg-white/[.03] outline-none focus-visible:ring-2 active:cursor-grabbing"
         style={{ maskImage: "linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent)", WebkitMaskImage: "linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent)", ["--tw-ring-color" as string]: accent }}
       >
         <div className="absolute left-1/2 top-0 h-full transition-transform duration-75 ease-out" style={{ transform: `translateX(${offset}px)` }}>
-          {Array.from({ length: ticks + 1 }, (_, i) => {
-            const v = min + i * step;
+          {Array.from({ length: last - first + 1 }, (_, j) => {
+            const i = first + j, v = min + i * step;
             const big = i % 10 === 0, mid = i % 5 === 0;
             return (
               <span key={i} className="absolute top-0" style={{ left: i * PX }}>
@@ -163,7 +172,7 @@ function Ruler({ value, onChange, min, max, step, unit, label, accent }: { value
         <span aria-hidden="true" className="absolute left-1/2 top-0 h-12 w-[3px] -translate-x-1/2 rounded-b-full" style={{ background: accent, boxShadow: `0 0 14px ${accent}` }} />
         <span aria-hidden="true" className="absolute left-1/2 top-11 size-2 -translate-x-1/2 rotate-45" style={{ background: accent }} />
       </div>
-      <p className="mt-2 text-center text-[11px] text-white/40">Arraste a régua, use as setas ou os botões</p>
+      <p className="mt-2 text-center text-[11px] text-white/40">Toque no número para digitar, ou arraste a régua</p>
     </div>
   );
 }
@@ -180,7 +189,7 @@ function OnboardingStudio({ patientId, fullName, initial, onSnooze, onDone }: { 
   const [goal, setGoal] = useState(initial.care_goal && goals.some((g) => g.key === initial.care_goal) ? initial.care_goal : "");
   const [target, setTarget] = useState<number | null>(null);
   const [health, setHealth] = useState<string[]>(initial.health_conditions ?? []);
-  const [phone, setPhone] = useState(initial.phone ?? "");
+  const [phone, setPhone] = useState(formatBrazilPhone(initial.phone ?? ""));
   const [city, setCity] = useState(initial.city ?? "");
   const [uf, setUf] = useState(initial.state ?? "AC");
   const [address, setAddress] = useState(initial.address ?? "");
@@ -199,11 +208,14 @@ function OnboardingStudio({ patientId, fullName, initial, onSnooze, onDone }: { 
 
   function validate(i: number): string {
     if (i === 0) {
-      if (age === null || age < 18 || age > 110) return "Informe sua data de nascimento (18 anos ou mais).";
+      if (!isValidBirthDate(birth)) return "Informe uma data de nascimento válida.";
+      if (age === null || age < 18 || age > 110) return "O acompanhamento é para maiores de 18 anos.";
       if (!sex) return "Escolha o sexo biológico. Ele muda o cálculo do gasto de energia.";
     }
     if (i === 2 && !level) return "Escolha o nível que mais se parece com a sua semana.";
     if (i === 3 && !goal) return "Escolha um objetivo para continuar.";
+    if (i === 5 && phone.trim() && !isValidBrazilPhone(phone)) return "Telefone inválido. Use DDD + número, ex.: (68) 99999-0000.";
+    if (i === 5 && city.trim() && city.trim().length < 2) return "Informe o nome da cidade.";
     return "";
   }
   function go(delta: 1 | -1) {
@@ -211,12 +223,12 @@ function OnboardingStudio({ patientId, fullName, initial, onSnooze, onDone }: { 
     setError(""); setDir(delta); setStep((s) => Math.min(steps.length - 1, Math.max(0, s + delta)));
   }
   async function save() {
-    for (const i of [0, 2, 3]) { const e = validate(i); if (e) { setDir(-1); setStep(i); setError(e); return; } }
+    for (const i of [0, 2, 3, 5]) { const e = validate(i); if (e) { setDir(-1); setStep(i); setError(e); return; } }
     setSaving(true); setError("");
     const r = await (supabase as any).rpc("care_save_onboarding", {
       p_patient_id: patientId, p_birth_date: birth, p_sex: sex, p_height_cm: height, p_weight_kg: weight,
       p_activity_level: level, p_objective: goal, p_target_weight_kg: goal !== "equilibrio" ? target : null, p_health_conditions: health,
-      p_phone: phone, p_city: city, p_state: uf, p_address: address,
+      p_phone: phone.trim() ? normalizeBrazilPhone(phone) : null, p_city: city.trim().replace(/\s+/g, " "), p_state: uf, p_address: address,
     });
     setSaving(false);
     if (r.error) { setError(r.error.message || "Não foi possível salvar. Tente novamente."); return; }
@@ -228,14 +240,14 @@ function OnboardingStudio({ patientId, fullName, initial, onSnooze, onDone }: { 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && !saving) onSnooze();
       const t = e.target as HTMLElement | null;
-      if (e.key === "Enter" && !saving && !done && !(t && (t.tagName === "BUTTON" || t.tagName === "TEXTAREA" || t.tagName === "SELECT"))) { e.preventDefault(); if (step < steps.length - 1) go(1); else void save(); }
+      if (e.key === "Enter" && !e.defaultPrevented && !saving && !done && !(t && (t.tagName === "BUTTON" || t.tagName === "TEXTAREA" || t.tagName === "SELECT"))) { e.preventDefault(); if (step < steps.length - 1) go(1); else void save(); }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   });
   useEffect(() => { const prev = document.body.style.overflow; document.body.style.overflow = "hidden"; return () => { document.body.style.overflow = prev; }; }, []);
 
-  const input = "mt-1.5 block h-12 w-full rounded-xl border border-white/10 bg-white/[.05] px-4 text-base text-white placeholder:text-white/30 outline-none transition focus:border-emerald-300/70 focus:bg-white/[.08] focus:ring-4 focus:ring-emerald-400/15 [color-scheme:dark]";
+  const input = "mt-1.5 block h-12 w-full rounded-xl border border-white/10 bg-white/[.05] px-4 text-base text-white placeholder:normal-case placeholder:text-white/30 outline-none transition focus:border-emerald-300/70 focus:bg-white/[.08] focus:ring-4 focus:ring-emerald-400/15 [color-scheme:dark]";
   const gap = target !== null ? target - weight : null;
   const weeks = gap ? Math.ceil(Math.abs(gap) / (gap < 0 ? 0.5 : 0.25)) : null;
   const titles = [
@@ -281,7 +293,7 @@ function OnboardingStudio({ patientId, fullName, initial, onSnooze, onDone }: { 
   if (step === 1) body = (
     <div className="grid gap-8">
       <Ruler label="Altura" unit="cm" min={130} max={210} step={1} value={height} onChange={(v) => { setHeight(v); setTouched(true); }} accent="#34d399" />
-      <Ruler label="Peso" unit="kg" min={35} max={180} step={0.5} value={weight} onChange={(v) => { setWeight(v); setTouched(true); }} accent="#22d3ee" />
+      <Ruler label="Peso" unit="kg" min={35} max={180} step={0.1} value={weight} onChange={(v) => { setWeight(v); setTouched(true); }} accent="#22d3ee" />
     </div>
   );
   if (step === 2) body = (
@@ -323,7 +335,7 @@ function OnboardingStudio({ patientId, fullName, initial, onSnooze, onDone }: { 
       {goal && goal !== "equilibrio" && target !== null && (
         <div className="nv-fade-in rounded-2xl border border-white/10 bg-white/[.03] p-4">
           <p className="mb-2 text-sm font-semibold text-white/80">Peso que você quer alcançar</p>
-          <Ruler label="Peso desejado" unit="kg" min={35} max={180} step={0.5} value={target} onChange={setTarget} accent={gl?.color ?? "#34d399"} />
+          <Ruler label="Peso desejado" unit="kg" min={35} max={180} step={0.1} value={target} onChange={setTarget} accent={gl?.color ?? "#34d399"} />
           {gap !== null && weeks !== null && Math.abs(gap) >= 0.5 && <p className="mt-2 text-center text-sm text-white/70">{gap < 0 ? "Perder" : "Ganhar"} <strong className="text-white">{fmt(Math.abs(gap), 1)} kg</strong> · ritmo seguro em cerca de <strong className="text-white">{weeks} semanas</strong></p>}
         </div>
       )}
@@ -347,7 +359,8 @@ function OnboardingStudio({ patientId, fullName, initial, onSnooze, onDone }: { 
   );
   if (step === 5) body = (
     <div className="grid gap-4 sm:grid-cols-[1fr_7rem]">
-      <label className="text-sm font-semibold text-white/80 sm:col-span-2">Telefone ou WhatsApp<input type="tel" inputMode="tel" autoComplete="tel" className={input} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(68) 99999-0000" /></label>
+      <label className="text-sm font-semibold text-white/80 sm:col-span-2">Telefone ou WhatsApp<input type="tel" inputMode="tel" autoComplete="tel" className={input} value={phone} onChange={(e) => setPhone(formatBrazilPhone(e.target.value))} placeholder="(68) 99999-0000" />
+        {phone.trim() && <span className={`mt-1 block text-xs ${isValidBrazilPhone(phone) ? "text-emerald-300" : "text-amber-300"}`}>{isValidBrazilPhone(phone) ? "✓ Número válido" : "Digite DDD + número"}</span>}</label>
       <label className="text-sm font-semibold text-white/80">Cidade<input autoComplete="address-level2" className={input} value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ex.: Feijó" /></label>
       <label className="text-sm font-semibold text-white/80">Estado<select className={input} value={uf} onChange={(e) => setUf(e.target.value)}>{states.map((s) => <option key={s} className="bg-[#0b1714]">{s}</option>)}</select></label>
       <label className="text-sm font-semibold text-white/80 sm:col-span-2">Endereço<input autoComplete="street-address" className={input} value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Rua, número e bairro" /></label>
@@ -461,7 +474,7 @@ function OnboardingStudio({ patientId, fullName, initial, onSnooze, onDone }: { 
               <span className="grid size-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-emerald-300 to-cyan-400 text-lg font-extrabold text-[#04211a]">{(first[0] ?? "N").toUpperCase()}</span>
               <div className="min-w-0">
                 <p className="truncate font-bold">{fullName || "Você"}</p>
-                <p className="truncate text-xs text-white/50">{[age && age > 0 ? `${age} anos` : null, sex ? (sex === "feminino" ? "Feminino" : "Masculino") : null, bodyReady ? `${height} cm · ${fmt(weight, 1)} kg` : null].filter(Boolean).join(" · ") || "Preencha para ver seus dados"}</p>
+                <p className="truncate text-xs text-white/50">{[age && age > 0 ? `${age} anos` : null, sex ? (sex === "feminino" ? "Feminino" : "Masculino") : null, bodyReady ? `${height} cm · ${fmt(weight, 2)} kg` : null].filter(Boolean).join(" · ") || "Preencha para ver seus dados"}</p>
               </div>
             </div>
 
