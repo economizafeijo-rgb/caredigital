@@ -156,8 +156,8 @@ function Brand({ onDark = false }: { onDark?: boolean }) {
         <span
           className={
             onDark
-              ? "text-[#9be9da]"
-              : "bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent"
+              ? "text-[#7ef0cc]"
+              : "text-primary"
           }
         >
           Vita

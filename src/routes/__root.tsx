@@ -98,7 +98,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:description", content: "Medicação, hidratação, alimentação, treinos, sono e peso em uma rotina só. Grátis para teste." },
       { name: "twitter:image", content: SHARE_IMAGE },
       { name: "twitter:image:alt", content: "NextVita: seu corpo, sua saúde e sua rotina em um só app, agora com loja. Grátis para teste." },
-      { name: "theme-color", content: "#0e8a6a" },
+      { name: "theme-color", content: "#0c8063" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-title", content: "NextVita" },

@@ -1,7 +1,7 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type CSSProperties } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, BadgeCheck, BadgeInfo, Check, ChevronLeft, ChevronRight, MapPin, Minus, Plus, ShoppingBag, ShoppingCart, Star } from "lucide-react";
-import { cart, categories, categoryLabel, money, PIX_DISCOUNT, products, useCart, vendorById, vendors, type Product, type StoreCategory } from "@/lib/store";
+import { ArrowRight, BadgeCheck, BadgeInfo, Check, ChevronLeft, ChevronRight, MapPin, Minus, Plus, ShoppingBag, ShoppingCart, Star, X } from "lucide-react";
+import { cart, categories, categoryLabel, money, PIX_DISCOUNT, products, useCart, vendorById, vendors, type Product, type StoreCategory, type VendorId } from "@/lib/store";
 
 type Filter = StoreCategory | "todos";
 
@@ -9,7 +9,8 @@ const featuredOrder = ["whey-900", "conjunto-fem-1", "oleo-copaiba", "multivitam
 const pixPrice = (cents: number) => Math.round(cents * (1 - PIX_DISCOUNT));
 const discountOf = (p: Product) => (p.oldPriceCents ? Math.round((1 - p.priceCents / p.oldPriceCents) * 100) : 0);
 
-function pickProducts(filter: Filter): Product[] {
+function pickProducts(filter: Filter, vendor: VendorId | null): Product[] {
+  if (vendor) return products.filter((p) => p.vendorId === vendor);
   if (filter !== "todos") return products.filter((p) => p.category === filter);
   const ordered = featuredOrder.flatMap((id) => products.filter((p) => p.id === id));
   return [...ordered, ...products.filter((p) => !featuredOrder.includes(p.id))];
@@ -58,8 +59,9 @@ function ProductCard({ p, qty, onAdd }: { p: Product; qty: number; onAdd: (p: Pr
 export function HomeStore({ className = "" }: { className?: string }) {
   const [filter, setFilter] = useState<Filter>("todos");
   const [announcement, setAnnouncement] = useState("");
+  const [vendor, setVendor] = useState<VendorId | null>(null);
   const { lines, count } = useCart();
-  const shown = useMemo(() => pickProducts(filter), [filter]);
+  const shown = useMemo(() => pickProducts(filter, vendor), [filter, vendor]);
   const rail = useRef<HTMLDivElement>(null);
   const qtyOf = (id: string) => lines.find((l) => l.id === id)?.qty ?? 0;
   const visibleCategories = categories.filter((c) => c.key === "todos" || products.some((p) => p.category === c.key));
@@ -105,9 +107,9 @@ export function HomeStore({ className = "" }: { className?: string }) {
       <div className="mt-3 flex items-center gap-2">
         <div role="group" aria-label="Filtrar produtos por categoria" className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {visibleCategories.map((c) => {
-            const active = filter === c.key;
+            const active = !vendor && filter === c.key;
             return (
-              <button key={c.key} type="button" aria-pressed={active} onClick={() => setFilter(c.key)}
+              <button key={c.key} type="button" aria-pressed={active} onClick={() => { setVendor(null); setFilter(c.key); }}
                 className={`h-9 shrink-0 rounded-full px-3.5 text-[13px] font-semibold transition-colors ${active ? "bg-foreground text-background" : "border border-border bg-background hover:border-foreground/40"}`}>
                 {c.label}
               </button>
@@ -120,7 +122,14 @@ export function HomeStore({ className = "" }: { className?: string }) {
         </div>
       </div>
 
-      <div ref={rail} key={filter} className="nv-fade-in -mx-4 mt-3 flex snap-x snap-mandatory scroll-px-4 gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:-mx-5 sm:scroll-px-5 sm:px-5 [&::-webkit-scrollbar]:hidden">
+      {vendor && (
+        <p className="mt-3 flex items-center gap-2 text-sm">
+          Produtos de <strong className="font-semibold">{vendorById(vendor)?.name}</strong>
+          <button type="button" onClick={() => setVendor(null)} className="inline-flex h-7 items-center gap-1 rounded-full border border-border bg-background px-2.5 text-xs font-semibold hover:border-foreground/40"><X size={12} aria-hidden="true" /> Ver todos</button>
+        </p>
+      )}
+
+      <div ref={rail} key={`${filter}-${vendor ?? ""}`} className="nv-fade-in -mx-4 mt-3 flex snap-x snap-mandatory scroll-px-4 gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:-mx-5 sm:scroll-px-5 sm:px-5 [&::-webkit-scrollbar]:hidden">
         {shown.map((p) => <ProductCard key={p.id} p={p} qty={qtyOf(p.id)} onAdd={add} />)}
       </div>
 
@@ -132,15 +141,22 @@ export function HomeStore({ className = "" }: { className?: string }) {
           </Link>
         </div>
         <p className="text-xs text-slate-600 dark:text-muted-foreground">Lojas, notas e selos de verificação são exemplos ilustrativos de como os parceiros aparecerão após o lançamento.</p>
-        <ul className="-mx-4 mt-2.5 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-3 sm:px-0 lg:grid-cols-4 xl:grid-cols-7 [&::-webkit-scrollbar]:hidden">
+        <ul className="-mx-4 mt-2.5 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:px-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden">
           {vendors.map((v) => {
             const total = products.filter((p) => p.vendorId === v.id).length;
             return (
-              <li key={v.id} className="flex w-60 shrink-0 items-start gap-2.5 rounded-xl border border-border bg-background p-2.5 sm:w-auto">
-                <span className={`grid size-10 shrink-0 place-items-center rounded-lg text-sm font-bold text-white ${v.color}`} aria-hidden="true">{v.initials}</span>
+              <li key={v.id} className="w-64 shrink-0 sm:w-auto">
+                <button
+                  type="button"
+                  aria-pressed={vendor === v.id}
+                  onClick={() => { setVendor(vendor === v.id ? null : v.id); rail.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }); }}
+                  style={{ "--tile": v.hex } as CSSProperties}
+                  className={`nv-tile flex h-full w-full items-start gap-2.5 rounded-xl border bg-background p-2.5 text-left ${vendor === v.id ? "border-[var(--tile)] ring-1 ring-[var(--tile)]" : "border-border"}`}
+                >
+                <span className={`nv-tile-icon grid size-10 shrink-0 place-items-center rounded-lg text-sm font-bold text-white ${v.color}`} aria-hidden="true">{v.initials}</span>
                 <span className="min-w-0">
                   <strong className="flex items-center gap-1 text-[13px] font-semibold">
-                    <span className="truncate">{v.name}</span>
+                    <span className="line-clamp-1">{v.name}</span>
                     {v.sampleVerified && <BadgeCheck size={14} className="shrink-0 text-sky-600" aria-hidden="true" />}
                   </strong>
                   <span className="block truncate text-[11px] text-slate-600 dark:text-muted-foreground">{v.sector}</span>
@@ -150,7 +166,9 @@ export function HomeStore({ className = "" }: { className?: string }) {
                     {v.sampleVerified && <span className="rounded-full bg-sky-600/10 px-1.5 py-px font-semibold text-sky-700 dark:text-sky-300">Verificada</span>}
                     <span className="rounded-full bg-muted px-1.5 py-px text-slate-600 dark:text-muted-foreground">exemplo</span>
                   </span>
+                  <span className="nv-tile-hint block text-[11px] font-semibold text-[var(--tile)] dark:text-foreground">{vendor === v.id ? "Mostrando os produtos" : "Ver produtos da loja"}</span>
                 </span>
+                </button>
               </li>
             );
           })}

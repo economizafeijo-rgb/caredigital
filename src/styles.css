@@ -601,3 +601,22 @@ body:has(.care-shell #care-client-tab-panel) {
   #care-content .gap-5, #care-content .gap-6 { gap: 0.75rem; }
   #care-content .p-5, #care-content .p-6 { padding: 0.875rem; }
 }
+
+/* ---------- Microinterações das faixas (áreas e lojas): elevação, brilho na cor do item e ícone com mola ---------- */
+.nv-tile { --tile: #0c8063; position: relative; isolation: isolate; transition: transform .22s var(--ease), box-shadow .22s var(--ease), border-color .22s; }
+.nv-tile::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: radial-gradient(130% 120% at 50% 110%, color-mix(in srgb, var(--tile) 24%, transparent), transparent 70%); opacity: 0; transition: opacity .25s; }
+.nv-tile:hover, .nv-tile:focus-visible { transform: translateY(-3px); border-color: color-mix(in srgb, var(--tile) 55%, transparent); box-shadow: 0 14px 28px -16px color-mix(in srgb, var(--tile) 80%, transparent); }
+.nv-tile:hover::before, .nv-tile:focus-visible::before, .nv-tile[aria-pressed="true"]::before { opacity: 1; }
+.nv-tile:active { transform: translateY(-1px) scale(.97); }
+.nv-tile-icon { transition: transform .4s cubic-bezier(.34,1.56,.64,1); }
+.nv-tile:hover .nv-tile-icon, .nv-tile:focus-visible .nv-tile-icon { transform: scale(1.14) rotate(-7deg); }
+.nv-tile-hint { max-height: 0; opacity: 0; overflow: hidden; transition: max-height .25s var(--ease), opacity .25s; }
+.nv-tile:hover .nv-tile-hint, .nv-tile:focus-visible .nv-tile-hint, .nv-tile[aria-pressed="true"] .nv-tile-hint { max-height: 2.4em; opacity: 1; }
+@media (hover: none) { .nv-tile-hint { max-height: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .nv-tile, .nv-tile:hover, .nv-tile:active, .nv-tile:focus-visible { transform: none; } .nv-tile:hover .nv-tile-icon { transform: none; } }
+
+/* ---------- Artes gráficas da página inicial: pulso nas laterais e na faixa final ---------- */
+@keyframes nv-pulse-draw { 0% { stroke-dashoffset: var(--len); } 60%, 100% { stroke-dashoffset: 0; } }
+.nv-side-pulse { --len: 460; stroke-dasharray: 460; animation: nv-pulse-draw 5s ease-in-out infinite alternate; }
+.nv-bottom-pulse { --len: 1400; stroke-dasharray: 1400; animation: nv-pulse-draw 6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .nv-side-pulse, .nv-bottom-pulse { animation: none; stroke-dashoffset: 0; } }

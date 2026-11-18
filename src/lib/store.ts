@@ -6,15 +6,15 @@ export type Product = { id: string; name: string; category: StoreCategory; price
 /** Lojas ilustrativas: demonstram como diferentes setores venderão na plataforma. Não são lojas reais. */
 export type VendorId = "arena" | "farmavida" | "emporio" | "erva-viva" | "studio-move" | "base-athletic" | "casa-do-treino";
 /** sampleRating e sampleVerified são valores de exemplo para demonstrar o selo e a nota; não vêm de avaliações reais. */
-export type Vendor = { id: VendorId; name: string; sector: string; city: string; initials: string; color: string; sampleRating: number; sampleVerified: boolean };
+export type Vendor = { id: VendorId; name: string; sector: string; city: string; initials: string; color: string; hex: string; sampleRating: number; sampleVerified: boolean };
 export const vendors: Vendor[] = [
-  { id: "arena", name: "Arena Suplementos", sector: "Suplementos esportivos", city: "Rio Branco, AC", initials: "AS", color: "bg-blue-700", sampleRating: 4.8, sampleVerified: true },
-  { id: "farmavida", name: "Farmácia Vida & Saúde", sector: "Farmácia e vitaminas", city: "Tarauacá, AC", initials: "FV", color: "bg-rose-700", sampleRating: 4.7, sampleVerified: true },
-  { id: "erva-viva", name: "Erva Viva Fitoterápicos", sector: "Fitoterápicos e produtos da Amazônia", city: "Feijó, AC", initials: "EV", color: "bg-green-800", sampleRating: 4.9, sampleVerified: true },
-  { id: "emporio", name: "Empório Verde Natural", sector: "Produtos naturais", city: "Feijó, AC", initials: "EN", color: "bg-lime-700", sampleRating: 4.6, sampleVerified: false },
-  { id: "studio-move", name: "Studio Move Fitwear", sector: "Moda fitness feminina", city: "Rio Branco, AC", initials: "SM", color: "bg-pink-700", sampleRating: 4.8, sampleVerified: true },
-  { id: "base-athletic", name: "Base Athletic", sector: "Moda fitness masculina", city: "Tarauacá, AC", initials: "BA", color: "bg-slate-800", sampleRating: 4.5, sampleVerified: false },
-  { id: "casa-do-treino", name: "Casa do Treino", sector: "Equipamentos e acessórios", city: "Feijó, AC", initials: "CT", color: "bg-amber-700", sampleRating: 4.7, sampleVerified: true },
+  { id: "arena", name: "Arena Suplementos", sector: "Suplementos esportivos", city: "Rio Branco, AC", initials: "AS", color: "bg-blue-700", hex: "#1d4ed8", sampleRating: 4.8, sampleVerified: true },
+  { id: "farmavida", name: "Farmácia Vida & Saúde", sector: "Farmácia e vitaminas", city: "Tarauacá, AC", initials: "FV", color: "bg-rose-700", hex: "#be123c", sampleRating: 4.7, sampleVerified: true },
+  { id: "erva-viva", name: "Erva Viva Fitoterápicos", sector: "Fitoterápicos e produtos da Amazônia", city: "Feijó, AC", initials: "EV", color: "bg-green-800", hex: "#166534", sampleRating: 4.9, sampleVerified: true },
+  { id: "emporio", name: "Empório Verde Natural", sector: "Produtos naturais", city: "Feijó, AC", initials: "EN", color: "bg-lime-700", hex: "#4d7c0f", sampleRating: 4.6, sampleVerified: false },
+  { id: "studio-move", name: "Studio Move Fitwear", sector: "Moda fitness feminina", city: "Rio Branco, AC", initials: "SM", color: "bg-pink-700", hex: "#be185d", sampleRating: 4.8, sampleVerified: true },
+  { id: "base-athletic", name: "Base Athletic", sector: "Moda fitness masculina", city: "Tarauacá, AC", initials: "BA", color: "bg-slate-800", hex: "#1e293b", sampleRating: 4.5, sampleVerified: false },
+  { id: "casa-do-treino", name: "Casa do Treino", sector: "Equipamentos e acessórios", city: "Feijó, AC", initials: "CT", color: "bg-amber-700", hex: "#b45309", sampleRating: 4.7, sampleVerified: true },
 ];
 export const vendorById = (id?: VendorId) => vendors.find((v) => v.id === id);
 

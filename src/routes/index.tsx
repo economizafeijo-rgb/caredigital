@@ -1,3 +1,4 @@
+import type React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Activity,
@@ -22,6 +23,7 @@ import { HomeStore } from "@/components/vigia/HomeStore";
 import { SmartBanner } from "@/components/vigia/SmartBanner";
 import { QrShareCard } from "@/components/vigia/QrShareCard";
 import { PartnerCommercial } from "@/components/vigia/PartnerCommercial";
+import { HomeBottomArt, HomeSideArt } from "@/components/vigia/HomeDecor";
 import { HomeNextCareCard } from "@/components/vigia/CareTimer";
 import { HomeModalityTimers } from "@/components/vigia/HomeModalityTimers";
 import { HomeClientMetrics } from "@/components/vigia/HomeClientMetrics";
@@ -48,15 +50,15 @@ export const Route = createFileRoute("/")({
 
 /** Áreas da plataforma: atalhos compactos. Para clientes, levam direto à seção do painel. */
 const areas = [
-  { to: "/medicamentos", client: "/cliente#medicacao", label: "Medicação", icon: Pill, tone: "text-rose-600 bg-rose-500/10" },
-  { to: "/hidratacao", client: "/cliente#minha-hidratacao", label: "Hidratação", icon: Droplets, tone: "text-sky-600 bg-sky-500/10" },
-  { to: "/dietas", client: "/cliente#alimentacao", label: "Alimentação", icon: Utensils, tone: "text-emerald-700 bg-emerald-500/10" },
-  { to: "/suplementos", client: "/suplementos", label: "Suplementos", icon: Sparkles, tone: "text-violet-600 bg-violet-500/10" },
-  { to: "/peso", client: "/peso", label: "Peso", icon: Scale, tone: "text-fuchsia-600 bg-fuchsia-500/10" },
-  { to: "/treinos", client: "/treinos", label: "Treinos", icon: Activity, tone: "text-orange-600 bg-orange-500/10" },
-  { to: "/sono", client: "/cliente#sono", label: "Sono", icon: BedDouble, tone: "text-indigo-600 bg-indigo-500/10" },
-  { to: "/metricas", client: "/metricas", label: "Métricas", icon: BarChart3, tone: "text-teal-700 bg-teal-500/10" },
-  { to: "/protocolos", client: "/protocolos", label: "Como funciona", icon: HeartPulse, tone: "text-primary bg-primary/10" },
+  { to: "/medicamentos", client: "/cliente#medicacao", label: "Medicação", hint: "Doses e horários", icon: Pill, tone: "text-rose-600 bg-rose-500/10", color: "#e11d48" },
+  { to: "/hidratacao", client: "/cliente#minha-hidratacao", label: "Hidratação", hint: "Meta de água", icon: Droplets, tone: "text-sky-600 bg-sky-500/10", color: "#0284c7" },
+  { to: "/dietas", client: "/cliente#alimentacao", label: "Alimentação", hint: "Refeições e macros", icon: Utensils, tone: "text-emerald-700 bg-emerald-500/10", color: "#059669" },
+  { to: "/suplementos", client: "/suplementos", label: "Suplementos", hint: "Timer de doses", icon: Sparkles, tone: "text-violet-600 bg-violet-500/10", color: "#7c3aed" },
+  { to: "/peso", client: "/peso", label: "Peso", hint: "Evolução e IMC", icon: Scale, tone: "text-fuchsia-600 bg-fuchsia-500/10", color: "#c026d3" },
+  { to: "/treinos", client: "/treinos", label: "Treinos", hint: "Corridas com GPS", icon: Activity, tone: "text-orange-600 bg-orange-500/10", color: "#ea580c" },
+  { to: "/sono", client: "/cliente#sono", label: "Sono", hint: "Batimentos ao vivo", icon: BedDouble, tone: "text-indigo-600 bg-indigo-500/10", color: "#4f46e5" },
+  { to: "/metricas", client: "/metricas", label: "Métricas", hint: "Gráficos do mês", icon: BarChart3, tone: "text-teal-700 bg-teal-500/10", color: "#0d9488" },
+  { to: "/protocolos", client: "/protocolos", label: "Como funciona", hint: "Passo a passo", icon: HeartPulse, tone: "text-primary bg-primary/10", color: "#0c8063" },
 ] as const;
 
 function Homepage() {
@@ -73,7 +75,9 @@ function Homepage() {
   const firstName = (name || "usuário").split(" ")[0];
 
   return (
-    <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-3 lg:gap-4">
+    <>
+    <HomeSideArt />
+    <div className="relative z-10 mx-auto flex w-full max-w-[1280px] flex-col gap-3 lg:gap-4">
       {status === "unlinked" && (
         <p role="status" className="rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm">
           Sua conta está conectada, mas ainda não há um prontuário vinculado. Solicite o acesso ao administrador.
@@ -128,12 +132,16 @@ function Homepage() {
           <a
             key={a.to}
             href={client ? a.client : a.to}
-            className="flex shrink-0 items-center gap-2 rounded-xl border border-border bg-card px-3 py-2.5 text-[13px] font-semibold hover:border-primary/40 sm:flex-col sm:gap-1.5 sm:py-3 sm:text-center"
+            style={{ "--tile": a.color } as React.CSSProperties}
+            className="nv-tile flex shrink-0 items-center gap-2 overflow-hidden rounded-xl border border-border bg-card px-3 py-2.5 text-[13px] font-semibold sm:flex-col sm:gap-1.5 sm:py-3 sm:text-center"
           >
-            <span className={`grid size-8 shrink-0 place-items-center rounded-lg ${a.tone}`}>
+            <span className={`nv-tile-icon grid size-8 shrink-0 place-items-center rounded-lg ${a.tone}`}>
               <a.icon size={17} aria-hidden="true" />
             </span>
-            {a.label}
+            <span className="flex flex-col">
+              {a.label}
+              <span className="nv-tile-hint hidden text-[11px] font-medium text-muted-foreground sm:block">{a.hint}</span>
+            </span>
           </a>
         ))}
       </nav>
@@ -169,6 +177,9 @@ function Homepage() {
         </nav>
         <QrShareCard variant="footer" className="w-full" />
       </footer>
+
+      <HomeBottomArt />
     </div>
+    </>
   );
 }
