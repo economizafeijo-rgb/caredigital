@@ -24,62 +24,32 @@ const services = [
   { key: "sistemas", label: "Sistemas", icon: Code2, text: "Painéis e sistemas sob medida para organizar clientes, agenda e vendas." },
 ] as const;
 
-const hubAreas = [
-  { label: "Medicação", angle: -150 }, { label: "Hidratação", angle: -110 }, { label: "Alimentação", angle: -70 },
-  { label: "Treinos", angle: -30 }, { label: "Sono", angle: 10 }, { label: "Métricas", angle: 50 },
-  { label: "Loja", angle: 130 }, { label: "Lojistas", angle: 170 },
-] as const;
+const mosaic: { src: string; label: string; tall?: boolean }[][] = [
+  [{ src: "/images/hero-alimentacao.webp", label: "Alimentação", tall: true }, { src: "/loja/v2/whey.webp", label: "Loja" }, { src: "/images/hero-sono.webp", label: "Sono", tall: true }, { src: "/loja/v2/oleo-copaiba.webp", label: "Fitoterápicos" }],
+  [{ src: "/images/dev-nextvita-desktop.webp", label: "NextVita" }, { src: "/images/hero-hidratacao.webp", label: "Hidratação", tall: true }, { src: "/loja/v2/conjunto-rose.webp", label: "Moda fitness" }, { src: "/images/hero-metricas.webp", label: "Métricas", tall: true }],
+  [{ src: "/images/hero-medicamentos.webp", label: "Medicação", tall: true }, { src: "/loja/v2/halteres.webp", label: "Acessórios" }, { src: "/images/hero-treinos.webp", label: "Treinos", tall: true }, { src: "/loja/v2/multivitaminico.webp", label: "Vitaminas" }],
+  [{ src: "/loja/v2/pre-treino.webp", label: "Suplementos" }, { src: "/images/hero-peso.webp", label: "Peso", tall: true }, { src: "/images/hero-suplementos.webp", label: "Suplementos", tall: true }, { src: "/loja/v2/guarana-po.webp", label: "Produtos da Amazônia" }],
+];
 
-/** Arte original: floresta e rio do Acre em linhas topográficas, com a NextVita ao centro conectando as áreas. */
+/** Mosaico da plataforma: colunas inclinadas que deslizam com as áreas, a loja e a tela real do site. */
 function AcreArt() {
-  const [active, setActive] = useState<number | null>(null);
-  const contours = Array.from({ length: 9 }, (_, i) => {
-    const r = 60 + i * 34;
-    const pts = Array.from({ length: 49 }, (_, k) => {
-      const a = (k / 48) * Math.PI * 2;
-      const wob = 1 + 0.08 * Math.sin(a * 3 + i) + 0.05 * Math.cos(a * 5 - i * 0.7);
-      return `${(560 + Math.cos(a) * r * 1.35 * wob).toFixed(1)},${(260 + Math.sin(a) * r * wob).toFixed(1)}`;
-    });
-    return `M${pts.join(" L")}Z`;
-  });
-  const cx = 650, cy = 190, R = 110;
   return (
-    <svg aria-hidden="true" className="absolute inset-0 -z-20 size-full" viewBox="0 0 900 640" preserveAspectRatio="xMaxYMin slice">
-      <defs>
-        <linearGradient id="acre-bg" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#0b2a1b" /><stop offset=".6" stopColor="#06150d" /><stop offset="1" stopColor="#020a06" /></linearGradient>
-        <radialGradient id="acre-sun" cx="78%" cy="18%" r="45%"><stop stopColor="#facc15" stopOpacity=".55" /><stop offset=".4" stopColor="#f59e0b" stopOpacity=".18" /><stop offset="1" stopColor="#f59e0b" stopOpacity="0" /></radialGradient>
-        <linearGradient id="acre-river" x1="0" y1="0" x2="1" y2="0"><stop stopColor="#fde68a" /><stop offset=".5" stopColor="#facc15" /><stop offset="1" stopColor="#34d399" /></linearGradient>
-        <filter id="acre-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="6" /></filter>
-      </defs>
-      <rect width="900" height="640" fill="url(#acre-bg)" />
-      <rect width="900" height="640" fill="url(#acre-sun)" />
-      <g fill="none" stroke="#a7f3d0" strokeOpacity=".09">
-        {contours.map((d, i) => <path key={i} d={d} className="nv-contour" style={{ animationDelay: `${i * 0.4}s` }} />)}
-      </g>
-      <path d="M-20 520 C 140 470 160 380 300 400 S 470 520 560 440 S 700 300 920 330" fill="none" stroke="url(#acre-river)" strokeWidth="14" strokeLinecap="round" opacity=".35" filter="url(#acre-glow)" />
-      <path d="M-20 520 C 140 470 160 380 300 400 S 470 520 560 440 S 700 300 920 330" fill="none" stroke="url(#acre-river)" strokeWidth="4" strokeLinecap="round" />
-      <path d="M-20 520 C 140 470 160 380 300 400 S 470 520 560 440 S 700 300 920 330" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeDasharray="40 260" className="nv-river-shimmer" opacity=".8" />
-      <g style={{ pointerEvents: "auto" }}>
-        <circle cx={cx} cy={cy} r={R} fill="none" stroke="#6ee7b7" strokeOpacity=".22" strokeDasharray="2 8" className="nv-orbit" />
-        {hubAreas.map((a, i) => {
-          const rad = (a.angle * Math.PI) / 180;
-          const x = cx + Math.cos(rad) * R * 1.25, y = cy + Math.sin(rad) * R;
-          const on = active === i;
-          return (
-            <g key={a.label} onMouseEnter={() => setActive(i)} onMouseLeave={() => setActive(null)} style={{ cursor: "default" }}>
-              <line x1={cx} y1={cy} x2={x} y2={y} stroke={on ? "#facc15" : "#6ee7b7"} strokeOpacity={on ? 0.9 : 0.25} strokeWidth={on ? 2 : 1} className="nv-link" style={{ animationDelay: `${i * 0.35}s` }} />
-              <circle cx={x} cy={y} r={on ? 11 : 7} fill={on ? "#facc15" : "#0b2a1b"} stroke="#6ee7b7" strokeWidth="2" style={{ transition: "r .25s, fill .25s" }} />
-              <circle cx={x} cy={y} r="18" fill="transparent" />
-              <text x={x} y={y - 18} textAnchor="middle" fontSize="13" fontWeight="700" fill="#fff" opacity={on ? 1 : 0.55} style={{ transition: "opacity .25s" }}>{a.label}</text>
-            </g>
-          );
-        })}
-        <circle cx={cx} cy={cy} r="46" fill="#0c8063" opacity=".25" className="nv-hub-pulse" />
-        <rect x={cx - 30} y={cy - 30} width="60" height="60" rx="16" fill="#0c8063" />
-        <path d={`M${cx - 12} ${cy + 13}V${cy - 13}L${cx + 12} ${cy + 13}V${cy - 5}`} fill="none" stroke="#fff" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx={cx + 12} cy={cy - 14} r="4.2" fill="#7ef0cc" />
-      </g>
-    </svg>
+    <div aria-hidden="true" className="nv-mosaic absolute inset-0 -z-20 overflow-hidden">
+      <div className="absolute -inset-[18%] grid rotate-[-10deg] grid-cols-4 gap-3">
+        {mosaic.map((col, ci) => (
+          <div key={ci} className="overflow-hidden">
+            <div className={`nv-mosaic-col flex flex-col gap-3 ${ci % 2 ? "nv-mosaic-rev" : ""}`} style={{ animationDuration: `${38 + ci * 6}s` }}>
+              {[...col, ...col].map((t, i) => (
+                <figure key={i} className={`relative overflow-hidden rounded-2xl bg-[#e6e7e9] ring-1 ring-white/10 ${t.tall ? "aspect-[3/4]" : "aspect-square"}`}>
+                  <img src={t.src} alt="" loading="lazy" className="size-full object-cover" />
+                  <figcaption className="absolute bottom-2 left-2 rounded-full bg-slate-950/70 px-2 py-0.5 text-[11px] font-semibold text-white backdrop-blur">{t.label}</figcaption>
+                </figure>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -126,7 +96,7 @@ export function AboutPage() {
         className="nv-parallax nv-dark relative isolate flex min-h-[30rem] flex-col justify-end overflow-hidden rounded-2xl bg-[#06150d] text-white lg:min-h-0"
       >
         <AcreArt />
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-t from-[#06150d] via-[#06150d]/60 to-transparent" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-t from-[#06150d] via-[#06150d]/80 to-[#06150d]/10" />
         <div className="flex flex-col gap-4 p-5 lg:p-10">
           <span className="nv-rise inline-flex w-fit items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur">
             <MapPin size={13} className="text-yellow-300" aria-hidden="true" /> Feijó, Acre, Brasil

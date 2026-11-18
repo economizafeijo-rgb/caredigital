@@ -696,3 +696,10 @@ body:has(.care-shell #care-client-tab-panel) {
   .nv-marquee-track, .nv-m-fill, .nv-m-check, .nv-m-donut, .nv-m-route, .nv-m-drop, .nv-m-badge, .nv-m-bar { animation: none; }
   .nv-marquee { overflow-x: auto; }
 }
+
+/* ---------- Sobre: mosaico da plataforma em colunas que deslizam ---------- */
+@keyframes nv-mosaic-up { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+.nv-mosaic-col { animation: nv-mosaic-up 40s linear infinite; }
+.nv-mosaic-rev { animation-direction: reverse; }
+.nv-mosaic:hover .nv-mosaic-col { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .nv-mosaic-col { animation: none; } }
