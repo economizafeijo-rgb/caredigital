@@ -45,6 +45,7 @@ const foodIcon=(title:string)=>getCareIntakeIcon(mealKind(title))??UtensilsCross
 
 export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,now=Date.now(),onView,onConfirm,onDelete,onRecorded}:Props){
   const nutrition=useDailyNutrition(patientId,ownerId,revision);
+  const [intakeSignal,setIntakeSignal]=useState(0);
   const [details,setDetails]=useState<MealDetail[]>([]);
   const [detailsError,setDetailsError]=useState(false);
   const [extraMeals,setExtraMeals]=useState<UnscheduledMeal[]>([]);
@@ -105,7 +106,7 @@ export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,no
   function setStatus(value:typeof filter){setFilter(value);setPage(0);}
 
   return <div className="care-page-meals care-premium-meals care-meals-responsive flex h-full min-h-0 min-w-0 flex-col gap-3 overflow-y-auto pb-2">
-    <NutritionHero data={nutrition} actions={<ClientQuickIntake patientId={patientId} mode="food" onRecorded={onRecorded}/>}/>
+    <NutritionHero data={nutrition} onRegister={()=>setIntakeSignal(v=>v+1)} actions={<ClientQuickIntake patientId={patientId} mode="food" openSignal={intakeSignal} onRecorded={onRecorded}/>}/>
     <div className="grid shrink-0 gap-3 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
       <NutritionDayChart data={nutrition}/>
       <DailyNutritionPanel data={nutrition} hideSummary/>

@@ -13,6 +13,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useDialog } from "@/lib/dialog";
 import { ClientQuickIntake } from "./ClientQuickIntake";
+import { NextUpClock } from "./NextUpClock";
 import { HydrationEntries } from "./HydrationEntries";
 import { HydrationDayChart } from "./HydrationDayChart";
 import { WATER_LAST_RECOMMENDED_HOUR } from "@/lib/nutrition-science";
@@ -596,22 +597,19 @@ export function ClientHydrationTab({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 lg:w-56 lg:grid-cols-1">
-            <div className="rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur">
-              <p className="text-[11px] font-semibold text-white/70">Próximo copo</p>
-              {remaining === 0 && goal ? (
-                <p className="mt-0.5 text-lg font-bold">Meta atingida</p>
-              ) : dayClosed ? (
-                <p className="mt-0.5 text-sm font-bold">Ideal beber até as {WATER_LAST_RECOMMENDED_HOUR}h</p>
-              ) : nextPlan && nextHydrationAt && nextHydrationAt <= cutoffUtc ? (
-                <>
-                  <p className="mt-0.5 font-mono text-xl font-bold tabular-nums">{nextHydrationAt <= clock ? "Agora" : fmtCountdown(nextHydrationAt - clock)}</p>
-                  <p className="text-[11px] text-white/70">{nextHydrationLabel === "Agora" ? "" : `às ${nextHydrationLabel} · `}~{nextPlan.suggestedMl} ml</p>
-                </>
-              ) : (
-                <p className="mt-0.5 text-sm font-bold">Registre quando beber</p>
-              )}
-            </div>
+          <div className="grid grid-cols-2 gap-2 lg:w-72 lg:grid-cols-1">
+            <NextUpClock
+              className="col-span-2 lg:col-span-1"
+              alertKey="agua"
+              title="Próximo copo"
+              color="#22d3ee"
+              target={remaining === 0 || dayClosed || !nextPlan || !nextHydrationAt || nextHydrationAt > cutoffUtc ? null : nextHydrationAt}
+              from={lastWater ? Date.parse(lastWater.recorded_at) : null}
+              detail={nextPlan ? `~${nextPlan.suggestedMl} ml` : undefined}
+              emptyText={remaining === 0 && goal ? "Meta atingida" : dayClosed ? `Ideal beber até as ${WATER_LAST_RECOMMENDED_HOUR}h` : "Registre quando beber"}
+              actionLabel={nextPlan ? `Bebi ${nextPlan.suggestedMl} ml` : "Registrar"}
+              onAction={nextPlan ? () => void quickDrink(nextPlan.suggestedMl) : undefined}
+            />
             <div className="rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur">
               <p className="text-[11px] font-semibold text-white/70">Último registro</p>
               <p className="mt-0.5 text-lg font-bold tabular-nums">{lastWater ? `${Number(lastWater.amount_ml)} ml` : "—"}</p>

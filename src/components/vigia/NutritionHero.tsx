@@ -3,6 +3,7 @@ import { Beef, Droplet, Flame, Target, Wheat } from "lucide-react";
 import { sumNutrients, type Nutrients } from "@/lib/food-parser";
 import { objectiveLabel } from "@/lib/objective-nutrition";
 import type { DailyNutrition } from "./DailyNutritionPanel";
+import { NextUpClock } from "./NextUpClock";
 
 const tz = "America/Rio_Branco";
 const hourOf = (iso: string) => {
@@ -18,8 +19,25 @@ const macros = [
   { key: "fat", label: "Gordura", icon: Droplet, color: "#a78bfa" },
 ] as const;
 
+const mealSlots: [number, string][] = [[7, "Café da manhã"], [10, "Lanche da manhã"], [12.5, "Almoço"], [15.5, "Lanche da tarde"], [19, "Jantar"], [21, "Ceia"]];
+const acreDayStart = () => Date.parse(new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(new Date()) + "T00:00:00-05:00");
+
+/** Próxima refeição: cerca de 3 h após a última refeição registrada, alinhada aos horários usuais do dia. */
+export function nextMealPlan(entries: DailyNutrition["entries"], now = Date.now()) {
+  const day = acreDayStart();
+  const meals = entries.filter((e) => e.entryType !== "beverage").map((e) => Date.parse(e.at)).sort((a, b) => a - b);
+  const last = meals.at(-1) ?? null;
+  const slotAt = (h: number) => day + h * 3_600_000;
+  let at = last ? last + 3 * 3_600_000 : (mealSlots.map(([h]) => slotAt(h)).find((t) => t > now - 45 * 60_000) ?? null);
+  if (at === null || at > slotAt(21.5)) return null;
+  const hour = (at - day) / 3_600_000;
+  const name = mealSlots.reduce((best, cur) => (Math.abs(cur[0] - hour) < Math.abs(best[0] - hour) ? cur : best))[1];
+  return { at, from: last, name };
+}
+
 /** Cartão principal da Alimentação: prato com anel de calorias e os três macronutrientes do dia. */
-export function NutritionHero({ data, actions }: { data: DailyNutrition; actions?: ReactNode }) {
+export function NutritionHero({ data, actions, onRegister }: { data: DailyNutrition; actions?: ReactNode; onRegister?: () => void }) {
+  const plan = nextMealPlan(data.entries);
   const { total, target, objective, loaded, entries } = data;
   const pct = target.kcal ? Math.min(100, Math.round((total.kcal / target.kcal) * 100)) : 0;
   const left = Math.max(0, target.kcal - total.kcal);
@@ -61,7 +79,10 @@ export function NutritionHero({ data, actions }: { data: DailyNutrition; actions
           {actions && <div className="mt-3 flex flex-wrap justify-center gap-2 lg:justify-start">{actions}</div>}
         </div>
 
-        <ul className="grid gap-2 sm:grid-cols-3 lg:w-60 lg:grid-cols-1">
+        <div className="grid gap-2 lg:w-72">
+        <NextUpClock alertKey="refeicao" title="Próxima refeição" color="#fdba74" target={plan?.at ?? null} from={plan?.from ?? null}
+          detail={plan?.name} emptyText="Refeições do dia encerradas" actionLabel="Registrar refeição" onAction={onRegister} />
+        <ul className="grid gap-2 sm:grid-cols-3 lg:grid-cols-1">
           {macros.map((m, i) => {
             const v = total[m.key], t = target[m.key] || 1;
             const p = Math.min(100, Math.round((v / t) * 100));
@@ -78,6 +99,7 @@ export function NutritionHero({ data, actions }: { data: DailyNutrition; actions
             );
           })}
         </ul>
+        </div>
       </div>
     </header>
   );

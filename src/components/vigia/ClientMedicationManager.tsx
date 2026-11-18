@@ -3,8 +3,8 @@ import { NiceSelect } from "./NiceSelect";
 import { AlertTriangle, BookOpen, Check, CheckCircle2, Clock, Pencil, Pill, Plus, Trash2, Undo2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { acreDateKey } from "@/lib/acre-time";
-import { CareTimer } from "./CareTimer";
 import { RecordInfo } from "./RecordInfo";
+import { NextUpClock } from "./NextUpClock";
 
 export type ClientMedication = { id: string; name: string; category: string; dose: string; times: string[]; instructions: string | null; active: boolean };
 type Intake = { medication_id: string; taken_on: string; slot: string; taken_at?: string | null };
@@ -216,11 +216,13 @@ export function ClientMedicationManager({ patientId, ownerId }: { patientId: str
             <button type="button" onClick={() => { setMessage(null); setDraft({ times: ["08:00"], category: "outros" }); }} className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-4 text-sm font-bold text-white backdrop-blur transition hover:bg-white/20 active:scale-[.97]"><Plus size={16}/> Novo medicamento</button>
           </div>
         </div>
-        <div className="rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur">
-          <p className="text-[11px] font-semibold text-white/70">Próxima dose</p>
-          {next ? <CareTimer target={next.at} title={`${next.med.name} · ${next.med.dose}`} subtitle={next.med.instructions ?? "Conforme a receita"} tone="med" dark windowMs={3 * 3600_000}/>
-            : <p className="py-3 text-sm text-white/85">{doses.length ? "Nenhuma dose pendente hoje." : "Sem horários cadastrados."}</p>}
-        </div>
+        <NextUpClock alertKey="medicacao" title="Próxima dose" color="#f9a8d4"
+          target={next ? next.at : null}
+          from={(() => { const prev = doses.filter(d => d.at < (next?.at ?? 0)).at(-1); return prev ? prev.at : null; })()}
+          detail={next ? `${next.med.name} · ${next.med.dose}` : undefined}
+          emptyText={doses.length ? "Nenhuma dose pendente hoje" : "Sem horários cadastrados"}
+          actionLabel="Tomei"
+          onAction={next ? () => setPending({ kind: "take", med: next.med, slot: next.slot, taken: false }) : undefined}/>
       </div>
     </header>
 

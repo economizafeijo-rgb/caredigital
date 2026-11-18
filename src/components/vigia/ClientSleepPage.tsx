@@ -3,6 +3,7 @@ import { Area, AreaChart, Bar, CartesianGrid, Cell, ComposedChart, Line, Referen
 import { AlarmClock, BedDouble, Bluetooth, BluetoothOff, HeartPulse, Lightbulb, Moon, Save, Sparkles, Star, Sunrise, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DayDetailDialog } from "./DayDetailDialog";
+import { NextUpClock } from "./NextUpClock";
 import { acreDateKey } from "@/lib/acre-time";
 import { useDialog } from "@/lib/dialog";
 
@@ -178,6 +179,16 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
     : focus.awakenings >= 3 ? "Muitos despertares. Reduza líquidos e cafeína à noite e mantenha o quarto escuro e fresco."
     : regularity !== null && regularity > 60 ? "Seus horários de dormir variam bastante. Um horário fixo melhora a qualidade do sono."
     : "Bom padrão de sono. Mantenha o horário regular e a rotina de desaceleração.";
+  // Horário de dormir: média das últimas noites (ou 22h30); o lembrete toca 30 min antes, para desacelerar.
+  const bedTarget = (() => {
+    const recent = logs.slice(-7);
+    const mins = recent.map(l => { const d = new Date(Date.parse(l.bed_at) - 5 * 3_600_000); let m = d.getUTCHours() * 60 + d.getUTCMinutes(); if (m < 12 * 60) m += 24 * 60; return m; });
+    const avg = mins.length ? Math.round(mins.reduce((a, b) => a + b, 0) / mins.length) : 22 * 60 + 30;
+    const base = Date.parse(acreDateKey() + "T00:00:00-05:00");
+    let at = base + avg * 60_000;
+    if (Date.now() > at + 3 * 3_600_000) at += 86_400_000;
+    return at;
+  })();
   const field = "mt-1 block h-11 w-full rounded-xl border border-border bg-surface px-3 text-sm";
 
   return <div className="flex flex-col gap-3">
@@ -198,6 +209,8 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
                 <span key={label} className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1"><Icon size={12} className="text-white/70"/><span className="text-white/70">{label}</span><strong className="tabular-nums">{value}</strong></span>)}
             </div>}
             <p className="mt-3 flex gap-2 rounded-xl bg-white/10 p-3 text-sm"><Lightbulb size={17} className="mt-0.5 shrink-0 text-amber-300"/>{tip}</p>
+            <NextUpClock className="mt-3" alertKey="sono" title="Hora de desacelerar" color="#c4b5fd" target={bedTarget - 30 * 60_000} from={bedTarget - 4 * 3_600_000}
+              detail={`dormir às ${clock(new Date(bedTarget).toISOString())}`} actionLabel="Vou dormir" onAction={deviceName ? startNight : undefined}/>
             <a href="#nv-sleep-form" className="nv-bump mt-3 inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-indigo-950 shadow-sm transition hover:bg-white/90 active:scale-[.97]"><BedDouble size={17}/> Registrar noite</a>
           </div>
         </div>

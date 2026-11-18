@@ -7,8 +7,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { acreDateKey } from "@/lib/acre-time";
 import { useDialog } from "@/lib/dialog";
-import { CareTimer } from "./CareTimer";
 import { SupplementPack, type PackShape } from "./SupplementPack";
+import { NextUpClock } from "./NextUpClock";
 
 type Unit = "g" | "mg" | "mcg" | "UI" | "cápsula" | "comprimido" | "ml" | "scoop";
 export type SupplementPlan = { id: string; name: string; kind: string; dose: number; unit: Unit; times: string[]; with_food: boolean; notes: string | null; active: boolean };
@@ -189,8 +189,12 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
           <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">{takenCount} de {doses.length} doses hoje · {percent}%</span>
         </div>
         <div className="mt-4">
-          {next ? <CareTimer target={next.at} title={`${next.plan.name} · ${fmtDose(next.plan)}`} subtitle={next.plan.with_food ? "Tomar junto a uma refeição" : "Pode tomar fora das refeições"} tone="supplement" dark windowMs={3 * 3600_000}/>
-            : <p className="py-6 text-base text-white/85">{doses.length ? "Todas as doses de hoje foram registradas. Excelente!" : "Monte sua programação para ativar o timer das próximas doses."}</p>}
+          <NextUpClock alertKey="suplemento" title="Próxima dose" color="#fbbf24"
+            target={next ? next.at : null}
+            from={(() => { const prev = doses.filter(d => d.at < (next?.at ?? 0)).at(-1); return prev ? prev.at : null; })()}
+            detail={next ? `${next.plan.name} · ${fmtDose(next.plan)}${next.plan.with_food ? " · com refeição" : ""}` : undefined}
+            emptyText={doses.length ? "Todas as doses de hoje registradas" : "Monte sua programação abaixo"}
+            actionLabel="Tomei" onAction={next ? () => void toggleDose(next.plan, next.slot, false) : undefined}/>
         </div>
         <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/15"><i className="block h-full rounded-full bg-gradient-to-r from-violet-400 to-amber-400 transition-[width]" style={{ width: percent + "%" }}/></div>
         {next && <button type="button" data-register-target="Registrar dose" onClick={() => void toggleDose(next.plan, next.slot, false)} className="mt-4 inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-violet-900 shadow-sm transition hover:bg-white/90"><CheckCircle2 size={18}/> Registrar dose agora</button>}

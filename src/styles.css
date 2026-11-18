@@ -770,3 +770,10 @@ body:has(.care-shell #care-client-tab-panel) {
 .nv-range::-moz-range-thumb { width: 22px; height: 22px; border-radius: 999px; background: #fff; border: 3px solid var(--primary); }
 .nv-range:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; }
 @media (prefers-reduced-motion: reduce) { .nv-onb-next, .nv-onb-prev { animation: none; } }
+
+/* Relógio do próximo cuidado: pulso quando vence e sino balançando */
+@keyframes nv-due-pulse { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--due, #22d3ee) 55%, transparent); } 50% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--due, #22d3ee) 0%, transparent); } }
+.nv-due { animation: nv-due-pulse 1.6s ease-in-out infinite; border-color: color-mix(in srgb, var(--due, #22d3ee) 60%, transparent) !important; }
+@keyframes nv-bell { 0%, 50%, 100% { transform: rotate(0); } 10%, 30% { transform: rotate(14deg); } 20%, 40% { transform: rotate(-14deg); } }
+.nv-ring-bell { transform-origin: 50% 10%; animation: nv-bell 1.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .nv-due, .nv-ring-bell { animation: none; } }

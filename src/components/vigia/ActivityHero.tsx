@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Flame, Footprints, MapPin, Timer, Trophy } from "lucide-react";
+import { NextUpClock } from "./NextUpClock";
 
 type Item = { happened_at: string; details: { duration_minutes?: number; distance_km?: number | null } | null };
 const tz = "America/Rio_Branco";
@@ -33,6 +34,10 @@ export function ActivityHero({ items, onStartGps, gpsLabel }: { items: Item[]; o
   let streak = 0;
   for (let i = days.length - 1; i >= 0; i--) { if (days[i].min > 0) streak++; else if (i === days.length - 1) continue; else break; }
   const pct = Math.min(100, Math.round((wMin / WEEK_GOAL) * 100));
+  // Sem atividade hoje: lembrete às 17h30 (fim de tarde, mais fresco no Acre).
+  const todayMin = days[days.length - 1].min;
+  const moveAt = Date.parse(dayKey(new Date()) + "T17:30:00-05:00");
+  const moveTarget = todayMin > 0 || Date.now() > moveAt + 3 * 3_600_000 ? null : moveAt;
   const trend = pMin ? Math.round(((wMin - pMin) / pMin) * 100) : null;
   const stats = [
     { icon: Timer, label: "Dias ativos", value: `${active} de 7` },
@@ -45,7 +50,7 @@ export function ActivityHero({ items, onStartGps, gpsLabel }: { items: Item[]; o
       <svg aria-hidden="true" viewBox="0 0 400 80" preserveAspectRatio="none" className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-16 w-full text-white/[.06]">
         <path d="M0 60 Q50 20 100 45 T200 40 T300 30 T400 50 V80 H0Z" fill="currentColor" />
       </svg>
-      <div className="grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_minmax(0,17rem)]">
+      <div className="grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_minmax(0,19rem)]">
         <div className="relative mx-auto size-32 shrink-0 sm:size-36 lg:mx-0" role="img" aria-label={`${wMin} de ${WEEK_GOAL} minutos na semana`}>
           <svg viewBox="0 0 120 120" className="absolute inset-0 -rotate-90">
             <circle cx="60" cy="60" r="52" fill="none" stroke="#ffffff1f" strokeWidth="10" />
@@ -67,14 +72,18 @@ export function ActivityHero({ items, onStartGps, gpsLabel }: { items: Item[]; o
             <a href="#nv-activity-form" className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-4 text-sm font-bold text-white backdrop-blur transition hover:bg-white/20">Registrar manualmente</a>
           </div>
         </div>
-        <ul className="grid grid-cols-3 gap-2 lg:grid-cols-1">
+        <div className="grid gap-2">
+        <NextUpClock alertKey="atividade" title="Hora de se mexer" color="#a3e635" target={moveTarget} from={Date.parse(dayKey(new Date()) + "T06:00:00-05:00")}
+          detail="30 min de caminhada" emptyText={todayMin > 0 ? `Feito hoje: ${todayMin} min` : "Amanhã tem mais"} actionLabel="Iniciar com GPS" onAction={onStartGps} />
+        <ul className="grid grid-cols-3 gap-2">
           {stats.map((s) => (
-            <li key={s.label} className="flex items-center gap-2.5 rounded-2xl border border-white/15 bg-white/10 px-3 py-2 backdrop-blur">
-              <s.icon size={16} className="hidden shrink-0 text-teal-200 sm:block" />
+            <li key={s.label} className="flex items-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-2.5 py-2 backdrop-blur">
+              <s.icon size={14} className="hidden shrink-0 text-teal-200 sm:block lg:hidden" />
               <span className="min-w-0"><span className="block text-[11px] font-semibold text-white/70">{s.label}</span><strong className="block truncate text-sm tabular-nums">{s.value}</strong></span>
             </li>
           ))}
         </ul>
+        </div>
       </div>
     </header>
   );

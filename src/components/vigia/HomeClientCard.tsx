@@ -1263,14 +1263,6 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                 " min-w-0 p-3 sm:p-4"
               }
             >
-              {isInsightSection(activeTab) && (
-                <SectionInsights
-                  section={activeTab}
-                  patientId={client.id}
-                  ownerId={client.owner_id}
-                  revision={tick}
-                />
-              )}
               {activeTab === "agenda" && (
                 <ClientAgendaPage
                   tasks={tasks}
@@ -1415,6 +1407,16 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                   revision={tick}
                   full
                 />
+              )}
+              {isInsightSection(activeTab) && (
+                <div className="mt-3">
+                  <SectionInsights
+                    section={activeTab}
+                    patientId={client.id}
+                    ownerId={client.owner_id}
+                    revision={tick}
+                  />
+                </div>
               )}
             </section>
           )}

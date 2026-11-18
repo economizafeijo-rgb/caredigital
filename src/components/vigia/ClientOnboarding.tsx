@@ -30,6 +30,8 @@ const goals = [
 const conditions = ["Hipertensão", "Diabetes", "Colesterol alto", "Gastrite", "Doença renal", "Tireoide", "Gestante ou amamentando", "Alergia alimentar"];
 const states = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"];
 const steps = ["Você", "Corpo", "Rotina", "Objetivo", "Saúde", "Contato", "Plano"];
+/** Foto realista de cada etapa: aparece ao fundo da pergunta e se funde ao escuro. */
+const stepPhotos = ["/images/caredigital-care-hero.webp", "/images/show-metricas.webp", "/images/hero-treinos.webp", "/images/caredigital-esporte.webp", "/images/painel-visao.webp", "/images/sobre-acre.webp", "/images/hero-alimentacao.webp"];
 
 const ageOf = (iso: string) => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
@@ -376,7 +378,7 @@ function OnboardingStudio({ patientId, fullName, initial, onSnooze, onDone }: { 
   const bmiLabel = bmi < 18.5 ? "Abaixo do ideal" : bmi < 25 ? "Faixa saudável" : bmi < 30 ? "Sobrepeso" : "Obesidade";
 
   return (
-    <div className="nv-dark fixed inset-0 z-[9995] flex flex-col overflow-hidden bg-[#050d0b] text-white" role="dialog" aria-modal="true" aria-labelledby="nv-onb-title">
+    <div className="nv-dark fixed inset-0 z-[10020] flex flex-col overflow-hidden bg-[#050d0b] text-white" role="dialog" aria-modal="true" aria-labelledby="nv-onb-title">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-70" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px)", backgroundSize: "40px 40px", maskImage: "radial-gradient(ellipse at 30% 20%, #000 20%, transparent 75%)", WebkitMaskImage: "radial-gradient(ellipse at 30% 20%, #000 20%, transparent 75%)" }} />
       <div aria-hidden="true" className="nv-float pointer-events-none absolute -left-32 -top-40 size-[34rem] rounded-full bg-emerald-500/20 blur-[120px]" />
       <div aria-hidden="true" className="pointer-events-none absolute -bottom-40 right-0 size-[30rem] rounded-full blur-[120px] transition-colors duration-1000" style={{ background: `${gl?.color ?? "#06b6d4"}26` }} />
@@ -403,7 +405,15 @@ function OnboardingStudio({ patientId, fullName, initial, onSnooze, onDone }: { 
       </div>
 
       <div className="relative grid min-h-0 flex-1 lg:grid-cols-[minmax(0,1fr)_25rem] xl:grid-cols-[minmax(0,1fr)_28rem]">
-        <main className="relative flex min-h-0 flex-col">
+        <main className="relative isolate flex min-h-0 flex-col overflow-hidden">
+          <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 -z-10 hidden w-[58%] md:block" style={{ maskImage: "linear-gradient(90deg, transparent 0%, rgba(0,0,0,.35) 30%, #000 75%)", WebkitMaskImage: "linear-gradient(90deg, transparent 0%, rgba(0,0,0,.35) 30%, #000 75%)" }}>
+            {stepPhotos.map((src, i) => <img key={src} src={src} alt="" className={`absolute inset-0 h-full w-full object-cover transition-[opacity,transform] duration-[1200ms] ease-out ${i === step ? "scale-100 opacity-60" : "scale-105 opacity-0"}`} />)}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#050d0b] via-transparent to-[#050d0b]/60" />
+          </div>
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 md:hidden">
+            <img key={stepPhotos[step]} src={stepPhotos[step]} alt="" className="nv-fade-in h-48 w-full object-cover opacity-40" />
+            <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-transparent to-[#050d0b]" />
+          </div>
           <div className="min-h-0 flex-1 overflow-y-auto px-5 py-8 sm:px-10 lg:px-16 lg:py-12">
             {done ? (
               <div className="grid h-full place-items-center text-center">
@@ -417,7 +427,7 @@ function OnboardingStudio({ patientId, fullName, initial, onSnooze, onDone }: { 
                 </div>
               </div>
             ) : (
-              <div key={step} className={`mx-auto max-w-xl ${dir === 1 ? "nv-onb-next" : "nv-onb-prev"}`}>
+              <div key={step} className={`mx-auto w-full max-w-[34rem] md:mx-0 ${dir === 1 ? "nv-onb-next" : "nv-onb-prev"}`}>
                 <p className="text-xs font-bold text-emerald-300">Etapa {step + 1} de {steps.length}{step === 4 || step === 5 ? " · opcional" : ""}</p>
                 <h2 id="nv-onb-title" className="mt-2 font-display text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">{titles[step][0]}</h2>
                 <p className="mt-2 text-white/55">{titles[step][1]}</p>
@@ -427,8 +437,8 @@ function OnboardingStudio({ patientId, fullName, initial, onSnooze, onDone }: { 
           </div>
           {!done && (
             <footer className="relative border-t border-white/[.07] px-5 py-4 sm:px-10 lg:px-16">
-              {error && <p role="alert" className="nv-fade-in mx-auto mb-3 max-w-xl rounded-xl border border-rose-400/30 bg-rose-500/15 px-4 py-2.5 text-sm font-medium text-rose-100">{error}</p>}
-              <div className="mx-auto flex max-w-xl items-center gap-3">
+              {error && <p role="alert" className="nv-fade-in mx-auto mb-3 max-w-[34rem] md:mx-0 rounded-xl border border-rose-400/30 bg-rose-500/15 px-4 py-2.5 text-sm font-medium text-rose-100">{error}</p>}
+              <div className="mx-auto flex max-w-[34rem] items-center gap-3 md:mx-0">
                 {step > 0 && <button type="button" onClick={() => go(-1)} disabled={saving} className="inline-flex h-12 items-center gap-2 rounded-xl border border-white/[.12] px-5 text-sm font-bold text-white/85 transition hover:bg-white/[.06] active:scale-[.97]"><ArrowLeft size={16} /> Voltar</button>}
                 {(step === 4 || step === 5) && <button type="button" onClick={() => go(1)} className="h-12 px-2 text-sm font-semibold text-white/50 transition hover:text-white">Pular</button>}
                 <span className="ml-auto hidden text-xs text-white/35 sm:inline">Enter para continuar</span>
