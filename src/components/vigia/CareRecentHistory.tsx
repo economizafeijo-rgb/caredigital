@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
 import { CheckCircle2, Clock3, History, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { RecordInfo, type RecordInfoRow } from "./RecordInfo";
 
 type Category="hidratacao"|"refeicao"|"medicacao"|"resumo";
-type RecordRow={id:string;title:string;category:Category;at:string;detail:string;kind:"task"|"water"|"beverage"|"meal"|"reconstructed"};
+type RecordRow={id:string;title:string;category:Category;at:string;detail:string;kind:"task"|"water"|"beverage"|"meal"|"reconstructed";info?:RecordInfoRow[];note?:string};
+const catColor:Record<Category,string>={hidratacao:"#0ea5e9",refeicao:"#10b981",medicacao:"#8b5cf6",resumo:"#64748b"};
+const n0=(v:unknown,d=0)=>Number(v).toLocaleString("pt-BR",{maximumFractionDigits:d});
+const timeOnly=(v:string)=>new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Rio_Branco",hour:"2-digit",minute:"2-digit"}).format(new Date(v));
 type Props={patientId:string;ownerId:string;category:Category|"todos";onClose?:()=>void;compact?:boolean};
 const labels:Record<Category,string>={hidratacao:"Hidratação",refeicao:"Alimentação",medicacao:"Medicação",resumo:"Resumo histórico"};
 const dateTime=(value:string)=>new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Rio_Branco",day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}).format(new Date(value));
@@ -34,6 +38,8 @@ export function CareRecentHistory({patientId,ownerId,category,onClose,compact=fa
    .select("id,meal_name,items,kcal,protein_g,recorded_at")
    .eq("patient_id",patientId).eq("owner_id",ownerId)
    .gte("recorded_at",from).order("recorded_at",{ascending:false}).limit(100);
+  const foods=(supabase as any).from("care_food_consumptions").select("request_id,meal_group_id,grams,kcal,protein_g,carbs_g,fat_g")
+   .eq("patient_id",patientId).eq("owner_id",ownerId).gte("recorded_at",from).limit(500);
   const reconstructed=(supabase as any).from("care_activity_log")
    .select("id,category,event_type,details,happened_at,scheduled_at,recorded_at")
    .eq("patient_id",patientId).eq("owner_id",ownerId).eq("source","historical_reconstruction")
@@ -42,8 +48,12 @@ export function CareRecentHistory({patientId,ownerId,category,onClose,compact=fa
     category==="medicacao"?Promise.resolve({data:[],error:null}):beverages,
     category==="hidratacao"||category==="medicacao"?Promise.resolve({data:[],error:null}):meals,
     category==="hidratacao"||category==="medicacao"?Promise.resolve({data:[],error:null}):mealLogs,
-    reconstructed])
-   .then(([tasksResult,waterResult,beverageResult,mealResult,mealLogsResult,reconstructedResult]:any[])=>{
+    reconstructed,
+    category==="hidratacao"||category==="medicacao"?Promise.resolve({data:[],error:null}):foods])
+   .then(([tasksResult,waterResult,beverageResult,mealResult,mealLogsResult,reconstructedResult,foodResult]:any[])=>{
+    const foodBy=new Map<string,{n:number;g:number;kcal:number;p:number;c:number;f:number}>();
+    for(const f of foodResult?.data??[]){const k=f.request_id??f.meal_group_id;if(!k)continue;const c=foodBy.get(k)??{n:0,g:0,kcal:0,p:0,c:0,f:0};
+     c.n++;c.g+=Number(f.grams)||0;c.kcal+=Number(f.kcal)||0;c.p+=Number(f.protein_g)||0;c.c+=Number(f.carbs_g)||0;c.f+=Number(f.fat_g)||0;foodBy.set(k,c);}
     if(!active)return;
     setLoading(false);
     const failed=[tasksResult,waterResult,beverageResult,mealResult,mealLogsResult,reconstructedResult].filter(result=>result.error);
@@ -51,24 +61,30 @@ export function CareRecentHistory({patientId,ownerId,category,onClose,compact=fa
     const confirmed=(tasksResult.data??[]).filter((r:any)=>["hidratacao","refeicao","medicacao"].includes(r.category));
     const taskIds=new Set(confirmed.map((r:any)=>r.id));
     const all:RecordRow[]=[
-     ...confirmed.map((r:any)=>({id:"task:"+r.id,title:r.title,category:r.category,at:r.completed_at,detail:"Cuidado confirmado",kind:"task" as const})),
+     ...confirmed.map((r:any)=>({id:"task:"+r.id,title:r.title,category:r.category,at:r.completed_at,detail:"Cuidado confirmado",kind:"task" as const,
+      info:[{label:"Tipo",value:"Cuidado da agenda"},...(r.scheduled_at?[{label:"Programado",value:timeOnly(r.scheduled_at)}]:[]),{label:"Confirmado",value:timeOnly(r.completed_at)}]})),
      ...(waterResult.data??[]).filter((r:any)=>!r.task_id||!taskIds.has(r.task_id)).map((r:any)=>({
       id:"water:"+r.id,title:`Água · ${Number(r.amount_ml).toLocaleString("pt-BR")} ml`,
-      category:"hidratacao" as const,at:r.recorded_at,detail:"Consumo registrado",kind:"water" as const
+      category:"hidratacao" as const,at:r.recorded_at,detail:"Consumo registrado",kind:"water" as const,
+      info:[{label:"Consumido",value:"Água"},{label:"Quantidade",value:`${n0(r.amount_ml)} ml`},{label:"Origem",value:r.task_id?"Cuidado da agenda":"Registro avulso"}]
      })),
      ...(beverageResult.data??[]).map((r:any)=>({
       id:"beverage:"+r.id,title:`${r.name||r.kind||"Bebida"} · ${Number(r.amount_ml).toLocaleString("pt-BR")} ml`,
-      category:"hidratacao" as const,at:r.consumed_at,detail:"Bebida registrada",kind:"beverage" as const
+      category:"hidratacao" as const,at:r.consumed_at,detail:"Bebida registrada",kind:"beverage" as const,
+      info:[{label:"Consumido",value:r.name||r.kind||"Bebida"},{label:"Quantidade",value:`${n0(r.amount_ml)} ml`},...(r.kind&&r.name?[{label:"Tipo",value:r.kind}]:[])]
      })),
      ...(mealResult.data??[]).filter((r:any)=>!r.details?.superseded).map((r:any)=>({
       id:"meal:"+r.id,title:r.details?.title||r.details?.description||"Refeição registrada",
-      category:"refeicao" as const,at:r.recorded_at,detail:"Consumo avulso",kind:"meal" as const
+      category:"refeicao" as const,at:r.recorded_at,detail:"Consumo avulso",kind:"meal" as const,
+      ...(()=>{const d=r.details??{};const desc=String(d.description??"");const [what,portion]=desc.split(" · Porção: ");const f=foodBy.get(d.request_id);
+       return {info:[{label:"Consumido",value:what||d.title||"Refeição"},...(portion?[{label:"Porção",value:portion}]:[]),...(f&&f.g>0?[{label:"Quantidade",value:`${n0(f.g)} g`}]:[]),...(f&&f.kcal>0?[{label:"Energia",value:`${n0(f.kcal)} kcal`},{label:"Macros",value:`P ${n0(f.p)} g · C ${n0(f.c)} g · G ${n0(f.f)} g`}]:[])]};})()
      })),
      ...(mealLogsResult.data??[]).map((r:any)=>({
       id:"nutrition-meal:"+r.id,title:r.meal_name||"Refeição registrada",
       category:"refeicao" as const,at:r.recorded_at,
       detail:[Array.isArray(r.items)?r.items.join(", "):"",Number(r.kcal)>0?Number(r.kcal).toLocaleString("pt-BR")+" kcal":"Valores nutricionais não informados"].filter(Boolean).join(" · "),
-      kind:"meal" as const
+      kind:"meal" as const,
+      info:[{label:"Refeição",value:r.meal_name||"Refeição"},...(Array.isArray(r.items)&&r.items.length?[{label:"Itens",value:r.items.join(", ")}]:[]),...(Number(r.kcal)>0?[{label:"Energia",value:`${n0(r.kcal)} kcal`}]:[]),...(Number(r.protein_g)>0?[{label:"Proteína",value:`${n0(r.protein_g,1)} g`}]:[])]
      })),
      ...(reconstructedResult.data??[]).filter((r:any)=>{
       if(r.category!=="refeicao")return true;
@@ -92,7 +108,7 @@ export function CareRecentHistory({patientId,ownerId,category,onClose,compact=fa
       const detail=[detailByType[r.event_type]||d.description||"Registro recuperado de captura histórica",evidence,
        d.status==="programado_na_captura"?"Programado na captura; execução não confirmada":"Registro reconstruído, não é um novo consumo"].filter(Boolean).join(" · ");
       const title=(r.event_type==="refeicao_programada"||r.event_type==="nao_bebi")?(d.description||titleByType[r.event_type]):(titleByType[r.event_type]||d.description||"Registro histórico recuperado");
-      return {id:"reconstructed:"+r.id,title,category,at:reconstructedAt,detail,kind:"reconstructed" as const};
+      return {id:"reconstructed:"+r.id,title,category,at:reconstructedAt,detail,kind:"reconstructed" as const,info:[{label:"Origem",value:"Captura histórica"}],note:detail};
      })
     ];
     setRows(all.filter(r=>category==="todos"||r.category===category)
@@ -110,6 +126,7 @@ export function CareRecentHistory({patientId,ownerId,category,onClose,compact=fa
    <span className="care-history-entry-icon"><CheckCircle2 size={17}/></span>
    <div className="care-history-entry-copy"><strong>{row.title}</strong><span>{labels[row.category]} · {row.detail}</span></div>
    <time dateTime={row.at}><Clock3 size={12}/>{dateTime(row.at)}</time>
+   <RecordInfo title={row.title} at={row.at} category={labels[row.category]} color={catColor[row.category]} rows={row.info} description={row.note}/>
   </div>)}</div>
   {rows.length>5&&<button type="button" className="care-history-more" onClick={()=>setShowAll(v=>!v)}>{showAll?"Mostrar menos":`Ver mais ${rows.length-5} registros`}</button>}</>}
   {!compact&&<p className="care-history-footnote">Registros provenientes da agenda, hidratação, bebidas e refeições avulsas. Consulte o prontuário completo para detalhes adicionais.</p>}

@@ -4,9 +4,10 @@ import { AlertTriangle, BookOpen, Check, CheckCircle2, Clock, Pencil, Pill, Plus
 import { supabase } from "@/integrations/supabase/client";
 import { acreDateKey } from "@/lib/acre-time";
 import { CareTimer } from "./CareTimer";
+import { RecordInfo } from "./RecordInfo";
 
 export type ClientMedication = { id: string; name: string; category: string; dose: string; times: string[]; instructions: string | null; active: boolean };
-type Intake = { medication_id: string; taken_on: string; slot: string };
+type Intake = { medication_id: string; taken_on: string; slot: string; taken_at?: string | null };
 type LibraryMed = { name: string; dose: string; times: string[]; use: string; tip: string };
 type Category = { key: string; label: string; image: string; gradient: string; meds: LibraryMed[] };
 
@@ -145,7 +146,7 @@ export function ClientMedicationManager({ patientId, ownerId }: { patientId: str
     let active = true;
     void Promise.all([
       db.from("care_client_medications").select("id,name,category,dose,times,instructions,active").eq("patient_id", patientId).eq("owner_id", ownerId).order("created_at"),
-      db.from("care_client_medication_intakes").select("medication_id,taken_on,slot").eq("patient_id", patientId).eq("owner_id", ownerId).eq("taken_on", day),
+      db.from("care_client_medication_intakes").select("medication_id,taken_on,slot,taken_at").eq("patient_id", patientId).eq("owner_id", ownerId).eq("taken_on", day),
     ]).then(([m, i]: any[]) => {
       if (!active) return;
       if (m.error || i.error) { setRemote(false); setMeds(readLocal(localKey(patientId, "list"))); setIntakes(readLocal<Intake>(localKey(patientId, "intakes")).filter(x => x.taken_on === day)); }
@@ -231,6 +232,11 @@ export function ClientMedicationManager({ patientId, ownerId }: { patientId: str
           {doses.map(({ med, slot, taken, at }, i) => <li key={med.id + slot} className={`nv-fade-in flex items-center gap-3 rounded-xl border p-2 transition-colors ${taken ? "border-emerald-500/30 bg-emerald-500/[.06]" : at < Date.now() ? "border-amber-500/40 bg-amber-500/[.06]" : "border-border hover:bg-muted/40"}`} style={{ animationDelay: `${i * 40}ms` }}>
             <span className={`grid size-9 shrink-0 place-items-center rounded-lg bg-gradient-to-br text-white ${categoryOf(med.category)?.gradient ?? "from-rose-600 to-pink-500"}`}><Pill size={16}/></span>
             <span className="min-w-0 flex-1"><strong className="block truncate text-sm">{med.name}</strong><span className="text-xs text-muted-foreground">{slot} · {med.dose}{!taken && at < Date.now() ? " · atrasada" : ""}</span></span>
+            <RecordInfo title={`${med.name} · ${med.dose}`} category="Medicação" color="#e11d48"
+              at={taken ? intakes.find(x => x.medication_id === med.id && x.slot === slot)?.taken_at ?? new Date(at).toISOString() : new Date(at).toISOString()}
+              rows={[{ label: "Medicamento", value: med.name }, { label: "Dose", value: med.dose }, { label: "Horário previsto", value: slot },
+                { label: "Situação", value: taken ? "Tomada" : at < Date.now() ? "Atrasada" : "A tomar" }, { label: "Categoria", value: categoryOf(med.category)?.label ?? "Outros" }]}
+              description={med.instructions}/>
             <button type="button" onClick={() => setPending({ kind: "take", med, slot, taken })} className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition active:scale-95 ${taken ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : "bg-gradient-to-r from-rose-600 to-pink-500 text-white hover:brightness-110"}`}>{taken ? <><Undo2 size={14}/> Tomado</> : <><Check size={15}/> Tomar</>}</button>
           </li>)}
         </ul>

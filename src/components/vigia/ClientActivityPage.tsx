@@ -1,6 +1,7 @@
 import { LiveWorkoutVisual, type LivePoint } from "./LiveWorkoutVisual";
 import { NiceSelect } from "./NiceSelect";
 import { ActivityDaysChart, ActivityHero } from "./ActivityHero";
+import { RecordInfo } from "./RecordInfo";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity,
@@ -569,9 +570,25 @@ export function ClientActivityPage({
                         <strong className="text-xs">
                           {detail.title ?? option?.label ?? "Atividade"}
                         </strong>
-                        <time className="text-[11px] text-muted-foreground">
-                          {formatDate(item.happened_at)}
-                        </time>
+                        <span className="flex items-center gap-1.5">
+                          <time className="text-[11px] text-muted-foreground">
+                            {formatDate(item.happened_at)}
+                          </time>
+                          <RecordInfo
+                            title={detail.title ?? option?.label ?? "Atividade"}
+                            at={item.happened_at}
+                            category="Atividade física"
+                            color="#0d9488"
+                            rows={[
+                              { label: "Atividade", value: option?.label ?? detail.activity_type ?? "Atividade" },
+                              { label: "Duração", value: `${detail.duration_minutes ?? "—"} min` },
+                              ...(detail.distance_km != null ? [{ label: "Distância", value: `${Number(detail.distance_km).toLocaleString("pt-BR")} km` }] : []),
+                              ...(detail.distance_km && detail.duration_minutes ? [{ label: "Ritmo médio", value: `${(Number(detail.duration_minutes) / Number(detail.distance_km)).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} min/km` }] : []),
+                              { label: "Intensidade", value: detail.intensity ?? "não informada" },
+                            ]}
+                            description={detail.notes}
+                          />
+                        </span>
                       </div>
                       <p className="mt-1 text-[11px] text-muted-foreground">
                         <Clock3 className="mr-1 inline" size={12} />

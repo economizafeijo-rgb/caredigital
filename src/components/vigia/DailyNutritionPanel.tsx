@@ -12,6 +12,7 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
+import { RecordInfo } from "./RecordInfo";
 import { supabase } from "@/integrations/supabase/client";
 import { acreDateKey, DAY_CUTOFF_HOUR } from "@/lib/acre-time";
 import {
@@ -475,6 +476,23 @@ export function DailyNutritionPanel({
                             timeZone: "America/Rio_Branco",
                           })}
                         </span>
+                        <RecordInfo
+                          title={entry.text || entry.source}
+                          at={entry.at}
+                          category={entry.entryType === "beverage" ? "Bebida" : entry.entryType === "food" ? "Alimento" : "Refeição"}
+                          color={entry.entryType === "beverage" ? "#0ea5e9" : "#10b981"}
+                          rows={(() => {
+                            const n = entry.direct ?? sumNutrients(entry.foods.map((f) => f.nutrients));
+                            const fmt = (v: number, d = 0) => v.toLocaleString("pt-BR", { maximumFractionDigits: d });
+                            return [
+                              ...(entry.foods.length ? [{ label: "Consumido", value: entry.foods.map((f) => `${f.name} (${fmt(f.grams)} g${f.estimatedPortion ? ", porção estimada" : ""})`).join(", ") }] : []),
+                              ...(entry.amountMl ? [{ label: "Quantidade", value: `${fmt(entry.amountMl)} ml` }] : entry.foods.length ? [{ label: "Quantidade", value: `${fmt(entry.foods.reduce((a, f) => a + f.grams, 0))} g no total` }] : []),
+                              ...(n.kcal > 0 ? [{ label: "Energia", value: `${fmt(n.kcal)} kcal` }, { label: "Macros", value: `P ${fmt(n.protein, 1)} g · C ${fmt(n.carbs, 1)} g · G ${fmt(n.fat, 1)} g` }] : []),
+                              ...(n.fiber > 0 ? [{ label: "Fibras", value: `${fmt(n.fiber, 1)} g` }] : []),
+                              { label: "Origem", value: entry.source },
+                            ];
+                          })()}
+                        />
                         {entry.entryId && (
                           <>
                             <button

@@ -6,6 +6,7 @@ import { acreDateAtTime, acreDateKey, ACRE_TIME_ZONE } from "@/lib/acre-time";
 import { beverageKinds, beverageCategory, isBeverageKind } from "@/lib/care-intake-categories";
 import { beverageNutrients } from "@/lib/beverage-nutrients";
 import { NiceSelect } from "./NiceSelect";
+import { RecordInfo } from "./RecordInfo";
 import { useDialog } from "@/lib/dialog";
 
 export type WaterEntry = { id: string; amount_ml: number; recorded_at: string; kind?: string; name?: string };
@@ -122,6 +123,19 @@ export function HydrationEntries({ patientId, water, beverages, goal, onChanged 
                   <span className="flex items-center gap-1.5"><button type="button" disabled={busy} onClick={() => void remove(e)} className="h-9 rounded-lg bg-rose-600 px-3 text-xs font-bold text-white disabled:opacity-60">{busy ? "Excluindo…" : "Confirmar exclusão"}</button><button type="button" onClick={() => setConfirmId(null)} className="h-9 rounded-lg border border-border px-2.5 text-xs font-semibold">Voltar</button></span>
                 ) : (
                   <span className="flex items-center gap-1.5">
+                    <RecordInfo
+                      title={e.source === "water" ? `Água · ${ml(Number(e.amount_ml))}` : `${e.name || beverageCategory(e.kind ?? "outra")?.label || "Bebida"} · ${ml(Number(e.amount_ml))}`}
+                      at={e.recorded_at}
+                      category={e.source === "water" ? "Hidratação" : "Bebida"}
+                      color={e.source === "water" ? "#0ea5e9" : "#8b5cf6"}
+                      rows={[
+                        { label: "Consumido", value: e.source === "water" ? "Água" : e.name || beverageCategory(e.kind ?? "outra")?.label || "Bebida" },
+                        ...(e.source === "beverage" ? [{ label: "Tipo", value: beverageCategory(e.kind ?? "outra")?.label ?? "Bebida" }] : []),
+                        { label: "Quantidade", value: ml(Number(e.amount_ml)) },
+                        ...(e.source === "beverage" && isBeverageKind(e.kind ?? "") ? (() => { const n = beverageNutrients(e.kind as any, Number(e.amount_ml)); return [{ label: "Energia", value: `~${n.kcal} kcal` }, { label: "Macros", value: `P ${n.protein} g · C ${n.carbs} g · G ${n.fat} g` }]; })() : []),
+                        { label: "Da meta do dia", value: goal > 0 ? `${Math.round((Number(e.amount_ml) / goal) * 100)}%` : "—" },
+                      ]}
+                    />
                     <button type="button" onClick={() => startEdit(e)} aria-label={`Editar registro de ${ml(Number(e.amount_ml))} às ${hhmm(e.recorded_at)}`} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 text-xs font-bold hover:border-primary/40"><Pencil size={14} /> <span className="hidden sm:inline">Editar</span></button>
                     <button type="button" onClick={() => { setConfirmId(e.id); setEditing(null); setError(""); }} aria-label={`Excluir registro de ${ml(Number(e.amount_ml))} às ${hhmm(e.recorded_at)}`} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 text-xs font-bold text-rose-700 dark:text-rose-300"><Trash2 size={14} /> <span className="hidden sm:inline">Excluir</span></button>
                   </span>
