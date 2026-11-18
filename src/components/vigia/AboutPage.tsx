@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { AppWindow, Check, Code2, Copy, Mail, MapPin, MessageCircle, Phone, ShoppingBag, Smartphone } from "lucide-react";
 import { LogoMark } from "./Logo";
+import { useFitWindow } from "@/lib/use-fit-window";
 
 const EMAIL = "aplicativosfj@gmail.com";
 const PHONE_LABEL = "(68) 99203-1340";
@@ -40,9 +41,9 @@ function AcreArt() {
     });
     return `M${pts.join(" L")}Z`;
   });
-  const cx = 560, cy = 260, R = 150;
+  const cx = 650, cy = 190, R = 110;
   return (
-    <svg aria-hidden="true" className="absolute inset-0 -z-20 size-full" viewBox="0 0 900 640" preserveAspectRatio="xMidYMid slice">
+    <svg aria-hidden="true" className="absolute inset-0 -z-20 size-full" viewBox="0 0 900 640" preserveAspectRatio="xMaxYMin slice">
       <defs>
         <linearGradient id="acre-bg" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#0b2a1b" /><stop offset=".6" stopColor="#06150d" /><stop offset="1" stopColor="#020a06" /></linearGradient>
         <radialGradient id="acre-sun" cx="78%" cy="18%" r="45%"><stop stopColor="#facc15" stopOpacity=".55" /><stop offset=".4" stopColor="#f59e0b" stopOpacity=".18" /><stop offset="1" stopColor="#f59e0b" stopOpacity="0" /></radialGradient>
@@ -81,16 +82,10 @@ function AcreArt() {
   );
 }
 
-function useFitPage() {
-  useEffect(() => {
-    document.body.setAttribute("data-fit-page", "");
-    return () => document.body.removeAttribute("data-fit-page");
-  }, []);
-}
 
 /** Página "Sobre": a história do projeto, o desenvolvedor, o portfólio e o contato, em tela fixa. */
 export function AboutPage() {
-  useFitPage();
+  const fitRef = useFitWindow<HTMLDivElement>();
   const [step, setStep] = useState(0);
   const [hold, setHold] = useState(false);
   const [service, setService] = useState(0);
@@ -121,7 +116,7 @@ export function AboutPage() {
   const S = services[service];
 
   return (
-    <div className="mx-auto grid w-full max-w-[1680px] gap-3 lg:h-[calc(100dvh-3.5rem-2rem)] lg:grid-cols-[1.15fr_0.85fr] lg:grid-rows-[minmax(0,1fr)]">
+    <div ref={fitRef} className="mx-auto grid w-full max-w-[1680px] gap-3 lg:grid-cols-[1.1fr_0.9fr] lg:grid-rows-[minmax(0,1fr)]">
       {/* História: foto do Acre com paralaxe e linha do tempo interativa */}
       <div
         ref={photo}
@@ -153,36 +148,35 @@ export function AboutPage() {
         </div>
       </div>
 
-      <div className="grid min-h-0 gap-3 lg:grid-rows-[auto_minmax(0,1fr)_auto]">
-        {/* Desenvolvedor */}
-        <section aria-label="O desenvolvedor" className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4 lg:p-5">
-          <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-[#0b2418]"><LogoMark size={40} /></span>
-          <div className="min-w-0">
-            <h2 className="font-display text-xl font-extrabold leading-tight">Franc D&apos;nis</h2>
-            <p className="text-sm text-muted-foreground">Desenvolvedor de sites, aplicativos e sistemas. Criador da NextVita.</p>
+      <div className="grid min-h-0 gap-3 lg:grid-rows-[minmax(0,1fr)_auto]">
+        {/* Desenvolvedor, portfólio e serviços */}
+        <section aria-label="O desenvolvedor e o portfólio" className="relative flex min-h-0 flex-col gap-4 overflow-hidden rounded-2xl border border-border bg-card p-5">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-20 size-64 rounded-full bg-[#4d7c0f]/15 blur-3xl" />
+          <div className="relative flex items-center gap-3">
+            <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-[#0b2418]"><LogoMark size={34} /></span>
+            <div className="min-w-0">
+              <h2 className="font-display text-xl font-extrabold leading-tight">Franc D&apos;nis</h2>
+              <p className="text-sm text-muted-foreground">Desenvolvedor de sites, aplicativos e sistemas. Criador da NextVita.</p>
+            </div>
           </div>
-        </section>
-
-        {/* Portfólio e serviços */}
-        <section aria-label="Portfólio e serviços" className="relative flex min-h-0 flex-col gap-3 overflow-hidden rounded-2xl border border-border bg-card p-4 lg:p-5">
-          <div className="relative mx-auto flex min-h-0 w-full flex-1 items-center justify-center pt-2"><div className="relative h-full max-h-64 max-w-full" style={{ aspectRatio: "16 / 10" }}>
-            <span className="absolute -left-1 top-0 z-10 rounded-full bg-[#0b2418] px-2.5 py-1 text-[11px] font-bold text-yellow-300 shadow">Projeto em destaque: NextVita</span>
-            <div className="mt-3 rounded-xl bg-slate-900 p-1.5 shadow-xl">
+          <div className="relative mx-auto w-full max-w-[30rem] pb-4">
+            <span className="absolute -left-2 -top-2 z-10 rounded-full bg-[#0b2418] px-2.5 py-1 text-[11px] font-bold text-yellow-300 shadow">Projeto em destaque: NextVita</span>
+            <div className="rounded-xl bg-slate-900 p-1.5 shadow-xl">
               <div className="overflow-hidden rounded-md bg-white">
                 <img src="/images/dev-nextvita-desktop.webp" alt="Página inicial da NextVita no computador" width={800} height={450} className="aspect-[16/9] w-full object-cover object-top" />
               </div>
             </div>
             <div className="relative left-1/2 h-2 w-[110%] -translate-x-1/2 rounded-b-xl bg-gradient-to-b from-slate-400 to-slate-600" />
-            <div className="nv-float absolute -bottom-3 right-0 w-[18%] rounded-[14px] bg-slate-900 p-1 shadow-2xl">
+            <div className="nv-float absolute -right-3 bottom-0 w-[19%] rounded-[14px] bg-slate-900 p-1 shadow-2xl">
               <img src="/images/dev-nextvita-mobile.webp" alt="NextVita no celular" width={300} height={560} className="aspect-[9/17] w-full rounded-[10px] object-cover object-top" />
             </div>
-          </div></div>
+          </div>
           <div role="tablist" aria-label="Serviços" className="grid shrink-0 grid-cols-4 gap-1.5">
-            {services.map((s, i) => (
-              <button key={s.key} role="tab" type="button" aria-selected={i === service} onClick={() => setService(i)} onMouseEnter={() => setService(i)}
+            {services.map((sv, i) => (
+              <button key={sv.key} role="tab" type="button" aria-selected={i === service} onClick={() => setService(i)} onMouseEnter={() => setService(i)}
                 className={`nv-tile flex flex-col items-center gap-1 rounded-xl border px-1 py-2 text-xs font-semibold ${i === service ? "border-[#4d7c0f] bg-[#4d7c0f]/10" : "border-border"}`}
                 style={{ ["--tile" as string]: "#4d7c0f" }}>
-                <s.icon size={17} className="nv-tile-icon text-[#4d7c0f] dark:text-lime-300" aria-hidden="true" /> {s.label}
+                <sv.icon size={17} className="nv-tile-icon text-[#4d7c0f] dark:text-lime-300" aria-hidden="true" /> {sv.label}
               </button>
             ))}
           </div>

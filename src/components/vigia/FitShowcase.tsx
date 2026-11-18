@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, Gift, LockKeyhole, ShieldCheck } from "lucide-react";
 import { copy, related, showcaseImage, type ShowcaseKind } from "./PublicCareShowcase";
 import { ToolDemo } from "./SmartBanner";
+import { useFitWindow } from "@/lib/use-fit-window";
 
 type Layout = "split" | "stage" | "bento" | "steps" | "mirror";
 
@@ -21,14 +22,6 @@ const areaStyle: Record<ShowcaseKind, { layout: Layout; color: string; demo?: "a
 };
 
 const menuOrder: ShowcaseKind[] = ["protocols", "medication", "hydration", "diet", "supplements", "weight", "sleep", "training", "metrics"];
-
-/** Liga o modo "página que cabe na janela": sem rolagem no computador enquanto a página está aberta. */
-function useFitPage() {
-  useEffect(() => {
-    document.body.setAttribute("data-fit-page", "");
-    return () => document.body.removeAttribute("data-fit-page");
-  }, []);
-}
 
 /** Foto com leve paralaxe que acompanha o ponteiro (desligada com "reduzir movimento"). */
 function ParallaxPhoto({ src, position, className = "", children }: { src: string; position: string; className?: string; children?: ReactNode }) {
@@ -154,7 +147,7 @@ function AreaSwitcher({ kind }: { kind: ShowcaseKind }) {
 }
 
 export function FitShowcase({ kind }: { kind: ShowcaseKind }) {
-  useFitPage();
+  const fitRef = useFitWindow<HTMLDivElement>();
   const c = copy[kind];
   const img = showcaseImage[kind];
   const st = areaStyle[kind];
@@ -166,11 +159,11 @@ export function FitShowcase({ kind }: { kind: ShowcaseKind }) {
       <Icon size={14} aria-hidden="true" /> {c.eyebrow}
     </span>
   );
-  const shell = "mx-auto flex w-full max-w-[1680px] flex-col gap-3 lg:h-[calc(100dvh-3.5rem-2rem)]";
+  const shell = "mx-auto flex w-full max-w-[1680px] flex-col gap-3";
 
   if (st.layout === "split")
     return (
-      <div className={shell} style={vars}>
+      <div ref={fitRef} className={shell} style={vars}>
         <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[0.95fr_1.05fr]">
           <ParallaxPhoto src={img.src} position={img.position} className="min-h-[16rem] rounded-2xl">
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
@@ -191,7 +184,7 @@ export function FitShowcase({ kind }: { kind: ShowcaseKind }) {
 
   if (st.layout === "stage")
     return (
-      <div className={shell} style={vars}>
+      <div ref={fitRef} className={shell} style={vars}>
         <ParallaxPhoto src={img.src} position={img.position} className="min-h-0 flex-1 rounded-2xl bg-slate-950 text-white">
           <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/70 to-[color-mix(in_srgb,var(--area)_35%,transparent)]" />
           <div className="relative grid h-full gap-6 p-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:p-10">
@@ -215,7 +208,7 @@ export function FitShowcase({ kind }: { kind: ShowcaseKind }) {
 
   if (st.layout === "bento")
     return (
-      <div className={shell} style={vars}>
+      <div ref={fitRef} className={shell} style={vars}>
         <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-4 lg:grid-rows-[1fr_auto]">
           <section className="flex flex-col justify-center gap-4 rounded-2xl border border-border bg-card p-5 lg:col-span-2 lg:p-8">
             {eyebrow(false)}
@@ -241,7 +234,7 @@ export function FitShowcase({ kind }: { kind: ShowcaseKind }) {
 
   if (st.layout === "steps")
     return (
-      <div className={shell} style={vars}>
+      <div ref={fitRef} className={shell} style={vars}>
         <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[1fr_1fr]">
           <section className="flex min-h-0 flex-col justify-center gap-5 rounded-2xl border border-border bg-card p-5 lg:p-10">
             {eyebrow(false)}
@@ -267,7 +260,7 @@ export function FitShowcase({ kind }: { kind: ShowcaseKind }) {
 
   // mirror: foto alta à direita, texto e benefícios à esquerda, com faixa diagonal na cor da área
   return (
-    <div className={shell} style={vars}>
+    <div ref={fitRef} className={shell} style={vars}>
       <div className="relative grid min-h-0 flex-1 gap-3 overflow-hidden rounded-2xl border border-border bg-card lg:grid-cols-[1fr_0.85fr]">
         <div aria-hidden="true" className="pointer-events-none absolute -left-24 -top-24 size-80 rounded-full bg-[color-mix(in_srgb,var(--area)_18%,transparent)] blur-3xl" />
         <section className="relative flex flex-col justify-center gap-4 p-5 lg:p-10">

@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { ArrowRight, BadgeCheck, Calculator, CheckCircle2, CreditCard, HeartPulse, LayoutGrid, Leaf, MapPin, Pill, ShoppingBag, Sparkles, Store, Users } from "lucide-react";
 import { bestPlanFor, money, PLANS, platformRevenue, pct, SEGMENTS, type PlanKey } from "@/lib/marketplace";
 import { money as brl, products, vendorById, type VendorId } from "@/lib/store";
+import { useFitWindow } from "@/lib/use-fit-window";
 
 type Tab = "quem" | "planos" | "simulador";
 const segmentIcon = { roupas: ShoppingBag, suplementos: HeartPulse, farmacia: Pill, naturais: Leaf, autonomo: Users, outros: Store } as const;
@@ -14,13 +15,6 @@ const steps = [
   { icon: CreditCard, title: "Venda", text: "Pedidos no seu painel" },
 ] as const;
 
-function useFitPage(enabled: boolean) {
-  useEffect(() => {
-    if (!enabled) return;
-    document.body.setAttribute("data-fit-page", "");
-    return () => document.body.removeAttribute("data-fit-page");
-  }, [enabled]);
-}
 
 function StorefrontPreview({ segment }: { segment: string }) {
   const v = vendorById(segmentVendor[segment]);
@@ -56,7 +50,7 @@ function StorefrontPreview({ segment }: { segment: string }) {
 /** Página de captação de lojistas em tela fixa: proposta, vitrine de exemplo, planos e simulador. */
 /** fit=false quando o formulário de cadastro aparece abaixo (a página precisa rolar até ele). */
 export function LojistaLanding({ onStart, fit = true }: { onStart: () => void; fit?: boolean }) {
-  useFitPage(fit);
+  const fitRef = useFitWindow<HTMLDivElement>();
   const [tab, setTab] = useState<Tab>("quem");
   const [segment, setSegment] = useState<string>("suplementos");
   const [plan, setPlan] = useState<PlanKey>("vitrine");
@@ -69,7 +63,7 @@ export function LojistaLanding({ onStart, fit = true }: { onStart: () => void; f
   ];
 
   return (
-    <div className={`mx-auto flex w-full max-w-[1680px] flex-col gap-3 ${fit ? "lg:h-[calc(100dvh-3.5rem-2rem)]" : "lg:h-[min(46rem,calc(100dvh-3.5rem-2rem))]"}`}>
+    <div ref={fit ? fitRef : undefined} className="mx-auto flex w-full max-w-[1680px] flex-col gap-3">
       <div className="nv-dark relative isolate grid min-h-0 flex-1 gap-4 overflow-hidden rounded-2xl bg-gradient-to-br from-[#0b1022] via-[#141a3a] to-[#2a1d0b] p-5 text-white lg:grid-cols-[0.9fr_1.1fr] lg:p-8">
         <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 size-96 rounded-full bg-amber-400/20 blur-3xl" />
         <div aria-hidden="true" className="pointer-events-none absolute -bottom-32 left-10 size-96 rounded-full bg-indigo-500/20 blur-3xl" />
