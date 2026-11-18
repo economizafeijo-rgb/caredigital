@@ -38,18 +38,35 @@ export function AuthStage({ mode, email, password, status }: Props) {
 
   if (mode === "vendor")
     return (
-      <aside aria-hidden="true" className="nv-dark relative isolate flex min-h-[260px] flex-col justify-between gap-6 overflow-hidden rounded-3xl bg-gradient-to-br from-[#0b1022] via-[#141a3a] to-[#2a1d0b] p-6 text-white shadow-pop lg:min-h-0 lg:p-9">
-        <div className="pointer-events-none absolute -right-24 -top-24 -z-10 size-96 rounded-full bg-amber-400/20 blur-3xl" />
-        <div className="flex items-center gap-2.5"><LogoMark size={34} /><span className="font-display text-lg font-extrabold">NextVita <span className="text-amber-300">Parceiros</span></span></div>
+      <aside aria-hidden="true" className="nv-dark relative isolate flex min-h-[300px] flex-col justify-between gap-6 overflow-hidden rounded-3xl bg-[#0b0f1a] p-6 text-white shadow-pop lg:min-h-0 lg:p-8">
+        <img src="/images/hero-suplementos.webp" alt="" className="nv-kenburns absolute inset-0 -z-30 size-full object-cover object-[70%_50%]" style={{ animationDuration: "26s" }} />
+        <div className="absolute inset-0 -z-20 bg-[linear-gradient(180deg,rgba(8,11,20,.55)_0%,rgba(8,11,20,.35)_40%,rgba(8,11,20,.94)_80%,#080b14_100%)]" />
+        <div className="absolute inset-0 -z-20 bg-[linear-gradient(90deg,rgba(8,11,20,.85)_0%,rgba(8,11,20,.2)_70%)]" />
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5"><LogoMark size={34} /><span className="font-display text-lg font-extrabold">NextVita <span className="text-amber-300">Parceiros</span></span></div>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/30 px-2.5 py-1 text-[11px] font-semibold text-white/85 backdrop-blur"><ShieldCheck size={12} className="text-amber-300" /> Sem mensalidade para começar</span>
+        </div>
+
+        {/* Prévia do painel da loja: pedido chegando e nota da loja */}
+        <div className="pointer-events-none absolute right-6 top-24 hidden flex-col items-end gap-2.5 lg:flex">
+          <span className="nv-float inline-flex items-center gap-2.5 rounded-2xl border border-white/15 bg-white/10 p-2 pr-3.5 text-xs backdrop-blur-md">
+            <img src="/loja/v2/whey.webp" alt="" className="size-10 rounded-xl bg-white object-cover" />
+            <span className="leading-tight"><strong className="block font-semibold">Novo pedido · #128</strong><span className="text-white/65">Whey Protein · R$ 149,90</span></span>
+          </span>
+          <span className="nv-float mr-8 inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold backdrop-blur-md" style={{ animationDelay: "1.3s" }}>
+            <span className="grid size-6 place-items-center rounded-lg bg-amber-300/25 text-amber-200"><BadgeCheck size={13} /></span> Loja verificada · nota 4,8
+          </span>
+        </div>
+
         <div className="max-w-sm">
-          <p className="font-display text-2xl font-bold leading-snug">Apareça para quem já cuida da saúde todos os dias.</p>
-          <ul className="mt-5 grid gap-3 text-sm">
-            {[[Store, "Vitrine ou página própria do seu negócio"], [BadgeCheck, "Selo de parceiro verificado após aprovação"], [Users, "Público que acompanha treino, dieta e rotina"], [Megaphone, "Anúncios no app e painel de resultados"]].map(([I, t]) => { const Icon = I as typeof Store; return (
-              <li key={t as string} className="flex items-center gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-lg bg-amber-300/15 text-amber-200"><Icon size={17} /></span>{t as string}</li>
+          <p className="font-display text-2xl font-extrabold leading-tight">Apareça para quem já cuida da saúde todos os dias.</p>
+          <ul className="mt-4 grid gap-2.5 text-sm text-white/85">
+            {[[Store, "Vitrine própria com link e QR Code"], [Megaphone, "Pedidos, estoque, caixa e chat num painel"], [Users, "Público que acompanha treino, dieta e rotina"]].map(([I, t]) => { const Icon = I as typeof Store; return (
+              <li key={t as string} className="flex items-center gap-3"><span className="grid size-8 shrink-0 place-items-center rounded-lg bg-amber-300/15 text-amber-200 ring-1 ring-amber-300/20"><Icon size={15} /></span>{t as string}</li>
             ); })}
           </ul>
+          <p className="mt-5 flex items-center gap-2 text-xs text-white/55"><ShieldCheck size={14} /> Cadastro analisado pela equipe NextVita.</p>
         </div>
-        <p className="flex items-center gap-2 text-xs text-white/55"><ShieldCheck size={14} /> Plano inicial sem mensalidade. Cadastro analisado pela equipe.</p>
       </aside>
     );
 
