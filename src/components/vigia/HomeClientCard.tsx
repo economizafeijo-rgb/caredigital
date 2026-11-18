@@ -64,7 +64,8 @@ import {
   getCareScheduleState,
 } from "@/lib/care-schedule";
 import { patientDateSummary } from "@/lib/patient-date-profile";
-import { ClientOnboardingGate } from "./ClientOnboarding";
+import { ClientOnboardingGate, ProfileRequired } from "./ClientOnboarding";
+import { ExportPlanButton } from "./ExportPlanButton";
 
 type Client = {
   id: string;
@@ -184,6 +185,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
   const [mealRecordCount, setMealRecordCount] = useState<number | null>(null);
   const [mealRecordsLoading, setMealRecordsLoading] = useState(true);
   const [onboardingSignal, setOnboardingSignal] = useState(0);
+  const [profileLocked, setProfileLocked] = useState(false);
   const [healthProfile, setHealthProfile] = useState<OverviewHealthProfile>({
     age: null,
     activityMinutes: 0,
@@ -915,7 +917,8 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                 )}
               </div>
             </div>
-            <div className="nv-day-actions flex flex-wrap items-center gap-2.5">
+            <ExportPlanButton patientId={client.id} ownerId={client.owner_id} label="PDF" className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-white/30 bg-white/15 px-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/25" />
+            <fieldset disabled={profileLocked} title={profileLocked ? "Complete o cadastro para registrar" : undefined} className="nv-day-actions m-0 flex min-w-0 flex-wrap items-center gap-2.5 border-0 p-0 disabled:opacity-60">
               {/* Cada área mostra só o registro da sua área, direto no formulário certo (sem painel de escolha).
                   Hidratação e Alimentação já têm o próprio botão dentro da página; as demais áreas têm o formulário próprio. */}
               {activeTab === "hoje" && (
@@ -942,10 +945,10 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
               >
                 <UserRound size={17} />
               </button>
-            </div>
+            </fieldset>
           </header>
 
-          <QuickRegisterFab patientId={client.id} area={activeTab} onRecorded={() => setTick((value) => value + 1)} />
+          {!profileLocked && <QuickRegisterFab patientId={client.id} area={activeTab} onRecorded={() => setTick((value) => value + 1)} />}
           <div className="shrink-0 empty:hidden">
             <CareReminderBeacon
               tasks={tasks}
@@ -968,7 +971,8 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
             patientId={client.id}
             fullName={client.full_name}
             openSignal={onboardingSignal}
-            onCompleted={() => setTick((value) => value + 1)}
+            onStatus={setProfileLocked}
+            onCompleted={() => { setProfileLocked(false); setTick((value) => value + 1); }}
           />
           {activeTab === "hoje" ? (
             <div
@@ -1263,6 +1267,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                 " min-w-0 p-3 sm:p-4"
               }
             >
+              {profileLocked ? <ProfileRequired area={clientSectionLabels[activeTab].title.toLowerCase()} /> : <>
               {activeTab === "agenda" && (
                 <ClientAgendaPage
                   tasks={tasks}
@@ -1418,6 +1423,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                   />
                 </div>
               )}
+              </>}
             </section>
           )}
         </>

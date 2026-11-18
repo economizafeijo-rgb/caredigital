@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useDialog } from "@/lib/dialog";
 import { ClientQuickIntake } from "./ClientQuickIntake";
 import { NextUpClock } from "./NextUpClock";
+import { openOnboarding } from "./ClientOnboarding";
 import { HydrationEntries } from "./HydrationEntries";
 import { HydrationDayChart } from "./HydrationDayChart";
 import { WATER_LAST_RECOMMENDED_HOUR } from "@/lib/nutrition-science";
@@ -620,13 +621,15 @@ export function ClientHydrationTab({
       </header>
       {editing && (
         <div className="rounded-xl border border-border bg-muted/30 p-2.5">
-          <p className="mb-2 text-xs font-bold">Perfil para estimar a meta diária</p>
+          <p className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs font-bold">Perfil para estimar a meta diária
+            <button type="button" onClick={openOnboarding} className="rounded-lg border border-border px-2 py-1 text-[11px] font-semibold text-primary hover:bg-primary/10">Sexo, idade e peso vêm do cadastro · alterar</button></p>
           <div className="grid grid-cols-2 gap-2">
             <label className="text-[11px]">
               Sexo para referência
               <NiceSelect
                 className="mt-1"
                 ariaLabel="Sexo para referência"
+                disabled
                 value={profile.sex}
                 onChange={(v) => update({ sex: v as Profile["sex"] })}
                 options={[
@@ -645,7 +648,9 @@ export function ClientHydrationTab({
                 max="110"
                 value={profile.age || ""}
                 onChange={(e) => update({ age: Number(e.target.value) })}
-                placeholder="Informe"
+                placeholder="Do cadastro"
+                disabled
+                title="Vem do seu cadastro"
               />
             </label>
             <label className="text-[11px]">
@@ -658,7 +663,9 @@ export function ClientHydrationTab({
                 step=".5"
                 value={profile.weight_kg || ""}
                 onChange={(e) => update({ weight_kg: Number(e.target.value) })}
-                placeholder="Informe"
+                placeholder="Do cadastro"
+                disabled
+                title="Vem do seu cadastro"
               />
             </label>
             <label className="text-[11px]">

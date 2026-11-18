@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, BookOpen, Calculator, ChefHat, Clock3, Coffee, Moon, RotateCcw, Save, Search, Settings2, ShieldAlert, Sun, UtensilsCrossed, X, type LucideIcon } from "lucide-react";
 import { NutritionCalculator } from "./NutritionCalculator";
+import { ExportPlanButton } from "./ExportPlanButton";
 import { useDailyNutrition } from "./DailyNutritionPanel";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -182,7 +183,8 @@ export function ClientNutritionStudio({patientId,ownerId,onLogged}:Props){
          className={"h-8 rounded-full px-3 text-xs font-semibold transition active:scale-95 "+(goal===o.value?"bg-white text-[#062019]":"bg-white/10 text-white/80 hover:bg-white/20")}>{o.label}</button>)}
        </div>
       </div>
-      <button type="button" onClick={()=>setShowSettings(v=>!v)} aria-expanded={showSettings} className={"inline-flex h-10 items-center gap-1.5 rounded-xl border px-3 text-sm font-semibold backdrop-blur transition "+(showSettings?"border-white bg-white text-[#062019]":"border-white/20 bg-white/10 text-white hover:bg-white/20")}><Settings2 size={16}/> Preferências{avoided.length||sensitive?<span className="grid size-5 place-items-center rounded-full bg-emerald-400 text-[10px] font-bold text-emerald-950">{avoided.length+(sensitive?1:0)}</span>:null}</button>
+      <div className="flex flex-wrap gap-2"><ExportPlanButton patientId={patientId} ownerId={ownerId} label="Exportar cardápio"/>
+      <button type="button" onClick={()=>setShowSettings(v=>!v)} aria-expanded={showSettings} className={"inline-flex h-10 items-center gap-1.5 rounded-xl border px-3 text-sm font-semibold backdrop-blur transition "+(showSettings?"border-white bg-white text-[#062019]":"border-white/20 bg-white/10 text-white hover:bg-white/20")}><Settings2 size={16}/> Preferências{avoided.length||sensitive?<span className="grid size-5 place-items-center rounded-full bg-emerald-400 text-[10px] font-bold text-emerald-950">{avoided.length+(sensitive?1:0)}</span>:null}</button></div>
      </div>
      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
       {targetChips.map(c=>{const pct=c.goal?Math.min(100,(c.v/c.goal)*100):0;return <div key={c.k} className="rounded-xl border border-white/10 bg-white/[.06] p-3 backdrop-blur">

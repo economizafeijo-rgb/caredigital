@@ -54,3 +54,19 @@ d2("verificadores adicionais", () => {
     e2((ageFromBirthDate("1983-01-01") ?? 0) >= 43).toBe(true);
   });
 });
+
+import { formatCep, isValidCep, stateFromCep, titleCasePt } from "./public-signup-validation";
+d2("CEP e endereço", () => {
+  i2("valida CEP e identifica o estado", () => {
+    e2(formatCep("69960000")).toBe("69960-000");
+    e2(isValidCep("69960-000")).toBe(true);
+    e2(stateFromCep("69960-000")).toBe("AC");
+    e2(stateFromCep("01310-100")).toBe("SP");
+    e2(isValidCep("00000-000")).toBe(false);
+    e2(isValidCep("6996")).toBe(false);
+  });
+  i2("formata nomes", () => {
+    e2(titleCasePt("R JOEL FERREIRA DE SOUSA")).toBe("R Joel Ferreira de Sousa");
+    e2(titleCasePt("FEIJO")).toBe("Feijo");
+  });
+});

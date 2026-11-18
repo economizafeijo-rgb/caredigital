@@ -4,12 +4,13 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { estimateObjectiveNutrition } from "@/lib/objective-nutrition";
-import { formatBrazilPhone, isValidBirthDate, isValidBrazilPhone, normalizeBrazilPhone, parseDecimal } from "@/lib/public-signup-validation";
+import { formatBrazilPhone, formatCep, isValidBirthDate, isValidBrazilPhone, isValidCep, normalizeBrazilPhone, normalizeCep, parseDecimal, stateFromCep, titleCasePt } from "@/lib/public-signup-validation";
 
 type Profile = {
   birth_date: string | null; sex: string | null; height_cm: number | null; weight_kg: number | null;
   activity_level: string | null; care_goal: string | null; health_conditions: string[] | null;
   phone: string | null; city: string | null; state: string | null; address: string | null;
+  neighborhood?: string | null; address_number?: string | null; postal_code?: string | null;
   onboarding_completed_at: string | null; onboarding_snoozed_until: string | null;
 };
 
@@ -49,14 +50,19 @@ const fmt = (v: number, d = 0) => v.toLocaleString("pt-BR", { maximumFractionDig
  * Abre ao entrar no painel até ser concluído; "Lembrar depois" adia por 1 dia (salvo no servidor),
  * e enquanto estiver incompleto uma faixa discreta permanece no topo do painel.
  */
-export function ClientOnboardingGate({ patientId, fullName, onCompleted, openSignal = 0 }: { patientId: string; fullName: string; onCompleted: () => void; openSignal?: number }) {
+/** Abre o cadastro inicial de qualquer lugar do painel. */
+export const openOnboarding = () => window.dispatchEvent(new Event("nv-open-onboarding"));
+
+export function ClientOnboardingGate({ patientId, fullName, onCompleted, openSignal = 0, onStatus }: { patientId: string; fullName: string; onCompleted: () => void; openSignal?: number; onStatus?: (incomplete: boolean) => void }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [open, setOpen] = useState(false);
   useEffect(() => { if (openSignal > 0) setOpen(true); }, [openSignal]);
+  useEffect(() => { const h = () => setOpen(true); window.addEventListener("nv-open-onboarding", h); return () => window.removeEventListener("nv-open-onboarding", h); }, []);
+  useEffect(() => { if (profile) onStatus?.(essentialsMissing(profile)); }, [profile, onStatus]);
   useEffect(() => {
     let active = true;
     void (supabase as any).from("care_patients")
-      .select("birth_date,sex,height_cm,weight_kg,activity_level,care_goal,health_conditions,phone,city,state,address,onboarding_completed_at,onboarding_snoozed_until")
+      .select("birth_date,sex,height_cm,weight_kg,activity_level,care_goal,health_conditions,phone,city,state,address,neighborhood,address_number,postal_code,onboarding_completed_at,onboarding_snoozed_until")
       .eq("id", patientId).maybeSingle()
       .then(({ data, error }: any) => {
         if (!active || error || !data) return;
@@ -193,6 +199,27 @@ function OnboardingStudio({ patientId, fullName, initial, onSnooze, onDone }: { 
   const [city, setCity] = useState(initial.city ?? "");
   const [uf, setUf] = useState(initial.state ?? "AC");
   const [address, setAddress] = useState(initial.address ?? "");
+  const [district, setDistrict] = useState(initial.neighborhood ?? "");
+  const [number, setNumber] = useState(initial.address_number ?? "");
+  const [cep, setCep] = useState(formatCep(initial.postal_code ?? ""));
+  const [cepStatus, setCepStatus] = useState<"" | "busy" | "ok" | "notfound">("");
+  async function lookupCep(value: string) {
+    const c = normalizeCep(value);
+    if (!isValidCep(c)) return;
+    const guess = stateFromCep(c);
+    if (guess) setUf(guess);
+    setCepStatus("busy");
+    try {
+      const r = await fetch(`https://viacep.com.br/ws/${c}/json/`);
+      const j = await r.json();
+      if (j?.erro) { setCepStatus("notfound"); return; }
+      if (j.logradouro) setAddress((a) => a.trim() ? a : j.logradouro);
+      if (j.bairro) setDistrict((d) => d.trim() ? d : j.bairro);
+      if (j.localidade) setCity(j.localidade);
+      if (j.uf) setUf(j.uf);
+      setCepStatus("ok");
+    } catch { setCepStatus(""); }
+  }
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
@@ -215,7 +242,13 @@ function OnboardingStudio({ patientId, fullName, initial, onSnooze, onDone }: { 
     if (i === 2 && !level) return "Escolha o nível que mais se parece com a sua semana.";
     if (i === 3 && !goal) return "Escolha um objetivo para continuar.";
     if (i === 5 && phone.trim() && !isValidBrazilPhone(phone)) return "Telefone inválido. Use DDD + número, ex.: (68) 99999-0000.";
+    if (i === 5 && cep.trim() && !isValidCep(cep)) return "CEP inválido. Use 8 números, ex.: 69960-000.";
+    if (i === 5 && cep.trim() && isValidCep(cep) && stateFromCep(cep) !== uf) return `O CEP ${formatCep(cep)} é de ${stateFromCep(cep)}, mas o estado escolhido é ${uf}.`;
     if (i === 5 && city.trim() && city.trim().length < 2) return "Informe o nome da cidade.";
+    if (i === 5 && (address.trim() || district.trim() || number.trim()) && !city.trim()) return "Informe a cidade do endereço.";
+    if (i === 5 && address.trim() && address.trim().length < 3) return "Informe o nome da rua.";
+    if (i === 5 && number.trim() && !/^(\d{1,6}[a-zA-Z]?|s\/?n)$/i.test(number.trim())) return "Número inválido. Use apenas números ou S/N.";
+    if (i === 5 && district.trim() && district.trim().length < 2) return "Informe o nome do bairro.";
     return "";
   }
   function go(delta: 1 | -1) {
@@ -228,7 +261,8 @@ function OnboardingStudio({ patientId, fullName, initial, onSnooze, onDone }: { 
     const r = await (supabase as any).rpc("care_save_onboarding", {
       p_patient_id: patientId, p_birth_date: birth, p_sex: sex, p_height_cm: height, p_weight_kg: weight,
       p_activity_level: level, p_objective: goal, p_target_weight_kg: goal !== "equilibrio" ? target : null, p_health_conditions: health,
-      p_phone: phone.trim() ? normalizeBrazilPhone(phone) : null, p_city: city.trim().replace(/\s+/g, " "), p_state: uf, p_address: address,
+      p_phone: phone.trim() ? normalizeBrazilPhone(phone) : null, p_city: city.trim() ? titleCasePt(city) : null, p_state: uf, p_address: address.trim() ? titleCasePt(address) : null,
+      p_neighborhood: district.trim() ? titleCasePt(district) : null, p_address_number: number.trim() ? number.trim().toUpperCase() : null, p_postal_code: cep.trim() ? normalizeCep(cep) : null,
     });
     setSaving(false);
     if (r.error) { setError(r.error.message || "Não foi possível salvar. Tente novamente."); return; }
@@ -358,12 +392,18 @@ function OnboardingStudio({ patientId, fullName, initial, onSnooze, onDone }: { 
     </div>
   );
   if (step === 5) body = (
-    <div className="grid gap-4 sm:grid-cols-[1fr_7rem]">
-      <label className="text-sm font-semibold text-white/80 sm:col-span-2">Telefone ou WhatsApp<input type="tel" inputMode="tel" autoComplete="tel" className={input} value={phone} onChange={(e) => setPhone(formatBrazilPhone(e.target.value))} placeholder="(68) 99999-0000" />
+    <div className="grid gap-4 sm:grid-cols-6">
+      <label className="text-sm font-semibold text-white/80 sm:col-span-6">Telefone ou WhatsApp<input type="tel" inputMode="tel" autoComplete="tel" className={input} value={phone} onChange={(e) => setPhone(formatBrazilPhone(e.target.value))} placeholder="(68) 99999-0000" />
         {phone.trim() && <span className={`mt-1 block text-xs ${isValidBrazilPhone(phone) ? "text-emerald-300" : "text-amber-300"}`}>{isValidBrazilPhone(phone) ? "✓ Número válido" : "Digite DDD + número"}</span>}</label>
-      <label className="text-sm font-semibold text-white/80">Cidade<input autoComplete="address-level2" className={input} value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ex.: Feijó" /></label>
-      <label className="text-sm font-semibold text-white/80">Estado<select className={input} value={uf} onChange={(e) => setUf(e.target.value)}>{states.map((s) => <option key={s} className="bg-[#0b1714]">{s}</option>)}</select></label>
-      <label className="text-sm font-semibold text-white/80 sm:col-span-2">Endereço<input autoComplete="street-address" className={input} value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Rua, número e bairro" /></label>
+      <label className="text-sm font-semibold text-white/80 sm:col-span-3">CEP<input inputMode="numeric" autoComplete="postal-code" className={input} value={cep} placeholder="69960-000"
+        onChange={(e) => { const v = formatCep(e.target.value); setCep(v); setCepStatus(""); if (normalizeCep(v).length === 8) void lookupCep(v); }} />
+        {cep.trim() && <span className={`mt-1 block text-xs ${!isValidCep(cep) ? "text-amber-300" : cepStatus === "notfound" ? "text-amber-300" : "text-emerald-300"}`}>
+          {!isValidCep(cep) ? "Digite os 8 números do CEP" : cepStatus === "busy" ? "Buscando endereço…" : cepStatus === "notfound" ? "CEP não encontrado nos Correios. Confira ou preencha à mão." : `✓ CEP válido · ${stateFromCep(cep)}`}</span>}</label>
+      <label className="text-sm font-semibold text-white/80 sm:col-span-3">Estado<select className={input} value={uf} onChange={(e) => setUf(e.target.value)}>{states.map((s) => <option key={s} className="bg-[#0b1714]">{s}</option>)}</select></label>
+      <label className="text-sm font-semibold text-white/80 sm:col-span-4">Rua<input autoComplete="address-line1" className={input} value={address} onChange={(e) => setAddress(e.target.value)} onBlur={() => address.trim() && setAddress(titleCasePt(address))} placeholder="Ex.: Rua Joel Ferreira de Sousa" /></label>
+      <label className="text-sm font-semibold text-white/80 sm:col-span-2">Número<input inputMode="numeric" className={input} value={number} onChange={(e) => setNumber(e.target.value.slice(0, 8))} placeholder="123 ou S/N" /></label>
+      <label className="text-sm font-semibold text-white/80 sm:col-span-3">Bairro<input autoComplete="address-level3" className={input} value={district} onChange={(e) => setDistrict(e.target.value)} onBlur={() => district.trim() && setDistrict(titleCasePt(district))} placeholder="Ex.: Centro" /></label>
+      <label className="text-sm font-semibold text-white/80 sm:col-span-3">Cidade<input autoComplete="address-level2" className={input} value={city} onChange={(e) => setCity(e.target.value)} onBlur={() => city.trim() && setCity(titleCasePt(city))} placeholder="Ex.: Feijó" /></label>
     </div>
   );
   if (step === 6) body = (
@@ -515,6 +555,23 @@ function OnboardingStudio({ patientId, fullName, initial, onSnooze, onDone }: { 
             ))}
           </ul>
         </aside>
+      </div>
+    </div>
+  );
+}
+
+/** Aviso exibido no lugar das áreas enquanto o cadastro essencial não foi concluído. */
+export function ProfileRequired({ area }: { area: string }) {
+  return (
+    <div className="nv-fade-in relative isolate grid min-h-[22rem] place-items-center overflow-hidden rounded-2xl bg-[#071512] p-6 text-center text-white">
+      <img src="/images/caredigital-care-hero.webp" alt="" aria-hidden="true" className="absolute inset-0 -z-10 h-full w-full object-cover opacity-25" />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#071512] via-[#071512]/80 to-[#071512]/40" />
+      <div className="max-w-md">
+        <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-emerald-400 to-cyan-400 text-[#04211a] shadow-lg"><Sparkles size={24} /></span>
+        <h3 className="mt-4 font-display text-2xl font-extrabold">Complete seu cadastro para usar {area}</h3>
+        <p className="mt-2 text-sm text-white/75">Idade, sexo, altura, peso, rotina e objetivo definem todas as metas. Assim os registros desta área ficam sincronizados com o seu plano desde o primeiro dia.</p>
+        <button type="button" onClick={openOnboarding} className="mt-5 inline-flex h-11 items-center gap-2 rounded-xl bg-white px-6 text-sm font-bold text-[#062019] transition hover:bg-emerald-50 active:scale-[.97]">Completar cadastro agora <ArrowRight size={16} /></button>
+        <p className="mt-3 text-xs text-white/50">Leva cerca de 2 minutos.</p>
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { acreDateKey } from "@/lib/acre-time";
 import { RecordInfo } from "./RecordInfo";
 import { NextUpClock } from "./NextUpClock";
+import { ExportPlanButton } from "./ExportPlanButton";
 
 export type ClientMedication = { id: string; name: string; category: string; dose: string; times: string[]; instructions: string | null; active: boolean };
 type Intake = { medication_id: string; taken_on: string; slot: string; taken_at?: string | null };
@@ -214,6 +215,7 @@ export function ClientMedicationManager({ patientId, ownerId }: { patientId: str
           <div className="mt-3 flex flex-wrap justify-center gap-2 lg:justify-start">
             {next && <button type="button" data-register-target="Registrar dose" onClick={() => setPending({ kind: "take", med: next.med, slot: next.slot, taken: false })} className="nv-bump inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-rose-900 shadow-sm transition hover:bg-white/90 active:scale-[.97]"><CheckCircle2 size={17}/> Tomei {next.med.name}</button>}
             <button type="button" onClick={() => { setMessage(null); setDraft({ times: ["08:00"], category: "outros" }); }} className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-4 text-sm font-bold text-white backdrop-blur transition hover:bg-white/20 active:scale-[.97]"><Plus size={16}/> Novo medicamento</button>
+            <ExportPlanButton patientId={patientId} ownerId={ownerId} label="Exportar horários"/>
           </div>
         </div>
         <NextUpClock alertKey="medicacao" title="Próxima dose" color="#f9a8d4"
