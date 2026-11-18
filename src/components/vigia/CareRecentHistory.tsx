@@ -62,7 +62,7 @@ export function CareRecentHistory({patientId,ownerId,category,onClose,compact=fa
      ...(reconstructedResult.data??[]).map((r:any)=>{
       const d=r.details??{};
       const evidence=String(d.evidence??"");
-      const date=evidence.match(/(\\d{2})\\/(\\d{2})\\/(\\d{4})/);
+      const date=evidence.match(/(\d{2})\/(\d{2})\/(\d{4})/);
       const time=String(d.local_time??"12:00");
       const reconstructedAt=r.happened_at??(date?date[3]+"-"+date[2]+"-"+date[1]+"T"+time+":00-05:00":r.scheduled_at??r.recorded_at);
       const category:Category=r.category==="hidratacao"?"hidratacao":r.category==="refeicao"?"refeicao":r.category==="resumo_diario"?"resumo":"medicacao";
