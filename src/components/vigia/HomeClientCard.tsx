@@ -1335,7 +1335,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                   ownerId={client.owner_id}
                   waterTarget={hydrationTarget || null}
                   revision={tick}
-                  defaultView="dia"
+                  defaultView="mes"
                 />
               </section>
             </div>
