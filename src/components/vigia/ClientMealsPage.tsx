@@ -1,4 +1,5 @@
 import { DailyNutritionPanel, useDailyNutrition } from "./DailyNutritionPanel";
+import { NutritionDayChart, NutritionHero } from "./NutritionHero";
 import { useEffect, useMemo, useState } from "react";
 import {
   CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, Clock3,
@@ -103,18 +104,17 @@ export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,no
   const visible=filtered.slice(current*PAGE_SIZE,(current+1)*PAGE_SIZE);
   function setStatus(value:typeof filter){setFilter(value);setPage(0);}
 
-  return <div className="care-page-meals care-premium-meals care-meals-responsive flex h-full min-h-0 min-w-0 flex-col gap-3">
-    <DailyNutritionPanel data={nutrition}/>
-    <div className="care-meals-actions flex shrink-0 flex-wrap items-center justify-between gap-2 rounded-2xl border border-emerald-500/25 bg-emerald-500/[.06] p-3">
-      <div className="min-w-0">
-        <h3 className="flex items-center gap-2 text-sm font-bold text-foreground">
-          <UtensilsCrossed size={17} className="text-emerald-600 dark:text-emerald-300"/> Alimentação de hoje
-        </h3>
-        <p className="mt-0.5 text-[11px] text-muted-foreground">
-          {extraMeals.length} refeições e lanches registrados hoje · sem horários fixos
-        </p>
-      </div>
-      <ClientQuickIntake patientId={patientId} variant="panel" mode="food" onRecorded={onRecorded}/>
+  return <div className="care-page-meals care-premium-meals care-meals-responsive flex h-full min-h-0 min-w-0 flex-col gap-3 overflow-y-auto pb-2">
+    <NutritionHero data={nutrition} actions={<ClientQuickIntake patientId={patientId} mode="food" onRecorded={onRecorded}/>}/>
+    <div className="grid shrink-0 gap-3 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+      <NutritionDayChart data={nutrition}/>
+      <DailyNutritionPanel data={nutrition} hideSummary/>
+    </div>
+    <div className="flex shrink-0 items-end justify-between gap-2 pt-1">
+      <h3 className="flex items-center gap-2 text-sm font-bold text-foreground">
+        <UtensilsCrossed size={17} className="text-emerald-600 dark:text-emerald-300"/> Refeições de hoje
+      </h3>
+      <span className="text-[11px] text-muted-foreground">{extraMeals.length} {extraMeals.length===1?"registro avulso":"registros avulsos"} · sem horários fixos</span>
     </div>
     <div className="care-page-meals-filters flex shrink-0 flex-wrap items-center gap-2">
       <div className="flex min-w-0 flex-1 items-center gap-1 rounded-xl border border-border bg-muted/35 p-1">

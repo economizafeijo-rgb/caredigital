@@ -256,9 +256,12 @@ function Ring({
 export function DailyNutritionPanel({
   data,
   compact = false,
+  hideSummary = false,
 }: {
   data: DailyNutrition;
   compact?: boolean;
+  /** Oculta cabeçalho e anéis (quando o NutritionHero já mostra o resumo). */
+  hideSummary?: boolean;
 }) {
   const { total, target, entries, objective, loaded, patientId, refresh } = data;
   const { confirm, prompt } = useDialog();
@@ -351,7 +354,7 @@ export function DailyNutritionPanel({
       className="rounded-3xl border border-border bg-card p-5 shadow-card"
       aria-label="Nutrição de hoje"
     >
-      <div className="flex flex-wrap items-start justify-between gap-2">
+      {!hideSummary && <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h3 className="flex items-center gap-2 text-lg font-bold">
             <Apple size={20} className="text-emerald-500" /> Nutrição de hoje
@@ -363,12 +366,12 @@ export function DailyNutritionPanel({
         <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-600 to-lime-500 px-3 py-1.5 text-xs font-bold text-white">
           <Target size={14} /> {objectiveLabel(objective)}
         </span>
-      </div>
+      </div>}
       {!loaded ? (
         <div className="mt-4 h-40 animate-pulse rounded-2xl bg-muted" />
       ) : (
         <>
-          <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {!hideSummary && <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
             <Ring
               value={total.kcal}
               target={target.kcal}
@@ -401,8 +404,8 @@ export function DailyNutritionPanel({
               color="#8b5cf6"
               icon={Droplet}
             />
-          </div>
-          <p className="mt-4 flex gap-2 rounded-2xl bg-emerald-500/10 p-3 text-sm font-medium text-emerald-800 dark:text-emerald-200">
+          </div>}
+          <p className={`${hideSummary ? "" : "mt-4 "}flex gap-2 rounded-2xl bg-emerald-500/10 p-3 text-sm font-medium text-emerald-800 dark:text-emerald-200`}>
             <Sparkles size={18} className="mt-0.5 shrink-0" />
             {goalAdvice(objective, total, target)}
           </p>
