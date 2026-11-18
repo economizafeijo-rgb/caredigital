@@ -21,6 +21,7 @@ import { useAccess } from "@/lib/use-access";
 import { LiveModeLauncher } from "@/components/vigia/LiveMode";
 import { HomeStore } from "@/components/vigia/HomeStore";
 import { SmartBanner, ToolDemo } from "@/components/vigia/SmartBanner";
+import { AppShowcase } from "@/components/vigia/AppShowcase";
 import { QrShareCard } from "@/components/vigia/QrShareCard";
 import { PartnerCommercial } from "@/components/vigia/PartnerCommercial";
 import { HomeBottomArt, HomeSideArt } from "@/components/vigia/HomeDecor";
@@ -144,6 +145,8 @@ function Homepage() {
       </nav>
 
       <HomeStore />
+
+      {!client && <AppShowcase />}
 
       <PartnerCommercial />
 

@@ -890,3 +890,7 @@ html, #care-content { scrollbar-gutter: stable; }
 @keyframes nv-added { 0% { transform: scale(.96); } 50% { transform: scale(1.03); } 100% { transform: none; } }
 .nv-added { animation: nv-added .4s ease; }
 @media (prefers-reduced-motion: reduce) { .nv-bf-shine, .nv-bf-glow, .nv-snow, .nv-spin-slow, .nv-sticker, .nv-heart-pop, .nv-tick, .nv-cta-pulse, .nv-stock, .nv-bolt, .nv-added { animation: none; } }
+/* Celular: o conteúdo termina acima da barra inferior fixa (sem nada escondido embaixo dela) */
+@media (max-width: 1023px) {
+  body[data-bottom-nav] #care-content { padding-bottom: calc(5.25rem + env(safe-area-inset-bottom)) !important; }
+}
