@@ -103,7 +103,7 @@ export function CareRecentHistory({patientId,ownerId,category,onClose,compact=fa
  },[patientId,ownerId,category]);
  const displayed=showAll?rows:rows.slice(0,5);
  return <section className={compact?"care-history-panel care-history-compact":"care-history-panel"} aria-label={"Histórico recente de "+(category==="todos"?"cuidados":labels[category])}>
-  <header className="care-history-head"><div><span className="care-history-eyebrow"><History size={14}/> HISTÓRICO CONFIRMADO</span>{!compact&&<h4>{category==="todos"?"Últimos cuidados realizados":labels[category]+" · últimos registros"}</h4>}<p>Cuidados confirmados e consumos registrados nos últimos 14 dias.</p></div>
+  <header className="care-history-head"><div><span className="care-history-eyebrow"><History size={14}/> HISTÓRICO CONFIRMADO</span>{!compact&&<h4>{category==="todos"?"Últimos cuidados realizados":labels[category]+" · últimos registros"}</h4>}<p>Cuidados confirmados e consumos registrados nos últimos 30 dias.</p></div>
   {onClose&&<button type="button" className="care-history-close" onClick={onClose} aria-label="Fechar histórico"><X size={17}/></button>}</header>
   {loading?<p className="care-history-empty">Consultando registros…</p>:error&&rows.length===0?<p role="alert" className="care-history-empty">{error}</p>:rows.length===0?<p className="care-history-empty">Nenhum registro encontrado neste período. Outros eventos podem estar disponíveis no prontuário completo.</p>:
   <>{error&&<p role="alert" className="care-history-empty">{error}</p>}<div className="care-history-list">{displayed.map(row=><div className="care-history-entry" key={row.id}>
