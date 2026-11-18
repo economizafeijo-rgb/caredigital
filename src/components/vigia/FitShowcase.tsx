@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as R
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Gift, LockKeyhole, ShieldCheck } from "lucide-react";
 import { copy, related, showcaseImage, type ShowcaseKind } from "./PublicCareShowcase";
-import { ToolDemo } from "./SmartBanner";
+import { AreaDemo } from "./AreaDemos";
 import { useFitWindow } from "@/lib/use-fit-window";
 
 type Layout = "split" | "stage" | "bento" | "steps" | "mirror";
@@ -167,7 +167,7 @@ export function FitShowcase({ kind }: { kind: ShowcaseKind }) {
         <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[0.95fr_1.05fr]">
           <ParallaxPhoto src={img.src} position={img.position} className="min-h-[16rem] rounded-2xl">
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-            {st.demo && <div className="absolute bottom-5 left-5"><ToolDemo kind={st.demo} /></div>}
+            <div className="absolute bottom-5 left-5 max-lg:static max-lg:p-4"><AreaDemo kind={kind} /></div>
           </ParallaxPhoto>
           <section className="flex min-h-0 flex-col justify-center gap-4 rounded-2xl border border-border bg-card p-5 lg:p-8">
             {eyebrow(false)}
@@ -197,7 +197,7 @@ export function FitShowcase({ kind }: { kind: ShowcaseKind }) {
               <Privacy kind={kind} dark />
             </div>
             <div className="hidden flex-col items-end gap-3 lg:flex">
-              {st.demo && <ToolDemo kind={st.demo} />}
+              <AreaDemo kind={kind} />
               <div className="w-full max-w-sm"><BenefitPicker kind={kind} dark /></div>
             </div>
           </div>
@@ -218,11 +218,7 @@ export function FitShowcase({ kind }: { kind: ShowcaseKind }) {
           </section>
           <ParallaxPhoto src={img.src} position={img.position} className="min-h-[14rem] rounded-2xl lg:col-span-2">
             <div className="absolute inset-0 bg-gradient-to-tr from-[color-mix(in_srgb,var(--area)_55%,transparent)] to-transparent mix-blend-multiply" />
-            <ul className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2">
-              {c.preview.map((p, i) => (
-                <li key={p} className="nv-rise rounded-full bg-white/90 px-3 py-1.5 text-xs font-semibold text-slate-900 shadow" style={{ animationDelay: `${300 + i * 120}ms` }}>{p}</li>
-              ))}
-            </ul>
+            <div className="absolute bottom-4 right-4 max-lg:static max-lg:p-4"><AreaDemo kind={kind} /></div>
           </ParallaxPhoto>
           <div className="lg:col-span-3"><BenefitPicker kind={kind} columns /></div>
           <div className="flex items-center rounded-2xl border border-border bg-card p-4"><Privacy kind={kind} /></div>
@@ -249,9 +245,7 @@ export function FitShowcase({ kind }: { kind: ShowcaseKind }) {
           </section>
           <ParallaxPhoto src={img.src} position={img.position} className="min-h-[20rem] rounded-2xl">
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent" />
-            <div className="absolute inset-x-4 bottom-4 lg:inset-x-6 lg:bottom-6">
-              <BenefitPicker kind={kind} dark columns />
-            </div>
+            <div className="absolute bottom-4 right-4 max-lg:static max-lg:p-4 lg:bottom-6 lg:right-6"><AreaDemo kind={kind} /></div>
           </ParallaxPhoto>
         </div>
         <AreaSwitcher kind={kind} />
@@ -273,11 +267,7 @@ export function FitShowcase({ kind }: { kind: ShowcaseKind }) {
         </section>
         <ParallaxPhoto src={img.src} position={img.position} className="min-h-[16rem] lg:[clip-path:polygon(14%_0,100%_0,100%_100%,0_100%)]">
           <div className="absolute inset-0 bg-gradient-to-l from-transparent to-[color-mix(in_srgb,var(--area)_40%,transparent)]" />
-          <ul className="absolute bottom-5 right-5 grid gap-2">
-            {c.preview.map((p, i) => (
-              <li key={p} className="nv-rise rounded-xl bg-white/95 px-3 py-2 text-xs font-semibold text-slate-900 shadow-lg" style={{ animationDelay: `${300 + i * 140}ms` }}>{p}</li>
-            ))}
-          </ul>
+          <div className="absolute bottom-5 right-5 max-lg:static max-lg:p-4"><AreaDemo kind={kind} /></div>
         </ParallaxPhoto>
       </div>
       <AreaSwitcher kind={kind} />
