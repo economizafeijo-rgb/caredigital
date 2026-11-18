@@ -629,7 +629,7 @@ body:has(.care-shell #care-client-tab-panel) {
 
 /* ---------- Páginas em tela fixa (áreas do menu): sem rolagem no computador, paralaxe e microinterações ---------- */
 @media (min-width: 1024px) {
-  body[data-fit-page] #care-content { overflow: hidden; }
+  body[data-fit-page] #care-content { overflow: hidden; padding-bottom: 1rem !important; }
   body[data-fit-page] .nv-shell-credit { display: none; }
 }
 .nv-parallax img { transform: translate3d(var(--px, 0px), var(--py, 0px), 0) scale(1.02); transition: transform .5s var(--ease); }
