@@ -455,8 +455,14 @@ iframe[title*="Lovable" i][title*="badge" i] { display: none !important; visibil
 .nv-heart { stroke-dasharray: 420; animation: nv-heart 2.4s linear infinite; }
 .nv-bar { transform-origin: bottom; animation: nv-bar 0.6s cubic-bezier(.2,.8,.2,1) both; }
 .nv-live { animation: nv-live 1.1s ease-in-out infinite; }
+/* Comercial de parceiros: palavras entrando como num anúncio de TV e fotos deslizando. */
+@keyframes nv-word { from { opacity: 0; transform: translateY(0.45em) scale(0.96); filter: blur(6px); } to { opacity: 1; transform: none; filter: blur(0); } }
+@keyframes nv-ad-slide { from { opacity: 0; transform: translateY(14px) scale(1.04); } to { opacity: 1; transform: none; } }
+.nv-word { animation: nv-word 0.6s cubic-bezier(.2,.8,.2,1) both; }
+.nv-ad-tile { animation-name: nv-ad-slide, nv-kenburns; animation-timing-function: ease-out, ease-out; animation-fill-mode: both, forwards; }
 @media (prefers-reduced-motion: reduce) {
   .nv-progress { animation: none; width: 100%; }
+  .nv-word, .nv-ad-tile { animation: none; }
   .nv-banner-img, .nv-kenburns, .nv-rise, .nv-check, .nv-bar, .nv-heart, .nv-live { animation: none; }
   .nv-ring { animation: none; stroke-dashoffset: 32; }
 }

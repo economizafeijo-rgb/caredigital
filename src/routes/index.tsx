@@ -21,6 +21,7 @@ import { LiveModeLauncher } from "@/components/vigia/LiveMode";
 import { HomeStore } from "@/components/vigia/HomeStore";
 import { SmartBanner } from "@/components/vigia/SmartBanner";
 import { QrShareCard } from "@/components/vigia/QrShareCard";
+import { PartnerCommercial } from "@/components/vigia/PartnerCommercial";
 import { HomeNextCareCard } from "@/components/vigia/CareTimer";
 import { HomeModalityTimers } from "@/components/vigia/HomeModalityTimers";
 import { HomeClientMetrics } from "@/components/vigia/HomeClientMetrics";
@@ -138,6 +139,8 @@ function Homepage() {
       </nav>
 
       <HomeStore />
+
+      <PartnerCommercial />
 
       {client && (
         <div className="rounded-2xl bg-gradient-to-br from-indigo-950 to-slate-900 p-1">
