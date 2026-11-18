@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState, type CSSProperties } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, BadgeCheck, BadgeInfo, Check, ChevronLeft, ChevronRight, MapPin, Minus, Plus, ShoppingBag, ShoppingCart, Star, X } from "lucide-react";
+import { ArrowRight, BadgeCheck, Check, ChevronLeft, ChevronRight, MapPin, Minus, Plus, ShoppingBag, ShoppingCart, Star, X } from "lucide-react";
 import { cart, categories, categoryLabel, money, PIX_DISCOUNT, products, useCart, vendorById, vendors, type Product, type StoreCategory, type VendorId } from "@/lib/store";
 
 type Filter = StoreCategory | "todos";
@@ -97,12 +97,10 @@ export function HomeStore({ className = "" }: { className?: string }) {
         </div>
       </header>
 
-      <div role="note" className="mt-3 flex items-start gap-3 rounded-xl border border-amber-300/70 bg-amber-50 px-3.5 py-3 text-amber-950 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100">
-        <BadgeInfo size={18} className="mt-0.5 shrink-0 text-amber-700 dark:text-amber-300" aria-hidden="true" />
-        <p className="text-[13px] leading-snug">
-          <strong className="font-semibold">Loja em pré-lançamento.</strong> As vendas ainda não estão abertas. Produtos, preços e lojas exibidos são ilustrativos e mostram como a vitrine vai funcionar quando a loja for lançada.
-        </p>
-      </div>
+      <p role="note" className="mt-2 flex items-center gap-2 text-xs text-slate-600 dark:text-muted-foreground">
+        <span className="rounded-full border border-border px-2 py-0.5 text-[11px] font-semibold text-foreground">Pré-lançamento</span>
+        Produtos, preços e lojas são ilustrativos. As vendas ainda não estão abertas.
+      </p>
 
       <div className="mt-3 flex items-center gap-2">
         <div role="group" aria-label="Filtrar produtos por categoria" className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
