@@ -7,6 +7,12 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 
 type Point = { day: string; value: number; protein?: number; carbs?: number; fat?: number };
+type RecoveredEvent = {
+  happened_at: string | null;
+  category: string;
+  event_type: string;
+  details: Record<string, any> | null;
+};
 type Metrics = {
   hydration: Point[];
   weight: Point[];
@@ -19,6 +25,7 @@ type Metrics = {
   hasSleepData: boolean;
   hasActivityData: boolean;
   historical: { day: string; metric: string; value: number; unit: string }[];
+  recoveredEvents: RecoveredEvent[];
 };
 const db = supabase as any;
 const label = (day: string) =>
@@ -77,12 +84,13 @@ export function SmartMetricsDashboard() {
             hydration: [], weight: [], macros: [], energy: [], sleep: [], activity: [],
             medicationCount: 0, supplementCount: 0, hasSleepData: false, hasActivityData: false,
             historical: [],
+            recoveredEvents: [],
           });
           return;
         }
         const sinceDate = new Date(Date.now() - 29 * 86400000);
         const since = sinceDate.toISOString();
-        const [water, weights, meals, meds, supplements, sleep, activities, goalReviews] = await Promise.all([
+        const [water, weights, meals, meds, supplements, sleep, activities, goalReviews, recoveredEvents] = await Promise.all([
           db.from("care_hydration").select("amount_ml,recorded_at").eq("patient_id", patientId).gte("recorded_at", since).limit(1000),
           db.from("care_body_measurements").select("weight_kg,height_cm,recorded_on").eq("patient_id", patientId).order("recorded_on", { ascending: true }).limit(1000),
           db.from("care_nutrition_meal_logs").select("protein_g,carbs_g,fat_g,recorded_at").eq("patient_id", patientId).gte("recorded_at", since).limit(1000),
@@ -91,8 +99,9 @@ export function SmartMetricsDashboard() {
           db.from("care_sleep_logs").select("sleep_date,bed_at,wake_at,quality,awakenings,avg_hr,min_hr").eq("patient_id", patientId).gte("sleep_date", localDay(since)).order("sleep_date", { ascending: true }).limit(1000),
           db.from("care_activity_log").select("happened_at,details,event_type").eq("patient_id", patientId).eq("category", "atividade").gte("happened_at", since).order("happened_at", { ascending: true }).limit(1000),
           db.from("care_goal_reviews").select("day,metric,actual,unit,observation").eq("patient_id", patientId).in("metric", ["hidratacao", "calorias", "proteina"]).order("day", { ascending: true }).limit(1000),
+          db.from("care_activity_log").select("happened_at,category,event_type,source,details").eq("patient_id", patientId).eq("source", "historical_reconstruction").order("happened_at", { ascending: false }).limit(300),
         ]);
-        const failed = [water, weights, meals, meds, supplements, sleep, activities, goalReviews].some((result: any) => result.error);
+        const failed = [water, weights, meals, meds, supplements, sleep, activities, goalReviews, recoveredEvents].some((result: any) => result.error);
         if (failed) throw new Error("Não foi possível consultar todos os indicadores.");
         const hydrationByDay = new Map<string, number>();
         for (const row of water.data ?? []) {
@@ -145,6 +154,10 @@ export function SmartMetricsDashboard() {
           hasActivityData: activityRows.length > 0,
           historical: reviewRows.filter((row: any) => Number(row.actual) > 0).map((row: any) => ({
             day: label(row.day), metric: row.metric, value: Number(row.actual), unit: row.unit ?? "",
+          })),
+          recoveredEvents: (recoveredEvents.data ?? []).map((row: any) => ({
+            happened_at: row.happened_at, category: row.category,
+            event_type: row.event_type, details: row.details ?? {},
           })),
         });
       } catch {
@@ -209,6 +222,37 @@ export function SmartMetricsDashboard() {
             <p className="mt-1 text-[10px] text-muted-foreground">Recuperado de registro histórico do painel</p>
           </div>)}
         </div> : <EmptyChart>Nenhum resumo histórico disponível para este perfil.</EmptyChart>}
+      </article>
+      <article className="lg:col-span-2 rounded-2xl border border-border bg-card p-4 shadow-card">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div><p className="text-[11px] font-bold uppercase tracking-[.14em] text-primary">Auditoria do histórico</p><h3 className="text-lg font-bold">Eventos recuperados das capturas</h3></div>
+          <Activity className="shrink-0 text-primary" size={20}/>
+        </div>
+        {metrics.recoveredEvents.length ? <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {metrics.recoveredEvents.map((event, index) => {
+            const details = event.details ?? {};
+            const eventDate = event.happened_at ? label(localDay(event.happened_at)) : "Horário não confirmado";
+            const title = event.event_type === "snapshot_dashboard" ? "Resumo do painel"
+              : event.event_type === "snapshot_metas" ? "Resumo de metas"
+              : event.event_type === "snapshot_tratamento" ? "Histórico de tratamento"
+              : event.event_type === "refeicao_confirmada" ? "Refeição reconstruída"
+              : event.event_type === "lanche_extra_registrado" ? "Lanche reconstruído"
+              : event.event_type === "conferencia_confirmada" ? "Conferência de medicamento"
+              : details.description ?? "Evento recuperado";
+            const summary = event.event_type === "snapshot_metas"
+              ? [details.nutrition_kcal != null ? details.nutrition_kcal + " kcal" : null, details.protein_g != null ? details.protein_g + " g proteína" : null, details.hydration_ml != null ? details.hydration_ml + " ml água" : null].filter(Boolean).join(" · ")
+              : event.event_type === "snapshot_dashboard"
+                ? [details.hydration_display ?? (details.hydration_ml != null ? details.hydration_ml + " ml água" : null), details.meals_confirmed ? details.meals_confirmed + " refeições" : null, details.care_items_completed ? details.care_items_completed + " cuidados" : null].filter(Boolean).join(" · ")
+                : event.event_type === "snapshot_tratamento"
+                  ? [details.blister, details.progress, details.doses_confirmed ? details.doses_confirmed + " doses confirmadas" : null, details.morning_dose, details.night_dose].filter(Boolean).join(" · ")
+                  : [details.meal, Array.isArray(details.items) ? details.items.join(", ") : null, details.description].filter(Boolean).join(" · ");
+            return <div key={event.event_type + "-" + index} className="rounded-xl bg-muted/60 p-3">
+              <div className="flex items-center justify-between gap-2"><span className="text-xs font-semibold">{title}</span><span className="text-[10px] text-muted-foreground">{eventDate}</span></div>
+              <p className="mt-1 text-xs text-foreground/80">{summary || "Registro reconstruído a partir de captura anterior."}</p>
+              <p className="mt-2 text-[10px] text-muted-foreground">{details.evidence ?? "Fonte: reconstrução de histórico"} · {details.status === "programado_na_captura" ? "Programado na captura" : "Reconstruído de captura"}</p>
+            </div>;
+          })}
+        </div> : <EmptyChart>Nenhum evento reconstruído foi encontrado para este prontuário.</EmptyChart>}
       </article>
       <article className="grid grid-cols-2 gap-3 rounded-2xl border border-border bg-card p-4 shadow-card">
         <div className="col-span-2"><p className="text-[11px] font-bold uppercase tracking-[.14em] text-muted-foreground">Registros de rotina</p><h3 className="text-lg font-bold">Acompanhamento inteligente</h3></div>
