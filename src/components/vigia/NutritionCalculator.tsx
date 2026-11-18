@@ -311,11 +311,54 @@ export function NutritionCalculator({ patientId, nutrition, onLogged }: { patien
           </div>
           <input type="range" min={5} max={600} step={5} value={Math.min(600, grams)} aria-label={liquid ? "Quantidade em mililitros" : "Quantidade em gramas"} onChange={(e) => { setUnit("g"); setQty(Number(e.target.value)); }}
             className="nv-range mt-3 w-full" style={{ ["--nv-pct" as string]: `${(Math.min(600, grams) / 600) * 100}%` }} />
+          <div className="mt-2 flex flex-wrap items-center gap-1.5" role="group" aria-label="Quantidade rápida">
+            <span className="mr-1 text-[11px] font-semibold text-white/60">Quantidade</span>
+            {(unit === "g" ? [50, 100, 150, 200, 300] : [0.5, 1, 1.5, 2, 3]).map((q) => (
+              <button key={q} type="button" aria-pressed={qty === q} onClick={() => setQty(q)}
+                className={`h-7 rounded-full px-2.5 text-xs font-bold tabular-nums transition active:scale-95 ${qty === q ? "bg-white text-slate-900" : "bg-white/10 text-white/80 hover:bg-white/20"}`}>
+                {unit === "g" ? `${q} ${U}` : `${String(q).replace(".", ",")}×`}
+              </button>
+            ))}
+          </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <button type="button" onClick={() => void logNow()} disabled={busy} className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-white px-4 text-sm font-bold text-slate-900 shadow-sm transition hover:bg-white/90 active:scale-[.97] disabled:opacity-60">{busy ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />} Registrar {n(grams)} {U}</button>
             <button type="button" onClick={() => setTray((t) => [...t, { id: food.id, name: food.name, grams, food }])} className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-white/20 bg-white/5 px-4 text-sm font-bold text-white transition hover:bg-white/15 active:scale-[.97]"><Plus size={15} /> Adicionar ao prato{tray.length ? ` (${tray.length})` : ""}</button>
             {notice && <p role="status" className={`rounded-lg px-3 py-2 text-xs font-semibold ${notice.ok ? "bg-emerald-400/15 text-emerald-200" : "bg-rose-500/20 text-rose-100"}`}>{notice.text}</p>}
+          </div>
+        </div>
+
+        {/* Quanto preciso */}
+        <div className={`${card} p-4`}>
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h4 className="flex items-center gap-1.5 text-sm font-bold"><Target size={15} className="text-primary" /> Quanto de {food.name.toLowerCase()} para fechar a meta de hoje</h4>
+            <span className="text-[11px] text-muted-foreground">toque em “Usar” para aplicar a quantidade</span>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            {([
+              { k: "protein" as const, label: "Proteína", unit: "g", left: left.protein, per: per100.protein, color: macroColors.protein },
+              { k: "kcal" as const, label: "Calorias", unit: "kcal", left: left.kcal, per: per100.kcal, color: "#f97316" },
+              { k: "carbs" as const, label: "Carboidratos", unit: "g", left: left.carbs, per: per100.carbs, color: macroColors.carbs },
+              { k: "fat" as const, label: "Gorduras", unit: "g", left: left.fat, per: per100.fat, color: macroColors.fat },
+            ]).map((r) => {
+              const need = r.left > 0 && r.per > 0 ? Math.ceil((r.left / r.per) * 100 / 5) * 5 : null;
+              const portions = need ? need / Math.max(1, typicalPortion(food.id)) : 0;
+              const tooMuch = need !== null && need > 1500;
+              const cover = r.left > 0 ? Math.min(100, ((r.k === "kcal" ? nut.kcal : nut[r.k]) / r.left) * 100) : 100;
+              return (
+                <div key={r.k} className="rounded-xl border border-border bg-muted/25 p-3">
+                  <div className="flex items-center justify-between gap-2 text-[11px] font-semibold text-muted-foreground"><span className="flex items-center gap-1.5"><i className="size-2 rounded-full" style={{ background: r.color }} />{r.label}</span><span className="tabular-nums">{r.left > 0 ? `faltam ${n(r.left)} ${r.unit}` : "meta atingida"}</span></div>
+                  {r.left <= 0 ? <p className="mt-2 text-sm font-bold text-emerald-600 dark:text-emerald-400">Você já chegou lá hoje.</p>
+                    : need === null ? <p className="mt-2 text-sm text-muted-foreground">Este alimento não tem {r.label.toLowerCase()}.</p>
+                    : tooMuch ? <p className="mt-2 text-sm"><strong className="tabular-nums">{n(need)} {U}</strong> <span className="text-muted-foreground">— quantidade alta; combine com outros alimentos.</span></p>
+                    : <div className="mt-1.5 flex items-end justify-between gap-2">
+                        <p className="leading-tight"><strong className="text-xl font-extrabold tabular-nums" style={{ color: r.color }}>{n(need)} {U}</strong><span className="block text-[11px] text-muted-foreground">≈ {n(portions, 1)} porç{portions >= 2 ? "ões" : "ão"} · a atual cobre {n(cover)}%</span></p>
+                        <button type="button" onClick={() => { setUnit("g"); setQty(need); }} className="h-8 shrink-0 rounded-lg bg-primary px-2.5 text-xs font-bold text-primary-foreground transition hover:brightness-110 active:scale-95">Usar</button>
+                      </div>}
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted"><i className="block h-full rounded-full transition-[width] duration-700" style={{ width: `${cover}%`, background: r.color }} /></div>
+                </div>
+              );
+            })}
           </div>
         </div>
 

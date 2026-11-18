@@ -82,10 +82,22 @@ export function NextUpClock({ target, from, title, detail, color = "#22d3ee", em
   const sound = useAlertSound();
   const fired = useRef<string | null>(null);
   useEffect(() => { const t = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(t); }, []);
-  useEffect(() => { setSnooze(null); }, [target]);
+  // Alguns horários são recalculados como "agora" a cada segundo depois de vencidos (ex.: próximo copo).
+  // Fixa o primeiro horário vencido até surgir um horário realmente novo (mais de 5 min depois),
+  // para o relógio não alternar entre contagem e "pendente".
+  const [latched, setLatched] = useState<number | null>(null);
+  const targetMin = target === null ? null : Math.round(target / 60_000);
+  useEffect(() => { setSnooze(null); }, [targetMin]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (target === null) { setLatched(null); return; }
+    setLatched((l) => {
+      if (l !== null && target <= l + 5 * 60_000 + Math.max(0, now - l)) return l;
+      return target <= now + 1500 ? target : null;
+    });
+  }, [target, now]);
 
-  const when = snooze ?? target;
-  const due = when !== null && when <= now;
+  const when = snooze ?? latched ?? target;
+  const due = when !== null && when <= now + 1000;
   useEffect(() => {
     if (!due || when === null) return;
     const id = `${alertKey}:${Math.round(when / 60000)}`;
