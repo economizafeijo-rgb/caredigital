@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { MANUAL_SIGNOUT_KEY } from "./SessionGuard";
 import {
   Activity,
@@ -157,6 +157,9 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
         { to: "/admin", hash: "pagamentos", label: "Pagamentos", icon: Wallet },
       ],
     },
+  ],
+  vendor: [
+    { title: "Minha loja", items: [{ to: "/lojista", label: "Painel da loja", icon: Store }] },
   ],
   unlinked: [
     { title: "NextVita", items: [{ to: "/", label: "Início", icon: Home }] },
@@ -383,7 +386,20 @@ export function AppShell({ children }: { children: ReactNode }) {
   const isActive = (item: NavItem) =>
     item.to === location.pathname && (!item.hash || item.hash === currentHash);
   const current = items.find(isActive);
-  const panelHome = profile === "client" ? "/cliente" : profile === "admin" ? "/admin" : null;
+  const panelHome = profile === "client" ? "/cliente" : profile === "admin" ? "/admin" : profile === "vendor" ? "/lojista" : null;
+  // Administrador e lojista ficam presos ao próprio painel: a homepage e as áreas públicas são de clientes e visitantes.
+  const staff = profile === "admin" || profile === "vendor";
+  const navigateTo = useNavigate();
+  const searchParams = (location.search ?? {}) as Record<string, unknown>;
+  const previewStore = location.pathname === "/loja" && typeof searchParams.loja === "string"; // pré-visualizar a página pública da loja
+  const staffBlocked = access.status === "admin"
+    ? !(location.pathname.startsWith("/admin") || location.pathname.startsWith("/lojista") || previewStore)
+    : access.status === "vendor"
+      ? !(location.pathname.startsWith("/lojista") || previewStore)
+      : false;
+  useEffect(() => {
+    if (staffBlocked) void navigateTo({ to: access.status === "admin" ? "/admin" : "/lojista", replace: true });
+  }, [staffBlocked, access.status, navigateTo]);
   // A barra inferior do celular aparece fora das páginas internas: botões flutuantes sobem acima dela.
   useEffect(() => {
     if (internalPage) document.body.removeAttribute("data-bottom-nav");
@@ -476,6 +492,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="block truncate text-[11px] text-slate-400">
               {profile === "admin"
                 ? "Gestão"
+                : profile === "vendor"
+                  ? "Lojista"
                 : profile === "client"
                   ? "Paciente"
                   : "Sem prontuário vinculado"}
@@ -571,7 +589,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </>
               )}
               <div className="flex shrink-0 items-center gap-2">
-                {signedIn &&
+                {signedIn && !staff &&
                   (location.pathname === "/" ? (
                     panelHome && (
                       <Link
@@ -593,7 +611,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                       <span className="hidden 2xl:inline">Página inicial</span>
                     </Link>
                   ))}
-                {signedIn && profile !== "admin" && !location.pathname.startsWith("/cliente") && <LiveModeLauncher iconOnlyOnMobile />}
+                {signedIn && !staff && !location.pathname.startsWith("/cliente") && <LiveModeLauncher iconOnlyOnMobile />}
                 <InstallAppButton className="max-sm:!hidden" />
                 {!internalPage && <HeaderCart />}
                 {tools}
@@ -637,7 +655,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               id="care-content"
               className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-2 sm:p-3 lg:p-4"
             >
-              {children}
+              {staffBlocked ? <p role="status" className="py-24 text-center text-sm text-muted-foreground">Abrindo o seu painel…</p> : children}
               {location.pathname !== "/" && (
                 <p className="nv-shell-credit mt-3 border-t border-border pt-3 text-center text-xs text-muted-foreground">
                   NextVita · Desenvolvido por{" "}

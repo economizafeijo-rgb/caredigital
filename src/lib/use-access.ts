@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AccessStatus = "loading" | "public" | "client" | "admin" | "unlinked";
+export type AccessStatus = "loading" | "public" | "client" | "admin" | "vendor" | "unlinked";
 export type Access = { status: AccessStatus; name: string; email: string };
 
 // Somente apresentação: quem autoriza de fato é o RLS do banco.
@@ -25,7 +25,14 @@ export function useAccess(): Access {
         const grants = await db.from("care_patient_access").select("patient_id").eq("user_id", user.id).limit(1);
         const patientId = grants.data?.[0]?.patient_id;
         if (!active) return;
-        if (grants.error || !patientId) { setAccess({ status: "unlinked", name: "", email }); return; }
+        if (grants.error || !patientId) {
+          // Sem prontuário: se a conta é dona de uma loja, ela é lojista.
+          const store = await db.from("care_store_vendors").select("name").eq("owner_id", user.id).order("name").limit(1);
+          if (!active) return;
+          if (store.data?.[0]) { setAccess({ status: "vendor", name: store.data[0].name as string, email }); return; }
+          setAccess({ status: "unlinked", name: "", email });
+          return;
+        }
         const person = await db.from("care_patients").select("full_name").eq("id", patientId).limit(1);
         if (!active) return;
         setAccess({ status: "client", name: person.data?.[0]?.full_name || "Meu acompanhamento", email });
