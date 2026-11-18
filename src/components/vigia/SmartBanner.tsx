@@ -158,7 +158,7 @@ export function SmartBanner({ className = "", intro }: { className?: string; int
       {sl.bg && <img src={sl.bg} alt="" className="nv-kenburns absolute inset-0 size-full object-cover" style={{ animationDuration: `${DURATION + 3000}ms` }} />}
       {sl.bg && <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,8,14,.92)_0%,rgba(2,8,14,.72)_45%,rgba(2,8,14,.2)_100%)] max-sm:bg-[linear-gradient(180deg,rgba(2,8,14,.25)_0%,rgba(2,8,14,.7)_45%,rgba(2,8,14,.95)_100%)]" />}
       <div className="absolute inset-0 opacity-[.07] [background-image:radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px]" />
-      <div className="relative grid h-full grid-cols-1 content-center items-center gap-4 p-5 pb-16 sm:grid-cols-[minmax(0,1fr)_auto] sm:content-normal sm:gap-5 sm:p-8 sm:pb-14 lg:px-10">
+      <div className="relative grid h-full grid-cols-1 content-end items-center gap-3 p-4 pb-14 min-[400px]:p-5 min-[400px]:pb-14 sm:grid-cols-[minmax(0,1fr)_auto] sm:content-normal sm:gap-5 sm:p-8 sm:pb-14 lg:px-10">
         <div className="min-w-0 max-w-[40rem]">
           {sl.custom ?? (
             <>
@@ -166,7 +166,7 @@ export function SmartBanner({ className = "", intro }: { className?: string; int
                 {sl.tool && sl.tool !== "dev" && <span className="rounded-full bg-emerald-400 px-2 py-0.5 text-[11px] font-bold text-slate-950">Grátis</span>}
                 {sl.kicker}
               </p>
-              <h2 style={{ animationDelay: "150ms" }} className="nv-rise mt-1.5 text-balance font-display text-2xl font-extrabold leading-tight sm:text-3xl lg:text-[2.1rem]">{sl.title}</h2>
+              <h2 style={{ animationDelay: "150ms" }} className="nv-rise mt-1.5 text-balance font-display text-[1.45rem] font-extrabold leading-tight min-[400px]:text-2xl sm:text-3xl lg:text-[2.1rem]">{sl.title}</h2>
               {sl.text && <p style={{ animationDelay: "300ms" }} className="nv-rise mt-2 max-w-[46ch] text-sm leading-relaxed text-white/85 sm:text-[15px]">{sl.text}</p>}
               {sl.chips && (
                 <ul className="nv-rise mt-3 flex flex-wrap gap-1.5" style={{ animationDelay: "420ms" }}>
@@ -186,13 +186,13 @@ export function SmartBanner({ className = "", intro }: { className?: string; int
             </>
           )}
         </div>
-        <div className="relative flex h-full items-center justify-center max-sm:order-first max-sm:h-auto max-sm:min-h-[13rem] max-sm:[&>*]:scale-110" aria-hidden={sl.images.length ? undefined : true}>
+        <div className="relative flex h-full items-center justify-center max-sm:order-first max-sm:h-auto max-sm:empty:hidden" aria-hidden={sl.images.length ? undefined : true}>
           {sl.art ?? (sl.tool ? (
             <ToolDemo kind={sl.tool} />
           ) : (
             sl.images.slice(0, 2).map((src, i) => (
               <button key={src + i} type="button" onClick={() => { const pr = productByImage(src); if (pr) openProduct(pr.id); }} aria-label={`Ver ${productByImage(src)?.name ?? "produto"}`}
-                className={`group/img relative block cursor-zoom-in overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/20 transition-[box-shadow] hover:ring-2 hover:ring-white/60 ${i === 0 ? "nv-banner-img size-44 sm:size-48 lg:size-56" : "nv-float -ml-10 mt-16 size-32 sm:size-36 lg:size-40"}`}>
+                className={`group/img relative block cursor-zoom-in overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/20 transition-[box-shadow] hover:ring-2 hover:ring-white/60 ${i === 0 ? "nv-banner-img size-36 min-[400px]:size-40 sm:size-48 lg:size-56" : "nv-float -ml-8 mt-12 size-28 min-[400px]:size-32 sm:-ml-10 sm:mt-16 sm:size-36 lg:size-40"}`}>
                 <img src={src} alt="" width={360} height={360} className="nv-kenburns size-full object-cover" style={{ animationDuration: `${DURATION + 1500}ms` }} />
                 <span className="absolute inset-x-2 bottom-2 rounded-lg bg-black/60 py-1 text-center text-[11px] font-bold text-white opacity-0 backdrop-blur transition group-hover/img:opacity-100">Ver produto</span>
               </button>
@@ -207,7 +207,7 @@ export function SmartBanner({ className = "", intro }: { className?: string; int
     <section
       aria-roledescription="carrossel"
       aria-label="Destaques NextVita"
-      className={`nv-dark relative isolate h-[min(40rem,calc(100dvh-7rem))] min-h-[32rem] overflow-hidden rounded-2xl bg-slate-950 text-white shadow-card [contain:layout_paint] sm:h-[23rem] sm:min-h-0 lg:h-[25rem] ${className}`}
+      className={`nv-dark relative isolate h-[29rem] overflow-hidden min-[400px]:h-[30.5rem] rounded-2xl bg-slate-950 text-white shadow-card [contain:layout_paint] sm:h-[22rem] md:h-[23rem] lg:h-[25rem] ${className}`}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       onFocusCapture={() => setHover(true)}
@@ -246,11 +246,11 @@ export function SmartBanner({ className = "", intro }: { className?: string; int
 
 /** Mini telas animadas das ferramentas gratuitas, como num anúncio em vídeo. */
 export function ToolDemo({ kind }: { kind: NonNullable<Slide["tool"]> }) {
-  const base = "nv-banner-img w-44 rounded-2xl p-3.5 shadow-2xl sm:w-52";
+  const base = "nv-banner-img w-48 rounded-2xl p-3.5 shadow-2xl sm:w-52";
   const card = `${base} bg-white text-slate-900`;
   if (kind === "dev")
     return (
-      <div className="nv-banner-img relative w-56 sm:w-72 lg:w-80">
+      <div className="nv-banner-img relative mb-6 w-52 sm:mb-0 sm:w-72 lg:w-80">
         <span className="absolute -left-3 -top-3 z-10 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-slate-900 shadow-lg">Projeto real: NextVita</span>
         <div className="rounded-xl bg-slate-900 p-1.5 shadow-2xl ring-1 ring-white/15">
           <div className="overflow-hidden rounded-md bg-white">
@@ -258,7 +258,7 @@ export function ToolDemo({ kind }: { kind: NonNullable<Slide["tool"]> }) {
           </div>
         </div>
         <div className="relative left-1/2 h-2.5 w-[112%] -translate-x-1/2 rounded-b-xl bg-gradient-to-b from-slate-500 to-slate-700 shadow-xl" />
-        <div className="nv-float absolute -bottom-10 -right-5 w-16 rounded-[16px] bg-slate-900 p-1 shadow-2xl ring-1 ring-white/25 sm:w-20">
+        <div className="nv-float absolute -bottom-10 -right-3 w-14 rounded-[16px] sm:-right-5 bg-slate-900 p-1 shadow-2xl ring-1 ring-white/25 sm:w-20">
           <img src="/images/dev-nextvita-mobile.webp" alt="" width={300} height={560} className="aspect-[9/17] w-full rounded-[12px] object-cover object-top" />
         </div>
       </div>

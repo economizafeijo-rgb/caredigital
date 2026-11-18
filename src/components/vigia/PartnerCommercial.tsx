@@ -66,7 +66,7 @@ export function PartnerCommercial({ className = "" }: { className?: string }) {
     >
       <h2 id="partner-ad-title" className="sr-only">Anuncie na NextVita: lojas, academias, personal trainers e produtos</h2>
 
-      <div className="relative h-[19rem] sm:h-[20rem] lg:h-[22rem]">
+      <div className="relative h-[17rem] min-[400px]:h-[18rem] sm:h-[19rem] lg:h-[20rem]">
         {scene ? (
           <div key={scene.id} className="absolute inset-0">
             {scene.dev ? (
@@ -95,12 +95,12 @@ export function PartnerCommercial({ className = "" }: { className?: string }) {
                 ))}
               </div>
             )}
-            <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/45 to-black/10" />
-            <div className="absolute inset-y-0 left-0 flex max-w-[34rem] flex-col justify-center px-6 sm:px-10">
+            <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/45 to-black/10 max-sm:bg-gradient-to-t max-sm:from-black/90 max-sm:via-black/55 max-sm:to-black/20" />
+            <div className="absolute inset-y-0 left-0 flex max-w-[34rem] flex-col justify-center px-5 sm:px-10">
               <span className="nv-rise inline-flex w-fit items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur">
                 <scene.icon size={14} aria-hidden="true" /> {scene.dev ? "Franc D'nis · Desenvolvedor" : `Para ${scene.label.toLowerCase()}`}
               </span>
-              <p className="mt-3 font-display text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-5xl lg:text-6xl">
+              <p className="mt-3 font-display text-[2rem] font-extrabold leading-[1.02] tracking-tight min-[400px]:text-4xl sm:text-5xl lg:text-[3.4rem]">
                 {scene.headline.map((w, i) => (
                   <span key={w + i} className="nv-word mr-[0.25em] inline-block" style={{ animationDelay: `${150 + i * 180}ms` }}>
                     {w}
@@ -122,7 +122,7 @@ export function PartnerCommercial({ className = "" }: { className?: string }) {
           <div key="end" className="absolute inset-0 grid place-items-center bg-gradient-to-br from-[#041f1d] via-[#0a3f39] to-[#0c8063] px-6 text-center">
             <div className="nv-rise">
               <p className="text-sm font-semibold text-emerald-200">Lojas · academias · personal trainers · marcas</p>
-              <p className="mt-2 font-display text-4xl font-extrabold tracking-tight sm:text-5xl">Anuncie na NextVita</p>
+              <p className="mt-2 font-display text-3xl font-extrabold tracking-tight sm:text-5xl">Anuncie na NextVita</p>
               <p className="mx-auto mt-2 max-w-[44ch] text-sm text-white/85 sm:text-base">
                 Apareça para quem acompanha alimentação, treinos e saúde todos os dias. Plano inicial sem mensalidade.
               </p>

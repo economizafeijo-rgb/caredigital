@@ -20,7 +20,7 @@ function pickProducts(filter: Filter, vendor: VendorId | null): Product[] {
 function ProductCard({ p, qty, onAdd }: { p: Product; qty: number; onAdd: (p: Product) => void }) {
   const off = discountOf(p);
   return (
-    <article className="group flex w-40 shrink-0 snap-start flex-col overflow-hidden rounded-xl border border-border bg-card sm:w-44">
+    <article className="group flex w-[42vw] max-w-44 shrink-0 snap-start flex-col overflow-hidden rounded-xl border border-border bg-card sm:w-44">
       <button type="button" onClick={() => openProduct(p.id)} aria-label={`Ver detalhes de ${p.name}`} className="relative block cursor-zoom-in overflow-hidden bg-[#e6e7e9]">
         <img src={p.img} alt={p.name} width={360} height={360} loading="lazy" decoding="async" className="aspect-square w-full object-cover motion-safe:transition motion-safe:duration-500 motion-safe:group-hover:scale-105" />
         {off > 0 && <span className="absolute right-2 top-2 rounded-full bg-emerald-800 px-2 py-0.5 text-[11px] font-bold text-white">{off}% off</span>}
@@ -85,11 +85,11 @@ export function HomeStore({ className = "" }: { className?: string }) {
           <h2 id="home-store-title" className="flex items-center gap-2 font-display text-xl font-extrabold tracking-tight">
             <ShoppingBag className="text-primary" size={22} aria-hidden="true" /> Loja NextVita
           </h2>
-          <p className="text-sm text-slate-600 dark:text-muted-foreground">5% de desconto no Pix, cartão em até 3x e entrega ou retirada.</p>
+          <p className="text-[13px] text-slate-600 dark:text-muted-foreground sm:text-sm">5% de desconto no Pix, cartão em até 3x e entrega ou retirada.</p>
         </div>
         <div className="flex items-center gap-2">
           <Link to="/loja" aria-label={count > 0 ? `Ir para a loja: ${count} ${count === 1 ? "item" : "itens"} no carrinho` : "Ir para a loja e ver o carrinho"} className="relative inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-background px-3 text-sm font-semibold hover:border-primary/50">
-            <ShoppingCart size={17} aria-hidden="true" /> Carrinho
+            <ShoppingCart size={17} aria-hidden="true" /> <span className="max-[400px]:sr-only">Carrinho</span>
             {count > 0 && <span key={count} className="nv-bump grid min-w-5 place-items-center rounded-full bg-primary px-1.5 text-[11px] font-bold text-primary-foreground tabular-nums">{count}</span>}
           </Link>
           <Link to="/loja" className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-foreground px-3.5 text-sm font-semibold text-background hover:opacity-90">
@@ -98,8 +98,8 @@ export function HomeStore({ className = "" }: { className?: string }) {
         </div>
       </header>
 
-      <p role="note" className="mt-2 flex items-center gap-2 text-xs text-slate-600 dark:text-muted-foreground">
-        <span className="rounded-full border border-border px-2 py-0.5 text-[11px] font-semibold text-foreground">Pré-lançamento</span>
+      <p role="note" className="mt-2 flex items-start gap-2 text-[11px] leading-snug text-slate-600 dark:text-muted-foreground sm:items-center sm:text-xs">
+        <span className="shrink-0 rounded-full border border-border px-2 py-0.5 text-[11px] font-semibold text-foreground">Pré-lançamento</span>
         Produtos, preços e lojas são ilustrativos. As vendas ainda não estão abertas.
       </p>
 
@@ -144,7 +144,7 @@ export function HomeStore({ className = "" }: { className?: string }) {
             const total = products.filter((p) => p.vendorId === v.id).length;
             const on = vendor === v.id;
             return (
-              <li key={v.id} className="nv-rise w-36 shrink-0 sm:w-auto" style={{ animationDelay: `${i * 40}ms` }}>
+              <li key={v.id} className="nv-rise w-32 shrink-0 sm:w-auto" style={{ animationDelay: `${i * 40}ms` }}>
                 <div style={{ "--tile": v.hex } as CSSProperties}
                   className={`group relative flex h-full flex-col items-center rounded-2xl border bg-background px-2 pb-2 pt-3 text-center transition-colors duration-300 ${on ? "border-[var(--tile)] bg-[color-mix(in_srgb,var(--tile)_8%,transparent)]" : "border-border hover:border-[color-mix(in_srgb,var(--tile)_50%,transparent)]"}`}>
                   <button type="button" aria-pressed={on} aria-label={`Filtrar produtos de ${v.name}`} onClick={() => { setVendor(on ? null : v.id); rail.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }); }} className="flex w-full flex-col items-center">

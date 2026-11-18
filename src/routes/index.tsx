@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import type React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
@@ -66,6 +67,12 @@ const areas = [
 
 function Homepage() {
   const { status, name } = useAccess();
+  // Ao abrir (inclusive pelo app instalado), a página inicial sempre começa do topo.
+  useEffect(() => {
+    try { if ("scrollRestoration" in history) history.scrollRestoration = "manual"; } catch { /* navegador antigo */ }
+    document.getElementById("care-content")?.scrollTo({ top: 0 });
+    window.scrollTo({ top: 0 });
+  }, []);
 
   if (status === "loading")
     return (
@@ -93,13 +100,13 @@ function Homepage() {
         custom: (
           <>
             <p className="nv-rise inline-flex w-fit items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur"><ShieldCheck size={13} className="text-emerald-300" aria-hidden="true" /> Grátis e protegido</p>
-            <h1 id="home-title" style={{ animationDelay: "150ms" }} className="nv-rise mt-3 text-balance font-display text-[2rem] font-extrabold leading-[1.05] tracking-tight sm:text-[2.4rem] xl:text-[2.9rem]">
+            <h1 id="home-title" style={{ animationDelay: "150ms" }} className="nv-rise mt-3 text-balance font-display text-[1.75rem] font-extrabold leading-[1.05] tracking-tight min-[400px]:text-[2rem] sm:text-[2.4rem] xl:text-[2.9rem]">
               {client ? `Olá, ${firstName}. Sua evolução em um só lugar.` : "Sua rotina de bem-estar, organizada em um só lugar."}
             </h1>
-            <p style={{ animationDelay: "300ms" }} className="nv-rise mt-3 max-w-[46ch] text-sm leading-relaxed text-slate-200 sm:text-base">
+            <p style={{ animationDelay: "300ms" }} className="nv-rise mt-2.5 max-w-[46ch] text-sm leading-relaxed text-slate-200 sm:text-base">
               {client ? "Acompanhe métricas, hidratação, alimentação, suplementos e sono ao longo do tempo." : "Nutrição, hidratação, peso, suplementos e hábitos com horários, lembretes e registros confiáveis."}
             </p>
-            <div style={{ animationDelay: "450ms" }} className="nv-rise mt-5 flex flex-wrap gap-2">
+            <div style={{ animationDelay: "450ms" }} className="nv-rise mt-4 flex flex-wrap gap-2">
               {panel ? (
                 <>
                   <Link to={panel} className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-400 px-5 text-sm font-bold text-slate-950 hover:bg-emerald-300"><LayoutDashboard size={16} aria-hidden="true" /> Abrir meu painel</Link>
@@ -112,7 +119,7 @@ function Homepage() {
                 </>
               )}
             </div>
-            <ul style={{ animationDelay: "600ms" }} className="nv-rise mt-5 flex flex-wrap gap-x-4 gap-y-1.5 text-[13px] text-slate-200">
+            <ul style={{ animationDelay: "600ms" }} className="nv-rise mt-4 hidden flex-wrap gap-x-4 gap-y-1.5 text-[13px] text-slate-200 min-[400px]:flex">
               <li className="inline-flex items-center gap-1.5"><CalendarCheck size={14} aria-hidden="true" /> Rotina por horários</li>
               <li className="inline-flex items-center gap-1.5"><Clock3 size={14} aria-hidden="true" /> Registro com hora real</li>
               <li className="inline-flex items-center gap-1.5"><ShieldCheck size={14} aria-hidden="true" /> Dados protegidos</li>
@@ -127,23 +134,23 @@ function Homepage() {
         ),
       }} />
 
-      <nav aria-label="Áreas da plataforma" className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-9">
+      <nav aria-label="Áreas da plataforma" className="grid grid-cols-3 gap-2 lg:grid-cols-9">
         {areas.map((a, i) => (
           <a
             key={a.to}
             href={client ? a.client : a.to}
             style={{ "--tile": a.color, animationDelay: `${i * 45}ms` } as React.CSSProperties}
-            className="nv-area nv-rise group relative flex flex-col items-center gap-2 overflow-hidden rounded-2xl border border-border bg-card px-2 pb-3 pt-3.5 text-center transition-[border-color,background-color] duration-300 active:scale-[.97] sm:pb-3.5"
+            className="nv-area nv-rise group relative flex min-w-0 flex-col items-center gap-2 overflow-hidden rounded-2xl border border-border bg-card px-1.5 pb-2.5 pt-3 text-center transition-[border-color,background-color] duration-300 active:scale-[.97] sm:flex-row sm:gap-3 sm:px-3 sm:py-2.5 sm:text-left lg:flex-col lg:gap-2 lg:px-2 lg:pb-3.5 lg:pt-3.5 lg:text-center"
           >
             <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 -top-10 h-20 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-60" style={{ background: a.color }} />
-            <span className="nv-area-icon relative grid size-12 place-items-center rounded-2xl text-white shadow-lg ring-1 ring-white/20 transition-transform duration-300 group-hover:scale-110 group-active:scale-95 sm:size-11"
+            <span className="nv-area-icon relative grid size-12 shrink-0 place-items-center rounded-2xl text-white shadow-lg ring-1 ring-white/20 transition-transform duration-300 group-hover:scale-110 group-active:scale-95 sm:size-11"
               style={{ background: `linear-gradient(140deg, color-mix(in srgb, ${a.color} 70%, #fff) 0%, ${a.color} 55%, color-mix(in srgb, ${a.color} 70%, #000) 100%)`, boxShadow: `0 10px 22px -10px ${a.color}` }}>
               <a.icon size={22} strokeWidth={2.1} aria-hidden="true" />
               <span aria-hidden="true" className="absolute inset-x-1.5 top-1 h-1/2 rounded-t-xl bg-gradient-to-b from-white/35 to-transparent" />
             </span>
-            <span className="relative flex flex-col leading-tight">
-              <span className="text-[12.5px] font-bold sm:text-[13px]">{a.label}</span>
-              <span className="nv-tile-hint mt-0.5 hidden text-[11px] font-medium text-muted-foreground sm:block">{a.hint}</span>
+            <span className="relative flex min-w-0 flex-col leading-tight">
+              <span className="truncate text-[12.5px] font-bold sm:text-[13.5px] lg:text-[13px]">{a.label}</span>
+              <span className="nv-tile-hint mt-0.5 hidden truncate text-[11px] font-medium text-muted-foreground sm:block">{a.hint}</span>
             </span>
           </a>
         ))}
@@ -165,16 +172,16 @@ function Homepage() {
       {client && <SmartMetricsDashboard />}
 
       <footer className="mt-2 overflow-hidden rounded-2xl border border-border bg-card">
-        <div className="grid gap-x-8 gap-y-6 px-6 py-7 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.5fr)_repeat(3,minmax(0,1fr))] lg:px-8">
-          <div className="min-w-0 sm:col-span-2 lg:col-span-1">
+        <div className="grid grid-cols-3 gap-x-4 gap-y-5 px-5 py-5 sm:gap-x-8 sm:px-6 sm:py-7 lg:grid-cols-[minmax(0,1.5fr)_repeat(3,minmax(0,1fr))] lg:px-8">
+          <div className="col-span-3 min-w-0 lg:col-span-1">
             <Link to="/" className="inline-flex items-center gap-2"><LogoMark size={30} /><span className="font-display text-lg font-extrabold">Next<span className="text-primary">Vita</span></span></Link>
             <p className="mt-2 max-w-xs text-sm text-muted-foreground">Bem-estar organizado: rotina, lembretes e loja no mesmo app.</p>
             <div className="mt-4 flex items-center gap-3">
-              <span className="rounded-xl bg-white p-1.5 shadow-sm ring-1 ring-border"><QrCode variant="footer" size={64} /></span>
+              <span className="hidden rounded-xl bg-white p-1.5 shadow-sm ring-1 ring-border sm:block"><QrCode variant="footer" size={64} /></span>
               <div className="min-w-0">
-                <p className="text-xs font-semibold">Abra no celular</p>
-                <p className="text-[11px] text-muted-foreground">Aponte a câmera para o código.</p>
-                <div className="mt-1.5 [&_button]:!h-8 [&_button]:!px-3 [&_button]:!text-xs"><InstallAppButton /></div>
+                <p className="hidden text-xs font-semibold sm:block">Abra no celular</p>
+                <p className="hidden text-[11px] text-muted-foreground sm:block">Aponte a câmera para o código.</p>
+                <div className="sm:mt-1.5 [&_button]:!h-8 [&_button]:!px-3 [&_button]:!text-xs"><InstallAppButton /></div>
               </div>
             </div>
           </div>
@@ -185,13 +192,13 @@ function Homepage() {
           ] as const).map(([title, links]) => (
             <nav key={title} aria-label={title}>
               <p className="text-xs font-bold text-foreground">{title}</p>
-              <ul className="mt-3 grid gap-2 text-sm">
+              <ul className="mt-2 grid gap-1.5 text-[13px] sm:mt-3 sm:gap-2 sm:text-sm">
                 {links.map(([to, label]) => <li key={to}><a href={to} className="text-muted-foreground transition-colors hover:text-foreground">{label}</a></li>)}
               </ul>
             </nav>
           ))}
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-border px-6 py-3 text-xs text-muted-foreground lg:px-8">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-border px-5 py-3 text-[11px] sm:px-6 sm:text-xs text-muted-foreground lg:px-8">
           <span>© {new Date().getFullYear()} NextVita. Todos os direitos reservados.</span>
           <span>Desenvolvido por <Link to="/sobre" className="font-semibold text-foreground hover:underline">Franc D&apos;nis</Link> · Feijó, Acre</span>
         </div>
