@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { Droplets, Plus, UtensilsCrossed, X } from "lucide-react";
+import { CupSoda, Droplets, Plus, UtensilsCrossed, X } from "lucide-react";
 import { ClientQuickIntake } from "./ClientQuickIntake";
 
 type Props = { patientId: string; area: string; onRecorded: () => void };
@@ -10,7 +10,9 @@ export function QuickRegisterFab({ patientId, area, onRecorded }: Props) {
   const [menu, setMenu] = useState(false);
   const [water, setWater] = useState(0);
   const [food, setFood] = useState(0);
-  const both = area === "hoje";
+  const [drink, setDrink] = useState(0);
+  // Visão geral e Hidratação abrem um menu (água, outras bebidas e, na visão geral, alimento).
+  const both = area === "hoje" || area === "hidratacao";
   const kind: "water" | "food" | "jump" | null = both ? null
     : area === "hidratacao" ? "water"
     : area === "alimentacao" || area === "cardapios" ? "food"
@@ -30,10 +32,12 @@ export function QuickRegisterFab({ patientId, area, onRecorded }: Props) {
     <div hidden>
       <ClientQuickIntake patientId={patientId} mode="water" openSignal={water} onRecorded={onRecorded} />
       <ClientQuickIntake patientId={patientId} mode="food" openSignal={food} onRecorded={onRecorded} />
+      <ClientQuickIntake patientId={patientId} mode="drink" openSignal={drink} onRecorded={onRecorded} />
     </div>
     {menu && <button type="button" aria-label="Fechar opções" className="fixed inset-0 z-[85] bg-slate-950/30 backdrop-blur-[1px]" onClick={() => setMenu(false)} />}
     {both && menu && <div className="nv-fab-menu fixed right-4 z-[90] bottom-[calc(5.25rem+env(safe-area-inset-bottom))] flex flex-col items-end gap-2">
-      <button type="button" className={chip} onClick={() => { setMenu(false); setFood((v) => v + 1); }}><UtensilsCrossed size={18} className="text-emerald-600" /> Registrar alimento</button>
+      {area === "hoje" && <button type="button" className={chip} onClick={() => { setMenu(false); setFood((v) => v + 1); }}><UtensilsCrossed size={18} className="text-emerald-600" /> Registrar alimento</button>}
+      <button type="button" className={chip} onClick={() => { setMenu(false); setDrink((v) => v + 1); }}><CupSoda size={18} className="text-violet-500" /> Outra bebida (suco, café, leite…)</button>
       <button type="button" className={chip} onClick={() => { setMenu(false); setWater((v) => v + 1); }}><Droplets size={18} className="text-sky-500" /> Registrar água</button>
     </div>}
     <button type="button" className={fab} aria-label={both ? "Registrar" : kind === "water" ? "Registrar água" : kind === "food" ? "Registrar alimento" : jumpLabel}

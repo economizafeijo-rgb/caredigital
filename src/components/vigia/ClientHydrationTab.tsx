@@ -585,6 +585,9 @@ export function ClientHydrationTab({
               <span className="[&_button]:!h-11 [&_button]:!rounded-2xl [&_button]:!border [&_button]:!border-white/25 [&_button]:!bg-white/10 [&_button]:!px-4 [&_button]:!text-sm [&_button]:!text-white [&_button]:!shadow-none [&_button]:backdrop-blur hover:[&_button]:!bg-white/20">
                 <ClientQuickIntake patientId={patientId} mode="water" onRecorded={() => { setReload((n) => n + 1); onRecorded(); }} />
               </span>
+              <span className="[&_button]:!h-11 [&_button]:!rounded-2xl [&_button]:!border [&_button]:!border-white/25 [&_button]:!bg-white/10 [&_button]:!px-4 [&_button]:!text-sm [&_button]:!text-white [&_button]:!shadow-none [&_button]:backdrop-blur hover:[&_button]:!bg-white/20">
+                <ClientQuickIntake patientId={patientId} mode="drink" onRecorded={() => { setReload((n) => n + 1); onRecorded(); }} />
+              </span>
               <button
                 type="button"
                 aria-expanded={editing}
