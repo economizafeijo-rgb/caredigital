@@ -473,8 +473,8 @@ function Entrar() {
             <div role="tablist" aria-label="Tipo de conta" className="grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
               {([["signup", "Quero me cuidar", "Conta pessoal grátis"], ["vendor", "Sou parceiro", "Loja, academia, personal"]] as const).map(([m, t, h]) => (
                 <button key={m} role="tab" type="button" aria-selected={mode === m} onClick={() => { setMode(m); setNotice(null); }}
-                  className={`rounded-lg px-3 py-2 text-left transition-colors ${mode === m ? "bg-card shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
-                  <strong className="block text-sm">{t}</strong><span className="block text-[11px] text-muted-foreground">{h}</span>
+                  title={h} className={`rounded-lg px-3 py-1.5 text-center transition-colors ${mode === m ? "bg-card shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
+                  <strong className="block text-sm">{t}</strong>
                 </button>
               ))}
             </div>
