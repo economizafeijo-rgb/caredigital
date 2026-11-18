@@ -4,6 +4,7 @@ import { acreAddDays, acreDateAtTime, ACRE_TIME_ZONE } from "@/lib/acre-time";
 import { acreDayHour, buildDays, MONTH_NAMES, monthLabel, monthRange, yearRange, type PeriodRaw } from "@/lib/day-metrics";
 import { loadPeriodRaw, resolveTargets, type PeriodData } from "@/lib/period-data";
 import { EvolutionDayView } from "./EvolutionDayView";
+import { DayDetailDialog } from "./DayDetailDialog";
 import { EvolutionMonthView, EvolutionYearView } from "./EvolutionPeriodView";
 
 type View = "dia" | "mes" | "ano";
@@ -28,6 +29,7 @@ export function EvolutionHub({ patientId, ownerId, waterTarget, revision = 0, de
   const [view, setView] = useState<View>(defaultView);
   const [cursor, setCursor] = useState(today);
   const [data, setData] = useState<{ result: PeriodData; from: string; to: string } | null>(null);
+  const [detailDay, setDetailDay] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
 
@@ -59,7 +61,6 @@ export function EvolutionHub({ patientId, ownerId, waterTarget, revision = 0, de
     else setCursor(`${year + direction}-${pad(Math.min(month, 12))}-01`);
   };
   const nextBlocked = (view === "dia" ? cursor >= today : view === "mes" ? `${year}-${pad(month)}` >= today.slice(0, 7) : year >= thisYear);
-  const openDay = (day: string) => { setView("dia"); setCursor(day); };
   const openMonth = (m: number) => { setView("mes"); setCursor(firstOfMonth(year, m)); };
   const changeYear = (y: number) => setCursor(view === "dia" ? `${y}-${cursor.slice(5)}` : firstOfMonth(y, month));
 
@@ -118,10 +119,11 @@ export function EvolutionHub({ patientId, ownerId, waterTarget, revision = 0, de
       ) : raw && targets && days.length > 0 ? (
         <div className={loading ? "opacity-60 transition-opacity" : "transition-opacity"} aria-busy={loading}>
           {view === "dia" && current && <EvolutionDayView metrics={current} raw={raw} targets={targets} />}
-          {view === "mes" && <EvolutionMonthView year={year} month={month} days={days} targets={targets} onOpenDay={openDay} />}
+          {view === "mes" && <EvolutionMonthView year={year} month={month} days={days} targets={targets} onOpenDay={setDetailDay} />}
           {view === "ano" && <EvolutionYearView year={year} days={days} targets={targets} onOpenMonth={openMonth} />}
         </div>
       ) : null}
+      <DayDetailDialog patientId={patientId} ownerId={ownerId} day={detailDay} onClose={() => setDetailDay(null)} />
     </section>
   );
 }

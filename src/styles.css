@@ -818,3 +818,22 @@ html, #care-content { scrollbar-gutter: stable; }
 .nv-evo-fade { animation: nv-evo-fade .9s ease-out both; }
 .nv-evo-ping { animation: nv-evo-ping 1.8s cubic-bezier(0, 0, .2, 1) infinite; }
 @media (prefers-reduced-motion: reduce) { .nv-evo-fade, .nv-evo-ping { animation: none; } }
+@keyframes nv-pop { from { opacity: 0; transform: translateY(12px) scale(.985); } to { opacity: 1; transform: none; } }
+.nv-pop { animation: nv-pop .32s cubic-bezier(.2,.8,.2,1) both; }
+@media (prefers-reduced-motion: reduce) { .nv-pop { animation: none; } }
+
+/* Cartões reagem ao ponteiro: borda e sombra discretas, sem mover o layout */
+#care-content :is(section, article, figure, aside, li, div)[class*="rounded-2xl"][class*="border"],
+#care-content :is(section, article, figure, aside, div)[class*="rounded-xl"][class*="border"][class*="bg-card"] {
+  transition: border-color .2s ease, box-shadow .25s ease, background-color .2s ease;
+}
+#care-content :is(section, article, figure, aside, li, div)[class*="rounded-2xl"][class*="border"]:hover,
+#care-content :is(section, article, figure, aside, div)[class*="rounded-xl"][class*="border"][class*="bg-card"]:hover {
+  border-color: color-mix(in oklab, var(--color-primary) 32%, var(--color-border));
+  box-shadow: 0 10px 30px -18px color-mix(in oklab, var(--color-primary) 55%, transparent);
+}
+#care-content :is(section, article, figure, aside, div)[class*="rounded-2xl"][class*="border"]:has(:is(section, article, figure, aside, div)[class*="rounded-2xl"][class*="border"]:hover) {
+  border-color: var(--color-border); box-shadow: none;
+}
+/* Cartões que levam a outra área ou abrem detalhes: mãozinha */
+#care-content [onclick], #care-content li:has(> button:only-child), [data-clickable] { cursor: pointer; }

@@ -101,10 +101,10 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
   ],
   client: [
     {
-      title: "Meu dia",
+      title: "Hoje",
       items: [
         section("hoje", "Visão geral", LayoutDashboard),
-        section("agenda", "Agenda", CalendarDays),
+        section("agenda", "Meu dia", CalendarDays),
         section("historico", "Histórico", History),
       ],
     },
@@ -440,14 +440,17 @@ export function AppShell({ children }: { children: ReactNode }) {
       <HydrationProvider>
         <div className="care-shell flex h-dvh min-h-0 overflow-hidden bg-background text-foreground">
           {internalPage && (
-            <div className={`relative hidden shrink-0 transition-[width] duration-300 ease-out xl:block ${sidebarPinned ? "w-64" : "w-[76px]"}`}>
+            <div className={`relative hidden shrink-0 transition-[width] duration-300 ease-out xl:block ${fullScreen ? "w-0" : sidebarPinned ? "w-64" : "w-[76px]"}`}>
+              {fullScreen && (
+                <div aria-hidden="true" onMouseEnter={openRail} className="absolute inset-y-0 left-0 z-50 w-2" title="Menu" />
+              )}
               <aside
                 onMouseEnter={openRail}
                 onMouseLeave={closeRail}
                 onFocusCapture={() => setSidebarExpanded(true)}
                 onBlurCapture={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setSidebarExpanded(false); }}
                 data-collapsed={railOpen ? undefined : ""}
-                className={`sidebar-shell absolute inset-y-0 left-0 z-40 flex flex-col overflow-hidden border-r border-white/5 bg-sidebar transition-[width,box-shadow] duration-300 ease-out ${railOpen ? "w-64" : "w-[76px]"} ${sidebarExpanded && !sidebarPinned ? "shadow-[24px_0_48px_-20px_rgba(0,0,0,.55)]" : ""}`}
+                className={`sidebar-shell absolute inset-y-0 left-0 z-40 flex flex-col overflow-hidden border-r border-white/5 bg-sidebar transition-[width,box-shadow,transform] duration-300 ease-out ${railOpen || fullScreen ? "w-64" : "w-[76px]"} ${fullScreen && !sidebarExpanded ? "-translate-x-full" : ""} ${sidebarExpanded && !sidebarPinned ? "shadow-[24px_0_48px_-20px_rgba(0,0,0,.55)]" : ""}`}
               >
                 <div aria-hidden="true" className="pointer-events-none absolute -left-20 -top-20 size-56 rounded-full bg-primary/20 blur-3xl" />
                 <div className="relative flex h-14 shrink-0 items-center gap-2 border-b border-white/10 px-[19px]">

@@ -30,7 +30,7 @@ import { ClientHydrationTab } from "./ClientHydrationTab";
 import { SectionInsights, isInsightSection } from "./SectionInsights";
 import { ClientSleepPage } from "./ClientSleepPage";
 import { WeightExplorer } from "./WeightExplorer";
-import { ClientAgendaPage } from "./ClientAgendaPage";
+import { ClientDayPlanner } from "./ClientDayPlanner";
 import { ClientMealsPage } from "./ClientMealsPage";
 import { ClientNutritionStudio } from "./ClientNutritionStudio";
 import { ClientActivityPage } from "./ClientActivityPage";
@@ -1263,10 +1263,14 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
             >
               {profileLocked ? <ProfileRequired area={clientSectionLabels[activeTab].title.toLowerCase()} /> : <>
               {activeTab === "agenda" && (
-                <ClientAgendaPage
+                <ClientDayPlanner
+                  patientId={client.id}
+                  ownerId={client.owner_id}
+                  waterTarget={hydrationTarget || null}
                   tasks={tasks}
                   resolved={resolvedStates}
                   now={nowMs}
+                  revision={tick}
                   onView={showTaskDetails}
                   onConfirm={askConfirm}
                 />

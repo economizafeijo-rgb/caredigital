@@ -25,7 +25,7 @@ export type SectionTheme = {
 export const clientSectionTheme: Record<ClientSection, SectionTheme> = {
   hoje: { label: "Visão geral", icon: LayoutDashboard, image: "/images/caredigital-care-hero.webp", position: "55% 20%",
     overlay: "from-indigo-950 via-indigo-900/80 to-blue-700/10", pill: "bg-gradient-to-r from-indigo-600 to-blue-500", chip: "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300" },
-  agenda: { label: "Agenda", icon: CalendarDays, image: "/images/painel-agenda.webp", position: "30% 50%",
+  agenda: { label: "Meu dia", icon: CalendarDays, image: "/images/painel-agenda.webp", position: "30% 50%",
     overlay: "from-violet-950 via-violet-900/80 to-fuchsia-600/10", pill: "bg-gradient-to-r from-violet-600 to-fuchsia-500", chip: "bg-violet-500/15 text-violet-600 dark:text-violet-300" },
   historico: { label: "Histórico", icon: History, image: "/images/caredigital-historico.webp", position: "50% 50%",
     overlay: "from-slate-950 via-slate-900/85 to-slate-600/10", pill: "bg-gradient-to-r from-slate-700 to-slate-500", chip: "bg-slate-500/15 text-slate-600 dark:text-slate-300" },

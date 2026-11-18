@@ -1,7 +1,7 @@
 export type ClientSection = "hoje" | "agenda" | "hidratacao" | "historico" | "alimentacao" | "cardapios" | "medicacao" | "atividade" | "peso" | "sono" | "suplementos" | "indicadores";
 export const clientSectionLabels: Record<ClientSection,{title:string;subtitle:string;tagline:string}> = {
   hoje:{title:"Visão geral",subtitle:"Acompanhamento de hoje, próximo cuidado e progresso do tratamento",tagline:"Painel do dia"},
-  agenda:{title:"Agenda de cuidados",subtitle:"Horários programados, confirmações e pendências em uma única agenda",tagline:"Organização diária"},
+  agenda:{title:"Meu dia",subtitle:"Remédios, água, refeições, suplementos, movimento e sono numa linha do tempo",tagline:"Organização diária"},
   hidratacao:{title:"Minha hidratação",subtitle:"Meta individual, copos registrados, respostas e bebidas consumidas",tagline:"Controle de líquidos"},
   historico:{title:"Histórico e prontuário",subtitle:"Registros auditados, alimentação, líquidos e alterações por data",tagline:"Registros pessoais"},
   alimentacao:{title:"Alimentação",subtitle:"Refeições programadas e alimentos realmente registrados",tagline:"Diário alimentar"},
