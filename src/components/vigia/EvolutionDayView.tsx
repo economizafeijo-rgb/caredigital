@@ -180,13 +180,19 @@ export function EvolutionDayView({ metrics: m, raw, targets, focus }: { metrics:
             </ul>
           )}
         </Panel>}
-        {on("medicacao") && <Panel title="Medicação" note={`${m.medication.taken} de ${m.medication.planned} doses confirmadas`}>
+        {on("medicacao") && <Panel title="Medicação" note={m.medication.planned > 0 ? `${m.medication.taken} de ${m.medication.planned} doses confirmadas` : `${m.medication.entries.length} dose(s) no histórico`}>
           {m.medication.planned === 0 && m.medication.entries.length === 0 ? <Empty>Nenhuma dose de medicação programada neste dia.</Empty> : (
             <ul className="grid gap-2">
               {m.medication.tasks.map((task, i) => (
                 <li key={i} className="flex items-center justify-between gap-2 rounded-xl bg-muted/50 px-3 py-2 text-xs">
                   <span className="min-w-0"><b className="font-mono">{clock(task.scheduledAt)}</b> <span className="font-semibold">{task.title}</span></span>
                   <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ${task.completedAt ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : m.closed ? "bg-rose-500/15 text-rose-700 dark:text-rose-300" : "bg-muted text-muted-foreground"}`}>{task.completedAt ? `confirmada ${clock(task.completedAt)}` : m.closed ? "sem confirmação" : "pendente"}</span>
+                </li>
+              ))}
+              {m.medication.entries.map((dose, i) => (
+                <li key={`dose-${i}`} className="flex items-center justify-between gap-2 rounded-xl bg-muted/50 px-3 py-2 text-xs">
+                  <span className="min-w-0"><b className="font-mono">{clock(dose.at)}</b> <span className="font-semibold">{dose.name}</span></span>
+                  <span className="shrink-0 rounded-full bg-emerald-500/15 px-2.5 py-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">{dose.slot} · registrada</span>
                 </li>
               ))}
               {plansFor("medicacao").map((plan) => (
