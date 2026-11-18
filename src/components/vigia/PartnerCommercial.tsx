@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Dumbbell, MessageCircle, Package, Pause, Play, RotateCcw, Store, UserRound } from "lucide-react";
+import { ArrowRight, Code2, Dumbbell, MessageCircle, Package, Pause, Play, RotateCcw, Store, UserRound } from "lucide-react";
 import { STORE_WHATSAPP } from "@/lib/store";
 
 type Scene = {
@@ -11,16 +11,19 @@ type Scene = {
   text: string;
   images: string[];
   ms: number;
+  dev?: boolean;
 };
 
 const scenes: Scene[] = [
   { id: "lojas", label: "Lojas", icon: Store, headline: ["Sua", "loja"], text: "Vitrine própria diante de quem já cuida da saúde todos os dias.", images: ["/loja/v2/conjunto-preto.webp", "/loja/v2/whey.webp", "/loja/v2/halteres.webp"], ms: 4200 },
   { id: "academias", label: "Academias", icon: Dumbbell, headline: ["Sua", "academia"], text: "Divulgue planos, aulas e horários para quem acompanha os treinos no app.", images: ["/images/hero-treinos.webp"], ms: 4200 },
   { id: "personal", label: "Personal trainers", icon: UserRound, headline: ["Seu", "trabalho", "como personal"], text: "Apresente sua consultoria e encontre alunos que já registram a própria rotina.", images: ["/images/caredigital-esporte.webp"], ms: 4200 },
+  { id: "dev", label: "Seu site ou app", icon: Code2, headline: ["Sua", "ideia", "vira", "site ou app"], text: "Franc D'nis cria sites, aplicativos e plataformas sob medida, como a NextVita. Feito em Feijó, Acre.", images: [], ms: 5200, dev: true },
   { id: "produtos", label: "Produtos", icon: Package, headline: ["Seu", "produto"], text: "Suplementos, fitoterápicos, moda fitness e acessórios com preço e entrega claros.", images: ["/loja/v2/oleo-copaiba.webp", "/loja/v2/guarana-po.webp", "/loja/v2/pre-treino.webp"], ms: 4200 },
 ];
 const END_MS = 7000;
 const WHATSAPP = `https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent("Olá! Quero anunciar na NextVita. Pode me explicar como funciona?")}`;
+const DEV_WHATSAPP = `https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent("Olá, Franc! Tenho uma ideia e quero transformar em site ou aplicativo.")}`;
 
 function useReducedMotion() {
   const [reduce, setReduce] = useState(false);
@@ -66,7 +69,15 @@ export function PartnerCommercial({ className = "" }: { className?: string }) {
       <div className="relative h-[19rem] sm:h-[20rem] lg:h-[22rem]">
         {scene ? (
           <div key={scene.id} className="absolute inset-0">
-            {scene.images.length === 1 ? (
+            {scene.dev ? (
+              <div className="absolute inset-0 bg-gradient-to-br from-[#0b1120] via-[#0f2a2a] to-[#0c8063]" aria-hidden="true">
+                <div className="absolute right-6 top-1/2 hidden w-[22rem] -translate-y-1/2 rounded-xl bg-[#0b1220]/90 p-4 font-mono text-[12px] leading-6 text-emerald-200 shadow-2xl ring-1 ring-white/10 md:block">
+                  {["const ideia = 'seu negócio';", "criarApp(ideia, { celular: true });", "publicar('www.seusite.com.br');", "// pronto para o seu público ✓"].map((line, i) => (
+                    <span key={line} className="nv-type block truncate" style={{ animationDelay: `${400 + i * 550}ms` }}>{line}</span>
+                  ))}
+                </div>
+              </div>
+            ) : scene.images.length === 1 ? (
               <img src={scene.images[0]} alt="" aria-hidden="true" className="nv-kenburns absolute inset-0 size-full object-cover opacity-80" style={{ animationDuration: `${scene.ms + 600}ms` }} />
             ) : (
               <div className="absolute inset-0 grid grid-cols-3 gap-1 bg-black" aria-hidden="true">
@@ -80,7 +91,7 @@ export function PartnerCommercial({ className = "" }: { className?: string }) {
             <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/45 to-black/10" />
             <div className="absolute inset-y-0 left-0 flex max-w-[34rem] flex-col justify-center px-6 sm:px-10">
               <span className="nv-rise inline-flex w-fit items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur">
-                <scene.icon size={14} aria-hidden="true" /> Para {scene.label.toLowerCase()}
+                <scene.icon size={14} aria-hidden="true" /> {scene.dev ? "Franc D'nis · Desenvolvedor" : `Para ${scene.label.toLowerCase()}`}
               </span>
               <p className="mt-3 font-display text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-5xl lg:text-6xl">
                 {scene.headline.map((w, i) => (
@@ -93,6 +104,11 @@ export function PartnerCommercial({ className = "" }: { className?: string }) {
                 </span>
               </p>
               <p className="nv-rise mt-3 max-w-[38ch] text-sm text-white/85 sm:text-base" style={{ animationDelay: "700ms" }}>{scene.text}</p>
+              {scene.dev && (
+                <a href={DEV_WHATSAPP} target="_blank" rel="noopener noreferrer" className="nv-rise mt-4 inline-flex h-10 w-fit items-center gap-2 rounded-xl bg-[#25d366] px-4 text-sm font-bold text-slate-950 hover:brightness-105" style={{ animationDelay: "900ms" }}>
+                  <MessageCircle size={16} aria-hidden="true" /> Chamar Franc no WhatsApp
+                </a>
+              )}
             </div>
           </div>
         ) : (
