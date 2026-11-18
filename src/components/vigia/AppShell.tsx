@@ -34,6 +34,8 @@ import {
   ShoppingBag,
   Store,
   Users,
+  ShoppingCart,
+  ArrowRight,
   Ruler,
   Megaphone,
   Wallet,
@@ -48,6 +50,7 @@ import { useAccess, type AccessStatus } from "@/lib/use-access";
 import { clientSectionTheme, type SectionTheme } from "@/lib/client-section-theme";
 import { fmtClock, useNow } from "./ui";
 import { InstallAppButton } from "./InstallApp";
+import { money, STORE_LIVE, useCart } from "@/lib/store";
 import { LiveModeLauncher } from "./LiveMode";
 import { HydrationProvider } from "./HydrationTracker";
 import { ProductQuickViewHost } from "./StoreViews";
@@ -213,40 +216,89 @@ function PublicTopNav({ pathname }: { pathname: string }) {
     return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
   }, [open]);
   const resourceActive = resourceLinks.some((r) => r.to === pathname);
-  const linkCls = "inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
+  const linkCls = "relative inline-flex h-8 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground";
+  const activeCls = { className: "!bg-card !text-foreground shadow-[0_1px_2px_rgba(0,0,0,.25),inset_0_0_0_1px_var(--color-border)]" };
   return (
-    <nav className="ml-4 hidden flex-1 items-center gap-1 lg:flex" aria-label="Navegação principal">
+    <nav className="mx-auto hidden items-center gap-0.5 rounded-full border border-border/70 bg-muted/40 p-1 backdrop-blur lg:flex" aria-label="Navegação principal">
       {primaryPublic.map((item) => (
-        <Link key={item.to} to={item.to} activeOptions={{ exact: item.to === "/" }} className={linkCls} activeProps={{ className: "!bg-accent !text-accent-foreground" }}>
+        <Link key={item.to} to={item.to} activeOptions={{ exact: item.to === "/" }} className={linkCls} activeProps={activeCls}>
           {item.label}
         </Link>
       ))}
       <div ref={wrap} className="relative">
         <button type="button" aria-expanded={open} aria-haspopup="true" onClick={() => setOpen((o) => !o)}
-          className={`${linkCls} gap-1 ${resourceActive ? "!bg-accent !text-accent-foreground" : ""}`}>
-          Recursos <ChevronDown size={15} aria-hidden="true" className={`transition-transform ${open ? "rotate-180" : ""}`} />
+          className={`${linkCls} ${resourceActive || open ? "!bg-card !text-foreground shadow-sm" : ""}`}>
+          Recursos <ChevronDown size={14} aria-hidden="true" className={`transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
         </button>
         {open && (
-          <div className="nv-fade-in absolute left-0 top-full z-40 mt-2 grid w-[26rem] grid-cols-2 gap-1 rounded-2xl border border-border bg-surface p-2 shadow-pop">
+          <div className="nv-pop absolute left-1/2 top-full z-40 mt-3 grid w-[30rem] -translate-x-1/2 grid-cols-2 gap-1 rounded-2xl border border-border bg-surface/95 p-2 shadow-pop backdrop-blur-xl">
             {resourceLinks.map((r) => (
-              <Link key={r.to} to={r.to} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted" activeProps={{ className: "!bg-accent !text-accent-foreground" }}>
-                <r.icon size={16} aria-hidden="true" className="text-primary" /> {r.label}
+              <Link key={r.to} to={r.to} className="group flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors hover:bg-muted" activeProps={{ className: "!bg-accent !text-accent-foreground" }}>
+                <span className="grid size-8 shrink-0 place-items-center rounded-lg text-white shadow-sm transition-transform group-hover:scale-110" style={{ background: resourceColors[r.to] }}><r.icon size={15} aria-hidden="true" /></span>
+                {r.label}
               </Link>
             ))}
           </div>
         )}
       </div>
-      <Link to="/loja" className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted" activeProps={{ className: "!bg-accent !text-accent-foreground" }}>
-        <ShoppingBag size={16} aria-hidden="true" className="text-amber-600" /> Loja
+      <Link to="/loja" className={`${linkCls} font-semibold text-foreground`} activeProps={activeCls}>
+        <ShoppingBag size={14} aria-hidden="true" className="text-amber-500" /> Loja
       </Link>
-      <Link to="/lojista" className={linkCls} activeProps={{ className: "!bg-accent !text-accent-foreground" }}>Seja lojista</Link>
-      <Link to="/sobre" className={linkCls} activeProps={{ className: "!bg-accent !text-accent-foreground" }}>Sobre</Link>
+      <Link to="/lojista" className={linkCls} activeProps={activeCls}>Seja lojista</Link>
+      <Link to="/sobre" className={linkCls} activeProps={activeCls}>Sobre</Link>
     </nav>
   );
 }
 
+/** Carrinho no topo: mostra o que foi separado; compras liberadas quando as lojas publicarem produtos oficiais. */
+function HeaderCart() {
+  const { lines, count, subtotal } = useCart();
+  const [open, setOpen] = useState(false);
+  const wrap = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => { if (!wrap.current?.contains(e.target as Node)) setOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", onDown); document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
+  }, [open]);
+  return (
+    <div ref={wrap} className="relative">
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label={`Carrinho, ${count} ${count === 1 ? "item" : "itens"}`} title="Carrinho" className={`${iconButton} relative`}>
+        <ShoppingCart size={17} />
+        {count > 0 && <span key={count} className="nv-heart-pop absolute -right-1 -top-1 grid min-w-[1.15rem] place-items-center rounded-full bg-emerald-400 px-1 text-[10px] font-extrabold leading-[1.15rem] text-slate-950 ring-2 ring-surface">{count}</span>}
+      </button>
+      {open && (
+        <div className="nv-pop absolute right-0 top-full z-50 mt-3 w-80 overflow-hidden rounded-2xl border border-border bg-surface/95 shadow-pop backdrop-blur-xl">
+          <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
+            <strong className="text-sm">Carrinho</strong>
+            {!STORE_LIVE && <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-300">Em breve</span>}
+          </div>
+          {lines.length ? (
+            <ul className="grid max-h-56 gap-1 overflow-y-auto p-2">
+              {lines.slice(0, 5).map((l) => (
+                <li key={l.id} className="flex items-center gap-2.5 rounded-xl px-2 py-1.5">
+                  <img src={l.product.img} alt="" className="size-10 rounded-lg bg-muted object-cover" />
+                  <span className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold">{l.product.name}</span><span className="text-[11px] text-muted-foreground">{l.qty} × {money(l.product.priceCents)}</span></span>
+                </li>
+              ))}
+            </ul>
+          ) : <p className="px-4 py-5 text-center text-xs text-muted-foreground">Seu carrinho está vazio.</p>}
+          <div className="border-t border-border p-3">
+            {lines.length > 0 && <p className="mb-2 flex justify-between text-sm"><span className="text-muted-foreground">Subtotal</span><strong className="tabular-nums">{money(subtotal)}</strong></p>}
+            {!STORE_LIVE && <p className="mb-2.5 rounded-xl bg-muted/60 p-2.5 text-[11px] leading-snug text-muted-foreground">As compras serão liberadas quando as lojas parceiras publicarem seus produtos oficiais. Você já pode separar o que quer comprar.</p>}
+            <Link to="/loja" onClick={() => setOpen(false)} className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-sm font-bold text-slate-950 transition hover:brightness-110">
+              {STORE_LIVE ? "Finalizar compra" : "Ver vitrine da loja"}
+            </Link>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const iconButton =
-  "grid size-9 shrink-0 place-items-center rounded-lg border border-border bg-surface text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground";
+  "grid size-9 shrink-0 place-items-center rounded-full border border-border/70 bg-muted/30 text-muted-foreground transition-[color,background-color,border-color,transform] duration-200 hover:border-border hover:bg-muted hover:text-foreground active:scale-90";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const now = useNow(30000);
@@ -366,9 +418,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const loginButton = (
     <Link
       to="/entrar"
-      className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110"
+      className="group inline-flex h-9 items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-400 to-teal-400 pl-3.5 pr-3 text-sm font-bold text-slate-950 shadow-[0_6px_18px_-8px_rgba(52,211,153,.8)] transition hover:brightness-110 active:scale-[.97]"
     >
-      <LogIn size={16} /> Entrar
+      <LogIn size={15} /> Entrar <ArrowRight size={14} className="-ml-0.5 transition-transform group-hover:translate-x-0.5" />
     </Link>
   );
 
@@ -543,6 +595,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   ))}
                 {signedIn && profile !== "admin" && !location.pathname.startsWith("/cliente") && <LiveModeLauncher iconOnlyOnMobile />}
                 <InstallAppButton className="max-sm:!hidden" />
+                {!internalPage && <HeaderCart />}
                 {tools}
                 {signedIn && (
                   <button

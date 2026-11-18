@@ -68,6 +68,8 @@ export const PIX_DISCOUNT = 0.05;
 export function orderTotal(subtotal: number, method: PaymentKey) { return method === "pix" ? Math.round(subtotal * (1 - PIX_DISCOUNT)) : subtotal; }
 
 export const STORE_WHATSAPP = "5568992031340";
+/** Compras reais só depois que as lojas parceiras publicarem produtos oficiais. */
+export const STORE_LIVE = false;
 
 /* Carrinho: guardado no aparelho e compartilhado entre componentes. */
 export type CartLine = { id: string; qty: number };
