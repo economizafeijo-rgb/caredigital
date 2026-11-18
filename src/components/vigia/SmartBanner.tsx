@@ -12,6 +12,7 @@ export type Slide = {
   to: "/loja" | "/sono" | "/parceiros" | "/hidratacao" | "/medicamentos" | "/metricas" | "/entrar";
   tool?: "agua" | "medicacao" | "sono" | "metricas" | "dev";
   href?: string;
+  chips?: string[];
   images: string[];
   price?: string;
   tone: string;
@@ -36,15 +37,16 @@ function momentSlide(hour: number): Slide {
 const DEV_WHATSAPP = `https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent("Olá, Franc! Tenho uma ideia e quero transformar em site ou aplicativo.")}`;
 const devSlide: Slide = {
   id: "dev",
-  kicker: "Franc D'nis · Desenvolvedor",
-  title: "Tem uma ideia? Eu transformo em site ou aplicativo.",
-  text: "Plataformas sob medida como a NextVita, do layout ao sistema no ar. Tecnologia de alto nível feita em Feijó, Acre.",
-  cta: "Chamar no WhatsApp",
+  kicker: "Franc D'nis · Sites e aplicativos",
+  title: "Sua ideia, no ar para o seu público.",
+  text: "Crio sites, apps e lojas virtuais sob medida, como a NextVita que você está usando agora. Feito em Feijó, Acre.",
+  cta: "Conversar no WhatsApp",
+  chips: ["Sites", "Aplicativos", "Lojas virtuais"],
   to: "/sobre",
   href: DEV_WHATSAPP,
   images: [],
   tool: "dev",
-  tone: "from-[#0b1120] to-[#0c8063]",
+  tone: "from-[#050b18] via-[#0b2b29] to-[#0c8063]",
 };
 
 const toolSlides: Slide[] = [
@@ -136,6 +138,11 @@ export function SmartBanner({ className = "" }: { className?: string }) {
           </p>
           <h2 style={{ animationDelay: "80ms" }} className="nv-rise mt-1 text-balance font-display text-xl font-extrabold leading-tight sm:text-2xl">{slide.title}</h2>
           <p style={{ animationDelay: "160ms" }} className="nv-rise mt-2 line-clamp-3 text-sm leading-snug text-white/85">{slide.text}</p>
+          {slide.chips && (
+            <ul className="nv-rise mt-3 flex flex-wrap gap-1.5" style={{ animationDelay: "220ms" }}>
+              {slide.chips.map((c) => <li key={c} className="rounded-full border border-white/25 bg-white/10 px-2.5 py-0.5 text-xs font-semibold backdrop-blur">{c}</li>)}
+            </ul>
+          )}
           {slide.price && <p style={{ animationDelay: "240ms" }} className="nv-rise mt-2 text-sm text-white/80">a partir de <strong className="text-lg font-extrabold text-white tabular-nums">{slide.price}</strong></p>}
           {slide.href ? (
             <a href={slide.href} target="_blank" rel="noopener noreferrer" style={{ animationDelay: "300ms" }} className="nv-rise mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-[#25d366] px-4 text-sm font-bold text-slate-950 hover:brightness-105">
@@ -198,26 +205,16 @@ export function ToolDemo({ kind }: { kind: NonNullable<Slide["tool"]> }) {
   const card = `${base} bg-white text-slate-900`;
   if (kind === "dev")
     return (
-      <div className="nv-banner-img relative w-48 sm:w-60">
-        <div className="overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-white/20">
-          <div className="flex items-center gap-1.5 border-b border-slate-200 bg-slate-100 px-2.5 py-1.5">
-            <span className="size-2 rounded-full bg-rose-400" /><span className="size-2 rounded-full bg-amber-400" /><span className="size-2 rounded-full bg-emerald-400" />
-            <span className="ml-2 h-2.5 flex-1 rounded bg-white" />
-          </div>
-          <div className="grid gap-1.5 p-3">
-            <span className="nv-type block h-3 rounded bg-emerald-600" style={{ width: "62%", animationDelay: "200ms" }} />
-            <span className="nv-type block h-2 rounded bg-slate-300" style={{ width: "88%", animationDelay: "500ms" }} />
-            <span className="nv-type block h-2 rounded bg-slate-300" style={{ width: "74%", animationDelay: "750ms" }} />
-            <div className="mt-1 grid grid-cols-3 gap-1.5">
-              {[0, 1, 2].map((i) => <span key={i} className="nv-rise block h-8 rounded-md bg-emerald-100" style={{ animationDelay: `${1000 + i * 150}ms` }} />)}
-            </div>
+      <div className="nv-banner-img relative w-56 sm:w-72 lg:w-80">
+        <span className="absolute -left-3 -top-3 z-10 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-slate-900 shadow-lg">Projeto real: NextVita</span>
+        <div className="rounded-xl bg-slate-900 p-1.5 shadow-2xl ring-1 ring-white/15">
+          <div className="overflow-hidden rounded-md bg-white">
+            <img src="/images/dev-nextvita-desktop.webp" alt="" width={800} height={450} className="nv-kenburns aspect-[16/9] w-full object-cover object-top" style={{ animationDuration: "7000ms" }} />
           </div>
         </div>
-        <div className="nv-float absolute -bottom-6 -right-3 w-16 rounded-2xl border-4 border-slate-900 bg-white p-1.5 shadow-2xl sm:w-20">
-          <span className="block h-1 w-6 rounded bg-slate-300 mx-auto" />
-          <span className="nv-rise mt-1.5 block h-6 rounded bg-emerald-500" style={{ animationDelay: "1300ms" }} />
-          <span className="nv-rise mt-1 block h-2 rounded bg-slate-200" style={{ animationDelay: "1450ms" }} />
-          <span className="nv-rise mt-1 block h-2 w-2/3 rounded bg-slate-200" style={{ animationDelay: "1600ms" }} />
+        <div className="relative left-1/2 h-2.5 w-[112%] -translate-x-1/2 rounded-b-xl bg-gradient-to-b from-slate-500 to-slate-700 shadow-xl" />
+        <div className="nv-float absolute -bottom-10 -right-5 w-16 rounded-[16px] bg-slate-900 p-1 shadow-2xl ring-1 ring-white/25 sm:w-20">
+          <img src="/images/dev-nextvita-mobile.webp" alt="" width={300} height={560} className="aspect-[9/17] w-full rounded-[12px] object-cover object-top" />
         </div>
       </div>
     );
