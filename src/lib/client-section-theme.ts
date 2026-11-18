@@ -1,6 +1,6 @@
 import {
   Activity, BookOpen, CalendarDays, Droplets, History, LayoutDashboard, Moon, Pill, Scale, Sparkles, Target, UtensilsCrossed,
-  type LucideIcon,
+  Ruler, type LucideIcon,
 } from "lucide-react";
 import type { ClientSection } from "./client-pages";
 
@@ -37,6 +37,8 @@ export const clientSectionTheme: Record<ClientSection, SectionTheme> = {
     overlay: "from-emerald-950 via-emerald-900/80 to-lime-500/10", pill: "bg-gradient-to-r from-emerald-600 to-lime-500", chip: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300" },
   atividade: { label: "Atividade", icon: Activity, image: "/images/painel-atividade.webp", position: "50% 60%",
     overlay: "from-orange-950 via-orange-900/80 to-amber-500/10", pill: "bg-gradient-to-r from-orange-600 to-amber-500", chip: "bg-orange-500/15 text-orange-600 dark:text-orange-300" },
+  medidas: { label: "Medidas", icon: Ruler, image: "/images/show-treinos.webp", position: "50% 40%",
+    overlay: "from-cyan-950 via-sky-950/85 to-indigo-600/10", pill: "bg-gradient-to-r from-cyan-500 to-indigo-500", chip: "bg-cyan-500/15 text-cyan-600 dark:text-cyan-300" },
   peso: { label: "Peso", icon: Scale, image: "/images/painel-peso.webp", position: "50% 50%",
     overlay: "from-fuchsia-950 via-purple-900/80 to-pink-500/10", pill: "bg-gradient-to-r from-fuchsia-600 to-pink-500", chip: "bg-fuchsia-500/15 text-fuchsia-600 dark:text-fuchsia-300" },
   sono: { label: "Sono", icon: Moon, image: "/images/show-sono.webp", position: "50% 35%",

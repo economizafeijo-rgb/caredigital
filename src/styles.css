@@ -894,3 +894,9 @@ html, #care-content { scrollbar-gutter: stable; }
 @media (max-width: 1023px) {
   body[data-bottom-nav] #care-content { padding-bottom: calc(5.25rem + env(safe-area-inset-bottom)) !important; }
 }
+/* Medidas do corpo: holograma */
+@keyframes nv-holo-scan { from { transform: translateY(0); } to { transform: translateY(480px); } }
+.nv-holo-scan { animation: nv-holo-scan 3.6s linear infinite; }
+@keyframes nv-holo-ring { 0%, 100% { stroke-opacity: 1; } 50% { stroke-opacity: .45; } }
+.nv-holo-ring { animation: nv-holo-ring 1.8s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .nv-holo-scan, .nv-holo-ring { animation: none; } }

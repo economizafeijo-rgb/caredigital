@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Phone, ScreenBody } from "./AppShowcase";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, BarChart3, Check, ChevronLeft, ChevronRight, Droplets, HeartPulse, MessageCircle, Pause, Pill, Play } from "lucide-react";
 import { money, products, STORE_WHATSAPP, useCart } from "@/lib/store";
@@ -60,6 +61,8 @@ const devSlide: Slide = {
 };
 
 const toolSlides: Slide[] = [
+  { id: "t-medidas", kicker: "Novo · Medidas do corpo", chapter: "Medidas do corpo", title: "Acompanhe cada centímetro da sua evolução", text: "Cintura, braços, coxas e mais num corpo interativo, com gráficos, relação cintura-quadril e gordura estimada. Ideal para a academia ou o seu projeto.", cta: "Começar a medir", to: "/entrar", images: [], tone: "from-[#020617] via-[#06283d] to-[#0e7490]",
+    art: <Phone className="nv-float h-[19rem] w-[9.5rem]"><div className="absolute inset-x-0 bottom-0 top-6"><ScreenBody /></div></Phone> },
   { id: "t-agua", kicker: "Ferramenta gratuita", title: "Sua meta de água calculada e lembrada", text: "O app calcula quanto beber pelo seu peso e avisa o próximo copo ao longo do dia.", cta: "Usar grátis", to: "/hidratacao", images: [], tool: "agua", tone: "from-[#062a3d] to-[#0369a1]" },
   { id: "t-med", kicker: "Ferramenta gratuita", title: "Nenhuma dose esquecida", text: "Cartela interativa com horários, confirmação de cada dose e histórico completo.", cta: "Usar grátis", to: "/medicamentos", images: [], tool: "medicacao", tone: "from-[#3b0716] to-[#be123c]" },
   { id: "t-sono", kicker: "Ferramenta gratuita", title: "Batimentos e nota do sono ao vivo", text: "Conecte uma cinta ou relógio Bluetooth e acompanhe a noite em tempo real.", cta: "Conhecer", to: "/sono", images: [], tool: "sono", tone: "from-[#140f3a] to-[#4338ca]" },

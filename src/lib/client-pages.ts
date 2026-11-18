@@ -1,4 +1,4 @@
-export type ClientSection = "hoje" | "agenda" | "hidratacao" | "historico" | "alimentacao" | "cardapios" | "medicacao" | "atividade" | "peso" | "sono" | "suplementos" | "indicadores";
+export type ClientSection = "hoje" | "agenda" | "hidratacao" | "historico" | "alimentacao" | "cardapios" | "medicacao" | "atividade" | "peso" | "medidas" | "sono" | "suplementos" | "indicadores";
 export const clientSectionLabels: Record<ClientSection,{title:string;subtitle:string;tagline:string}> = {
   hoje:{title:"Visão geral",subtitle:"Acompanhamento de hoje, próximo cuidado e progresso do tratamento",tagline:"Painel do dia"},
   agenda:{title:"Meu dia",subtitle:"Remédios, água, refeições, suplementos, movimento e sono numa linha do tempo",tagline:"Organização diária"},
@@ -9,13 +9,14 @@ export const clientSectionLabels: Record<ClientSection,{title:string;subtitle:st
   medicacao:{title:"Tratamento e medicamentos",subtitle:"Cartelas de doses, horários programados e confirmações do tratamento",tagline:"Acompanhamento do tratamento"},
   atividade:{title:"Atividade física",subtitle:"Registre caminhadas, corrida, ciclismo, musculação e acompanhe sua rotina",tagline:"Movimento e evolução"},
   peso:{title:"Peso e composição",subtitle:"Registre seu peso e acompanhe a evolução com gráficos, IMC e metas",tagline:"Evolução corporal"},
+  medidas:{title:"Medidas do corpo",subtitle:"Circunferências, evolução na academia ou no seu projeto, relação cintura-quadril e gordura estimada",tagline:"Composição e medidas"},
   sono:{title:"Monitoramento do sono",subtitle:"Nota do sono, horas dormidas, regularidade e batimentos em tempo real com sensor Bluetooth",tagline:"Descanso e recuperação"},
   suplementos:{title:"Central de suplementação",subtitle:"Seus suplementos, doses, horários com timer, dicas e biblioteca de referência",tagline:"Suplementação inteligente"},
   indicadores:{title:"Evolução e métricas",subtitle:"Métricas do dia, do mês e do ano com gráficos interativos, metas atingidas e observações registradas",tagline:"Histórico e resultados"}
 };
 export const clientSectionHashes:Record<ClientSection,string>={
   hoje:"visao-geral",agenda:"agenda",hidratacao:"minha-hidratacao",historico:"historico",
-  alimentacao:"alimentacao",cardapios:"cardapios",medicacao:"medicacao",atividade:"atividade",peso:"peso",sono:"sono",suplementos:"suplementos",indicadores:"indicadores"
+  alimentacao:"alimentacao",cardapios:"cardapios",medicacao:"medicacao",atividade:"atividade",peso:"peso",medidas:"medidas",sono:"sono",suplementos:"suplementos",indicadores:"indicadores"
 };
 export function clientSectionFromHash(hash:string):ClientSection {
   let normalized:string;

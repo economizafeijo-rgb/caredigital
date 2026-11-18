@@ -34,6 +34,7 @@ import {
   ShoppingBag,
   Store,
   Users,
+  Ruler,
   Megaphone,
   Wallet,
   TrendingUp,
@@ -124,6 +125,7 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
       title: "Saúde",
       items: [
         section("peso", "Peso e evolução", Scale),
+        section("medidas", "Medidas do corpo", Ruler),
         section("sono", "Sono", BedDouble),
         section("suplementos", "Suplementos", Sparkles),
         section("indicadores", "Indicadores", Target),
