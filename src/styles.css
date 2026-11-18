@@ -900,3 +900,38 @@ html, #care-content { scrollbar-gutter: stable; }
 @keyframes nv-holo-ring { 0%, 100% { stroke-opacity: 1; } 50% { stroke-opacity: .45; } }
 .nv-holo-ring { animation: nv-holo-ring 1.8s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .nv-holo-scan, .nv-holo-ring { animation: none; } }
+/* Atalhos das áreas na página inicial */
+.nv-area:hover { border-color: color-mix(in srgb, var(--tile) 45%, var(--color-border)); }
+.nv-area:focus-visible { outline: 2px solid var(--tile); outline-offset: 2px; }
+/* Demonstração do produto (linha do tempo única de ~5 s por cena) */
+.nv-demo-scene { animation: nv-intro-fade .45s ease both; }
+@keyframes nv-demo-cursor { 0% { left: 92%; top: 96%; opacity: 0; } 12% { opacity: 1; } 42% { left: var(--cx); top: var(--cy); } 48% { left: var(--cx); top: var(--cy); transform: scale(.85); } 54%, 100% { left: var(--cx); top: var(--cy); transform: none; } }
+.nv-demo-cursor { animation: nv-demo-cursor var(--demo, 5.2s) cubic-bezier(.45,.05,.25,1) both; }
+@keyframes nv-demo-click { 0%, 46% { opacity: 0; transform: translate(-50%, -50%) scale(.3); } 50% { opacity: 1; } 62%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); } }
+.nv-demo-click { animation: nv-demo-click var(--demo, 5.2s) ease-out both; }
+@keyframes nv-demo-press { 0%, 46% { transform: none; } 50% { transform: scale(.92); filter: brightness(1.15); } 56%, 100% { transform: none; } }
+.nv-demo-press { animation: nv-demo-press var(--demo, 5.2s) ease both; }
+@keyframes nv-demo-before { 0%, 50% { opacity: 1; } 56%, 100% { opacity: 0; } }
+@keyframes nv-demo-after { 0%, 50% { opacity: 0; transform: translateY(4px); } 58%, 100% { opacity: 1; transform: none; } }
+.nv-demo-before { animation: nv-demo-before var(--demo, 5.2s) ease both; }
+.nv-demo-after { animation: nv-demo-after var(--demo, 5.2s) ease both; }
+@keyframes nv-demo-toast { 0%, 54% { opacity: 0; transform: translate(-50%, 10px); } 62%, 92% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, 0); } }
+.nv-demo-toast { animation: nv-demo-toast var(--demo, 5.2s) ease both; }
+@keyframes nv-demo-fill { 0%, 50% { height: var(--from); } 64%, 100% { height: var(--to); } }
+.nv-demo-fill { animation: nv-demo-fill var(--demo, 5.2s) cubic-bezier(.2,.8,.2,1) both; }
+@keyframes nv-demo-grow { 0% { width: 0; } 20%, 50% { width: var(--from); } 64%, 100% { width: var(--to); } }
+.nv-demo-grow { animation: nv-demo-grow var(--demo, 5.2s) cubic-bezier(.2,.8,.2,1) both; }
+@keyframes nv-demo-type { 0% { max-width: 0; } 38%, 100% { max-width: 12rem; } }
+.nv-demo-type { animation: nv-demo-type var(--demo, 5.2s) steps(22) both; }
+@keyframes nv-demo-draw { 0% { stroke-dasharray: 1; stroke-dashoffset: 1; } 55%, 100% { stroke-dasharray: 1; stroke-dashoffset: 0; } }
+.nv-demo-draw { animation: nv-demo-draw var(--demo, 5.2s) cubic-bezier(.4,0,.2,1) both; }
+@keyframes nv-demo-bar { from { transform: scaleY(0); } to { transform: none; } }
+.nv-demo-bar { transform-origin: bottom; animation: nv-demo-bar .7s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes nv-demo-progress { from { width: 0; } to { width: 100%; } }
+.nv-demo-progress { animation: nv-demo-progress var(--demo, 5.2s) linear both; }
+@media (prefers-reduced-motion: reduce) {
+  .nv-demo-cursor, .nv-demo-click { display: none; }
+  .nv-demo-before { animation: none; opacity: 0; } .nv-demo-after, .nv-demo-toast { animation: none; opacity: 1; }
+  .nv-demo-fill { animation: none; height: var(--to); } .nv-demo-grow { animation: none; width: var(--to); }
+  .nv-demo-type, .nv-demo-draw, .nv-demo-bar, .nv-demo-press, .nv-demo-progress { animation: none; }
+}

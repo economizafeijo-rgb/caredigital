@@ -1,7 +1,7 @@
 import { openProduct } from "./StoreViews";
 import { useMemo, useRef, useState, type CSSProperties } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, BadgeCheck, Check, ChevronLeft, ChevronRight, MapPin, Minus, Plus, ShoppingBag, ShoppingCart, Star, X } from "lucide-react";
+import { ArrowRight, BadgeCheck, Check, ChevronLeft, ChevronRight, Minus, Plus, ShoppingBag, ShoppingCart, Star, X } from "lucide-react";
 import { cart, categories, categoryLabel, money, PIX_DISCOUNT, products, useCart, vendorById, vendors, type Product, type StoreCategory, type VendorId } from "@/lib/store";
 
 type Filter = StoreCategory | "todos";
@@ -133,41 +133,35 @@ export function HomeStore({ className = "" }: { className?: string }) {
       </div>
 
       <div className="mt-4 border-t border-border pt-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h3 className="font-display text-base font-bold">Lojas na plataforma</h3>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="flex items-center gap-2 font-display text-base font-bold">Lojas parceiras <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">exemplos ilustrativos</span></h3>
           <Link to="/parceiros" className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
             Tem uma loja? Venda aqui <ArrowRight size={14} aria-hidden="true" />
           </Link>
         </div>
-        <p className="text-xs text-slate-600 dark:text-muted-foreground">Lojas, notas e selos de verificação são exemplos ilustrativos de como os parceiros aparecerão após o lançamento.</p>
-        <ul className="-mx-4 mt-2.5 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:px-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden">
-          {vendors.map((v) => {
+        <ul className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-4 sm:px-0 xl:grid-cols-7 [&::-webkit-scrollbar]:hidden">
+          {vendors.map((v, i) => {
             const total = products.filter((p) => p.vendorId === v.id).length;
+            const on = vendor === v.id;
             return (
-              <li key={v.id} className="w-64 shrink-0 sm:w-auto">
-                <button
-                  type="button"
-                  aria-pressed={vendor === v.id}
-                  onClick={() => { setVendor(vendor === v.id ? null : v.id); rail.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }); }}
-                  style={{ "--tile": v.hex } as CSSProperties}
-                  className={`nv-tile flex h-full w-full items-start gap-2.5 rounded-xl border bg-background p-2.5 text-left ${vendor === v.id ? "border-[var(--tile)] ring-1 ring-[var(--tile)]" : "border-border"}`}
-                >
-                <span className={`nv-tile-icon grid size-10 shrink-0 place-items-center rounded-lg text-sm font-bold text-white ${v.color}`} aria-hidden="true">{v.initials}</span>
-                <span className="min-w-0">
-                  <strong className="flex items-center gap-1 text-[13px] font-semibold">
-                    <span className="line-clamp-1">{v.name}</span>
-                    {v.sampleVerified && <BadgeCheck size={14} className="shrink-0 text-sky-600" aria-hidden="true" />}
-                  </strong>
-                  <span className="block truncate text-[11px] text-slate-600 dark:text-muted-foreground">{v.sector}</span>
-                  <span className="flex items-center gap-1 truncate text-[11px] text-slate-500 dark:text-muted-foreground"><MapPin size={11} aria-hidden="true" /> {v.city} · {total} {total === 1 ? "produto" : "produtos"}</span>
-                  <span className="mt-1 flex flex-wrap items-center gap-1 text-[11px]">
-                    <span className="inline-flex items-center gap-0.5 font-semibold text-amber-700 dark:text-amber-300"><Star size={11} className="fill-current" aria-hidden="true" /> {v.sampleRating.toFixed(1).replace(".", ",")}</span>
-                    {v.sampleVerified && <span className="rounded-full bg-sky-600/10 px-1.5 py-px font-semibold text-sky-700 dark:text-sky-300">Verificada</span>}
-                    <span className="rounded-full bg-muted px-1.5 py-px text-slate-600 dark:text-muted-foreground">exemplo</span>
-                  </span>
-                  <span className="nv-tile-hint block text-[11px] font-semibold text-[var(--tile)] dark:text-foreground">{vendor === v.id ? "Mostrando os produtos" : "Ver produtos da loja"}</span>
-                </span>
-                </button>
+              <li key={v.id} className="nv-rise w-36 shrink-0 sm:w-auto" style={{ animationDelay: `${i * 40}ms` }}>
+                <div style={{ "--tile": v.hex } as CSSProperties}
+                  className={`group relative flex h-full flex-col items-center rounded-2xl border bg-background px-2 pb-2 pt-3 text-center transition-colors duration-300 ${on ? "border-[var(--tile)] bg-[color-mix(in_srgb,var(--tile)_8%,transparent)]" : "border-border hover:border-[color-mix(in_srgb,var(--tile)_50%,transparent)]"}`}>
+                  <button type="button" aria-pressed={on} aria-label={`Filtrar produtos de ${v.name}`} onClick={() => { setVendor(on ? null : v.id); rail.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }); }} className="flex w-full flex-col items-center">
+                    <span className="relative grid size-11 place-items-center rounded-2xl text-sm font-extrabold text-white shadow-md ring-1 ring-white/20 transition-transform duration-300 group-hover:scale-105" style={{ background: `linear-gradient(140deg, color-mix(in srgb, ${v.hex} 70%, #fff), ${v.hex} 55%, color-mix(in srgb, ${v.hex} 70%, #000))` }} aria-hidden="true">
+                      {v.initials}
+                      {v.sampleVerified && <BadgeCheck size={15} className="absolute -bottom-1 -right-1 rounded-full bg-background text-sky-500" />}
+                    </span>
+                    <strong className="mt-2 line-clamp-1 w-full text-[12.5px] font-bold">{v.name}</strong>
+                    <span className="line-clamp-1 w-full text-[10.5px] text-muted-foreground">{v.sector}</span>
+                    <span className="mt-1 flex items-center gap-1 text-[10.5px] text-muted-foreground">
+                      <Star size={10} className="fill-amber-400 text-amber-400" aria-hidden="true" /><strong className="font-semibold text-foreground">{v.sampleRating.toFixed(1).replace(".", ",")}</strong> · {v.city.replace(", AC", "")} · {total}
+                    </span>
+                  </button>
+                  <Link to="/loja" search={{ loja: v.id } as never} className="mt-2 inline-flex h-7 w-full items-center justify-center gap-1 rounded-lg bg-muted text-[11px] font-bold text-foreground transition hover:bg-[var(--tile)] hover:text-white">
+                    Visitar loja
+                  </Link>
+                </div>
               </li>
             );
           })}
