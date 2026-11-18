@@ -70,7 +70,7 @@ export function useDailyNutrition(
     void Promise.all([
       db
         .from("care_activity_log")
-        .select("id,happened_at,details,event_type")
+        .select("id,happened_at,details,event_type,source")
         .eq("patient_id", patientId)
         .eq("owner_id", ownerId)
         .eq("category", "refeicao")
@@ -103,14 +103,17 @@ export function useDailyNutrition(
         if (!active) return;
         const list: Entry[] = [];
         for (const row of meals.data ?? []) {
+          // Versões antigas (editadas/excluídas) e registros da biblioteca (já listados como porções) não entram.
+          if (row.details?.superseded || row.source === "client_nutrition_library") continue;
           const text = String(row.details?.description || row.details?.title || "");
           list.push({
             at: row.happened_at,
             source: row.event_type === "logged" ? "Refeição registrada" : "Refeição confirmada",
             text,
             foods: parseFoodText(text),
-            entryType: "meal",
-            entryId: row.id,
+            // Só registros avulsos podem ser editados/excluídos aqui; cuidados da agenda se ajustam na agenda.
+            entryType: row.event_type === "logged" ? "meal" : undefined,
+            entryId: row.event_type === "logged" ? row.id : undefined,
           });
         }
         for (const row of drinks.data ?? []) {

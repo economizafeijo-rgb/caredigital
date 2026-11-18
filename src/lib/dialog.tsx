@@ -63,7 +63,7 @@ function DialogOverlay({
   const [value, setValue] = useState("");
   return (
     <div
-      className="fixed inset-0 z-[200] grid place-items-center bg-slate-950/45 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[12000] grid place-items-center bg-slate-950/45 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="nextvita-dialog-title"

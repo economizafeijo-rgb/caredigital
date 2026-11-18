@@ -59,6 +59,8 @@ export function HydrationEntries({ patientId, water, beverages, goal, onChanged 
     setEditing(null); onChanged();
   }
   async function remove(e: Entry) {
+    const what = e.source === "beverage" ? `${e.name || "bebida"} (${Math.round(Number(e.amount_ml))} ml)` : `${Math.round(Number(e.amount_ml))} ml de água`;
+    if (!(await dialog.confirm("Excluir definitivamente?", `${what} às ${hhmm(e.recorded_at)} será apagado e o total do dia recalculado. Não dá para desfazer.`, true, "Excluir"))) return;
     setBusy(true); setError("");
     const { error: err } = await (supabase as any).rpc("care_delete_intake_entry", { p_patient_id: patientId, p_entry_type: e.source, p_entry_id: e.id });
     setBusy(false);
@@ -137,7 +139,7 @@ export function HydrationEntries({ patientId, water, beverages, goal, onChanged 
                       ]}
                     />
                     <button type="button" onClick={() => startEdit(e)} aria-label={`Editar registro de ${ml(Number(e.amount_ml))} às ${hhmm(e.recorded_at)}`} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 text-xs font-bold hover:border-primary/40"><Pencil size={14} /> <span className="hidden sm:inline">Editar</span></button>
-                    <button type="button" onClick={() => { setConfirmId(e.id); setEditing(null); setError(""); }} aria-label={`Excluir registro de ${ml(Number(e.amount_ml))} às ${hhmm(e.recorded_at)}`} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 text-xs font-bold text-rose-700 dark:text-rose-300"><Trash2 size={14} /> <span className="hidden sm:inline">Excluir</span></button>
+                    <button type="button" onClick={() => { setEditing(null); setError(""); void remove(e); }} aria-label={`Excluir registro de ${ml(Number(e.amount_ml))} às ${hhmm(e.recorded_at)}`} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 text-xs font-bold text-rose-700 dark:text-rose-300"><Trash2 size={14} /> <span className="hidden sm:inline">Excluir</span></button>
                   </span>
                 )}
               </div>
