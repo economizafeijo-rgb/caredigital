@@ -120,7 +120,7 @@ export function HomeStore({ className = "" }: { className?: string }) {
           <h2 id="home-store-title" className="flex items-center gap-2.5 font-display text-2xl font-extrabold tracking-tight sm:text-3xl">
             <ShoppingBag className="text-primary" size={26} aria-hidden="true" /> Loja NextVita
           </h2>
-          <p className="mt-1.5 text-sm text-muted-foreground sm:text-base">
+          <p className="mt-1.5 text-sm text-slate-600 dark:text-muted-foreground sm:text-base">
             Suplementos, vitaminas, moda fitness e acessórios para a rotina que você já acompanha aqui.
           </p>
         </div>
@@ -152,7 +152,7 @@ export function HomeStore({ className = "" }: { className?: string }) {
               type="button"
               aria-pressed={active}
               onClick={() => setFilter(c.key)}
-              className={`h-9 shrink-0 rounded-full px-4 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+              className={`h-10 shrink-0 rounded-full px-4 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                 active ? "bg-foreground text-background" : "border border-border bg-background text-foreground hover:border-foreground/40"
               }`}
             >
@@ -183,12 +183,12 @@ export function HomeStore({ className = "" }: { className?: string }) {
         </li>
       </ul>
 
-      <p className="mt-3 flex items-start gap-2 text-xs text-muted-foreground">
+      <p className="mt-3 flex items-start gap-2 text-xs text-slate-600 dark:text-muted-foreground">
         <Info size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
         A loja está em fase de lançamento: preços e estoque ainda são de demonstração, e o pagamento é combinado com a nossa equipe.
       </p>
 
-      <div className="mt-5 flex flex-col gap-3 rounded-2xl bg-[#06302b] p-5 text-white sm:flex-row sm:items-center sm:justify-between">
+      <div className="nv-dark mt-5 flex flex-col gap-3 rounded-2xl bg-[#06302b] p-5 text-white sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-white/10" aria-hidden="true">
             <Store size={20} />

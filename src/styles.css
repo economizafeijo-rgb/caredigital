@@ -60,7 +60,7 @@
   --card-foreground: #102b31;
   --popover: #ffffff;
   --popover-foreground: #102b31;
-  --primary: #0e8a6a;
+  --primary: #0c8063;
   --primary-foreground: #ffffff;
   --secondary: #e7f1ef;
   --secondary-foreground: #102b31;
@@ -80,7 +80,7 @@
   --sidebar: #0b2528;
   --border: #d7e7e3;
   --input: #b9d3ce;
-  --ring: #36b89e;
+  --ring: #0c8063;
   --shadow-card: 0 1px 2px rgb(16 43 49 / 0.04), 0 8px 24px -16px rgb(16 43 49 / 0.18);
   --shadow-pop: 0 24px 60px -24px rgb(16 43 49 / 0.32);
 }
@@ -433,6 +433,8 @@ iframe[title*="Lovable" i][title*="badge" i] { display: none !important; visibil
 .nv-fade-in { animation: nv-fade-in 0.28s ease-out both; }
 .nv-bump { animation: nv-bump 0.35s ease-out; }
 @media (prefers-reduced-motion: reduce) { .nv-fade-in, .nv-bump { animation: none; } }
+/* Foco visível sobre fundos escuros (hero, banners): contorno branco para contraste. */
+.nv-dark :focus-visible { outline-color: #ffffff; }
 
 /* ---------- Gráficos de peso: pulso no último ponto, rótulos e cartões que entram suavemente ---------- */
 @keyframes nv-ping { 0% { transform: scale(1); opacity: 0.55; } 80%, 100% { transform: scale(3.2); opacity: 0; } }

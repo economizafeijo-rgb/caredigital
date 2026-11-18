@@ -11,7 +11,7 @@ const shots = ["/images/caredigital-alimentacao.webp", "/images/caredigital-hidr
 /** Propaganda "Grátis para teste": convite de cadastro para novos clientes (página inicial, sem login). */
 export function TrialAd() {
   return (
-    <section aria-labelledby="trial-ad-title" className="relative isolate overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#03211f] via-[#0a4a41] to-[#0e8a6a] text-white shadow-pop">
+    <section aria-labelledby="trial-ad-title" className="nv-dark relative isolate overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#03211f] via-[#0a4a41] to-[#0e8a6a] text-white shadow-pop">
       <div aria-hidden="true" className="pointer-events-none absolute -left-20 -top-24 -z-10 size-96 rounded-full bg-emerald-300/20 blur-3xl" />
       <div aria-hidden="true" className="pointer-events-none absolute -bottom-32 right-0 -z-10 size-[28rem] rounded-full bg-cyan-300/15 blur-3xl" />
       <div className="grid gap-6 p-5 sm:p-8 lg:grid-cols-[1.15fr_.85fr] lg:items-center lg:p-10">
@@ -33,9 +33,9 @@ export function TrialAd() {
           </ul>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
             <a href="/entrar?mode=signup" className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-300 to-teal-200 px-8 text-lg font-extrabold text-slate-950 shadow-[0_10px_40px_-10px_rgba(52,211,153,.9)] transition hover:-translate-y-0.5 hover:brightness-105 active:scale-95">
-              <Gift size={21} /> Criar minha conta grátis <ArrowRight size={19} />
+              <Gift size={21} aria-hidden="true" /> Criar conta grátis <ArrowRight size={19} aria-hidden="true" />
             </a>
-            <a href="/entrar" className="inline-flex h-12 items-center justify-center rounded-2xl border border-white/30 px-6 text-sm font-bold text-white/90 backdrop-blur transition hover:bg-white/10">Já tenho conta</a>
+            <a href="/entrar" className="inline-flex h-12 items-center justify-center rounded-2xl border border-white/30 px-6 text-sm font-bold text-white/90 backdrop-blur transition hover:bg-white/10">Entrar na minha conta</a>
           </div>
           <p className="mt-3 flex items-center gap-2 text-xs text-emerald-50/70"><HeartPulse size={14} className="text-emerald-300" /> Feito em Feijó, Acre. Gratuito, sem cartão e sem compromisso.</p>
         </div>
