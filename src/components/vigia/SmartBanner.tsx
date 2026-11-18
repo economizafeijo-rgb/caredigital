@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, BarChart3, Check, ChevronLeft, ChevronRight, Droplets, HeartPulse, Pause, Pill, Play } from "lucide-react";
-import { money, products, useCart } from "@/lib/store";
+import { ArrowRight, BarChart3, Check, ChevronLeft, ChevronRight, Droplets, HeartPulse, MessageCircle, Pause, Pill, Play } from "lucide-react";
+import { money, products, STORE_WHATSAPP, useCart } from "@/lib/store";
 
 type Slide = {
   id: string;
@@ -10,7 +10,8 @@ type Slide = {
   text: string;
   cta: string;
   to: "/loja" | "/sono" | "/parceiros" | "/hidratacao" | "/medicamentos" | "/metricas" | "/entrar";
-  tool?: "agua" | "medicacao" | "sono" | "metricas";
+  tool?: "agua" | "medicacao" | "sono" | "metricas" | "dev";
+  href?: string;
   images: string[];
   price?: string;
   tone: string;
@@ -31,6 +32,20 @@ function momentSlide(hour: number): Slide {
     return { id: "tarde", kicker: "Hora do treino", title: "Energia e foco para o treino da tarde", text: "Pré-treino, coqueteleira e acessórios para render mais na academia ou em casa.", cta: "Ver suplementos", to: "/loja", images: [img("pre-treino"), img("coqueteleira")], price: priceOf("pre-treino"), tone: "from-[#2b0f0a] to-[#b45309]" };
   return { id: "noite", kicker: "Recuperação", title: "Proteína para a recuperação da noite", text: "Whey e proteína vegetal para fechar a meta de proteína do dia.", cta: "Ver proteínas", to: "/loja", images: [img("whey-900"), img("proteina-vegetal")], price: priceOf("whey-900"), tone: "from-[#0b1f3a] to-[#1d4ed8]" };
 }
+
+const DEV_WHATSAPP = `https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent("Olá, Franc! Tenho uma ideia e quero transformar em site ou aplicativo.")}`;
+const devSlide: Slide = {
+  id: "dev",
+  kicker: "Franc D'nis · Desenvolvedor",
+  title: "Tem uma ideia? Eu transformo em site ou aplicativo.",
+  text: "Plataformas sob medida como a NextVita, do layout ao sistema no ar. Tecnologia de alto nível feita em Feijó, Acre.",
+  cta: "Chamar no WhatsApp",
+  to: "/sobre",
+  href: DEV_WHATSAPP,
+  images: [],
+  tool: "dev",
+  tone: "from-[#0b1120] to-[#0c8063]",
+};
 
 const toolSlides: Slide[] = [
   { id: "t-agua", kicker: "Ferramenta gratuita", title: "Sua meta de água calculada e lembrada", text: "O app calcula quanto beber pelo seu peso e avisa o próximo copo ao longo do dia.", cta: "Usar grátis", to: "/hidratacao", images: [], tool: "agua", tone: "from-[#062a3d] to-[#0369a1]" },
@@ -75,6 +90,7 @@ export function SmartBanner({ className = "" }: { className?: string }) {
       if (toolSlides[i]) mixed.push(toolSlides[i]);
       if (baseSlides[i]) mixed.push(baseSlides[i]);
     }
+    mixed.splice(2, 0, devSlide);
     return [...list, ...mixed];
   }, [count, subtotal, hour]);
 
@@ -115,15 +131,21 @@ export function SmartBanner({ className = "" }: { className?: string }) {
       <div key={slide.id} className="nv-fade-in grid h-full min-h-[15rem] grid-cols-[1fr_auto] items-center gap-3 p-5 sm:min-h-[17rem] sm:p-7" aria-live={playing ? "off" : "polite"}>
         <div className="min-w-0 max-w-[34ch]">
           <p className="nv-rise inline-flex items-center gap-1.5 text-xs font-semibold text-white/80">
-            {slide.tool && <span className="rounded-full bg-emerald-400 px-2 py-0.5 text-[11px] font-bold text-slate-950">Grátis</span>}
+            {slide.tool && slide.tool !== "dev" && <span className="rounded-full bg-emerald-400 px-2 py-0.5 text-[11px] font-bold text-slate-950">Grátis</span>}
             {slide.kicker}
           </p>
           <h2 style={{ animationDelay: "80ms" }} className="nv-rise mt-1 text-balance font-display text-xl font-extrabold leading-tight sm:text-2xl">{slide.title}</h2>
           <p style={{ animationDelay: "160ms" }} className="nv-rise mt-2 line-clamp-3 text-sm leading-snug text-white/85">{slide.text}</p>
           {slide.price && <p style={{ animationDelay: "240ms" }} className="nv-rise mt-2 text-sm text-white/80">a partir de <strong className="text-lg font-extrabold text-white tabular-nums">{slide.price}</strong></p>}
-          <Link to={slide.to} style={{ animationDelay: "300ms" }} className="nv-rise mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-slate-950 hover:bg-white/90">
-            {slide.cta} <ArrowRight size={16} aria-hidden="true" />
-          </Link>
+          {slide.href ? (
+            <a href={slide.href} target="_blank" rel="noopener noreferrer" style={{ animationDelay: "300ms" }} className="nv-rise mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-[#25d366] px-4 text-sm font-bold text-slate-950 hover:brightness-105">
+              <MessageCircle size={16} aria-hidden="true" /> {slide.cta}
+            </a>
+          ) : (
+            <Link to={slide.to} style={{ animationDelay: "300ms" }} className="nv-rise mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-slate-950 hover:bg-white/90">
+              {slide.cta} <ArrowRight size={16} aria-hidden="true" />
+            </Link>
+          )}
         </div>
         <div className="relative flex h-full items-center pb-6" aria-hidden="true">
           {slide.tool ? (
@@ -174,6 +196,31 @@ export function SmartBanner({ className = "" }: { className?: string }) {
 function ToolDemo({ kind }: { kind: NonNullable<Slide["tool"]> }) {
   const base = "nv-banner-img w-44 rounded-2xl p-3.5 shadow-2xl sm:w-52";
   const card = `${base} bg-white text-slate-900`;
+  if (kind === "dev")
+    return (
+      <div className="nv-banner-img relative w-48 sm:w-60">
+        <div className="overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-white/20">
+          <div className="flex items-center gap-1.5 border-b border-slate-200 bg-slate-100 px-2.5 py-1.5">
+            <span className="size-2 rounded-full bg-rose-400" /><span className="size-2 rounded-full bg-amber-400" /><span className="size-2 rounded-full bg-emerald-400" />
+            <span className="ml-2 h-2.5 flex-1 rounded bg-white" />
+          </div>
+          <div className="grid gap-1.5 p-3">
+            <span className="nv-type block h-3 rounded bg-emerald-600" style={{ width: "62%", animationDelay: "200ms" }} />
+            <span className="nv-type block h-2 rounded bg-slate-300" style={{ width: "88%", animationDelay: "500ms" }} />
+            <span className="nv-type block h-2 rounded bg-slate-300" style={{ width: "74%", animationDelay: "750ms" }} />
+            <div className="mt-1 grid grid-cols-3 gap-1.5">
+              {[0, 1, 2].map((i) => <span key={i} className="nv-rise block h-8 rounded-md bg-emerald-100" style={{ animationDelay: `${1000 + i * 150}ms` }} />)}
+            </div>
+          </div>
+        </div>
+        <div className="nv-float absolute -bottom-6 -right-3 w-16 rounded-2xl border-4 border-slate-900 bg-white p-1.5 shadow-2xl sm:w-20">
+          <span className="block h-1 w-6 rounded bg-slate-300 mx-auto" />
+          <span className="nv-rise mt-1.5 block h-6 rounded bg-emerald-500" style={{ animationDelay: "1300ms" }} />
+          <span className="nv-rise mt-1 block h-2 rounded bg-slate-200" style={{ animationDelay: "1450ms" }} />
+          <span className="nv-rise mt-1 block h-2 w-2/3 rounded bg-slate-200" style={{ animationDelay: "1600ms" }} />
+        </div>
+      </div>
+    );
   if (kind === "agua")
     return (
       <div className={card}>

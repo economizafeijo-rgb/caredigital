@@ -620,3 +620,8 @@ body:has(.care-shell #care-client-tab-panel) {
 .nv-side-pulse { --len: 460; stroke-dasharray: 460; animation: nv-pulse-draw 5s ease-in-out infinite alternate; }
 .nv-bottom-pulse { --len: 1400; stroke-dasharray: 1400; animation: nv-pulse-draw 6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .nv-side-pulse, .nv-bottom-pulse { animation: none; stroke-dashoffset: 0; } }
+
+/* Banner do desenvolvedor: linhas de código "digitando" na janela do navegador. */
+@keyframes nv-type { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+.nv-type { animation: nv-type 0.7s steps(12, end) both; }
+@media (prefers-reduced-motion: reduce) { .nv-type { animation: none; } }
