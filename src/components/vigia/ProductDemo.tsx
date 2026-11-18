@@ -22,26 +22,41 @@ const SCENES: Scene[] = [
   {
     key: "agua", label: "Hidratação", icon: Droplets, color: "#38bdf8", cursor: ["74%", "70%"],
     render: () => (
-      <div className="grid h-full grid-cols-[auto_1fr] items-center gap-6 px-6">
-        {/* Copo com água em ondas: a gota cai no clique e o nível sobe */}
-        <div className="relative h-36 w-[5.5rem] shrink-0">
-          <span aria-hidden className="nv-demo-drop absolute left-1/2 top-0 z-10 block size-3 -translate-x-1/2 rotate-45 rounded-full rounded-tl-none bg-cyan-200 shadow-[0_0_10px_rgba(103,232,249,.8)]" />
-          <div className="absolute inset-x-0 bottom-0 top-5 overflow-hidden rounded-b-[1.6rem] rounded-t-lg border-2 border-white/20 bg-white/[.03] shadow-[inset_0_-12px_24px_rgba(56,189,248,.12)]">
-            <div className="nv-demo-fill absolute inset-x-0 bottom-0" style={{ ["--from" as string]: "50%", ["--to" as string]: "60%" } as CSSProperties}>
-              <svg aria-hidden viewBox="0 0 200 12" preserveAspectRatio="none" className="nv-wave absolute -top-[9px] left-0 h-[10px] w-[200%] opacity-50" style={{ animationDuration: "5s", animationDirection: "reverse" }}><path d="M0 6 Q 12.5 0 25 6 T 50 6 T 75 6 T 100 6 T 125 6 T 150 6 T 175 6 T 200 6 V12 H0Z" fill="#67e8f9" /></svg>
-              <svg aria-hidden viewBox="0 0 200 12" preserveAspectRatio="none" className="nv-wave absolute -top-[7px] left-0 h-[8px] w-[200%]" style={{ animationDuration: "3s" }}><path d="M0 6 Q 12.5 0 25 6 T 50 6 T 75 6 T 100 6 T 125 6 T 150 6 T 175 6 T 200 6 V12 H0Z" fill="#22d3ee" /></svg>
-              <div className="absolute inset-0 bg-gradient-to-b from-[#22d3ee] via-sky-500 to-sky-700" />
-              <span aria-hidden className="nv-demo-bubble absolute bottom-2 left-[30%] size-1.5 rounded-full bg-white/50" />
-              <span aria-hidden className="nv-demo-bubble absolute bottom-4 left-[62%] size-1 rounded-full bg-white/40" style={{ animationDelay: "1.2s" }} />
-            </div>
-            <span aria-hidden className="absolute bottom-5 left-2 top-3 w-1 rounded-full bg-gradient-to-b from-white/35 to-transparent" />
-            {[25, 50, 75].map((t) => <span key={t} aria-hidden className="absolute right-0 h-px w-2.5 bg-white/30" style={{ bottom: `${t}%` }} />)}
-          </div>
+      <div className="grid h-full grid-cols-[auto_1fr] items-center gap-5 px-6">
+        {/* Garrafa de água: a gota cai no clique, o nível sobe com ondas */}
+        <div className="relative h-40 w-[5.25rem] shrink-0">
+          <span aria-hidden className="nv-demo-plus absolute -right-3 top-[38%] z-10 rounded-full bg-cyan-300 px-1.5 py-0.5 text-[10px] font-extrabold text-sky-950 shadow-lg">+250</span>
+          <svg viewBox="0 0 84 168" aria-hidden className="absolute inset-0 size-full overflow-visible">
+            <defs>
+              <clipPath id="nv-bottle-clip"><path d="M30 34 h24 c0 7 14 11 14 26 v86 c0 9 -7 16 -16 16 h-20 c-9 0 -16 -7 -16 -16 v-86 c0 -15 14 -19 14 -26 z" /></clipPath>
+              <linearGradient id="nv-bottle-water" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#67e8f9" /><stop offset=".55" stopColor="#0ea5e9" /><stop offset="1" stopColor="#0369a1" /></linearGradient>
+              <linearGradient id="nv-bottle-glass" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stopColor="#fff" stopOpacity=".14" /><stop offset=".5" stopColor="#fff" stopOpacity=".03" /><stop offset="1" stopColor="#fff" stopOpacity=".1" /></linearGradient>
+            </defs>
+            {/* tampa e gargalo */}
+            <rect x="29" y="6" width="26" height="16" rx="4" fill="#22d3ee" />
+            <rect x="29" y="6" width="26" height="5" rx="2.5" fill="#a5f3fc" opacity=".7" />
+            {[33, 38, 43, 48].map((x) => <rect key={x} x={x} y="12" width="2" height="8" rx="1" fill="#0e7490" opacity=".45" />)}
+            <rect x="31" y="22" width="22" height="12" rx="2" fill="url(#nv-bottle-glass)" stroke="rgba(255,255,255,.28)" strokeWidth="1.5" />
+            {/* corpo */}
+            <path d="M30 34 h24 c0 7 14 11 14 26 v86 c0 9 -7 16 -16 16 h-20 c-9 0 -16 -7 -16 -16 v-86 c0 -15 14 -19 14 -26 z" fill="url(#nv-bottle-glass)" />
+            <g clipPath="url(#nv-bottle-clip)">
+              <g className="nv-demo-level" style={{ ["--from" as string]: "0px", ["--to" as string]: "-14px" } as CSSProperties}>
+                <g className="nv-bottle-wave" style={{ animationDuration: "4.5s", animationDirection: "reverse" }}><path d="M-40 92 q10 -5 20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 V170 H-40Z" fill="#a5f3fc" opacity=".45" /></g>
+                <g className="nv-bottle-wave" style={{ animationDuration: "2.6s" }}><path d="M-40 94 q10 -4 20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 V170 H-40Z" fill="url(#nv-bottle-water)" /></g>
+                <circle className="nv-demo-bubble" cx="34" cy="150" r="2" fill="#fff" opacity=".5" />
+                <circle className="nv-demo-bubble" cx="50" cy="156" r="1.4" fill="#fff" opacity=".45" style={{ animationDelay: "1.1s" }} />
+              </g>
+            </g>
+            <path d="M30 34 h24 c0 7 14 11 14 26 v86 c0 9 -7 16 -16 16 h-20 c-9 0 -16 -7 -16 -16 v-86 c0 -15 14 -19 14 -26 z" fill="none" stroke="rgba(255,255,255,.35)" strokeWidth="2" />
+            {/* reflexo e marcas de medida */}
+            <path d="M22 64 v74" stroke="#fff" strokeOpacity=".28" strokeWidth="3" strokeLinecap="round" />
+            {[70, 92, 114, 136].map((y, i) => <g key={y}><line x1="58" x2="66" y1={y} y2={y} stroke="#fff" strokeOpacity=".35" strokeWidth="1.2" /><text x="56" y={y + 3} textAnchor="end" fontSize="6" fill="#fff" fillOpacity=".4">{["2L", "1,5", "1L", "0,5"][i]}</text></g>)}
+          </svg>
         </div>
         <div className="min-w-0">
           <p className="text-[11px] text-white/55">Hoje · meta de 3,0 L</p>
           <p className="flex items-baseline gap-1.5 text-white">
-            <span className="relative inline-block h-8 w-[4.6rem] font-display text-[1.6rem] font-extrabold tabular-nums leading-8"><Before className="absolute inset-0">1,50 L</Before><After className="absolute inset-0 text-cyan-200">1,75 L</After></span>
+            <span className="inline-grid whitespace-nowrap font-display text-[1.6rem] font-extrabold tabular-nums leading-8 [&>*]:[grid-area:1/1]"><Before>1,50 L</Before><After className="text-cyan-200">1,75 L</After></span>
             <span className="text-xs text-white/50">58%</span>
           </p>
           <div aria-hidden className="mt-2 flex gap-1">

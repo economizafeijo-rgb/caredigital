@@ -920,6 +920,12 @@ html, #care-content { scrollbar-gutter: stable; }
 @keyframes nv-demo-fill { 0%, 50% { height: var(--from); } 64%, 100% { height: var(--to); } }
 @keyframes nv-demo-drop { 0%, 48% { opacity: 0; transform: translate(-50%, -6px) rotate(45deg); } 52% { opacity: 1; transform: translate(-50%, 0) rotate(45deg); } 62% { opacity: 1; transform: translate(-50%, 4.6rem) rotate(45deg) scale(.9); } 65%, 100% { opacity: 0; transform: translate(-50%, 4.9rem) rotate(45deg) scale(.4); } }
 .nv-demo-drop { animation: nv-demo-drop var(--demo, 5.2s) cubic-bezier(.55,0,.9,.45) both; }
+@keyframes nv-demo-plus { 0%, 50% { opacity: 0; transform: translateY(8px) scale(.8); } 58% { opacity: 1; transform: none; } 80% { opacity: 1; transform: translateY(-10px); } 92%, 100% { opacity: 0; transform: translateY(-16px); } }
+.nv-demo-plus { animation: nv-demo-plus var(--demo, 5.2s) ease both; }
+@keyframes nv-demo-level { 0%, 52% { transform: translateY(var(--from)); } 68%, 100% { transform: translateY(var(--to)); } }
+.nv-demo-level { animation: nv-demo-level var(--demo, 5.2s) cubic-bezier(.2,.8,.2,1) both; }
+@keyframes nv-bottle-wave { from { transform: translateX(0); } to { transform: translateX(-40px); } }
+.nv-bottle-wave { animation: nv-bottle-wave 3s linear infinite; }
 @keyframes nv-demo-bubble { 0% { opacity: 0; transform: translateY(0); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-2.6rem); } }
 .nv-demo-bubble { animation: nv-demo-bubble 2.4s ease-in infinite; }
 .nv-demo-fill { animation: nv-demo-fill var(--demo, 5.2s) cubic-bezier(.2,.8,.2,1) both; }
@@ -934,7 +940,7 @@ html, #care-content { scrollbar-gutter: stable; }
 @keyframes nv-demo-progress { from { width: 0; } to { width: 100%; } }
 .nv-demo-progress { animation: nv-demo-progress var(--demo, 5.2s) linear both; }
 @media (prefers-reduced-motion: reduce) {
-  .nv-demo-cursor, .nv-demo-click, .nv-demo-drop, .nv-demo-bubble { display: none; }
+  .nv-demo-cursor, .nv-demo-click, .nv-demo-drop, .nv-demo-bubble, .nv-demo-plus { display: none; } .nv-demo-level { animation: none; transform: translateY(var(--to)); } .nv-bottle-wave { animation: none; }
   .nv-demo-before { animation: none; opacity: 0; } .nv-demo-after, .nv-demo-toast { animation: none; opacity: 1; }
   .nv-demo-fill { animation: none; height: var(--to); } .nv-demo-grow { animation: none; width: var(--to); }
   .nv-demo-type, .nv-demo-draw, .nv-demo-bar, .nv-demo-press, .nv-demo-progress { animation: none; }
