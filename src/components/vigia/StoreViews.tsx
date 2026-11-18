@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import type React from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, BadgeCheck, CheckCircle2, Clock, MapPin, MessageCircle, Minus, Plus, ShieldCheck, ShoppingCart, Star, Store, Truck, X } from "lucide-react";
 import { cart, categoryLabel, money, products, STORE_WHATSAPP, vendorById, vendors, type Product, type VendorId } from "@/lib/store";
@@ -109,73 +110,171 @@ export function ProductQuickViewHost() {
 }
 
 /** Página de uma loja parceira (vitrine própria). Depois será alimentada pelo painel de cada lojista. */
+type VendorSort = "relevancia" | "menor" | "desconto";
+const offOf = (p: Product) => (p.oldPriceCents ? Math.round((1 - p.priceCents / p.oldPriceCents) * 100) : 0);
+
+/** Página de uma loja parceira: capa com a vitrine da loja, faixa de confiança, filtros com ordenação e grade compacta. */
 export function VendorStorePage({ vendorId, onBack }: { vendorId: VendorId; onBack: () => void }) {
   const v = vendorById(vendorId);
   const [cat, setCat] = useState<string>("todos");
+  const [sort, setSort] = useState<VendorSort>("relevancia");
+  const [added, setAdded] = useState<string | null>(null);
   const list = useMemo(() => products.filter((p) => p.vendorId === vendorId), [vendorId]);
   const cats = useMemo(() => [...new Set(list.map((p) => p.category))], [list]);
-  const shown = cat === "todos" ? list : list.filter((p) => p.category === cat);
+  const shown = useMemo(() => {
+    const base = cat === "todos" ? list : list.filter((p) => p.category === cat);
+    if (sort === "menor") return [...base].sort((a, b) => a.priceCents - b.priceCents);
+    if (sort === "desconto") return [...base].sort((a, b) => offOf(b) - offOf(a));
+    return base;
+  }, [list, cat, sort]);
   const navigate = useNavigate();
+  useEffect(() => {
+    if (!added) return;
+    const t = window.setTimeout(() => setAdded(null), 1600);
+    return () => window.clearTimeout(t);
+  }, [added]);
   if (!v) return null;
   const info = vendorAbout[v.id];
-  const cover = list[0]?.img;
+  const showcase = list.slice(0, 3);
+  const minPrice = list.length ? Math.min(...list.map((p) => p.priceCents)) : 0;
+  const bestOff = list.reduce((m, p) => Math.max(m, offOf(p)), 0);
   const wa = `https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent(`Olá! Vi a loja ${v.name} na NextVita e quero tirar uma dúvida.`)}`;
+  const tint = (pct: number, to = "#0b1220") => `color-mix(in srgb, ${v.hex} ${pct}%, ${to})`;
+  const facts: [typeof Star, string, string][] = [
+    [Star, `${v.sampleRating.toFixed(1).replace(".", ",")} de 5`, "Nota de exemplo"],
+    [Truck, info.delivery, "Entrega"],
+    [Clock, info.hours, "Atendimento"],
+    [ShieldCheck, "5% off no Pix", "Compra protegida"],
+  ];
   return (
-    <div className="flex flex-col gap-4">
-      <button type="button" onClick={onBack} className="inline-flex w-fit items-center gap-1.5 rounded-xl px-2 py-1 text-sm font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground"><ArrowLeft size={16} /> Voltar à Loja NextVita</button>
-      <section className="nv-dark relative isolate overflow-hidden rounded-3xl text-white shadow-pop" style={{ background: `linear-gradient(135deg, ${v.hex}, #0b1220 75%)` }}>
-        {cover && <img src={cover} alt="" aria-hidden className="absolute inset-y-0 right-0 -z-10 hidden h-full w-1/2 object-cover opacity-40 [mask-image:linear-gradient(90deg,transparent,#000)] md:block" />}
-        <div aria-hidden className="absolute inset-0 -z-10 opacity-[.07] [background-image:radial-gradient(#fff_1px,transparent_1px)] [background-size:18px_18px]" />
-        <div className="flex flex-wrap items-center gap-5 p-6 sm:p-8">
-          <span className="grid size-20 shrink-0 place-items-center rounded-3xl bg-white text-2xl font-black shadow-xl" style={{ color: v.hex }}>{v.initials}</span>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold text-white/70">Loja parceira NextVita</p>
-            <h1 className="flex flex-wrap items-center gap-2 font-display text-3xl font-extrabold leading-tight">{v.name}{v.sampleVerified && <span className="inline-flex items-center gap-1 rounded-full bg-sky-400/20 px-2.5 py-0.5 text-xs font-bold text-sky-200"><BadgeCheck size={14} /> Verificada</span>}</h1>
-            <p className="mt-1 max-w-xl text-sm text-white/80">{info.about}</p>
-            <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-white/75">
-              <span className="inline-flex items-center gap-1.5"><Stars value={v.sampleRating} /> {v.sampleRating.toFixed(1).replace(".", ",")} <span className="rounded bg-white/15 px-1">exemplo</span></span>
+    <div className="flex flex-col gap-4" style={{ "--v": v.hex } as React.CSSProperties}>
+      <nav aria-label="Caminho" className="flex items-center gap-1.5 text-sm text-muted-foreground">
+        <button type="button" onClick={onBack} className="inline-flex items-center gap-1.5 rounded-lg px-1.5 py-1 font-semibold transition hover:bg-muted hover:text-foreground"><ArrowLeft size={15} /> Loja NextVita</button>
+        <span aria-hidden>/</span>
+        <span className="truncate font-semibold text-foreground">{v.name}</span>
+      </nav>
+
+      <section className="nv-dark relative isolate overflow-hidden rounded-3xl text-white shadow-pop" style={{ background: `radial-gradient(120% 140% at 0% 0%, ${tint(70)} 0%, ${tint(32)} 45%, #070b14 100%)` }}>
+        <div aria-hidden className="absolute inset-0 -z-10 opacity-[.06] [background-image:radial-gradient(#fff_1px,transparent_1px)] [background-size:18px_18px]" />
+        <div aria-hidden className="absolute -right-20 -top-24 -z-10 size-80 rounded-full blur-3xl" style={{ background: tint(55, "transparent") }} />
+        <div className="grid items-center gap-6 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-10 lg:p-8">
+          <div className="min-w-0">
+            <div className="flex items-center gap-4">
+              <span className="grid size-16 shrink-0 place-items-center rounded-2xl bg-white text-xl font-black shadow-xl ring-4 ring-white/10 sm:size-[4.5rem]" style={{ color: v.hex }}>{v.initials}</span>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-white/65">Loja parceira · {v.sector}</p>
+                <h1 className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-display text-2xl font-extrabold leading-tight tracking-tight sm:text-[2rem]">
+                  {v.name}
+                  {v.sampleVerified && <span className="inline-flex items-center gap-1 rounded-full bg-white/12 px-2.5 py-0.5 text-[11px] font-bold text-sky-200 ring-1 ring-white/15"><BadgeCheck size={13} /> Verificada</span>}
+                </h1>
+              </div>
+            </div>
+            <p className="mt-3 max-w-[52ch] text-sm leading-relaxed text-white/80 sm:text-[15px]">{info.about}</p>
+            <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/65">
               <span className="inline-flex items-center gap-1"><MapPin size={13} /> {v.city}</span>
-              <span className="inline-flex items-center gap-1"><Clock size={13} /> {info.hours}</span>
-              <span className="inline-flex items-center gap-1"><Truck size={13} /> {info.delivery}</span>
+              <span className="inline-flex items-center gap-1"><Stars value={v.sampleRating} /> {v.sampleRating.toFixed(1).replace(".", ",")} <span className="rounded bg-white/10 px-1 text-[10px]">exemplo</span></span>
             </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <a href={wa} target="_blank" rel="noopener noreferrer" className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#25d366] px-4 text-sm font-bold text-slate-950 transition hover:brightness-105 active:scale-[.98]"><MessageCircle size={16} /> Falar com a loja</a>
+              <a href="#vendor-products" className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/25 bg-white/5 px-4 text-sm font-semibold backdrop-blur transition hover:bg-white/15">Ver {list.length} produtos <ArrowRight size={15} /></a>
+            </div>
           </div>
-          <a href={wa} target="_blank" rel="noopener noreferrer" className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#25d366] px-4 text-sm font-bold text-slate-950 transition hover:brightness-105"><MessageCircle size={16} /> Falar com a loja</a>
+
+          {showcase.length > 0 && (
+            <div aria-hidden className="relative hidden h-56 w-[23rem] sm:block lg:h-60 lg:w-[26rem]">
+              {showcase.map((p, i) => (
+                <span key={p.id} className={`absolute overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-white/20 transition-transform duration-500 hover:z-10 hover:-translate-y-1 ${
+                  i === 0 ? "left-1/2 top-0 z-[2] size-48 -translate-x-1/2 lg:size-52" : i === 1 ? "left-0 top-10 size-36 -rotate-6 opacity-95 lg:size-40" : "right-0 top-10 size-36 rotate-6 opacity-95 lg:size-40"}`}>
+                  <img src={p.img} alt="" className="size-full object-cover" />
+                </span>
+              ))}
+              {bestOff > 0 && <span className="absolute bottom-1 right-6 z-[3] rounded-full bg-white px-3 py-1 text-xs font-extrabold text-slate-900 shadow-lg">Até {bestOff}% off</span>}
+            </div>
+          )}
         </div>
+
+        <ul className="grid grid-cols-2 border-t border-white/10 bg-black/20 text-white sm:grid-cols-4">
+          {facts.map(([I, value, label], i) => (
+            <li key={label} className={`flex min-w-0 items-center gap-2.5 px-4 py-3 sm:px-5 ${i % 2 ? "border-l border-white/10" : ""} ${i > 1 ? "border-t border-white/10 sm:border-t-0" : ""} sm:border-l sm:first:border-l-0`}>
+              <span className="grid size-8 shrink-0 place-items-center rounded-lg" style={{ background: tint(35, "transparent") }}><I size={15} /></span>
+              <span className="min-w-0 leading-tight"><span className="block text-[10.5px] text-white/55">{label}</span><strong className="block truncate text-[12.5px] font-semibold">{value}</strong></span>
+            </li>
+          ))}
+        </ul>
       </section>
 
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap gap-1.5">
-          {["todos", ...cats].map((c) => <button key={c} type="button" aria-pressed={cat === c} onClick={() => setCat(c)} className={`h-9 rounded-full border px-3.5 text-sm font-semibold transition ${cat === c ? "border-transparent text-white shadow" : "border-border bg-card text-muted-foreground hover:text-foreground"}`} style={cat === c ? { background: v.hex } : undefined}>{c === "todos" ? `Tudo (${list.length})` : categoryLabel[c as Product["category"]]}</button>)}
+      <div id="vendor-products" className="flex scroll-mt-4 flex-wrap items-center justify-between gap-2">
+        <div role="group" aria-label="Categorias" className="flex min-w-0 gap-1.5 overflow-x-auto [scrollbar-width:none]">
+          {["todos", ...cats].map((c) => {
+            const on = cat === c;
+            const n = c === "todos" ? list.length : list.filter((p) => p.category === c).length;
+            return (
+              <button key={c} type="button" aria-pressed={on} onClick={() => setCat(c)}
+                className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-semibold transition-colors ${on ? "border-transparent text-white" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}
+                style={on ? { background: v.hex } : undefined}>
+                {c === "todos" ? "Tudo" : categoryLabel[c as Product["category"]]}
+                <span className={`rounded-full px-1.5 text-[10.5px] tabular-nums ${on ? "bg-white/20" : "bg-muted"}`}>{n}</span>
+              </button>
+            );
+          })}
         </div>
-        <p className="text-xs text-muted-foreground">{v.sector}</p>
+        <label className="flex items-center gap-2 text-xs text-muted-foreground">
+          Ordenar
+          <select value={sort} onChange={(e) => setSort(e.target.value as VendorSort)} className="h-9 rounded-lg border border-border bg-card px-2.5 text-[13px] font-semibold text-foreground">
+            <option value="relevancia">Relevância</option>
+            <option value="menor">Menor preço</option>
+            <option value="desconto">Maior desconto</option>
+          </select>
+        </label>
       </div>
 
-      <section aria-label={`Produtos de ${v.name}`} className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+      <section aria-label={`Produtos de ${v.name}`} className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(11.5rem,1fr))]">
         {shown.map((p) => {
-          const off = p.oldPriceCents ? Math.round((1 - p.priceCents / p.oldPriceCents) * 100) : 0;
+          const off = offOf(p);
+          const isAdded = added === p.id;
           return (
-            <article key={p.id} className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card transition-shadow hover:shadow-pop">
-              <button type="button" onClick={() => openProduct(p.id)} className="relative aspect-square overflow-hidden bg-[#e9eaec]" aria-label={`Ver ${p.name}`}>
-                <img src={p.img} alt={p.name} loading="lazy" className="size-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                {off > 0 && <span className="absolute left-2 top-2 rounded-full bg-rose-600 px-2 py-0.5 text-xs font-extrabold text-white">-{off}%</span>}
+            <article key={p.id} className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-[border-color,box-shadow] duration-300 hover:border-[color-mix(in_srgb,var(--v)_45%,transparent)] hover:shadow-pop">
+              <button type="button" onClick={() => openProduct(p.id)} className="relative aspect-[4/3.6] overflow-hidden bg-gradient-to-b from-[#f2f3f5] to-[#dfe2e6]" aria-label={`Ver ${p.name}`}>
+                <img src={p.img} alt={p.name} loading="lazy" className="size-full object-cover transition-transform duration-700 group-hover:scale-[1.04]" />
+                <span className="absolute left-2 top-2 flex flex-col items-start gap-1">
+                  {off > 0 && <span className="rounded-md bg-rose-600 px-1.5 py-0.5 text-[11px] font-extrabold text-white shadow">-{off}%</span>}
+                  {p.tag && <span className="rounded-md bg-white/95 px-1.5 py-0.5 text-[10.5px] font-bold text-slate-900 shadow">{p.tag}</span>}
+                </span>
+                <span className="absolute inset-x-2 bottom-2 translate-y-1 rounded-lg bg-black/65 py-1 text-center text-[11px] font-bold text-white opacity-0 backdrop-blur transition group-hover:translate-y-0 group-hover:opacity-100">Ver detalhes</span>
               </button>
-              <div className="flex flex-1 flex-col gap-1 p-3">
-                <h3 className="line-clamp-2 text-sm font-bold">{p.name}</h3>
-                <p className="mt-auto pt-1 text-lg font-extrabold tabular-nums">{money(p.priceCents)}</p>
-                <button type="button" onClick={() => cart.add(p.id)} className="mt-1 inline-flex h-10 items-center justify-center gap-2 rounded-xl text-sm font-bold text-white transition hover:brightness-110 active:scale-95" style={{ background: v.hex }}><ShoppingCart size={15} /> Comprar</button>
+              <div className="flex flex-1 flex-col p-3">
+                <span className="text-[10.5px] font-medium text-muted-foreground">{categoryLabel[p.category]}</span>
+                <h3 className="mt-0.5 line-clamp-2 min-h-[2.5em] text-[13.5px] font-semibold leading-tight">{p.name}</h3>
+                <p className="mt-2 flex items-baseline gap-1.5">
+                  <strong className="text-[17px] font-extrabold tabular-nums">{money(p.priceCents)}</strong>
+                  {p.oldPriceCents && <span className="text-[11px] text-muted-foreground line-through tabular-nums">{money(p.oldPriceCents)}</span>}
+                </p>
+                <p className="text-[11px] font-medium text-emerald-700 tabular-nums dark:text-emerald-300">{money(Math.round(p.priceCents * 0.95))} no Pix</p>
+                <button type="button" onClick={() => { cart.add(p.id); setAdded(p.id); }}
+                  className="mt-2.5 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg text-[13px] font-bold text-white transition hover:brightness-110 active:scale-[.97]"
+                  style={{ background: isAdded ? "#059669" : v.hex }}>
+                  {isAdded ? <><CheckCircle2 size={15} /> Adicionado</> : <><ShoppingCart size={15} /> Adicionar</>}
+                </button>
               </div>
             </article>
           );
         })}
       </section>
+      <p className="sr-only" role="status" aria-live="polite">{added ? "Produto adicionado ao carrinho." : ""}</p>
+      {list.length > 0 && <p className="-mt-1 text-xs text-muted-foreground">A partir de {money(minPrice)} · produtos e preços ilustrativos durante o pré-lançamento.</p>}
 
-      <section aria-label="Outras lojas parceiras" className="rounded-3xl border border-border bg-card p-4 sm:p-5">
-        <h2 className="text-base font-bold">Outras lojas parceiras</h2>
-        <div className="-mx-1 mt-3 flex gap-2 overflow-x-auto px-1 pb-1">
+      <section aria-label="Outras lojas parceiras" className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-base font-bold">Outras lojas parceiras</h2>
+          <button type="button" onClick={onBack} className="text-sm font-semibold text-primary hover:underline">Ver todas</button>
+        </div>
+        <div className="mt-3 grid grid-flow-col auto-cols-[minmax(13rem,1fr)] gap-2 overflow-x-auto pb-1 [scrollbar-width:thin]">
           {vendors.filter((o) => o.id !== v.id).map((o) => (
-            <button key={o.id} type="button" onClick={() => void navigate({ to: "/loja", search: { loja: o.id } as never })} className="flex w-56 shrink-0 items-center gap-3 rounded-2xl border border-border bg-background p-3 text-left transition hover:border-primary/40">
-              <span className="grid size-11 shrink-0 place-items-center rounded-xl text-sm font-extrabold text-white" style={{ background: o.hex }}>{o.initials}</span>
-              <span className="min-w-0"><strong className="block truncate text-sm">{o.name}</strong><span className="block truncate text-[11px] text-muted-foreground">{o.sector}</span></span>
+            <button key={o.id} type="button" onClick={() => { void navigate({ to: "/loja", search: { loja: o.id } as never }); document.getElementById("care-content")?.scrollTo({ top: 0, behavior: "smooth" }); }}
+              className="group flex items-center gap-3 rounded-xl border border-border bg-background p-2.5 text-left transition-colors hover:border-[var(--o)]" style={{ "--o": o.hex } as React.CSSProperties}>
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl text-[13px] font-extrabold text-white transition-transform group-hover:scale-105" style={{ background: `linear-gradient(140deg, color-mix(in srgb, ${o.hex} 70%, #fff), ${o.hex} 55%, color-mix(in srgb, ${o.hex} 70%, #000))` }}>{o.initials}</span>
+              <span className="min-w-0 flex-1"><strong className="block truncate text-[13px]">{o.name}</strong><span className="block truncate text-[11px] text-muted-foreground">{o.sector} · {o.city.replace(", AC", "")}</span></span>
+              <ArrowRight size={14} className="shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
             </button>
           ))}
         </div>
