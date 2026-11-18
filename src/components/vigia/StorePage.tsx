@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { openProduct, VendorStorePage } from "./StoreViews";
 import { ArrowRight, CheckCircle2, CreditCard, FileText, Minus, Plus, QrCode, ShieldCheck, ShoppingBag, ShoppingCart, Store, Trash2, X, MessageCircle, Heart, Zap, Gift, Flame, Dumbbell, Pill, Leaf, Shirt, Sparkles, Apple, Snowflake, Tag } from "lucide-react";
 import { countdownParts, currentCampaign, nextCampaignTeaser, productBadges, type Campaign } from "@/lib/store-promos";
 import { supabase } from "@/integrations/supabase/client";
-import { cart, categories, categoryLabel, money, orderTotal, paymentMethods, products, STORE_WHATSAPP, useCart, type PaymentKey, type Product, type StoreCategory } from "@/lib/store";
+import { cart, categories, categoryLabel, money, orderTotal, paymentMethods, products, STORE_WHATSAPP, useCart, vendorById, type PaymentKey, type Product, type StoreCategory, type VendorId } from "@/lib/store";
 import { useAccess } from "@/lib/use-access";
 import { ShareButton } from "./ShareButton";
 
@@ -40,7 +41,7 @@ function ProductCard({ p, campaign, wished, onWish }: { p: Product; campaign: Ca
   return (
     <article className="nv-prod group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card transition-[box-shadow,border-color] duration-300 hover:border-primary/30 hover:shadow-pop">
       <div className="relative aspect-[4/5] overflow-hidden bg-[#e9eaec] md:aspect-square">
-        <img src={p.img} alt={p.name} loading="lazy" className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]" />
+        <button type="button" onClick={() => openProduct(p.id)} aria-label={`Ver detalhes de ${p.name}`} className="block size-full cursor-zoom-in"><img src={p.img} alt={p.name} loading="lazy" className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]" /></button>
         {b.ribbon && (
           <span className={`absolute -left-9 top-4 w-36 -rotate-45 py-1 text-center text-[9px] font-extrabold tracking-[.14em] shadow-md ${campaign.id === "black-friday" ? "bg-[#0a0a0a] text-yellow-300" : campaign.id === "natal" ? "bg-rose-700 text-white" : "bg-emerald-600 text-white"}`}>{b.ribbon}</span>
         )}
@@ -66,8 +67,9 @@ function ProductCard({ p, campaign, wished, onWish }: { p: Product; campaign: Ca
           <span className="text-[10px] font-bold uppercase tracking-widest text-primary">{categoryLabel[p.category]}</span>
           <span className="truncate rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">{b.perk}</span>
         </div>
-        <h3 className="line-clamp-2 text-sm font-bold leading-snug">{p.name}</h3>
+        <h3 className="line-clamp-2 text-sm font-bold leading-snug"><button type="button" onClick={() => openProduct(p.id)} className="text-left hover:underline">{p.name}</button></h3>
         <p className="line-clamp-2 text-xs text-muted-foreground">{p.text}</p>
+        {vendorById(p.vendorId) && <p className="truncate text-[11px] text-muted-foreground">Vendido por <strong className="font-semibold text-foreground">{vendorById(p.vendorId)!.name}</strong></p>}
         <div className="mt-auto pt-2">
           {p.oldPriceCents && <p className="flex items-center gap-2 text-xs"><span className="text-muted-foreground line-through">{money(p.oldPriceCents)}</span><span className="rounded bg-emerald-500/15 px-1.5 py-0.5 font-bold text-emerald-700 dark:text-emerald-300">economize {money(p.oldPriceCents - p.priceCents)}</span></p>}
           <strong className="text-xl font-extrabold tabular-nums">{money(p.priceCents)}</strong>
@@ -278,6 +280,10 @@ function Checkout({ onClose }: { onClose: () => void }) {
 }
 
 export function StorePage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const vendorParam = (location.search as Record<string, unknown> | undefined)?.loja;
+  const vendorId = typeof vendorParam === "string" && vendorById(vendorParam as VendorId) ? (vendorParam as VendorId) : null;
   const [category, setCategory] = useState<StoreCategory | "todos">("todos");
   const [cartOpen, setCartOpen] = useState(false);
   const [checkout, setCheckout] = useState(false);
@@ -289,6 +295,17 @@ export function StorePage() {
   const deals = useMemo(() => products.filter((p) => p.oldPriceCents).sort((a, b) => (b.oldPriceCents! - b.priceCents) / b.oldPriceCents! - (a.oldPriceCents! - a.priceCents) / a.oldPriceCents!), []);
   const endOfDay = Date.parse(new Intl.DateTimeFormat("en-CA", { timeZone: "America/Rio_Branco" }).format(new Date()) + "T23:59:59-05:00");
   const ticker = ["5% OFF no Pix", "3x sem juros no cartão", campaign.name, "Frete grátis acima de R$ 199", "Produtos da Amazônia", "Lojas parceiras do Acre", "Troca fácil"];
+  if (vendorId) return (
+    <div className="mx-auto flex w-full flex-col gap-4">
+      <StoreDevBanner />
+      <VendorStorePage vendorId={vendorId} onBack={() => void navigate({ to: "/loja" })} />
+      <button type="button" onClick={() => setCartOpen(true)} aria-label={`Abrir carrinho, ${count} itens`} className="nv-fab fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-4 z-[90] inline-flex h-14 items-center gap-2 rounded-full bg-slate-950 px-5 text-sm font-extrabold text-white shadow-xl ring-4 ring-white/70 dark:ring-slate-900/70">
+        <ShoppingCart size={22} /> Carrinho{count > 0 && <span key={count} className="nv-heart-pop grid size-6 place-items-center rounded-full bg-emerald-400 text-xs text-slate-950">{count}</span>}
+      </button>
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} onCheckout={() => { setCartOpen(false); setCheckout(true); }} />
+      {checkout && <Checkout onClose={() => setCheckout(false)} />}
+    </div>
+  );
   return (
     <div className="mx-auto flex w-full flex-col gap-4">
       <StoreDevBanner />
@@ -313,7 +330,7 @@ export function StorePage() {
             const b = productBadges(p, campaign);
             return (
               <article key={p.id} className="group relative w-56 shrink-0 snap-start overflow-hidden rounded-2xl border border-border bg-background transition-shadow hover:shadow-pop">
-                <div className="relative aspect-square overflow-hidden bg-[#e9eaec]"><img src={p.img} alt={p.name} loading="lazy" className="size-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                <div className="relative aspect-square overflow-hidden bg-[#e9eaec]"><button type="button" onClick={() => openProduct(p.id)} aria-label={`Ver detalhes de ${p.name}`} className="block size-full cursor-zoom-in"><img src={p.img} alt={p.name} loading="lazy" className="size-full object-cover transition-transform duration-700 group-hover:scale-105" /></button>
                   <span className="absolute left-2 top-2 rounded-lg bg-rose-600 px-2 py-1 text-xs font-extrabold text-white shadow">-{b.off}%</span></div>
                 <div className="p-3">
                   <h3 className="line-clamp-1 text-sm font-bold">{p.name}</h3>

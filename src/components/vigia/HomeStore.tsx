@@ -1,3 +1,4 @@
+import { openProduct } from "./StoreViews";
 import { useMemo, useRef, useState, type CSSProperties } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, BadgeCheck, Check, ChevronLeft, ChevronRight, MapPin, Minus, Plus, ShoppingBag, ShoppingCart, Star, X } from "lucide-react";
@@ -20,11 +21,11 @@ function ProductCard({ p, qty, onAdd }: { p: Product; qty: number; onAdd: (p: Pr
   const off = discountOf(p);
   return (
     <article className="group flex w-40 shrink-0 snap-start flex-col overflow-hidden rounded-xl border border-border bg-card sm:w-44">
-      <Link to="/loja" aria-label={`Ver ${p.name} na loja`} className="relative block overflow-hidden bg-[#e6e7e9]">
+      <button type="button" onClick={() => openProduct(p.id)} aria-label={`Ver detalhes de ${p.name}`} className="relative block cursor-zoom-in overflow-hidden bg-[#e6e7e9]">
         <img src={p.img} alt={p.name} width={360} height={360} loading="lazy" decoding="async" className="aspect-square w-full object-cover motion-safe:transition motion-safe:duration-500 motion-safe:group-hover:scale-105" />
         {off > 0 && <span className="absolute right-2 top-2 rounded-full bg-emerald-800 px-2 py-0.5 text-[11px] font-bold text-white">{off}% off</span>}
         {p.tag && <span className="absolute left-2 top-2 rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-900">{p.tag}</span>}
-      </Link>
+      </button>
       <div className="flex flex-1 flex-col gap-0.5 p-2.5">
         <span className="text-[11px] font-medium text-slate-600 dark:text-muted-foreground">{categoryLabel[p.category]}</span>
         <h3 className="line-clamp-2 min-h-[2.4em] text-[13px] font-semibold leading-tight">{p.name}</h3>

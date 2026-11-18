@@ -13,76 +13,9 @@ const nf = (v: number, d = 1) => v.toLocaleString("pt-BR", { minimumFractionDigi
 const br = (d: string) => d.split("-").reverse().join("/");
 const meta = (k: MeasureKey) => MEASURES.find((m) => m.key === k)!;
 
-/** Pontos de medida sobre o corpo (coordenadas do desenho 300×440). */
-const SPOTS: Record<MeasureKey, { x: number; y: number; rx: number; side: "l" | "r" }> = {
-  neck: { x: 150, y: 74, rx: 11, side: "r" },
-  shoulders: { x: 150, y: 94, rx: 50, side: "l" },
-  chest: { x: 150, y: 122, rx: 38, side: "r" },
-  waist: { x: 150, y: 168, rx: 30, side: "l" },
-  abdomen: { x: 150, y: 190, rx: 33, side: "r" },
-  hip: { x: 150, y: 216, rx: 41, side: "l" },
-  arm_r: { x: 96, y: 138, rx: 9, side: "l" },
-  arm_l: { x: 204, y: 138, rx: 9, side: "r" },
-  forearm: { x: 86, y: 190, rx: 7, side: "l" },
-  thigh_r: { x: 132, y: 270, rx: 17, side: "l" },
-  thigh_l: { x: 168, y: 270, rx: 17, side: "r" },
-  calf: { x: 172, y: 352, rx: 11, side: "r" },
-};
-
-function Hologram({ values, selected, onSelect }: { values: Partial<Record<MeasureKey, number | null>>; selected: MeasureKey; onSelect: (k: MeasureKey) => void }) {
-  return (
-    <svg viewBox="0 0 300 440" className="h-full w-full" role="img" aria-label="Corpo com os pontos de medida">
-      <defs>
-        <linearGradient id="nv-holo-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#22d3ee" stopOpacity=".38" /><stop offset=".55" stopColor="#0ea5e9" stopOpacity=".16" /><stop offset="1" stopColor="#6366f1" stopOpacity=".3" /></linearGradient>
-        <radialGradient id="nv-holo-light" cx="45%" cy="30%" r="70%"><stop offset="0" stopColor="#fff" stopOpacity=".35" /><stop offset="1" stopColor="#fff" stopOpacity="0" /></radialGradient>
-        <pattern id="nv-holo-lines" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M0 5.5H6" stroke="#67e8f9" strokeOpacity=".35" strokeWidth=".6" /></pattern>
-        <clipPath id="nv-holo-body"><use href="#nv-holo-shape" /></clipPath>
-        <g id="nv-holo-shape">
-          <ellipse cx="150" cy="40" rx="21" ry="25" />
-          <rect x="140" y="60" width="20" height="22" rx="6" />
-          <path d="M108 88 Q150 78 192 88 L200 100 Q196 150 182 170 Q178 190 190 225 Q150 240 110 225 Q122 190 118 170 Q104 150 100 100 Z" />
-          <path d="M102 92 Q90 96 88 120 L80 200 Q78 225 84 245 L94 246 Q96 222 98 200 L110 130 Z" />
-          <path d="M198 92 Q210 96 212 120 L220 200 Q222 225 216 245 L206 246 Q204 222 202 200 L190 130 Z" />
-          <path d="M112 222 Q110 270 120 320 L122 400 Q122 420 136 422 L144 420 Q142 400 144 320 Q148 270 150 236 Z" />
-          <path d="M188 222 Q190 270 180 320 L178 400 Q178 420 164 422 L156 420 Q158 400 156 320 Q152 270 150 236 Z" />
-        </g>
-      </defs>
-      {/* base e grade */}
-      <ellipse cx="150" cy="428" rx="70" ry="8" fill="#22d3ee" opacity=".18" />
-      <ellipse cx="150" cy="428" rx="46" ry="5" fill="none" stroke="#22d3ee" strokeOpacity=".5" />
-      <use href="#nv-holo-shape" fill="url(#nv-holo-fill)" stroke="#67e8f9" strokeOpacity=".8" strokeWidth="1.2" />
-      <g clipPath="url(#nv-holo-body)">
-        <rect width="300" height="440" fill="url(#nv-holo-lines)" />
-        <rect width="300" height="440" fill="url(#nv-holo-light)" />
-        <rect className="nv-holo-scan" x="0" y="-40" width="300" height="40" fill="url(#nv-holo-fill)" opacity=".9" />
-      </g>
-      {/* pontos */}
-      {(Object.keys(SPOTS) as MeasureKey[]).map((k) => {
-        const s = SPOTS[k];
-        const on = k === selected;
-        const v = values[k];
-        const lx = s.side === "l" ? 6 : 294;
-        return (
-          <g key={k} onClick={() => onSelect(k)} className="cursor-pointer" role="button" aria-label={`${meta(k).label}${v ? `: ${nf(v)} cm` : ""}`} tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onSelect(k); }}>
-            <ellipse cx={s.x} cy={s.y} rx={s.rx + 6} ry={Math.max(6, s.rx * 0.28) + 4} fill="transparent" />
-            <ellipse cx={s.x} cy={s.y} rx={s.rx} ry={Math.max(3, s.rx * 0.22)} fill="none" stroke={on ? "#fde047" : "#a5f3fc"} strokeWidth={on ? 2.4 : 1.2} strokeDasharray={on ? undefined : "3 3"} className={on ? "nv-holo-ring" : ""} opacity={on ? 1 : 0.75} />
-            {(on || v) && (
-              <>
-                <line x1={s.side === "l" ? s.x - s.rx : s.x + s.rx} y1={s.y} x2={s.side === "l" ? 58 : 242} y2={s.y} stroke={on ? "#fde047" : "#67e8f9"} strokeOpacity={on ? 0.9 : 0.4} strokeWidth=".8" />
-                <text x={lx} y={s.y - 2} textAnchor={s.side === "l" ? "start" : "end"} fontSize="9" fontWeight="700" fill={on ? "#fde047" : "#cffafe"}>{meta(k).label}</text>
-                <text x={lx} y={s.y + 9} textAnchor={s.side === "l" ? "start" : "end"} fontSize="10" fontWeight="800" fill="#fff">{v ? `${nf(v)} cm` : "—"}</text>
-              </>
-            )}
-          </g>
-        );
-      })}
-    </svg>
-  );
-}
-
 const empty = (): Record<MeasureKey, string> => Object.fromEntries(MEASURES.map((m) => [m.key, ""])) as Record<MeasureKey, string>;
 
-/** Medidas do corpo: corpo holográfico com os pontos de medida, registro, evolução e indicadores. */
+/** Medidas do corpo: foto, escolha da medida, registro, evolução e indicadores. */
 export function ClientBodyMeasures({ patientId, ownerId, heightCm, sex, weightKg }: { patientId: string; ownerId: string; heightCm: number | null; sex: string | null; weightKg: number | null }) {
   const dialog = useDialog();
   const [rows, setRows] = useState<Row[] | null>(null);
@@ -164,19 +97,31 @@ export function ClientBodyMeasures({ patientId, ownerId, heightCm, sex, weightKg
   const field = "h-10 w-full rounded-xl border border-border bg-background px-3 text-sm tabular-nums outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15";
   return (
     <section className="flex min-w-0 flex-col gap-3" aria-label="Medidas do corpo">
-      {/* Painel holográfico */}
+      {/* Painel principal */}
       <div className="nv-dark relative isolate overflow-hidden rounded-2xl bg-[#030b14] text-white shadow-card">
         <div aria-hidden className="absolute inset-0 -z-10 opacity-[.12] [background-image:linear-gradient(rgba(103,232,249,.6)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,.6)_1px,transparent_1px)] [background-size:32px_32px] [mask-image:radial-gradient(circle_at_30%_50%,#000,transparent_75%)]" />
         <div aria-hidden className="absolute -left-20 top-10 -z-10 size-80 rounded-full bg-cyan-500/20 blur-3xl" />
-        <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
-          <div className="relative mx-auto h-[26rem] w-full max-w-[22rem]">
-            <Hologram values={values} selected={selected} onSelect={setSelected} />
-            <span className="absolute left-2 top-2 inline-flex items-center gap-1.5 rounded-full border border-cyan-300/30 bg-cyan-400/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-cyan-200"><i className="size-1.5 rounded-full bg-cyan-300 nv-live" /> Escaneamento corporal</span>
+        <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
+          <div className="relative isolate flex min-h-[24rem] flex-col justify-end overflow-hidden rounded-2xl">
+            <img src="/images/hero-treinos.webp" alt="" aria-hidden className="absolute inset-0 -z-20 size-full object-cover" />
+            <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-[#030b14] via-[#030b14]/80 to-[#030b14]/10" />
+            <div className="p-3">
+              <p className="mb-2 text-[11px] font-semibold text-white/70">Escolha a medida</p>
+              <div className="grid grid-cols-2 gap-1.5">
+                {MEASURES.map((m) => (
+                  <button key={m.key} type="button" onClick={() => setSelected(m.key)} aria-pressed={selected === m.key}
+                    className={`flex items-center justify-between gap-2 rounded-xl border px-2.5 py-1.5 text-left text-xs backdrop-blur transition ${selected === m.key ? "border-cyan-300 bg-cyan-300/20 text-white" : "border-white/10 bg-black/30 text-white/80 hover:bg-white/10"}`}>
+                    <span className="truncate font-semibold">{m.label}</span>
+                    <span className="shrink-0 font-bold tabular-nums">{values[m.key] ? nf(values[m.key]!) : "—"}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
           <div className="flex min-w-0 flex-col">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="text-xs font-semibold text-cyan-200/80">Medida selecionada · toque nos anéis do corpo</p>
+                <p className="text-xs font-semibold text-cyan-200/80">Medida selecionada</p>
                 <h2 className="text-2xl font-extrabold">{sel.label}</h2>
               </div>
               <button type="button" onClick={openNew} className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-cyan-300 px-4 text-sm font-bold text-slate-950 shadow-[0_8px_24px_-8px_rgba(103,232,249,.8)] transition hover:bg-cyan-200 active:scale-[.97]"><Plus size={16} /> Registrar medidas</button>

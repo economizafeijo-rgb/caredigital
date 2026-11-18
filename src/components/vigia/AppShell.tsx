@@ -50,6 +50,7 @@ import { fmtClock, useNow } from "./ui";
 import { InstallAppButton } from "./InstallApp";
 import { LiveModeLauncher } from "./LiveMode";
 import { HydrationProvider } from "./HydrationTracker";
+import { ProductQuickViewHost } from "./StoreViews";
 import { DialogProvider } from "@/lib/dialog";
 
 type NavItem = { to: string; hash?: string; label: string; icon: LucideIcon };
@@ -451,6 +452,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <DialogProvider>
       <HydrationProvider>
+        <ProductQuickViewHost />
         <div className="care-shell flex h-dvh min-h-0 overflow-hidden bg-background text-foreground">
           {internalPage && (
             <div className={`relative hidden shrink-0 transition-[width] duration-300 ease-out xl:block ${fullScreen ? "w-0" : sidebarPinned ? "w-[16.5rem]" : "w-[5.5rem]"}`}>

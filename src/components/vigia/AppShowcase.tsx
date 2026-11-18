@@ -84,30 +84,9 @@ function ScreenMetrics() {
   );
 }
 
-export function ScreenBody() {
-  return (
-    <div className="px-3.5 pt-4 text-white">
-      <p className="text-base font-extrabold">Medidas do corpo</p>
-      <div className="relative mt-2 grid h-44 place-items-center overflow-hidden rounded-2xl bg-[#030b14]">
-        <svg viewBox="0 0 120 200" className="h-40">
-          <defs><linearGradient id="nv-app-b" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#22d3ee" stopOpacity=".5" /><stop offset="1" stopColor="#6366f1" stopOpacity=".3" /></linearGradient></defs>
-          <ellipse cx="60" cy="18" rx="10" ry="12" fill="url(#nv-app-b)" stroke="#67e8f9" />
-          <path d="M40 38 Q60 32 80 38 L84 44 Q82 70 76 80 Q74 90 80 106 Q60 114 40 106 Q46 90 44 80 Q38 70 36 44 Z" fill="url(#nv-app-b)" stroke="#67e8f9" />
-          <path d="M44 104 Q42 140 48 190 L58 190 Q58 150 60 112 Z M76 104 Q78 140 72 190 L62 190 Q62 150 60 112 Z" fill="url(#nv-app-b)" stroke="#67e8f9" />
-          <ellipse cx="60" cy="78" rx="17" ry="4" fill="none" stroke="#fde047" strokeWidth="1.5" className="nv-holo-ring" />
-          <ellipse cx="60" cy="100" rx="21" ry="5" fill="none" stroke="#a5f3fc" strokeDasharray="2 2" />
-        </svg>
-        <span className="absolute right-2 top-[38%] rounded-lg bg-white/10 px-1.5 py-0.5 text-[9px] font-bold text-yellow-200">Cintura 82 cm</span>
-      </div>
-      <p className="mt-2 rounded-xl bg-white/[.06] px-2 py-1.5 text-[10px]"><strong className="text-emerald-300">−4,5 cm</strong> de cintura desde o início</p>
-    </div>
-  );
-}
-
 const SCREENS = [
   { key: "dia", label: "Meu dia", el: <ScreenDay /> },
   { key: "agua", label: "Hidratação", el: <ScreenWater /> },
-  { key: "medidas", label: "Medidas do corpo", el: <ScreenBody /> },
   { key: "peso", label: "Peso e evolução", el: <ScreenMetrics /> },
 ];
 

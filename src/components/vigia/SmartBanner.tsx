@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Phone, ScreenBody } from "./AppShowcase";
+import { openProduct, productByImage } from "./StoreViews";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, BarChart3, Check, ChevronLeft, ChevronRight, Droplets, HeartPulse, MessageCircle, Pause, Pill, Play } from "lucide-react";
 import { money, products, STORE_WHATSAPP, useCart } from "@/lib/store";
@@ -61,8 +61,7 @@ const devSlide: Slide = {
 };
 
 const toolSlides: Slide[] = [
-  { id: "t-medidas", kicker: "Novo · Medidas do corpo", chapter: "Medidas do corpo", title: "Acompanhe cada centímetro da sua evolução", text: "Cintura, braços, coxas e mais num corpo interativo, com gráficos, relação cintura-quadril e gordura estimada. Ideal para a academia ou o seu projeto.", cta: "Começar a medir", to: "/entrar", images: [], tone: "from-[#020617] via-[#06283d] to-[#0e7490]",
-    art: <Phone className="nv-float h-[19rem] w-[9.5rem]"><div className="absolute inset-x-0 bottom-0 top-6"><ScreenBody /></div></Phone> },
+  { id: "t-medidas", kicker: "Novo · Medidas do corpo", chapter: "Medidas do corpo", title: "Acompanhe cada centímetro da sua evolução", text: "Cintura, braços, coxas e mais, com gráficos, relação cintura-quadril e gordura estimada. Ideal para a academia ou o seu projeto.", cta: "Começar a medir", to: "/entrar", images: [], tone: "from-[#020617] via-[#06283d] to-[#0e7490]", bg: "/images/hero-treinos.webp", art: <span /> },
   { id: "t-agua", kicker: "Ferramenta gratuita", title: "Sua meta de água calculada e lembrada", text: "O app calcula quanto beber pelo seu peso e avisa o próximo copo ao longo do dia.", cta: "Usar grátis", to: "/hidratacao", images: [], tool: "agua", tone: "from-[#062a3d] to-[#0369a1]" },
   { id: "t-med", kicker: "Ferramenta gratuita", title: "Nenhuma dose esquecida", text: "Cartela interativa com horários, confirmação de cada dose e histórico completo.", cta: "Usar grátis", to: "/medicamentos", images: [], tool: "medicacao", tone: "from-[#3b0716] to-[#be123c]" },
   { id: "t-sono", kicker: "Ferramenta gratuita", title: "Batimentos e nota do sono ao vivo", text: "Conecte uma cinta ou relógio Bluetooth e acompanhe a noite em tempo real.", cta: "Conhecer", to: "/sono", images: [], tool: "sono", tone: "from-[#140f3a] to-[#4338ca]" },
@@ -187,14 +186,16 @@ export function SmartBanner({ className = "", intro }: { className?: string; int
             </>
           )}
         </div>
-        <div className="relative flex h-full items-center justify-center max-sm:order-first max-sm:h-auto max-sm:min-h-[13rem] max-sm:[&>*]:scale-110" aria-hidden="true">
+        <div className="relative flex h-full items-center justify-center max-sm:order-first max-sm:h-auto max-sm:min-h-[13rem] max-sm:[&>*]:scale-110" aria-hidden={sl.images.length ? undefined : true}>
           {sl.art ?? (sl.tool ? (
             <ToolDemo kind={sl.tool} />
           ) : (
             sl.images.slice(0, 2).map((src, i) => (
-              <span key={src + i} className={`relative block overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/20 ${i === 0 ? "nv-banner-img size-44 sm:size-48 lg:size-56" : "nv-float -ml-10 mt-16 size-32 sm:size-36 lg:size-40"}`}>
+              <button key={src + i} type="button" onClick={() => { const pr = productByImage(src); if (pr) openProduct(pr.id); }} aria-label={`Ver ${productByImage(src)?.name ?? "produto"}`}
+                className={`group/img relative block cursor-zoom-in overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/20 transition-[box-shadow] hover:ring-2 hover:ring-white/60 ${i === 0 ? "nv-banner-img size-44 sm:size-48 lg:size-56" : "nv-float -ml-10 mt-16 size-32 sm:size-36 lg:size-40"}`}>
                 <img src={src} alt="" width={360} height={360} className="nv-kenburns size-full object-cover" style={{ animationDuration: `${DURATION + 1500}ms` }} />
-              </span>
+                <span className="absolute inset-x-2 bottom-2 rounded-lg bg-black/60 py-1 text-center text-[11px] font-bold text-white opacity-0 backdrop-blur transition group-hover/img:opacity-100">Ver produto</span>
+              </button>
             ))
           ))}
         </div>
