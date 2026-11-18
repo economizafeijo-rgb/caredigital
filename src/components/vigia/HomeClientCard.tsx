@@ -54,7 +54,6 @@ import { GoalWatcher } from "./GoalWatcher";
 import { EvolutionHub } from "./EvolutionHub";
 import { ClientWeightPage } from "./ClientWeightPage";
 import { ClientMedicationManager } from "./ClientMedicationManager";
-import { MissedDoseRegularizer } from "./MissedDoseRegularizer";
 import { CareTimer, toneForCategory } from "./CareTimer";
 import { ClientSupplementCenter } from "./ClientSupplementCenter";
 import { clientSectionOrder, clientSectionTheme } from "@/lib/client-section-theme";
@@ -1354,10 +1353,6 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
               )}
               {activeTab === "medicacao" && (
                 <div className="w-full">
-                  <MissedDoseRegularizer
-                    patientId={client.id}
-                    onDone={() => setTick((value) => value + 1)}
-                  />
                   <ClientMedicationManager patientId={client.id} ownerId={client.owner_id} />
                 </div>
               )}

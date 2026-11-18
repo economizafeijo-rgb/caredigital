@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useDialog } from "@/lib/dialog";
 
 /** Permite ao paciente confirmar, de uma vez, doses passadas que esqueceu de registrar. */
-export function MissedDoseRegularizer({ patientId, onDone }: { patientId: string; onDone: () => void }) {
+export function MissedDoseRegularizer({ patientId, onDone, compact = false }: { patientId: string; onDone: () => void; compact?: boolean }) {
   const dialog = useDialog();
   const [since, setSince] = useState("");
   const [busy, setBusy] = useState(false);
@@ -24,10 +24,10 @@ export function MissedDoseRegularizer({ patientId, onDone }: { patientId: string
     setResult({ ok: true, text: Number(data) > 0 ? `${data} dose(s) confirmada(s) nos horários programados e marcadas como registro retroativo.` : "Não há doses pendentes de confirmação." });
     onDone();
   }
-  return <section className="mb-4 rounded-3xl border border-rose-500/25 bg-gradient-to-br from-rose-500/[.07] to-pink-500/[.04] p-4" aria-label="Regularizar doses esquecidas">
+  return <section className={compact ? "" : "mb-4 rounded-3xl border border-rose-500/25 bg-gradient-to-br from-rose-500/[.07] to-pink-500/[.04] p-4"} aria-label="Regularizar doses esquecidas">
     <div className="flex flex-wrap items-end gap-3">
       <div className="min-w-0 flex-1">
-        <h3 className="flex items-center gap-2 text-base font-bold"><History size={18} className="text-rose-600"/> Esqueceu de confirmar doses?</h3>
+        {!compact && <h3 className="flex items-center gap-2 text-base font-bold"><History size={18} className="text-rose-600"/> Esqueceu de confirmar doses?</h3>}
         <p className="mt-1 text-sm text-muted-foreground">Confirme de uma vez as doses já tomadas desde o início do tratamento (ou a partir de uma data). Elas ficam registradas no horário programado e identificadas como retroativas.</p>
       </div>
       <label className="text-sm font-semibold">A partir de (opcional)
