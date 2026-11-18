@@ -80,16 +80,16 @@ export function HomeStore({ className = "" }: { className?: string }) {
   return (
     <section aria-labelledby="home-store-title" className={`rounded-2xl border border-border bg-[#f1f2f3] p-4 dark:bg-card sm:p-5 ${className}`}>
       <p className="sr-only" role="status" aria-live="polite">{announcement}</p>
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+      <header className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
           <h2 id="home-store-title" className="flex items-center gap-2 font-display text-xl font-extrabold tracking-tight">
             <ShoppingBag className="text-primary" size={22} aria-hidden="true" /> Loja NextVita
           </h2>
-          <p className="text-[13px] text-slate-600 dark:text-muted-foreground sm:text-sm">5% de desconto no Pix, cartão em até 3x e entrega ou retirada.</p>
+          <p className="text-[12.5px] text-slate-600 dark:text-muted-foreground sm:text-sm"><span className="sm:hidden">5% off no Pix · até 3x no cartão</span><span className="hidden sm:inline">5% de desconto no Pix, cartão em até 3x e entrega ou retirada.</span></p>
         </div>
-        <div className="flex items-center gap-2">
-          <Link to="/loja" aria-label={count > 0 ? `Ir para a loja: ${count} ${count === 1 ? "item" : "itens"} no carrinho` : "Ir para a loja e ver o carrinho"} className="relative inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-background px-3 text-sm font-semibold hover:border-primary/50">
-            <ShoppingCart size={17} aria-hidden="true" /> <span className="max-[400px]:sr-only">Carrinho</span>
+        <div className="flex shrink-0 items-center gap-2">
+          <Link to="/loja" aria-label={count > 0 ? `Ir para a loja: ${count} ${count === 1 ? "item" : "itens"} no carrinho` : "Ir para a loja e ver o carrinho"} className="relative hidden h-10 items-center gap-2 rounded-lg border border-border bg-background px-3 text-sm font-semibold hover:border-primary/50 sm:inline-flex">
+            <ShoppingCart size={17} aria-hidden="true" /> Carrinho
             {count > 0 && <span key={count} className="nv-bump grid min-w-5 place-items-center rounded-full bg-primary px-1.5 text-[11px] font-bold text-primary-foreground tabular-nums">{count}</span>}
           </Link>
           <Link to="/loja" className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-foreground px-3.5 text-sm font-semibold text-background hover:opacity-90">
@@ -100,7 +100,7 @@ export function HomeStore({ className = "" }: { className?: string }) {
 
       <p role="note" className="mt-2 flex items-start gap-2 text-[11px] leading-snug text-slate-600 dark:text-muted-foreground sm:items-center sm:text-xs">
         <span className="shrink-0 rounded-full border border-border px-2 py-0.5 text-[11px] font-semibold text-foreground">Pré-lançamento</span>
-        Produtos, preços e lojas são ilustrativos. As vendas ainda não estão abertas.
+        <span className="sm:hidden">Produtos e lojas ilustrativos.</span><span className="hidden sm:inline">Produtos, preços e lojas são ilustrativos. As vendas ainda não estão abertas.</span>
       </p>
 
       <div className="mt-3 flex items-center gap-2">
@@ -133,38 +133,35 @@ export function HomeStore({ className = "" }: { className?: string }) {
       </div>
 
       <div className="mt-4 border-t border-border pt-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="flex items-center gap-2 font-display text-base font-bold">Lojas parceiras <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">exemplos ilustrativos</span></h3>
-          <Link to="/parceiros" className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
-            Tem uma loja? Venda aqui <ArrowRight size={14} aria-hidden="true" />
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">Lojas parceiras <span className="hidden rounded-full sm:inline bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">exemplos ilustrativos</span></h3>
+          <Link to="/parceiros" className="inline-flex items-center gap-1 text-[13px] font-semibold text-muted-foreground transition-colors hover:text-primary">
+            <span className="sm:hidden">Venda aqui</span><span className="hidden sm:inline">Tem uma loja? Venda aqui</span> <ArrowRight size={14} aria-hidden="true" />
           </Link>
         </div>
-        <ul className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-4 sm:px-0 xl:grid-cols-7 [&::-webkit-scrollbar]:hidden">
-          {vendors.map((v, i) => {
-            const total = products.filter((p) => p.vendorId === v.id).length;
-            const on = vendor === v.id;
-            return (
-              <li key={v.id} className="nv-rise w-32 shrink-0 sm:w-auto" style={{ animationDelay: `${i * 40}ms` }}>
-                <div style={{ "--tile": v.hex } as CSSProperties}
-                  className={`group relative flex h-full flex-col items-center rounded-2xl border bg-background px-2 pb-2 pt-3 text-center transition-colors duration-300 ${on ? "border-[var(--tile)] bg-[color-mix(in_srgb,var(--tile)_8%,transparent)]" : "border-border hover:border-[color-mix(in_srgb,var(--tile)_50%,transparent)]"}`}>
-                  <button type="button" aria-pressed={on} aria-label={`Filtrar produtos de ${v.name}`} onClick={() => { setVendor(on ? null : v.id); rail.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }); }} className="flex w-full flex-col items-center">
-                    <span className="relative grid size-11 place-items-center rounded-2xl text-sm font-extrabold text-white shadow-md ring-1 ring-white/20 transition-transform duration-300 group-hover:scale-105" style={{ background: `linear-gradient(140deg, color-mix(in srgb, ${v.hex} 70%, #fff), ${v.hex} 55%, color-mix(in srgb, ${v.hex} 70%, #000))` }} aria-hidden="true">
-                      {v.initials}
-                      {v.sampleVerified && <BadgeCheck size={15} className="absolute -bottom-1 -right-1 rounded-full bg-background text-sky-500" />}
-                    </span>
-                    <strong className="mt-2 line-clamp-1 w-full text-[12.5px] font-bold">{v.name}</strong>
-                    <span className="line-clamp-1 w-full text-[10.5px] text-muted-foreground">{v.sector}</span>
-                    <span className="mt-1 flex items-center gap-1 text-[10.5px] text-muted-foreground">
-                      <Star size={10} className="fill-amber-400 text-amber-400" aria-hidden="true" /><strong className="font-semibold text-foreground">{v.sampleRating.toFixed(1).replace(".", ",")}</strong> · {v.city.replace(", AC", "")} · {total}
-                    </span>
-                  </button>
-                  <Link to="/loja" search={{ loja: v.id } as never} className="mt-2 inline-flex h-7 w-full items-center justify-center gap-1 rounded-lg bg-muted text-[11px] font-bold text-foreground transition hover:bg-[var(--tile)] hover:text-white">
-                    Visitar loja
-                  </Link>
-                </div>
-              </li>
-            );
-          })}
+        <ul className="-mx-4 mt-3 grid auto-cols-[minmax(10.5rem,1fr)] grid-flow-col gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
+          {vendors.map((v) => (
+            <li key={v.id} className="min-w-0">
+              <Link to="/loja" search={{ loja: v.id } as never} aria-label={`Visitar a loja ${v.name}`} style={{ "--tile": v.hex } as CSSProperties}
+                className="group flex h-full items-center gap-2.5 rounded-xl border border-border bg-background/60 px-2.5 py-2 transition-colors duration-200 hover:border-[color-mix(in_srgb,var(--tile)_45%,transparent)] hover:bg-[color-mix(in_srgb,var(--tile)_6%,transparent)]">
+                <span aria-hidden="true" className="grid size-8 shrink-0 place-items-center rounded-lg text-[11px] font-extrabold ring-1 ring-inset"
+                  style={{ background: `color-mix(in srgb, ${v.hex} 16%, transparent)`, color: `color-mix(in srgb, ${v.hex} 55%, var(--color-foreground, #fff))`, ["--tw-ring-color" as string]: `color-mix(in srgb, ${v.hex} 30%, transparent)` }}>
+                  {v.initials}
+                </span>
+                <span className="min-w-0 flex-1 leading-tight">
+                  <span className="flex items-center gap-1">
+                    <strong className="truncate text-[12.5px] font-semibold">{v.name}</strong>
+                    {v.sampleVerified && <BadgeCheck size={12} className="shrink-0 text-sky-500" aria-label="Verificada (exemplo)" />}
+                  </span>
+                  <span className="mt-0.5 flex items-center gap-1 truncate text-[11px] text-muted-foreground">
+                    <Star size={10} className="shrink-0 fill-amber-400 text-amber-400" aria-hidden="true" />
+                    {v.sampleRating.toFixed(1).replace(".", ",")} · {v.city.replace(", AC", "")}
+                  </span>
+                </span>
+                <ArrowRight size={13} aria-hidden="true" className="shrink-0 text-muted-foreground opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-100" />
+              </Link>
+            </li>
+          ))}
         </ul>
       </div>
     </section>
