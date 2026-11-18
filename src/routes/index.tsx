@@ -22,9 +22,11 @@ import { LiveModeLauncher } from "@/components/vigia/LiveMode";
 import { HomeStore } from "@/components/vigia/HomeStore";
 import { SmartBanner, ToolDemo } from "@/components/vigia/SmartBanner";
 import { AppShowcase } from "@/components/vigia/AppShowcase";
-import { QrShareCard } from "@/components/vigia/QrShareCard";
+import { QrCode } from "@/components/vigia/QrCode";
+import { InstallAppButton } from "@/components/vigia/InstallApp";
+import { LogoMark } from "@/components/vigia/Logo";
 import { PartnerCommercial } from "@/components/vigia/PartnerCommercial";
-import { HomeBottomArt, HomeSideArt } from "@/components/vigia/HomeDecor";
+import { HomeSideArt } from "@/components/vigia/HomeDecor";
 import { HomeNextCareCard } from "@/components/vigia/CareTimer";
 import { HomeModalityTimers } from "@/components/vigia/HomeModalityTimers";
 import { HomeClientMetrics } from "@/components/vigia/HomeClientMetrics";
@@ -78,7 +80,7 @@ function Homepage() {
   return (
     <>
     <HomeSideArt />
-    <div className="relative z-10 mx-auto flex w-full flex-col gap-3 lg:gap-4 min-[1280px]:px-[4.25rem]">
+    <div className="relative z-10 mx-auto flex w-full flex-col gap-4 lg:gap-5 min-[1280px]:px-[4.25rem]">
       {status === "unlinked" && (
         <p role="status" className="rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm">
           Sua conta está conectada, mas ainda não há um prontuário vinculado. Solicite o acesso ao administrador.
@@ -162,25 +164,37 @@ function Homepage() {
       {client && <HomeClientMetrics />}
       {client && <SmartMetricsDashboard />}
 
-      <HomeBottomArt />
-
-      <footer className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl border border-border bg-card px-5 py-3.5 text-sm">
-        <div className="min-w-0">
-          <p className="font-display text-base font-extrabold leading-tight">NextVita</p>
-          <p className="text-xs text-muted-foreground">Bem-estar organizado: rotina, lembretes e loja no mesmo app.</p>
+      <footer className="mt-2 overflow-hidden rounded-2xl border border-border bg-card">
+        <div className="grid gap-x-8 gap-y-6 px-6 py-7 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.5fr)_repeat(3,minmax(0,1fr))] lg:px-8">
+          <div className="min-w-0 sm:col-span-2 lg:col-span-1">
+            <Link to="/" className="inline-flex items-center gap-2"><LogoMark size={30} /><span className="font-display text-lg font-extrabold">Next<span className="text-primary">Vita</span></span></Link>
+            <p className="mt-2 max-w-xs text-sm text-muted-foreground">Bem-estar organizado: rotina, lembretes e loja no mesmo app.</p>
+            <div className="mt-4 flex items-center gap-3">
+              <span className="rounded-xl bg-white p-1.5 shadow-sm ring-1 ring-border"><QrCode variant="footer" size={64} /></span>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold">Abra no celular</p>
+                <p className="text-[11px] text-muted-foreground">Aponte a câmera para o código.</p>
+                <div className="mt-1.5 [&_button]:!h-8 [&_button]:!px-3 [&_button]:!text-xs"><InstallAppButton /></div>
+              </div>
+            </div>
+          </div>
+          {([
+            ["Ferramentas", [["/hidratacao", "Hidratação"], ["/medicamentos", "Medicação"], ["/dietas", "Alimentação"], ["/treinos", "Treinos"], ["/sono", "Sono"]]],
+            ["Plataforma", [["/loja", "Loja"], ["/lojista", "Seja lojista"], ["/metricas", "Métricas"], ["/protocolos", "Como funciona"]]],
+            ["Empresa", [["/sobre", "Sobre"], ["/entrar?mode=signup", "Criar conta grátis"], ["/entrar", "Entrar"], ["/parceiros", "Parcerias"]]],
+          ] as const).map(([title, links]) => (
+            <nav key={title} aria-label={title}>
+              <p className="text-xs font-bold text-foreground">{title}</p>
+              <ul className="mt-3 grid gap-2 text-sm">
+                {links.map(([to, label]) => <li key={to}><a href={to} className="text-muted-foreground transition-colors hover:text-foreground">{label}</a></li>)}
+              </ul>
+            </nav>
+          ))}
         </div>
-        <nav aria-label="Links do rodapé" className="flex flex-wrap gap-x-4 gap-y-1 text-[13px]">
-          <Link to="/loja" className="text-muted-foreground hover:text-foreground">Loja</Link>
-          <Link to="/protocolos" className="text-muted-foreground hover:text-foreground">Como funciona</Link>
-          <Link to="/lojista" className="text-muted-foreground hover:text-foreground">Seja lojista</Link>
-          <Link to="/metricas" className="text-muted-foreground hover:text-foreground">Métricas</Link>
-          <Link to="/sobre" className="text-muted-foreground hover:text-foreground">Sobre</Link>
-          {!panel && <a href="/entrar?mode=signup" className="font-semibold text-primary hover:underline">Criar conta grátis</a>}
-        </nav>
-        <QrShareCard variant="footer" className="ml-auto w-full sm:w-auto" />
-        <p className="w-full border-t border-border pt-2.5 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} NextVita · Desenvolvido por <Link to="/sobre" className="font-semibold text-foreground hover:underline">Franc D&apos;nis</Link> · Feijó, Acre
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-border px-6 py-3 text-xs text-muted-foreground lg:px-8">
+          <span>© {new Date().getFullYear()} NextVita. Todos os direitos reservados.</span>
+          <span>Desenvolvido por <Link to="/sobre" className="font-semibold text-foreground hover:underline">Franc D&apos;nis</Link> · Feijó, Acre</span>
+        </div>
       </footer>
     </div>
     </>
