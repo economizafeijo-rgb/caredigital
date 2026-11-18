@@ -169,7 +169,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
       <div className="care-intake-modal-overlay fixed inset-0 z-[150] flex items-center justify-center overflow-hidden bg-slate-950/60 p-3 backdrop-blur-sm"
         onMouseDown={event => { if (event.target === event.currentTarget) closeForm(); }}>
         <section role="dialog" aria-modal="true" aria-labelledby="quick-intake-title"
-          className="care-premium-intake-dialog care-intake-responsive-v2 care-intake-oneview flex h-[min(94dvh,710px)] max-h-[94dvh] w-full max-w-[720px] min-w-0 flex-col overflow-hidden rounded-[24px] border border-border bg-card p-4 text-card-foreground shadow-2xl sm:p-5">
+          className="care-premium-intake-dialog care-intake-responsive-v2 care-intake-oneview flex h-[min(94dvh,860px)] max-h-[94dvh] w-full max-w-[min(1200px,96vw)] min-w-0 flex-col overflow-hidden rounded-[24px] border border-border bg-card p-4 text-card-foreground shadow-2xl sm:p-5">
           <div className="care-premium-intake-header flex shrink-0 items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <span className="grid size-9 place-items-center rounded-xl bg-primary/10 text-primary">
@@ -184,7 +184,8 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
               className="grid size-8 place-items-center rounded-lg border border-border"><X size={18}/></button>
           </div>
           <button type="button" onClick={()=>setReportOpen(true)} className="mt-3 inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-primary/30 bg-accent px-3 py-2.5 text-xs font-bold text-primary hover:bg-accent"><BarChart3 size={17}/> Relatório diário, mensal e anual</button>
-          <form className="care-intake-oneview-form mt-2 grid min-h-0 flex-1 content-start gap-2 overflow-y-auto overscroll-contain pr-1" onSubmit={event => void save(event)}>
+          <form className="care-intake-oneview-form mt-2 grid min-h-0 flex-1 content-start gap-3 overflow-y-auto overscroll-contain pr-1 lg:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)] lg:overflow-hidden" onSubmit={event => void save(event)}>
+            <div className="grid min-w-0 content-start gap-2 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
             {mode==="all"&&<div role="group" aria-label="Selecionar tipo de consumo" className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-muted/35 p-1">
               <button type="button" aria-pressed={group==="food"}
                 onClick={()=>{setGroup("food");setKind("almoco");setDescription("");setPortion("");setError("");}}
@@ -208,6 +209,8 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
               <CareIntakeIcon kind={kind} size={16} className="shrink-0 text-primary"/>
               <span className="min-w-0 flex-1">{label} <span className="font-normal text-muted-foreground">· {option?.hint}</span></span>
             </p>
+            </div>
+            <div className="grid min-w-0 content-start gap-2 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
             {!isWater && (isFood
               ? <div className="care-intake-food-fields grid min-w-0 grid-cols-1 gap-3">
                   <label className="block min-w-0 text-xs font-semibold leading-relaxed">
@@ -275,6 +278,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
                 className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2.5 text-xs font-bold text-primary-foreground transition hover:bg-primary disabled:opacity-50">
                 <Save size={15}/>{saving ? "Salvando..." : "Registrar agora"}
               </button>
+            </div>
             </div>
           </form>
         </section>
