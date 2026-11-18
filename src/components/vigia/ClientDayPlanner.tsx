@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ComponentType } from "react";
-import { Activity, Check, ChevronRight, Droplets, HeartPulse, Moon, Pill, Sparkles, Sun, Sunrise, Sunset, Undo2, UtensilsCrossed } from "lucide-react";
+import { Activity, Check, ChevronRight, CircleSlash, Droplets, HeartPulse, Moon, Pill, Sparkles, Sun, Sunrise, Sunset, Undo2, UtensilsCrossed, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useDialog } from "@/lib/dialog";
 import { estimateNextHydration } from "@/lib/hydration-goal";
@@ -27,7 +27,11 @@ type Item = {
   action?: { label: string; run: () => void };
   undo?: () => void;
   task?: PatientCare;
+  /** Pode ser respondido como "não fiz" (com motivo). */
+  skippable?: boolean;
 };
+const REASONS: [string, string][] = [["nao_consegui", "Não consegui"], ["esqueci", "Esqueci"], ["sem_produto", "Acabou / sem o produto"], ["mal_estar", "Mal-estar"], ["orientacao", "Orientação profissional"], ["dispensado", "Dispensar hoje"], ["outro", "Outro motivo"]];
+const reasonLabel = (r: string) => REASONS.find(([k]) => k === r)?.[1] ?? "Não fiz";
 
 const tz = "America/Rio_Branco";
 const dayKey = () => new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(new Date());
@@ -52,7 +56,7 @@ const PERIODS = [
 ] as const;
 const go = (area: ClientSection) => { window.location.hash = clientSectionHashes[area]; };
 
-type Raw = { water: any[]; bev: any[]; meds: any[]; medIn: any[]; sup: any[]; supIn: any[]; acts: any[]; sleep: any[] };
+type Raw = { water: any[]; bev: any[]; meds: any[]; medIn: any[]; sup: any[]; supIn: any[]; acts: any[]; sleep: any[]; resp: any[] };
 
 export function ClientDayPlanner({ patientId, ownerId, waterTarget, tasks, resolved = {}, now, onView, onConfirm, revision = 0, onRecorded }: {
   patientId: string; ownerId: string; waterTarget: number | null; tasks: PatientCare[]; resolved?: Record<string, string>; now: number;
@@ -64,7 +68,17 @@ export function ClientDayPlanner({ patientId, ownerId, waterTarget, tasks, resol
   const [filter, setFilter] = useState<Kind | "todos">("todos");
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [sheet, setSheet] = useState<Item | null>(null);
   const day = dayKey();
+  async function saveSkip(item: Item, reason: string, note: string) {
+    setBusy(item.id); setError("");
+    const { error: err } = await (supabase as any).from("care_day_item_responses").insert({
+      patient_id: patientId, owner_id: ownerId, day, item_key: item.id, kind: item.kind, reason, note: note.trim() || null,
+    });
+    setBusy(null);
+    if (err) { setError(err.message || "Não foi possível salvar a resposta."); return; }
+    setSheet(null); refresh();
+  }
 
   useEffect(() => {
     let active = true;
@@ -82,9 +96,10 @@ export function ClientDayPlanner({ patientId, ownerId, waterTarget, tasks, resol
         safe(db.from("care_supplement_intakes").select("plan_id,slot,taken_at").eq("patient_id", patientId).eq("taken_on", day)),
         safe(db.from("care_activity_log").select("id,category,happened_at,recorded_at,details,request_id").eq("patient_id", patientId).in("category", ["refeicao", "atividade"]).in("event_type", ["confirmed", "logged"]).gte("recorded_at", from)),
         safe(db.from("care_sleep_logs").select("bed_at").eq("patient_id", patientId).order("sleep_date", { ascending: false }).limit(7)),
+        safe(db.from("care_day_item_responses").select("item_key,reason,note,created_at").eq("patient_id", patientId).eq("day", day)),
       ];
-    } catch { setRaw({ water: [], bev: [], meds: [], medIn: [], sup: [], supIn: [], acts: [], sleep: [] }); return () => { active = false; }; }
-    void Promise.all(qs).then(([water, bev, meds, medIn, sup, supIn, acts, sleep]) => { if (active) setRaw({ water, bev, meds, medIn, sup, supIn, acts, sleep }); });
+    } catch { setRaw({ water: [], bev: [], meds: [], medIn: [], sup: [], supIn: [], acts: [], sleep: [], resp: [] }); return () => { active = false; }; }
+    void Promise.all(qs).then(([water, bev, meds, medIn, sup, supIn, acts, sleep, resp]) => { if (active) setRaw({ water, bev, meds, medIn, sup, supIn, acts, sleep, resp }); });
     return () => { active = false; };
   }, [patientId, ownerId, day, reload, revision]);
 
@@ -115,7 +130,7 @@ export function ClientDayPlanner({ patientId, ownerId, waterTarget, tasks, resol
         const table = kind === "med" ? "care_client_medication_intakes" : "care_supplement_intakes";
         const id = `${kind}-${p.id}-${t}`;
         out.push({
-          id, kind, at: ms, title: label, detail, status: stateOf(ms, Boolean(hit)), doneAt: hit?.taken_at ? Date.parse(hit.taken_at) : undefined,
+          id, kind, at: ms, title: label, detail, status: stateOf(ms, Boolean(hit)), skippable: !hit, doneAt: hit?.taken_at ? Date.parse(hit.taken_at) : undefined,
           action: hit ? undefined : { label: "Tomei", run: () => void run(id, ["Confirmar dose?", `Registrar ${label} (${detail}) das ${t} como tomado agora?`, "Tomei"],
             () => kind === "med"
               ? db.from(table).upsert({ medication_id: p.id, patient_id: patientId, owner_id: ownerId, taken_on: day, slot: t }, { onConflict: "medication_id,taken_on,slot", ignoreDuplicates: true })
@@ -157,7 +172,7 @@ export function ClientDayPlanner({ patientId, ownerId, waterTarget, tasks, resol
       const ms = at(day, t);
       const hit = meals.find((m) => !used.has(m.id) && Math.abs(m.t - ms) <= 90 * 60_000);
       if (hit) used.add(hit.id);
-      out.push({ id: `meal-${t}`, kind: "refeicao", at: ms, title: label, detail: hit ? hit.text : "registre o que comer", status: stateOf(ms, Boolean(hit), 90), doneAt: hit?.t,
+      out.push({ id: `meal-${t}`, kind: "refeicao", at: ms, title: label, detail: hit ? hit.text : "registre o que comer", status: stateOf(ms, Boolean(hit), 90), doneAt: hit?.t, skippable: !hit,
         action: hit ? undefined : { label: "Registrar", run: () => go("alimentacao") } });
     }
     for (const m of meals.filter((m) => !used.has(m.id))) out.push({ id: `meal-x-${m.id}`, kind: "refeicao", at: m.t, title: "Refeição extra", detail: m.text, status: "done", doneAt: m.t });
@@ -165,7 +180,7 @@ export function ClientDayPlanner({ patientId, ownerId, waterTarget, tasks, resol
     // Movimento
     const moves = raw.acts.filter((r) => r.category === "atividade");
     for (const m of moves) out.push({ id: `act-${m.id}`, kind: "atividade", at: Date.parse(m.happened_at ?? m.recorded_at), title: m.details?.title || "Atividade física", detail: `${Number(m.details?.duration_minutes) || 0} min`, status: "done" });
-    if (!moves.length) out.push({ id: "act-plan", kind: "atividade", at: at(day, "17:30"), title: "30 min de movimento", detail: "caminhada, treino ou alongamento", status: stateOf(at(day, "17:30"), false, 180), action: { label: "Registrar", run: () => go("atividade") } });
+    if (!moves.length) out.push({ id: "act-plan", kind: "atividade", at: at(day, "17:30"), title: "30 min de movimento", detail: "caminhada, treino ou alongamento", status: stateOf(at(day, "17:30"), false, 180), skippable: true, action: { label: "Registrar", run: () => go("atividade") } });
 
     // Sono: média dos últimos horários de deitar (ou 22h30)
     const mins = raw.sleep.map((l) => { const d = new Date(Date.parse(l.bed_at) - 5 * 3_600_000); let m = d.getUTCHours() * 60 + d.getUTCMinutes(); if (m < 720) m += 1440; return m; });
@@ -183,6 +198,17 @@ export function ClientDayPlanner({ patientId, ownerId, waterTarget, tasks, resol
         doneAt: task.completed_at ? Date.parse(task.completed_at) : undefined,
         action: !task.completed_at && !resolved[task.id] && st === "due" ? { label: "Confirmar", run: () => onConfirm(task) } : undefined });
     }
+    // Respostas "não fiz": o item sai das pendências e mostra o motivo
+    for (const r of raw.resp) {
+      const it = out.find((i) => i.id === r.item_key);
+      if (!it || it.status === "done") continue;
+      it.status = "skipped";
+      it.detail = reasonLabel(r.reason) + (r.note ? ` · ${r.note}` : "");
+      it.action = undefined;
+      it.skippable = false;
+      it.undo = () => void run(it.id, ["Desfazer resposta?", `${it.title} volta para a lista de pendências.`, "Desfazer"],
+        () => db.from("care_day_item_responses").delete().eq("patient_id", patientId).eq("day", day).eq("item_key", it.id));
+    }
     return out.sort((a, b) => a.at - b.at);
   }, [raw, now, day, waterTarget, tasks, resolved, patientId, ownerId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -192,7 +218,7 @@ export function ClientDayPlanner({ patientId, ownerId, waterTarget, tasks, resol
     return c;
   }, [items]);
   const visible = items.filter((i) => filter === "todos" || i.kind === filter);
-  const actionable = items.filter((i) => i.kind !== "sono" && (i.status === "done" || i.status === "late" || i.at <= now));
+  const actionable = items.filter((i) => i.kind !== "sono" && i.status !== "skipped" && (i.status === "done" || i.status === "late" || i.at <= now));
   const doneCount = actionable.filter((i) => i.status === "done").length;
   const pct = actionable.length ? Math.round((doneCount / actionable.length) * 100) : 0;
   const late = items.filter((i) => i.status === "late").length;
@@ -273,7 +299,7 @@ export function ClientDayPlanner({ patientId, ownerId, waterTarget, tasks, resol
                     {list.map((i, idx) => (
                       <li key={i.id} className="contents">
                         {idx === nowIdx && <NowLine now={now} />}
-                        <Row item={i} busy={busy === i.id} onView={onView} />
+                        <Row item={i} busy={busy === i.id} onView={onView} onResolve={setSheet} />
                       </li>
                     ))}
                     {isNow && nowIdx === -1 && <li className="contents"><NowLine now={now} /></li>}
@@ -284,6 +310,7 @@ export function ClientDayPlanner({ patientId, ownerId, waterTarget, tasks, resol
           })}
         </div>
       )}
+      {sheet && <ResolveSheet item={sheet} busy={busy === sheet.id} onClose={() => setSheet(null)} onSkip={(r, n) => void saveSkip(sheet, r, n)} />}
       <p className="text-[11px] text-muted-foreground">
         A linha do tempo é montada com o que você cadastrou: remédios e suplementos com horário, sua meta de água, as refeições do dia, movimento e sono.
         Toque num item para abrir a área dele.
@@ -314,7 +341,8 @@ function NowLine({ now }: { now: number }) {
   );
 }
 
-function Row({ item, busy, onView }: { item: Item; busy: boolean; onView: (t: PatientCare) => void }) {
+function Row({ item, busy, onView, onResolve }: { item: Item; busy: boolean; onView: (t: PatientCare) => void; onResolve: (i: Item) => void }) {
+  const canSkip = item.skippable && (item.status === "late" || item.status === "now");
   const k = KINDS[item.kind];
   const Icon = k.icon;
   const done = item.status === "done";
@@ -331,16 +359,22 @@ function Row({ item, busy, onView }: { item: Item; busy: boolean; onView: (t: Pa
             <strong className={`truncate text-[13px] leading-tight ${done ? "text-muted-foreground line-through decoration-muted-foreground/40" : ""}`}>{item.title}</strong>
           </span>
           <span className="block truncate text-[11px] text-muted-foreground">
-            {item.status === "late" ? <b className="font-semibold text-rose-600 dark:text-rose-400">atrasado · </b> : item.status === "now" ? <b className="font-semibold text-amber-600 dark:text-amber-300">na hora · </b> : item.status === "skipped" ? <b className="font-semibold">respondido · </b> : null}
+            {item.status === "late" ? <b className="font-semibold text-rose-600 dark:text-rose-400">atrasado · </b> : item.status === "now" ? <b className="font-semibold text-amber-600 dark:text-amber-300">na hora · </b> : item.status === "skipped" ? <b className="font-semibold text-slate-500">não fiz · </b> : null}
             {done && item.doneAt && Math.abs(item.doneAt - item.at) > 60_000 ? `feito às ${hm(item.doneAt)} · ` : ""}{item.detail}
           </span>
         </span>
       </button>
+      {canSkip && (
+        <button type="button" disabled={busy} onClick={() => onResolve(item)} title="Não fiz" aria-label={`Não fiz: ${item.title}`}
+          className="grid size-7 shrink-0 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-rose-400/50 hover:bg-rose-500/10 hover:text-rose-600 active:scale-95 disabled:opacity-50">
+          <CircleSlash size={13} />
+        </button>
+      )}
       {item.action ? (
-        <button type="button" disabled={busy} onClick={item.action.run}
+        <button type="button" disabled={busy} onClick={item.status === "late" && item.skippable ? () => onResolve(item) : item.action.run}
           className={`h-7 shrink-0 rounded-lg px-2.5 text-[11px] font-bold transition active:scale-95 disabled:opacity-50 ${item.status === "now" || item.status === "late" ? "text-white shadow-sm" : "border border-border bg-card text-foreground hover:bg-muted"}`}
           style={item.status === "now" || item.status === "late" ? { background: k.color } : undefined}>
-          {busy ? "…" : item.action.label}
+          {busy ? "…" : item.status === "late" && item.skippable ? "Resolver" : item.action.label}
         </button>
       ) : item.undo ? (
         <button type="button" disabled={busy} onClick={item.undo} title="Desfazer" aria-label={`Desfazer ${item.title}`} className="grid size-7 shrink-0 place-items-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground sm:opacity-0 sm:focus-visible:opacity-100 sm:group-hover:opacity-100">
@@ -349,6 +383,69 @@ function Row({ item, busy, onView }: { item: Item; busy: boolean; onView: (t: Pa
       ) : (
         <ChevronRight size={14} className="shrink-0 text-muted-foreground/50 transition group-hover:translate-x-0.5 group-hover:text-muted-foreground" />
       )}
+    </div>
+  );
+}
+
+function ResolveSheet({ item, busy, onClose, onSkip }: { item: Item; busy: boolean; onClose: () => void; onSkip: (reason: string, note: string) => void }) {
+  const k = KINDS[item.kind];
+  const Icon = k.icon;
+  const [reason, setReason] = useState<string | null>(null);
+  const [note, setNote] = useState("");
+  const [step, setStep] = useState<"choose" | "confirm">("choose");
+  useEffect(() => {
+    const f = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", f);
+    return () => window.removeEventListener("keydown", f);
+  }, [onClose]);
+  return (
+    <div className="fixed inset-0 z-[11000] grid place-items-end bg-slate-950/60 p-3 backdrop-blur-sm sm:place-items-center" role="dialog" aria-modal="true" aria-label={`O que aconteceu com ${item.title}?`} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="nv-pop w-full max-w-md overflow-hidden rounded-3xl border border-border bg-card shadow-2xl">
+        <header className="flex items-center gap-3 p-4 text-white" style={{ background: `linear-gradient(135deg, ${k.color}, color-mix(in oklab, ${k.color} 55%, #0f172a))` }}>
+          <span className="grid size-10 place-items-center rounded-xl bg-white/20"><Icon size={19} /></span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-semibold text-white/80">{k.label} · {hm(item.at)}{item.status === "late" ? " · atrasado" : ""}</p>
+            <h3 className="truncate text-base font-extrabold">{item.title}</h3>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Fechar" className="grid size-8 place-items-center rounded-lg bg-white/15 hover:bg-white/25"><X size={16} /></button>
+        </header>
+        {step === "choose" ? (
+          <div className="grid gap-3 p-4">
+            {item.action && (
+              <button type="button" disabled={busy} onClick={() => { onClose(); item.action!.run(); }}
+                className="flex items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/[.07] p-3 text-left transition hover:bg-emerald-500/[.12] active:scale-[.99]">
+                <span className="grid size-9 place-items-center rounded-xl bg-emerald-500 text-white"><Check size={17} /></span>
+                <span className="min-w-0"><strong className="block text-sm">{item.kind === "med" || item.kind === "supl" ? "Tomei" : "Fiz"} — registrar agora</strong><span className="text-xs text-muted-foreground">Fica registrado com a hora real; você confirma na próxima tela.</span></span>
+              </button>
+            )}
+            <div>
+              <p className="mb-1.5 text-xs font-semibold text-muted-foreground">Não fiz — o que aconteceu?</p>
+              <div className="flex flex-wrap gap-1.5">
+                {REASONS.map(([key, label]) => (
+                  <button key={key} type="button" aria-pressed={reason === key} onClick={() => setReason(key)}
+                    className={`h-8 rounded-full border px-3 text-xs font-semibold transition active:scale-95 ${reason === key ? "border-transparent bg-rose-600 text-white shadow-sm" : "border-border bg-card hover:border-rose-400/50 hover:bg-rose-500/5"}`}>{label}</button>
+                ))}
+              </div>
+              <label className="mt-2 block text-xs font-semibold text-muted-foreground">Observação (opcional)
+                <input value={note} onChange={(e) => setNote(e.target.value.slice(0, 280))} maxLength={280} placeholder="Ex.: estava sem fome, remédio acabou…" className="mt-1 h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-foreground" />
+              </label>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button type="button" onClick={onClose} className="h-10 rounded-xl border border-border text-sm font-semibold hover:bg-muted">Cancelar</button>
+              <button type="button" disabled={!reason} onClick={() => setStep("confirm")} className="h-10 rounded-xl bg-rose-600 text-sm font-bold text-white shadow-sm transition hover:bg-rose-500 active:scale-95 disabled:opacity-40">Continuar</button>
+            </div>
+          </div>
+        ) : (
+          <div className="grid gap-3 p-4">
+            <p className="text-sm">Confirmar que <strong>{item.title}</strong> das {hm(item.at)} <strong>não foi feito</strong>?</p>
+            <p className="rounded-xl bg-muted/50 p-3 text-xs text-muted-foreground">Motivo: <strong className="text-foreground">{reasonLabel(reason!)}</strong>{note.trim() ? ` · ${note.trim()}` : ""}. O item sai das pendências de hoje e fica no seu histórico. Dá para desfazer depois.</p>
+            <div className="grid grid-cols-2 gap-2">
+              <button type="button" onClick={() => setStep("choose")} className="h-10 rounded-xl border border-border text-sm font-semibold hover:bg-muted">Voltar</button>
+              <button type="button" disabled={busy} onClick={() => onSkip(reason!, note)} className="h-10 rounded-xl bg-rose-600 text-sm font-bold text-white shadow-sm transition hover:bg-rose-500 active:scale-95 disabled:opacity-50">{busy ? "Salvando…" : "Confirmar"}</button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
