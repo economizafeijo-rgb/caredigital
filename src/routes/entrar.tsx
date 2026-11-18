@@ -411,19 +411,19 @@ function Entrar() {
       <section
         onFocusCapture={(e) => { const t = (e.target as HTMLInputElement).type; setFocus(t === "email" ? "email" : t === "password" || (e.target as HTMLInputElement).autocomplete?.includes("password") ? "password" : "other"); }}
         onBlurCapture={() => setFocus(null)}
-        className="flex min-h-0 flex-col justify-center overflow-hidden rounded-2xl border border-border bg-card shadow-pop">
-        <div className="flex items-center gap-3 border-b border-border px-4 py-2.5 sm:px-5">
-          <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-            <LockKeyhole size={21} />
+        className="relative flex min-h-0 flex-col justify-center overflow-hidden rounded-3xl border border-border bg-card shadow-pop">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-500" />
+        <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 size-64 rounded-full bg-primary/10 blur-3xl" />
+        <div className="relative flex items-center gap-3 px-4 pb-1 pt-5 sm:px-6">
+          <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 text-white shadow-[0_8px_20px_-8px_rgba(16,185,129,.7)]">
+            <LockKeyhole size={20} />
           </div>
           <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-[.17em] text-primary">
-              NextVita · Conta protegida
-            </p>
-            <h1 className="mt-0.5 text-xl font-bold tracking-tight text-foreground">{title}</h1>
+            <p className="text-xs font-semibold text-muted-foreground">NextVita · conta protegida</p>
+            <h1 className="mt-0.5 text-2xl font-extrabold tracking-tight text-foreground">{title}</h1>
           </div>
         </div>
-        <div className="space-y-3 p-4 sm:p-5 lg:space-y-2.5 lg:p-4">
+        <div className="relative space-y-3 p-4 sm:px-6 sm:py-5 lg:space-y-3">
           <p className="text-sm leading-relaxed text-muted-foreground">
             {mode === "login"
               ? "Entre com o e-mail e a senha cadastrados."

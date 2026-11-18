@@ -777,10 +777,12 @@ body:has(.care-shell #care-client-tab-panel) {
 
 /* Relógio do próximo cuidado: pulso quando vence e sino balançando */
 @keyframes nv-due-pulse { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--due, #22d3ee) 55%, transparent); } 50% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--due, #22d3ee) 0%, transparent); } }
-.nv-due { animation: nv-due-pulse 1.6s ease-in-out infinite; border-color: color-mix(in srgb, var(--due, #22d3ee) 60%, transparent) !important; }
+.nv-due { animation: nv-due-pulse 3.2s ease-in-out infinite; border-color: color-mix(in srgb, var(--due, #22d3ee) 60%, transparent) !important; }
 @keyframes nv-bell { 0%, 50%, 100% { transform: rotate(0); } 10%, 30% { transform: rotate(14deg); } 20%, 40% { transform: rotate(-14deg); } }
 .nv-ring-bell { transform-origin: 50% 10%; animation: nv-bell 1.4s ease-in-out infinite; }
-@media (prefers-reduced-motion: reduce) { .nv-due, .nv-ring-bell { animation: none; } }
+@keyframes nv-breathe { 0%, 100% { stroke-opacity: 1; } 50% { stroke-opacity: .45; } }
+.nv-breathe { animation: nv-breathe 2.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .nv-due, .nv-ring-bell, .nv-breathe { animation: none; } }
 
 /* Mãozinha em tudo que é clicável (o reset do Tailwind deixa botões com a seta) */
 button:not(:disabled), [role="button"], [role="radio"], [role="tab"], [role="switch"], [role="slider"], summary, select:not(:disabled),
@@ -837,3 +839,8 @@ html, #care-content { scrollbar-gutter: stable; }
 }
 /* Cartões que levam a outra área ou abrem detalhes: mãozinha */
 #care-content [onclick], #care-content li:has(> button:only-child), [data-clickable] { cursor: pointer; }
+@keyframes nv-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.nv-float { animation: nv-float 5s ease-in-out infinite; }
+@keyframes nv-auth-scan { 0% { top: -6rem; } 100% { top: 100%; } }
+.nv-auth-scan { animation: nv-auth-scan 7s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .nv-float, .nv-auth-scan { animation: none; } }

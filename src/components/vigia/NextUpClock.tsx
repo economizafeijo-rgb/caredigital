@@ -107,9 +107,13 @@ export function NextUpClock({ target, from, title, detail, color = "#22d3ee", em
   const progress = when ? Math.min(1, Math.max(0, (now - start) / span)) : 0;
   const R = 40, C = 2 * Math.PI * R;
   const sec = new Date(now).getSeconds();
+  // Vencido: o relógio para de "correr" e assume a cor âmbar de pendência, com um brilho lento.
+  const PEND = "#fbbf24";
+  const ink = due ? PEND : color;
+  const lateMin = due && when !== null ? Math.max(0, Math.floor((now - when) / 60_000)) : 0;
 
   return (
-    <div className={`flex items-center ${compact ? "gap-2.5 rounded-xl p-2" : "gap-3 rounded-2xl p-3"} border border-white/15 bg-white/10 backdrop-blur ${due ? "nv-due" : ""} ${className}`} style={{ ["--due" as string]: color }}>
+    <div className={`flex items-center ${compact ? "gap-2.5 rounded-xl p-2" : "gap-3 rounded-2xl p-3"} border backdrop-blur transition-colors duration-500 ${due ? "nv-due border-amber-300/50 bg-amber-400/[.12]" : "border-white/15 bg-white/10"} ${className}`} style={{ ["--due" as string]: PEND }}>
       <div className={`relative shrink-0 ${compact ? "size-[54px]" : "size-[88px]"}`} aria-hidden="true">
         <svg viewBox="0 0 100 100" className="size-full">
           {Array.from({ length: 60 }, (_, i) => {
@@ -118,13 +122,13 @@ export function NextUpClock({ target, from, title, detail, color = "#22d3ee", em
             return <line key={i} x1={50 + r1 * Math.sin(a)} y1={50 - r1 * Math.cos(a)} x2={50 + r2 * Math.sin(a)} y2={50 - r2 * Math.cos(a)} stroke="#fff" strokeOpacity={i === sec ? 0.95 : big ? 0.45 : 0.15} strokeWidth={big ? 1.6 : 1} />;
           })}
           <circle cx="50" cy="50" r={R} fill="none" stroke="#ffffff14" strokeWidth="6" />
-          <circle cx="50" cy="50" r={R} fill="none" stroke={color} strokeWidth="6" strokeLinecap="round" transform="rotate(-90 50 50)"
-            strokeDasharray={C} strokeDashoffset={C * (1 - (due ? 1 : progress))} style={{ transition: "stroke-dashoffset 1s linear", filter: `drop-shadow(0 0 5px ${color})` }} />
-          <line x1="50" y1="50" x2={50 + 30 * Math.sin((sec / 60) * Math.PI * 2)} y2={50 - 30 * Math.cos((sec / 60) * Math.PI * 2)} stroke={color} strokeWidth="1.6" strokeLinecap="round" style={{ transition: sec === 0 ? "none" : "all .25s cubic-bezier(.4,2.2,.6,1)" }} />
-          <circle cx="50" cy="50" r="2.6" fill={color} />
+          <circle cx="50" cy="50" r={R} fill="none" stroke={ink} strokeWidth="6" strokeLinecap="round" transform="rotate(-90 50 50)" className={due ? "nv-breathe" : ""}
+            strokeDasharray={C} strokeDashoffset={C * (1 - (due ? 1 : progress))} style={{ transition: "stroke-dashoffset 1s linear, stroke .5s", filter: `drop-shadow(0 0 5px ${ink})` }} />
+          {!due && <line x1="50" y1="50" x2={50 + 30 * Math.sin((sec / 60) * Math.PI * 2)} y2={50 - 30 * Math.cos((sec / 60) * Math.PI * 2)} stroke={color} strokeWidth="1.6" strokeLinecap="round" style={{ transition: sec === 0 ? "none" : "all .25s cubic-bezier(.4,2.2,.6,1)" }} />}
+          {!due && <circle cx="50" cy="50" r="2.6" fill={color} />}
         </svg>
         <span className="absolute inset-0 grid place-items-center">
-          {due ? <Bell size={compact ? 15 : 20} className="nv-ring-bell" style={{ color }} /> : !compact && <Clock3 size={14} className="mt-7 text-white/50" />}
+          {due ? <span className={`grid place-items-center rounded-full bg-amber-400/20 ${compact ? "size-7" : "size-10"}`}><Bell size={compact ? 14 : 18} style={{ color: PEND }} /></span> : !compact && <Clock3 size={14} className="mt-7 text-white/50" />}
         </span>
       </div>
       <div className="min-w-0 flex-1">
@@ -136,7 +140,10 @@ export function NextUpClock({ target, from, title, detail, color = "#22d3ee", em
         {when === null ? (
           <p className="mt-0.5 truncate text-sm font-bold">{emptyText}</p>
         ) : due ? (
-          <p className={`mt-0.5 font-extrabold leading-none ${compact ? "text-lg" : "text-2xl"}`} style={{ color }}>É hora!</p>
+          <p className={`mt-0.5 flex items-baseline gap-2 font-extrabold leading-none ${compact ? "text-lg" : "text-2xl"}`} style={{ color: PEND }}>
+            {lateMin < 1 ? "É hora!" : "Pendente"}
+            {lateMin >= 1 && <span className="rounded-full bg-amber-400/20 px-2 py-0.5 text-[11px] font-bold text-amber-200">há {lateMin < 60 ? `${lateMin} min` : `${Math.floor(lateMin / 60)} h ${String(lateMin % 60).padStart(2, "0")}`}</span>}
+          </p>
         ) : (
           <p className={`mt-0.5 font-mono font-bold tabular-nums leading-none ${compact ? "text-lg" : "text-2xl"}`}>{countdown(when - now)}</p>
         )}

@@ -54,19 +54,38 @@ export function AuthStage({ mode, email, password, status }: Props) {
     );
 
   return (
-    <aside aria-hidden="true" className="nv-dark relative isolate flex min-h-[260px] flex-col justify-between gap-6 overflow-hidden rounded-3xl bg-[#062019] p-6 text-white shadow-pop lg:min-h-0 lg:p-9">
-      <div aria-hidden="true" className="pointer-events-none absolute -right-32 -top-32 -z-10 size-[26rem] rounded-full bg-emerald-500/15 blur-3xl" />
+    <aside aria-hidden="true" className="nv-dark relative isolate flex min-h-[320px] flex-col justify-between gap-6 overflow-hidden rounded-3xl bg-[#04140f] p-6 text-white shadow-pop lg:min-h-0 lg:p-8">
+      <img src="/images/caredigital-care-hero.webp" alt="" className="nv-kenburns absolute inset-0 -z-30 size-full object-cover object-[60%_30%]" style={{ animationDuration: "24s" }} />
+      <div className="absolute inset-0 -z-20 bg-[linear-gradient(180deg,rgba(3,18,14,.55)_0%,rgba(3,18,14,.25)_35%,rgba(3,18,14,.92)_78%,#03120e_100%)]" />
+      <div className="absolute inset-0 -z-20 bg-[linear-gradient(90deg,rgba(3,18,14,.75),transparent_60%)]" />
+      <div className="absolute inset-0 -z-10 opacity-[.13] [background-image:linear-gradient(rgba(126,240,204,.5)_1px,transparent_1px),linear-gradient(90deg,rgba(126,240,204,.5)_1px,transparent_1px)] [background-size:44px_44px] [mask-image:linear-gradient(180deg,#000,transparent_70%)]" />
+      <div className="nv-auth-scan pointer-events-none absolute inset-x-0 -z-10 h-24 bg-gradient-to-b from-transparent via-emerald-300/10 to-transparent" />
 
-      <div className="flex items-center gap-2.5">
-        <LogoMark size={34} />
-        <span className="font-display text-lg font-extrabold">Next<span className="text-[#7ef0cc]">Vita</span></span>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <LogoMark size={34} />
+          <span className="font-display text-lg font-extrabold">Next<span className="text-[#7ef0cc]">Vita</span></span>
+        </div>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/30 px-2.5 py-1 text-[11px] font-semibold text-white/85 backdrop-blur">
+          <i className="relative size-1.5 rounded-full bg-emerald-400"><i className="absolute inset-0 animate-ping rounded-full bg-emerald-400" /></i> Conexão criptografada
+        </span>
       </div>
 
-      <div className="mx-auto w-full max-w-sm">
-        <p className="mb-3 min-h-[1.75rem] font-display text-xl font-bold transition-opacity duration-300" style={{ opacity: name ? 1 : 0.5 }}>
-          {name ? `Olá, ${name}.` : "Bem-vindo de volta."}
+      <div className="pointer-events-none absolute right-6 top-24 hidden flex-col items-end gap-2 lg:flex">
+        <span className="nv-float inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold backdrop-blur-md" style={{ animationDelay: "0s" }}>
+          <span className="grid size-6 place-items-center rounded-lg bg-sky-400/25 text-sky-200"><Droplets size={13} /></span> Meta de água · 72%
+        </span>
+        <span className="nv-float mr-6 inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold backdrop-blur-md" style={{ animationDelay: "1.2s" }}>
+          <span className="grid size-6 place-items-center rounded-lg bg-violet-400/25 text-violet-200"><Pill size={13} /></span> Próxima dose · 14:00
+        </span>
+      </div>
+
+      <div className="w-full max-w-sm">
+        <p className="font-display text-2xl font-extrabold leading-tight transition-opacity duration-300">
+          {name ? `Olá, ${name}.` : "Sua saúde, organizada em um só lugar."}
         </p>
-        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[.06] p-4 backdrop-blur">
+        <p className="mt-1 text-sm text-white/70">{name ? "Seu painel está a um passo." : "Remédios, água, refeições, sono e movimento com lembretes no horário certo."}</p>
+        <div className="relative mt-4 overflow-hidden rounded-2xl border border-white/12 bg-black/35 p-4 shadow-2xl backdrop-blur-xl">
           <div className="transition-[filter,opacity] duration-500" style={{ filter: `blur(${blur}px)`, opacity: 0.55 + progress * 0.45 }}>
             <div className="flex items-center justify-between text-xs text-white/60">
               <span>Seu dia</span>
@@ -86,7 +105,7 @@ export function AuthStage({ mode, email, password, status }: Props) {
           </div>
           {status !== "success" && progress < 1 && (
             <span className="absolute inset-0 grid place-items-center transition-opacity duration-300" style={{ opacity: 1 - progress }}>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-black/30 px-3 py-1 text-xs font-semibold text-white/80"><LockKeyhole size={13} /> Protegido</span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1 text-xs font-semibold text-white/85"><LockKeyhole size={13} /> Protegido</span>
             </span>
           )}
           {status === "success" && (
@@ -94,9 +113,8 @@ export function AuthStage({ mode, email, password, status }: Props) {
           )}
         </div>
         <p key={caption} className={`nv-fade-in mt-3 text-sm ${status === "error" ? "text-rose-300" : "text-white/70"}`}>{caption}</p>
+        <p className="mt-4 flex items-center gap-2 text-xs text-white/55"><ShieldCheck size={14} /> Acesso individual e dados pessoais protegidos.</p>
       </div>
-
-      <p className="flex items-center gap-2 text-xs text-white/55"><ShieldCheck size={14} /> Acesso individual e dados pessoais protegidos.</p>
     </aside>
   );
 }
