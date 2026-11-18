@@ -1,11 +1,11 @@
 import { useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, BadgeInfo, Check, ChevronLeft, ChevronRight, MapPin, Minus, Plus, ShoppingBag, ShoppingCart } from "lucide-react";
+import { ArrowRight, BadgeCheck, BadgeInfo, Check, ChevronLeft, ChevronRight, MapPin, Minus, Plus, ShoppingBag, ShoppingCart, Star } from "lucide-react";
 import { cart, categories, categoryLabel, money, PIX_DISCOUNT, products, useCart, vendorById, vendors, type Product, type StoreCategory } from "@/lib/store";
 
 type Filter = StoreCategory | "todos";
 
-const featuredOrder = ["whey-900", "conjunto-fem-1", "multivitaminico", "camiseta-regata", "pre-treino", "halteres", "conjunto-fem-2", "tapete", "vitamina-d"];
+const featuredOrder = ["whey-900", "conjunto-fem-1", "oleo-copaiba", "multivitaminico", "camiseta-regata", "guarana-po", "pre-treino", "halteres", "conjunto-fem-2", "tapete", "vitamina-d"];
 const pixPrice = (cents: number) => Math.round(cents * (1 - PIX_DISCOUNT));
 const discountOf = (p: Product) => (p.oldPriceCents ? Math.round((1 - p.priceCents / p.oldPriceCents) * 100) : 0);
 
@@ -32,7 +32,12 @@ function ProductCard({ p, qty, onAdd }: { p: Product; qty: number; onAdd: (p: Pr
           {p.oldPriceCents && <span className="text-[11px] text-slate-500 line-through tabular-nums"><span className="sr-only">Antes: </span>{money(p.oldPriceCents)}</span>}
         </p>
         <p className="text-[11px] text-emerald-700 tabular-nums dark:text-emerald-300">{money(pixPrice(p.priceCents))} no Pix</p>
-        {vendorById(p.vendorId) && <p className="mt-0.5 truncate text-[11px] text-slate-500 dark:text-muted-foreground">Vendido por <span className="font-semibold text-slate-700 dark:text-foreground">{vendorById(p.vendorId)!.name}</span></p>}
+        {vendorById(p.vendorId) && (
+          <p className="mt-0.5 flex items-center gap-1 truncate text-[11px] text-slate-500 dark:text-muted-foreground">
+            <span className="truncate">Vendido por <span className="font-semibold text-slate-700 dark:text-foreground">{vendorById(p.vendorId)!.name}</span></span>
+            {vendorById(p.vendorId)!.sampleVerified && <BadgeCheck size={12} className="shrink-0 text-sky-600" aria-label="Selo de loja verificada (exemplo)" />}
+          </p>
+        )}
         {qty > 0 ? (
           <div className="mt-2 flex h-9 items-center justify-between rounded-lg border border-emerald-600/40 bg-emerald-600/10 text-emerald-900 dark:text-emerald-100">
             <button type="button" onClick={() => cart.setQty(p.id, qty - 1)} aria-label={qty === 1 ? `Remover ${p.name} do carrinho` : `Diminuir quantidade de ${p.name}`} className="grid size-9 place-items-center rounded-l-lg hover:bg-emerald-600/15"><Minus size={14} /></button>
@@ -126,17 +131,25 @@ export function HomeStore({ className = "" }: { className?: string }) {
             Tem uma loja? Venda aqui <ArrowRight size={14} aria-hidden="true" />
           </Link>
         </div>
-        <p className="text-xs text-slate-600 dark:text-muted-foreground">Exemplos ilustrativos de setores que poderão vender na NextVita.</p>
-        <ul className="-mx-4 mt-2.5 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-3 sm:px-0 lg:grid-cols-6 [&::-webkit-scrollbar]:hidden">
+        <p className="text-xs text-slate-600 dark:text-muted-foreground">Lojas, notas e selos de verificação são exemplos ilustrativos de como os parceiros aparecerão após o lançamento.</p>
+        <ul className="-mx-4 mt-2.5 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-3 sm:px-0 lg:grid-cols-4 xl:grid-cols-7 [&::-webkit-scrollbar]:hidden">
           {vendors.map((v) => {
             const total = products.filter((p) => p.vendorId === v.id).length;
             return (
-              <li key={v.id} className="flex w-56 shrink-0 items-center gap-2.5 rounded-xl border border-border bg-background p-2.5 sm:w-auto">
+              <li key={v.id} className="flex w-60 shrink-0 items-start gap-2.5 rounded-xl border border-border bg-background p-2.5 sm:w-auto">
                 <span className={`grid size-10 shrink-0 place-items-center rounded-lg text-sm font-bold text-white ${v.color}`} aria-hidden="true">{v.initials}</span>
                 <span className="min-w-0">
-                  <strong className="block truncate text-[13px] font-semibold">{v.name}</strong>
+                  <strong className="flex items-center gap-1 text-[13px] font-semibold">
+                    <span className="truncate">{v.name}</span>
+                    {v.sampleVerified && <BadgeCheck size={14} className="shrink-0 text-sky-600" aria-hidden="true" />}
+                  </strong>
                   <span className="block truncate text-[11px] text-slate-600 dark:text-muted-foreground">{v.sector}</span>
                   <span className="flex items-center gap-1 truncate text-[11px] text-slate-500 dark:text-muted-foreground"><MapPin size={11} aria-hidden="true" /> {v.city} · {total} {total === 1 ? "produto" : "produtos"}</span>
+                  <span className="mt-1 flex flex-wrap items-center gap-1 text-[11px]">
+                    <span className="inline-flex items-center gap-0.5 font-semibold text-amber-700 dark:text-amber-300"><Star size={11} className="fill-current" aria-hidden="true" /> {v.sampleRating.toFixed(1).replace(".", ",")}</span>
+                    {v.sampleVerified && <span className="rounded-full bg-sky-600/10 px-1.5 py-px font-semibold text-sky-700 dark:text-sky-300">Verificada</span>}
+                    <span className="rounded-full bg-muted px-1.5 py-px text-slate-600 dark:text-muted-foreground">exemplo</span>
+                  </span>
                 </span>
               </li>
             );

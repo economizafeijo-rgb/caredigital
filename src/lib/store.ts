@@ -1,18 +1,20 @@
 import { useSyncExternalStore } from "react";
 
-export type StoreCategory = "suplementos" | "vitaminas" | "nutricao" | "roupas-masculinas" | "roupas-femininas" | "acessorios";
+export type StoreCategory = "suplementos" | "vitaminas" | "nutricao" | "fitoterapicos" | "roupas-masculinas" | "roupas-femininas" | "acessorios";
 export type Product = { id: string; name: string; category: StoreCategory; priceCents: number; oldPriceCents?: number; img: string; tag?: string; text: string; vendorId?: VendorId };
 
 /** Lojas ilustrativas: demonstram como diferentes setores venderão na plataforma. Não são lojas reais. */
-export type VendorId = "arena" | "farmavida" | "emporio" | "studio-move" | "base-athletic" | "casa-do-treino";
-export type Vendor = { id: VendorId; name: string; sector: string; city: string; initials: string; color: string };
+export type VendorId = "arena" | "farmavida" | "emporio" | "erva-viva" | "studio-move" | "base-athletic" | "casa-do-treino";
+/** sampleRating e sampleVerified são valores de exemplo para demonstrar o selo e a nota; não vêm de avaliações reais. */
+export type Vendor = { id: VendorId; name: string; sector: string; city: string; initials: string; color: string; sampleRating: number; sampleVerified: boolean };
 export const vendors: Vendor[] = [
-  { id: "arena", name: "Arena Suplementos", sector: "Suplementos esportivos", city: "Rio Branco, AC", initials: "AS", color: "bg-blue-700" },
-  { id: "farmavida", name: "Farmácia Vida & Saúde", sector: "Farmácia e vitaminas", city: "Cruzeiro do Sul, AC", initials: "FV", color: "bg-rose-700" },
-  { id: "emporio", name: "Empório Verde Natural", sector: "Produtos naturais", city: "Feijó, AC", initials: "EV", color: "bg-lime-700" },
-  { id: "studio-move", name: "Studio Move Fitwear", sector: "Moda fitness feminina", city: "Rio Branco, AC", initials: "SM", color: "bg-pink-700" },
-  { id: "base-athletic", name: "Base Athletic", sector: "Moda fitness masculina", city: "Sena Madureira, AC", initials: "BA", color: "bg-slate-800" },
-  { id: "casa-do-treino", name: "Casa do Treino", sector: "Equipamentos e acessórios", city: "Tarauacá, AC", initials: "CT", color: "bg-amber-700" },
+  { id: "arena", name: "Arena Suplementos", sector: "Suplementos esportivos", city: "Rio Branco, AC", initials: "AS", color: "bg-blue-700", sampleRating: 4.8, sampleVerified: true },
+  { id: "farmavida", name: "Farmácia Vida & Saúde", sector: "Farmácia e vitaminas", city: "Tarauacá, AC", initials: "FV", color: "bg-rose-700", sampleRating: 4.7, sampleVerified: true },
+  { id: "erva-viva", name: "Erva Viva Fitoterápicos", sector: "Fitoterápicos e produtos da Amazônia", city: "Feijó, AC", initials: "EV", color: "bg-green-800", sampleRating: 4.9, sampleVerified: true },
+  { id: "emporio", name: "Empório Verde Natural", sector: "Produtos naturais", city: "Feijó, AC", initials: "EN", color: "bg-lime-700", sampleRating: 4.6, sampleVerified: false },
+  { id: "studio-move", name: "Studio Move Fitwear", sector: "Moda fitness feminina", city: "Rio Branco, AC", initials: "SM", color: "bg-pink-700", sampleRating: 4.8, sampleVerified: true },
+  { id: "base-athletic", name: "Base Athletic", sector: "Moda fitness masculina", city: "Tarauacá, AC", initials: "BA", color: "bg-slate-800", sampleRating: 4.5, sampleVerified: false },
+  { id: "casa-do-treino", name: "Casa do Treino", sector: "Equipamentos e acessórios", city: "Feijó, AC", initials: "CT", color: "bg-amber-700", sampleRating: 4.7, sampleVerified: true },
 ];
 export const vendorById = (id?: VendorId) => vendors.find((v) => v.id === id);
 
@@ -21,12 +23,13 @@ export const categories: { key: StoreCategory | "todos"; label: string }[] = [
   { key: "suplementos", label: "Suplementos" },
   { key: "vitaminas", label: "Vitaminas" },
   { key: "nutricao", label: "Nutrição" },
+  { key: "fitoterapicos", label: "Fitoterápicos" },
   { key: "roupas-masculinas", label: "Masculino" },
   { key: "roupas-femininas", label: "Feminino" },
   { key: "acessorios", label: "Acessórios" },
 ];
 export const categoryLabel: Record<StoreCategory, string> = {
-  suplementos: "Suplementos", vitaminas: "Vitaminas", nutricao: "Nutrição", "roupas-masculinas": "Moda masculina", "roupas-femininas": "Moda feminina", acessorios: "Acessórios",
+  suplementos: "Suplementos", vitaminas: "Vitaminas", nutricao: "Nutrição", fitoterapicos: "Fitoterápicos", "roupas-masculinas": "Moda masculina", "roupas-femininas": "Moda feminina", acessorios: "Acessórios",
 };
 
 /** Catálogo inicial (vitrine em desenvolvimento): preços de demonstração até a loja abrir oficialmente. */
@@ -35,6 +38,9 @@ export const products: Product[] = [
   { id: "whey-shaker", name: "Kit Whey + Coqueteleira", category: "suplementos", priceCents: 16990, img: "/loja/v2/kit-whey-coqueteleira.webp", tag: "Kit", text: "Whey com coqueteleira para levar ao treino.", vendorId: "arena" },
   { id: "pre-treino", name: "Pré-treino 300 g", category: "suplementos", priceCents: 11990, oldPriceCents: 13990, img: "/loja/v2/pre-treino.webp", text: "Energia e foco para treinos intensos.", vendorId: "arena" },
   { id: "proteina-vegetal", name: "Proteína Vegetal 500 g", category: "nutricao", priceCents: 12990, img: "/loja/v2/proteina-vegetal.webp", tag: "Novo", text: "Opção sem lactose para o dia a dia.", vendorId: "emporio" },
+  { id: "oleo-copaiba", name: "Óleo de Copaíba 30 ml", category: "fitoterapicos", priceCents: 3990, img: "/loja/v2/oleo-copaiba.webp", tag: "Da Amazônia", text: "Óleo-resina de copaíba envasado em frasco âmbar com conta-gotas.", vendorId: "erva-viva" },
+  { id: "cha-camomila", name: "Chá de Camomila 30 sachês", category: "fitoterapicos", priceCents: 1490, img: "/loja/v2/cha-camomila.webp", text: "Flores de camomila desidratadas em sachês para infusão.", vendorId: "erva-viva" },
+  { id: "guarana-po", name: "Guaraná em Pó 100 g", category: "fitoterapicos", priceCents: 2490, oldPriceCents: 2990, img: "/loja/v2/guarana-po.webp", text: "Guaraná da Amazônia moído para sucos e vitaminas.", vendorId: "erva-viva" },
   { id: "multivitaminico", name: "Multivitamínico 120 cápsulas", category: "vitaminas", priceCents: 6990, img: "/loja/v2/multivitaminico.webp", tag: "Essencial", text: "Complexo de vitaminas e minerais para a rotina.", vendorId: "farmavida" },
   { id: "vitamina-d", name: "Vitamina D3 60 cápsulas", category: "vitaminas", priceCents: 4990, oldPriceCents: 5990, img: "/loja/v2/vitamina-d.webp", text: "Apoio à saúde óssea e imunidade.", vendorId: "farmavida" },
   { id: "camiseta-regata", name: "Regata Dry Fit Masculina", category: "roupas-masculinas", priceCents: 7990, img: "/loja/v2/regata.webp", tag: "Dry Fit", text: "Tecido leve que seca rápido, ideal para musculação.", vendorId: "base-athletic" },
