@@ -188,7 +188,7 @@ function Homepage() {
 
       <section
         aria-labelledby="home-title"
-        className="relative isolate hidden overflow-hidden rounded-3xl bg-gradient-to-br from-[#041f1d] via-[#0a3f39] to-[#0e6b5c] shadow-pop sm:grid lg:min-h-[min(58vh,560px)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-center"
+        className="nv-dark relative isolate hidden overflow-hidden rounded-3xl bg-gradient-to-br from-[#041f1d] via-[#0a3f39] to-[#0e6b5c] shadow-pop sm:grid lg:min-h-[min(58vh,560px)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-center"
       >
         <div aria-hidden="true" className="pointer-events-none absolute -left-24 -top-24 -z-10 size-96 rounded-full bg-emerald-400/20 blur-3xl" />
         <div aria-hidden="true" className="pointer-events-none absolute -bottom-28 right-10 -z-10 size-96 rounded-full bg-teal-300/15 blur-3xl" />
@@ -285,7 +285,7 @@ function Homepage() {
 
       <a
         href={status === "client" ? "/cliente#sono" : "/sono"}
-        className="group relative isolate flex min-h-[150px] shrink-0 flex-col justify-center overflow-hidden rounded-3xl bg-indigo-950 p-6 text-white shadow-card sm:p-8"
+        className="nv-dark group relative isolate flex min-h-[150px] shrink-0 flex-col justify-center overflow-hidden rounded-3xl bg-indigo-950 p-6 text-white shadow-card sm:p-8"
       >
         <img
           src="/images/show-sono.webp"

@@ -18,11 +18,11 @@ const areas = [
 export function MobileHero({ client, name, panel }: { client: boolean; name: string; panel: string | null }) {
   return (
     <div className="flex flex-col gap-3 sm:hidden">
-      <section aria-labelledby="m-hero-title" className="relative isolate overflow-hidden rounded-3xl bg-slate-950 text-white shadow-xl">
+      <section aria-labelledby="m-hero-title" className="nv-dark relative isolate overflow-hidden rounded-3xl bg-slate-950 text-white shadow-xl">
         <img src="/images/caredigital-care-hero.webp" alt="" aria-hidden="true" width={1200} height={752} className="absolute inset-0 -z-20 size-full object-cover" />
         <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-b from-slate-950/70 via-slate-950/85 to-slate-950" />
         <div className="flex min-h-[24rem] flex-col justify-end p-5">
-          <span className="mb-auto inline-flex w-fit items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[.14em] backdrop-blur"><ShieldCheck size={12} className="text-emerald-300" /> Protegido</span>
+          <span className="mb-auto inline-flex w-fit items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[.14em] backdrop-blur"><ShieldCheck size={12} className="text-emerald-300" aria-hidden="true" /> Dados protegidos</span>
           <h1 id="m-hero-title" className="mt-6 text-balance text-[1.9rem] font-extrabold leading-[1.08] tracking-tight">
             {client ? <>Olá, <span className="text-emerald-300">{(name || "usuário").split(" ")[0]}</span>.<br />Sua evolução em um só lugar.</> : <>Sua rotina de bem-estar, <span className="text-emerald-300">organizada.</span></>}
           </h1>
