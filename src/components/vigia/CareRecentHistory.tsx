@@ -66,7 +66,7 @@ export function CareRecentHistory({patientId,ownerId,category,onClose,compact=fa
       const time=String(d.local_time??"12:00");
       const reconstructedAt=r.happened_at??(date?date[3]+"-"+date[2]+"-"+date[1]+"T"+time+":00-05:00":r.scheduled_at??r.recorded_at);
       const category:Category=r.category==="hidratacao"?"hidratacao":r.category==="refeicao"?"refeicao":r.category==="resumo_diario"?"resumo":"medicacao";
-      const titleByType:Record<string,string>={snapshot_dashboard:"Resumo do painel",snapshot_metas:"Resumo das metas",snapshot_tratamento:"Resumo do tratamento",conferencia_confirmada:"Conferência de medicamento",refeicao_confirmada:"Refeição reconstruída",lanche_extra_registrado:"Lanche extra reconstruído",cuidado_programado:"Cuidado programado na captura",medicacao_programada:"Medicação programada na captura",refeicao_programada:"Refeição programada na captura"};
+      const titleByType:Record<string,string>={snapshot_dashboard:"Resumo do painel",snapshot_metas:"Resumo das metas",snapshot_tratamento:"Resumo do tratamento",conferencia_confirmada:"Conferência de medicamento",refeicao_confirmada:"Refeição reconstruída",lanche_extra_registrado:"Lanche extra reconstruído",cuidado_programado:"Cuidado programado na captura",medicacao_programada:"Medicação programada na captura",refeicao_programada:"Refeição programada na captura",nao_bebi:"Não bebi água"};
       const detailByType:Record<string,string>={
        snapshot_dashboard:[d.hydration_display,d.hydration_ml!=null?String(d.hydration_ml)+" ml de água":"",d.meals_confirmed?String(d.meals_confirmed)+" refeições":"",d.care_items_completed?String(d.care_items_completed)+" cuidados":"",d.medication_doses_confirmed?String(d.medication_doses_confirmed)+" doses":"",d.completion_percent!=null?String(d.completion_percent)+"% de conclusão":""].filter(Boolean).join(" · "),
        snapshot_metas:[d.nutrition_kcal!=null?String(d.nutrition_kcal)+" kcal":"",d.protein_g!=null?String(d.protein_g)+" g de proteína":"",d.hydration_ml!=null?String(d.hydration_ml)+" ml de água":""].filter(Boolean).join(" · "),
@@ -76,7 +76,8 @@ export function CareRecentHistory({patientId,ownerId,category,onClose,compact=fa
       };
       const detail=[detailByType[r.event_type]||d.description||"Registro recuperado de captura histórica",evidence,
        d.status==="programado_na_captura"?"Programado na captura; execução não confirmada":"Registro reconstruído, não é um novo consumo"].filter(Boolean).join(" · ");
-      return {id:"reconstructed:"+r.id,title:titleByType[r.event_type]||d.description||"Registro histórico recuperado",category,at:reconstructedAt,detail,kind:"reconstructed" as const};
+      const title=(r.event_type==="refeicao_programada"||r.event_type==="nao_bebi")?(d.description||titleByType[r.event_type]):(titleByType[r.event_type]||d.description||"Registro histórico recuperado");
+      return {id:"reconstructed:"+r.id,title,category,at:reconstructedAt,detail,kind:"reconstructed" as const};
      })
     ];
     setRows(all.filter(r=>category==="todos"||r.category===category)
