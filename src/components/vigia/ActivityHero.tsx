@@ -1,6 +1,6 @@
 import { EvoChart, EvoLegend } from "./EvoChart";
 import { useMemo } from "react";
-import { Flame, Footprints, MapPin, Timer, Trophy } from "lucide-react";
+import { Footprints, MapPin, Timer, Trophy } from "lucide-react";
 import { NextUpClock } from "./NextUpClock";
 
 type Item = { happened_at: string; details: { duration_minutes?: number; distance_km?: number | null } | null };
@@ -46,45 +46,45 @@ export function ActivityHero({ items, onStartGps, gpsLabel }: { items: Item[]; o
     { icon: Trophy, label: "Sequência", value: `${streak} ${streak === 1 ? "dia" : "dias"}` },
   ];
   return (
-    <header className="nv-dark relative isolate shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-[#06231f] via-[#0b4a43] to-[#0e7490] p-4 text-white shadow-card sm:p-5">
+    <header className="nv-dark relative isolate shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-[#06231f] via-[#0b4a43] to-[#0e7490] p-3.5 text-white shadow-card sm:p-4">
       <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 -z-10 size-72 rounded-full bg-cyan-300/15 blur-3xl" />
       <svg aria-hidden="true" viewBox="0 0 400 80" preserveAspectRatio="none" className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-16 w-full text-white/[.06]">
         <path d="M0 60 Q50 20 100 45 T200 40 T300 30 T400 50 V80 H0Z" fill="currentColor" />
       </svg>
-      <div className="grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_minmax(0,19rem)]">
-        <div className="relative mx-auto size-32 shrink-0 sm:size-36 lg:mx-0" role="img" aria-label={`${wMin} de ${WEEK_GOAL} minutos na semana`}>
+      <div className="grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_16rem]">
+        <div className="relative mx-auto size-28 shrink-0 lg:mx-0" role="img" aria-label={`${wMin} de ${WEEK_GOAL} minutos na semana`}>
           <svg viewBox="0 0 120 120" className="absolute inset-0 -rotate-90">
             <circle cx="60" cy="60" r="52" fill="none" stroke="#ffffff1f" strokeWidth="10" />
-            <circle cx="60" cy="60" r="52" fill="none" stroke="url(#nv-act-grad)" strokeWidth="10" strokeLinecap="round" pathLength={100} strokeDasharray={`${pct} 100`} className="nv-ring-draw" />
+            <circle cx="60" cy="60" r="52" fill="none" stroke="url(#nv-act-grad)" strokeWidth="10" strokeLinecap="round" pathLength={100} strokeDasharray={`${Math.max(pct, 0.5)} 100`} className="nv-ring-draw" />
             <defs><linearGradient id="nv-act-grad" x1="0" x2="1"><stop offset="0" stopColor="#5eead4" /><stop offset="1" stopColor="#a3e635" /></linearGradient></defs>
           </svg>
-          <div className="absolute inset-[26px] grid place-items-center rounded-full bg-white/[.07] text-center shadow-inner">
-            <span className="leading-none"><Flame size={16} className="mx-auto mb-1 text-lime-300" /><strong className="block text-2xl font-extrabold tabular-nums">{wMin}</strong><span className="text-[10px] font-semibold text-white/70">min / semana</span></span>
+          <div className="absolute inset-[24px] grid place-items-center rounded-full bg-white/[.07] text-center shadow-inner">
+            <span className="leading-none"><strong className="block text-lg font-extrabold tabular-nums">{pct}%</strong><span className="text-[10px] font-semibold text-white/70">da meta</span></span>
           </div>
         </div>
-        <div className="min-w-0 text-center lg:text-left">
-          <p className="text-3xl font-extrabold tabular-nums">{pct}% <span className="text-lg font-semibold text-white/65">da meta de {WEEK_GOAL} min</span></p>
-          <p className="mt-1 text-sm text-white/80">
-            {!items.length ? "Registre uma caminhada, treino ou pedalada para começar." : wMin >= WEEK_GOAL ? "Meta semanal alcançada. Mantenha o ritmo." : `Faltam ${WEEK_GOAL - wMin} min nos últimos 7 dias.`}
-            {trend !== null && <span className={`ml-2 inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold ${trend >= 0 ? "bg-lime-300/20 text-lime-100" : "bg-amber-300/20 text-amber-100"}`}>{trend >= 0 ? "+" : ""}{trend}% vs semana anterior</span>}
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <p className="text-2xl font-extrabold tabular-nums sm:text-3xl">{wMin} <span className="text-base font-semibold text-white/65">de {WEEK_GOAL} min na semana</span></p>
+            {trend !== null && <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold ${trend >= 0 ? "bg-lime-300/20 text-lime-100" : "bg-amber-300/20 text-amber-100"}`}>{trend >= 0 ? "+" : ""}{trend}% vs semana anterior</span>}
+          </div>
+          <p className="mt-0.5 text-sm text-white/80">
+            {!items.length ? "Registre uma caminhada, treino ou pedalada para começar." : wMin >= WEEK_GOAL ? "Meta semanal alcançada. Mantenha o ritmo." : `Faltam ${WEEK_GOAL - wMin} min nos últimos 7 dias (recomendação da OMS).`}
           </p>
-          <div className="mt-3 flex flex-wrap justify-center gap-2 lg:justify-start">
-            <button type="button" onClick={onStartGps} className="nv-bump inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-teal-900 shadow-sm transition hover:bg-white/90 active:scale-[.97]"><Footprints size={17} /> {gpsLabel}</button>
-            <a href="#nv-activity-form" className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-4 text-sm font-bold text-white backdrop-blur transition hover:bg-white/20">Registrar manualmente</a>
+          <ul className="mt-3 grid grid-cols-3 gap-2">
+            {stats.map((s) => (
+              <li key={s.label} className="flex items-center gap-2 rounded-xl border border-white/12 bg-white/[.07] px-2.5 py-2 backdrop-blur transition-colors hover:bg-white/[.12]">
+                <span className="hidden size-7 shrink-0 place-items-center rounded-lg bg-white/10 text-teal-200 sm:grid"><s.icon size={14} /></span>
+                <span className="min-w-0"><span className="block truncate text-[11px] font-semibold text-white/65">{s.label}</span><strong className="block truncate text-sm tabular-nums">{s.value}</strong></span>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button type="button" onClick={onStartGps} className="nv-bump inline-flex h-9 items-center gap-2 rounded-xl bg-white px-3.5 text-[13px] font-bold text-teal-900 shadow-sm transition hover:bg-white/90 active:scale-[.97]"><Footprints size={16} /> {gpsLabel}</button>
+            <a href="#nv-activity-form" className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-3.5 text-[13px] font-bold text-white backdrop-blur transition hover:bg-white/20">Registrar manualmente</a>
           </div>
         </div>
-        <div className="grid gap-2">
         <NextUpClock alertKey="atividade" title="Hora de se mexer" color="#a3e635" target={moveTarget} from={Date.parse(dayKey(new Date()) + "T06:00:00-05:00")}
           detail="30 min de caminhada" emptyText={todayMin > 0 ? `Feito hoje: ${todayMin} min` : "Amanhã tem mais"} actionLabel="Iniciar com GPS" onAction={onStartGps} />
-        <ul className="grid grid-cols-3 gap-2">
-          {stats.map((s) => (
-            <li key={s.label} className="flex items-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-2.5 py-2 backdrop-blur">
-              <s.icon size={14} className="hidden shrink-0 text-teal-200 sm:block lg:hidden" />
-              <span className="min-w-0"><span className="block text-[11px] font-semibold text-white/70">{s.label}</span><strong className="block truncate text-sm tabular-nums">{s.value}</strong></span>
-            </li>
-          ))}
-        </ul>
-        </div>
       </div>
     </header>
   );
@@ -111,20 +111,21 @@ export function ActivityDaysChart({ items }: { items: Item[] }) {
     <figure className="min-w-0 shrink-0 rounded-2xl border border-border bg-card p-3 sm:p-4">
       <figcaption className="mb-1 flex flex-wrap items-start justify-between gap-2">
         <span><strong className="block text-sm font-bold">Últimos 14 dias</strong><span className="text-xs text-muted-foreground">{week} min nos últimos 7 dias · meta {WEEK_GOAL} min/semana</span></span>
-        <EvoLegend items={[{ label: "Minutos por dia", color: "#0d9488" }, { label: `Ritmo da meta (${daily} min/dia)`, color: "#84cc16", dashed: true }]} />
+        <EvoLegend items={[{ label: "Minutos por dia", color: "#0d9488", bar: true }, { label: "Média de 3 dias", color: "#f59e0b" }, { label: `Meta (${daily} min/dia)`, color: "#84cc16", dashed: true }]} />
       </figcaption>
       <EvoChart
         height={200}
         ariaLabel={`Minutos de atividade nos últimos 14 dias; ${week} nos últimos 7`}
-        xMin={-0.3}
-        xMax={13.3}
+        xMin={-0.6}
+        xMax={13.6}
         xTicks={days.filter((_, i) => (13 - i) % 2 === 0).map((d) => ({ x: d.x, label: d.date }))}
         formatX={(x) => `${days[Math.round(x)]?.wd ?? ""}, ${days[Math.round(x)]?.date ?? ""}`}
         formatY={(v) => `${Math.round(v)}`}
         yFloor={daily * 1.5}
+        bars={days.map((d) => ({ x: d.x, w: 1, parts: [{ y: d.min, color: d.x >= 7 ? "#0d9488" : "#5eead4", label: "Minutos" }] }))}
         series={[
-          { id: "min", label: "Minutos", color: "#0d9488", points: days.map((d) => ({ x: d.x, y: d.min })), area: true, dots: true, live: true },
-          { id: "goal", label: "Ritmo da meta", color: "#84cc16", points: [{ x: -0.3, y: daily }, { x: 13.3, y: daily }], dashed: true, linear: true },
+          { id: "avg", label: "Média de 3 dias", color: "#f59e0b", dots: true, live: true, points: days.map((d, i) => ({ x: d.x, y: Math.round(days.slice(Math.max(0, i - 2), i + 1).reduce((a, q) => a + q.min, 0) / Math.min(3, i + 1)) })) },
+          { id: "goal", label: "Ritmo da meta", color: "#84cc16", points: [{ x: -0.6, y: daily }, { x: 13.6, y: daily }], dashed: true, linear: true },
         ]}
         tip={(x) => {
           const d = days[Math.round(x)];

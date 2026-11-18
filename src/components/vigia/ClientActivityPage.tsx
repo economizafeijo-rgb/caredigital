@@ -373,9 +373,8 @@ export function ClientActivityPage({
         </div>
       )}
       <ActivityHero items={items} onStartGps={startGps} gpsLabel={type === "corrida" ? "Iniciar corrida com GPS" : "Iniciar caminhada com GPS"} />
-      {items.length > 0 && <ActivityDaysChart items={items} />}
 
-      <div className="grid min-h-[26rem] shrink-0 flex-1 gap-3 lg:grid-cols-[minmax(280px,.8fr)_minmax(0,1.2fr)]">
+      <div className="grid shrink-0 gap-3 lg:grid-cols-[minmax(300px,.85fr)_minmax(0,1.15fr)]">
         <section id="nv-activity-form" data-register-target="Registrar atividade" className="scroll-mt-4 rounded-2xl border border-border bg-card p-3 sm:p-4">
           <div className="flex items-center gap-2">
             <span className="grid size-9 place-items-center rounded-xl bg-primary/10 text-primary">
@@ -516,7 +515,9 @@ export function ClientActivityPage({
           )}
         </section>
 
-        <section className="flex min-h-0 flex-col rounded-2xl border border-border bg-card p-3 sm:p-4">
+        <div className="flex min-h-0 min-w-0 flex-col gap-3">
+        <ActivityDaysChart items={items} />
+        <section className="flex min-h-0 flex-1 flex-col rounded-2xl border border-border bg-card p-3 sm:p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <h3 className="text-sm font-bold">Histórico de atividades</h3>
@@ -606,6 +607,7 @@ export function ClientActivityPage({
             )}
           </div>
         </section>
+        </div>
       </div>
     </section>
   );
