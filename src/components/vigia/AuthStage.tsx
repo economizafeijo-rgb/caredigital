@@ -1,4 +1,4 @@
-import { Check, Droplets, LockKeyhole, Pill, ShieldCheck, UtensilsCrossed } from "lucide-react";
+import { BadgeCheck, Check, Droplets, LockKeyhole, Megaphone, Pill, ShieldCheck, Store, Users, UtensilsCrossed } from "lucide-react";
 import { LogoMark } from "./Logo";
 
 export type AuthStatus = "idle" | "busy" | "error" | "success";
@@ -35,6 +35,23 @@ export function AuthStage({ mode, email, password, status }: Props) {
     : status === "error" ? "Confira o e-mail e a senha ao lado."
     : mode !== "login" ? "Crie sua conta e acompanhe a sua rotina num só lugar."
     : "Seu dia aparece aqui assim que você entrar.";
+
+  if (mode === "vendor")
+    return (
+      <aside aria-hidden="true" className="nv-dark relative isolate flex min-h-[260px] flex-col justify-between gap-6 overflow-hidden rounded-3xl bg-gradient-to-br from-[#0b1022] via-[#141a3a] to-[#2a1d0b] p-6 text-white shadow-pop lg:min-h-0 lg:p-9">
+        <div className="pointer-events-none absolute -right-24 -top-24 -z-10 size-96 rounded-full bg-amber-400/20 blur-3xl" />
+        <div className="flex items-center gap-2.5"><LogoMark size={34} /><span className="font-display text-lg font-extrabold">NextVita <span className="text-amber-300">Parceiros</span></span></div>
+        <div className="max-w-sm">
+          <p className="font-display text-2xl font-bold leading-snug">Apareça para quem já cuida da saúde todos os dias.</p>
+          <ul className="mt-5 grid gap-3 text-sm">
+            {[[Store, "Vitrine ou página própria do seu negócio"], [BadgeCheck, "Selo de parceiro verificado após aprovação"], [Users, "Público que acompanha treino, dieta e rotina"], [Megaphone, "Anúncios no app e painel de resultados"]].map(([I, t]) => { const Icon = I as typeof Store; return (
+              <li key={t as string} className="flex items-center gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-lg bg-amber-300/15 text-amber-200"><Icon size={17} /></span>{t as string}</li>
+            ); })}
+          </ul>
+        </div>
+        <p className="flex items-center gap-2 text-xs text-white/55"><ShieldCheck size={14} /> Plano inicial sem mensalidade. Cadastro analisado pela equipe.</p>
+      </aside>
+    );
 
   return (
     <aside aria-hidden="true" className="nv-dark relative isolate flex min-h-[260px] flex-col justify-between gap-6 overflow-hidden rounded-3xl bg-[#062019] p-6 text-white shadow-pop lg:min-h-0 lg:p-9">

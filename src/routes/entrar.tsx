@@ -1,6 +1,7 @@
 import { FitPage } from "@/components/vigia/FitPage";
 import { endOtherSessions } from "@/components/vigia/SessionGuard";
 import { AuthStage, type AuthStatus } from "@/components/vigia/AuthStage";
+import { PartnerSignup } from "@/components/vigia/PartnerSignup";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent, type InputHTMLAttributes } from "react";
 import {
@@ -229,53 +230,6 @@ function Entrar() {
     }
   }
 
-  async function handleVendorSignup(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (busy || configurationIssue) return;
-    setNotice(null);
-    const normalizedPhone = normalizeBrazilPhone(phone);
-    if (fullName.trim().length < 3)
-      return setNotice({ type: "error", message: "Informe o seu nome." });
-    if (!isValidBrazilPhone(normalizedPhone))
-      return setNotice({ type: "error", message: "Informe um WhatsApp brasileiro válido com DDD." });
-    if (password.length < 8)
-      return setNotice({ type: "error", message: "Use uma senha com pelo menos 8 caracteres." });
-    if (password !== confirmPassword)
-      return setNotice({ type: "error", message: "As senhas informadas não são iguais." });
-    setBusy(true);
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email: email.trim().toLowerCase(),
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/entrar?confirmed=1`,
-          data: { account_type: "vendor", display_name: fullName.trim(), phone: normalizedPhone },
-        },
-      });
-      if (error) {
-        setNotice({ type: "error", message: authErrorMessage(error) });
-        return;
-      }
-      if (data.user && data.session) {
-        await openAuthenticatedArea(data.user.id, data.user.email ?? email);
-        return;
-      }
-      setMode("login");
-      setNeedsConfirmation(true);
-      setPassword("");
-      setConfirmPassword("");
-      setNotice({
-        type: "success",
-        message:
-          "Conta de lojista criada. Enviamos um link de confirmação para o seu e-mail. Confirme e entre para cadastrar a sua loja.",
-      });
-    } catch {
-      setNotice({ type: "error", message: "Não foi possível concluir o cadastro. Tente novamente." });
-    } finally {
-      setBusy(false);
-    }
-  }
-
   async function handleSignup(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy || configurationIssue) return;
@@ -436,7 +390,7 @@ function Entrar() {
       : mode === "signup"
         ? "Crie sua conta grátis"
         : mode === "vendor"
-          ? "Cadastro de lojista"
+          ? "Cadastro de parceiro"
           : mode === "forgot"
           ? "Recuperar acesso"
           : "Criar nova senha";
@@ -476,7 +430,7 @@ function Entrar() {
               : mode === "signup"
                 ? "Preencha seus dados e use o NextVita completo, gratuitamente e sem prazo de validade."
                 : mode === "vendor"
-                  ? "Crie a sua conta de lojista em poucos segundos. Depois você cadastra a loja e os produtos. É grátis."
+                  ? "Lojas, academias, personal trainers, profissionais de saúde e marcas. Três etapas rápidas; a equipe NextVita aprova o cadastro."
                   : mode === "forgot"
                   ? "Informe o e-mail da conta para solicitar um link seguro de recuperação."
                   : "Defina uma senha nova e segura para sua conta."}
@@ -511,6 +465,17 @@ function Entrar() {
             >
               {resendBusy ? "Reenviando link…" : "Reenviar e-mail de confirmação"}
             </button>
+          )}
+
+          {(mode === "signup" || mode === "vendor") && (
+            <div role="tablist" aria-label="Tipo de conta" className="grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
+              {([["signup", "Quero me cuidar", "Conta pessoal grátis"], ["vendor", "Sou parceiro", "Loja, academia, personal"]] as const).map(([m, t, h]) => (
+                <button key={m} role="tab" type="button" aria-selected={mode === m} onClick={() => { setMode(m); setNotice(null); }}
+                  className={`rounded-lg px-3 py-2 text-left transition-colors ${mode === m ? "bg-card shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
+                  <strong className="block text-sm">{t}</strong><span className="block text-[11px] text-muted-foreground">{h}</span>
+                </button>
+              ))}
+            </div>
           )}
 
           {mode === "login" && (
@@ -730,37 +695,18 @@ function Entrar() {
           )}
 
           {mode === "vendor" && (
-            <form className="grid gap-2 sm:grid-cols-2" onSubmit={(event) => void handleVendorSignup(event)}>
-              <label className="block text-xs font-bold text-foreground sm:col-span-2">
-                Seu nome
-                {iconField(User, { type: "text", autoComplete: "name", required: true, value: fullName, onChange: (e) => setFullName(e.target.value), placeholder: "Nome do responsável", disabled: busy })}
-              </label>
-              <label className="block text-xs font-bold text-foreground">
-                E-mail
-                {iconField(Mail, { type: "email", autoComplete: "email", required: true, value: email, onChange: (e) => setEmail(e.target.value), placeholder: "seuemail@exemplo.com", disabled: busy })}
-              </label>
-              <label className="block text-xs font-bold text-foreground">
-                WhatsApp
-                {iconField(Phone, { type: "tel", inputMode: "tel", autoComplete: "tel", required: true, value: formatBrazilPhone(phone), onChange: (e) => setPhone(e.target.value), placeholder: "(68) 99999-9999", disabled: busy })}
-              </label>
-              <label className="block text-xs font-bold text-foreground">
-                Senha
-                {iconField(KeyRound, { type: "password", autoComplete: "new-password", minLength: 8, required: true, value: password, onChange: (e) => setPassword(e.target.value), disabled: busy })}
-              </label>
-              <label className="block text-xs font-bold text-foreground">
-                Confirmar senha
-                {iconField(KeyRound, { type: "password", autoComplete: "new-password", minLength: 8, required: true, value: confirmPassword, onChange: (e) => setConfirmPassword(e.target.value), disabled: busy })}
-              </label>
-              <p className="text-[11px] leading-relaxed text-muted-foreground sm:col-span-2">
-                Sem CPF, peso ou altura: aqui só pedimos o necessário para abrir a sua loja. O e-mail é confirmado antes do primeiro acesso.
-              </p>
-              <button type="submit" disabled={busy || !!configurationIssue} className="flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:opacity-50 sm:col-span-2">
-                {busy ? "Criando sua conta…" : "Criar conta de lojista"}
-              </button>
-              <button type="button" onClick={() => { setMode("login"); setNotice(null); }} className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline sm:col-span-2">
-                <ArrowLeft size={14} /> Já tenho uma conta
-              </button>
-            </form>
+            <PartnerSignup
+              disabled={!!configurationIssue}
+              errorMessage={authErrorMessage}
+              onSignedIn={openAuthenticatedArea}
+              onBack={() => { setMode("login"); setNotice(null); }}
+              onNeedsConfirmation={(mail) => {
+                setEmail(mail);
+                setMode("login");
+                setNeedsConfirmation(true);
+                setNotice({ type: "success", message: "Conta de parceiro criada. Confirme o e-mail que enviamos e depois entre para concluir o cadastro do seu negócio." });
+              }}
+            />
           )}
 
           {mode === "forgot" && (

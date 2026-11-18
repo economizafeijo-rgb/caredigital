@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Loader2, Store } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { centsToInput, parseMoney, SEGMENTS, slugify, type Segment } from "@/lib/marketplace";
@@ -21,6 +21,18 @@ export function LojistaSignup({ onCreated }: { onCreated: () => void }) {
   const [area, setArea] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+
+  // Preenche com o que a pessoa informou no cadastro de parceiro.
+  useEffect(() => {
+    void supabase.auth.getUser().then(({ data }) => {
+      const md = data.user?.user_metadata ?? {};
+      const p = md.partner ?? {};
+      if (p.business_name) setName((v) => v || p.business_name);
+      if (p.segment && SEGMENTS.some((s) => s.key === p.segment)) setSegment(p.segment as Segment);
+      if (p.city && p.city !== "Outra") setCity(p.city);
+      if (md.phone) setPhone((v) => v || md.phone);
+    });
+  }, []);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
