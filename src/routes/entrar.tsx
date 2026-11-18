@@ -128,7 +128,9 @@ function Entrar() {
     } catch { /* sem armazenamento */ }
     // Conta criada pelo cadastro de lojista vai direto para o painel da loja.
     const { data: current } = await supabase.auth.getUser();
-    if (current.user?.user_metadata?.account_type === "vendor") {
+    // Dono de loja (cadastrado como lojista ou com loja transferida pelo administrador) abre o painel da loja.
+    const { data: ownStore } = await (supabase as any).from("care_store_vendors").select("id").eq("owner_id", userId).limit(1);
+    if (current.user?.user_metadata?.account_type === "vendor" || ownStore?.length) {
       await navigate({ to: "/lojista" });
       return;
     }
