@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { StorePage } from "@/components/vigia/StorePage";
+import { AdSlot } from "@/components/vigia/AdminAds";
 
 export const Route = createFileRoute("/loja")({
   head: () => ({
@@ -10,5 +11,14 @@ export const Route = createFileRoute("/loja")({
       { property: "og:description", content: "Suplementos, vitaminas, moda fitness e acessórios para academia." },
     ],
   }),
-  component: StorePage,
+  component: LojaWithAds,
 });
+
+function LojaWithAds() {
+  return (
+    <>
+      <AdSlot placement="loja" className="mb-4" />
+      <StorePage />
+    </>
+  );
+}

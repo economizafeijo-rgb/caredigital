@@ -9,7 +9,6 @@ import {
   BookOpen,
   ChevronDown,
   CalendarDays,
-  ClipboardList,
   Droplets,
   Dumbbell,
   HeartPulse,
@@ -34,6 +33,10 @@ import {
   type LucideIcon,
   ShoppingBag,
   Store,
+  Users,
+  Megaphone,
+  Wallet,
+  TrendingUp,
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react";
@@ -45,7 +48,7 @@ import { clientSectionTheme, type SectionTheme } from "@/lib/client-section-them
 import { fmtClock, useNow } from "./ui";
 import { InstallAppButton } from "./InstallApp";
 import { LiveModeLauncher } from "./LiveMode";
-import { HydrationProvider, HydrationReminder } from "./HydrationTracker";
+import { HydrationProvider } from "./HydrationTracker";
 import { DialogProvider } from "@/lib/dialog";
 
 type NavItem = { to: string; hash?: string; label: string; icon: LucideIcon };
@@ -133,13 +136,21 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
   ],
   admin: [
     {
-      title: "Gestão",
+      title: "Administração",
       items: [
-        { to: "/admin", label: "Painel", icon: Settings2 },
-        { to: "/prontuario", label: "Prontuários", icon: ClipboardList },
+        { to: "/admin", hash: "visao", label: "Visão geral", icon: Settings2 },
+        { to: "/admin", hash: "clientes", label: "Clientes", icon: Users },
+        { to: "/admin", hash: "lojas", label: "Lojas e estabelecimentos", icon: Store },
       ],
     },
-    contentGroup,
+    {
+      title: "Negócio",
+      items: [
+        { to: "/admin", hash: "vendas", label: "Vendas e faturamento", icon: TrendingUp },
+        { to: "/admin", hash: "propagandas", label: "Propagandas", icon: Megaphone },
+        { to: "/admin", hash: "pagamentos", label: "Pagamentos", icon: Wallet },
+      ],
+    },
   ],
   unlinked: [
     { title: "NextVita", items: [{ to: "/", label: "Início", icon: Home }] },
@@ -313,7 +324,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const internalPage = signedIn && location.pathname !== "/";
   const groups = navByProfile[profile];
   const items = groups.flatMap((group) => group.items);
-  const currentHash = location.hash || clientSectionHashes.hoje;
+  const currentHash = location.hash || (location.pathname === "/admin" ? "visao" : clientSectionHashes.hoje);
   const isActive = (item: NavItem) =>
     item.to === location.pathname && (!item.hash || item.hash === currentHash);
   const current = items.find(isActive);
@@ -526,7 +537,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                       <span className="hidden 2xl:inline">Página inicial</span>
                     </Link>
                   ))}
-                {signedIn && !location.pathname.startsWith("/cliente") && <LiveModeLauncher iconOnlyOnMobile />}
+                {signedIn && profile !== "admin" && !location.pathname.startsWith("/cliente") && <LiveModeLauncher iconOnlyOnMobile />}
                 <InstallAppButton className="max-sm:!hidden" />
                 {tools}
                 {signedIn && (
@@ -664,7 +675,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
           )}
 
-          {profile === "admin" && <HydrationReminder />}
         </div>
       </HydrationProvider>
     </DialogProvider>
