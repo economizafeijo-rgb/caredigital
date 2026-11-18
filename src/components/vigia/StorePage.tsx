@@ -12,7 +12,7 @@ export function StoreDevBanner({ className = "" }: { className?: string }) {
   return (
     <div role="note" className={`flex items-start gap-3 rounded-2xl border border-amber-400/50 bg-gradient-to-r from-amber-100 to-yellow-50 px-4 py-3 text-amber-950 shadow-sm dark:from-amber-500/20 dark:to-yellow-500/10 dark:text-amber-100 ${className}`}>
       <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-amber-500 text-white"><Construction size={19} /></span>
-      <p className="text-sm leading-snug"><strong className="block text-[13px] uppercase tracking-wider">Site em desenvolvimento</strong>A loja virtual está em construção: produtos e preços são de demonstração. Você já pode montar o carrinho e registrar pedidos; o pagamento é combinado com a nossa equipe.</p>
+      <p className="text-sm leading-snug"><strong className="block text-[13px] font-semibold">Loja em pré-lançamento</strong>As vendas ainda não estão abertas. Produtos, preços e lojas exibidos são ilustrativos e mostram como a vitrine vai funcionar no lançamento. Pedidos registrados agora servem apenas como teste e não geram cobrança automática; nossa equipe entra em contato para combinar qualquer compra.</p>
     </div>
   );
 }

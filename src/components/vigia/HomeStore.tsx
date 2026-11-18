@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Check, ChevronLeft, ChevronRight, Minus, Plus, ShoppingBag, ShoppingCart } from "lucide-react";
-import { cart, categories, categoryLabel, money, PIX_DISCOUNT, products, useCart, type Product, type StoreCategory } from "@/lib/store";
+import { ArrowRight, BadgeInfo, Check, ChevronLeft, ChevronRight, MapPin, Minus, Plus, ShoppingBag, ShoppingCart } from "lucide-react";
+import { cart, categories, categoryLabel, money, PIX_DISCOUNT, products, useCart, vendorById, vendors, type Product, type StoreCategory } from "@/lib/store";
 
 type Filter = StoreCategory | "todos";
 
@@ -32,6 +32,7 @@ function ProductCard({ p, qty, onAdd }: { p: Product; qty: number; onAdd: (p: Pr
           {p.oldPriceCents && <span className="text-[11px] text-slate-500 line-through tabular-nums"><span className="sr-only">Antes: </span>{money(p.oldPriceCents)}</span>}
         </p>
         <p className="text-[11px] text-emerald-700 tabular-nums dark:text-emerald-300">{money(pixPrice(p.priceCents))} no Pix</p>
+        {vendorById(p.vendorId) && <p className="mt-0.5 truncate text-[11px] text-slate-500 dark:text-muted-foreground">Vendido por <span className="font-semibold text-slate-700 dark:text-foreground">{vendorById(p.vendorId)!.name}</span></p>}
         {qty > 0 ? (
           <div className="mt-2 flex h-9 items-center justify-between rounded-lg border border-emerald-600/40 bg-emerald-600/10 text-emerald-900 dark:text-emerald-100">
             <button type="button" onClick={() => cart.setQty(p.id, qty - 1)} aria-label={qty === 1 ? `Remover ${p.name} do carrinho` : `Diminuir quantidade de ${p.name}`} className="grid size-9 place-items-center rounded-l-lg hover:bg-emerald-600/15"><Minus size={14} /></button>
@@ -89,6 +90,13 @@ export function HomeStore({ className = "" }: { className?: string }) {
         </div>
       </header>
 
+      <div role="note" className="mt-3 flex items-start gap-3 rounded-xl border border-amber-300/70 bg-amber-50 px-3.5 py-3 text-amber-950 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100">
+        <BadgeInfo size={18} className="mt-0.5 shrink-0 text-amber-700 dark:text-amber-300" aria-hidden="true" />
+        <p className="text-[13px] leading-snug">
+          <strong className="font-semibold">Loja em pré-lançamento.</strong> As vendas ainda não estão abertas. Produtos, preços e lojas exibidos são ilustrativos e mostram como a vitrine vai funcionar quando a loja for lançada.
+        </p>
+      </div>
+
       <div className="mt-3 flex items-center gap-2">
         <div role="group" aria-label="Filtrar produtos por categoria" className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {visibleCategories.map((c) => {
@@ -111,10 +119,30 @@ export function HomeStore({ className = "" }: { className?: string }) {
         {shown.map((p) => <ProductCard key={p.id} p={p} qty={qtyOf(p.id)} onAdd={add} />)}
       </div>
 
-      <p className="mt-3 text-xs text-slate-600 dark:text-muted-foreground">
-        Loja em fase de lançamento: preços e estoque são de demonstração e o pagamento é combinado com a nossa equipe.{" "}
-        <Link to="/parceiros" className="font-semibold text-foreground underline underline-offset-2">Tem uma loja? Venda aqui.</Link>
-      </p>
+      <div className="mt-4 border-t border-border pt-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 className="font-display text-base font-bold">Lojas na plataforma</h3>
+          <Link to="/parceiros" className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
+            Tem uma loja? Venda aqui <ArrowRight size={14} aria-hidden="true" />
+          </Link>
+        </div>
+        <p className="text-xs text-slate-600 dark:text-muted-foreground">Exemplos ilustrativos de setores que poderão vender na NextVita.</p>
+        <ul className="-mx-4 mt-2.5 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-3 sm:px-0 lg:grid-cols-6 [&::-webkit-scrollbar]:hidden">
+          {vendors.map((v) => {
+            const total = products.filter((p) => p.vendorId === v.id).length;
+            return (
+              <li key={v.id} className="flex w-56 shrink-0 items-center gap-2.5 rounded-xl border border-border bg-background p-2.5 sm:w-auto">
+                <span className={`grid size-10 shrink-0 place-items-center rounded-lg text-sm font-bold text-white ${v.color}`} aria-hidden="true">{v.initials}</span>
+                <span className="min-w-0">
+                  <strong className="block truncate text-[13px] font-semibold">{v.name}</strong>
+                  <span className="block truncate text-[11px] text-slate-600 dark:text-muted-foreground">{v.sector}</span>
+                  <span className="flex items-center gap-1 truncate text-[11px] text-slate-500 dark:text-muted-foreground"><MapPin size={11} aria-hidden="true" /> {v.city} · {total} {total === 1 ? "produto" : "produtos"}</span>
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </section>
   );
 }

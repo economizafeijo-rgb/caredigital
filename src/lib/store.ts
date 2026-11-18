@@ -1,7 +1,20 @@
 import { useSyncExternalStore } from "react";
 
 export type StoreCategory = "suplementos" | "vitaminas" | "nutricao" | "roupas-masculinas" | "roupas-femininas" | "acessorios";
-export type Product = { id: string; name: string; category: StoreCategory; priceCents: number; oldPriceCents?: number; img: string; tag?: string; text: string };
+export type Product = { id: string; name: string; category: StoreCategory; priceCents: number; oldPriceCents?: number; img: string; tag?: string; text: string; vendorId?: VendorId };
+
+/** Lojas ilustrativas: demonstram como diferentes setores venderão na plataforma. Não são lojas reais. */
+export type VendorId = "arena" | "farmavida" | "emporio" | "studio-move" | "base-athletic" | "casa-do-treino";
+export type Vendor = { id: VendorId; name: string; sector: string; city: string; initials: string; color: string };
+export const vendors: Vendor[] = [
+  { id: "arena", name: "Arena Suplementos", sector: "Suplementos esportivos", city: "Rio Branco, AC", initials: "AS", color: "bg-blue-700" },
+  { id: "farmavida", name: "Farmácia Vida & Saúde", sector: "Farmácia e vitaminas", city: "Cruzeiro do Sul, AC", initials: "FV", color: "bg-rose-700" },
+  { id: "emporio", name: "Empório Verde Natural", sector: "Produtos naturais", city: "Feijó, AC", initials: "EV", color: "bg-lime-700" },
+  { id: "studio-move", name: "Studio Move Fitwear", sector: "Moda fitness feminina", city: "Rio Branco, AC", initials: "SM", color: "bg-pink-700" },
+  { id: "base-athletic", name: "Base Athletic", sector: "Moda fitness masculina", city: "Sena Madureira, AC", initials: "BA", color: "bg-slate-800" },
+  { id: "casa-do-treino", name: "Casa do Treino", sector: "Equipamentos e acessórios", city: "Tarauacá, AC", initials: "CT", color: "bg-amber-700" },
+];
+export const vendorById = (id?: VendorId) => vendors.find((v) => v.id === id);
 
 export const categories: { key: StoreCategory | "todos"; label: string }[] = [
   { key: "todos", label: "Tudo" },
@@ -18,23 +31,23 @@ export const categoryLabel: Record<StoreCategory, string> = {
 
 /** Catálogo inicial (vitrine em desenvolvimento): preços de demonstração até a loja abrir oficialmente. */
 export const products: Product[] = [
-  { id: "whey-900", name: "Whey Protein 900 g", category: "suplementos", priceCents: 14990, oldPriceCents: 17990, img: "/loja/v2/whey.webp", tag: "Mais vendido", text: "Proteína de alto valor biológico para recuperação muscular." },
-  { id: "whey-shaker", name: "Kit Whey + Coqueteleira", category: "suplementos", priceCents: 16990, img: "/loja/v2/kit-whey-coqueteleira.webp", tag: "Kit", text: "Whey com coqueteleira para levar ao treino." },
-  { id: "pre-treino", name: "Pré-treino 300 g", category: "suplementos", priceCents: 11990, oldPriceCents: 13990, img: "/loja/v2/pre-treino.webp", text: "Energia e foco para treinos intensos." },
-  { id: "proteina-vegetal", name: "Proteína Vegetal 500 g", category: "nutricao", priceCents: 12990, img: "/loja/v2/proteina-vegetal.webp", tag: "Novo", text: "Opção sem lactose para o dia a dia." },
-  { id: "multivitaminico", name: "Multivitamínico 120 cápsulas", category: "vitaminas", priceCents: 6990, img: "/loja/v2/multivitaminico.webp", tag: "Essencial", text: "Complexo de vitaminas e minerais para a rotina." },
-  { id: "vitamina-d", name: "Vitamina D3 60 cápsulas", category: "vitaminas", priceCents: 4990, oldPriceCents: 5990, img: "/loja/v2/vitamina-d.webp", text: "Apoio à saúde óssea e imunidade." },
-  { id: "camiseta-regata", name: "Regata Dry Fit Masculina", category: "roupas-masculinas", priceCents: 7990, img: "/loja/v2/regata.webp", tag: "Dry Fit", text: "Tecido leve que seca rápido, ideal para musculação." },
-  { id: "conjunto-treino-m", name: "Conjunto Treino Masculino", category: "roupas-masculinas", priceCents: 15990, oldPriceCents: 18990, img: "/loja/v2/conjunto-masculino.webp", text: "Camiseta e bermuda de alta mobilidade." },
-  { id: "camiseta-oversized", name: "Camiseta Performance", category: "roupas-masculinas", priceCents: 8990, img: "/loja/v2/camiseta-performance.webp", text: "Conforto e respirabilidade para todo treino." },
-  { id: "conjunto-fem-1", name: "Conjunto Top + Legging Preto", category: "roupas-femininas", priceCents: 17990, img: "/loja/v2/conjunto-preto.webp", tag: "Destaque", text: "Top com sustentação e legging de cintura alta." },
-  { id: "conjunto-fem-2", name: "Conjunto Rosé Seamless", category: "roupas-femininas", priceCents: 18990, oldPriceCents: 21990, img: "/loja/v2/conjunto-rose.webp", text: "Modelagem sem costura, toque macio." },
-  { id: "conjunto-fem-3", name: "Conjunto Azul Marinho", category: "roupas-femininas", priceCents: 19990, img: "/loja/v2/conjunto-marinho.webp", tag: "Novo", text: "Conjunto com jaqueta para o antes e depois do treino." },
-  { id: "legging", name: "Legging Compressão", category: "roupas-femininas", priceCents: 11990, img: "/loja/mulher4.webp", text: "Compressão confortável e cós alto." },
-  { id: "halteres", name: "Par de Halteres Emborrachados", category: "acessorios", priceCents: 12990, img: "/loja/v2/halteres.webp", text: "Peso fixo com revestimento antiderrapante." },
-  { id: "kit-barra", name: "Kit Anilhas e Barra", category: "acessorios", priceCents: 39990, img: "/loja/v2/kit-barra.webp", tag: "Kit", text: "Para treino de força completo em casa." },
-  { id: "tapete", name: "Tapete de Treino Antiderrapante", category: "acessorios", priceCents: 8990, img: "/loja/v2/tapete.webp", text: "Alta aderência para alongamento e funcional." },
-  { id: "coqueteleira", name: "Coqueteleira 600 ml", category: "acessorios", priceCents: 3990, img: "/loja/v2/coqueteleira.webp", text: "Tampa de segurança e misturador interno." },
+  { id: "whey-900", name: "Whey Protein 900 g", category: "suplementos", priceCents: 14990, oldPriceCents: 17990, img: "/loja/v2/whey.webp", tag: "Mais vendido", text: "Proteína de alto valor biológico para recuperação muscular.", vendorId: "arena" },
+  { id: "whey-shaker", name: "Kit Whey + Coqueteleira", category: "suplementos", priceCents: 16990, img: "/loja/v2/kit-whey-coqueteleira.webp", tag: "Kit", text: "Whey com coqueteleira para levar ao treino.", vendorId: "arena" },
+  { id: "pre-treino", name: "Pré-treino 300 g", category: "suplementos", priceCents: 11990, oldPriceCents: 13990, img: "/loja/v2/pre-treino.webp", text: "Energia e foco para treinos intensos.", vendorId: "arena" },
+  { id: "proteina-vegetal", name: "Proteína Vegetal 500 g", category: "nutricao", priceCents: 12990, img: "/loja/v2/proteina-vegetal.webp", tag: "Novo", text: "Opção sem lactose para o dia a dia.", vendorId: "emporio" },
+  { id: "multivitaminico", name: "Multivitamínico 120 cápsulas", category: "vitaminas", priceCents: 6990, img: "/loja/v2/multivitaminico.webp", tag: "Essencial", text: "Complexo de vitaminas e minerais para a rotina.", vendorId: "farmavida" },
+  { id: "vitamina-d", name: "Vitamina D3 60 cápsulas", category: "vitaminas", priceCents: 4990, oldPriceCents: 5990, img: "/loja/v2/vitamina-d.webp", text: "Apoio à saúde óssea e imunidade.", vendorId: "farmavida" },
+  { id: "camiseta-regata", name: "Regata Dry Fit Masculina", category: "roupas-masculinas", priceCents: 7990, img: "/loja/v2/regata.webp", tag: "Dry Fit", text: "Tecido leve que seca rápido, ideal para musculação.", vendorId: "base-athletic" },
+  { id: "conjunto-treino-m", name: "Conjunto Treino Masculino", category: "roupas-masculinas", priceCents: 15990, oldPriceCents: 18990, img: "/loja/v2/conjunto-masculino.webp", text: "Camiseta e bermuda de alta mobilidade.", vendorId: "base-athletic" },
+  { id: "camiseta-oversized", name: "Camiseta Performance", category: "roupas-masculinas", priceCents: 8990, img: "/loja/v2/camiseta-performance.webp", text: "Conforto e respirabilidade para todo treino.", vendorId: "base-athletic" },
+  { id: "conjunto-fem-1", name: "Conjunto Top + Legging Preto", category: "roupas-femininas", priceCents: 17990, img: "/loja/v2/conjunto-preto.webp", tag: "Destaque", text: "Top com sustentação e legging de cintura alta.", vendorId: "studio-move" },
+  { id: "conjunto-fem-2", name: "Conjunto Rosé Seamless", category: "roupas-femininas", priceCents: 18990, oldPriceCents: 21990, img: "/loja/v2/conjunto-rose.webp", text: "Modelagem sem costura, toque macio.", vendorId: "studio-move" },
+  { id: "conjunto-fem-3", name: "Conjunto Azul Marinho", category: "roupas-femininas", priceCents: 19990, img: "/loja/v2/conjunto-marinho.webp", tag: "Novo", text: "Conjunto com jaqueta para o antes e depois do treino.", vendorId: "studio-move" },
+  { id: "legging", name: "Legging Compressão", category: "roupas-femininas", priceCents: 11990, img: "/loja/mulher4.webp", text: "Compressão confortável e cós alto.", vendorId: "studio-move" },
+  { id: "halteres", name: "Par de Halteres Emborrachados", category: "acessorios", priceCents: 12990, img: "/loja/v2/halteres.webp", text: "Peso fixo com revestimento antiderrapante.", vendorId: "casa-do-treino" },
+  { id: "kit-barra", name: "Kit Anilhas e Barra", category: "acessorios", priceCents: 39990, img: "/loja/v2/kit-barra.webp", tag: "Kit", text: "Para treino de força completo em casa.", vendorId: "casa-do-treino" },
+  { id: "tapete", name: "Tapete de Treino Antiderrapante", category: "acessorios", priceCents: 8990, img: "/loja/v2/tapete.webp", text: "Alta aderência para alongamento e funcional.", vendorId: "casa-do-treino" },
+  { id: "coqueteleira", name: "Coqueteleira 600 ml", category: "acessorios", priceCents: 3990, img: "/loja/v2/coqueteleira.webp", text: "Tampa de segurança e misturador interno.", vendorId: "casa-do-treino" },
 ];
 
 export const money = (cents: number) => (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
