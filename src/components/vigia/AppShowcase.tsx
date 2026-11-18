@@ -1,4 +1,4 @@
-import { BellRing, LineChart, Pill, Ruler, ShieldCheck, Smartphone, WifiOff } from "lucide-react";
+import { BellRing, LineChart, Pill, Ruler, ShieldCheck, WifiOff } from "lucide-react";
 import { InstallAppButton } from "./InstallApp";
 import { ProductDemo } from "./ProductDemo";
 
@@ -17,8 +17,7 @@ export function AppShowcase() {
       <div className="grid items-center gap-6 px-5 py-6 sm:px-8 lg:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)]">
         <div className="grid min-w-0 gap-4">
           <div>
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-300"><Smartphone size={13} /> Aplicativo NextVita</span>
-          <h2 id="nv-app-title" className="mt-1 text-balance font-display text-2xl font-extrabold leading-tight tracking-tight sm:text-[1.7rem]">Sua rotina de saúde, no bolso.</h2>
+          <h2 id="nv-app-title" className="text-balance font-display text-2xl font-extrabold leading-tight tracking-tight sm:text-[1.7rem]">Sua rotina de saúde, no bolso.</h2>
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <a href="/entrar?mode=signup" className="inline-flex h-10 items-center gap-2 rounded-xl bg-emerald-400 px-4 text-sm font-bold text-slate-950 transition hover:bg-emerald-300">Começar grátis</a>
             <InstallAppButton />

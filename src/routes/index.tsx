@@ -104,8 +104,7 @@ function Homepage() {
         bg: "/images/show-treinos.webp", tone: "from-[#041f1d] via-[#0a3f39] to-[#0e6b5c]",
         custom: (
           <>
-            <p className="nv-rise inline-flex w-fit items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur"><ShieldCheck size={13} className="text-emerald-300" aria-hidden="true" /> Grátis e protegido</p>
-            <h1 id="home-title" style={{ animationDelay: "150ms" }} className="nv-rise mt-3 text-balance font-display text-[1.75rem] font-extrabold leading-[1.05] tracking-tight min-[400px]:text-[2rem] sm:text-[2.4rem] xl:text-[2.9rem]">
+            <h1 id="home-title" style={{ animationDelay: "60ms" }} className="nv-rise text-balance font-display text-[1.75rem] font-extrabold leading-[1.05] tracking-tight min-[400px]:text-[2rem] sm:text-[2.4rem] xl:text-[2.9rem]">
               {client ? `Olá, ${firstName}. Sua evolução em um só lugar.` : "Sua rotina de bem-estar, organizada em um só lugar."}
             </h1>
             <p style={{ animationDelay: "300ms" }} className="nv-rise mt-2.5 max-w-[46ch] text-sm leading-relaxed text-slate-200 sm:text-base">

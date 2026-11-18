@@ -141,7 +141,7 @@ export function PartnerCommercial({ className = "" }: { className?: string }) {
         {/* Faixas de cinema e chrome de TV */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-3 bg-black sm:h-4" />
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-3 bg-black sm:h-4" />
-        <span className="absolute right-4 top-6 rounded bg-black/60 px-2 py-0.5 text-[10px] font-bold tracking-[.14em] text-white/80 sm:right-6">PUBLICIDADE</span>
+        <span className="absolute right-4 top-6 rounded bg-black/60 px-2 py-0.5 text-[11px] font-semibold text-white/80 sm:right-6">Publicidade</span>
       </div>
 
       <div className="flex items-center gap-3 border-t border-white/10 bg-black px-4 py-2.5 sm:px-6">

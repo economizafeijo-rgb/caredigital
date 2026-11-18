@@ -132,6 +132,8 @@
   h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.015em; }
   :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
   :disabled { cursor: not-allowed; }
+  html { caret-color: var(--primary); }
+  .tabular-nums, [class*="tabular-nums"] { font-variant-numeric: tabular-nums; }
   ::selection { background: color-mix(in srgb, var(--primary) 24%, transparent); color: var(--foreground); }
   .dark :is(input, select, textarea) { color: var(--foreground); color-scheme: dark; }
   .dark option { background-color: var(--popover); color: var(--popover-foreground); }
@@ -450,7 +452,7 @@ iframe[title*="Lovable" i][title*="badge" i] { display: none !important; visibil
 .nv-banner-img { animation: nv-banner-zoom 0.7s cubic-bezier(.2,.8,.2,1) both; }
 /* Anúncios "ao vivo": movimento lento das fotos, textos em sequência e mini telas animadas. */
 @keyframes nv-kenburns { from { transform: scale(1) translate(0, 0); } to { transform: scale(1.14) translate(-3%, -2%); } }
-@keyframes nv-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes nv-rise { from { opacity: .3; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes nv-ring { from { stroke-dashoffset: 113; } to { stroke-dashoffset: 32; } }
 @keyframes nv-check { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.25); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
 @keyframes nv-heart { from { stroke-dashoffset: 420; } to { stroke-dashoffset: 0; } }
@@ -478,7 +480,7 @@ iframe[title*="Lovable" i][title*="badge" i] { display: none !important; visibil
 /* ---------- Gráficos de peso: pulso no último ponto, rótulos e cartões que entram suavemente ---------- */
 @keyframes nv-ping { 0% { transform: scale(1); opacity: 0.55; } 80%, 100% { transform: scale(3.2); opacity: 0; } }
 @keyframes nv-label-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes nv-rise-in { from { opacity: 0; transform: translateY(10px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes nv-rise-in { from { opacity: .3; transform: translateY(8px) scale(0.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
 .nv-ping { transform-box: fill-box; transform-origin: center; animation: nv-ping 1.9s ease-out infinite; }
 .nv-label-in { opacity: 0; animation: nv-label-in 0.5s ease-out forwards; }
 .nv-rise { animation: nv-rise-in 0.55s var(--ease) both; }

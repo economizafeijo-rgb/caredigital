@@ -614,7 +614,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   ))}
                 {signedIn && !staff && !location.pathname.startsWith("/cliente") && <LiveModeLauncher iconOnlyOnMobile />}
                 <InstallAppButton className="max-sm:!hidden" />
-                {!internalPage && <HeaderCart />}
+                {!internalPage && <span className="hidden sm:contents"><HeaderCart /></span>}
                 {tools}
                 {signedIn && (
                   <button

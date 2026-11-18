@@ -134,7 +134,7 @@ export function HomeStore({ className = "" }: { className?: string }) {
 
       <div className="mt-4 border-t border-border pt-4">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">Lojas parceiras <span className="hidden rounded-full sm:inline bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">exemplos ilustrativos</span></h3>
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">Lojas parceiras <span className="hidden rounded-full sm:inline bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">exemplos ilustrativos</span></h3>
           <Link to="/parceiros" className="inline-flex items-center gap-1 text-[13px] font-semibold text-muted-foreground transition-colors hover:text-primary">
             <span className="sm:hidden">Venda aqui</span><span className="hidden sm:inline">Tem uma loja? Venda aqui</span> <ArrowRight size={14} aria-hidden="true" />
           </Link>

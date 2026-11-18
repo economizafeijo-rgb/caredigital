@@ -162,11 +162,8 @@ export function SmartBanner({ className = "", intro }: { className?: string; int
         <div className="min-w-0 max-w-[40rem]">
           {sl.custom ?? (
             <>
-              <p className="nv-rise inline-flex items-center gap-1.5 text-xs font-semibold text-white/80">
-                {sl.tool && sl.tool !== "dev" && <span className="rounded-full bg-emerald-400 px-2 py-0.5 text-[11px] font-bold text-slate-950">Grátis</span>}
-                {sl.kicker}
-              </p>
-              <h2 style={{ animationDelay: "150ms" }} className="nv-rise mt-1.5 text-balance font-display text-[1.45rem] font-extrabold leading-tight min-[400px]:text-2xl sm:text-3xl lg:text-[2.1rem]">{sl.title}</h2>
+              <h2 style={{ animationDelay: "80ms" }} className="nv-rise text-balance font-display text-[1.45rem] font-extrabold leading-tight min-[400px]:text-2xl sm:text-3xl lg:text-[2.1rem]">{sl.title}</h2>
+              {sl.tool && sl.tool !== "dev" && <p className="nv-rise mt-1.5 text-xs font-semibold text-emerald-300" style={{ animationDelay: "160ms" }}>Ferramenta gratuita</p>}
               {sl.text && <p style={{ animationDelay: "300ms" }} className="nv-rise mt-2 max-w-[46ch] text-sm leading-relaxed text-white/85 sm:text-[15px]">{sl.text}</p>}
               {sl.chips && (
                 <ul className="nv-rise mt-3 flex flex-wrap gap-1.5" style={{ animationDelay: "420ms" }}>
@@ -225,7 +222,8 @@ export function SmartBanner({ className = "", intro }: { className?: string; int
       <p className="sr-only" aria-live={playing ? "off" : "polite"}>{slide.title}</p>
 
       <div className="absolute inset-x-5 bottom-3 z-10 flex items-center gap-2 sm:inset-x-8 lg:inset-x-10">
-        <div className="flex flex-1 gap-1.5">
+        <span className="text-xs font-semibold tabular-nums text-white/75 sm:hidden" aria-hidden="true">{safeIndex + 1} / {slides.length}</span>
+        <div className="hidden flex-1 gap-1.5 sm:flex">
           {slides.map((s, i) => (
             <button key={s.id} type="button" onClick={() => go(i)} aria-label={`Destaque ${i + 1} de ${slides.length}: ${s.kicker}`} aria-current={i === safeIndex ? "true" : undefined} className="group relative h-6 flex-1">
               <span className="absolute inset-x-0 top-1/2 block h-[3px] -translate-y-1/2 overflow-hidden rounded-full bg-white/20 transition-[height] group-hover:h-1.5">
@@ -235,10 +233,11 @@ export function SmartBanner({ className = "", intro }: { className?: string; int
             </button>
           ))}
         </div>
+        <span className="flex-1 sm:hidden" />
         <span className="hidden max-w-[12rem] truncate text-[11px] text-white/60 lg:inline">A seguir: <strong className="text-white/85">{next.chapter ?? next.kicker}</strong></span>
-        <button type="button" onClick={() => go(safeIndex - 1)} aria-label="Destaque anterior" className="grid size-8 place-items-center rounded-full bg-white/15 backdrop-blur hover:bg-white/25"><ChevronLeft size={16} /></button>
-        <button type="button" onClick={() => setPaused((p) => !p)} aria-label={paused ? "Retomar destaques" : "Pausar destaques"} className="grid size-8 place-items-center rounded-full bg-white/15 backdrop-blur hover:bg-white/25">{paused ? <Play size={14} /> : <Pause size={14} />}</button>
-        <button type="button" onClick={() => go(safeIndex + 1)} aria-label="Próximo destaque" className="grid size-8 place-items-center rounded-full bg-white/15 backdrop-blur hover:bg-white/25"><ChevronRight size={16} /></button>
+        <button type="button" onClick={() => go(safeIndex - 1)} aria-label="Destaque anterior" className="grid size-10 place-items-center rounded-full bg-white/15 backdrop-blur hover:bg-white/25 sm:size-8"><ChevronLeft size={16} /></button>
+        <button type="button" onClick={() => setPaused((p) => !p)} aria-label={paused ? "Retomar destaques" : "Pausar destaques"} className="grid size-10 place-items-center rounded-full bg-white/15 backdrop-blur hover:bg-white/25 sm:size-8">{paused ? <Play size={14} /> : <Pause size={14} />}</button>
+        <button type="button" onClick={() => go(safeIndex + 1)} aria-label="Próximo destaque" className="grid size-10 place-items-center rounded-full bg-white/15 backdrop-blur hover:bg-white/25 sm:size-8"><ChevronRight size={16} /></button>
       </div>
     </section>
   );
