@@ -66,7 +66,7 @@ export function PartnerCommercial({ className = "" }: { className?: string }) {
     >
       <h2 id="partner-ad-title" className="sr-only">Anuncie na NextVita: lojas, academias, personal trainers e produtos</h2>
 
-      <div className="relative h-[17rem] min-[400px]:h-[18rem] sm:h-[19rem] lg:h-[20rem]">
+      <div className="relative h-[17rem] min-[400px]:h-[18rem] sm:h-[18.5rem] lg:h-[18.5rem]">
         {scene ? (
           <div key={scene.id} className="absolute inset-0">
             {scene.dev ? (
