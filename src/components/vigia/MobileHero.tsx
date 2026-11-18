@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { LiveModeLauncher } from "./LiveMode";
 import { StoreBannerCarousel } from "./StoreBannerCarousel";
 import { HeroShowcase } from "./HeroShowcase";
-import { Activity, ArrowRight, BarChart3, BedDouble, Droplets, Gift, LayoutDashboard, LockKeyhole, Pill, Scale, ShieldCheck, ShoppingBag, Sparkles, Store, Utensils } from "lucide-react";
+import { Activity, ArrowRight, BarChart3, BedDouble, Droplets, Gift, LayoutDashboard, LockKeyhole, Pill, Scale, ShieldCheck, ShoppingBag, Sparkles, Utensils } from "lucide-react";
 
 const areas = [
   { to: "/loja", label: "Loja virtual", text: "Suplementos, vitaminas e moda fitness", icon: ShoppingBag, img: "/loja/mulher1.webp", tone: "from-amber-500 to-orange-500" },
@@ -20,31 +20,30 @@ const areas = [
 export function MobileHero({ client, name, panel }: { client: boolean; name: string; panel: string | null }) {
   return (
     <div className="flex flex-col gap-3 sm:hidden">
-      <section aria-labelledby="m-hero-title" className="relative isolate overflow-hidden rounded-3xl bg-slate-950 p-4 text-white shadow-xl">
+      <section aria-labelledby="m-hero-title" className="relative isolate overflow-hidden rounded-3xl bg-slate-950 text-white shadow-xl">
         <img src="/images/caredigital-care-hero.webp" alt="" aria-hidden="true" width={1200} height={752} className="absolute inset-0 -z-20 size-full object-cover" />
-        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-b from-slate-950/85 via-slate-950/80 to-slate-950/95" />
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider backdrop-blur"><ShieldCheck size={12} className="text-emerald-300" /> Protegido</span>
-          <Link to="/loja" className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-300 to-amber-400 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-950"><span className="relative flex size-1.5" aria-hidden="true"><span className="absolute inline-flex size-full animate-ping rounded-full bg-slate-900 opacity-60" /><span className="relative inline-flex size-1.5 rounded-full bg-slate-900" /></span> Novidade · Loja</Link>
-        </div>
-        <h1 id="m-hero-title" className="mt-3 text-balance text-[1.75rem] font-extrabold leading-[1.08] tracking-tight">
-          {client ? <>Olá, <span className="text-emerald-300">{(name || "usuário").split(" ")[0]}</span>. Sua evolução em um só lugar.</> : <>Sua rotina de bem-estar, <span className="text-emerald-300">organizada.</span></>}
-        </h1>
-        <p className="mt-1.5 text-[13px] leading-snug text-slate-300">Nutrição, hidratação, peso, suplementos e hábitos, com lembretes e registros confiáveis.</p>
-        <div className="mt-3.5 grid grid-cols-2 gap-2">
-          {panel ? (
-            <>
-              <Link to={panel} className="col-span-2 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-300 text-[15px] font-extrabold text-slate-950 shadow-lg active:scale-[.98]"><LayoutDashboard size={18} /> Abrir meu painel <ArrowRight size={16} /></Link>
-              {client ? <LiveModeLauncher className="!h-11 justify-center !rounded-xl !px-2 !text-sm" /> : <span />}
-            </>
-          ) : (
-            <>
-              <a href="/entrar?mode=signup" className="col-span-2 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-300 text-[15px] font-extrabold text-slate-950 shadow-lg active:scale-[.98]"><Gift size={18} /> Criar conta grátis</a>
-              <Link to="/entrar" className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl border border-white/30 bg-white/10 text-sm font-bold backdrop-blur"><LockKeyhole size={16} /> Entrar</Link>
-            </>
-          )}
-          <Link to="/loja" className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-300 to-amber-400 text-sm font-extrabold text-slate-950 active:scale-[.98]"><ShoppingBag size={16} /> Visitar a loja</Link>
-          <Link to="/parceiros" className="col-span-2 inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-amber-300/50 bg-amber-300/10 text-[13px] font-bold text-amber-200"><Store size={15} /> Quero vender · cadastro grátis</Link>
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-b from-slate-950/70 via-slate-950/85 to-slate-950" />
+        <div className="flex min-h-[24rem] flex-col justify-end p-5">
+          <span className="mb-auto inline-flex w-fit items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[.14em] backdrop-blur"><ShieldCheck size={12} className="text-emerald-300" /> Protegido</span>
+          <h1 id="m-hero-title" className="mt-6 text-balance text-[1.9rem] font-extrabold leading-[1.08] tracking-tight">
+            {client ? <>Olá, <span className="text-emerald-300">{(name || "usuário").split(" ")[0]}</span>.<br />Sua evolução em um só lugar.</> : <>Sua rotina de bem-estar, <span className="text-emerald-300">organizada.</span></>}
+          </h1>
+          <p className="mt-2 max-w-[26ch] text-[13.5px] leading-relaxed text-slate-300">Nutrição, hidratação, peso, suplementos e hábitos, com lembretes e registros confiáveis.</p>
+          <div className="mt-5 flex flex-col gap-2.5">
+            {panel ? (
+              <Link to={panel} className="inline-flex h-13 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-300 py-3.5 text-[15px] font-extrabold text-slate-950 shadow-lg shadow-emerald-950/40 active:scale-[.98]"><LayoutDashboard size={18} /> Abrir meu painel <ArrowRight size={16} /></Link>
+            ) : (
+              <a href="/entrar?mode=signup" className="inline-flex h-13 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-300 py-3.5 text-[15px] font-extrabold text-slate-950 shadow-lg shadow-emerald-950/40 active:scale-[.98]"><Gift size={18} /> Criar conta grátis</a>
+            )}
+            <div className="grid grid-cols-2 gap-2.5">
+              {panel && client ? (
+                <LiveModeLauncher className="!h-11 justify-center !rounded-xl border border-white/25 !bg-white/10 !px-2 !text-sm backdrop-blur" />
+              ) : !panel ? (
+                <Link to="/entrar" className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl border border-white/25 bg-white/10 text-sm font-bold backdrop-blur"><LockKeyhole size={16} /> Entrar</Link>
+              ) : <span />}
+              <Link to="/loja" className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl border border-white/25 bg-white/10 text-sm font-bold backdrop-blur active:scale-[.98]"><ShoppingBag size={16} /> Visitar a loja</Link>
+            </div>
+          </div>
         </div>
       </section>
 
