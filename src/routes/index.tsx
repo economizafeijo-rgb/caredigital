@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Activity,
-  ArrowRight,
   BarChart3,
   BedDouble,
   CalendarCheck,
@@ -21,6 +20,7 @@ import { useAccess } from "@/lib/use-access";
 import { LiveModeLauncher } from "@/components/vigia/LiveMode";
 import { HomeStore } from "@/components/vigia/HomeStore";
 import { SmartBanner } from "@/components/vigia/SmartBanner";
+import { QrShareCard } from "@/components/vigia/QrShareCard";
 import { HomeNextCareCard } from "@/components/vigia/CareTimer";
 import { HomeModalityTimers } from "@/components/vigia/HomeModalityTimers";
 import { HomeClientMetrics } from "@/components/vigia/HomeClientMetrics";
@@ -148,17 +148,23 @@ function Homepage() {
       {client && <HomeClientMetrics />}
       {client && <SmartMetricsDashboard />}
 
-      <footer className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card px-4 py-3 text-xs text-muted-foreground">
-        <span>
-          <span className="font-semibold text-foreground">NextVita</span> · Desenvolvido por{" "}
-          <Link to="/sobre" className="font-semibold text-primary underline-offset-2 hover:underline">Franc D&apos;nis</Link> · Feijó, Acre ·
-          © {new Date().getFullYear()}
-        </span>
-        {!panel && (
-          <a href="/entrar?mode=signup" className="inline-flex items-center gap-1 font-semibold text-primary hover:underline">
-            Criar conta grátis <ArrowRight size={13} aria-hidden="true" />
-          </a>
-        )}
+      <footer className="grid gap-4 rounded-2xl border border-border bg-card p-5 text-sm md:grid-cols-[1.2fr_1fr_1.3fr] md:items-center">
+        <div>
+          <p className="font-display text-base font-extrabold">NextVita</p>
+          <p className="mt-1 max-w-[40ch] text-muted-foreground">Bem-estar organizado: rotina, lembretes e loja no mesmo app. Gratuito para usar.</p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Desenvolvido por <Link to="/sobre" className="font-semibold text-foreground hover:underline">Franc D&apos;nis</Link> · Feijó, Acre · © {new Date().getFullYear()}
+          </p>
+        </div>
+        <nav aria-label="Links do rodapé" className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+          <Link to="/loja" className="text-muted-foreground hover:text-foreground">Loja NextVita</Link>
+          <Link to="/protocolos" className="text-muted-foreground hover:text-foreground">Como funciona</Link>
+          <Link to="/lojista" className="text-muted-foreground hover:text-foreground">Seja lojista</Link>
+          <Link to="/metricas" className="text-muted-foreground hover:text-foreground">Métricas</Link>
+          <Link to="/sobre" className="text-muted-foreground hover:text-foreground">Sobre</Link>
+          {!panel && <a href="/entrar?mode=signup" className="font-semibold text-primary hover:underline">Criar conta grátis</a>}
+        </nav>
+        <QrShareCard variant="footer" className="w-full" />
       </footer>
     </div>
   );
