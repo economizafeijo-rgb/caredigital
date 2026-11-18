@@ -64,6 +64,15 @@ const groupColors:Record<HistoryGroup,string>={
   ajustes:"border-violet-500/25 bg-violet-500/[.045] text-violet-700 dark:text-violet-300",
 };
 
+/** Identidade visual de cada categoria: cor, degradê e foto do painel de detalhes. */
+const LOOK:Record<string,{label:string;color:string;grad:string;soft:string;img:string}>={
+  todos:{label:"Todos",color:"#6366f1",grad:"linear-gradient(135deg,#6366f1,#a855f7)",soft:"bg-indigo-500/12 text-indigo-600 dark:text-indigo-300",img:"/images/caredigital-historico.webp"},
+  liquidos:{label:"Líquidos",color:"#0284c7",grad:"linear-gradient(135deg,#0284c7,#22d3ee)",soft:"bg-sky-500/12 text-sky-600 dark:text-sky-300",img:"/images/hero-hidratacao.webp"},
+  refeicoes:{label:"Refeições",color:"#059669",grad:"linear-gradient(135deg,#059669,#84cc16)",soft:"bg-emerald-500/12 text-emerald-600 dark:text-emerald-300",img:"/images/hero-alimentacao.webp"},
+  cuidados:{label:"Cuidados",color:"#d97706",grad:"linear-gradient(135deg,#e11d48,#f59e0b)",soft:"bg-amber-500/12 text-amber-700 dark:text-amber-300",img:"/images/hero-medicamentos.webp"},
+  ajustes:{label:"Ajustes",color:"#7c3aed",grad:"linear-gradient(135deg,#7c3aed,#c084fc)",soft:"bg-violet-500/12 text-violet-600 dark:text-violet-300",img:"/images/painel-indicadores.webp"},
+};
+
 export function PatientActivityHistory({patientId,ownerId,revision,onRecordChanged}:{
   patientId:string;ownerId:string;revision:number;onRecordChanged?:()=>void;
 }){
@@ -255,11 +264,12 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
         const count=dayItems.filter(item=>group.key==="todos"||item.group===group.key).length;
         const active=filters.group===group.key;
         return <button key={group.key} type="button" aria-pressed={active} onClick={()=>setGroup(group.key)}
-          className={"flex min-w-0 items-center justify-center gap-1.5 rounded-xl border px-1.5 py-2.5 text-[11px] font-bold transition-colors sm:text-xs "+
-            (active?"border-primary/70 bg-primary text-primary-foreground shadow-sm":"border-border bg-muted/30 text-foreground hover:border-primary/40 hover:bg-muted/70")}>
-          <Icon size={15} className="shrink-0" aria-hidden="true"/>
+          style={active?{background:LOOK[group.key].grad,["--g" as string]:LOOK[group.key].color}:{["--g" as string]:LOOK[group.key].color}}
+          className={"group relative flex min-w-0 items-center justify-center gap-1.5 overflow-hidden rounded-xl border px-1.5 py-2.5 text-[11px] font-bold transition-[background-color,border-color,box-shadow,transform] duration-200 active:scale-[.97] sm:text-xs "+
+            (active?"border-transparent text-white shadow-[0_8px_22px_-12px_var(--g)]":"border-border bg-card text-foreground hover:border-[color:var(--g)] hover:bg-muted/50")}>
+          <Icon size={15} className="shrink-0 transition-transform duration-300 group-hover:scale-110" style={active?undefined:{color:LOOK[group.key].color}} aria-hidden="true"/>
           <span className="truncate">{group.label}</span>
-          <span className={"hidden rounded-full px-1.5 text-[11px] tabular-nums sm:inline "+(active?"bg-muted":"bg-background/70")}>{count}</span>
+          <span className={"hidden rounded-full px-1.5 text-[11px] tabular-nums sm:inline "+(active?"bg-white/25":"bg-muted text-muted-foreground")}>{count}</span>
         </button>;
       })}
     </div>
@@ -330,23 +340,22 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
             shown.map(entry=>{
               const Icon=typeIcon(entry);
               const active=selected?.id===entry.id;
-              const color=entry.group==="liquidos"?"bg-sky-500/15 text-sky-700 dark:text-sky-300":
-                entry.group==="refeicoes"?"bg-emerald-500/15 text-emerald-700 dark:text-emerald-300":
-                entry.group==="ajustes"?"bg-violet-500/15 text-violet-700 dark:text-violet-300":
-                "bg-amber-500/15 text-amber-800 dark:text-amber-300";
+              const look=LOOK[entry.group]??LOOK.todos;
               return <button key={entry.id} type="button" aria-pressed={active}
                 onClick={()=>{setSelectedId(entry.id);setShowMobileDetail(true);setEditingWater(false);setEditError("");setEditNotice("");}}
-                className={"group flex w-full min-w-0 items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary "+
-                  (active?"border-primary/70 bg-primary/[.095] shadow-[inset_0_0_0_1px_hsl(var(--primary)/.18)]":
-                  "border-border bg-card/80 hover:border-primary/40 hover:bg-primary/[.04]")}>
-                <span className={"grid size-10 shrink-0 place-items-center rounded-xl "+color}><Icon size={20}/></span>
+                style={{["--g" as string]:look.color,...(active?{background:`color-mix(in oklab, ${look.color} 11%, transparent)`}:{})}}
+                className={"group relative flex w-full min-w-0 items-center gap-2.5 overflow-hidden rounded-xl border py-2 pl-3.5 pr-3 text-left transition-[background-color,border-color] duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary "+
+                  (active?"border-[color:var(--g)]":"border-border bg-card hover:border-[color:color-mix(in_oklab,var(--g)_45%,transparent)] hover:bg-muted/40")}>
+                <span aria-hidden="true" className={"absolute inset-y-2 left-0 w-1 rounded-r-full transition-opacity "+(active?"opacity-100":"opacity-40 group-hover:opacity-100")} style={{background:look.grad}}/>
+                <span className={"grid size-9 shrink-0 place-items-center rounded-xl transition-transform duration-300 group-hover:scale-105 "+(active?"text-white shadow-sm":look.soft)} style={active?{background:look.grad}:undefined}><Icon size={18}/></span>
                 <span className="min-w-0 flex-1">
                   <strong className="block truncate text-[13px] font-bold text-foreground">{entry.title}</strong>
                   <span className="mt-1 block truncate text-[11px] text-muted-foreground">
-                    {entry.group==="liquidos"?"Líquidos":entry.group==="refeicoes"?"Refeições":entry.group==="ajustes"?"Ajustes":"Cuidados"} · {statusLabel[entry.status]} às {acreHour(entry.occurredAt)}
+                    {look.label} · {statusLabel[entry.status]}
                   </span>
                 </span>
-                <ChevronRight size={17} className="shrink-0 text-muted-foreground group-hover:text-primary"/>
+                <span className="shrink-0 text-right text-[11px] font-bold tabular-nums" style={{color:look.color}}>{acreHour(entry.occurredAt)}</span>
+                <ChevronRight size={16} className="shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"/>
               </button>;
             })}
           {!loading&&!problem&&!shown.length&&<div className="rounded-xl border border-dashed border-border px-3 py-5 text-center">
@@ -366,39 +375,33 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
       </section>
 
       <section aria-label="Detalhes do registro selecionado" className={"patient-history-detail relative isolate flex min-h-0 min-w-0 flex-col overflow-hidden rounded-[24px] border border-border/70 bg-card shadow-xl "+(showMobileDetail?"flex":"hidden lg:flex")}>
-        <div className="shrink-0 border-b border-border p-4 sm:p-5">
-
+        {(()=>{const look=LOOK[selected?.group??"todos"]??LOOK.todos;return <div key={selected?.id??"none"} className="nv-dark relative isolate shrink-0 overflow-hidden p-4 text-white sm:p-5">
+          <img src={look.img} alt="" aria-hidden="true" className="nv-kenburns absolute inset-0 -z-20 size-full object-cover" style={{animationDuration:"16s"}}/>
+          <div aria-hidden="true" className="absolute inset-0 -z-10" style={{background:`linear-gradient(110deg, rgba(2,6,23,.92) 25%, color-mix(in oklab, ${look.color} 55%, rgba(2,6,23,.55)) 100%)`}}/>
           <div className="flex items-center justify-between gap-3">
-            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1.5 text-[11px] font-bold uppercase tracking-[.13em] text-foreground">
-              <History size={14}/> Prontuário · Detalhes
-            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/12 px-2.5 py-1 text-[11px] font-semibold backdrop-blur"><History size={13}/> Prontuário · {look.label}</span>
+            {selected&&<span className={"inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold "+(selected.status==="confirmado"||selected.status==="registrado"||selected.status==="meta_atingida"?"bg-emerald-400 text-emerald-950":selected.status==="nao_confirmado"||selected.status==="nao_bebi"||selected.status==="meta_nao_atingida"?"bg-amber-300 text-amber-950":"bg-white/20")}>
+              {(selected.status==="confirmado"||selected.status==="registrado"||selected.status==="meta_atingida")&&<CheckCircle2 size={13}/>}{statusLabel[selected.status]}</span>}
             <button type="button" onClick={()=>setShowMobileDetail(false)}
-              className="grid size-9 shrink-0 place-items-center rounded-full border border-border bg-muted text-foreground lg:hidden" aria-label="Voltar aos registros"><ChevronLeft size={19}/></button>
+              className="grid size-9 shrink-0 place-items-center rounded-full bg-white/15 text-white lg:hidden" aria-label="Voltar aos registros"><ChevronLeft size={19}/></button>
           </div>
-          {selected?<div className="mt-6 flex min-w-0 items-center gap-3">
-            <span className="grid size-12 shrink-0 place-items-center rounded-2xl border border-border bg-muted text-foreground"><SelectedIcon size={24}/></span>
+          {selected?<div className="nv-rise mt-5 flex min-w-0 items-center gap-3">
+            <span className="grid size-12 shrink-0 place-items-center rounded-2xl text-white shadow-lg ring-1 ring-white/30" style={{background:look.grad}}><SelectedIcon size={24}/></span>
             <div className="min-w-0">
-              <h4 className="break-words text-xl font-bold leading-tight tracking-tight text-foreground sm:text-2xl">{selected.title}</h4>
-              <p className="mt-1 text-xs font-medium text-muted-foreground">{acreStamp(selected.occurredAt)} · Fuso do Acre</p>
+              <h4 className="break-words text-xl font-bold leading-tight tracking-tight sm:text-2xl">{selected.title}</h4>
+              <p className="mt-1 text-xs font-medium text-white/75">{acreStamp(selected.occurredAt)} · horário do Acre</p>
             </div>
-          </div>:<h3 className="mt-6 text-xl font-bold text-foreground">Selecione um registro</h3>}
-        </div>
+          </div>:<h3 className="mt-5 text-xl font-bold">Selecione um registro</h3>}
+        </div>;})()}
         <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-3 sm:px-5 sm:pb-5">
         {selected?<>
-          <div className="mb-3 flex shrink-0 flex-wrap items-center justify-between gap-2 rounded-xl border border-border/70 bg-muted/35 px-3 py-2">
-            <span className="text-[11px] font-semibold text-muted-foreground">Registro do histórico</span>
-            <span className={"inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold "+(selected.status==="confirmado"||selected.status==="registrado"||selected.status==="meta_atingida"?"bg-emerald-500/15 text-emerald-700 dark:text-emerald-300":"bg-primary/10 text-primary")}>
-              {(selected.status==="confirmado"||selected.status==="registrado")&&<CheckCircle2 size={14}/>}
-              {statusLabel[selected.status]}
-            </span>
-          </div>
           <div className="patient-history-detail-scroll min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain pr-1">
             <dl className="grid grid-cols-2 gap-2">
-              <div className="min-w-0 rounded-2xl border border-border/70 bg-muted/30 p-3 shadow-sm">
+              <div className="min-w-0 rounded-xl border border-border/70 bg-muted/25 p-3">
                 <dt className="text-[11px] font-semibold text-muted-foreground">Categoria</dt>
-                <dd className="mt-1.5 break-words text-xs font-bold text-foreground">{selected.group==="liquidos"?"Líquidos":selected.group==="refeicoes"?"Refeições":selected.group==="ajustes"?"Ajustes":"Cuidados"}</dd>
+                <dd className="mt-1.5 inline-flex items-center gap-1.5 break-words text-xs font-bold text-foreground"><i className="size-2 rounded-full" style={{background:LOOK[selected.group]?.grad}}/>{LOOK[selected.group]?.label??"Cuidados"}</dd>
               </div>
-              <div className="min-w-0 rounded-2xl border border-border/70 bg-muted/30 p-3 shadow-sm">
+              <div className="min-w-0 rounded-xl border border-border/70 bg-muted/25 p-3">
                 <dt className="text-[11px] font-semibold text-muted-foreground">Situação</dt>
                 <dd className={"mt-1.5 inline-flex max-w-full items-center gap-1 break-words rounded-full px-2 py-1 text-[11px] font-bold "+
                   (selected.status==="confirmado"||selected.status==="meta_atingida"?"bg-emerald-500/15 text-emerald-700 dark:text-emerald-300":
@@ -407,13 +410,13 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
                     {statusLabel[selected.status]}
                 </dd>
               </div>
-              <div className="min-w-0 rounded-2xl border border-border/70 bg-muted/30 p-3 shadow-sm">
+              <div className="min-w-0 rounded-xl border border-border/70 bg-muted/25 p-3">
                 <dt className="text-[11px] font-semibold text-muted-foreground">Horário previsto</dt>
                 <dd className="mt-1.5 break-words text-xs font-semibold tabular-nums text-foreground">
                   {selected.scheduledAt?acreStamp(selected.scheduledAt):"Não programado"}
                 </dd>
               </div>
-              <div className="min-w-0 rounded-2xl border border-border/70 bg-muted/30 p-3 shadow-sm">
+              <div className="min-w-0 rounded-xl border border-border/70 bg-muted/25 p-3">
                 <dt className="text-[11px] font-semibold text-muted-foreground">{selected.status==="nao_confirmado"?"Confirmação":"Horário registrado"}</dt>
                 <dd className="mt-1.5 break-words text-xs font-semibold tabular-nums text-foreground">
                   {selected.status==="nao_confirmado"?"Não confirmada":acreStamp(selected.occurredAt)}
