@@ -70,6 +70,13 @@ const tileArea: Partial<Record<MetricKey, ClientSection>> = {
   calorias: "alimentacao", proteina: "alimentacao", carbs: "alimentacao", gordura: "alimentacao", med: "medicacao", supl: "suplementos", streak: "historico",
 } as Partial<Record<MetricKey, ClientSection>>;
 let openArea: ((area: ClientSection) => void) | null = null;
+/** Foto de cada cartão: preenche o espaço livre no canto inferior, tingida pela cor da área. */
+const tileImage: Record<MetricKey, string> = {
+  score: "/images/painel-visao.webp", agua: "/images/hero-hidratacao.webp", peso: "/images/hero-peso.webp", imc: "/images/show-peso.webp",
+  metapeso: "/images/painel-peso.webp", sono: "/images/hero-sono.webp", exercicio: "/images/hero-treinos.webp", semana: "/images/show-treinos.webp",
+  calorias: "/images/hero-alimentacao.webp", proteina: "/images/caredigital-alimentacao.webp", carbs: "/images/painel-cardapios.webp", gordura: "/images/caredigital-alimentacao.webp",
+  supl: "/images/hero-suplementos.webp", med: "/images/hero-medicamentos.webp", streak: "/images/hero-metricas.webp",
+};
 
 function Tile({ k, on, onPick, icon: Icon, tone, title, children }: { k: MetricKey; on: boolean; onPick: (k: MetricKey) => void; icon: LucideIcon; tone: string; title: string; children: ReactNode }) {
   const area = tileArea[k];
@@ -82,8 +89,12 @@ function Tile({ k, on, onPick, icon: Icon, tone, title, children }: { k: MetricK
   return (
     <section aria-label={title} onClick={go} onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " ") && e.target === e.currentTarget) { e.preventDefault(); go(e); } }} tabIndex={area ? 0 : undefined}
       title={area ? `Abrir ${title}` : undefined}
-      className={`group relative min-w-0 overflow-hidden rounded-3xl p-4 ring-1 transition duration-300 ${area ? "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70" : ""} ${on ? "bg-white/[.13] ring-white/45 shadow-[0_0_44px_-10px_var(--tile)]" : "bg-white/[.06] ring-white/10 hover:bg-white/[.09] hover:ring-white/25"}`} style={{ ["--tile" as string]: tone }}>
-      <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px opacity-70" style={{ background: tone }} />
+      className={`group relative isolate min-w-0 overflow-hidden rounded-[26px] p-4 ring-1 transition-[box-shadow,background-color,--tw-ring-color] duration-300 ${area ? "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70" : ""} ${on ? "bg-slate-900/70 ring-white/45 shadow-[0_0_44px_-10px_var(--tile)]" : "bg-slate-900/55 ring-white/10 hover:ring-white/30 hover:shadow-[0_18px_40px_-20px_rgba(0,0,0,.8)]"}`} style={{ ["--tile" as string]: tone }}>
+      <img src={tileImage[k]} alt="" aria-hidden="true" loading="lazy" decoding="async"
+        className="pointer-events-none absolute inset-0 -z-20 size-full object-cover opacity-45 transition-[transform,opacity] duration-700 ease-out [mask-image:linear-gradient(200deg,transparent_25%,#000_95%)] group-hover:scale-[1.06] group-hover:opacity-60" />
+      <span aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-slate-950/80 via-slate-950/55 to-transparent" />
+      <span aria-hidden="true" className="pointer-events-none absolute -bottom-16 -left-10 -z-10 size-48 rounded-full opacity-25 blur-3xl transition-opacity duration-500 group-hover:opacity-45" style={{ background: tone }} />
+      <span aria-hidden="true" className="pointer-events-none absolute inset-x-6 top-0 h-px opacity-80" style={{ background: tone }} />
       <div className="flex w-full items-center gap-2.5">
         <span className="grid size-10 place-items-center rounded-2xl text-white shadow-lg ring-1 ring-white/25 transition-transform duration-300 group-hover:scale-110" style={{ background: tone }}><Icon size={19} /></span>
         <strong className="flex-1 text-sm font-bold tracking-wide text-white/95">{title}</strong>

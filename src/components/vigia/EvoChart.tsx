@@ -143,8 +143,8 @@ export function EvoChart({ series, xMin, xMax, xTicks, formatX, formatY, yFloor 
           <defs>
             {series.filter((s) => s.area).map((s) => (
               <linearGradient key={s.id} id={`${uid}-${s.id}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stopColor={s.color} stopOpacity=".32" />
-                <stop offset=".65" stopColor={s.color} stopOpacity=".08" />
+                <stop offset="0" stopColor={s.color} stopOpacity=".42" />
+                <stop offset=".6" stopColor={s.color} stopOpacity=".1" />
                 <stop offset="1" stopColor={s.color} stopOpacity="0" />
               </linearGradient>
             ))}
@@ -180,8 +180,9 @@ export function EvoChart({ series, xMin, xMax, xTicks, formatX, formatY, yFloor 
               return (
                 <g key={s.id}>
                   {s.area && px.length > 1 && <path d={`${d}L${px[px.length - 1][0].toFixed(1)},${sy(0)}L${px[0][0].toFixed(1)},${sy(0)}Z`} fill={`url(#${uid}-${s.id})`} className={reduced ? "" : "nv-evo-fade"} />}
-                  <path d={d} fill="none" stroke={s.color} strokeWidth={s.dashed ? 1.75 : 2.25} strokeLinecap="round" strokeLinejoin="round"
-                    strokeDasharray={s.dashed ? "5 5" : undefined} pathLength={s.dashed ? undefined : 1} className={s.dashed || reduced ? "" : "nv-draw-now"} opacity={s.dashed ? 0.85 : 1} />
+                  <path d={d} fill="none" stroke={s.color} strokeWidth={s.dashed ? 1.75 : 2.75} strokeLinecap="round" strokeLinejoin="round"
+                    strokeDasharray={s.dashed ? "5 5" : undefined} pathLength={s.dashed ? undefined : 1} className={s.dashed || reduced ? "" : "nv-draw-now"} opacity={s.dashed ? 0.85 : 1}
+                    style={s.dashed ? undefined : { filter: `drop-shadow(0 6px 10px ${s.color}66)` }} />
                 </g>
               );
             })}

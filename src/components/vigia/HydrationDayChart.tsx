@@ -35,6 +35,13 @@ export function HydrationDayChart({ entries, goal, nowMs, lastHour = 20, height 
   const ideal = goal > 0 ? [{ x: H0, y: 0 }, { x: 7, y: 0 }, { x: lastHour, y: goal }, { x: H1, y: goal }] : [];
   const idealAtNow = goal > 0 ? goal * Math.min(1, Math.max(0, (nowH - 7) / (lastHour - 7))) : 0;
   const diff = total - idealAtNow;
+  // Previsão: mantendo o ritmo desde o primeiro registro, onde você chega no fim da janela recomendada.
+  const firstH = sorted[0] ? hourOf(sorted[0].recorded_at) : null;
+  const rate = firstH !== null && nowH - firstH > 0.5 ? total / (nowH - firstH) : 0;
+  const reachH = rate > 0 && goal > total ? nowH + (goal - total) / rate : null;
+  const forecast = rate > 0 && nowH < lastHour && total < (goal || Infinity)
+    ? reachH !== null && reachH <= lastHour ? [{ x: nowH, y: total }, { x: reachH, y: goal }] : [{ x: nowH, y: total }, { x: lastHour, y: Math.round(total + rate * (lastHour - nowH)) }]
+    : [];
 
   return (
     <figure className="min-w-0 rounded-2xl border border-border bg-card p-3 sm:p-4">
@@ -45,9 +52,10 @@ export function HydrationDayChart({ entries, goal, nowMs, lastHour = 20, height 
             {goal > 0 && nowH >= 7
               ? diff >= 0 ? `${fmt(diff)} à frente do ritmo ideal` : `${fmt(-diff)} abaixo do ritmo ideal agora`
               : "Passe o mouse ou o dedo sobre a linha"}
+            {forecast.length > 0 && (reachH !== null && reachH <= lastHour ? ` · no ritmo atual, meta por volta das ${hm(reachH)}` : ` · no ritmo atual, ~${fmt(forecast[1].y)} até as ${lastHour}h`)}
           </span>
         </span>
-        <EvoLegend items={[{ label: "Água", color: WATER }, { label: "Outras bebidas", color: DRINK }, ...(goal > 0 ? [{ label: "Ritmo ideal", color: IDEAL, dashed: true }] : [])]} />
+        <EvoLegend items={[{ label: "Água", color: WATER }, { label: "Outras bebidas", color: DRINK }, ...(forecast.length ? [{ label: "Previsão", color: "#7dd3fc", dashed: true }] : []), ...(goal > 0 ? [{ label: "Ritmo ideal", color: IDEAL, dashed: true }] : [])]} />
       </figcaption>
       <EvoChart
         height={height}
@@ -61,6 +69,7 @@ export function HydrationDayChart({ entries, goal, nowMs, lastHour = 20, height 
         nowX={nowH}
         series={[
           { id: "acc", label: "Acumulado", color: WATER, points: live, area: true, dots: true, live: true },
+          ...(forecast.length ? [{ id: "fc", label: "Previsão no ritmo atual", color: "#7dd3fc", points: forecast, dashed: true, linear: true }] : []),
           ...(ideal.length ? [{ id: "ideal", label: "Ritmo ideal", color: IDEAL, points: ideal, dashed: true, linear: true }] : []),
         ]}
         tip={(h) => {
