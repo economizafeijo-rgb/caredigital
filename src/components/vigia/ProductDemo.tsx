@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Activity, Check, Droplets, Moon, Pill, Ruler, Scale, Search, UtensilsCrossed } from "lucide-react";
 
 /**
@@ -33,7 +33,7 @@ const SCENES: Scene[] = [
           <p className="text-[11px] text-white/55">Meta de hoje · 3,0 L</p>
           <p className="text-sm font-bold text-white">Próximo copo às 15:30</p>
           <div className="mt-3 flex gap-1.5">
-            {["+150", "+250", "+500"].map((v) => <span key={v} className={`rounded-lg px-2.5 py-1.5 text-[11px] font-bold ${v === "+250" ? "nv-demo-press bg-white text-sky-900" : "bg-white/10 text-white/80"}`}>{v} ml</span>)}
+            {["+150", "+250", "+500"].map((v) => <span key={v} data-target={v === "+250" ? "" : undefined} className={`rounded-lg px-2.5 py-1.5 text-[11px] font-bold ${v === "+250" ? "nv-demo-press bg-white text-sky-900" : "bg-white/10 text-white/80"}`}>{v} ml</span>)}
           </div>
         </div>
         <Toast color="#7dd3fc">+250 ml registrados</Toast>
@@ -51,7 +51,7 @@ const SCENES: Scene[] = [
             </span>
             <span className="text-[11px] font-bold text-rose-300">{t}</span>
             <span className={`flex-1 truncate text-xs ${done ? "text-white/45 line-through" : "text-white"}`}>{n}</span>
-            {i === 1 && <span className="relative h-6 w-14"><Before className="nv-demo-press absolute inset-0 grid place-items-center rounded-lg bg-rose-500 text-[11px] font-bold text-white">Tomei</Before><After className="absolute inset-0 grid place-items-center text-[11px] font-bold text-emerald-300">feito</After></span>}
+            {i === 1 && <span data-target="" className="relative h-6 w-14"><Before className="nv-demo-press absolute inset-0 grid place-items-center rounded-lg bg-rose-500 text-[11px] font-bold text-white">Tomei</Before><After className="absolute inset-0 grid place-items-center text-[11px] font-bold text-emerald-300">feito</After></span>}
           </div>
         ))}
         <Toast color="#fda4af">Dose confirmada às 14:00</Toast>
@@ -64,7 +64,7 @@ const SCENES: Scene[] = [
       <div className="flex h-full flex-col justify-center gap-2.5 px-5">
         <div className="flex items-center gap-2 rounded-xl bg-white/[.06] px-3 py-2 text-xs text-white">
           <Search size={13} className="text-white/50" /><span className="nv-demo-type overflow-hidden whitespace-nowrap">arroz, feijão e frango</span>
-          <span className="nv-demo-press ml-auto rounded-lg bg-emerald-400 px-2.5 py-1 text-[11px] font-bold text-slate-950">Registrar</span>
+          <span data-target="" className="nv-demo-press ml-auto rounded-lg bg-emerald-400 px-2.5 py-1 text-[11px] font-bold text-slate-950">Registrar</span>
         </div>
         {[["Proteína", "#fb7185", "62%", "88%"], ["Carboidrato", "#fbbf24", "40%", "61%"], ["Gordura", "#a78bfa", "30%", "38%"]].map(([l, c, a, b]) => (
           <div key={l}>
@@ -87,7 +87,7 @@ const SCENES: Scene[] = [
           {[20, 45, 70].map((y) => <line key={y} x1="0" x2="300" y1={y} y2={y} stroke="#fff" strokeOpacity=".07" strokeDasharray="3 5" />)}
           <path d="M0 18 C40 20 70 26 110 34 S190 52 230 58 S280 64 300 66 V90 H0Z" fill="url(#nv-demo-w)" className="nv-demo-after" />
           <path d="M0 18 C40 20 70 26 110 34 S190 52 230 58 S280 64 300 66" fill="none" stroke="#e879f9" strokeWidth="3" strokeLinecap="round" pathLength={1} className="nv-demo-draw" />
-          <circle cx="300" cy="66" r="5" fill="#e879f9" stroke="#0b1215" strokeWidth="2" className="nv-demo-after" />
+          <circle data-target="" cx="300" cy="66" r="5" fill="#e879f9" stroke="#0b1215" strokeWidth="2" className="nv-demo-after" />
         </svg>
         <Toast color="#f0abfc">Meta prevista para 12 de jan</Toast>
       </div>
@@ -97,7 +97,7 @@ const SCENES: Scene[] = [
     key: "medidas", label: "Medidas", icon: Ruler, color: "#22d3ee", cursor: ["84%", "14%"],
     render: () => (
       <div className="flex h-full flex-col justify-center gap-2 px-5">
-        <div className="flex items-center justify-between gap-2"><span className="text-[11px] text-white/55">Medição de hoje</span><span className="nv-demo-press rounded-lg bg-cyan-300 px-2.5 py-1 text-[11px] font-bold text-slate-950">Salvar medidas</span></div>
+        <div className="flex items-center justify-between gap-2"><span className="text-[11px] text-white/55">Medição de hoje</span><span data-target="" className="nv-demo-press rounded-lg bg-cyan-300 px-2.5 py-1 text-[11px] font-bold text-slate-950">Salvar medidas</span></div>
         <div className="grid grid-cols-2 gap-2">
         {[["Cintura", "97,0", "92,5"], ["Abdômen", "101,0", "96,8"], ["Braço", "34,0", "35,5"], ["Coxa", "58,0", "59,2"]].map(([l, a, b], i) => (
           <div key={l} className={`rounded-xl px-3 py-1.5 ${i === 0 ? "bg-cyan-400/10 ring-1 ring-cyan-300/40" : "bg-white/[.05]"}`}>
@@ -120,7 +120,7 @@ const SCENES: Scene[] = [
           <p className="text-xs font-semibold text-indigo-300">nota 86 · 58 bpm</p>
         </div>
         <div className="flex h-24 flex-1 items-end gap-1.5">
-          {[52, 64, 48, 70, 66, 78, 86].map((h, i) => <span key={i} className="nv-demo-bar flex-1 rounded-t-md bg-gradient-to-t from-indigo-600 to-violet-400" style={{ height: `${h}%`, animationDelay: `${300 + i * 90}ms` }} />)}
+          {[52, 64, 48, 70, 66, 78, 86].map((h, i) => <span key={i} data-target={i === 6 ? "" : undefined} className="nv-demo-bar flex-1 rounded-t-md bg-gradient-to-t from-indigo-600 to-violet-400" style={{ height: `${h}%`, animationDelay: `${300 + i * 90}ms` }} />)}
         </div>
         <Toast color="#a5b4fc">Hora de desacelerar às 22:00</Toast>
       </div>
@@ -132,7 +132,7 @@ const SCENES: Scene[] = [
       <div className="flex h-full flex-col justify-center gap-2 px-5">
         <div className="flex items-baseline gap-2"><p className="text-3xl font-extrabold text-white tabular-nums"><span className="relative inline-block h-9 w-12 align-bottom"><Before className="absolute inset-0">95</Before><After className="absolute inset-0">125</After></span></p><p className="text-xs text-white/60">de 150 min na semana</p></div>
         <div className="h-2.5 overflow-hidden rounded-full bg-white/10"><i className="nv-demo-grow block h-full rounded-full bg-gradient-to-r from-orange-500 to-lime-400" style={{ ["--from" as string]: "63%", ["--to" as string]: "83%" } as CSSProperties} /></div>
-        <span className="nv-demo-press mt-1 w-fit rounded-lg bg-white px-3 py-1.5 text-[11px] font-bold text-orange-900">Iniciar caminhada com GPS</span>
+        <span data-target="" className="nv-demo-press mt-1 w-fit rounded-lg bg-white px-3 py-1.5 text-[11px] font-bold text-orange-900">Iniciar caminhada com GPS</span>
         <Toast color="#fdba74">30 min · 3,2 km registrados</Toast>
       </div>
     ),
@@ -148,6 +148,19 @@ export function ProductDemo({ className = "" }: { className?: string }) {
     return () => window.clearTimeout(t);
   }, [i, hold]);
   const sc = SCENES[i];
+  const stage = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<[string, string]>(sc.cursor);
+  useLayoutEffect(() => {
+    const measure = () => {
+      const root = stage.current, el = root?.querySelector("[data-target]");
+      if (!root || !el) { setPos(sc.cursor); return; }
+      const a = root.getBoundingClientRect(), b = el.getBoundingClientRect();
+      setPos([`${Math.round(b.left - a.left + b.width / 2)}px`, `${Math.round(b.top - a.top + b.height / 2)}px`]);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [i]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div aria-hidden="true" onMouseEnter={() => setHold(true)} onMouseLeave={() => setHold(false)}
       className={`relative overflow-hidden rounded-2xl border border-white/10 bg-[#0b1215] shadow-[0_30px_70px_-30px_rgba(0,0,0,.9)] ${className}`} style={{ ["--demo" as string]: `${DUR}ms` } as CSSProperties}>
@@ -172,12 +185,12 @@ export function ProductDemo({ className = "" }: { className?: string }) {
             <strong className="text-sm text-white">{sc.label}</strong>
             <span className="ml-auto flex gap-1 sm:hidden">{SCENES.map((s, k) => <i key={s.key} className={`h-1 rounded-full transition-all ${k === i ? "w-4" : "w-1.5 bg-white/20"}`} style={k === i ? { background: s.color } : undefined} />)}</span>
           </div>
-          <div key={sc.key} className="nv-demo-scene absolute inset-x-0 bottom-0 top-9">
+          <div key={sc.key} ref={stage} className="nv-demo-scene absolute inset-x-0 bottom-0 top-9">
             {sc.render()}
-            <svg className="nv-demo-cursor pointer-events-none absolute z-20 size-5 drop-shadow-[0_2px_4px_rgba(0,0,0,.6)]" style={{ ["--cx" as string]: sc.cursor[0], ["--cy" as string]: sc.cursor[1] } as CSSProperties} viewBox="0 0 24 24">
+            <svg className="nv-demo-cursor pointer-events-none absolute z-20 size-5 drop-shadow-[0_2px_4px_rgba(0,0,0,.6)]" style={{ ["--cx" as string]: `calc(${pos[0]} - 5px)`, ["--cy" as string]: `calc(${pos[1]} - 3px)` } as CSSProperties} viewBox="0 0 24 24">
               <path d="M5 3l14 8-6 1.5L10 19z" fill="#fff" stroke="#0b1215" strokeWidth="1.5" strokeLinejoin="round" />
             </svg>
-            <span className="nv-demo-click pointer-events-none absolute z-10 size-8 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/80" style={{ left: sc.cursor[0], top: sc.cursor[1] }} />
+            <span className="nv-demo-click pointer-events-none absolute z-10 size-8 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/80" style={{ left: pos[0], top: pos[1] }} />
           </div>
           <i className="nv-demo-progress absolute bottom-0 left-0 h-0.5" key={`p-${sc.key}-${hold}`} style={{ background: sc.color, animationPlayState: hold ? "paused" : "running" }} />
         </div>
