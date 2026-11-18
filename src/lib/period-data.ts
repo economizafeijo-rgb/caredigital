@@ -60,19 +60,21 @@ export async function loadPeriodRaw(patientId: string, ownerId: string, from: st
   const [water, waterGoals, meals, mealLogs, activities, beverages, portions, supPlans, supIntakes, medPlans, medIntakes, checklist, sleep, weights, reviews, prefsRow] = await Promise.all([
     fetchAll((a, b) => scope(db.from("care_hydration").select("amount_ml,recorded_at")).gte("recorded_at", startIso).lt("recorded_at", endIso).order("recorded_at").range(a, b)),
     fetchAll((a, b) => scope(db.from("care_hydration_daily_goals").select("goal_date,target_ml,consumed_ml,status")).gte("goal_date", from).lte("goal_date", to).order("goal_date").range(a, b)),
-    fetchAll((a, b) => scope(db.from("care_activity_log").select("happened_at,details,event_type").eq("category", "refeicao").in("event_type", ["confirmed", "logged"]).gte("happened_at", startIso).lt("happened_at", endIso).order("happened_at").range(a, b)),
-    fetchAll((a, b) => scope(db.from("care_activity_log").select("happened_at,details")).eq("category", "atividade").eq("event_type", "logged").gte("happened_at", startIso).lt("happened_at", endIso).order("happened_at").range(a, b)),
+    fetchAll((a, b) => scope(db.from("care_activity_log").select("happened_at,details,event_type").eq("category", "refeicao").in("event_type", ["confirmed", "logged"])).gte("happened_at", startIso).lt("happened_at", endIso).order("happened_at").range(a, b)),
+    fetchAll((a, b) => scope(db.from("care_nutrition_meal_logs").select("request_id,meal_name,items,kcal,protein_g,carbs_g,fat_g,recorded_at")).gte("recorded_at", startIso).lt("recorded_at", endIso).order("recorded_at").range(a, b)),
+    fetchAll((a, b) => scope(db.from("care_activity_log").select("happened_at,details").eq("category", "atividade").eq("event_type", "logged")).gte("happened_at", startIso).lt("happened_at", endIso).order("happened_at").range(a, b)),
     fetchAll((a, b) => scope(db.from("care_client_beverages").select("name,kind,amount_ml,consumed_at")).gte("consumed_at", startIso).lt("consumed_at", endIso).order("consumed_at").range(a, b)),
     fetchAll((a, b) => scope(db.from("care_food_consumptions").select("food_id,grams,kcal,protein_g,carbs_g,fat_g,recorded_at")).gte("recorded_at", startIso).lt("recorded_at", endIso).order("recorded_at").range(a, b)),
     fetchAll((a, b) => scope(db.from("care_supplement_plans").select("id,name,dose,unit,times,active,created_at")).order("created_at").range(a, b)),
     fetchAll((a, b) => scope(db.from("care_supplement_intakes").select("plan_id,taken_on,slot,taken_at")).gte("taken_on", from).lte("taken_on", to).order("taken_at").range(a, b)),
     fetchAll((a, b) => scope(db.from("care_client_medications").select("id,name,dose,times,active,created_at")).order("created_at").range(a, b)),
     fetchAll((a, b) => scope(db.from("care_client_medication_intakes").select("medication_id,taken_on,slot,taken_at")).gte("taken_on", from).lte("taken_on", to).order("taken_at").range(a, b)),
-    fetchAll((a, b) => scope(db.from("care_daily_checklist").select("title,category,scheduled_at,completed_at")).eq("category", "medicacao").gte("scheduled_at", startIso).lt("scheduled_at", endIso).order("scheduled_at").range(a, b)),
+    fetchAll((a, b) => scope(db.from("care_daily_checklist").select("title,category,scheduled_at,completed_at").eq("category", "medicacao")).gte("scheduled_at", startIso).lt("scheduled_at", endIso).order("scheduled_at").range(a, b)),
     fetchAll((a, b) => scope(db.from("care_sleep_logs").select("sleep_date,bed_at,wake_at,quality,awakenings")).gte("sleep_date", from).lte("sleep_date", to).order("sleep_date").range(a, b)),
     fetchAll((a, b) => scope(db.from("care_body_measurements").select("recorded_on,weight_kg")).gte("recorded_on", from).lte("recorded_on", to).order("recorded_on").range(a, b)),
     fetchAll((a, b) => scope(db.from("care_goal_reviews").select("day,metric,status,target,actual,unit,observation")).gte("day", from).lte("day", to).order("day").range(a, b)),
     scope(db.from("care_nutrition_preferences").select("*")).maybeSingle(),
+
   ]);
 
   note("hidratação", water.failed); note("metas de hidratação", waterGoals.failed); note("refeições", meals.failed || mealLogs.failed); note("atividade", activities.failed);
