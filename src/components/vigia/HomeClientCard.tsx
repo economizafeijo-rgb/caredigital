@@ -1,4 +1,5 @@
-import { OverviewCommandCenter } from "./OverviewCommandCenter";
+import { DayTimeline } from "./OverviewCommandCenter";
+import { OverviewInsights } from "./OverviewInsights";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
@@ -796,64 +797,6 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
           : activeTab === "atividade"
             ? activityCount
             : null;
-  const kpis = [
-    {
-      key: "hidratacao",
-      label: "Água",
-      icon: Droplets,
-      tone: "text-water bg-water/10",
-      bar: "bg-water",
-      percent: hydrationPercent,
-      value:
-        hydrationTarget > 0
-          ? hydrationConsumed.toLocaleString("pt-BR") + " ml"
-          : hydrationConfirmed + "/" + hydrationTasks.length,
-      note:
-        hydrationTarget > 0
-          ? "de " + hydrationTarget.toLocaleString("pt-BR") + " ml"
-          : hydrationTasks.length + " lembretes hoje",
-    },
-    {
-      key: "alimentacao",
-      label: "Refeições",
-      icon: UtensilsCrossed,
-      tone: "text-meal bg-meal/10",
-      bar: "bg-meal",
-      percent: mealPercent,
-      value: mealRecordCount === null ? "—" : mealRecordCount.toLocaleString("pt-BR"),
-      note:
-        mealRecordCount === null
-          ? mealRecordsLoading
-            ? "Consultando…"
-            : "Indisponível"
-          : `${mealConfirmed}/${mealTotal} confirmadas`,
-    },
-    {
-      key: "medicacao",
-      label: "Medicamentos",
-      icon: Pill,
-      tone: "text-med bg-med/10",
-      bar: "bg-med",
-      percent: medicinePercent,
-      value: medicineValue,
-      note: "doses confirmadas",
-    },
-    {
-      key: "atividade",
-      label: "Atividade",
-      icon: Activity,
-      tone: "text-activity bg-activity/10",
-      bar: "bg-activity",
-      percent: activityCount && activityCount > 0 ? 100 : 0,
-      value: activityCount === null ? "—" : activityCount.toLocaleString("pt-BR"),
-      note:
-        activityCount === null
-          ? "Sem dados disponíveis"
-          : activityCount === 0
-            ? "Sem registro hoje"
-            : "registros hoje",
-    },
-  ] as const;
   const card = "rounded-2xl border border-border bg-card shadow-card";
   const supplement = (task: Task) => task.category === "outro";
 
@@ -1023,17 +966,21 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
               data-client-page="hoje"
               className="flex flex-col gap-3 overscroll-contain lg:pr-0.5"
             >
-              <OverviewCommandCenter
-                kpis={kpis}
-                dayPercent={dayPercent}
-                tasks={tasks}
-                nowMs={nowMs}
+              <OverviewInsights
+                patientId={client.id}
+                ownerId={client.owner_id}
+                revision={tick}
+                waterGoal={hydrationTarget}
+                scheduled={{ hidratacao: hydrationTasks.length, alimentacao: meals.length, medicacao: medicineTasks.length }}
                 onOpen={(key) => openSection(key as Parameters<typeof openSection>[0])}
-                onTask={(t) => showTaskDetails(t as Task)}
               />
+              {tasks.length > 0 && (
+                <DayTimeline tasks={tasks} nowMs={nowMs} onTask={(t) => showTaskDetails(t as Task)} />
+              )}
 
               <div className="grid gap-3 lg:grid-cols-3">
                 <div className="flex flex-col gap-3 lg:pr-0.5">
+                  {tasks.length > 0 && (
                   <section
                     aria-label="Próximo cuidado"
                     className="relative shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-950 via-indigo-900 to-blue-800 p-4 text-white shadow-card"
@@ -1071,6 +1018,8 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                       </p>
                     )}
                   </section>
+                  )}
+                  {tasks.length > 0 && (
                   <section aria-label="Resumo do dia" className={card + " shrink-0 p-4"}>
                     <div className="care-overview-section-heading">
                       <div>
@@ -1111,6 +1060,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                       />
                     </div>
                   </section>
+                  )}
                   <div className={card + " shrink-0 p-4"}>
                     <ClientOverviewIndicators
                       heightCm={client.height_cm}
@@ -1124,6 +1074,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                   </div>
                 </div>
 
+                {tasks.length > 0 && (
                 <section
                   aria-label="Agenda de hoje"
                   className={card + " flex min-h-[280px] flex-col p-4"}
@@ -1214,6 +1165,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                     )}
                   </ul>
                 </section>
+                )}
 
                 <div className="flex min-h-0 flex-col gap-3">
                   <section
