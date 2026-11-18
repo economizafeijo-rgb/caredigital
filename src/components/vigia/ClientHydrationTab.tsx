@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useDialog } from "@/lib/dialog";
 import { ClientQuickIntake } from "./ClientQuickIntake";
 import { HydrationEntries } from "./HydrationEntries";
+import { HydrationDayChart } from "./HydrationDayChart";
 import { WATER_LAST_RECOMMENDED_HOUR } from "@/lib/nutrition-science";
 import { CareTaskRecordModal } from "./CareTaskRecordModal";
 import {
@@ -527,79 +528,94 @@ export function ClientHydrationTab({
       className="care-premium-hydration care-hydration-responsive flex min-h-0 w-full min-w-0 flex-col gap-2"
       aria-label="Programa personalizado de hidratação"
     >
-      <header className="relative isolate overflow-hidden rounded-2xl bg-gradient-to-br from-sky-950 via-sky-900 to-cyan-800 p-3 sm:p-4 text-white shadow-card">
-        <div
-          aria-hidden="true"
-          className="absolute -right-16 -top-20 size-56 rounded-full bg-cyan-300/10 blur-3xl"
-        />
-        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-          <div
-            className="relative h-24 w-16 shrink-0 overflow-hidden rounded-b-[2rem] rounded-t-lg border-2 border-white/70 bg-white/10 sm:h-28 sm:w-20"
-            role="img"
-            aria-label={`Copo ${percent}% cheio`}
-          >
-            <div
-              className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-sky-500 to-cyan-300 transition-[height] duration-700"
-              style={{ height: percent + "%" }}
-            >
-              <div className="absolute -top-1.5 left-0 h-3 w-[200%] animate-[care-wave_3s_linear_infinite] rounded-[50%] bg-cyan-200/70" />
+      <header className="nv-dark relative isolate overflow-hidden rounded-2xl bg-gradient-to-br from-[#04263a] via-[#06374f] to-[#0b5f7a] p-4 text-white shadow-card sm:p-5">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-24 -z-10 size-72 rounded-full bg-cyan-300/15 blur-3xl" />
+        <svg aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-16 w-full opacity-30" viewBox="0 0 400 40" preserveAspectRatio="none">
+          <path className="nv-hydro-wave" d="M0 20 Q 50 5 100 20 T 200 20 T 300 20 T 400 20 T 500 20 T 600 20 V40 H0Z" fill="#38bdf8" />
+        </svg>
+        <div className="grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_auto]">
+          <div className="flex items-center gap-4">
+            <div className="relative size-28 shrink-0 sm:size-32" role="img" aria-label={`Meta de água ${percent}% concluída`}>
+              <svg viewBox="0 0 120 120" className="absolute inset-0 -rotate-90">
+                <circle cx="60" cy="60" r="54" fill="none" stroke="#ffffff1f" strokeWidth="8" />
+                <circle cx="60" cy="60" r="54" fill="none" stroke="url(#nv-hydro-ring)" strokeWidth="8" strokeLinecap="round" pathLength={100} strokeDasharray={`${percent} 100`} className="nv-ring-draw" />
+                <defs><linearGradient id="nv-hydro-ring" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#7dd3fc" /><stop offset="1" stopColor="#22d3ee" /></linearGradient></defs>
+              </svg>
+              <div className="absolute inset-[14px] overflow-hidden rounded-full bg-white/5">
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-sky-500 to-cyan-300 transition-[height] duration-1000 ease-out" style={{ height: `${percent}%` }}>
+                  <div className="absolute -top-1.5 left-0 h-3 w-[200%] animate-[care-wave_3s_linear_infinite] rounded-[50%] bg-cyan-200/70" />
+                </div>
+                <span className="absolute inset-0 grid place-items-center">
+                  <span className="text-center leading-none">
+                    <strong className="block text-2xl font-extrabold tabular-nums drop-shadow">{percent}%</strong>
+                    <span className="text-[10px] font-semibold text-white/80">da meta</span>
+                  </span>
+                </span>
+              </div>
             </div>
-            <span className="absolute inset-0 grid place-items-center text-xl font-extrabold drop-shadow">
-              {percent}%
-            </span>
+            <div className="min-w-0 lg:hidden">
+              <p className="text-3xl font-extrabold tabular-nums">{(intake / 1000).toFixed(2).replace(".", ",")} L</p>
+              <p className="text-sm text-white/75">{goal ? `de ${(goal / 1000).toFixed(1).replace(".", ",")} L` : "meta a definir"}</p>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold uppercase tracking-[.14em] text-white/70">
-              Minha hidratação · registre a qualquer hora
+
+          <div className="min-w-0">
+            <p className="hidden text-4xl font-extrabold tabular-nums lg:block">
+              {(intake / 1000).toFixed(2).replace(".", ",")} L
+              <span className="ml-2 text-lg font-semibold text-white/65">{goal ? `de ${(goal / 1000).toFixed(1).replace(".", ",")} L` : "meta a definir"}</span>
             </p>
-            <p className="mt-1 text-3xl font-extrabold tabular-nums">
-              {intake.toLocaleString("pt-BR")}{" "}
-              <span className="text-lg font-semibold text-white/70">
-                / {goal ? goal.toLocaleString("pt-BR") + " ml" : "meta a definir"}
-              </span>
+            <p className="mt-1 text-sm text-white/80">
+              {remaining === 0 && goal ? "Meta de hoje atingida. Ótimo trabalho!" : goal ? `Faltam ${remaining.toLocaleString("pt-BR")} ml para a meta de hoje.` : "Defina sua meta para receber sugestões de horário."}
             </p>
-            <p className="text-sm text-white/80">
-              {dayClosed
-                ? remaining === 0 && goal
-                  ? "Meta de hoje atingida! 🎉"
-                  : `Ideal beber até as ${WATER_LAST_RECOMMENDED_HOUR}h · registre quando beber`
-                : remaining === 0 && goal
-                  ? "Meta de hoje atingida! 🎉"
-                  : goal
-                    ? `Faltam ${remaining.toLocaleString("pt-BR")} ml${nextPlan ? ` · próximo copo ${nextHydrationLabel === "Agora" ? "agora" : "às " + nextHydrationLabel} (~${nextPlan.suggestedMl} ml)` : ""}`
-                    : "Defina sua meta em Ajustar meta"}
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-3 flex flex-wrap items-center gap-2">
               {[150, 250, 500].map((ml) => (
                 <button
                   key={ml}
                   type="button"
                   disabled={Boolean(action)}
                   onClick={() => void quickDrink(ml)}
-                  className="inline-flex h-11 items-center gap-1.5 rounded-xl bg-white px-4 text-sm font-bold text-sky-900 shadow-sm transition hover:-translate-y-0.5 hover:bg-white/90 disabled:opacity-60"
+                  className="nv-water-chip group relative inline-flex h-11 items-center gap-2 overflow-hidden rounded-2xl bg-white px-4 text-sm font-bold text-sky-900 shadow-lg shadow-sky-950/30 transition active:scale-95 disabled:opacity-60"
                 >
-                  <Droplets size={16} /> +{ml} ml
+                  <span className="grid size-6 place-items-center rounded-full bg-sky-100 text-sky-600 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-110"><Droplets size={14} /></span>
+                  +{ml} ml
                 </button>
               ))}
-              <span className="[&_button]:!h-11 [&_button]:!rounded-xl [&_button]:!border-white/30 [&_button]:!bg-white/15 [&_button]:!px-4 [&_button]:!text-sm [&_button]:!text-white">
-                <ClientQuickIntake
-                  patientId={patientId}
-                  mode="water"
-                  onRecorded={() => {
-                    setReload((n) => n + 1);
-                    onRecorded();
-                  }}
-                />
+              <span className="[&_button]:!h-11 [&_button]:!rounded-2xl [&_button]:!border [&_button]:!border-white/25 [&_button]:!bg-white/10 [&_button]:!px-4 [&_button]:!text-sm [&_button]:!text-white [&_button]:!shadow-none [&_button]:backdrop-blur hover:[&_button]:!bg-white/20">
+                <ClientQuickIntake patientId={patientId} mode="water" onRecorded={() => { setReload((n) => n + 1); onRecorded(); }} />
               </span>
               <button
                 type="button"
                 aria-expanded={editing}
+                aria-label={editing ? "Fechar ajuste da meta" : "Ajustar meta"}
+                title={editing ? "Fechar ajuste da meta" : "Ajustar meta"}
                 onClick={() => setEditing((value) => !value)}
-                className="inline-flex h-11 items-center gap-1.5 rounded-xl border border-white/30 bg-white/10 px-4 text-sm font-bold text-white backdrop-blur hover:bg-white/20"
+                className={`grid size-11 place-items-center rounded-2xl border border-white/25 backdrop-blur transition hover:bg-white/20 ${editing ? "bg-white text-sky-900" : "bg-white/10 text-white"}`}
               >
-                <SlidersHorizontal size={16} />
-                {editing ? "Fechar perfil" : "Ajustar meta"}
+                <SlidersHorizontal size={17} />
               </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 lg:w-56 lg:grid-cols-1">
+            <div className="rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur">
+              <p className="text-[11px] font-semibold text-white/70">Próximo copo</p>
+              {remaining === 0 && goal ? (
+                <p className="mt-0.5 text-lg font-bold">Meta atingida</p>
+              ) : dayClosed ? (
+                <p className="mt-0.5 text-sm font-bold">Ideal beber até as {WATER_LAST_RECOMMENDED_HOUR}h</p>
+              ) : nextPlan && nextHydrationAt && nextHydrationAt <= cutoffUtc ? (
+                <>
+                  <p className="mt-0.5 font-mono text-xl font-bold tabular-nums">{nextHydrationAt <= clock ? "Agora" : fmtCountdown(nextHydrationAt - clock)}</p>
+                  <p className="text-[11px] text-white/70">{nextHydrationLabel === "Agora" ? "" : `às ${nextHydrationLabel} · `}~{nextPlan.suggestedMl} ml</p>
+                </>
+              ) : (
+                <p className="mt-0.5 text-sm font-bold">Registre quando beber</p>
+              )}
+            </div>
+            <div className="rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur">
+              <p className="text-[11px] font-semibold text-white/70">Último registro</p>
+              <p className="mt-0.5 text-lg font-bold tabular-nums">{lastWater ? `${Number(lastWater.amount_ml)} ml` : "—"}</p>
+              <p className="text-[11px] text-white/70">{lastWater ? `às ${time(lastWater.recorded_at)}` : "Nenhum hoje"}</p>
             </div>
           </div>
         </div>
@@ -727,81 +743,8 @@ export function ClientHydrationTab({
           </button>
         </div>
       )}
-      <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-        {[
-          {
-            label: "Meta diária",
-            value: goal ? `${goal.toLocaleString("pt-BR")} ml` : "A definir",
-          },
-          { label: "Consumido", value: `${intake.toLocaleString("pt-BR")} ml` },
-          { label: "Restante", value: goal ? `${remaining.toLocaleString("pt-BR")} ml` : "—" },
-          {
-            label: "Próxima recomendação",
-            value: dayClosed
-              ? remaining === 0 ? "Meta atingida" : `Ideal até ${WATER_LAST_RECOMMENDED_HOUR}h`
-              : remaining === 0
-                ? "Meta atingida"
-                : nextPlan
-                  ? `${nextHydrationLabel} · ${nextPlan.suggestedMl} ml`
-                  : "Aguardando registro",
-          },
-        ].map((item, index) => (
-          <div
-            key={item.label}
-            className={`min-w-0 rounded-xl border px-2.5 py-2 ${["border-sky-500/25 bg-sky-500/[.07]", "border-emerald-500/25 bg-emerald-500/[.07]", "border-amber-500/25 bg-amber-500/[.07]", "border-violet-500/25 bg-violet-500/[.07]"][index]}`}
-          >
-            <p className="truncate text-[11px] font-medium text-muted-foreground">{item.label}</p>
-            <p className="mt-0.5 truncate text-sm font-bold tabular-nums text-foreground">
-              {item.value}
-            </p>
-          </div>
-        ))}
-      </div>
+      <HydrationDayChart entries={[...drinks, ...otherDrinks]} goal={goal} nowMs={clock} lastHour={WATER_LAST_RECOMMENDED_HOUR} />
       <HydrationEntries patientId={patientId} water={drinks} beverages={otherDrinks} goal={goal} onChanged={() => setReload((v) => v + 1)} />
-      {nextHydrationAt && nextHydrationAt <= cutoffUtc && remaining > 0 && !dayClosed && (
-        <p
-          aria-live="off"
-          className="rounded-lg border border-sky-500/20 bg-sky-500/[.05] px-2.5 py-2 text-[11px] font-semibold"
-        >
-          {nextHydrationAt <= clock ? (
-            <>
-              Já pode beber cerca de <strong>{nextPlan?.suggestedMl} ml</strong> agora.
-            </>
-          ) : (
-            <>
-              Próxima hidratação às <strong>{nextHydrationLabel}</strong> (em{" "}
-              <strong className="font-mono tabular-nums">
-                {fmtCountdown(nextHydrationAt - clock)}
-              </strong>
-              ) · cerca de <strong>{nextPlan?.suggestedMl} ml</strong>.
-            </>
-          )}{" "}
-          Cálculo automático: {remaining.toLocaleString("pt-BR")} ml restantes divididos em ~
-          {nextPlan?.portions} porções até as 20h
-          {lastWater
-            ? `, a partir do último líquido (${Number(lastWater.amount_ml)} ml às ${time(lastWater.recorded_at)})`
-            : ""}
-          . É uma sugestão, não um alarme.
-        </p>
-      )}
-      <div className="flex items-center gap-2.5">
-        <div
-          className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-muted"
-          role="progressbar"
-          aria-label="Progresso da meta de hidratação"
-          aria-valuemin={0}
-          aria-valuemax={goal || 1}
-          aria-valuenow={goal ? Math.min(intake, goal) : 0}
-        >
-          <div
-            className="h-full rounded-full bg-sky-500 transition-[width]"
-            style={{ width: percent + "%" }}
-          />
-        </div>
-        <span className="shrink-0 text-[11px] font-bold tabular-nums text-foreground">
-          {goal ? `${percent}%` : "Meta pendente"}
-        </span>
-      </div>
       {!planValid && (
         <button
           type="button"
