@@ -37,6 +37,10 @@ type Props = {
   formatY: (y: number) => string;
   /** Valor mínimo do topo do eixo (ex.: a meta). */
   yFloor?: number;
+  /** Eixo ajustado aos dados (não começa no zero) — para peso, IMC etc. */
+  yAuto?: boolean;
+  /** Faixa de referência sombreada (ex.: peso adequado). */
+  band?: { from: number; to: number; label: string; color?: string };
   goal?: { y: number; label: string; color?: string };
   /** Linha vertical "agora". */
   nowX?: number;
@@ -94,7 +98,7 @@ export function valueAt(points: EvoPoint[], x: number): number | null {
   return points[points.length - 1].y;
 }
 
-export function EvoChart({ series, bars = [], xMin, xMax, xTicks, formatX, formatY, yFloor = 0, goal, nowX, height = 220, selectedX = null, onPick, tip, ariaLabel, className = "" }: Props) {
+export function EvoChart({ series, bars = [], xMin, xMax, xTicks, formatX, formatY, yFloor = 0, yAuto = false, band, goal, nowX, height = 220, selectedX = null, onPick, tip, ariaLabel, className = "" }: Props) {
   const box = useRef<HTMLDivElement>(null);
   const [w, setW] = useState(0);
   const [hoverX, setHoverX] = useState<number | null>(null);
@@ -110,13 +114,23 @@ export function EvoChart({ series, bars = [], xMin, xMax, xTicks, formatX, forma
     return () => ro.disconnect();
   }, []);
 
-  const yMaxRaw = Math.max(yFloor, goal?.y ?? 0, ...series.flatMap((s) => s.points.map((p) => p.y)), ...bars.map((b) => b.parts.reduce((a, p) => a + p.y, 0)), 1);
-  const step = niceStep(yMaxRaw * 1.06);
-  const yTop = Math.ceil((yMaxRaw * 1.06) / step) * step;
-  const ticks = Array.from({ length: Math.round(yTop / step) + 1 }, (_, i) => i * step);
+  const all = [...series.flatMap((s) => s.points.map((p) => p.y)), ...bars.map((b) => b.parts.reduce((a, p) => a + p.y, 0))];
+  const yMaxRaw = Math.max(yFloor, goal?.y ?? 0, ...all, yAuto ? -Infinity : 1);
+  let yBase = 0, step: number, yTop: number;
+  if (yAuto) {
+    const lo = Math.min(...all, goal?.y ?? Infinity);
+    const span = Math.max(1, yMaxRaw - lo);
+    step = niceStep(span * 1.3);
+    yBase = Math.floor((lo - span * 0.15) / step) * step;
+    yTop = Math.ceil((yMaxRaw + span * 0.15) / step) * step;
+  } else {
+    step = niceStep(yMaxRaw * 1.06);
+    yTop = Math.ceil((yMaxRaw * 1.06) / step) * step;
+  }
+  const ticks = Array.from({ length: Math.round((yTop - yBase) / step) + 1 }, (_, i) => yBase + i * step);
   const iw = Math.max(1, w - PAD.l - PAD.r), ih = height - PAD.t - PAD.b;
   const sx = (x: number) => PAD.l + ((x - xMin) / Math.max(1e-9, xMax - xMin)) * iw;
-  const sy = (y: number) => PAD.t + (1 - y / yTop) * ih;
+  const sy = (y: number) => PAD.t + (1 - (y - yBase) / (yTop - yBase)) * ih;
   const primary = series[0];
   const snaps = useMemo(() => [...new Set([...series.filter((s) => !s.dashed).flatMap((s) => s.points.map((p) => p.x)), ...bars.map((b) => b.x)])].sort((a, b) => a - b), [series, bars]);
 
@@ -157,7 +171,7 @@ export function EvoChart({ series, bars = [], xMin, xMax, xTicks, formatX, forma
 
           {ticks.map((v) => (
             <g key={v}>
-              <line x1={PAD.l} x2={PAD.l + iw} y1={sy(v)} y2={sy(v)} stroke="currentColor" className={v === 0 ? "text-border" : "text-border/60"} strokeDasharray={v === 0 ? undefined : "3 5"} />
+              <line x1={PAD.l} x2={PAD.l + iw} y1={sy(v)} y2={sy(v)} stroke="currentColor" className={v === yBase ? "text-border" : "text-border/60"} strokeDasharray={v === yBase ? undefined : "3 5"} />
               <text x={PAD.l - 8} y={sy(v) + 3.5} textAnchor="end" fontSize="11" fill="currentColor" className="text-muted-foreground tabular-nums">{formatY(v)}</text>
             </g>
           ))}
@@ -167,6 +181,12 @@ export function EvoChart({ series, bars = [], xMin, xMax, xTicks, formatX, forma
 
           {nowX !== undefined && nowX >= xMin && nowX <= xMax && (
             <rect x={PAD.l} y={PAD.t} width={sx(nowX) - PAD.l} height={ih} fill={primary?.color ?? "#0ea5e9"} fillOpacity=".035" />
+          )}
+          {band && band.to > yBase && band.from < yTop && (
+            <g>
+              <rect x={PAD.l} width={iw} y={sy(Math.min(yTop, band.to))} height={Math.max(0, sy(Math.max(yBase, band.from)) - sy(Math.min(yTop, band.to)))} fill={band.color ?? "#10b981"} fillOpacity=".08" />
+              <text x={PAD.l + 6} y={sy(Math.min(yTop, band.to)) + 13} fontSize="10" fontWeight="600" fill={band.color ?? "#10b981"} opacity=".8">{band.label}</text>
+            </g>
           )}
           {goal && (
             <g>
@@ -207,7 +227,7 @@ export function EvoChart({ series, bars = [], xMin, xMax, xTicks, formatX, forma
               const d = s.linear ? px.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`).join("") : monotonePath(px);
               return (
                 <g key={s.id}>
-                  {s.area && px.length > 1 && <path d={`${d}L${px[px.length - 1][0].toFixed(1)},${sy(0)}L${px[0][0].toFixed(1)},${sy(0)}Z`} fill={`url(#${uid}-${s.id})`} className={reduced ? "" : "nv-evo-fade"} />}
+                  {s.area && px.length > 1 && <path d={`${d}L${px[px.length - 1][0].toFixed(1)},${sy(yBase)}L${px[0][0].toFixed(1)},${sy(yBase)}Z`} fill={`url(#${uid}-${s.id})`} className={reduced ? "" : "nv-evo-fade"} />}
                   <path d={d} fill="none" stroke={s.color} strokeWidth={s.dashed ? 1.75 : 2.75} strokeLinecap="round" strokeLinejoin="round"
                     strokeDasharray={s.dashed ? "5 5" : undefined} pathLength={s.dashed ? undefined : 1} className={s.dashed || reduced ? "" : "nv-draw-now"} opacity={s.dashed ? 0.85 : 1}
                     style={s.dashed ? undefined : { filter: `drop-shadow(0 6px 10px ${s.color}66)` }} />

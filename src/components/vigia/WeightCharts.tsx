@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowDownRight, ArrowUpRight, CalendarClock, Flame, Minus, TrendingDown, TrendingUp, Zap } from "lucide-react";
 import {
-  Area, Bar, Brush, CartesianGrid, Cell, ComposedChart, LabelList, Line, ReferenceArea, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis,
+  Bar, CartesianGrid, Cell, ComposedChart, LabelList, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
+import { EvoChart } from "./EvoChart";
 import { signed, weightVariation } from "@/lib/weight-variation";
 
 const nf = (value: number, digits = 1) => value.toLocaleString("pt-BR", { minimumFractionDigits: digits, maximumFractionDigits: digits });
@@ -43,92 +44,38 @@ export type EvolutionRow = { date: string; label: string; weight: number; averag
 
 /* ---------------------------- gráfico de evolução --------------------------- */
 
-/** Valor sobre cada ponto e, abaixo, a variação para a medida anterior. */
-function PointLabel(props: any) {
-  const { x, y, index, rows } = props as { x: number; y: number; index: number; rows: EvolutionRow[] };
-  const row = rows[index];
-  if (!row || typeof x !== "number" || typeof y !== "number") return null;
-  const compact = rows.length > 12;
-  if (compact && index !== rows.length - 1 && index !== 0) return null;
-  const delta = row.delta;
-  const color = delta === null ? "#94a3b8" : delta <= 0 ? DOWN : UP;
-  return (
-    <g className="nv-label-in" style={{ animationDelay: `${Math.min(index, 14) * 70 + 500}ms` }}>
-      <text x={x} y={y - 12} textAnchor="middle" fontSize={11} fontWeight={800} className="fill-foreground">{nf(row.weight)}</text>
-      {delta !== null && (
-        <>
-          <rect x={x - 22} y={y + 9} width={44} height={17} rx={8.5} fill={color} fillOpacity={0.18} stroke={color} strokeOpacity={0.55} />
-          <text x={x} y={y + 21} textAnchor="middle" fontSize={10} fontWeight={800} fill={color}>{delta === 0 ? "0,0" : signed(delta)}</text>
-        </>
-      )}
-    </g>
-  );
-}
-
-/** Anel que pulsa no último ponto: mostra onde você está hoje. */
-function PulseDot(props: any) {
-  const { cx, cy } = props;
-  if (typeof cx !== "number" || typeof cy !== "number") return <g />;
-  return (
-    <g>
-      <circle cx={cx} cy={cy} r={6} fill="#d946ef" className="nv-ping" />
-      <circle cx={cx} cy={cy} r={6.5} fill="#d946ef" stroke="#fff" strokeWidth={2.5} />
-    </g>
-  );
-}
-
 export function WeightEvolutionChart({ rows, target, healthy, onPick }: { rows: EvolutionRow[]; target: number | null; healthy: [number, number] | null; onPick: (date: string) => void }) {
   const [show, setShow] = useState({ weight: true, average: true, band: true, goal: true });
-  const values = rows.map((row) => row.weight).concat(target && show.goal ? [target] : []);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const pad = Math.max(1.5, (max - min) * 0.18);
-  const yMin = Math.floor(min - pad);
-  const yMax = Math.ceil(max + pad);
+  const X = (d: string) => Date.parse(d + "T12:00:00Z");
   const last = rows[rows.length - 1];
+  const pad = Math.max(86_400_000 * 0.6, (X(last.date) - X(rows[0].date)) * 0.03);
+  const byX = new Map(rows.map((r) => [X(r.date), r]));
   const many = rows.length > 24;
 
   return (
     <div>
-      <div className="h-[320px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={rows} margin={{ top: 22, right: 36, left: -6, bottom: 0 }} style={{ cursor: "pointer" }}
-            onClick={(state: any) => { const row = state?.activePayload?.[0]?.payload; if (row?.date) onPick(row.date); }}>
-            <defs>
-              <linearGradient id="wcFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#d946ef" stopOpacity={0.5} /><stop offset="100%" stopColor="#ec4899" stopOpacity={0.03} /></linearGradient>
-              <linearGradient id="wcStroke" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#a855f7" /><stop offset="100%" stopColor="#ec4899" /></linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 5" stroke="currentColor" className="text-border" vertical={false} />
-            {show.band && healthy && <ReferenceArea y1={Math.max(yMin, healthy[0])} y2={Math.min(yMax, healthy[1])} fill="#10b981" fillOpacity={0.09} ifOverflow="hidden" />}
-            <XAxis dataKey="label" tick={{ fontSize: 11, fill: "currentColor" }} className="text-muted-foreground" tickLine={false} axisLine={false} minTickGap={18} />
-            <YAxis domain={[yMin, yMax]} tick={{ fontSize: 11, fill: "currentColor" }} className="text-muted-foreground" tickLine={false} axisLine={false} width={56} unit=" kg" allowDecimals={false} />
-            <Tooltip cursor={{ stroke: "#d946ef", strokeOpacity: 0.35, strokeWidth: 2 }}
-              content={({ active, payload }) => {
-                if (!active || !payload?.length) return null;
-                const row = payload[0].payload as EvolutionRow;
-                const sinceFirst = row.weight - rows[0].weight;
-                return (
-                  <div className="rounded-xl border border-border bg-card px-3 py-2.5 text-xs shadow-pop">
-                    <p className="font-bold">{longDate(row.date)}</p>
-                    <p className="mt-1.5 flex items-center gap-1.5"><i className="size-2 rounded-full bg-fuchsia-500" /> Peso <strong className="ml-auto pl-4 tabular-nums">{nf(row.weight)} kg</strong></p>
-                    <p className="flex items-center gap-1.5"><i className="size-2 rounded-full bg-indigo-500" /> Média móvel <strong className="ml-auto pl-4 tabular-nums">{nf(row.average)} kg</strong></p>
-                    {row.delta !== null && <p className="mt-1 flex items-center gap-1.5 font-semibold" style={{ color: row.delta <= 0 ? DOWN : UP }}>{row.delta <= 0 ? <ArrowDownRight size={13} /> : <ArrowUpRight size={13} />} {signed(row.delta)} kg desde a medida anterior</p>}
-                    <p className="text-muted-foreground">{signed(sinceFirst)} kg desde o início do período</p>
-                    <p className="mt-1 text-[11px] text-muted-foreground">IMC {nf(row.bmi)} · toque para abrir o dia</p>
-                  </div>
-                );
-              }} />
-            {target && show.goal && <ReferenceLine y={target} stroke="#8b5cf6" strokeDasharray="6 4" label={{ value: `Meta ${nf(target)} kg`, position: "insideTopRight", fill: "#8b5cf6", fontSize: 11, fontWeight: 700 }} />}
-            <Area type="monotone" dataKey="weight" name="Peso" hide={!show.weight} stroke="url(#wcStroke)" strokeWidth={3.5} fill="url(#wcFill)"
-              dot={{ r: 4, fill: "#fff", stroke: "#d946ef", strokeWidth: 2.5 }} activeDot={{ r: 7, fill: "#d946ef", stroke: "#fff", strokeWidth: 2.5 }}
-              isAnimationActive animationDuration={1300} animationEasing="ease-out"
-              label={<PointLabel rows={rows} />} />
-            {show.average && <Line type="monotone" dataKey="average" name="Média móvel" stroke="#6366f1" strokeWidth={2} strokeDasharray="5 4" dot={false} isAnimationActive animationBegin={700} animationDuration={1100} />}
-            {show.weight && last && <ReferenceDot x={last.label} y={last.weight} r={6} shape={<PulseDot />} />}
-            {many && <Brush dataKey="label" height={24} travellerWidth={10} stroke="#d946ef" fill="transparent" startIndex={Math.max(0, rows.length - 30)} />}
-          </ComposedChart>
-        </ResponsiveContainer>
-      </div>
+      <EvoChart height={320} yAuto ariaLabel={`Evolução do peso em ${rows.length} medidas`}
+        xMin={X(rows[0].date) - pad} xMax={X(last.date) + pad}
+        xTicks={(rows.length <= 8 ? rows : rows.filter((_, i) => i % Math.ceil(rows.length / 7) === 0 || i === rows.length - 1)).map((r) => ({ x: X(r.date), label: r.label }))}
+        formatX={(x) => longDate(new Date(x).toISOString().slice(0, 10))} formatY={(v) => `${nf(v, Number.isInteger(v) ? 0 : 1)} kg`}
+        goal={target && show.goal ? { y: target, label: `Meta ${nf(target)} kg`, color: "#8b5cf6" } : undefined}
+        band={healthy && show.band ? { from: healthy[0], to: healthy[1], label: "Faixa de peso adequado" } : undefined}
+        onPick={(x) => onPick(new Date(x).toISOString().slice(0, 10))}
+        series={[
+          ...(show.weight ? [{ id: "w", label: "Peso", color: "#d946ef", area: true, dots: !many, live: true, points: rows.map((r) => ({ x: X(r.date), y: r.weight })) }] : []),
+          ...(show.average ? [{ id: "a", label: "Média móvel", color: "#6366f1", dashed: true, points: rows.map((r) => ({ x: X(r.date), y: r.average })) }] : []),
+        ]}
+        tip={(x) => {
+          const row = byX.get(x);
+          if (!row) return null;
+          return (
+            <div className="mt-1.5 grid gap-0.5 border-t border-border pt-1.5">
+              {row.delta !== null && <p className="flex items-center gap-1.5 font-semibold" style={{ color: row.delta <= 0 ? DOWN : UP }}>{row.delta <= 0 ? <ArrowDownRight size={13} /> : <ArrowUpRight size={13} />} {signed(row.delta)} kg desde a anterior</p>}
+              <p className="text-muted-foreground">{signed(row.weight - rows[0].weight)} kg desde o início · IMC {nf(row.bmi)}</p>
+            </div>
+          );
+        }}
+      />
       <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Séries do gráfico">
         <ToggleChip on={show.weight} color="#d946ef" label="Peso" onClick={() => setShow((v) => ({ ...v, weight: !v.weight }))} />
         <ToggleChip on={show.average} color="#6366f1" label="Média móvel" dashed onClick={() => setShow((v) => ({ ...v, average: !v.average }))} />

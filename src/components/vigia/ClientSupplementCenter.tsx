@@ -182,33 +182,47 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
       Modo local: sua programação está salva neste navegador. Ela passa a ser sincronizada assim que a atualização do banco for aplicada.
     </p>}
 
-    <div className="grid gap-4 xl:grid-cols-[1.1fr_.9fr]">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-950 via-purple-900 to-indigo-900 p-5 text-white shadow-card" aria-label="Próxima dose">
-        <div aria-hidden="true" className="absolute -right-10 -top-10 size-48 rounded-full bg-amber-400/20 blur-3xl"/>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs font-bold uppercase tracking-[.14em] text-white/70">Próxima dose</p>
-          <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">{takenCount} de {doses.length} doses hoje · {percent}%</span>
+    <header className="nv-dark relative isolate overflow-hidden rounded-2xl bg-gradient-to-br from-[#1e0b3a] via-[#3b1170] to-[#6d28d9] p-3.5 text-white shadow-card sm:p-4" aria-label="Próxima dose">
+      <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 -z-10 size-72 rounded-full bg-amber-400/20 blur-3xl"/>
+      <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 left-1/4 -z-10 size-56 rounded-full bg-fuchsia-400/15 blur-3xl"/>
+      <div className="grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_16rem]">
+        <div className="relative mx-auto size-28 shrink-0 lg:mx-0" role="img" aria-label={`${takenCount} de ${doses.length} doses tomadas hoje`}>
+          <svg viewBox="0 0 120 120" className="absolute inset-0 -rotate-90">
+            <circle cx="60" cy="60" r="52" fill="none" stroke="#ffffff1f" strokeWidth="10"/>
+            <circle cx="60" cy="60" r="52" fill="none" stroke="url(#nv-sup-grad)" strokeWidth="10" strokeLinecap="round" pathLength={100} strokeDasharray={`${Math.max(percent, 0.5)} 100`} className="nv-ring-draw" style={{ transition: "stroke-dasharray .8s ease" }}/>
+            <defs><linearGradient id="nv-sup-grad" x1="0" x2="1"><stop offset="0" stopColor="#c4b5fd"/><stop offset="1" stopColor="#fbbf24"/></linearGradient></defs>
+          </svg>
+          <div className="absolute inset-[24px] grid place-items-center rounded-full bg-white/[.07] text-center shadow-inner">
+            <span className="leading-none"><strong className="block text-lg font-extrabold tabular-nums">{percent}%</strong><span className="text-[10px] font-semibold text-white/70">das doses</span></span>
+          </div>
         </div>
-        <div className="mt-4">
-          <NextUpClock alertKey="suplemento" title="Próxima dose" color="#fbbf24"
-            target={next ? next.at : null}
-            from={(() => { const prev = doses.filter(d => d.at < (next?.at ?? 0)).at(-1); return prev ? prev.at : null; })()}
-            detail={next ? `${next.plan.name} · ${fmtDose(next.plan)}${next.plan.with_food ? " · com refeição" : ""}` : undefined}
-            emptyText={doses.length ? "Todas as doses de hoje registradas" : "Monte sua programação abaixo"}
-            actionLabel="Tomei" onAction={next ? () => void toggleDose(next.plan, next.slot, false) : undefined}/>
+        <div className="min-w-0">
+          <p className="text-2xl font-extrabold tabular-nums sm:text-3xl">{takenCount} <span className="text-base font-semibold text-white/65">de {doses.length} doses hoje</span></p>
+          <p className="mt-0.5 text-sm text-white/80">{!doses.length ? "Escolha um suplemento na biblioteca para montar sua programação com horários e lembretes." : takenCount === doses.length ? "Todas as doses de hoje registradas." : next ? `Próxima: ${next.plan.name} às ${next.slot}.` : "Restam doses atrasadas para registrar."}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {next && <button type="button" data-register-target="Registrar dose" onClick={() => void toggleDose(next.plan, next.slot, false)} className="inline-flex h-9 items-center gap-2 rounded-xl bg-white px-3.5 text-[13px] font-bold text-violet-900 shadow-sm transition hover:bg-white/90 active:scale-[.97]"><CheckCircle2 size={16}/> Registrar dose agora</button>}
+            <button type="button" onClick={() => setEditing({ times: ["08:00"], unit: "g", dose: 1 })} className={`inline-flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-[13px] font-bold transition active:scale-[.97] ${next ? "border border-white/25 bg-white/10 text-white backdrop-blur hover:bg-white/20" : "bg-white text-violet-900 shadow-sm hover:bg-white/90"}`}><Plus size={16}/> Adicionar suplemento</button>
+            <a href="#nv-sup-library" className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-3.5 text-[13px] font-bold text-white backdrop-blur transition hover:bg-white/20"><BookOpen size={15}/> Biblioteca</a>
+          </div>
         </div>
-        <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/15"><i className="block h-full rounded-full bg-gradient-to-r from-violet-400 to-amber-400 transition-[width]" style={{ width: percent + "%" }}/></div>
-        {next && <button type="button" data-register-target="Registrar dose" onClick={() => void toggleDose(next.plan, next.slot, false)} className="mt-4 inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-violet-900 shadow-sm transition hover:bg-white/90"><CheckCircle2 size={18}/> Registrar dose agora</button>}
-      </section>
+        <NextUpClock alertKey="suplemento" title="Próxima dose" color="#fbbf24"
+          target={next ? next.at : null}
+          from={(() => { const prev = doses.filter(d => d.at < (next?.at ?? 0)).at(-1); return prev ? prev.at : null; })()}
+          detail={next ? `${next.plan.name} · ${fmtDose(next.plan)}${next.plan.with_food ? " · com refeição" : ""}` : undefined}
+          emptyText={doses.length ? "Todas as doses de hoje registradas" : "Sem doses programadas"}
+          actionLabel="Tomei" onAction={next ? () => void toggleDose(next.plan, next.slot, false) : undefined}/>
+      </div>
+    </header>
 
-      <section className="rounded-3xl border border-border bg-card p-5 shadow-card" aria-label="Doses de hoje">
+    {doses.length > 0 || scheduledTasks.length > 0 || message ? <div className="grid gap-4">
+      <section className="rounded-2xl border border-border bg-card p-4 shadow-card" aria-label="Doses de hoje">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="flex items-center gap-2 text-lg font-bold"><Clock size={20} className="text-violet-500"/> Programação de hoje</h3>
-          <button type="button" onClick={() => setEditing({ times: ["08:00"], unit: "g", dose: 1 })} className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-500 px-4 text-sm font-bold text-white shadow-sm transition hover:brightness-110"><Plus size={17}/> Adicionar</button>
+          <h3 className="flex items-center gap-2 text-base font-bold"><Clock size={18} className="text-violet-500"/> Programação de hoje</h3>
+          <span className="text-xs tabular-nums text-muted-foreground">{takenCount}/{doses.length} tomadas</span>
         </div>
-        <ul className="mt-3 grid max-h-[300px] gap-2 overflow-y-auto pr-1">
+        <ul className="mt-3 grid max-h-[300px] gap-2 overflow-y-auto pr-1 md:grid-cols-2">
           {!loaded ? <li className="h-16 animate-pulse rounded-xl bg-muted"/> : doses.length === 0
-            ? <li className="rounded-xl border border-dashed border-border p-5 text-center text-sm text-muted-foreground">Nenhum suplemento programado. Escolha um na biblioteca abaixo ou clique em <strong>Adicionar</strong>.</li>
+            ? <li className="rounded-xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground md:col-span-2">Nenhum suplemento programado para hoje.</li>
             : doses.map(({ plan, slot, taken, at }) => {
               const item = libraryByKey[plan.kind] as LibraryItem | undefined;
               const Icon = item?.icon ?? Sparkles;
@@ -235,9 +249,9 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
         </div>}
         {message && <p role="status" className="mt-3 rounded-xl bg-violet-500/10 px-3 py-2 text-sm font-medium text-violet-700 dark:text-violet-300">{message}</p>}
       </section>
-    </div>
+    </div> : null}
 
-    {plans.length > 0 && <section className="rounded-3xl border border-border bg-card p-5 shadow-card" aria-label="Meus suplementos">
+    {plans.length > 0 && <section className="rounded-2xl border border-border bg-card p-4 shadow-card" aria-label="Meus suplementos">
       <h3 className="flex items-center gap-2 text-lg font-bold"><ShieldCheck size={20} className="text-emerald-500"/> Meus suplementos</h3>
       <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {plans.map(plan => { const item = libraryByKey[plan.kind] as LibraryItem | undefined; const Icon = item?.icon ?? Sparkles;
@@ -256,7 +270,7 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
       </div>
     </section>}
 
-    <section className="rounded-2xl border border-border bg-card p-4 shadow-card sm:p-5" aria-label="Biblioteca de suplementos">
+    <section id="nv-sup-library" className="scroll-mt-4 rounded-2xl border border-border bg-card p-4 shadow-card sm:p-5" aria-label="Biblioteca de suplementos">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h3 className="flex items-center gap-2 text-lg font-bold"><BookOpen size={20} className="text-amber-500"/> Biblioteca de suplementos</h3>
