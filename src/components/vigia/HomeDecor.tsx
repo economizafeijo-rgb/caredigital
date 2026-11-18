@@ -8,8 +8,7 @@ function SideColumn({ side }: { side: "left" | "right" }) {
   return (
     <div
       aria-hidden="true"
-      className={`pointer-events-none fixed bottom-0 top-14 z-0 hidden min-[1440px]:block ${flip ? "right-0" : "left-0"}`}
-      style={{ width: "calc((100vw - 1320px) / 2)" }}
+      className={`pointer-events-none fixed bottom-0 top-14 z-0 hidden w-[4.75rem] overflow-hidden min-[1280px]:block ${flip ? "right-0" : "left-0"}`}
     >
       <svg className="absolute inset-0 size-full text-primary" preserveAspectRatio="none" viewBox="0 0 100 800">
         <defs>
@@ -27,15 +26,15 @@ function SideColumn({ side }: { side: "left" | "right" }) {
       <svg className="absolute left-1/2 top-[12%] h-[70%] w-16 -translate-x-1/2 text-primary" viewBox="0 0 40 400" fill="none">
         <path className="nv-side-pulse" d="M20 0V120L8 140 32 170 14 200 26 215 20 230V400" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity=".55" />
       </svg>
-      <div className={`absolute top-[8%] size-40 rounded-full border-2 border-primary/25 ${flip ? "-right-16" : "-left-16"}`}>
-        <div className="absolute inset-5 rounded-full border border-primary/20" />
-        <div className="absolute inset-10 rounded-full bg-primary/10" />
+      <div className={`absolute top-[6%] size-28 rounded-full border-2 border-primary/25 ${flip ? "-right-12" : "-left-12"}`}>
+        <div className="absolute inset-4 rounded-full border border-primary/20" />
+        <div className="absolute inset-8 rounded-full bg-primary/10" />
       </div>
       {icons.map((Icon, i) => (
         <span
           key={i}
-          className="nv-float absolute grid size-11 place-items-center rounded-2xl border border-primary/25 bg-card/80 text-primary shadow-lg backdrop-blur"
-          style={{ top: `${30 + i * 22}%`, [flip ? "right" : "left"]: `${18 + (i % 2) * 34}%`, animationDelay: `${i * 1.3}s` }}
+          className="nv-float absolute left-1/2 -ml-5 grid size-10 place-items-center rounded-2xl border border-primary/25 bg-card/80 text-primary shadow-lg backdrop-blur"
+          style={{ top: `${30 + i * 22}%`, animationDelay: `${i * 1.3}s` }}
         >
           <Icon size={20} />
         </span>

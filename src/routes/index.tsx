@@ -77,7 +77,7 @@ function Homepage() {
   return (
     <>
     <HomeSideArt />
-    <div className="relative z-10 mx-auto flex w-full max-w-[1280px] flex-col gap-3 lg:gap-4">
+    <div className="relative z-10 mx-auto flex w-full flex-col gap-3 lg:gap-4 min-[1280px]:px-[4.25rem]">
       {status === "unlinked" && (
         <p role="status" className="rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm">
           Sua conta está conectada, mas ainda não há um prontuário vinculado. Solicite o acesso ao administrador.
@@ -190,26 +190,26 @@ function Homepage() {
       {client && <HomeClientMetrics />}
       {client && <SmartMetricsDashboard />}
 
-      <footer className="grid gap-4 rounded-2xl border border-border bg-card p-5 text-sm md:grid-cols-[1.2fr_1fr_1.3fr] md:items-center">
-        <div>
-          <p className="font-display text-base font-extrabold">NextVita</p>
-          <p className="mt-1 max-w-[40ch] text-muted-foreground">Bem-estar organizado: rotina, lembretes e loja no mesmo app. Gratuito para usar.</p>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Desenvolvido por <Link to="/sobre" className="font-semibold text-foreground hover:underline">Franc D&apos;nis</Link> · Feijó, Acre · © {new Date().getFullYear()}
-          </p>
+      <HomeBottomArt />
+
+      <footer className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl border border-border bg-card px-5 py-3.5 text-sm">
+        <div className="min-w-0">
+          <p className="font-display text-base font-extrabold leading-tight">NextVita</p>
+          <p className="text-xs text-muted-foreground">Bem-estar organizado: rotina, lembretes e loja no mesmo app.</p>
         </div>
-        <nav aria-label="Links do rodapé" className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-          <Link to="/loja" className="text-muted-foreground hover:text-foreground">Loja NextVita</Link>
+        <nav aria-label="Links do rodapé" className="flex flex-wrap gap-x-4 gap-y-1 text-[13px]">
+          <Link to="/loja" className="text-muted-foreground hover:text-foreground">Loja</Link>
           <Link to="/protocolos" className="text-muted-foreground hover:text-foreground">Como funciona</Link>
           <Link to="/lojista" className="text-muted-foreground hover:text-foreground">Seja lojista</Link>
           <Link to="/metricas" className="text-muted-foreground hover:text-foreground">Métricas</Link>
           <Link to="/sobre" className="text-muted-foreground hover:text-foreground">Sobre</Link>
           {!panel && <a href="/entrar?mode=signup" className="font-semibold text-primary hover:underline">Criar conta grátis</a>}
         </nav>
-        <QrShareCard variant="footer" className="w-full" />
+        <QrShareCard variant="footer" className="ml-auto w-full sm:w-auto" />
+        <p className="w-full border-t border-border pt-2.5 text-center text-xs text-muted-foreground">
+          © {new Date().getFullYear()} NextVita · Desenvolvido por <Link to="/sobre" className="font-semibold text-foreground hover:underline">Franc D&apos;nis</Link> · Feijó, Acre
+        </p>
       </footer>
-
-      <HomeBottomArt />
     </div>
     </>
   );
