@@ -157,18 +157,20 @@ export function SectionInsights({ section, patientId, ownerId, revision = 0 }: {
   const twoAxes = Boolean(config.b) && (section === "alimentacao" || section === "atividade") && !hidden.b;
 
   return <section className="mb-4 overflow-hidden rounded-3xl border border-border bg-card shadow-card" aria-label={config.title}>
-    <header className="flex flex-wrap items-center gap-3 p-4 pb-2 sm:p-5 sm:pb-2">
-      <span className="grid size-11 shrink-0 place-items-center rounded-2xl text-white shadow-md" style={{ background: `linear-gradient(135deg, ${config.a.color}, ${config.a.to})` }}><BarChart3 size={21}/></span>
-      <div className="min-w-0 flex-1"><h3 className="text-lg font-bold leading-tight">{config.title}</h3><p className="text-sm text-muted-foreground">{config.subtitle}</p></div>
-      <div role="group" aria-label="Período" className="flex gap-1 rounded-xl bg-muted p-1">
-        {ranges.map(([value, label]) => <button key={value} type="button" aria-pressed={days === value} onClick={() => { setDays(value); setSelected(null); }}
-          className={`h-9 rounded-lg px-3 text-sm font-semibold transition ${days === value ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>{label}</button>)}
+    <header className="grid min-w-0 grid-cols-[2.75rem_minmax(0,1fr)] items-center gap-x-3 gap-y-3 p-4 pb-2 sm:flex sm:flex-wrap sm:items-center sm:gap-3 sm:p-5 sm:pb-2">
+      <span className="row-span-1 grid size-11 shrink-0 place-items-center rounded-2xl text-white shadow-md" style={{ background: `linear-gradient(135deg, ${config.a.color}, ${config.a.to})` }}><BarChart3 size={21}/></span>
+      <div className="min-w-0 w-full"><h3 className="break-words text-lg font-bold leading-tight">{config.title}</h3><p className="break-words text-sm text-muted-foreground">{config.subtitle}</p></div>
+      <div className="col-span-2 flex min-w-0 flex-wrap items-center gap-2 sm:ml-auto sm:col-span-1 sm:w-auto">
+        <div role="group" aria-label="Período" className="flex w-fit max-w-full gap-1 rounded-xl bg-muted p-1">
+          {ranges.map(([value, label]) => <button key={value} type="button" aria-pressed={days === value} onClick={() => { setDays(value); setSelected(null); }}
+            className={`h-9 rounded-lg px-3 text-sm font-semibold transition ${days === value ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>{label}</button>)}
+        </div>
+        <div role="group" aria-label="Tipo de gráfico" className="flex shrink-0 gap-1 rounded-xl bg-muted p-1">
+          {([["bar", BarChart3, "Barras"], ["area", AreaIcon, "Área"], ["line", LineIcon, "Linha"]] as const).map(([value, Icon, label]) => <button key={value} type="button" aria-pressed={kind === value} aria-label={label} title={label} onClick={() => setKind(value)}
+            className={`grid size-9 place-items-center rounded-lg transition ${kind === value ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}><Icon size={17}/></button>)}
+        </div>
+        <button type="button" onClick={() => setOpen(value => !value)} aria-expanded={open} aria-label={open ? "Recolher gráfico" : "Mostrar gráfico"} className="grid size-9 shrink-0 place-items-center rounded-lg border border-border text-muted-foreground hover:text-foreground"><ChevronDown size={18} className={`transition ${open ? "rotate-180" : ""}`}/></button>
       </div>
-      <div role="group" aria-label="Tipo de gráfico" className="flex gap-1 rounded-xl bg-muted p-1">
-        {([["bar", BarChart3, "Barras"], ["area", AreaIcon, "Área"], ["line", LineIcon, "Linha"]] as const).map(([value, Icon, label]) => <button key={value} type="button" aria-pressed={kind === value} aria-label={label} title={label} onClick={() => setKind(value)}
-          className={`grid size-9 place-items-center rounded-lg transition ${kind === value ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}><Icon size={17}/></button>)}
-      </div>
-      <button type="button" onClick={() => setOpen(value => !value)} aria-expanded={open} aria-label={open ? "Recolher gráfico" : "Mostrar gráfico"} className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground hover:text-foreground"><ChevronDown size={18} className={`transition ${open ? "rotate-180" : ""}`}/></button>
     </header>
 
     {open && <div className="grid gap-4 p-4 pt-2 sm:p-5 sm:pt-2 xl:grid-cols-[1fr_260px]">
