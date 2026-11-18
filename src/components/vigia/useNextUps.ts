@@ -17,7 +17,8 @@ export function useNextUps(patientId: string, ownerId: string, waterTarget: numb
     const db = supabase as any;
     const day = dayKey();
     const from = new Date(day + "T00:00:00-05:00").toISOString();
-    void Promise.all([
+    let queries: Promise<any>[];
+    try { queries = [
       db.from("care_hydration").select("amount_ml,recorded_at").eq("patient_id", patientId).gte("recorded_at", from).order("recorded_at"),
       db.from("care_client_beverages").select("amount_ml,consumed_at").eq("patient_id", patientId).gte("consumed_at", from),
       db.from("care_client_medications").select("id,name,dose,times,active").eq("patient_id", patientId).eq("owner_id", ownerId),
@@ -26,7 +27,8 @@ export function useNextUps(patientId: string, ownerId: string, waterTarget: numb
       db.from("care_supplement_intakes").select("plan_id,slot").eq("patient_id", patientId).eq("taken_on", day),
       db.from("care_activity_log").select("category,happened_at,recorded_at").eq("patient_id", patientId).in("category", ["refeicao", "atividade"]).in("event_type", ["confirmed", "logged"]).gte("recorded_at", from),
       db.from("care_sleep_logs").select("bed_at").eq("patient_id", patientId).order("sleep_date", { ascending: false }).limit(7),
-    ]).then(([water, bev, meds, medIn, sup, supIn, acts, sleep]: any[]) => {
+    ]; } catch { return () => { active = false; }; } // cliente de dados indisponível (ex.: testes)
+    void Promise.all(queries).then(([water, bev, meds, medIn, sup, supIn, acts, sleep]: any[]) => {
       if (!active) return;
       const now = Date.now();
       // Água

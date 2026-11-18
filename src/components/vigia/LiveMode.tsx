@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Activity, BedDouble, Check, ChevronRight, CheckCircle2, Droplets, Flame, Info, Maximize2, Minimize2, Minus, Pill, Plus, Radio, RefreshCw, Scale, Sparkles, Target, Trophy, Wheat, Zap, X, type LucideIcon, Dumbbell, Egg } from "lucide-react";
 import { NextUpClock } from "./NextUpClock";
-import { useNavigate } from "@tanstack/react-router";
 import { clientSectionHashes, type ClientSection } from "@/lib/client-pages";
 import { useNextUps } from "./useNextUps";
 import { supabase } from "@/integrations/supabase/client";
@@ -133,8 +132,7 @@ export function LiveModeButton({ iconOnlyOnMobile = false, className = "", ...pr
 
 function LiveDashboard({ patientId, ownerId, heightCm, name, onClose }: Props & { onClose: () => void }) {
   const [clockKey] = useState(0);
-  const navigate = useNavigate();
-  openArea = (area) => { onClose(); void navigate({ to: "/cliente", hash: clientSectionHashes[area] }); };
+  openArea = (area) => { onClose(); window.location.hash = clientSectionHashes[area]; };
   const root = useRef<HTMLDivElement>(null);
   const chartRef = useRef<HTMLElement>(null);
   const [data, setData] = useState<{ days: DayMetrics[]; weights: { day: string; kg: number }[]; waterTarget: number | null; targets: Targets; at: number } | null>(null);
