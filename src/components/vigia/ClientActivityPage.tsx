@@ -1,5 +1,6 @@
 import { LiveWorkoutVisual, type LivePoint } from "./LiveWorkoutVisual";
 import { NiceSelect } from "./NiceSelect";
+import { ActivityDaysChart, ActivityHero } from "./ActivityHero";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity,
@@ -125,16 +126,6 @@ export function ClientActivityPage({
     () => items.filter((item) => filter === "todos" || item.details?.activity_type === filter),
     [items, filter],
   );
-  const totalMinutes = items.reduce(
-    (sum, item) => sum + (Number(item.details?.duration_minutes) || 0),
-    0,
-  );
-  const totalDistance = items.reduce(
-    (sum, item) => sum + (Number(item.details?.distance_km) || 0),
-    0,
-  );
-  const averageMinutes = items.length ? Math.round(totalMinutes / items.length) : 0;
-
   const routeDistance = useMemo(
     () =>
       route.slice(1).reduce((sum, point, index) => sum + distanceBetween(route[index], point), 0),
@@ -267,7 +258,7 @@ export function ClientActivityPage({
   }
 
   return (
-    <section className="flex h-full min-h-0 flex-col gap-3" aria-label="Atividade física">
+    <section className="flex h-full min-h-0 flex-col gap-3 overflow-y-auto pb-2" aria-label="Atividade física">
       {(tracking || summary) && (
         <div
           className="fixed inset-0 z-[180] grid place-items-center bg-[#071a1d]/95 p-5 text-white backdrop-blur-xl"
@@ -380,39 +371,11 @@ export function ClientActivityPage({
           </div>
         </div>
       )}
-      <div className="grid shrink-0 grid-cols-2 gap-2 sm:grid-cols-4">
-        <article className="rounded-xl border border-border bg-muted/30 p-3">
-          <span className="text-[11px] font-semibold text-muted-foreground">
-            Sessões registradas
-          </span>
-          <strong className="mt-1 block text-xl font-bold tabular-nums">{items.length}</strong>
-          <span className="text-[11px] text-muted-foreground">Últimos 90 dias</span>
-        </article>
-        <article className="rounded-xl border border-border bg-muted/30 p-3">
-          <span className="text-[11px] font-semibold text-muted-foreground">Tempo total</span>
-          <strong className="mt-1 block text-xl font-bold tabular-nums">
-            {Math.floor(totalMinutes / 60)}h {totalMinutes % 60}min
-          </strong>
-          <span className="text-[11px] text-muted-foreground">Duração registrada</span>
-        </article>
-        <article className="rounded-xl border border-border bg-muted/30 p-3">
-          <span className="text-[11px] font-semibold text-muted-foreground">Distância total</span>
-          <strong className="mt-1 block text-xl font-bold tabular-nums">
-            {totalDistance.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} km
-          </strong>
-          <span className="text-[11px] text-muted-foreground">Quando informada</span>
-        </article>
-        <article className="rounded-xl border border-border bg-muted/30 p-3">
-          <span className="text-[11px] font-semibold text-muted-foreground">Média por sessão</span>
-          <strong className="mt-1 block text-xl font-bold tabular-nums">
-            {averageMinutes} min
-          </strong>
-          <span className="text-[11px] text-muted-foreground">Tempo médio</span>
-        </article>
-      </div>
+      <ActivityHero items={items} onStartGps={startGps} gpsLabel={type === "corrida" ? "Iniciar corrida com GPS" : "Iniciar caminhada com GPS"} />
+      {items.length > 0 && <ActivityDaysChart items={items} />}
 
-      <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[minmax(280px,.8fr)_minmax(0,1.2fr)]">
-        <section data-register-target="Registrar atividade" className="rounded-2xl border border-border bg-card p-3 sm:p-4">
+      <div className="grid min-h-[26rem] shrink-0 flex-1 gap-3 lg:grid-cols-[minmax(280px,.8fr)_minmax(0,1.2fr)]">
+        <section id="nv-activity-form" data-register-target="Registrar atividade" className="scroll-mt-4 rounded-2xl border border-border bg-card p-3 sm:p-4">
           <div className="flex items-center gap-2">
             <span className="grid size-9 place-items-center rounded-xl bg-primary/10 text-primary">
               <Plus size={18} />
