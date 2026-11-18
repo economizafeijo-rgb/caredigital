@@ -131,7 +131,7 @@ export function SectionInsights({ section, patientId, ownerId, revision = 0 }: {
   useEffect(() => { setSelected(null); setHidden({ a: false, b: false, t: false }); }, [section]);
 
   const rows = useMemo(() => withTrend(fillDays(data?.map ?? new Map(), days)), [data, days]);
-  const TREND = { label: "Média de 3 dias", color: section === "medicacao" ? "#4f46e5" : "#f43f5e" };
+  const TREND = { label: "Tendência (média de 3 dias)", color: section === "medicacao" ? "#4f46e5" : "#f59e0b" };
   const previous = useMemo(() => fillDays(data?.map ?? new Map(), days * 2).slice(0, days), [data, days]);
   const total = rows.reduce((sum, row) => sum + row.a, 0);
   const previousTotal = previous.reduce((sum, row) => sum + row.a, 0);
@@ -147,10 +147,13 @@ export function SectionInsights({ section, patientId, ownerId, revision = 0 }: {
   const byX = useMemo(() => new Map(rows.map(r => [toX(r.day), r])), [rows]);
   const bOnAxis = Boolean(config.b) && sharesAxis(section);
 
+  const isWater = section === "hidratacao";
+  const bars = hidden.a ? [] : rows.map(r => ({ x: toX(r.day), w: DAY, parts: isWater && config.b
+    ? [{ y: Math.max(0, r.a - r.b), color: config.a.color, label: "Água" }, ...(!hidden.b ? [{ y: r.b, color: config.b.color, label: config.b.label }] : [])]
+    : [{ y: r.a, color: config.a.color, label: config.a.label }] }));
   const series = [
-    ...(!hidden.a ? [{ id: "a", label: config.a.label, color: config.a.color, area: true, dots: days <= 14, live: true, points: rows.map(r => ({ x: toX(r.day), y: r.a })) }] : []),
-    ...(config.b && bOnAxis && !hidden.b ? [{ id: "b", label: config.b.label, color: config.b.color, dots: days <= 14, points: rows.map(r => ({ x: toX(r.day), y: r.b })) }] : []),
-    ...(!hidden.t ? [{ id: "t", label: TREND.label, color: TREND.color, dashed: true, points: rows.map(r => ({ x: toX(r.day), y: r.t ?? 0 })) }] : []),
+    ...(!hidden.t ? [{ id: "t", label: TREND.label, color: TREND.color, dots: days <= 14, live: true, points: rows.map(r => ({ x: toX(r.day), y: r.t ?? 0 })) }] : []),
+    ...(config.b && bOnAxis && !isWater && !hidden.b ? [{ id: "b", label: config.b.label, color: config.b.color, dashed: true, points: rows.map(r => ({ x: toX(r.day), y: r.b })) }] : []),
   ];
   const tickEvery = days === 7 ? 1 : days === 14 ? 2 : 5;
   const xTicks = rows.filter((_, i) => (rows.length - 1 - i) % tickEvery === 0).map(r => ({ x: toX(r.day), label: short(r.day) }));
@@ -187,18 +190,18 @@ export function SectionInsights({ section, patientId, ownerId, revision = 0 }: {
       <div className="mt-3 grid gap-3 xl:grid-cols-[minmax(0,1fr)_15rem]">
         <div className="min-w-0">
           <div className="mb-1 flex flex-wrap items-center gap-1.5">
-            {([["a", config.a.label, config.a.color, false], ...(config.b && bOnAxis ? [["b", config.b.label, config.b.color, false]] : []), ["t", TREND.label, TREND.color, true]] as [keyof typeof hidden, string, string, boolean][]).map(([key, label, color, dashed]) =>
+            {([["a", isWater ? "Água" : config.a.label, config.a.color, false], ...(config.b && bOnAxis ? [["b", config.b.label, config.b.color, !isWater]] : []), ["t", TREND.label, TREND.color, false]] as [keyof typeof hidden, string, string, boolean][]).map(([key, label, color, dashed]) =>
               <button key={key} type="button" aria-pressed={!hidden[key]} onClick={() => setHidden(v => ({ ...v, [key]: !v[key] }))}
                 className={`inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[11px] font-semibold transition ${hidden[key] ? "text-muted-foreground line-through opacity-60 hover:opacity-100" : "bg-muted text-foreground hover:bg-muted/70"}`}>
-                <i className={`inline-block w-3.5 ${dashed ? "border-t-2 border-dashed" : "h-[3px] rounded-full"}`} style={dashed ? { borderColor: color } : { background: color }}/>{label}</button>)}
-            <span className="ml-auto text-[11px] text-muted-foreground">Toque num ponto para ver o dia</span>
+                <i className={`inline-block ${key === "a" || (key === "b" && isWater) ? "size-2.5 rounded-[3px]" : dashed ? "w-3.5 border-t-2 border-dashed" : "h-[3px] w-3.5 rounded-full"}`} style={dashed ? { borderColor: color } : { background: color }}/>{label}</button>)}
+            <span className="ml-auto text-[11px] text-muted-foreground">Toque numa barra para ver o dia</span>
           </div>
           {!data ? <div className="h-[230px] animate-pulse rounded-xl bg-muted/60"/> : empty
             ? <div className="grid h-[230px] place-items-center rounded-xl border border-dashed border-border px-4 text-center text-sm text-muted-foreground">Ainda não há registros neste período.<br/>Assim que você registrar, a linha de evolução aparece aqui.</div>
-            : <EvoChart height={230} ariaLabel={`${config.title} nos últimos ${days} dias`} xMin={toX(rows[0].day) - DAY * 0.3} xMax={toX(rows[rows.length - 1].day) + DAY * 0.3}
+            : <EvoChart height={230} ariaLabel={`${config.title} nos últimos ${days} dias`} xMin={toX(rows[0].day) - DAY * 0.6} xMax={toX(rows[rows.length - 1].day) + DAY * 0.6}
                 xTicks={xTicks} formatX={x => `${weekday(fromX(x))}, ${short(fromX(x))}`} formatY={v => compact(v)}
                 goal={data.goal && !hidden.a ? { y: data.goal, label: `${config.goalLabel ?? "Referência"} ${compact(data.goal)}${unit}`, color: "#10b981" } : undefined}
-                series={series} selectedX={selected ? toX(selected) : null} onPick={x => setSelected(fromX(x))}
+                bars={bars} series={series} selectedX={selected ? toX(selected) : null} onPick={x => setSelected(fromX(x))}
                 tip={x => { const r = byX.get(x); if (!r) return null; return <>
                   {config.b && !bOnAxis && <p className="mt-1 flex justify-between gap-3"><span className="text-muted-foreground">{config.b.label}</span><strong className="tabular-nums">{fmt(r.b)}</strong></p>}
                   {data.goal ? <p className={`mt-1.5 border-t border-border pt-1.5 font-semibold ${r.a >= data.goal ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>{Math.round(r.a / data.goal * 100)}% da meta</p> : null}

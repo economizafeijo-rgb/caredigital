@@ -24,8 +24,12 @@ export type EvoSeries = {
   live?: boolean;
 };
 
+/** Barra (pode ter segmentos empilhados). `w` é a largura em unidades de x. */
+export type EvoBar = { x: number; w: number; label?: string; parts: { y: number; color: string; label: string }[] };
+
 type Props = {
   series: EvoSeries[];
+  bars?: EvoBar[];
   xMin: number;
   xMax: number;
   xTicks: { x: number; label: string }[];
@@ -90,7 +94,7 @@ export function valueAt(points: EvoPoint[], x: number): number | null {
   return points[points.length - 1].y;
 }
 
-export function EvoChart({ series, xMin, xMax, xTicks, formatX, formatY, yFloor = 0, goal, nowX, height = 220, selectedX = null, onPick, tip, ariaLabel, className = "" }: Props) {
+export function EvoChart({ series, bars = [], xMin, xMax, xTicks, formatX, formatY, yFloor = 0, goal, nowX, height = 220, selectedX = null, onPick, tip, ariaLabel, className = "" }: Props) {
   const box = useRef<HTMLDivElement>(null);
   const [w, setW] = useState(0);
   const [hoverX, setHoverX] = useState<number | null>(null);
@@ -106,7 +110,7 @@ export function EvoChart({ series, xMin, xMax, xTicks, formatX, formatY, yFloor 
     return () => ro.disconnect();
   }, []);
 
-  const yMaxRaw = Math.max(yFloor, goal?.y ?? 0, ...series.flatMap((s) => s.points.map((p) => p.y)), 1);
+  const yMaxRaw = Math.max(yFloor, goal?.y ?? 0, ...series.flatMap((s) => s.points.map((p) => p.y)), ...bars.map((b) => b.parts.reduce((a, p) => a + p.y, 0)), 1);
   const step = niceStep(yMaxRaw * 1.06);
   const yTop = Math.ceil((yMaxRaw * 1.06) / step) * step;
   const ticks = Array.from({ length: Math.round(yTop / step) + 1 }, (_, i) => i * step);
@@ -114,7 +118,7 @@ export function EvoChart({ series, xMin, xMax, xTicks, formatX, formatY, yFloor 
   const sx = (x: number) => PAD.l + ((x - xMin) / Math.max(1e-9, xMax - xMin)) * iw;
   const sy = (y: number) => PAD.t + (1 - y / yTop) * ih;
   const primary = series[0];
-  const snaps = useMemo(() => [...new Set(series.filter((s) => !s.dashed).flatMap((s) => s.points.map((p) => p.x)))].sort((a, b) => a - b), [series]);
+  const snaps = useMemo(() => [...new Set([...series.filter((s) => !s.dashed).flatMap((s) => s.points.map((p) => p.x)), ...bars.map((b) => b.x)])].sort((a, b) => a - b), [series, bars]);
 
   const nearest = (x: number) => snaps.reduce<number | null>((best, v) => (best === null || Math.abs(v - x) < Math.abs(best - x) ? v : best), null);
   const onMove = (e: ReactPointerEvent<SVGSVGElement>) => {
@@ -172,6 +176,30 @@ export function EvoChart({ series, xMin, xMax, xTicks, formatX, formatY, yFloor 
             </g>
           )}
 
+          <g>
+            {bars.map((b) => {
+              const bw = Math.max(3, Math.min(34, (b.w / Math.max(1e-9, xMax - xMin)) * iw - 3));
+              const x0 = sx(b.x) - bw / 2;
+              let acc = 0;
+              const on = activeX === b.x;
+              const total = b.parts.reduce((a, p) => a + p.y, 0);
+              return (
+                <g key={b.x} opacity={activeX === null || on ? 1 : 0.45} style={{ transition: "opacity .2s" }}>
+                  {b.parts.filter((p) => p.y > 0).map((p, i, arr) => {
+                    const y0 = sy(acc), y1 = sy(acc + p.y);
+                    acc += p.y;
+                    const top = i === arr.length - 1;
+                    const h = Math.max(0, y0 - y1 - (top ? 0 : 1.5));
+                    const r = top ? Math.min(4, bw / 2, h) : 0;
+                    return <path key={i} className={reduced ? "" : "nv-bar"} style={{ transformOrigin: `0 ${sy(0)}px`, transformBox: "view-box" as never }}
+                      d={`M${x0},${y0}V${y0 - h + r}${r ? `Q${x0},${y0 - h} ${x0 + r},${y0 - h}H${x0 + bw - r}Q${x0 + bw},${y0 - h} ${x0 + bw},${y0 - h + r}` : `H${x0 + bw}`}V${y0}Z`}
+                      fill={p.color} fillOpacity={on ? 1 : 0.78} />;
+                  })}
+                  {on && total > 0 && <rect x={x0 - 3} y={sy(total) - 3} width={bw + 6} height={sy(0) - sy(total) + 3} rx="6" fill="none" stroke="currentColor" className="text-foreground/30" />}
+                </g>
+              );
+            })}
+          </g>
           <g clipPath={`url(#${uid}-clip)`}>
             {series.map((s) => {
               if (!s.points.length) return null;
@@ -244,6 +272,13 @@ export function EvoChart({ series, xMin, xMax, xTicks, formatX, formatY, yFloor 
               </p>
             );
           })}
+          {bars.filter((b) => b.x === hoverX).flatMap((b) => b.parts.filter((p) => p.y > 0)).map((p) => (
+            <p key={p.label} className="mt-1 flex items-center gap-2">
+              <i className="inline-block size-2.5 rounded-[3px]" style={{ background: p.color }} />
+              <span className="text-muted-foreground">{p.label}</span>
+              <strong className="ml-auto tabular-nums">{formatY(p.y)}</strong>
+            </p>
+          ))}
           {tip?.(hoverX)}
         </div>
       )}
@@ -252,12 +287,12 @@ export function EvoChart({ series, xMin, xMax, xTicks, formatX, formatY, yFloor 
 }
 
 /** Legenda compacta usada acima dos gráficos. */
-export function EvoLegend({ items }: { items: { label: string; color: string; dashed?: boolean }[] }) {
+export function EvoLegend({ items }: { items: { label: string; color: string; dashed?: boolean; bar?: boolean }[] }) {
   return (
     <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-semibold text-muted-foreground">
       {items.map((i) => (
         <span key={i.label} className="inline-flex items-center gap-1.5">
-          <i className={`inline-block w-3.5 ${i.dashed ? "border-t-2 border-dashed" : "h-[3px] rounded-full"}`} style={i.dashed ? { borderColor: i.color } : { background: i.color }} />
+          <i className={`inline-block ${i.bar ? "size-2.5 rounded-[3px]" : i.dashed ? "w-3.5 border-t-2 border-dashed" : "h-[3px] w-3.5 rounded-full"}`} style={i.dashed ? { borderColor: i.color } : { background: i.color }} />
           {i.label}
         </span>
       ))}

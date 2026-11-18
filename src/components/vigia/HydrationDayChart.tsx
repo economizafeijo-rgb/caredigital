@@ -31,6 +31,16 @@ export function HydrationDayChart({ entries, goal, nowMs, lastHour = 20, height 
     }
     return { points: pts, total: acc };
   }, [sorted]);
+  const hourBars = useMemo(() => {
+    const m = new Map<number, { w: number; d: number }>();
+    for (const e of sorted) {
+      const h = Math.floor(hourOf(e.recorded_at));
+      const cur = m.get(h) ?? { w: 0, d: 0 };
+      if (e.source === "beverage") cur.d += Number(e.amount_ml || 0); else cur.w += Number(e.amount_ml || 0);
+      m.set(h, cur);
+    }
+    return [...m].map(([h, v]) => ({ x: h + 0.5, w: 1, parts: [{ y: v.w, color: WATER, label: "Água nesta hora" }, { y: v.d, color: DRINK, label: "Bebidas nesta hora" }] }));
+  }, [sorted]);
   const live = nowH > (points[points.length - 1]?.x ?? 0) && nowH <= H1 ? [...points, { x: nowH, y: total }] : points;
   const ideal = goal > 0 ? [{ x: H0, y: 0 }, { x: 7, y: 0 }, { x: lastHour, y: goal }, { x: H1, y: goal }] : [];
   const idealAtNow = goal > 0 ? goal * Math.min(1, Math.max(0, (nowH - 7) / (lastHour - 7))) : 0;
@@ -55,7 +65,7 @@ export function HydrationDayChart({ entries, goal, nowMs, lastHour = 20, height 
             {forecast.length > 0 && (reachH !== null && reachH <= lastHour ? ` · no ritmo atual, meta por volta das ${hm(reachH)}` : ` · no ritmo atual, ~${fmt(forecast[1].y)} até as ${lastHour}h`)}
           </span>
         </span>
-        <EvoLegend items={[{ label: "Água", color: WATER }, { label: "Outras bebidas", color: DRINK }, ...(forecast.length ? [{ label: "Previsão", color: "#7dd3fc", dashed: true }] : []), ...(goal > 0 ? [{ label: "Ritmo ideal", color: IDEAL, dashed: true }] : [])]} />
+        <EvoLegend items={[{ label: "Por hora", color: WATER, bar: true }, { label: "Bebidas", color: DRINK, bar: true }, { label: "Acumulado", color: WATER }, ...(forecast.length ? [{ label: "Previsão", color: "#7dd3fc", dashed: true }] : []), ...(goal > 0 ? [{ label: "Ritmo ideal", color: IDEAL, dashed: true }] : [])]} />
       </figcaption>
       <EvoChart
         height={height}
@@ -67,13 +77,14 @@ export function HydrationDayChart({ entries, goal, nowMs, lastHour = 20, height 
         formatY={fmt}
         goal={goal > 0 ? { y: goal, label: `Meta ${fmt(goal)}`, color: IDEAL } : undefined}
         nowX={nowH}
+        bars={hourBars}
         series={[
           { id: "acc", label: "Acumulado", color: WATER, points: live, area: true, dots: true, live: true },
           ...(forecast.length ? [{ id: "fc", label: "Previsão no ritmo atual", color: "#7dd3fc", points: forecast, dashed: true, linear: true }] : []),
           ...(ideal.length ? [{ id: "ideal", label: "Ritmo ideal", color: IDEAL, points: ideal, dashed: true, linear: true }] : []),
         ]}
         tip={(h) => {
-          const hit = sorted.filter((e) => Math.abs(hourOf(e.recorded_at) - h) < 1 / 120);
+          const hit = h % 1 === 0.5 ? [] : sorted.filter((e) => Math.abs(hourOf(e.recorded_at) - h) < 1 / 120);
           if (!hit.length) return Math.abs(h - nowH) < 1 / 60 ? <p className="mt-1.5 border-t border-border pt-1.5 text-muted-foreground">Agora</p> : null;
           return (
             <div className="mt-1.5 grid gap-0.5 border-t border-border pt-1.5">
