@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState, type CSSProperties, type FormEvent, type 
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, BadgeCheck, CheckCircle2, Clock, Loader2, MapPin, MessageCircle, Minus, Plus, QrCode, Share2, ShoppingCart, Store, Truck, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { categoryName, money, storeUrl, type Vendor, type VendorProduct } from "@/lib/marketplace";
-import { downloadQrPng, QrImage } from "../seller/shared";
+import { categoryName, money, type Vendor, type VendorProduct } from "@/lib/marketplace";
+import { downloadStoreCard, initialsOf as ini, QrImage, shortStoreUrl, socialLinks } from "../seller/shared";
 import { CustomerChat } from "./CustomerChat";
 import { useVCart, vcart } from "./vendorCart";
 
@@ -166,20 +166,24 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
 }
 
 function ShareSheet({ vendor, onClose }: { vendor: Vendor; onClose: () => void }) {
-  const url = storeUrl(vendor.slug);
+  const url = shortStoreUrl(vendor.slug);
   const [copied, setCopied] = useState(false);
+  const native = typeof navigator !== "undefined" && typeof navigator.share === "function";
   return (
     <div role="dialog" aria-modal="true" aria-label="Compartilhar loja" className="fixed inset-0 z-[95] grid place-items-center bg-black/50 p-4 backdrop-blur-sm" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="nv-fade-in w-full max-w-sm rounded-3xl bg-card p-5 text-center shadow-2xl">
         <div className="flex justify-end"><button type="button" onClick={onClose} aria-label="Fechar" className="grid size-8 place-items-center rounded-full hover:bg-muted"><X size={16} /></button></div>
         <p className="font-display text-lg font-extrabold">{vendor.name}</p>
         <p className="text-sm text-muted-foreground">Aponte a câmera para abrir a loja.</p>
-        <div className="mx-auto mt-4 w-fit rounded-2xl bg-white p-3 ring-1 ring-border"><QrImage text={url} size={200} label={`QR Code da loja ${vendor.name}`} /></div>
+        <div className="mx-auto mt-4 w-fit rounded-2xl bg-white p-3 ring-1 ring-border"><QrImage text={url} size={200} label={`QR Code da loja ${vendor.name}`} badge={{ initials: ini(vendor.name), color: vendor.accent_hex ?? "#0e7a5f", logo: vendor.logo_url }} /></div>
         <p className="mt-3 truncate rounded-lg bg-muted px-3 py-2 font-mono text-xs">{url.replace("https://", "")}</p>
-        <div className="mt-3 grid grid-cols-3 gap-2 text-[12px] font-semibold">
-          <button type="button" onClick={() => { void navigator.clipboard?.writeText(url).then(() => setCopied(true)); }} className="h-10 rounded-xl border border-border hover:bg-muted">{copied ? "Copiado" : "Copiar"}</button>
-          <a href={`https://wa.me/?text=${encodeURIComponent(`Conheça a ${vendor.name} na NextVita: ${url}`)}`} target="_blank" rel="noopener noreferrer" className="grid h-10 place-items-center rounded-xl bg-[#25d366] text-slate-950">WhatsApp</a>
-          <button type="button" onClick={() => void downloadQrPng(url, `qr-${vendor.slug}.png`)} className="inline-flex h-10 items-center justify-center gap-1 rounded-xl border border-border hover:bg-muted"><QrCode size={14} /> Baixar</button>
+        <div className="mt-3 grid grid-cols-4 gap-1.5 text-[11.5px] font-bold">
+          {socialLinks(vendor.name, url).map((l) => <a key={l.key} href={l.href} target="_blank" rel="noopener noreferrer" className="grid h-10 place-items-center rounded-xl text-white hover:brightness-110" style={{ background: l.color }}>{l.label}</a>)}
+        </div>
+        <div className="mt-2 grid grid-cols-3 gap-1.5 text-[12px] font-semibold">
+          <button type="button" onClick={() => { void navigator.clipboard?.writeText(url).then(() => setCopied(true)); }} className="h-10 rounded-xl border border-border hover:bg-muted">{copied ? "Copiado" : "Copiar link"}</button>
+          <button type="button" onClick={() => void downloadStoreCard(vendor)} className="inline-flex h-10 items-center justify-center gap-1 rounded-xl border border-border hover:bg-muted"><QrCode size={14} /> Cartão</button>
+          <button type="button" disabled={!native} onClick={() => void navigator.share?.({ title: vendor.name, text: `Conheça a ${vendor.name} na NextVita`, url })} className="h-10 rounded-xl border border-border hover:bg-muted disabled:opacity-40">Mais…</button>
         </div>
       </div>
     </div>

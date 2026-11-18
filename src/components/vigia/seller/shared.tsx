@@ -12,7 +12,7 @@ export function qrSvgString(text: string, px = 220, color = "#0f172a") {
 }
 
 /** QR Code de qualquer link, com módulos arredondados e cantos destacados. */
-export function QrImage({ text, size = 160, color = "#0f172a", label, className = "" }: { text: string; size?: number; color?: string; label?: string; className?: string }) {
+export function QrImage({ text, size = 160, color = "#0f172a", label, className = "", badge }: { text: string; size?: number; color?: string; label?: string; className?: string; badge?: { initials: string; color: string; logo?: string | null } }) {
   const m = useMemo(() => { try { return qrMatrix(text); } catch { return null; } }, [text]);
   if (!m) return null;
   const n = m.length; const q = 3; const total = n + q * 2;
@@ -23,15 +23,71 @@ export function QrImage({ text, size = 160, color = "#0f172a", label, className 
       <g fill={color}>
         {m.flatMap((row, y) => row.map((on, x) => (on && !finder(x, y) ? <rect key={`${x}-${y}`} x={q + x + 0.06} y={q + y + 0.06} width=".88" height=".88" rx=".28" /> : null)))}
         {[[0, 0], [n - 7, 0], [0, n - 7]].map(([fx, fy]) => (
-          <g key={`${fx}-${fy}`}>
+          <g key={`${fx}-${fy}`} fill={badge?.color ?? color}>
             <rect x={q + fx} y={q + fy} width="7" height="7" rx="1.6" />
             <rect x={q + fx + 1} y={q + fy + 1} width="5" height="5" rx="1.1" fill="#fff" />
             <rect x={q + fx + 2} y={q + fy + 2} width="3" height="3" rx=".8" />
           </g>
         ))}
       </g>
+      {badge && (() => {
+        const b = Math.round(n * 0.22); const x = q + (n - b) / 2;
+        return (
+          <g>
+            <rect x={x - 0.8} y={x - 0.8} width={b + 1.6} height={b + 1.6} rx="2" fill="#fff" />
+            {badge.logo ? <image href={badge.logo} x={x} y={x} width={b} height={b} preserveAspectRatio="xMidYMid slice" /> : <>
+              <rect x={x} y={x} width={b} height={b} rx="1.6" fill={badge.color} />
+              <text x={x + b / 2} y={x + b / 2 + b * 0.16} textAnchor="middle" fontSize={b * 0.44} fontWeight="800" fill="#fff" fontFamily="system-ui, sans-serif">{badge.initials}</text>
+            </>}
+          </g>
+        );
+      })()}
     </svg>
   );
+}
+
+/** Link curto da loja para divulgar: nextvita.life/?l=nome-da-loja */
+export const shortStoreUrl = (slug: string) => `https://nextvita.life/?l=${encodeURIComponent(slug)}`;
+export const initialsOf = (name: string) => name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+
+/** Gera o cartão da loja (1080×1920, para stories e status) com logo, nome, QR e link, e baixa em PNG. */
+export async function downloadStoreCard(v: { name: string; slug: string; city?: string; accent_hex?: string | null; logo_url?: string | null; description?: string | null }) {
+  const W = 1080, H = 1920, accent = v.accent_hex ?? "#0e7a5f", url = shortStoreUrl(v.slug);
+  const c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d")!;
+  const grad = g.createLinearGradient(0, 0, W, H); grad.addColorStop(0, accent); grad.addColorStop(1, "#070b14");
+  g.fillStyle = grad; g.fillRect(0, 0, W, H);
+  g.fillStyle = "rgba(255,255,255,.06)"; for (let y = 40; y < H; y += 48) for (let x = 40; x < W; x += 48) { g.beginPath(); g.arc(x, y, 2, 0, 7); g.fill(); }
+  const round = (x: number, y: number, w: number, h: number, r: number) => { g.beginPath(); g.roundRect(x, y, w, h, r); };
+  // logo
+  round(W / 2 - 110, 230, 220, 220, 56); g.fillStyle = "#fff"; g.fill();
+  let drewLogo = false;
+  if (v.logo_url) { try { const im = new Image(); im.crossOrigin = "anonymous"; im.src = v.logo_url; await im.decode(); g.save(); round(W / 2 - 100, 240, 200, 200, 48); g.clip(); g.drawImage(im, W / 2 - 100, 240, 200, 200); g.restore(); drewLogo = true; } catch { /* usa as iniciais */ } }
+  if (!drewLogo) { g.fillStyle = accent; g.font = "800 96px system-ui, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(initialsOf(v.name), W / 2, 345); }
+  g.textAlign = "center"; g.textBaseline = "alphabetic"; g.fillStyle = "#fff";
+  g.font = "800 76px system-ui, sans-serif"; g.fillText(v.name, W / 2, 560, W - 120);
+  g.font = "500 36px system-ui, sans-serif"; g.fillStyle = "rgba(255,255,255,.75)"; g.fillText(`Loja parceira NextVita${v.city ? ` · ${v.city}` : ""}`, W / 2, 620, W - 120);
+  // QR
+  round(W / 2 - 330, 720, 660, 660, 56); g.fillStyle = "#fff"; g.fill();
+  const qr = new Image(); qr.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(qrSvgString(url, 600, "#0f172a")); await qr.decode();
+  g.drawImage(qr, W / 2 - 300, 750, 600, 600);
+  round(W / 2 - 66, 984, 132, 132, 28); g.fillStyle = "#fff"; g.fill(); round(W / 2 - 56, 994, 112, 112, 24); g.fillStyle = accent; g.fill();
+  g.fillStyle = "#fff"; g.font = "800 50px system-ui, sans-serif"; g.textBaseline = "middle"; g.fillText(initialsOf(v.name), W / 2, 1052);
+  g.textBaseline = "alphabetic"; g.fillStyle = "#fff"; g.font = "700 46px system-ui, sans-serif"; g.fillText("Aponte a câmera e compre", W / 2, 1480);
+  round(W / 2 - 380, 1530, 760, 96, 48); g.fillStyle = "rgba(255,255,255,.14)"; g.fill();
+  g.fillStyle = "#fff"; g.font = "600 40px ui-monospace, Menlo, monospace"; g.fillText(url.replace("https://", ""), W / 2, 1592, 720);
+  g.fillStyle = "rgba(255,255,255,.6)"; g.font = "500 30px system-ui, sans-serif"; g.fillText("Pedido pelo app · retirada com código · WhatsApp", W / 2, 1760);
+  const a = document.createElement("a"); a.href = c.toDataURL("image/png"); a.download = `cartao-${v.slug}.png`; a.click();
+}
+
+/** Links de compartilhamento nas redes. */
+export function socialLinks(name: string, url: string) {
+  const text = `Conheça a ${name} na NextVita`;
+  return [
+    { key: "whatsapp", label: "WhatsApp", color: "#25d366", href: `https://wa.me/?text=${encodeURIComponent(`${text}: ${url}`)}` },
+    { key: "facebook", label: "Facebook", color: "#1877f2", href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}` },
+    { key: "x", label: "X", color: "#0f172a", href: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}` },
+    { key: "telegram", label: "Telegram", color: "#229ed9", href: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}` },
+  ];
 }
 
 /** Baixa um QR como imagem PNG. */

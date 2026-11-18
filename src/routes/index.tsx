@@ -68,6 +68,11 @@ const areas = [
 function Homepage() {
   const { status, name } = useAccess();
   // Ao abrir (inclusive pelo app instalado), a página inicial sempre começa do topo.
+  // Link curto das lojas: nextvita.life/?l=nome-da-loja abre a loja.
+  useEffect(() => {
+    const l = new URLSearchParams(window.location.search).get("l");
+    if (l && /^[a-z0-9-]{2,60}$/.test(l)) window.location.replace(`/loja?loja=${l}`);
+  }, []);
   useEffect(() => {
     try { if ("scrollRestoration" in history) history.scrollRestoration = "manual"; } catch { /* navegador antigo */ }
     document.getElementById("care-content")?.scrollTo({ top: 0 });

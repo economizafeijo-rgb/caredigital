@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from "react";
-import { Check, Copy, Download, ExternalLink, ImagePlus, MessageCircle, Printer, ReceiptText } from "lucide-react";
+import { Check, Copy, Download, ExternalLink, ImagePlus, Printer, ReceiptText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { centsToInput, money, parseMoney, PLANS, pct, storeUrl, type Invoice, type Vendor } from "@/lib/marketplace";
-import { btn, downloadQrPng, inputCls, Panel, printStorePoster, QrImage } from "./shared";
+import { centsToInput, money, parseMoney, PLANS, pct, type Invoice, type Vendor } from "@/lib/marketplace";
+import { btn, downloadQrPng, downloadStoreCard, initialsOf, inputCls, Panel, printStorePoster, QrImage, shortStoreUrl, socialLinks } from "./shared";
 import { uploadStoreImage } from "./SellerProducts";
 
 const SWATCHES = ["#0e7a5f", "#1d4ed8", "#be123c", "#166534", "#4d7c0f", "#be185d", "#1e293b", "#b45309", "#7c3aed", "#0891b2"];
@@ -18,7 +18,7 @@ export function SellerStore({ vendor, invoices, onChanged }: { vendor: Vendor; i
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
   const [copied, setCopied] = useState(false);
-  const url = storeUrl(vendor.slug);
+  const url = shortStoreUrl(vendor.slug);
   const plan = PLANS[vendor.plan];
 
   async function save(e: FormEvent) {
@@ -47,7 +47,6 @@ export function SellerStore({ vendor, invoices, onChanged }: { vendor: Vendor; i
   async function copy() {
     try { await navigator.clipboard.writeText(url); setCopied(true); window.setTimeout(() => setCopied(false), 1600); } catch { setMsg(url); }
   }
-  const shareText = encodeURIComponent(`Conheça a ${vendor.name} na NextVita: ${url}`);
 
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
@@ -100,13 +99,16 @@ export function SellerStore({ vendor, invoices, onChanged }: { vendor: Vendor; i
       <div className="grid content-start gap-4">
         <Panel title="Divulgar a loja">
           <div className="grid justify-items-center gap-3 p-4">
-            <div className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-border"><QrImage text={url} size={176} color="#0f172a" label={`QR Code da loja ${vendor.name}`} /></div>
+            <div className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-border"><QrImage text={url} size={176} color="#0f172a" label={`QR Code da loja ${vendor.name}`} badge={{ initials: initialsOf(vendor.name), color: vendor.accent_hex ?? "#0e7a5f", logo: vendor.logo_url }} /></div>
             <p className="w-full truncate rounded-lg bg-muted px-3 py-2 text-center font-mono text-xs">{url.replace("https://", "")}</p>
             <div className="grid w-full grid-cols-2 gap-2">
               <button type="button" onClick={() => void copy()} className={btn.ghost}>{copied ? <Check size={14} /> : <Copy size={14} />} {copied ? "Copiado" : "Copiar link"}</button>
-              <a href={`https://wa.me/?text=${shareText}`} target="_blank" rel="noopener noreferrer" className={btn.ghost}><MessageCircle size={14} /> WhatsApp</a>
+              <button type="button" onClick={() => void downloadStoreCard(vendor)} className={btn.ghost}><Download size={14} /> Cartão stories</button>
               <button type="button" onClick={() => void downloadQrPng(url, `qr-${vendor.slug}.png`)} className={btn.ghost}><Download size={14} /> Baixar QR</button>
               <button type="button" onClick={() => printStorePoster(vendor, url, vendor.accent_hex ?? "#0e7a5f")} className={btn.ghost}><Printer size={14} /> Cartaz</button>
+            </div>
+            <div className="grid w-full grid-cols-4 gap-1.5">
+              {socialLinks(vendor.name, url).map((l) => <a key={l.key} href={l.href} target="_blank" rel="noopener noreferrer" className="grid h-9 place-items-center rounded-lg text-[11.5px] font-bold text-white transition hover:brightness-110" style={{ background: l.color }}>{l.label}</a>)}
             </div>
             <a href={`/loja?loja=${vendor.slug}`} target="_blank" rel="noopener noreferrer" className={`${btn.primary} w-full`}><ExternalLink size={14} /> Ver página pública</a>
           </div>
