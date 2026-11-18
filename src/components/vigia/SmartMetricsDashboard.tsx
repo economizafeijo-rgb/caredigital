@@ -18,6 +18,7 @@ type Metrics = {
   supplementCount: number;
   hasSleepData: boolean;
   hasActivityData: boolean;
+  historical: { day: string; metric: string; value: number; unit: string }[];
 };
 const db = supabase as any;
 const label = (day: string) =>
@@ -64,8 +65,21 @@ export function SmartMetricsDashboard() {
         if (!auth.user) { if (!cancelled) setMetrics(null); return; }
         const grant = await db.from("care_patient_access").select("patient_id")
           .eq("user_id", auth.user.id).limit(1);
-        const patientId = grant.data?.[0]?.patient_id;
-        if (!patientId) { if (!cancelled) setMetrics(null); return; }
+        let patientId = grant.data?.[0]?.patient_id;
+        // Fallback for legacy profiles that have an owner row but no access row.
+        if (!patientId) {
+          const owned = await db.from("care_patients").select("id")
+            .eq("owner_id", auth.user.id).limit(1);
+          patientId = owned.data?.[0]?.id;
+        }
+        if (!patientId) {
+          if (!cancelled) setMetrics({
+            hydration: [], weight: [], macros: [], energy: [], sleep: [], activity: [],
+            medicationCount: 0, supplementCount: 0, hasSleepData: false, hasActivityData: false,
+            historical: [],
+          });
+          return;
+        }
         const sinceDate = new Date(Date.now() - 29 * 86400000);
         const since = sinceDate.toISOString();
         const [water, weights, meals, meds, supplements, sleep, activities, goalReviews] = await Promise.all([
@@ -76,7 +90,7 @@ export function SmartMetricsDashboard() {
           db.from("care_supplement_intakes").select("id").eq("patient_id", patientId).gte("taken_at", since).limit(1000),
           db.from("care_sleep_logs").select("sleep_date,bed_at,wake_at,quality,awakenings,avg_hr,min_hr").eq("patient_id", patientId).gte("sleep_date", localDay(since)).order("sleep_date", { ascending: true }).limit(1000),
           db.from("care_activity_log").select("happened_at,details,event_type").eq("patient_id", patientId).eq("category", "atividade").gte("happened_at", since).order("happened_at", { ascending: true }).limit(1000),
-          db.from("care_goal_reviews").select("day,metric,actual,unit").eq("patient_id", patientId).in("metric", ["hidratacao", "calorias", "proteina"]).gte("day", localDay(since)).limit(1000),
+          db.from("care_goal_reviews").select("day,metric,actual,unit,observation").eq("patient_id", patientId).in("metric", ["hidratacao", "calorias", "proteina"]).order("day", { ascending: true }).limit(1000),
         ]);
         const failed = [water, weights, meals, meds, supplements, sleep, activities, goalReviews].some((result: any) => result.error);
         if (failed) throw new Error("Não foi possível consultar todos os indicadores.");
@@ -129,6 +143,9 @@ export function SmartMetricsDashboard() {
           supplementCount: (supplements.data ?? []).length,
           hasSleepData: sleepRows.length > 0,
           hasActivityData: activityRows.length > 0,
+          historical: reviewRows.filter((row: any) => Number(row.actual) > 0).map((row: any) => ({
+            day: label(row.day), metric: row.metric, value: Number(row.actual), unit: row.unit ?? "",
+          })),
         });
       } catch {
         if (!cancelled) setLoadError(true);
@@ -143,7 +160,7 @@ export function SmartMetricsDashboard() {
   const chartClass = "h-44 w-full";
   return (
     <section aria-label="Métricas inteligentes" className="mt-5 grid gap-4 lg:grid-cols-2">
-      <ChartCard title="Consumo nos últimos 30 dias" eyebrow="Hidratação" icon={Droplets}>
+      <ChartCard title="Histórico disponível" eyebrow="Hidratação" icon={Droplets}>
         {metrics.hydration.length ? <div className={chartClass}><ResponsiveContainer><AreaChart data={metrics.hydration}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)"/><XAxis dataKey="day" tick={{fontSize:10}}/><YAxis tick={{fontSize:10}}/><Tooltip/>
           <Area dataKey="value" name="ml" stroke="var(--water)" fill="var(--water)" fillOpacity={0.18}/>
@@ -155,7 +172,7 @@ export function SmartMetricsDashboard() {
           <Line type="monotone" dataKey="value" name="kg" stroke="var(--primary)" strokeWidth={3} dot={{r:3}}/>
         </LineChart></ResponsiveContainer></div> : <EmptyChart>Você ainda não possui pesagens registradas. O gráfico será preenchido quando houver uma medição salva.</EmptyChart>}
       </ChartCard>
-      <ChartCard title="Energia diária" eyebrow="Calorias · registros e resumos históricos" icon={UtensilsCrossed}>
+      <ChartCard title="Energia diária" eyebrow="Calorias · histórico recuperado" icon={UtensilsCrossed}>
         {metrics.energy.length ? <div className={chartClass}><ResponsiveContainer><AreaChart data={metrics.energy}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)"/><XAxis dataKey="day" tick={{fontSize:10}}/><YAxis tick={{fontSize:10}}/><Tooltip formatter={(value) => [`${value} kcal`, "Energia"]}/>
           <Area dataKey="value" name="Calorias" stroke="#ea580c" fill="#ea580c" fillOpacity={0.18}/>
@@ -179,6 +196,20 @@ export function SmartMetricsDashboard() {
           <Bar dataKey="value" name="Minutos" fill="#ea580c" radius={[5,5,0,0]}/>
         </BarChart></ResponsiveContainer></div> : <EmptyChart>Nenhuma atividade com duração registrada neste período. Caminhadas e treinos aparecerão aqui após serem salvos.</EmptyChart>}
       </ChartCard>
+      <article className="lg:col-span-2 rounded-2xl border border-primary/25 bg-card p-4 shadow-card">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div><p className="text-[11px] font-bold uppercase tracking-[.14em] text-primary">Recuperação de histórico</p><h3 className="text-lg font-bold">Dados anteriores recuperados</h3></div>
+          <Sparkles className="shrink-0 text-primary" size={20}/>
+        </div>
+        {metrics.historical.length ? <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {metrics.historical.map((item, index) => <div key={item.day + "-" + item.metric + "-" + index} className="rounded-xl bg-muted/60 p-3">
+            <p className="text-xs text-muted-foreground">{item.day}</p>
+            <strong className="mt-1 block text-xl">{item.value.toLocaleString("pt-BR")} {item.unit}</strong>
+            <span className="text-xs text-muted-foreground">{item.metric === "hidratacao" ? "Hidratação" : item.metric === "calorias" ? "Energia" : "Proteínas"}</span>
+            <p className="mt-1 text-[10px] text-muted-foreground">Recuperado de registro histórico do painel</p>
+          </div>)}
+        </div> : <EmptyChart>Nenhum resumo histórico disponível para este perfil.</EmptyChart>}
+      </article>
       <article className="grid grid-cols-2 gap-3 rounded-2xl border border-border bg-card p-4 shadow-card">
         <div className="col-span-2"><p className="text-[11px] font-bold uppercase tracking-[.14em] text-muted-foreground">Registros de rotina</p><h3 className="text-lg font-bold">Acompanhamento inteligente</h3></div>
         <div className="rounded-xl bg-med/10 p-3"><Pill className="text-med" size={20}/><strong className="mt-2 block text-2xl">{metrics.medicationCount}</strong><span className="text-xs text-muted-foreground">doses registradas</span></div>
