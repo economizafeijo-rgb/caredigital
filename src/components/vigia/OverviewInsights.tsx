@@ -135,7 +135,7 @@ function ScoreCard({ series, waterGoal, scheduled, onOpen }: { series: Series[];
       <div aria-hidden="true" className="pointer-events-none absolute -left-16 -top-20 -z-10 size-64 rounded-full bg-emerald-400/20 blur-3xl" />
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-semibold text-emerald-200">Pontuação do dia</p>
-        <span className="nv-live inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold text-emerald-100"><i className="size-1.5 rounded-full bg-emerald-300" /> ao vivo</span>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold text-emerald-100"><i className="nv-live size-1.5 rounded-full bg-emerald-300" /> ao vivo</span>
       </div>
       <div className="mt-3 flex items-center gap-4">
         <div className="relative size-28 shrink-0" role="img" aria-label={`Pontuação ${score} de 100`}>

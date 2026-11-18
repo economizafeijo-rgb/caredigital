@@ -19,6 +19,6 @@ describe("Indicadores compactos da visão geral", () => {
     render(<ClientOverviewIndicators heightCm={null} weightKg={null} waterTarget={null} protein={null} carbs={null} fat={null} kcal={null}/>);
     expect(screen.getByText("Dados incompletos")).toBeTruthy();
     expect(screen.getAllByText("—")).toHaveLength(6);
-    expect(screen.getAllByText("Não definida")).toHaveLength(4);
+    expect(screen.getAllByText("Complete o perfil")).toHaveLength(5);
   });
 });
