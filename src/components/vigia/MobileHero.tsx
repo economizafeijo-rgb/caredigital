@@ -1,11 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { LiveModeLauncher } from "./LiveMode";
-import { StoreBannerCarousel } from "./StoreBannerCarousel";
-import { HeroShowcase } from "./HeroShowcase";
 import { Activity, ArrowRight, BarChart3, BedDouble, Droplets, Gift, LayoutDashboard, LockKeyhole, Pill, Scale, ShieldCheck, ShoppingBag, Sparkles, Utensils } from "lucide-react";
 
 const areas = [
-  { to: "/loja", label: "Loja virtual", text: "Suplementos, vitaminas e moda fitness", icon: ShoppingBag, img: "/loja/mulher1.webp", tone: "from-amber-500 to-orange-500" },
+  { to: "/loja", label: "Loja virtual", text: "Suplementos, vitaminas e moda fitness", icon: ShoppingBag, img: "/loja/v2/conjunto-preto.webp", tone: "from-amber-500 to-orange-500" },
   { to: "/dietas", label: "Alimentação", text: "Refeições, calorias e proteína do dia", icon: Utensils, img: "/images/caredigital-alimentacao.webp", tone: "from-emerald-500 to-teal-500" },
   { to: "/hidratacao", label: "Hidratação", text: "Meta de água e próximo copo", icon: Droplets, img: "/images/caredigital-hidratacao.webp", tone: "from-sky-500 to-cyan-500" },
   { to: "/medicamentos", label: "Medicação", text: "Doses e horários sem esquecer", icon: Pill, img: "/images/caredigital-medicamentos.webp", tone: "from-rose-500 to-pink-500" },
@@ -46,11 +44,14 @@ export function MobileHero({ client, name, panel }: { client: boolean; name: str
           </div>
         </div>
       </section>
+    </div>
+  );
+}
 
-      <HeroShowcase />
-
-      <StoreBannerCarousel />
-
+/** Carrossel de áreas da plataforma no celular, exibido logo depois da vitrine da loja. */
+export function MobileAreas() {
+  return (
+    <div className="sm:hidden">
       <section aria-label="Áreas da plataforma">
         <div className="flex items-end justify-between px-2">
           <div><p className="text-[11px] font-bold uppercase tracking-[.18em] text-primary">Tudo em um só app</p><h2 className="font-display text-2xl font-extrabold leading-tight">Explore as áreas</h2></div>
