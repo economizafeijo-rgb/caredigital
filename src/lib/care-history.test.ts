@@ -149,4 +149,27 @@ describe("histórico inteligente NextVita",()=>{
     expect(filterCareHistory(rows,{...filters,group:"refeicoes",status:"nao_cumprido"},now)).toHaveLength(1);
   });
 
+  it("recoloca eventos reconstruídos na data original da captura, não no dia da importação",()=>{
+    const source=data();
+    source.audit.push(
+      {id:"snapshot-treatment",category:"tratamento",event_type:"snapshot_tratamento",source:"historical_reconstruction",
+        details:{status:"reconstruido_de_captura",blister:"Cartela 5 de 7",progress:"32/84",progress_percent:"38%",evidence:"Painel de Saúde CareDigital, 04/11/2026",morning_dose:"4 comprimidos confirmados às 08:06",night_dose:"4 comprimidos pendentes às 19:00"},
+        scheduled_at:null,happened_at:"2026-11-04T20:28:00Z",recorded_at:"2026-11-18T00:41:40Z"},
+      {id:"scheduled-medication",category:"medicamento",event_type:"medicacao_programada",source:"historical_reconstruction",
+        details:{status:"programado_na_captura",evidence:"Painel de Saúde CareDigital, 04/11/2026",local_time:"19:00",description:"Conferir medicação — noite"},
+        scheduled_at:null,happened_at:null,recorded_at:"2026-11-18T00:46:03Z"}
+    );
+    const today=Date.parse("2026-11-17T20:20:00Z");
+    const all=assembleCareHistory(source,today);
+    const snapshot=all.find(item=>item.id==="reconstructed-snapshot-treatment");
+    const scheduled=all.find(item=>item.id==="reconstructed-scheduled-medication");
+    expect(snapshot?.occurredAt).toBe("2026-11-04T20:28:00Z");
+    expect(snapshot?.title).toBe("Resumo do tratamento");
+    expect(snapshot?.description).toContain("32/84");
+    expect(scheduled?.occurredAt).toBe("2026-11-04T19:00:00-05:00");
+    expect(scheduled?.status).toBe("nao_confirmado");
+    expect(filterCareHistory(all,{...filters,period:"hoje"},today).some(item=>item.id.startsWith("reconstructed-"))).toBe(false);
+    expect(filterCareHistory(all,{...filters,period:"30d"},today).some(item=>item.id==="reconstructed-scheduled-medication")).toBe(true);
+  });
+
 });
