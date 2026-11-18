@@ -866,3 +866,27 @@ html, #care-content { scrollbar-gutter: stable; }
   .nv-intro *, .nv-intro { animation-duration: .01ms !important; animation-delay: 0s !important; }
   .nv-intro-ring { stroke-dashoffset: 0; }
 }
+/* Loja: microinterações das campanhas */
+@keyframes nv-bf-shine { from { background-position: 150% 0; } to { background-position: -100% 0; } }
+.nv-bf-shine { animation: nv-bf-shine 4s ease-in-out infinite; }
+@keyframes nv-bf-glow { 0%, 100% { opacity: .7; transform: scale(1); } 50% { opacity: 1; transform: scale(1.08); } }
+.nv-bf-glow { animation: nv-bf-glow 6s ease-in-out infinite; }
+@keyframes nv-snow { from { transform: translateY(0) rotate(0); } to { transform: translateY(32rem) rotate(240deg); } }
+.nv-snow { animation: nv-snow 9s linear infinite; }
+@keyframes nv-spin-slow { to { transform: rotate(360deg); } }
+.nv-spin-slow { animation: nv-spin-slow 18s linear infinite; }
+@keyframes nv-sticker { 0%, 100% { transform: rotate(-8deg) scale(1); } 50% { transform: rotate(4deg) scale(1.06); } }
+.nv-sticker { animation: nv-sticker 3.2s ease-in-out infinite; }
+@keyframes nv-heart-pop { 0% { transform: scale(.6); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
+.nv-heart-pop { animation: nv-heart-pop .4s cubic-bezier(.2,.8,.2,1); }
+@keyframes nv-tick { from { opacity: .3; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.nv-tick { animation: nv-tick .35s ease-out; }
+@keyframes nv-cta-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, .45); } 50% { box-shadow: 0 0 0 10px rgba(250, 204, 21, 0); } }
+.nv-cta-pulse { animation: nv-cta-pulse 2.6s ease-in-out infinite; }
+@keyframes nv-stock { from { width: 0; } }
+.nv-stock { animation: nv-stock 1.2s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes nv-bolt { 0%, 92%, 100% { transform: none; } 95% { transform: rotate(-12deg) scale(1.1); } }
+.nv-bolt { animation: nv-bolt 3s ease-in-out infinite; }
+@keyframes nv-added { 0% { transform: scale(.96); } 50% { transform: scale(1.03); } 100% { transform: none; } }
+.nv-added { animation: nv-added .4s ease; }
+@media (prefers-reduced-motion: reduce) { .nv-bf-shine, .nv-bf-glow, .nv-snow, .nv-spin-slow, .nv-sticker, .nv-heart-pop, .nv-tick, .nv-cta-pulse, .nv-stock, .nv-bolt, .nv-added { animation: none; } }
