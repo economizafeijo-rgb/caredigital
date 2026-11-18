@@ -66,11 +66,11 @@ const groupColors:Record<HistoryGroup,string>={
 
 /** Identidade visual de cada categoria: cor, degradê e foto do painel de detalhes. */
 const LOOK:Record<string,{label:string;color:string;grad:string;soft:string;img:string}>={
-  todos:{label:"Todos",color:"#6366f1",grad:"linear-gradient(135deg,#6366f1,#a855f7)",soft:"bg-indigo-500/12 text-indigo-600 dark:text-indigo-300",img:"/images/caredigital-historico.webp"},
+  todos:{label:"Todos",color:"#6366f1",grad:"linear-gradient(135deg,#6366f1,#a855f7)",soft:"bg-indigo-500/12 text-indigo-600 dark:text-indigo-300",img:"/images/hero-metricas.webp"},
   liquidos:{label:"Líquidos",color:"#0284c7",grad:"linear-gradient(135deg,#0284c7,#22d3ee)",soft:"bg-sky-500/12 text-sky-600 dark:text-sky-300",img:"/images/hero-hidratacao.webp"},
   refeicoes:{label:"Refeições",color:"#059669",grad:"linear-gradient(135deg,#059669,#84cc16)",soft:"bg-emerald-500/12 text-emerald-600 dark:text-emerald-300",img:"/images/hero-alimentacao.webp"},
   cuidados:{label:"Cuidados",color:"#d97706",grad:"linear-gradient(135deg,#e11d48,#f59e0b)",soft:"bg-amber-500/12 text-amber-700 dark:text-amber-300",img:"/images/hero-medicamentos.webp"},
-  ajustes:{label:"Ajustes",color:"#7c3aed",grad:"linear-gradient(135deg,#7c3aed,#c084fc)",soft:"bg-violet-500/12 text-violet-600 dark:text-violet-300",img:"/images/painel-indicadores.webp"},
+  ajustes:{label:"Ajustes",color:"#7c3aed",grad:"linear-gradient(135deg,#7c3aed,#c084fc)",soft:"bg-violet-500/12 text-violet-600 dark:text-violet-300",img:"/images/show-metricas.webp"},
 };
 
 export function PatientActivityHistory({patientId,ownerId,revision,onRecordChanged}:{
@@ -242,19 +242,12 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
   return <section aria-label="Histórico de consumos e cuidados"
     className="patient-history-workspace care-history-responsive flex h-full min-h-0 min-w-0 flex-col gap-2 overflow-hidden text-foreground">
     <header className="patient-history-header flex shrink-0 flex-wrap items-center justify-between gap-2">
-      <div className="flex min-w-0 items-center gap-2">
-        <History size={21} className="shrink-0 text-primary" aria-hidden="true"/>
-        <div className="min-w-0">
-          <h2 className="truncate text-base font-bold tracking-tight sm:text-lg">Histórico e prontuário</h2>
-          <p className="truncate text-[11px] text-muted-foreground sm:text-xs">Consumos, refeições e cuidados · fuso do Acre</p>
-        </div>
-      </div>
+      <p className="min-w-0 truncate text-xs text-muted-foreground"><strong className="font-semibold text-foreground">{dayItems.length} registros</strong> · consumos, refeições e cuidados · horário do Acre</p>
       <div className="flex shrink-0 items-center gap-1.5">
         <button type="button" aria-expanded={filtersOpen} onClick={()=>setFiltersOpen(value=>!value)}
           className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-muted/40 px-2.5 text-[11px] font-semibold text-foreground hover:bg-muted">
           <SlidersHorizontal size={14}/>{filtersOpen?"Recolher filtros":"Exibir filtros"}
         </button>
-        <span className="rounded-full border border-border bg-muted/60 px-2.5 py-1 text-[11px] font-semibold tabular-nums">{dayItems.length} registros</span>
       </div>
     </header>
 
@@ -274,17 +267,17 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
       })}
     </div>
 
-    {filtersOpen&&<div className="patient-history-controls grid shrink-0 min-w-0 gap-2">
+    {filtersOpen&&<div className="patient-history-controls grid shrink-0 min-w-0 gap-2 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,2fr)]">
       <label className="relative block min-w-0">
         <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
         <input type="search" value={filters.query} onChange={event=>setFilter({query:event.target.value})}
           placeholder="Buscar alimento, bebida, volume ou cuidado…"
           aria-label="Buscar nos registros"
-          className="h-10 w-full min-w-0 rounded-xl border border-border bg-muted/30 pl-9 pr-3 text-xs text-foreground outline-none transition focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary"/>
+          className="h-9 w-full min-w-0 rounded-lg border border-border bg-card pl-9 pr-3 text-xs text-foreground outline-none transition focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary"/>
       </label>
       <div className="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-4">
         <label className="flex min-w-0 flex-col gap-1 text-[11px] font-semibold text-muted-foreground">
-          <span>Período</span>
+          <span className="sr-only">Período</span>
           <select className="h-9 w-full min-w-0 rounded-lg border border-border bg-card px-2 text-xs font-semibold text-foreground"
             value={filters.period} onChange={event=>setFilter({period:event.target.value as HistoryFilter["period"],subtype:"todos",status:"todos"})}>
             <option value="hoje">Hoje</option>
@@ -293,7 +286,7 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
           </select>
         </label>
         <label className="flex min-w-0 flex-col gap-1 text-[11px] font-semibold text-muted-foreground">
-          <span>Tipo</span>
+          <span className="sr-only">Tipo</span>
           <select className="h-9 w-full min-w-0 rounded-lg border border-border bg-card px-2 text-xs font-semibold text-foreground disabled:opacity-50"
             disabled={filters.group==="todos"}
             value={filters.subtype} onChange={event=>setFilter({subtype:event.target.value})}>
@@ -302,7 +295,7 @@ export function PatientActivityHistory({patientId,ownerId,revision,onRecordChang
           </select>
         </label>
         <label className="flex min-w-0 flex-col gap-1 text-[11px] font-semibold text-muted-foreground">
-          <span>Situação</span>
+          <span className="sr-only">Situação</span>
           <select className="h-9 w-full min-w-0 rounded-lg border border-border bg-card px-2 text-xs font-semibold text-foreground"
             value={filters.status} onChange={event=>setFilter({status:event.target.value as HistoryFilter["status"]})}>
             <option value="todos">Todas as situações</option>

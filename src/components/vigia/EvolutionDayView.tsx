@@ -53,7 +53,7 @@ export function EvolutionDayView({ metrics: m, raw, targets, focus }: { metrics:
     <div className="grid gap-3">
       {(!focus || shownGoals.length > 0) && <Panel title="Metas do dia" note={m.closed ? "Dia encerrado (horário do Acre)" : "Em andamento · a água fecha à meia-noite; refeições contam até as 22h"}>
         {shownGoals.length === 0 ? <Empty>Ainda não há metas programadas para este dia.</Empty> : (
-          <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-2.5 sm:grid-cols-[repeat(auto-fit,minmax(15rem,1fr))]">
             {shownGoals.map((goal) => {
               const style = METRIC_STYLE[goal.metric];
               const Icon = style.icon;
