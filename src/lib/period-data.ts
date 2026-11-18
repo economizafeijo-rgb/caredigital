@@ -57,10 +57,10 @@ export async function loadPeriodRaw(patientId: string, ownerId: string, from: st
   const scope = (query: any) => query.eq("patient_id", patientId).eq("owner_id", ownerId);
   const note = (name: string, failed: boolean) => { if (failed) warnings.push(name); };
 
-  const [water, waterGoals, meals, activities, beverages, portions, supPlans, supIntakes, medPlans, medIntakes, checklist, sleep, weights, reviews, prefsRow] = await Promise.all([
+  const [water, waterGoals, meals, mealLogs, activities, beverages, portions, supPlans, supIntakes, medPlans, medIntakes, checklist, sleep, weights, reviews, prefsRow] = await Promise.all([
     fetchAll((a, b) => scope(db.from("care_hydration").select("amount_ml,recorded_at")).gte("recorded_at", startIso).lt("recorded_at", endIso).order("recorded_at").range(a, b)),
     fetchAll((a, b) => scope(db.from("care_hydration_daily_goals").select("goal_date,target_ml,consumed_ml,status")).gte("goal_date", from).lte("goal_date", to).order("goal_date").range(a, b)),
-    fetchAll((a, b) => scope(db.from("care_activity_log").select("happened_at,details,event_type")).eq("category", "refeicao").in("event_type", ["confirmed", "logged"]).gte("happened_at", startIso).lt("happened_at", endIso).order("happened_at").range(a, b)),
+    fetchAll((a, b) => scope(db.from("care_activity_log").select("happened_at,details,event_type").eq("category", "refeicao").in("event_type", ["confirmed", "logged"]).gte("happened_at", startIso).lt("happened_at", endIso).order("happened_at").range(a, b)),
     fetchAll((a, b) => scope(db.from("care_activity_log").select("happened_at,details")).eq("category", "atividade").eq("event_type", "logged").gte("happened_at", startIso).lt("happened_at", endIso).order("happened_at").range(a, b)),
     fetchAll((a, b) => scope(db.from("care_client_beverages").select("name,kind,amount_ml,consumed_at")).gte("consumed_at", startIso).lt("consumed_at", endIso).order("consumed_at").range(a, b)),
     fetchAll((a, b) => scope(db.from("care_food_consumptions").select("food_id,grams,kcal,protein_g,carbs_g,fat_g,recorded_at")).gte("recorded_at", startIso).lt("recorded_at", endIso).order("recorded_at").range(a, b)),
@@ -75,7 +75,7 @@ export async function loadPeriodRaw(patientId: string, ownerId: string, from: st
     scope(db.from("care_nutrition_preferences").select("*")).maybeSingle(),
   ]);
 
-  note("hidratação", water.failed); note("metas de hidratação", waterGoals.failed); note("refeições", meals.failed); note("atividade", activities.failed);
+  note("hidratação", water.failed); note("metas de hidratação", waterGoals.failed); note("refeições", meals.failed || mealLogs.failed); note("atividade", activities.failed);
   note("bebidas", beverages.failed); note("biblioteca alimentar", portions.failed); note("suplementos", supPlans.failed || supIntakes.failed);
   note("medicação", medPlans.failed || medIntakes.failed); note("agenda de medicação", checklist.failed); note("sono", sleep.failed);
   note("peso", weights.failed); note("observações das metas", reviews.failed);
@@ -83,10 +83,23 @@ export async function loadPeriodRaw(patientId: string, ownerId: string, from: st
   raw.water = water.rows.map((row) => ({ at: row.recorded_at, ml: Number(row.amount_ml) || 0 }));
   raw.waterGoals = waterGoals.rows.map((row) => ({ day: row.goal_date, target: Number(row.target_ml) || 0, consumed: Number(row.consumed_ml) || 0, status: row.status }));
 
+  const nutritionRequests = new Set(mealLogs.rows.map((row) => row.request_id).filter(Boolean));
   for (const row of meals.rows) {
+    const requestId = typeof row.details?.request_id === "string" ? row.details.request_id : null;
+    if (requestId && nutritionRequests.has(requestId)) continue;
     const text = String(row.details?.description || row.details?.title || "");
     const total = sumNutrients(parseFoodText(text).map((food) => food.nutrients));
     raw.foods.push({ at: row.happened_at, label: text || "Refeição", source: row.event_type === "logged" ? "Refeição registrada" : "Refeição confirmada", kcal: total.kcal, protein: total.protein, carbs: total.carbs, fat: total.fat });
+  }
+  for (const row of mealLogs.rows) {
+    const items = Array.isArray(row.items) ? row.items.join(", ") : String(row.items ?? "");
+    const text = [row.meal_name, items].filter(Boolean).join(": ");
+    raw.foods.push({
+      at: row.recorded_at, label: text || "Refeição",
+      source: /reconstruído/i.test(String(row.meal_name)) ? "Refeição reconstruída" : "Registro nutricional",
+      kcal: Number(row.kcal) || 0, protein: Number(row.protein_g) || 0,
+      carbs: Number(row.carbs_g) || 0, fat: Number(row.fat_g) || 0,
+    });
   }
   for (const row of beverages.rows) {
     const text = String(row.name || row.kind || "Bebida");
