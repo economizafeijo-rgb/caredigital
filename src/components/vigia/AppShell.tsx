@@ -34,6 +34,8 @@ import {
   type LucideIcon,
   ShoppingBag,
   Store,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import { LogoMark } from "./Logo";
 import { supabase } from "@/integrations/supabase/client";
@@ -238,6 +240,28 @@ export function AppShell({ children }: { children: ReactNode }) {
   const location = useRouterState({ select: (state) => state.location });
   const [menuOpen, setMenuOpen] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
+  const [sidebarPinned, setSidebarPinned] = useState(false);
+  const hoverTimer = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    try { setSidebarPinned(localStorage.getItem("nv-sidebar-pinned") === "1"); } catch { /* sem armazenamento */ }
+  }, []);
+  const togglePin = () => setSidebarPinned((v) => {
+    try { localStorage.setItem("nv-sidebar-pinned", v ? "0" : "1"); } catch { /* sem armazenamento */ }
+    return !v;
+  });
+  // Atalho de teclado: [ fixa ou solta o menu lateral.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement;
+      if (e.key !== "[" || e.ctrlKey || e.metaKey || e.altKey || /INPUT|TEXTAREA|SELECT/.test(t.tagName) || t.isContentEditable) return;
+      togglePin();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+  const openRail = () => { window.clearTimeout(hoverTimer.current); hoverTimer.current = window.setTimeout(() => setSidebarExpanded(true), 120); };
+  const closeRail = () => { window.clearTimeout(hoverTimer.current); setSidebarExpanded(false); };
+  const railOpen = sidebarExpanded || sidebarPinned;
   const [darkMode, setDarkMode] = useState(false);
   const [fullScreen, setFullScreen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -345,12 +369,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         {...(item.hash ? { hash: item.hash } : {})}
         activeOptions={{ exact: true, includeHash: true }}
         aria-current={active ? "page" : undefined}
-        className={`group relative flex h-10 items-center gap-3 rounded-xl px-2.5 text-[13px] font-semibold transition-all ${active ? `${theme?.pill ?? "bg-primary"} text-white shadow-lg ring-1 ring-white/20` : "text-slate-300 hover:translate-x-0.5 hover:bg-white/[.07] hover:text-white"}`}
+        title={railOpen ? undefined : item.label}
+        className={`nv-rail-link group relative flex h-11 items-center gap-3 rounded-xl px-2.5 text-[13px] font-semibold transition-colors ${active ? "bg-white/[.09] text-white" : "text-slate-400 hover:bg-white/[.05] hover:text-white"}`}
       >
-        <span
-          className={`grid size-7 shrink-0 place-items-center rounded-lg transition ${active ? "bg-white/25" : theme ? theme.pill + " text-white opacity-90 group-hover:opacity-100" : "bg-white/10"}`}
-        >
-          <Icon size={15} strokeWidth={2.2} />
+        <span aria-hidden="true" className={`absolute -left-3 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full transition-all duration-300 ${active ? `${theme?.pill ?? "bg-primary"} opacity-100` : "opacity-0"}`} />
+        <span className={`nv-rail-icon grid size-8 shrink-0 place-items-center rounded-lg transition-all duration-300 ${active ? `${theme?.pill ?? "bg-primary"} text-white shadow-lg` : "bg-white/[.06] text-slate-300 group-hover:bg-white/10 group-hover:text-white"}`}>
+          <Icon size={16} strokeWidth={2.2} />
         </span>
         <span className="truncate">{item.label}</span>
       </Link>
@@ -364,22 +388,22 @@ export function AppShell({ children }: { children: ReactNode }) {
       >
         {groups.map((group) => (
           <div key={group.title}>
-            <p className="flex items-center gap-2 px-2.5 pb-2 text-[10px] font-bold uppercase tracking-[.16em] text-slate-500">
-              {group.title}<i className="h-px flex-1 bg-white/10" />
+            <p className="flex h-5 items-center gap-2 px-2.5 pb-1 text-[11px] font-semibold text-slate-500">
+              <span className="nv-rail-label">{group.title}</span><i className="h-px flex-1 bg-white/10" />
             </p>
             <div className="grid gap-0.5">{group.items.map(sideLink)}</div>
           </div>
         ))}
       </nav>
       <div className="shrink-0 border-t border-white/10 p-3">
-        <div className="flex items-center gap-2.5 rounded-lg bg-white/5 p-2">
+        <div className="flex items-center gap-2.5 rounded-xl bg-white/5 p-2">
           <span
             className="grid size-8 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-white"
             aria-hidden="true"
           >
             {(access.name || access.email || "C").slice(0, 1).toUpperCase()}
           </span>
-          <span className="min-w-0 flex-1 leading-tight">
+          <span className="sidebar-account-copy min-w-0 flex-1 leading-tight">
             <span className="block truncate text-[13px] font-semibold text-white">
               {access.name || "Conta conectada"}
             </span>
@@ -397,12 +421,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             disabled={signingOut}
             aria-label="Sair da conta"
             title="Sair da conta"
-            className="grid size-8 shrink-0 place-items-center rounded-lg text-slate-300 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-50"
+            className="sidebar-account-action grid size-8 shrink-0 place-items-center rounded-lg text-slate-300 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-50"
           >
             <LogOut size={16} />
           </button>
         </div>
-        <p className="mt-2 text-center text-[10px] leading-tight text-slate-500">
+        <p className="nv-rail-label mt-2 whitespace-nowrap text-center text-[10px] leading-tight text-slate-500">
           Desenvolvido por <span className="font-semibold text-slate-300">Franc D&apos;nis</span>
           <br />
           Feijó, Acre
@@ -416,18 +440,33 @@ export function AppShell({ children }: { children: ReactNode }) {
       <HydrationProvider>
         <div className="care-shell flex h-dvh min-h-0 overflow-hidden bg-background text-foreground">
           {internalPage && (
-            <aside
-              onMouseEnter={() => setSidebarExpanded(true)}
-              onMouseLeave={() => setSidebarExpanded(false)}
-              className={`sidebar-shell hidden shrink-0 flex-col bg-sidebar transition-[width] duration-200 xl:flex ${sidebarExpanded ? "w-60" : "w-16"}`}
-            >
-              <div
-                className={`flex h-14 shrink-0 items-center border-b border-white/10 ${sidebarExpanded ? "px-4" : "justify-center px-2"}`}
+            <div className={`relative hidden shrink-0 transition-[width] duration-300 ease-out xl:block ${sidebarPinned ? "w-64" : "w-[76px]"}`}>
+              <aside
+                onMouseEnter={openRail}
+                onMouseLeave={closeRail}
+                onFocusCapture={() => setSidebarExpanded(true)}
+                onBlurCapture={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setSidebarExpanded(false); }}
+                data-collapsed={railOpen ? undefined : ""}
+                className={`sidebar-shell absolute inset-y-0 left-0 z-40 flex flex-col overflow-hidden border-r border-white/5 bg-sidebar transition-[width,box-shadow] duration-300 ease-out ${railOpen ? "w-64" : "w-[76px]"} ${sidebarExpanded && !sidebarPinned ? "shadow-[24px_0_48px_-20px_rgba(0,0,0,.55)]" : ""}`}
               >
-                <Brand onDark />
-              </div>
-              {sidebarBody}
-            </aside>
+                <div aria-hidden="true" className="pointer-events-none absolute -left-20 -top-20 size-56 rounded-full bg-primary/20 blur-3xl" />
+                <div className="relative flex h-14 shrink-0 items-center gap-2 border-b border-white/10 px-[19px]">
+                  <Brand onDark />
+                </div>
+                {sidebarBody}
+                <button
+                  type="button"
+                  onClick={togglePin}
+                  aria-pressed={sidebarPinned}
+                  title={sidebarPinned ? "Recolher menu ( [ )" : "Fixar menu aberto ( [ )"}
+                  className="relative mx-3 mb-3 flex h-10 shrink-0 items-center gap-3 rounded-xl px-2.5 text-[13px] font-semibold text-slate-400 transition-colors hover:bg-white/[.06] hover:text-white"
+                >
+                  <span className="grid size-8 shrink-0 place-items-center">{sidebarPinned ? <PanelLeftClose size={17} /> : <PanelLeftOpen size={17} />}</span>
+                  <span className="nv-rail-label truncate">{sidebarPinned ? "Recolher menu" : "Fixar menu aberto"}</span>
+                  <kbd className="nv-rail-label ml-auto rounded border border-white/15 px-1.5 text-[10px] text-slate-500">[</kbd>
+                </button>
+              </aside>
+            </div>
           )}
 
           <div className="flex min-w-0 flex-1 flex-col">

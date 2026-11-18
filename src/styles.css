@@ -368,14 +368,19 @@ iframe[title*="Lovable" i][title*="badge" i] { display: none !important; visibil
   .care-shell section[aria-label="Painel de acompanhamento individual"] { height: auto; }
   #care-client-tab-panel { overflow: visible; }
 }
+/* Menu lateral recolhível: trilho de ícones que se expande sobre o conteúdo (sem empurrar a página)
+   ou fica fixo aberto pelo botão "Fixar menu". */
 @media (min-width: 1280px) {
-  .sidebar-shell:not(:hover) nav p,
-  .sidebar-shell:not(:hover) nav a > span:last-child,
-  .sidebar-shell:not(:hover) .sidebar-account-copy,
-  .sidebar-shell:not(:hover) .sidebar-account-action { display: none; }
-  .sidebar-shell:not(:hover) nav a { justify-content: center; padding-inline: .5rem; }
-  .sidebar-shell:not(:hover) nav a > span:first-child { margin-inline: auto; }
-  .sidebar-shell:not(:hover) .sidebar-brand-wordmark { display: none; }
+  .sidebar-shell .nv-rail-label, .sidebar-shell nav a > span:last-child, .sidebar-shell .sidebar-account-copy,
+  .sidebar-shell .sidebar-account-action, .sidebar-shell .sidebar-brand-wordmark { transition: opacity .2s .08s; }
+  .sidebar-shell[data-collapsed] .nv-rail-label,
+  .sidebar-shell[data-collapsed] nav a > span:last-child,
+  .sidebar-shell[data-collapsed] .sidebar-account-copy,
+  .sidebar-shell[data-collapsed] .sidebar-account-action,
+  .sidebar-shell[data-collapsed] .sidebar-brand-wordmark { opacity: 0; pointer-events: none; transition-delay: 0s; }
+  .sidebar-shell[data-collapsed] nav p i { opacity: 1; }
+  .sidebar-shell .nv-rail-link:hover .nv-rail-icon { transform: scale(1.08); }
+}
 }
 
 /* Páginas públicas de apresentação: a tipografia acompanha a largura E a altura da janela,
