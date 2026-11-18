@@ -66,12 +66,12 @@ export function PartnerCommercial({ className = "" }: { className?: string }) {
     >
       <h2 id="partner-ad-title" className="sr-only">Anuncie na NextVita: lojas, academias, personal trainers e produtos</h2>
 
-      <div className="relative h-[17rem] min-[400px]:h-[18rem] sm:h-[18.5rem] lg:h-[18.5rem]">
+      <div className="relative h-[17rem] min-[400px]:h-[18rem] sm:h-[19rem] lg:h-[20rem]">
         {scene ? (
           <div key={scene.id} className="absolute inset-0">
             {scene.dev ? (
               <div className="absolute inset-0 bg-gradient-to-br from-[#0b1120] via-[#0f2a2a] to-[#0c8063]" aria-hidden="true">
-                <div className="nv-banner-img absolute right-8 top-1/2 hidden w-[24rem] -translate-y-1/2 md:block lg:right-14 lg:w-[28rem]">
+                <div className="nv-banner-img absolute right-10 top-1/2 hidden w-[19rem] -translate-y-[55%] md:block lg:right-16 lg:w-[22rem] xl:w-[24rem]">
                   <span className="absolute -left-3 -top-3 z-10 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-slate-900 shadow-lg">Projeto real: NextVita</span>
                   <div className="rounded-xl bg-slate-900 p-1.5 shadow-2xl ring-1 ring-white/15">
                     <div className="overflow-hidden rounded-md bg-white">
@@ -79,7 +79,7 @@ export function PartnerCommercial({ className = "" }: { className?: string }) {
                     </div>
                   </div>
                   <div className="relative left-1/2 h-2.5 w-[112%] -translate-x-1/2 rounded-b-xl bg-gradient-to-b from-slate-400 to-slate-600 shadow-xl" />
-                  <div className="nv-float absolute -bottom-8 -right-6 w-20 rounded-[16px] bg-slate-900 p-1 shadow-2xl ring-1 ring-white/25 lg:w-24">
+                  <div className="nv-float absolute -bottom-5 -right-7 w-16 rounded-[14px] bg-slate-900 p-1 shadow-2xl ring-1 ring-white/25 lg:w-[4.5rem]">
                     <img src="/images/dev-nextvita-mobile.webp" alt="" width={300} height={560} className="aspect-[9/17] w-full rounded-[12px] object-cover object-top" />
                   </div>
                 </div>
@@ -96,11 +96,11 @@ export function PartnerCommercial({ className = "" }: { className?: string }) {
               </div>
             )}
             <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/45 to-black/10 max-sm:bg-gradient-to-t max-sm:from-black/90 max-sm:via-black/55 max-sm:to-black/20" />
-            <div className="absolute inset-y-0 left-0 flex max-w-[34rem] flex-col justify-center px-5 sm:px-10">
+            <div className="absolute inset-y-0 left-0 flex max-w-[34rem] flex-col justify-center px-5 py-6 sm:px-10 md:max-w-[min(34rem,52%)]">
               <span className="nv-rise inline-flex w-fit items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur">
                 <scene.icon size={14} aria-hidden="true" /> {scene.dev ? "Franc D'nis · Desenvolvedor" : `Para ${scene.label.toLowerCase()}`}
               </span>
-              <p className="mt-3 font-display text-[2rem] font-extrabold leading-[1.02] tracking-tight min-[400px]:text-4xl sm:text-5xl lg:text-[3.4rem]">
+              <p className="mt-3 font-display text-[2rem] font-extrabold leading-[1.02] tracking-tight min-[400px]:text-4xl sm:text-[2.6rem] lg:text-[3rem]">
                 {scene.headline.map((w, i) => (
                   <span key={w + i} className="nv-word mr-[0.25em] inline-block" style={{ animationDelay: `${150 + i * 180}ms` }}>
                     {w}
