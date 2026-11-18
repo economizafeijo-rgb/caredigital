@@ -39,6 +39,26 @@ describe("métricas das 24 horas", () => {
     expect(result.waterAllMl).toBe(1250);
     expect(result.hasData).toBe(true);
   });
+  it("recupera totais diários dos snapshots sem somar novamente os eventos individuais", () => {
+    const day = "2026-11-05";
+    const result = buildDay(raw({
+      water: [{ at: at(day, "08:00"), ml: 200 }, { at: at(day, "10:00"), ml: 250 }],
+      reviews: [
+        { day, metric: "hidratacao", status: "nao_atingida", target: 2500, actual: 1700, unit: "ml", observation: "Snapshot de hidratação." },
+        { day, metric: "calorias", status: "nao_atingida", target: 2400, actual: 1980, unit: "kcal", observation: "Snapshot de calorias." },
+        { day, metric: "proteina", status: "nao_atingida", target: 150, actual: 105, unit: "g", observation: "Snapshot de proteínas." },
+      ],
+    }), day, ctxAt("2026-11-17", "15:00"));
+    expect(result.waterMl).toBe(1700);
+    expect(result.waterAllMl).toBe(1700);
+    expect(result.kcal).toBe(1980);
+    expect(result.protein).toBe(105);
+    expect(result.goals.find((goal) => goal.metric === "hidratacao")).toMatchObject({ target: 2500, actual: 1700 });
+    expect(result.goals.find((goal) => goal.metric === "calorias")).toMatchObject({ target: 2400, actual: 1980 });
+    expect(result.goals.find((goal) => goal.metric === "proteina")).toMatchObject({ target: 150, actual: 105 });
+    expect(result.hasData).toBe(true);
+  });
+
   it("não conta refeições depois das 22h na meta de calorias", () => {
     const day = "2026-11-10";
     const result = buildDay(raw({ foods: [food(day, "12:00", 800, 40), food(day, "22:15", 400, 10)] }), day, ctxAt("2026-11-17", "15:00"));

@@ -45,6 +45,9 @@ export function EvolutionDayView({ metrics: m, raw, targets, focus }: { metrics:
 
   const misses = shownGoals.filter((goal) => goal.status === "nao_atingida");
   const savedMetrics = new Set(m.reviews.map((review) => review.metric));
+  const waterReview = m.reviews.find((review) => review.metric === "hidratacao");
+  const kcalReview = m.reviews.find((review) => review.metric === "calorias");
+  const proteinReview = m.reviews.find((review) => review.metric === "proteina");
 
   return (
     <div className="grid gap-3">
@@ -107,6 +110,7 @@ export function EvolutionDayView({ metrics: m, raw, targets, focus }: { metrics:
             </ul>
           )}
           <p className="mt-2 text-[11px] text-muted-foreground">Total nas 24 horas: <strong className="text-foreground">{nf(m.waterAllMl)} ml</strong></p>
+          {waterReview?.observation && <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">Histórico salvo: {waterReview.observation}</p>}
         </Panel>}
 
         {on("alimentacao") && <Panel title="Alimentação nas 24 horas" note={kcal ? `Meta ${nf(kcal.target)} kcal · ${kcal.rule}` : "Calorias por hora e acumulado do dia"}>
@@ -155,6 +159,7 @@ export function EvolutionDayView({ metrics: m, raw, targets, focus }: { metrics:
                   </li>
                 ))}
               </ul>
+              {(kcalReview?.observation || proteinReview?.observation) && <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">Histórico salvo: {[kcalReview?.observation, proteinReview?.observation].filter(Boolean).join(" ")}</p>}
             </>
           )}
         </Panel>}
