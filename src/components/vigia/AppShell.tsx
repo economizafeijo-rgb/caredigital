@@ -279,7 +279,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [shellError, setShellError] = useState("");
 
   useEffect(() => {
-    const enabled = window.localStorage.getItem("caredigital-theme") === "dark";
+    const enabled = window.localStorage.getItem("caredigital-theme") !== "light"; // escuro é o padrão
     document.documentElement.classList.toggle("dark", enabled);
     setDarkMode(enabled);
     const sync = () => setFullScreen(Boolean(document.fullscreenElement));

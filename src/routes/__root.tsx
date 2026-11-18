@@ -1,3 +1,4 @@
+import { SiteIntro } from "@/components/vigia/SiteIntro";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -126,8 +127,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" className="dark" suppressHydrationWarning>
       <head>
+        {/* Escuro é o padrão; só fica claro se a pessoa escolheu. Roda antes da pintura para não piscar. */}
+        <script dangerouslySetInnerHTML={{ __html: "try{if(localStorage.getItem('caredigital-theme')==='light')document.documentElement.classList.remove('dark')}catch(e){}" }} />
         <HeadContent />
       </head>
       <body>
@@ -143,6 +146,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <SessionGuard />
+      <SiteIntro />
       <AppShell>
         <Outlet />
       </AppShell>

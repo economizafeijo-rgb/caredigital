@@ -156,7 +156,7 @@ export function SmartBanner({ className = "", intro }: { className?: string; int
       {sl.bg && <img src={sl.bg} alt="" className="nv-kenburns absolute inset-0 size-full object-cover" style={{ animationDuration: `${DURATION + 3000}ms` }} />}
       {sl.bg && <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,8,14,.92)_0%,rgba(2,8,14,.72)_45%,rgba(2,8,14,.2)_100%)] max-sm:bg-[linear-gradient(180deg,rgba(2,8,14,.25)_0%,rgba(2,8,14,.7)_45%,rgba(2,8,14,.95)_100%)]" />}
       <div className="absolute inset-0 opacity-[.07] [background-image:radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px]" />
-      <div className="relative grid h-full grid-cols-1 items-center gap-5 p-5 pb-16 sm:grid-cols-[minmax(0,1fr)_auto] sm:p-8 sm:pb-14 lg:px-10">
+      <div className="relative grid h-full grid-cols-1 content-center items-center gap-4 p-5 pb-16 sm:grid-cols-[minmax(0,1fr)_auto] sm:content-normal sm:gap-5 sm:p-8 sm:pb-14 lg:px-10">
         <div className="min-w-0 max-w-[40rem]">
           {sl.custom ?? (
             <>
@@ -184,12 +184,12 @@ export function SmartBanner({ className = "", intro }: { className?: string; int
             </>
           )}
         </div>
-        <div className="relative flex h-full items-center justify-center max-sm:order-first max-sm:min-h-[9rem]" aria-hidden="true">
+        <div className="relative flex h-full items-center justify-center max-sm:order-first max-sm:h-auto max-sm:min-h-[13rem] max-sm:[&>*]:scale-110" aria-hidden="true">
           {sl.art ?? (sl.tool ? (
             <ToolDemo kind={sl.tool} />
           ) : (
             sl.images.slice(0, 2).map((src, i) => (
-              <span key={src + i} className={`relative block overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/20 ${i === 0 ? "nv-banner-img size-32 sm:size-44 lg:size-52" : "nv-float -ml-10 mt-16 size-24 sm:size-32 lg:size-36"}`}>
+              <span key={src + i} className={`relative block overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/20 ${i === 0 ? "nv-banner-img size-44 sm:size-48 lg:size-56" : "nv-float -ml-10 mt-16 size-32 sm:size-36 lg:size-40"}`}>
                 <img src={src} alt="" width={360} height={360} className="nv-kenburns size-full object-cover" style={{ animationDuration: `${DURATION + 1500}ms` }} />
               </span>
             ))
@@ -203,7 +203,7 @@ export function SmartBanner({ className = "", intro }: { className?: string; int
     <section
       aria-roledescription="carrossel"
       aria-label="Destaques NextVita"
-      className={`nv-dark relative isolate min-h-[34rem] overflow-hidden rounded-2xl bg-slate-950 text-white shadow-card sm:min-h-[22rem] lg:min-h-[24rem] ${className}`}
+      className={`nv-dark relative isolate h-[min(40rem,calc(100dvh-7rem))] min-h-[32rem] overflow-hidden rounded-2xl bg-slate-950 text-white shadow-card [contain:layout_paint] sm:h-[23rem] sm:min-h-0 lg:h-[25rem] ${className}`}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       onFocusCapture={() => setHover(true)}
