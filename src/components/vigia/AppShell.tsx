@@ -522,7 +522,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               {children}
               {location.pathname !== "/" && (
-                <p className="mt-3 border-t border-border pt-3 text-center text-xs text-muted-foreground">
+                <p className="nv-shell-credit mt-3 border-t border-border pt-3 text-center text-xs text-muted-foreground">
                   NextVita · Desenvolvido por{" "}
                   <Link to="/sobre" className="font-semibold text-foreground underline-offset-2 hover:underline">Franc D&apos;nis</Link> ·
                   Feijó, Acre

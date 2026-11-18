@@ -1,26 +1,20 @@
-import { Link } from "@tanstack/react-router";
-import { AreaShowcase } from "./AreaShowcases";
-import { ScreenPreview } from "./ScreenPreviews";
+import { FitShowcase } from "./FitShowcase";
 import {
   Activity,
-  ArrowRight,
   BedDouble,
   Bluetooth,
   Moon,
   BarChart3,
   BellRing,
   CalendarClock,
-  Check,
   ClipboardCheck,
   ClipboardList,
   Droplets,
   Dumbbell,
   HeartPulse,
-  LockKeyhole,
   MapPin,
   Pill,
   Scale,
-  ShieldCheck,
   Sparkles,
   Target,
   Timer,
@@ -56,7 +50,7 @@ type Showcase = {
   privacy: string;
 };
 
-const copy: Record<ShowcaseKind, Showcase> = {
+export const copy: Record<ShowcaseKind, Showcase> = {
   hydration: {
     icon: Droplets,
     tone: "text-water bg-water/10",
@@ -343,7 +337,7 @@ const copy: Record<ShowcaseKind, Showcase> = {
 };
 
 /** Fotografias ilustrativas (Unsplash, licença livre) servidas localmente em /public/images. */
-const showcaseImage: Record<ShowcaseKind, { src: string; position: string }> = {
+export const showcaseImage: Record<ShowcaseKind, { src: string; position: string }> = {
   hydration: { src: "/images/caredigital-hidratacao.webp", position: "50% 45%" },
   medication: { src: "/images/caredigital-medicamentos.webp", position: "50% 50%" },
   sports: { src: "/images/caredigital-esporte.webp", position: "50% 40%" },
@@ -356,7 +350,7 @@ const showcaseImage: Record<ShowcaseKind, { src: string; position: string }> = {
   training: { src: "/images/show-treinos.webp", position: "40% 45%" },
 };
 
-const related: Record<ShowcaseKind, { to: string; label: string }> = {
+export const related: Record<ShowcaseKind, { to: string; label: string }> = {
   protocols: { to: "/protocolos", label: "Como funciona" },
   medication: { to: "/medicamentos", label: "Medicamentos" },
   hydration: { to: "/hidratacao", label: "Hidratação" },
@@ -369,7 +363,7 @@ const related: Record<ShowcaseKind, { to: string; label: string }> = {
   metrics: { to: "/metricas", label: "Métricas" },
 };
 
-/** Cada página pública tem composição própria (ver AreaShowcases.tsx). */
+/** Cada página pública tem composição própria em tela fixa (ver FitShowcase.tsx). */
 export function PublicCareShowcase({ kind }: { kind: ShowcaseKind }) {
-  return <AreaShowcase kind={kind} />;
+  return <FitShowcase kind={kind} />;
 }

@@ -626,3 +626,17 @@ body:has(.care-shell #care-client-tab-panel) {
 @keyframes nv-type { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 .nv-type { animation: nv-type 0.7s steps(12, end) both; }
 @media (prefers-reduced-motion: reduce) { .nv-type { animation: none; } }
+
+/* ---------- Páginas em tela fixa (áreas do menu): sem rolagem no computador, paralaxe e microinterações ---------- */
+@media (min-width: 1024px) {
+  body[data-fit-page] #care-content { overflow: hidden; }
+  body[data-fit-page] .nv-shell-credit { display: none; }
+}
+.nv-parallax img { transform: translate3d(var(--px, 0px), var(--py, 0px), 0) scale(1.02); transition: transform .5s var(--ease); }
+.nv-cta { transition: filter .2s, box-shadow .2s; box-shadow: 0 10px 24px -14px var(--area, #0c8063); }
+.nv-cta:hover { filter: brightness(1.08); }
+.nv-cta-arrow { transition: transform .3s cubic-bezier(.34,1.56,.64,1); }
+.nv-cta:hover .nv-cta-arrow { transform: translateX(4px); }
+.nv-chip { transition: color .2s, border-color .2s, background-color .2s; }
+.nv-chip:hover { border-color: var(--chip, var(--border)); color: var(--chip); }
+@media (prefers-reduced-motion: reduce) { .nv-parallax img { transform: none; transition: none; } .nv-cta:hover .nv-cta-arrow { transform: none; } }

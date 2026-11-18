@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, BarChart3, Check, ChevronLeft, ChevronRight, Droplets, HeartPulse, MessageCircle, Pause, Pill, Play } from "lucide-react";
 import { money, products, STORE_WHATSAPP, useCart } from "@/lib/store";
 
-type Slide = {
+export type Slide = {
   id: string;
   kicker: string;
   title: string;
@@ -193,7 +193,7 @@ export function SmartBanner({ className = "" }: { className?: string }) {
 }
 
 /** Mini telas animadas das ferramentas gratuitas, como num anúncio em vídeo. */
-function ToolDemo({ kind }: { kind: NonNullable<Slide["tool"]> }) {
+export function ToolDemo({ kind }: { kind: NonNullable<Slide["tool"]> }) {
   const base = "nv-banner-img w-44 rounded-2xl p-3.5 shadow-2xl sm:w-52";
   const card = `${base} bg-white text-slate-900`;
   if (kind === "dev")
