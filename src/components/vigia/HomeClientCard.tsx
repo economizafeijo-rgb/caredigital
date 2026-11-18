@@ -909,12 +909,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                     : clientSectionLabels[activeTab].subtitle}
                   {activeTab !== "hoje" && sectionCount != null && ` · ${sectionCount} hoje`}
                 </p>
-                {birthSummary && (
-                  <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-white/75">
-                    {birthSummary.weekday} · {birthSummary.date} · {birthSummary.age} ANOS ·
-                    ANIVERSÁRIO {birthSummary.nextBirthday} · {birthSummary.zodiac}
-                  </p>
-                )}
+                {birthSummary && <BirthChips summary={birthSummary} />}
               </div>
             </div>
             <ExportPlanButton patientId={client.id} ownerId={client.owner_id} label="PDF" className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-white/30 bg-white/15 px-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/25" />
@@ -1765,5 +1760,35 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
         )}
     </section>
     </GoalFxProvider>
+  );
+}
+
+const zodiacGlyph: Record<string, string> = { "ÁRIES": "♈", "TOURO": "♉", "GÊMEOS": "♊", "CÂNCER": "♋", "LEÃO": "♌", "VIRGEM": "♍", "LIBRA": "♎", "ESCORPIÃO": "♏", "SAGITÁRIO": "♐", "CAPRICÓRNIO": "♑", "AQUÁRIO": "♒", "PEIXES": "♓" };
+const titleCase = (v: string) => v.toLocaleLowerCase("pt-BR").replace(/(^|\s)\S/g, (c) => c.toLocaleUpperCase("pt-BR"));
+
+/** Dados de nascimento em fichas legíveis: idade, nascimento, aniversário (com contagem) e signo. */
+function BirthChips({ summary }: { summary: ReturnType<typeof patientDateSummary> }) {
+  const [open, setOpen] = useState<string | null>(null);
+  const d = summary.daysToBirthday;
+  const chips = [
+    { k: "idade", icon: "🎂", label: "Idade", value: `${summary.age} anos`, more: `Nascido(a) em ${summary.date}` },
+    { k: "nasc", icon: "📅", label: "Nasceu", value: `${titleCase(summary.weekday)}, ${summary.date}`, more: `Dia da semana em que nasceu` },
+    { k: "aniv", icon: "🎉", label: "Aniversário", value: d === 0 ? "É hoje! 🎉" : `em ${d} ${d === 1 ? "dia" : "dias"}`, more: `Próximo aniversário: ${titleCase(summary.nextBirthday)}`, hot: d <= 7 },
+    { k: "signo", icon: zodiacGlyph[summary.sign] ?? "✦", label: "Signo", value: titleCase(summary.sign), more: summary.signCusp ? `Nasceu na cúspide com ${titleCase(summary.signCusp)}: depende da hora de nascimento` : "Calculado pela posição do Sol no nascimento" },
+  ];
+  return (
+    <ul className="mt-2 flex flex-wrap gap-1.5" aria-label="Dados de nascimento">
+      {chips.map((c) => (
+        <li key={c.k} className="relative">
+          <button type="button" onClick={() => setOpen((o) => (o === c.k ? null : c.k))} onMouseEnter={() => setOpen(c.k)} onMouseLeave={() => setOpen(null)} aria-expanded={open === c.k}
+            className={`group inline-flex h-8 items-center gap-1.5 rounded-full border px-2.5 text-xs backdrop-blur transition hover:-translate-y-px ${c.hot ? "border-amber-300/60 bg-amber-300/20" : "border-white/20 bg-white/10 hover:bg-white/20"}`}>
+            <span aria-hidden="true" className="text-sm transition-transform group-hover:scale-125">{c.icon}</span>
+            <span className="text-white/65">{c.label}</span>
+            <strong className="font-bold text-white">{c.value}</strong>
+          </button>
+        </li>
+      ))}
+      <li className="h-4 w-full truncate text-[11px] text-white/75" aria-live="polite">{open ? chips.find((c) => c.k === open)?.more : "Passe o mouse ou toque nas fichas para ver detalhes"}</li>
+    </ul>
   );
 }

@@ -66,7 +66,13 @@ export function patientDateSummary(birthDate: string, now = new Date()) {
     month: "long",
     timeZone: TZ,
   }).format(birthday);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const daysToBirthday = Math.round((birthday.getTime() - today.getTime()) / 86_400_000);
+  const z = zodiacDetails(birthDate);
   return {
+    daysToBirthday,
+    sign: z.sign,
+    signCusp: z.cusp ? z.other : null,
     age: calculateAge(birthDate, now),
     weekday: weekday.toUpperCase(),
     date,

@@ -271,9 +271,9 @@ export function ClientHydrationTab({
   const goal = dailyGoal?.target_ml ?? (planValid ? profile.target_ml! : 0);
   // Horário ideal para concluir a água (orientação: líquidos em volume 3 h antes de dormir). Os registros não são limitados.
   const cutoffUtc = Date.parse(acreCalendarDay(clock) + `T${String(WATER_LAST_RECOMMENDED_HOUR).padStart(2, "0")}:00:00-05:00`);
-  const intake =
-    dailyGoal?.consumed_ml ??
-    drinks.reduce((total, item) => total + Number(item.amount_ml), 0);
+  // A meta do servidor soma só água; sucos, chás e outras bebidas também contam para os líquidos do dia.
+  const waterOnly = Math.max(dailyGoal?.consumed_ml ?? 0, drinks.reduce((total, item) => total + Number(item.amount_ml), 0));
+  const intake = waterOnly + otherDrinks.reduce((total, item) => total + Number(item.amount_ml), 0);
   const goalSummary = hydrationGoalNotice(dailyGoal, clock);
   const dayClosed = acreHour(clock) >= WATER_LAST_RECOMMENDED_HOUR; // passou o horário ideal: só deixa de sugerir novos horários
   const remaining = goal ? Math.max(0, goal - intake) : 0;

@@ -32,7 +32,8 @@ function useWeek(patientId: string, ownerId: string, revision: number) {
       db.from("care_activity_log").select("id,recorded_at").eq("patient_id", patientId).eq("owner_id", ownerId).eq("category", "atividade").in("event_type", ["confirmed", "logged"]).gte("recorded_at", from).limit(1000),
       // Refeições registradas pelo botão "Registrar alimento" e refeições da agenda confirmadas.
       db.from("care_activity_log").select("id,happened_at,recorded_at,details").eq("patient_id", patientId).eq("owner_id", ownerId).eq("category", "refeicao").in("event_type", ["confirmed", "logged"]).gte("recorded_at", from).limit(1000),
-    ]).then(([water, logs, foods, meds, acts, mealActs]) => {
+      db.from("care_client_beverages").select("amount_ml,consumed_at").eq("patient_id", patientId).gte("consumed_at", from).limit(2000),
+    ]).then(([water, logs, foods, meds, acts, mealActs, bevs]) => {
       if (!active) return;
       const foodGroups = new Map<string, string>();
       for (const m of mealActs?.data ?? []) {
@@ -45,7 +46,8 @@ function useWeek(patientId: string, ownerId: string, revision: number) {
         if (g && !foodGroups.has(g)) foodGroups.set(g, f.recorded_at);
       }
       setSeries([
-        { key: "hidratacao", days: bucket((water.data ?? []).map((r: any) => ({ at: r.recorded_at, v: Number(r.amount_ml) || 0 }))) },
+        // Água + outras bebidas (suco, chá, café, leite…): todos contam como líquidos do dia.
+        { key: "hidratacao", days: bucket([...(water.data ?? []).map((r: any) => ({ at: r.recorded_at, v: Number(r.amount_ml) || 0 })), ...(bevs?.data ?? []).map((r: any) => ({ at: r.consumed_at, v: Number(r.amount_ml) || 0 }))]) },
         { key: "alimentacao", days: bucket([...(logs.data ?? []).map((r: any) => ({ at: r.recorded_at, v: 1 })), ...[...foodGroups.values()].map((at) => ({ at, v: 1 }))]) },
         { key: "medicacao", days: bucket((meds.data ?? []).map((r: any) => ({ at: r.taken_at, v: 1 }))) },
         { key: "atividade", days: bucket((acts.data ?? []).map((r: any) => ({ at: r.recorded_at, v: 1 }))) },
