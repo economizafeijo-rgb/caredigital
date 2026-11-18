@@ -134,15 +134,16 @@ export function NextUpClock({ target, from, title, detail, color = "#22d3ee", em
             className="grid size-7 shrink-0 place-items-center rounded-full bg-white/10 text-white/80 transition hover:bg-white/20 active:scale-90">{sound.on ? <Bell size={13} /> : <BellOff size={13} />}</button>
         </p>
         {when === null ? (
-          <p className="mt-0.5 text-sm font-bold">{emptyText}</p>
+          <p className="mt-0.5 truncate text-sm font-bold">{emptyText}</p>
         ) : due ? (
-          <p className="mt-0.5 text-xl font-extrabold" style={{ color }}>É hora!</p>
+          <p className={`mt-0.5 font-extrabold leading-none ${compact ? "text-lg" : "text-2xl"}`} style={{ color }}>É hora!</p>
         ) : (
           <p className={`mt-0.5 font-mono font-bold tabular-nums leading-none ${compact ? "text-lg" : "text-2xl"}`}>{countdown(when - now)}</p>
         )}
         {when !== null && <p className="mt-1 truncate text-[11px] text-white/70">às {clockTime(when)}{detail ? ` · ${detail}` : ""}</p>}
-        {when !== null && (due || when - now < 15 * 60_000) && (!compact || due) && (
-          <div className="mt-2 flex flex-wrap gap-1.5">
+        {/* A linha de ações tem altura fixa: aparece/some sem mudar o tamanho do cartão. */}
+        {!compact && when !== null && (
+          <div className={`mt-2 flex h-8 flex-wrap gap-1.5 overflow-hidden transition-opacity duration-300 ${due || when - now < 15 * 60_000 ? "opacity-100" : "pointer-events-none opacity-0"}`} aria-hidden={!(due || when - now < 15 * 60_000)}>
             {onAction && <button type="button" onClick={onAction} className="inline-flex h-8 items-center gap-1 rounded-lg bg-white px-2.5 text-xs font-bold text-slate-900 transition hover:bg-white/90 active:scale-95"><Check size={13} /> {actionLabel ?? "Registrar"}</button>}
             {due && <button type="button" onClick={() => setSnooze(Date.now() + 10 * 60_000)} className="inline-flex h-8 items-center gap-1 rounded-lg border border-white/25 px-2.5 text-xs font-semibold text-white/85 transition hover:bg-white/10 active:scale-95"><TimerReset size={13} /> Adiar 10 min</button>}
           </div>

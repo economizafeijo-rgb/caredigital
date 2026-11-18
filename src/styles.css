@@ -782,3 +782,8 @@ body:has(.care-shell #care-client-tab-panel) {
 button:not(:disabled), [role="button"], [role="radio"], [role="tab"], [role="switch"], [role="slider"], summary, select:not(:disabled),
 label:has(> input[type="checkbox"]), label:has(> input[type="radio"]), input[type="checkbox"], input[type="radio"], input[type="range"], [data-clickable] { cursor: pointer; }
 button:disabled, [aria-disabled="true"] { cursor: not-allowed; }
+
+/* Estabilidade de layout: a barra de rolagem reserva espaço sempre (evita a tela "pular" de largura) */
+html, #care-content { scrollbar-gutter: stable; }
+/* Gráficos responsivos não podem empurrar a largura da grade (evita redimensionamento em ciclo) */
+.recharts-responsive-container { min-width: 0; overflow: hidden; }

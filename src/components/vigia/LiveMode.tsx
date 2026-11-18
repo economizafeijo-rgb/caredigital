@@ -82,7 +82,7 @@ function Tile({ k, on, onPick, icon: Icon, tone, title, children }: { k: MetricK
   return (
     <section aria-label={title} onClick={go} onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " ") && e.target === e.currentTarget) { e.preventDefault(); go(e); } }} tabIndex={area ? 0 : undefined}
       title={area ? `Abrir ${title}` : undefined}
-      className={`group relative overflow-hidden rounded-3xl p-4 ring-1 transition duration-300 ${area ? "cursor-pointer hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70" : ""} ${on ? "bg-white/[.13] ring-white/45 shadow-[0_0_44px_-10px_var(--tile)]" : "bg-white/[.06] ring-white/10 hover:bg-white/[.09] hover:ring-white/25"}`} style={{ ["--tile" as string]: tone }}>
+      className={`group relative min-w-0 overflow-hidden rounded-3xl p-4 ring-1 transition duration-300 ${area ? "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70" : ""} ${on ? "bg-white/[.13] ring-white/45 shadow-[0_0_44px_-10px_var(--tile)]" : "bg-white/[.06] ring-white/10 hover:bg-white/[.09] hover:ring-white/25"}`} style={{ ["--tile" as string]: tone }}>
       <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px opacity-70" style={{ background: tone }} />
       <div className="flex w-full items-center gap-2.5">
         <span className="grid size-10 place-items-center rounded-2xl text-white shadow-lg ring-1 ring-white/25 transition-transform duration-300 group-hover:scale-110" style={{ background: tone }}><Icon size={19} /></span>
