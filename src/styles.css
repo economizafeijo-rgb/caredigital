@@ -381,7 +381,6 @@ iframe[title*="Lovable" i][title*="badge" i] { display: none !important; visibil
   .sidebar-shell[data-collapsed] nav p i { opacity: 1; }
   .sidebar-shell .nv-rail-link:hover .nv-rail-icon { transform: scale(1.08); }
 }
-}
 
 /* Páginas públicas de apresentação: a tipografia acompanha a largura E a altura da janela,
    para o destaque nunca cortar nem esmagar o texto e a página caber inteira na tela. */
