@@ -413,7 +413,7 @@ function Entrar() {
       <section
         onFocusCapture={(e) => { const t = (e.target as HTMLInputElement).type; setFocus(t === "email" ? "email" : t === "password" || (e.target as HTMLInputElement).autocomplete?.includes("password") ? "password" : "other"); }}
         onBlurCapture={() => setFocus(null)}
-        className="relative flex min-h-0 flex-col justify-center overflow-hidden rounded-3xl border border-border bg-card shadow-pop">
+        className="relative flex min-h-0 flex-col justify-center-safe overflow-y-auto overflow-x-hidden rounded-3xl border border-border bg-card shadow-pop [scrollbar-width:thin]">
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-500" />
         <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 size-64 rounded-full bg-primary/10 blur-3xl" />
         <div className="relative flex items-center gap-3 px-4 pb-1 pt-5 sm:px-6">
@@ -432,7 +432,7 @@ function Entrar() {
               : mode === "signup"
                 ? "Preencha seus dados e use o NextVita completo, gratuitamente e sem prazo de validade."
                 : mode === "vendor"
-                  ? "Lojas, academias, personal trainers, profissionais de saúde e marcas. Três etapas rápidas; a equipe NextVita aprova o cadastro."
+                  ? "Duas etapas rápidas. Sem mensalidade para começar."
                   : mode === "forgot"
                   ? "Informe o e-mail da conta para solicitar um link seguro de recuperação."
                   : "Defina uma senha nova e segura para sua conta."}
