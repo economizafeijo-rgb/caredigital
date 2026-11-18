@@ -89,6 +89,25 @@ const baseIngredients:Omit<Ingredient,"carbs"|"fat"|"fiber">[]=[
  {id:"castanha_para",name:"Castanha-do-pará crua",group:"proteinas",protein:14,kcal:656,flags:["gorduroso"]},
  {id:"azeite",name:"Azeite de oliva",group:"cereais",protein:0,kcal:884,flags:["gorduroso"]},
  {id:"coco",name:"Coco fresco",group:"frutas",protein:3,kcal:354,flags:["gorduroso"]},
+ {id:"pao_frances",name:"Pão francês",group:"cereais",protein:8,kcal:300,provenance:"TACO",flags:["industrializado"]},
+ {id:"pao_integral",name:"Pão de forma integral",group:"cereais",protein:9.4,kcal:253,provenance:"TACO",flags:["industrializado"]},
+ {id:"manteiga",name:"Manteiga com sal",group:"cereais",protein:.4,kcal:726,provenance:"TACO",flags:["gorduroso","laticinio"]},
+ {id:"margarina",name:"Margarina com sal",group:"cereais",protein:0,kcal:596,provenance:"TACO",flags:["gorduroso","industrializado"]},
+ {id:"queijo_coalho",name:"Queijo coalho",group:"proteinas",protein:21,kcal:300,flags:["gorduroso","laticinio"]},
+ {id:"queijo_minas",name:"Queijo minas frescal",group:"proteinas",protein:17.4,kcal:264,provenance:"TACO",flags:["laticinio"]},
+ {id:"requeijao",name:"Requeijão cremoso",group:"proteinas",protein:9.6,kcal:257,provenance:"TACO",flags:["gorduroso","laticinio"]},
+ {id:"presunto",name:"Presunto cozido",group:"proteinas",protein:14.3,kcal:94,provenance:"TACO",flags:["industrializado"]},
+ {id:"cafe_com_leite",name:"Café com leite (meio a meio)",group:"bebidas",protein:1.6,kcal:32,flags:["cafeina","laticinio"],note:"Estimativa para café coado com leite integral, sem açúcar."},
+ {id:"achocolatado",name:"Leite com achocolatado",group:"bebidas",protein:3,kcal:85,flags:["laticinio","industrializado"]},
+ {id:"bolo_simples",name:"Bolo simples caseiro",group:"cereais",protein:6.2,kcal:311,flags:["industrializado"]},
+ {id:"biscoito_salgado",name:"Biscoito salgado tipo cream cracker",group:"cereais",protein:10.1,kcal:432,provenance:"TACO",flags:["industrializado"]},
+ {id:"macarrao",name:"Macarrão cozido",group:"cereais",protein:3.4,kcal:102,provenance:"TACO"},
+ {id:"carne_moida",name:"Carne moída refogada",group:"proteinas",protein:26.7,kcal:212,provenance:"TACO",flags:["gorduroso"]},
+ {id:"linguica",name:"Linguiça de porco grelhada",group:"proteinas",protein:23,kcal:296,flags:["gorduroso","industrializado"]},
+ {id:"pirarucu",name:"Pirarucu assado",group:"proteinas",protein:26,kcal:120},
+ {id:"tambaqui",name:"Tambaqui assado",group:"proteinas",protein:22,kcal:180,flags:["gorduroso"]},
+ {id:"baixaria",name:"Baixaria acreana (cuscuz, carne moída e ovo)",group:"cereais",protein:9,kcal:180,note:"Estimativa para a receita tradicional do Acre."},
+ {id:"banana_cozida",name:"Banana comprida cozida",group:"frutas",protein:1.2,kcal:123},
 ];
 /* Referências TACO/UNICAMP (quando a preparação coincide) e estimativas
    editoriais TBCA/USDA para os demais. Valores podem variar conforme receita,
@@ -123,6 +142,11 @@ const macroMap:Record<string,[number|null,number|null,number|null,Ingredient["pr
  tilapia:[0,2.5,0],sardinha:[0,4.7,0],
  mingau_aveia:[12,1.6,1.2],amendoim:[20,49,9],
  castanha_para:[12,66,7.5],azeite:[0,100,0],coco:[15,33,9],
+ pao_frances:[58.6,3.1,2.3,"TACO"],pao_integral:[49.9,3.7,6.9,"TACO"],manteiga:[.1,82.4,0,"TACO"],margarina:[0,67.4,0,"TACO"],
+ queijo_coalho:[2,23,0],queijo_minas:[3.2,20.2,0,"TACO"],requeijao:[2.4,23.4,0,"TACO"],presunto:[2.1,2.7,0,"TACO"],
+ cafe_com_leite:[2.5,1.6,0],achocolatado:[13,2.5,.5],bolo_simples:[51,9,1],biscoito_salgado:[68.7,14.4,2.5,"TACO"],
+ macarrao:[19.9,1.2,1.5,"TACO"],carne_moida:[0,10.9,0,"TACO"],linguica:[0,22,0],pirarucu:[0,1.5,0],tambaqui:[0,10,0],
+ baixaria:[22,6,1.5],banana_cozida:[31,.1,2],
 };
 export const ingredients:Ingredient[]=baseIngredients.map(food=>{
  const n=macroMap[food.id];

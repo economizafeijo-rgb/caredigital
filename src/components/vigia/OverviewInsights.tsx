@@ -30,9 +30,16 @@ function useWeek(patientId: string, ownerId: string, revision: number) {
       db.from("care_food_consumptions").select("meal_group_id,request_id,recorded_at").eq("patient_id", patientId).gte("recorded_at", from).limit(2000),
       db.from("care_client_medication_intakes").select("id,taken_at").eq("patient_id", patientId).gte("taken_at", from).limit(1000),
       db.from("care_activity_log").select("id,recorded_at").eq("patient_id", patientId).eq("owner_id", ownerId).eq("category", "atividade").in("event_type", ["confirmed", "logged"]).gte("recorded_at", from).limit(1000),
-    ]).then(([water, logs, foods, meds, acts]) => {
+      // Refeições registradas pelo botão "Registrar alimento" e refeições da agenda confirmadas.
+      db.from("care_activity_log").select("id,happened_at,recorded_at,details").eq("patient_id", patientId).eq("owner_id", ownerId).eq("category", "refeicao").in("event_type", ["confirmed", "logged"]).gte("recorded_at", from).limit(1000),
+    ]).then(([water, logs, foods, meds, acts, mealActs]) => {
       if (!active) return;
       const foodGroups = new Map<string, string>();
+      for (const m of mealActs?.data ?? []) {
+        if (m.details?.superseded) continue;
+        const g = m.details?.request_id ?? `act:${m.id}`;
+        if (!foodGroups.has(g)) foodGroups.set(g, m.happened_at ?? m.recorded_at);
+      }
       for (const f of foods.data ?? []) {
         const g = f.meal_group_id ?? f.request_id;
         if (g && !foodGroups.has(g)) foodGroups.set(g, f.recorded_at);

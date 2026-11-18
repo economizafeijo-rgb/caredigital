@@ -25,6 +25,12 @@ const micros: Record<string, [number, number, number, number, number]> = {
 /** Palavras-chave → alimento do catálogo. Ordem importa: termos mais específicos primeiro. */
 const aliases: Array<[RegExp, string]> = [
   [/arroz integral/, "arroz_integral"], [/arroz/, "arroz"], [/feij[aã]o preto/, "feijao_preto"], [/feij[aã]o/, "feijao"],
+  [/caf[eé][ _]com[ _]leite|pingado/, "cafe_com_leite"], [/achocolatado|nescau|toddy|chocolate quente/, "achocolatado"],
+  [/p[aã]o integral|p[aã]o de forma/, "pao_integral"], [/p[aã]o|p[aã]ozinho|cacetinho/, "pao_frances"], [/manteiga/, "manteiga"], [/margarina/, "margarina"],
+  [/queijo coalho|queijo assado/, "queijo_coalho"], [/requeij[aã]o/, "requeijao"], [/queijo|mu[cç]arela|mussarela/, "queijo_minas"], [/presunto|peito de peru/, "presunto"],
+  [/bolo/, "bolo_simples"], [/biscoito|bolacha/, "biscoito_salgado"], [/macarr[aã]o|espaguete|massa/, "macarrao"],
+  [/baixaria/, "baixaria"], [/carne mo[ií]da/, "carne_moida"], [/lingui[cç]a|calabresa/, "linguica"], [/pirarucu/, "pirarucu"], [/tambaqui/, "tambaqui"],
+  [/banana cozida|banana comprida cozida/, "banana_cozida"],
   [/frango|galinha/, "frango"], [/til[aá]pia/, "tilapia"], [/sardinha/, "sardinha"], [/peixe/, "peixe"], [/carne|bife|patinho|alcatra/, "carne"],
   [/ovos?\b/, "ovo"], [/iogurte/, "iogurte"], [/leite/, "leite"], [/caf[eé]/, "cafe"], [/suco de maracuj[aá]|suco/, "suco_maracuja"],
   [/banana nanica/, "banana_nanica"], [/banana ma[cç][aã]/, "banana_maca"], [/banana comprida|banana da terra/, "banana_comprida"], [/banana/, "banana_prata"],
@@ -41,6 +47,9 @@ const defaultPortion: Record<string, number> = {
   arroz: 120, arroz_integral: 120, feijao: 100, feijao_preto: 100, frango: 120, carne: 120, peixe: 120, tilapia: 120, sardinha: 80,
   ovo: 50, iogurte: 170, leite: 200, cafe: 100, suco_maracuja: 250, banana_prata: 80, banana_nanica: 100, banana_maca: 70, banana_comprida: 150,
   laranja: 150, acerola: 100, goiaba: 150, manga: 150, mamão: 150, maca: 130, melancia: 200, abacaxi: 100, uva: 100, abacate: 100, acai: 200,
+  pao_frances: 50, pao_integral: 50, manteiga: 10, margarina: 10, queijo_coalho: 40, queijo_minas: 30, requeijao: 15, presunto: 30,
+  cafe_com_leite: 200, achocolatado: 200, bolo_simples: 60, biscoito_salgado: 30, macarrao: 150, carne_moida: 100, linguica: 60,
+  pirarucu: 120, tambaqui: 120, baixaria: 250, banana_cozida: 120,
   alface: 40, tomate: 60, cuscuz: 150, tapioca: 80, macaxeira: 150, batata: 130, batata_doce: 130, aveia: 30, farofa: 30, azeite: 8, castanha_para: 10, amendoim: 30,
 };
 const unitGrams: Array<[RegExp, number]> = [
@@ -60,7 +69,8 @@ export function nutrientsFor(item: Ingredient, grams: number): Nutrients {
 
 /** Reconhece alimentos e quantidades em um texto livre. `liquidMl` é usado quando o registro é de um líquido. */
 export function parseFoodText(text: string, liquidMl?: number | null): ParsedFood[] {
-  const source = text.toLowerCase().normalize("NFC");
+  // Preparos que levam "com" no nome não devem ser separados em dois alimentos.
+  const source = text.toLowerCase().normalize("NFC").replace(/caf[eé] com leite/g, "café_com_leite");
   const segments = source.split(/,|;|\+|\be\b|\bcom\b/).map(part => part.trim()).filter(Boolean);
   const found: ParsedFood[] = [];
   for (const segment of segments) {

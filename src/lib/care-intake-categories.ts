@@ -39,3 +39,56 @@ export const isBeverageKind=(kind:string):kind is BeverageKind=>beverageSet.has(
 export const foodCategory=(kind:string)=>foodKinds.find(c=>c.value===kind);
 export const beverageCategory=(kind:string)=>beverageKinds.find(c=>c.value===kind);
 export const intakeCategory=(kind:string)=>foodCategory(kind)||beverageCategory(kind);
+
+/** Alimentos típicos de cada refeição (inclui pratos do Acre). O texto entra na descrição e é calculado pelo leitor de alimentos. */
+export const typicalFoods: Record<FoodKind, { label: string; text: string }[]> = {
+  cafe_manha: [
+    { label: "Café preto", text: "1 xícara de café" }, { label: "Café com leite", text: "1 xícara de café com leite" },
+    { label: "Pão francês", text: "1 pão francês" }, { label: "Pão com manteiga", text: "1 pão francês com manteiga" },
+    { label: "Tapioca", text: "1 tapioca" }, { label: "Cuscuz", text: "1 prato de cuscuz" }, { label: "Baixaria", text: "1 prato de baixaria" },
+    { label: "Ovo cozido", text: "2 ovos cozidos" }, { label: "Queijo coalho", text: "1 fatia de queijo coalho" },
+    { label: "Banana cozida", text: "1 banana cozida" }, { label: "Macaxeira", text: "1 porção de macaxeira" }, { label: "Mamão", text: "1 fatia de mamão" },
+    { label: "Mingau de aveia", text: "1 prato de mingau de aveia" }, { label: "Iogurte", text: "1 iogurte" }, { label: "Leite", text: "1 copo de leite" },
+  ],
+  almoco: [
+    { label: "Arroz", text: "4 colheres de sopa de arroz" }, { label: "Feijão", text: "1 concha de feijão" }, { label: "Frango", text: "1 filé de frango" },
+    { label: "Carne", text: "1 bife de carne" }, { label: "Carne moída", text: "3 colheres de sopa de carne moída" }, { label: "Pirarucu", text: "1 posta de pirarucu" },
+    { label: "Tambaqui", text: "1 posta de tambaqui" }, { label: "Macaxeira", text: "1 porção de macaxeira" }, { label: "Farofa", text: "2 colheres de sopa de farofa" },
+    { label: "Macarrão", text: "1 porção de macarrão" }, { label: "Salada", text: "1 prato de salada" }, { label: "Legumes", text: "cenoura e abobrinha" },
+    { label: "Suco", text: "1 copo de suco" },
+  ],
+  jantar: [
+    { label: "Sopa de legumes", text: "1 prato de sopa de legumes" }, { label: "Arroz", text: "3 colheres de sopa de arroz" }, { label: "Feijão", text: "1 concha de feijão" },
+    { label: "Frango", text: "1 filé de frango" }, { label: "Peixe", text: "1 filé de peixe" }, { label: "Ovo", text: "2 ovos" },
+    { label: "Cuscuz", text: "1 prato de cuscuz" }, { label: "Tapioca", text: "1 tapioca" }, { label: "Salada", text: "1 prato de salada" }, { label: "Café com leite", text: "1 xícara de café com leite" },
+  ],
+  lanche: [
+    { label: "Fruta", text: "1 banana" }, { label: "Pão com queijo", text: "1 pão francês com queijo" }, { label: "Iogurte", text: "1 iogurte" },
+    { label: "Biscoito", text: "6 biscoitos" }, { label: "Bolo", text: "1 fatia de bolo" }, { label: "Castanha", text: "3 castanhas-do-pará" },
+    { label: "Açaí", text: "1 copo de açaí" }, { label: "Tapioca", text: "1 tapioca" }, { label: "Café com leite", text: "1 xícara de café com leite" }, { label: "Achocolatado", text: "1 copo de achocolatado" },
+  ],
+  ceia: [
+    { label: "Leite morno", text: "1 copo de leite" }, { label: "Iogurte", text: "1 iogurte" }, { label: "Fruta", text: "1 maçã" },
+    { label: "Mingau de aveia", text: "1 prato de mingau de aveia" }, { label: "Chá", text: "1 xícara de chá" }, { label: "Castanha", text: "3 castanhas-do-pará" },
+  ],
+  fruta: [
+    { label: "Banana", text: "1 banana" }, { label: "Mamão", text: "1 fatia de mamão" }, { label: "Maçã", text: "1 maçã" }, { label: "Laranja", text: "1 laranja" },
+    { label: "Abacaxi", text: "1 fatia de abacaxi" }, { label: "Melancia", text: "1 fatia de melancia" }, { label: "Manga", text: "1 manga" },
+    { label: "Goiaba", text: "1 goiaba" }, { label: "Açaí", text: "1 copo de açaí" }, { label: "Uva", text: "1 cacho de uva" },
+  ],
+  refeicao: [
+    { label: "Arroz", text: "4 colheres de sopa de arroz" }, { label: "Feijão", text: "1 concha de feijão" }, { label: "Frango", text: "1 filé de frango" },
+    { label: "Carne", text: "1 bife de carne" }, { label: "Peixe", text: "1 filé de peixe" }, { label: "Macaxeira", text: "1 porção de macaxeira" }, { label: "Salada", text: "1 prato de salada" },
+  ],
+  salada: [
+    { label: "Alface", text: "alface" }, { label: "Tomate", text: "1 tomate" }, { label: "Cenoura", text: "1 cenoura" }, { label: "Pepino", text: "pepino" },
+    { label: "Beterraba", text: "beterraba" }, { label: "Brócolis", text: "brócolis" }, { label: "Azeite", text: "1 colher de azeite" },
+  ],
+  sopa: [
+    { label: "Sopa de legumes", text: "1 prato de sopa de legumes" }, { label: "Caldo de frango", text: "1 prato de caldo de frango" },
+    { label: "Sopa de feijão", text: "1 prato de feijão" }, { label: "Pão", text: "1 pão francês" },
+  ],
+  sobremesa: [
+    { label: "Fruta", text: "1 fatia de mamão" }, { label: "Bolo", text: "1 fatia de bolo" }, { label: "Açaí", text: "1 copo de açaí" }, { label: "Iogurte", text: "1 iogurte" },
+  ],
+};

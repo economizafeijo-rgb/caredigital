@@ -4,7 +4,7 @@ import { CheckCircle2, Droplets, Plus, Save, UtensilsCrossed, X } from "lucide-r
 import { CareCategoryReport } from "./CareCategoryReport";
 import { BarChart3 } from "lucide-react";
 import { CareIntakePicker, CareIntakeIcon } from "./CareIntakePicker";
-import { foodCategory,beverageCategory,isFoodKind,type IntakeKind,type FoodKind,type BeverageKind } from "@/lib/care-intake-categories";
+import { foodCategory,beverageCategory,isFoodKind,typicalFoods,type IntakeKind,type FoodKind,type BeverageKind } from "@/lib/care-intake-categories";
 import { parseFoodText, sumNutrients } from "@/lib/food-parser";
 import { supabase } from "@/integrations/supabase/client";
 import { useDialog } from "@/lib/dialog";
@@ -217,6 +217,20 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
                       placeholder={foodCategory(kind)?.example??"Descreva o alimento ou a refeição"}
                       className="field mt-1.5 block min-h-[76px] w-full resize-y"/>
                   </label>
+                  {(typicalFoods[kind as FoodKind]?.length ?? 0) > 0 && <div className="min-w-0">
+                    <p className="text-xs font-semibold">Típicos de {(foodCategory(kind)?.label ?? "refeição").toLowerCase()} <span className="font-normal text-muted-foreground">· toque para adicionar ou remover</span></p>
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      {typicalFoods[kind as FoodKind].map(item=>{
+                        const parts=description.split(/\s*,\s*/).filter(Boolean);
+                        const on=parts.includes(item.text);
+                        return <button key={item.label} type="button" aria-pressed={on}
+                          onClick={()=>setDescription(on?parts.filter(p=>p!==item.text).join(", "):[...parts,item.text].join(", "))}
+                          className={`inline-flex h-8 items-center gap-1 rounded-full border px-3 text-[11px] font-semibold transition active:scale-95 ${on?"border-emerald-500 bg-emerald-500 text-white shadow-sm":"border-border bg-card hover:border-emerald-500/50 hover:bg-emerald-500/[.06]"}`}>
+                          {on?<CheckCircle2 size={13}/>:<Plus size={13} className="text-emerald-600"/>}{item.label}
+                        </button>;
+                      })}
+                    </div>
+                  </div>}
                   <label className="block min-w-0 text-xs font-semibold leading-relaxed">
                     <span className="block">Quantidade ou porção (opcional)</span>
                     <input type="text" className="field mt-1.5 block min-h-[44px] w-full" maxLength={100} value={portion}
