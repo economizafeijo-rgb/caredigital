@@ -76,13 +76,23 @@ export function SmartMetricsDashboard() {
           db.from("care_supplement_intakes").select("id").eq("patient_id", patientId).gte("taken_at", since).limit(1000),
           db.from("care_sleep_logs").select("sleep_date,bed_at,wake_at,quality,awakenings,avg_hr,min_hr").eq("patient_id", patientId).gte("sleep_date", localDay(since)).order("sleep_date", { ascending: true }).limit(1000),
           db.from("care_activity_log").select("happened_at,details,event_type").eq("patient_id", patientId).eq("category", "atividade").gte("happened_at", since).order("happened_at", { ascending: true }).limit(1000),
-          db.from("care_goal_reviews").select("day,metric,actual,unit").eq("patient_id", patientId).in("metric", ["calorias", "proteina"]).gte("day", localDay(since)).limit(1000),
+          db.from("care_goal_reviews").select("day,metric,actual,unit").eq("patient_id", patientId).in("metric", ["hidratacao", "calorias", "proteina"]).gte("day", localDay(since)).limit(1000),
         ]);
         const failed = [water, weights, meals, meds, supplements, sleep, activities, goalReviews].some((result: any) => result.error);
         if (failed) throw new Error("Não foi possível consultar todos os indicadores.");
-        const hydrationRows = (water.data ?? []).map((row: any) => ({
-          day: localDay(row.recorded_at), amount_ml: Number(row.amount_ml ?? 0),
-        }));
+        const hydrationByDay = new Map<string, number>();
+        for (const row of water.data ?? []) {
+          const day = localDay(row.recorded_at);
+          hydrationByDay.set(day, (hydrationByDay.get(day) ?? 0) + Number(row.amount_ml ?? 0));
+        }
+        // Daily snapshots from the original dashboard are more complete than
+        // the surviving individual events; prefer them for that date only.
+        for (const row of goalReviews.data ?? []) {
+          if (row.metric === "hidratacao" && Number(row.actual) > 0) {
+            hydrationByDay.set(row.day, Number(row.actual));
+          }
+        }
+        const hydrationRows = [...hydrationByDay].map(([day, amount_ml]) => ({ day, amount_ml }));
         const macroMap = new Map<string, Point>();
         for (const row of meals.data ?? []) {
           const day = localDay(row.recorded_at);
