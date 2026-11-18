@@ -15,7 +15,7 @@ export function CareRecentHistory({patientId,ownerId,category,onClose,compact=fa
  useEffect(()=>{setShowAll(false)},[category,patientId]);
  useEffect(()=>{
   let active=true;setError("");
-  const from=new Date(Date.now()-14*86400000).toISOString();
+  const from=new Date(Date.now()-30*86400000).toISOString();
   let q=(supabase as any).from("care_daily_checklist")
    .select("id,title,category,scheduled_at,completed_at")
    .eq("patient_id",patientId).eq("owner_id",ownerId)
@@ -30,6 +30,10 @@ export function CareRecentHistory({patientId,ownerId,category,onClose,compact=fa
    .eq("patient_id",patientId).eq("owner_id",ownerId).eq("source","client_unscheduled_intake")
    .eq("event_type","logged").eq("category","refeicao").is("task_id",null)
    .gte("recorded_at",from).order("recorded_at",{ascending:false}).limit(80);
+  const mealLogs=(supabase as any).from("care_nutrition_meal_logs")
+   .select("id,meal_name,items,kcal,protein_g,recorded_at")
+   .eq("patient_id",patientId).eq("owner_id",ownerId)
+   .gte("recorded_at",from).order("recorded_at",{ascending:false}).limit(100);
   const reconstructed=(supabase as any).from("care_activity_log")
    .select("id,category,event_type,details,happened_at,scheduled_at,recorded_at")
    .eq("patient_id",patientId).eq("owner_id",ownerId).eq("source","historical_reconstruction")
@@ -37,11 +41,12 @@ export function CareRecentHistory({patientId,ownerId,category,onClose,compact=fa
   void Promise.all([q,category==="medicacao"?Promise.resolve({data:[],error:null}):water,
     category==="medicacao"?Promise.resolve({data:[],error:null}):beverages,
     category==="hidratacao"||category==="medicacao"?Promise.resolve({data:[],error:null}):meals,
+    category==="hidratacao"||category==="medicacao"?Promise.resolve({data:[],error:null}):mealLogs,
     reconstructed])
-   .then(([tasksResult,waterResult,beverageResult,mealResult,reconstructedResult]:any[])=>{
+   .then(([tasksResult,waterResult,beverageResult,mealResult,mealLogsResult,reconstructedResult]:any[])=>{
     if(!active)return;
     setLoading(false);
-    const failed=[tasksResult,waterResult,beverageResult,mealResult,reconstructedResult].filter(result=>result.error);
+    const failed=[tasksResult,waterResult,beverageResult,mealResult,mealLogsResult,reconstructedResult].filter(result=>result.error);
     if(failed.length)setError("Algumas fontes não puderam ser consultadas. Os registros abaixo podem estar incompletos.");
     const confirmed=(tasksResult.data??[]).filter((r:any)=>["hidratacao","refeicao","medicacao"].includes(r.category));
     const taskIds=new Set(confirmed.map((r:any)=>r.id));
@@ -59,7 +64,17 @@ export function CareRecentHistory({patientId,ownerId,category,onClose,compact=fa
       id:"meal:"+r.id,title:r.details?.title||r.details?.description||"Refeição registrada",
       category:"refeicao" as const,at:r.recorded_at,detail:"Consumo avulso",kind:"meal" as const
      })),
-     ...(reconstructedResult.data??[]).map((r:any)=>{
+     ...(mealLogsResult.data??[]).map((r:any)=>({
+      id:"nutrition-meal:"+r.id,title:r.meal_name||"Refeição registrada",
+      category:"refeicao" as const,at:r.recorded_at,
+      detail:[Array.isArray(r.items)?r.items.join(", "):"",Number(r.kcal)>0?Number(r.kcal).toLocaleString("pt-BR")+" kcal":"Valores nutricionais não informados"].filter(Boolean).join(" · "),
+      kind:"meal" as const
+     })),
+     ...(reconstructedResult.data??[]).filter((r:any)=>{
+      if(r.category!=="refeicao")return true;
+      const date=new Date(r.happened_at??r.scheduled_at??r.recorded_at).toLocaleDateString("en-CA",{timeZone:"America/Rio_Branco"});
+      return !(mealLogsResult.data??[]).some((meal:any)=>new Date(meal.recorded_at).toLocaleDateString("en-CA",{timeZone:"America/Rio_Branco"})===date);
+     }).map((r:any)=>{
       const d=r.details??{};
       const evidence=String(d.evidence??"");
       const date=evidence.match(/(\d{2})\/(\d{2})\/(\d{4})/);
