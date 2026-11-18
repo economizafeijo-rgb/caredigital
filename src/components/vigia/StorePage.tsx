@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { openProduct, VendorStorePage } from "./StoreViews";
+import { PublicStoreGate } from "./store/PublicStore";
+import { MyOrders, OrderTracking } from "./store/OrderTracking";
 import { ArrowRight, CheckCircle2, CreditCard, FileText, Minus, Plus, QrCode, ShieldCheck, ShoppingBag, ShoppingCart, Store, Trash2, X, MessageCircle, Heart, Zap, Gift, Flame, Dumbbell, Pill, Leaf, Shirt, Sparkles, Apple, Snowflake, Tag } from "lucide-react";
 import { countdownParts, currentCampaign, nextCampaignTeaser, productBadges, type Campaign } from "@/lib/store-promos";
 import { supabase } from "@/integrations/supabase/client";
@@ -284,6 +286,9 @@ export function StorePage() {
   const navigate = useNavigate();
   const vendorParam = (location.search as Record<string, unknown> | undefined)?.loja;
   const vendorId = typeof vendorParam === "string" && vendorById(vendorParam as VendorId) ? (vendorParam as VendorId) : null;
+  const search = (location.search as Record<string, unknown> | undefined) ?? {};
+  const orderParam = typeof search.pedido === "string" ? search.pedido : null;
+  const slugParam = typeof vendorParam === "string" && /^[a-z0-9-]{2,60}$/.test(vendorParam) ? vendorParam : null;
   const [category, setCategory] = useState<StoreCategory | "todos">("todos");
   const [cartOpen, setCartOpen] = useState(false);
   const [checkout, setCheckout] = useState(false);
@@ -295,9 +300,8 @@ export function StorePage() {
   const deals = useMemo(() => products.filter((p) => p.oldPriceCents).sort((a, b) => (b.oldPriceCents! - b.priceCents) / b.oldPriceCents! - (a.oldPriceCents! - a.priceCents) / a.oldPriceCents!), []);
   const endOfDay = Date.parse(new Intl.DateTimeFormat("en-CA", { timeZone: "America/Rio_Branco" }).format(new Date()) + "T23:59:59-05:00");
   const ticker = ["5% OFF no Pix", "3x sem juros no cartão", campaign.name, "Frete grátis acima de R$ 199", "Produtos da Amazônia", "Lojas parceiras do Acre", "Troca fácil"];
-  if (vendorId) return (
-    <div className="mx-auto flex w-full flex-col gap-4">
-      <StoreDevBanner />
+  const staticVendor = vendorId ? (
+    <div className="flex w-full flex-col gap-4">
       <VendorStorePage vendorId={vendorId} onBack={() => void navigate({ to: "/loja" })} />
       <button type="button" onClick={() => setCartOpen(true)} aria-label={`Abrir carrinho, ${count} itens`} className="nv-fab fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-4 z-[90] inline-flex h-14 items-center gap-2 rounded-full bg-slate-950 px-5 text-sm font-extrabold text-white shadow-xl ring-4 ring-white/70 dark:ring-slate-900/70">
         <ShoppingCart size={22} /> Carrinho{count > 0 && <span key={count} className="nv-heart-pop grid size-6 place-items-center rounded-full bg-emerald-400 text-xs text-slate-950">{count}</span>}
@@ -305,7 +309,10 @@ export function StorePage() {
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} onCheckout={() => { setCartOpen(false); setCheckout(true); }} />
       {checkout && <Checkout onClose={() => setCheckout(false)} />}
     </div>
-  );
+  ) : <p className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">Loja não encontrada.</p>;
+  if (orderParam) return <div className="mx-auto flex w-full flex-col gap-4"><StoreDevBanner /><OrderTracking id={orderParam} /></div>;
+  if (search.pedidos !== undefined) return <div className="mx-auto flex w-full flex-col gap-4"><StoreDevBanner /><MyOrders /></div>;
+  if (slugParam) return <div className="mx-auto flex w-full flex-col gap-4"><StoreDevBanner /><PublicStoreGate slug={slugParam} fallback={staticVendor} /></div>;
   return (
     <div className="mx-auto flex w-full flex-col gap-4">
       <StoreDevBanner />

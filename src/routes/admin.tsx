@@ -4,6 +4,8 @@ import { Btn, PageHeader, Panel } from "@/components/vigia/ui";
 import { supabase } from "@/integrations/supabase/client";
 import { StoreAdminDashboard } from "@/components/vigia/StoreAdminDashboard";
 import { AdminMarketplace } from "@/components/vigia/AdminMarketplace";
+import { AdminTestStores } from "@/components/vigia/AdminTestStores";
+import { AdminFinance } from "@/components/vigia/AdminFinance";
 import { isSupabaseConfigured } from "@/lib/supabase-session";
 import { AdminClientManager } from "@/components/vigia/AdminClientManager";
 import { AdminAds } from "@/components/vigia/AdminAds";
@@ -182,10 +184,10 @@ function Admin() {
               </section>
             )}
             {tab === "clientes" && <AdminClientManager ownerId={ownerId} />}
-            {tab === "lojas" && <AdminMarketplace />}
+            {tab === "lojas" && <><AdminMarketplace /><AdminTestStores /></>}
             {tab === "vendas" && <StoreAdminDashboard />}
             {tab === "propagandas" && <AdminAds />}
-            {tab === "pagamentos" && <AdminPayments />}
+            {tab === "pagamentos" && <><AdminFinance /><AdminPayments /></>}
           </>
         )
       )}
