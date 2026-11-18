@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Activity, ArrowDownRight, ArrowUpRight, Droplets, Pill, Plus, Sparkles, UtensilsCrossed, type LucideIcon } from "lucide-react";
+import { Activity, ArrowDownRight, ArrowUpRight, Droplets, Pill, Plus, UtensilsCrossed, type LucideIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type MetricKey = "hidratacao" | "alimentacao" | "medicacao" | "atividade";
@@ -60,6 +60,7 @@ function MetricCard({ k, days, keys, goal, scheduled, onOpen, index }: { k: Metr
   const [hover, setHover] = useState<number | null>(null);
   const shown = hover ?? 6;
   const trend = avg > 0 ? Math.round(((today - avg) / avg) * 100) : null;
+  const empty = days.every((v) => v === 0);
   return (
     <article className="nv-insight nv-rise group relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-card p-4" style={{ ["--c" as string]: m.color, animationDelay: `${index * 80}ms` }}>
       <span aria-hidden="true" className="pointer-events-none absolute -right-10 -top-10 size-32 rounded-full opacity-20 blur-2xl transition-opacity group-hover:opacity-35" style={{ background: m.color }} />
@@ -68,6 +69,9 @@ function MetricCard({ k, days, keys, goal, scheduled, onOpen, index }: { k: Metr
           <span className="grid size-9 place-items-center rounded-xl text-white shadow-md" style={{ background: `linear-gradient(135deg, ${m.color}, color-mix(in srgb, ${m.color} 60%, #000))` }}><m.icon size={17} /></span>
           {m.label}
         </button>
+        {empty && (
+          <button type="button" onClick={onOpen} className="inline-flex h-7 items-center gap-1 rounded-full px-2.5 text-[11px] font-bold text-white transition hover:brightness-110 active:scale-95" style={{ background: m.color }}><Plus size={12} /> {m.empty}</button>
+        )}
         {trend !== null && hover === null && (
           <span className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-bold ${trend >= 0 ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300" : "bg-amber-500/10 text-amber-700 dark:text-amber-300"}`}>
             {trend >= 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}{Math.abs(trend)}% vs. média
@@ -76,12 +80,12 @@ function MetricCard({ k, days, keys, goal, scheduled, onOpen, index }: { k: Metr
       </header>
       <div className="mt-3 flex items-end justify-between gap-2">
         <div key={shown} className="nv-fade-in min-w-0">
-          <p className="font-display text-2xl font-extrabold leading-none tabular-nums">{m.unit(days[shown])}</p>
+          <p className={`font-display text-2xl font-extrabold leading-none tabular-nums ${empty ? "text-muted-foreground" : ""}`}>{empty ? "Sem registros" : m.unit(days[shown])}</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            {shown === 6 ? (target ? `hoje · meta ${m.unit(target)}` : "hoje") : `${weekday(keys[shown])}, ${keys[shown].slice(8)}/${keys[shown].slice(5, 7)}`}
+            {empty ? "Nos últimos 7 dias" : shown === 6 ? (target ? `hoje · meta ${m.unit(target)}` : "hoje") : `${weekday(keys[shown])}, ${keys[shown].slice(8)}/${keys[shown].slice(5, 7)}`}
           </p>
         </div>
-        {pct !== null && (
+        {pct !== null && !empty && (
           <div className="relative size-12 shrink-0" title={`${pct}% da meta de hoje`}>
             <svg viewBox="0 0 36 36" className="size-full -rotate-90">
               <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" className="text-muted" strokeWidth="4" />
@@ -91,12 +95,12 @@ function MetricCard({ k, days, keys, goal, scheduled, onOpen, index }: { k: Metr
           </div>
         )}
       </div>
-      <div className="mt-3 flex h-16 items-end gap-1.5" onPointerLeave={() => setHover(null)} role="img" aria-label={`${m.label} nos últimos 7 dias`}>
+      <div className="mt-auto flex h-14 items-end gap-1.5 pt-3" onPointerLeave={() => setHover(null)} role="img" aria-label={`${m.label} nos últimos 7 dias`}>
         {days.map((v, i) => (
           <button key={keys[i]} type="button" tabIndex={-1} onPointerEnter={() => setHover(i)} onFocus={() => setHover(i)} aria-label={`${weekday(keys[i])}: ${m.unit(v)}`}
             className="flex h-full flex-1 flex-col items-center justify-end gap-1">
             <span className="nv-m-bar w-full rounded-md transition-[opacity,transform] duration-200"
-              style={{ height: `${Math.max(6, (v / max) * 100)}%`, background: i === 6 ? m.color : `color-mix(in srgb, ${m.color} 35%, transparent)`, opacity: hover === null || hover === i ? 1 : 0.45, animationDelay: `${i * 50}ms`, animationIterationCount: 1 }} />
+              style={{ height: `${empty ? 12 + ((i * 37) % 30) : Math.max(6, (v / max) * 100)}%`, background: empty ? "color-mix(in srgb, currentColor 10%, transparent)" : i === 6 ? m.color : `color-mix(in srgb, ${m.color} 35%, transparent)`, opacity: hover === null || hover === i ? 1 : 0.45, animationDelay: `${i * 50}ms`, animationIterationCount: 1 }} />
             <span className={`text-[10px] capitalize ${i === 6 ? "font-bold text-foreground" : "text-muted-foreground"}`}>{i === 6 ? "hoje" : weekday(keys[i]).slice(0, 3)}</span>
           </button>
         ))}
@@ -105,9 +109,73 @@ function MetricCard({ k, days, keys, goal, scheduled, onOpen, index }: { k: Metr
   );
 }
 
+const order: MetricKey[] = ["hidratacao", "alimentacao", "medicacao", "atividade"];
+
+/** Meta de hoje por métrica: água pela meta do perfil, 3 refeições, doses programadas e 1 sessão de atividade. */
+function targetFor(k: MetricKey, waterGoal: number, scheduled: number) {
+  if (k === "hidratacao") return waterGoal || 2000;
+  if (k === "alimentacao") return Math.max(3, scheduled);
+  if (k === "medicacao") return scheduled;
+  return 1;
+}
+
+function ScoreCard({ series, waterGoal, scheduled, onOpen }: { series: Series[]; waterGoal: number; scheduled: Partial<Record<MetricKey, number>>; onOpen: (k: MetricKey) => void }) {
+  const rows = order.map((k) => {
+    const today = series.find((s) => s.key === k)?.days[6] ?? 0;
+    const target = targetFor(k, waterGoal, scheduled[k] ?? 0);
+    return { k, today, target, pct: target ? Math.min(100, Math.round((today / target) * 100)) : null };
+  });
+  const counted = rows.filter((r) => r.pct !== null);
+  const score = counted.length ? Math.round(counted.reduce((a, r) => a + (r.pct ?? 0), 0) / counted.length) : 0;
+  const status = score >= 85 ? "Dia excelente" : score >= 60 ? "Bom ritmo" : score >= 25 ? "Em andamento" : "Comece o seu dia";
+  const R = 52, C = 2 * Math.PI * R;
+  return (
+    <section aria-label="Pontuação do dia" className="nv-dark nv-rise relative isolate flex flex-col overflow-hidden rounded-2xl bg-[#071512] p-4 text-white shadow-card sm:p-5">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 opacity-60" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px)", backgroundSize: "22px 22px" }} />
+      <div aria-hidden="true" className="pointer-events-none absolute -left-16 -top-20 -z-10 size-64 rounded-full bg-emerald-400/20 blur-3xl" />
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm font-semibold text-emerald-200">Pontuação do dia</p>
+        <span className="nv-live inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold text-emerald-100"><i className="size-1.5 rounded-full bg-emerald-300" /> ao vivo</span>
+      </div>
+      <div className="mt-3 flex items-center gap-4">
+        <div className="relative size-28 shrink-0" role="img" aria-label={`Pontuação ${score} de 100`}>
+          <svg viewBox="0 0 120 120" className="size-full -rotate-90">
+            <defs><linearGradient id="nv-score-g" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stopColor="#34d399" /><stop offset="1" stopColor="#22d3ee" /></linearGradient></defs>
+            <circle cx="60" cy="60" r={R} fill="none" stroke="#ffffff14" strokeWidth="10" />
+            <circle cx="60" cy="60" r={R} fill="none" stroke="#ffffff10" strokeWidth="10" strokeDasharray="2 6" />
+            <circle cx="60" cy="60" r={R} fill="none" stroke="url(#nv-score-g)" strokeWidth="10" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C * (1 - score / 100)} style={{ transition: "stroke-dashoffset 1.1s cubic-bezier(.2,.8,.2,1)", filter: "drop-shadow(0 0 6px rgba(52,211,153,.55))" }} />
+          </svg>
+          <span className="absolute inset-0 grid place-items-center text-center leading-none"><span><strong className="block font-display text-3xl font-extrabold tabular-nums">{score}</strong><span className="text-[10px] font-semibold text-white/60">de 100</span></span></span>
+        </div>
+        <div className="min-w-0">
+          <p className="font-display text-xl font-extrabold">{status}</p>
+          <p className="mt-1 text-xs text-white/65">Média do quanto você já cumpriu das metas de hoje.</p>
+        </div>
+      </div>
+      <ul className="mt-4 grid gap-2">
+        {rows.map((r, i) => {
+          const m = meta[r.k];
+          return (
+            <li key={r.k}>
+              <button type="button" onClick={() => onOpen(r.k)} className="group grid w-full grid-cols-[auto_1fr_auto] items-center gap-2.5 rounded-xl px-1.5 py-1 text-left transition hover:bg-white/[.06]">
+                <span className="grid size-7 place-items-center rounded-lg" style={{ background: `color-mix(in srgb, ${m.color} 25%, transparent)`, color: m.color }}><m.icon size={14} /></span>
+                <span className="min-w-0">
+                  <span className="flex justify-between text-[11px] font-semibold"><span className="text-white/80">{m.label}</span><span className="tabular-nums text-white/60">{r.pct === null ? "sem doses hoje" : `${m.unit(r.today)} / ${m.unit(r.target)}`}</span></span>
+                  <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-white/10"><i className="block h-full rounded-full transition-[width] duration-700 ease-out" style={{ width: `${r.pct ?? 0}%`, background: m.color, transitionDelay: `${i * 90}ms` }} /></span>
+                </span>
+                <span className="w-9 text-right text-xs font-bold tabular-nums text-white/85 transition-transform group-hover:translate-x-0.5">{r.pct === null ? "—" : `${r.pct}%`}</span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
 /**
- * Métricas da Visão geral: só mostra o que o usuário de fato acompanha (tem registro na semana,
- * meta definida ou cuidado programado). Sem nenhuma métrica, mostra um convite para começar.
+ * Painel da Visão geral: pontuação do dia + as quatro métricas sempre visíveis em grade,
+ * para não deixar espaços vazios. Métricas sem registro mostram um convite para começar.
  */
 export function OverviewInsights({ patientId, ownerId, revision, waterGoal, scheduled, onOpen }: {
   patientId: string; ownerId: string; revision: number; waterGoal: number;
@@ -115,32 +183,16 @@ export function OverviewInsights({ patientId, ownerId, revision, waterGoal, sche
 }) {
   const { series, keys } = useWeek(patientId, ownerId, revision);
   if (series === null)
-    return <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{[0, 1].map((i) => <div key={i} className="h-48 animate-pulse rounded-2xl bg-muted/60" />)}</div>;
-  const active = series.filter((s) => s.days.some((v) => v > 0) || (s.key === "hidratacao" && waterGoal > 0) || (scheduled[s.key] ?? 0) > 0);
-  if (!active.length)
-    return (
-      <section className="nv-dark relative isolate overflow-hidden rounded-2xl bg-gradient-to-br from-[#062019] to-[#0c4a3e] p-5 text-white sm:p-6">
-        <span aria-hidden="true" className="pointer-events-none absolute -right-16 -top-16 -z-10 size-64 rounded-full bg-emerald-400/20 blur-3xl" />
-        <p className="flex items-center gap-2 text-sm font-semibold text-emerald-200"><Sparkles size={16} /> Seu painel começa aqui</p>
-        <h2 className="mt-1 font-display text-2xl font-extrabold">Registre o primeiro cuidado do dia</h2>
-        <p className="mt-1 max-w-[52ch] text-sm text-white/75">As métricas aparecem aqui assim que houver registros. Comece pelo que fizer agora:</p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {(["hidratacao", "alimentacao", "atividade", "medicacao"] as MetricKey[]).map((k) => {
-            const m = meta[k];
-            return (
-              <button key={k} type="button" onClick={() => onOpen(k)} className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 text-sm font-semibold backdrop-blur transition hover:bg-white/20 active:scale-95">
-                <span className="grid size-6 place-items-center rounded-lg" style={{ background: m.color }}><Plus size={14} /></span>{m.empty}
-              </button>
-            );
-          })}
-        </div>
-      </section>
-    );
+    return <div className="grid gap-3 xl:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]"><div className="h-80 animate-pulse rounded-2xl bg-muted/60" /><div className="grid gap-3 sm:grid-cols-2">{[0, 1, 2, 3].map((i) => <div key={i} className="h-40 animate-pulse rounded-2xl bg-muted/60" />)}</div></div>;
+  const list = order.map((k) => series.find((s) => s.key === k) ?? { key: k, days: [0, 0, 0, 0, 0, 0, 0] });
   return (
-    <div className={`grid gap-3 ${active.length === 1 ? "sm:grid-cols-1 xl:max-w-md" : active.length === 2 ? "sm:grid-cols-2" : active.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2 xl:grid-cols-4"}`}>
-      {active.map((s, i) => (
-        <MetricCard key={s.key} k={s.key} days={s.days} keys={keys} index={i} goal={s.key === "hidratacao" ? waterGoal : 0} scheduled={scheduled[s.key] ?? 0} onOpen={() => onOpen(s.key)} />
-      ))}
+    <div className="grid gap-3 xl:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
+      <ScoreCard series={list} waterGoal={waterGoal} scheduled={scheduled} onOpen={onOpen} />
+      <div className="grid gap-3 sm:grid-cols-2">
+        {list.map((s, i) => (
+          <MetricCard key={s.key} k={s.key} days={s.days} keys={keys} index={i + 1} goal={s.key === "hidratacao" ? waterGoal : 0} scheduled={s.key === "atividade" ? 1 : s.key === "alimentacao" ? Math.max(3, scheduled.alimentacao ?? 0) : scheduled[s.key] ?? 0} onOpen={() => onOpen(s.key)} />
+        ))}
+      </div>
     </div>
   );
 }

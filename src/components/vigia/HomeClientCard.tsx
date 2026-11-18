@@ -64,6 +64,7 @@ import {
   getCareScheduleState,
 } from "@/lib/care-schedule";
 import { patientDateSummary } from "@/lib/patient-date-profile";
+import { ClientOnboardingGate } from "./ClientOnboarding";
 
 type Client = {
   id: string;
@@ -76,6 +77,7 @@ type Client = {
   weight_kg: number | null;
 };
 type OverviewHealthProfile = {
+  sex?: string | null;
   age: number | null;
   activityMinutes: number;
   weightKg: number | null;
@@ -181,6 +183,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
   } | null>(null);
   const [mealRecordCount, setMealRecordCount] = useState<number | null>(null);
   const [mealRecordsLoading, setMealRecordsLoading] = useState(true);
+  const [onboardingSignal, setOnboardingSignal] = useState(0);
   const [healthProfile, setHealthProfile] = useState<OverviewHealthProfile>({
     age: null,
     activityMinutes: 0,
@@ -381,7 +384,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
     void Promise.all([
       db
         .from("care_hydration_profiles")
-        .select("age,activity_minutes,weight_kg")
+        .select("age,activity_minutes,weight_kg,sex")
         .eq("patient_id", client.id)
         .eq("owner_id", client.owner_id)
         .maybeSingle(),
@@ -400,6 +403,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
           return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
         };
         setHealthProfile({
+          sex: typeof hydration.data?.sex === "string" ? hydration.data.sex : null,
           age: num(hydration.data?.age),
           activityMinutes: num(hydration.data?.activity_minutes) ?? 0,
           weightKg:
@@ -960,6 +964,12 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
             />
           </div>
 
+          <ClientOnboardingGate
+            patientId={client.id}
+            fullName={client.full_name}
+            openSignal={onboardingSignal}
+            onCompleted={() => setTick((value) => value + 1)}
+          />
           {activeTab === "hoje" ? (
             <div
               id="care-client-tab-panel"
@@ -978,7 +988,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                 <DayTimeline tasks={tasks} nowMs={nowMs} onTask={(t) => showTaskDetails(t as Task)} />
               )}
 
-              <div className="grid gap-3 lg:grid-cols-3">
+              <div className={`grid gap-3 ${tasks.length > 0 ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
                 <div className="flex flex-col gap-3 lg:pr-0.5">
                   {tasks.length > 0 && (
                   <section
@@ -1070,6 +1080,11 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                       carbs={healthProfile.carbs}
                       fat={healthProfile.fat}
                       kcal={healthProfile.kcal}
+                      age={healthProfile.age}
+                      sex={healthProfile.sex ?? null}
+                      objective={healthProfile.objective}
+                      activityMinutes={healthProfile.activityMinutes}
+                      onCompleteProfile={() => setOnboardingSignal((v) => v + 1)}
                     />
                   </div>
                 </div>
