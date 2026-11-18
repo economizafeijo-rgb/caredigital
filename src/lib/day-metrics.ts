@@ -204,8 +204,17 @@ function buildOne(index: Map<string, Slot>, plans: PlanInfo[], day: string, ctx:
     // Refeições contam somente até o fechamento do dia, como no painel do dia.
     if (hour < DAY_CUTOFF_HOUR) { counted.kcal += food.kcal; counted.protein += food.protein; counted.carbs += food.carbs; counted.fat += food.fat; }
   }
-  // A meta de água oficial vem do servidor quando existe (mesma regra, fonte única).
+  // Snapshots persistidos registram o total diário visível no painel antigo.
+  // Complementam os eventos individuais sem somá-los novamente.
+  const reviewFor = (metric: GoalMetric) => s.reviews.find((review) => review.metric === metric);
+  const waterReview = reviewFor("hidratacao");
+  const kcalReview = reviewFor("calorias");
+  const proteinReview = reviewFor("proteina");
   if (s.waterGoal) waterMl = Math.max(waterMl, s.waterGoal.consumed);
+  if (waterReview) waterMl = Math.max(waterMl, waterReview.actual);
+  waterAllMl = Math.max(waterAllMl, waterReview?.actual ?? 0);
+  if (kcalReview) counted.kcal = Math.max(counted.kcal, kcalReview.actual);
+  if (proteinReview) counted.protein = Math.max(counted.protein, proteinReview.actual);
 
   const unique = (list: DoseEntry[]) => new Map(list.map((dose) => [`${dose.name}|${dose.slot}`, dose])).size;
   const supplementDoses = s.doses.filter((dose) => dose.kind === "suplemento");
