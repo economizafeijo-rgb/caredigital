@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } f
 import { AppWindow, Check, Code2, Copy, Mail, MapPin, MessageCircle, Phone, ShoppingBag, Smartphone } from "lucide-react";
 import { LogoMark } from "./Logo";
 import { useFitWindow } from "@/lib/use-fit-window";
+import { LiveSitePreview } from "./LiveSitePreview";
 
 const EMAIL = "aplicativosfj@gmail.com";
 const PHONE_LABEL = "(68) 99203-1340";
@@ -163,7 +164,7 @@ export function AboutPage() {
             <span className="absolute -left-2 -top-2 z-10 rounded-full bg-[#0b2418] px-2.5 py-1 text-[11px] font-bold text-yellow-300 shadow">Projeto em destaque: NextVita</span>
             <div className="rounded-xl bg-slate-900 p-1.5 shadow-xl">
               <div className="overflow-hidden rounded-md bg-white">
-                <img src="/images/dev-nextvita-desktop.webp" alt="Página inicial da NextVita no computador" width={800} height={450} className="aspect-[16/9] w-full object-cover object-top" />
+                <LiveSitePreview src="/?embed=1" title="Página inicial da NextVita" />
               </div>
             </div>
             <div className="relative left-1/2 h-2 w-[110%] -translate-x-1/2 rounded-b-xl bg-gradient-to-b from-slate-400 to-slate-600" />
