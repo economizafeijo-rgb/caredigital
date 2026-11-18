@@ -1,4 +1,5 @@
-import { Droplets, Leaf, Pill, Dumbbell, HeartPulse, Moon } from "lucide-react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { ArrowRight, Droplets, Leaf, Pill, Dumbbell, HeartPulse, Moon } from "lucide-react";
 
 /** Coluna de arte gráfica para as faixas laterais vazias em telas largas: anéis, pulso, pontos e ícones flutuando. */
 function SideColumn({ side }: { side: "left" | "right" }) {
@@ -52,28 +53,103 @@ export function HomeSideArt() {
   );
 }
 
-/** Faixa gráfica de encerramento da página: ondas da marca, linha de pulso desenhando e frase da NextVita. */
+const weeks = [38, 44, 41, 55, 60, 58, 71, 78];
+
+/** Faixa de encerramento: aurora com foco de luz que segue o ponteiro e gráfico de evolução interativo (exemplo). */
 export function HomeBottomArt() {
+  const box = useRef<HTMLDivElement>(null);
+  const chart = useRef<SVGSVGElement>(null);
+  const [seen, setSeen] = useState(false);
+  const [hover, setHover] = useState<number | null>(null);
+
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setSeen(true); io.disconnect(); } }, { threshold: 0.35 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  const W = 520, H = 150, pad = 14;
+  const pts = weeks.map((v, i) => [pad + (i * (W - pad * 2)) / (weeks.length - 1), H - pad - (v / 100) * (H - pad * 2)] as const);
+  const line = pts.map(([x, y], i) => {
+    if (i === 0) return `M${x} ${y}`;
+    const [px, py] = pts[i - 1];
+    const cx = (px + x) / 2;
+    return `C${cx} ${py} ${cx} ${y} ${x} ${y}`;
+  }).join(" ");
+  const area = `${line} L${pts[pts.length - 1][0]} ${H} L${pts[0][0]} ${H}Z`;
+
+  const onMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const el = box.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    el.style.setProperty("--mx", `${e.clientX - r.left}px`);
+    el.style.setProperty("--my", `${e.clientY - r.top}px`);
+  };
+  const onChart = (e: ReactPointerEvent<SVGSVGElement>) => {
+    const svg = chart.current;
+    if (!svg) return;
+    const r = svg.getBoundingClientRect();
+    const x = ((e.clientX - r.left) / r.width) * W;
+    let best = 0;
+    pts.forEach(([px], i) => { if (Math.abs(px - x) < Math.abs(pts[best][0] - x)) best = i; });
+    setHover(best);
+  };
+
   return (
-    <div aria-hidden="true" className="nv-dark relative isolate h-36 overflow-hidden rounded-2xl bg-gradient-to-br from-[#041f1d] via-[#0a3f39] to-[#0c8063] sm:h-40">
-      <svg className="absolute inset-0 size-full" preserveAspectRatio="none" viewBox="0 0 1200 160">
-        <path d="M0 110 C 200 70 380 150 600 105 S 1000 60 1200 100 V160 H0Z" fill="#ffffff" opacity=".06" />
-        <path d="M0 130 C 240 100 420 165 640 125 S 1020 95 1200 125 V160 H0Z" fill="#ffffff" opacity=".08" />
-        <polyline
-          className="nv-bottom-pulse"
-          fill="none"
-          stroke="#7ef0cc"
-          strokeWidth="2.5"
-          strokeLinejoin="round"
-          strokeLinecap="round"
-          points="0,80 180,80 210,80 228,40 246,118 264,68 282,80 520,80 548,80 566,32 584,124 602,64 620,80 860,80 888,80 906,44 924,114 942,70 960,80 1200,80"
-        />
-      </svg>
-      <div className="absolute -left-10 -top-16 size-48 rounded-full bg-emerald-300/15 blur-2xl" />
-      <div className="absolute -right-10 bottom-0 size-56 rounded-full bg-teal-200/10 blur-2xl" />
-      <p className="absolute inset-x-0 top-5 text-center font-display text-lg font-extrabold text-white/90 sm:text-xl">
-        Cuidar de si é acompanhar a sua evolução.
-      </p>
-    </div>
+    <section
+      ref={box}
+      onPointerMove={onMove}
+      aria-labelledby="nv-bottom-title"
+      className={`nv-aurora nv-dark relative isolate grid gap-5 overflow-hidden rounded-2xl bg-[#05110e] p-5 text-white sm:p-7 lg:grid-cols-[1fr_1.1fr] lg:items-center ${seen ? "nv-seen" : ""}`}
+    >
+      <div aria-hidden="true" className="nv-aurora-a pointer-events-none absolute -left-20 -top-28 -z-10 h-80 w-[36rem] rounded-full" />
+      <div aria-hidden="true" className="nv-aurora-b pointer-events-none absolute -bottom-32 right-0 -z-10 h-80 w-[40rem] rounded-full" />
+      <div aria-hidden="true" className="nv-spotlight pointer-events-none absolute inset-0 -z-10" />
+
+      <div className="max-w-[34rem]">
+        <h2 id="nv-bottom-title" className="text-balance font-display text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">
+          Cuidar de si é acompanhar a sua evolução.
+        </h2>
+        <p className="mt-2 text-sm leading-relaxed text-white/70 sm:text-[15px]">
+          Cada copo de água, refeição e dose registrada vira um gráfico. Semana após semana, você vê o que está funcionando.
+        </p>
+        <a href="/entrar?mode=signup" className="nv-cta mt-4 inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-400 px-5 text-sm font-bold text-slate-950" style={{ ["--area" as string]: "#34d399" }}>
+          Começar a acompanhar <ArrowRight size={16} aria-hidden="true" className="nv-cta-arrow" />
+        </a>
+      </div>
+
+      <figure className="relative rounded-2xl border border-white/10 bg-white/[.04] p-4 backdrop-blur" aria-label="Exemplo de evolução das metas em 8 semanas">
+        <figcaption className="flex items-center justify-between text-xs text-white/60">
+          <span>Metas cumpridas por semana</span>
+          <span className="rounded-full bg-white/10 px-2 py-0.5">exemplo</span>
+        </figcaption>
+        <svg ref={chart} viewBox={`0 0 ${W} ${H}`} className="mt-2 h-36 w-full touch-none" onPointerMove={onChart} onPointerLeave={() => setHover(null)} role="img" aria-label="Linha subindo de 38% para 78% em 8 semanas">
+          <defs>
+            <linearGradient id="nv-evo-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="#34d399" stopOpacity=".35" />
+              <stop offset="1" stopColor="#34d399" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          {[0.25, 0.5, 0.75].map((g) => <line key={g} x1={pad} x2={W - pad} y1={H * g} y2={H * g} stroke="#ffffff" strokeOpacity=".08" strokeDasharray="3 5" />)}
+          <path d={area} fill="url(#nv-evo-fill)" className="nv-evo-area" />
+          <path d={line} fill="none" stroke="#6ee7b7" strokeWidth="3" strokeLinecap="round" className="nv-evo-line" pathLength={1} />
+          {pts.map(([x, y], i) => (
+            <circle key={i} cx={x} cy={y} r={hover === i ? 6 : 3.5} fill={hover === i ? "#ffffff" : "#6ee7b7"} className="nv-evo-dot" style={{ animationDelay: `${600 + i * 90}ms`, transition: "r .2s" }} />
+          ))}
+          {hover !== null && (
+            <g>
+              <line x1={pts[hover][0]} x2={pts[hover][0]} y1={pad} y2={H} stroke="#ffffff" strokeOpacity=".35" />
+              <g transform={`translate(${Math.min(Math.max(pts[hover][0] - 46, 0), W - 92)} ${Math.max(pts[hover][1] - 44, 0)})`}>
+                <rect width="92" height="32" rx="8" fill="#ffffff" />
+                <text x="46" y="13" textAnchor="middle" fontSize="10" fill="#475569">Semana {hover + 1}</text>
+                <text x="46" y="26" textAnchor="middle" fontSize="12" fontWeight="700" fill="#0f172a">{weeks[hover]}% das metas</text>
+              </g>
+            </g>
+          )}
+        </svg>
+      </figure>
+    </section>
   );
 }

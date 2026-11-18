@@ -640,3 +640,21 @@ body:has(.care-shell #care-client-tab-panel) {
 .nv-chip { transition: color .2s, border-color .2s, background-color .2s; }
 .nv-chip:hover { border-color: var(--chip, var(--border)); color: var(--chip); }
 @media (prefers-reduced-motion: reduce) { .nv-parallax img { transform: none; transition: none; } .nv-cta:hover .nv-cta-arrow { transform: none; } }
+
+/* ---------- Faixa final: aurora, foco de luz no ponteiro e gráfico que se desenha ao aparecer ---------- */
+@keyframes nv-aurora { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(40px, 18px) scale(1.12); } }
+.nv-aurora-a { background: radial-gradient(closest-side, rgba(16,185,129,.45), transparent); filter: blur(30px); animation: nv-aurora 14s ease-in-out infinite; }
+.nv-aurora-b { background: radial-gradient(closest-side, rgba(56,189,248,.28), transparent); filter: blur(34px); animation: nv-aurora 18s ease-in-out infinite reverse; }
+.nv-spotlight { background: radial-gradient(260px circle at var(--mx, 70%) var(--my, 40%), rgba(110,231,183,.14), transparent 70%); transition: background .1s; }
+.nv-evo-line { stroke-dasharray: 1; stroke-dashoffset: 1; }
+.nv-evo-area, .nv-evo-dot { opacity: 0; }
+.nv-seen .nv-evo-line { animation: nv-evo-draw 1.6s cubic-bezier(.65,0,.35,1) forwards; }
+.nv-seen .nv-evo-area { animation: nv-evo-fade .8s .9s ease-out forwards; }
+.nv-seen .nv-evo-dot { animation: nv-evo-fade .4s ease-out forwards; }
+@keyframes nv-evo-draw { to { stroke-dashoffset: 0; } }
+@keyframes nv-evo-fade { to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .nv-aurora-a, .nv-aurora-b { animation: none; }
+  .nv-evo-line { stroke-dashoffset: 0; } .nv-evo-area, .nv-evo-dot { opacity: 1; }
+  .nv-seen .nv-evo-line, .nv-seen .nv-evo-area, .nv-seen .nv-evo-dot { animation: none; }
+}
