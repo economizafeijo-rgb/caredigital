@@ -658,3 +658,16 @@ body:has(.care-shell #care-client-tab-panel) {
   .nv-evo-line { stroke-dashoffset: 0; } .nv-evo-area, .nv-evo-dot { opacity: 1; }
   .nv-seen .nv-evo-line, .nv-seen .nv-evo-area, .nv-seen .nv-evo-dot { animation: none; }
 }
+
+/* ---------- Arte do Sobre: relevo respirando, brilho no rio, órbita e pulso no centro ---------- */
+@keyframes nv-contour { 0%, 100% { stroke-opacity: .06; } 50% { stroke-opacity: .16; } }
+@keyframes nv-shimmer { to { stroke-dashoffset: -600; } }
+@keyframes nv-orbit { to { transform: rotate(360deg); } }
+@keyframes nv-hub { 0%, 100% { transform: scale(1); opacity: .25; } 50% { transform: scale(1.35); opacity: .05; } }
+@keyframes nv-link { 0%, 100% { stroke-opacity: .18; } 50% { stroke-opacity: .5; } }
+.nv-contour { animation: nv-contour 6s ease-in-out infinite; }
+.nv-river-shimmer { animation: nv-shimmer 5s linear infinite; }
+.nv-orbit { transform-box: fill-box; transform-origin: center; animation: nv-orbit 60s linear infinite; }
+.nv-hub-pulse { transform-box: fill-box; transform-origin: center; animation: nv-hub 3s ease-in-out infinite; }
+.nv-link { animation: nv-link 3.5s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .nv-contour, .nv-river-shimmer, .nv-orbit, .nv-hub-pulse, .nv-link { animation: none; } }

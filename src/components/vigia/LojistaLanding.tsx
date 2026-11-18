@@ -38,7 +38,7 @@ function StorefrontPreview({ segment }: { segment: string }) {
           <p className="flex items-center gap-1 font-display text-base font-bold">{v.name} <BadgeCheck size={16} className="text-sky-600" aria-hidden="true" /></p>
           <p className="flex items-center gap-1 text-xs text-slate-500"><MapPin size={12} aria-hidden="true" /> {v.city} · {v.sector}</p>
         </div>
-        <span className="ml-auto rounded-full bg-slate-100 px-2 py-0.5 text-[11px] text-slate-500">exemplo</span>
+        <span className="ml-auto shrink-0 whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-[11px] text-slate-500">exemplo</span>
       </div>
       <ul className="grid grid-cols-3 gap-2 px-4 pb-4">
         {items.map((p, i) => (
