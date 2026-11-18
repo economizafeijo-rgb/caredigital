@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { MANUAL_SIGNOUT_KEY } from "./SessionGuard";
 import {
@@ -7,6 +7,7 @@ import {
   BarChart3,
   BedDouble,
   BookOpen,
+  ChevronDown,
   CalendarDays,
   ClipboardList,
   Droplets,
@@ -164,6 +165,67 @@ function Brand({ onDark = false }: { onDark?: boolean }) {
         </span>
       </span>
     </Link>
+  );
+}
+
+const primaryPublic = [
+  { to: "/", label: "Início" },
+  { to: "/protocolos", label: "Como funciona" },
+] as const;
+const resourceLinks = [
+  { to: "/medicamentos", label: "Medicamentos", icon: Pill },
+  { to: "/hidratacao", label: "Hidratação", icon: Droplets },
+  { to: "/dietas", label: "Dietas", icon: Utensils },
+  { to: "/suplementos", label: "Suplementos", icon: Sparkles },
+  { to: "/peso", label: "Peso", icon: Scale },
+  { to: "/sono", label: "Sono", icon: BedDouble },
+  { to: "/treinos", label: "Treinos", icon: Activity },
+  { to: "/metricas", label: "Métricas", icon: BarChart3 },
+] as const;
+
+/** Menu superior para visitantes: poucos itens visíveis e as áreas de saúde agrupadas em "Recursos". */
+function PublicTopNav({ pathname }: { pathname: string }) {
+  const [open, setOpen] = useState(false);
+  const wrap = useRef<HTMLDivElement>(null);
+  useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => { if (!wrap.current?.contains(e.target as Node)) setOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
+  }, [open]);
+  const resourceActive = resourceLinks.some((r) => r.to === pathname);
+  const linkCls = "inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
+  return (
+    <nav className="ml-4 hidden flex-1 items-center gap-1 lg:flex" aria-label="Navegação principal">
+      {primaryPublic.map((item) => (
+        <Link key={item.to} to={item.to} activeOptions={{ exact: item.to === "/" }} className={linkCls} activeProps={{ className: "!bg-accent !text-accent-foreground" }}>
+          {item.label}
+        </Link>
+      ))}
+      <div ref={wrap} className="relative">
+        <button type="button" aria-expanded={open} aria-haspopup="true" onClick={() => setOpen((o) => !o)}
+          className={`${linkCls} gap-1 ${resourceActive ? "!bg-accent !text-accent-foreground" : ""}`}>
+          Recursos <ChevronDown size={15} aria-hidden="true" className={`transition-transform ${open ? "rotate-180" : ""}`} />
+        </button>
+        {open && (
+          <div className="nv-fade-in absolute left-0 top-full z-40 mt-2 grid w-[26rem] grid-cols-2 gap-1 rounded-2xl border border-border bg-surface p-2 shadow-pop">
+            {resourceLinks.map((r) => (
+              <Link key={r.to} to={r.to} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted" activeProps={{ className: "!bg-accent !text-accent-foreground" }}>
+                <r.icon size={16} aria-hidden="true" className="text-primary" /> {r.label}
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+      <Link to="/loja" className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted" activeProps={{ className: "!bg-accent !text-accent-foreground" }}>
+        <ShoppingBag size={16} aria-hidden="true" className="text-amber-600" /> Loja
+      </Link>
+      <Link to="/lojista" className={linkCls} activeProps={{ className: "!bg-accent !text-accent-foreground" }}>Seja lojista</Link>
+      <Link to="/sobre" className={linkCls} activeProps={{ className: "!bg-accent !text-accent-foreground" }}>Sobre</Link>
+    </nav>
   );
 }
 
@@ -364,7 +426,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           )}
 
           <div className="flex min-w-0 flex-1 flex-col">
-            <header className="z-30 flex h-12 shrink-0 items-center gap-2.5 border-b border-border bg-surface/90 px-2.5 backdrop-blur sm:px-4">
+            <header className="z-30 flex h-14 shrink-0 items-center gap-2.5 border-b border-border bg-surface/90 px-2.5 backdrop-blur sm:px-4">
               {internalPage ? (
                 <>
                   <button
@@ -389,23 +451,8 @@ export function AppShell({ children }: { children: ReactNode }) {
               ) : (
                 <>
                   <Brand />
-                  <nav
-                    className="ml-2 hidden min-w-0 flex-1 items-center justify-start gap-0 overflow-hidden min-[1180px]:flex xl:ml-4 xl:gap-0.5"
-                    aria-label="Navegação principal"
-                  >
-                    {publicItems.map((item) => (
-                      <Link
-                        key={item.to}
-                        to={item.to}
-                        activeOptions={{ exact: item.to === "/" }}
-                        className="shrink-0 whitespace-nowrap rounded-lg px-2 py-2 text-[12.5px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground xl:px-3 xl:text-[13px]"
-                        activeProps={{ className: "!bg-accent !text-accent-foreground" }}
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
-                  </nav>
-                  <span className="flex-1 min-[1180px]:hidden" />
+                  <PublicTopNav pathname={location.pathname} />
+                  <span className="flex-1 lg:hidden" />
                 </>
               )}
               <div className="flex shrink-0 items-center gap-1.5">
@@ -454,7 +501,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     onClick={() => setMenuOpen(true)}
                     aria-label="Abrir menu"
                     aria-expanded={menuOpen}
-                    className={`${iconButton} min-[1180px]:hidden`}
+                    className={`${iconButton} lg:hidden`}
                   >
                     <Menu size={18} />
                   </button>
@@ -488,36 +535,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             </main>
           </div>
 
-          <aside
-            aria-label="Marca NextVita"
-            className="pointer-events-none fixed left-0 top-14 z-20 hidden h-[calc(100dvh-3.5rem)] w-0 items-center justify-center xl:flex"
-          >
-            <div className="pointer-events-none fixed left-1 top-16 bottom-3 flex flex-col items-center justify-between py-2">
-              <span className="[writing-mode:vertical-rl] rotate-180 text-[8px] font-extrabold uppercase tracking-[.28em] text-primary">
-                NextVita
-              </span>
-              <span className="[writing-mode:vertical-rl] rotate-180 text-[7px] font-semibold uppercase tracking-[.16em] text-muted-foreground">
-                Bem-estar conectado
-              </span>
-            </div>
-          </aside>
-          <aside
-            aria-label="Assinatura do desenvolvedor"
-            className="pointer-events-none fixed right-0 top-14 z-20 hidden h-[calc(100dvh-3.5rem)] w-0 items-center justify-center xl:flex"
-          >
-            <div className="pointer-events-none fixed right-1 top-16 bottom-3 flex flex-col items-center justify-between py-2">
-              <span className="[writing-mode:vertical-rl] rotate-180 text-[7px] font-semibold uppercase tracking-[.16em] text-muted-foreground">
-                Desenvolvido por Franc D&apos;nis
-              </span>
-              <span className="[writing-mode:vertical-rl] rotate-180 text-[7px] font-semibold uppercase tracking-[.16em] text-muted-foreground">
-                Feijó, Acre · Cuidar de si é acompanhar sua evolução
-              </span>
-            </div>
-          </aside>
-
           {menuOpen && (
             <div
-              className={`fixed inset-0 z-50 ${signedIn ? "xl:hidden" : "min-[1180px]:hidden"}`}
+              className={`fixed inset-0 z-50 ${signedIn ? "xl:hidden" : "lg:hidden"}`}
               role="dialog"
               aria-modal="true"
               aria-label="Menu"
