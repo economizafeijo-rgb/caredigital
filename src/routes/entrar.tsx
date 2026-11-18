@@ -73,6 +73,7 @@ function Entrar() {
   const [weightKg, setWeightKg] = useState("");
   const [heightCm, setHeightCm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [signupStep, setSignupStep] = useState(0);
   const [busy, setBusy] = useState(false);
   const [resendBusy, setResendBusy] = useState(false);
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
@@ -242,6 +243,16 @@ function Entrar() {
     const height = Number(heightCm.replace(",", "."));
     if (fullName.trim().length < 3)
       return setNotice({ type: "error", message: "Informe seu nome completo." });
+    if (signupStep === 0) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim()))
+        return setNotice({ type: "error", message: "Informe um e-mail válido." });
+      if (!isValidBrazilPhone(normalizedPhone))
+        return setNotice({ type: "error", message: "Informe um celular brasileiro válido com DDD." });
+      if (password.length < 8)
+        return setNotice({ type: "error", message: "Use uma senha com pelo menos 8 caracteres." });
+      setSignupStep(1);
+      return;
+    }
     if (!isValidCpf(normalizedCpf))
       return setNotice({
         type: "error",
@@ -260,8 +271,6 @@ function Entrar() {
       return setNotice({ type: "error", message: "Informe uma altura entre 100 e 230 cm." });
     if (password.length < 8)
       return setNotice({ type: "error", message: "Use uma senha com pelo menos 8 caracteres." });
-    if (password !== confirmPassword)
-      return setNotice({ type: "error", message: "As senhas informadas não são iguais." });
     setBusy(true);
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -430,7 +439,7 @@ function Entrar() {
             {mode === "login"
               ? "Entre com o e-mail e a senha cadastrados."
               : mode === "signup"
-                ? "Preencha seus dados e use o NextVita completo, gratuitamente e sem prazo de validade."
+                ? "Grátis e sem prazo de validade. Leva menos de 1 minuto."
                 : mode === "vendor"
                   ? "Duas etapas rápidas. Sem mensalidade para começar."
                   : mode === "forgot"
@@ -554,9 +563,19 @@ function Entrar() {
 
           {mode === "signup" && (
             <form
-              className="grid gap-2 sm:grid-cols-2"
+              className="grid gap-2.5 sm:grid-cols-2"
               onSubmit={(event) => void handleSignup(event)}
             >
+              <ol className="grid grid-cols-2 gap-2 sm:col-span-2" aria-label="Etapas do cadastro">
+                {["Sua conta", "Seu perfil"].map((t, i) => (
+                  <li key={t} className="grid gap-1">
+                    <span className={`h-1 rounded-full transition-colors ${i <= signupStep ? "bg-primary" : "bg-muted"}`} />
+                    <span className={`text-[11px] font-semibold ${i === signupStep ? "text-foreground" : "text-muted-foreground"}`}>{i + 1}. {t}</span>
+                  </li>
+                ))}
+              </ol>
+              {signupStep === 0 ? (
+                <>
               <label className="block text-xs font-bold text-foreground sm:col-span-2">
                 Nome completo
                 {iconField(User, {
@@ -582,19 +601,6 @@ function Entrar() {
                 })}
               </label>
               <label className="block text-xs font-bold text-foreground">
-                CPF
-                {iconField(CreditCard, {
-                  type: "text",
-                  inputMode: "numeric",
-                  autoComplete: "off",
-                  required: true,
-                  value: formatCpf(cpf),
-                  onChange: (e) => setCpf(e.target.value),
-                  placeholder: "000.000.000-00",
-                  disabled: busy,
-                })}
-              </label>
-              <label className="block text-xs font-bold text-foreground">
                 Celular
                 {iconField(Phone, {
                   type: "tel",
@@ -604,6 +610,36 @@ function Entrar() {
                   value: formatBrazilPhone(phone),
                   onChange: (e) => setPhone(e.target.value),
                   placeholder: "(68) 99999-9999",
+                  disabled: busy,
+                })}
+              </label>
+              <label className="block text-xs font-bold text-foreground sm:col-span-2">
+                <span className="flex items-center justify-between">Senha <button type="button" onClick={() => setShowPassword((v) => !v)} className="text-[11px] font-semibold text-muted-foreground hover:text-foreground">{showPassword ? "Ocultar" : "Mostrar"}</button></span>
+                {iconField(KeyRound, {
+                  type: showPassword ? "text" : "password",
+                  autoComplete: "new-password",
+                  minLength: 8,
+                  required: true,
+                  value: password,
+                  onChange: (e) => setPassword(e.target.value),
+                  placeholder: "Mínimo 8 caracteres",
+                  disabled: busy,
+                })}
+              </label>
+                </>
+              ) : (
+                <>
+                  <p className="text-xs text-muted-foreground sm:col-span-2">Usamos estes dados para calcular suas metas de água, nutrição e peso.</p>
+              <label className="block text-xs font-bold text-foreground">
+                CPF
+                {iconField(CreditCard, {
+                  type: "text",
+                  inputMode: "numeric",
+                  autoComplete: "off",
+                  required: true,
+                  value: formatCpf(cpf),
+                  onChange: (e) => setCpf(e.target.value),
+                  placeholder: "000.000.000-00",
                   disabled: busy,
                 })}
               </label>
@@ -648,45 +684,27 @@ function Entrar() {
                   disabled: busy,
                 })}
               </label>
-              <label className="block text-xs font-bold text-foreground">
-                Senha
-                {iconField(KeyRound, {
-                  type: "password",
-                  autoComplete: "new-password",
-                  minLength: 8,
-                  required: true,
-                  value: password,
-                  onChange: (e) => setPassword(e.target.value),
-                  disabled: busy,
-                })}
-              </label>
-              <label className="block text-xs font-bold text-foreground">
-                Confirmar senha
-                {iconField(KeyRound, {
-                  type: "password",
-                  autoComplete: "new-password",
-                  minLength: 8,
-                  required: true,
-                  value: confirmPassword,
-                  onChange: (e) => setConfirmPassword(e.target.value),
-                  disabled: busy,
-                })}
-              </label>
-              <p className="text-[11px] leading-relaxed text-muted-foreground sm:col-span-2">
-                O e-mail será confirmado antes do primeiro acesso. Seus dados ficam vinculados à sua
-                própria conta.
-              </p>
-              <button
-                type="submit"
-                disabled={busy || !!configurationIssue}
-                className="flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:opacity-50 sm:col-span-2"
-              >
-                {busy ? "Criando sua conta…" : "Criar minha conta grátis"}
-              </button>
+                </>
+              )}
+              <div className="flex gap-2 sm:col-span-2">
+                {signupStep === 1 && (
+                  <button type="button" onClick={() => { setSignupStep(0); setNotice(null); }} aria-label="Etapa anterior" className="inline-flex h-11 items-center gap-1.5 rounded-xl border border-border px-3.5 text-sm font-semibold hover:border-primary/40">
+                    <ArrowLeft size={15} />
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  disabled={busy || !!configurationIssue}
+                  className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:opacity-50"
+                >
+                  {busy ? "Criando sua conta…" : signupStep === 0 ? "Continuar" : "Criar minha conta grátis"}
+                </button>
+              </div>
               <button
                 type="button"
                 onClick={() => {
                   setMode("login");
+                  setSignupStep(0);
                   setNotice(null);
                 }}
                 className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline sm:col-span-2"
