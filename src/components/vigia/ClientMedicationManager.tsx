@@ -67,6 +67,65 @@ function ConfirmDialog({ title, children, confirmLabel, danger, onConfirm, onCan
   </div>;
 }
 
+function AdherenceRing({ done, total }: { done: number; total: number }) {
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  return <div className="relative mx-auto size-32 shrink-0 sm:size-36 lg:mx-0" role="img" aria-label={`${done} de ${total} doses tomadas`}>
+    <svg viewBox="0 0 120 120" className="absolute inset-0 -rotate-90">
+      <circle cx="60" cy="60" r="52" fill="none" stroke="#ffffff1f" strokeWidth="10"/>
+      {total > 0 && Array.from({ length: total }, (_, i) => {
+        const seg = 100 / total, gap = total > 1 ? Math.min(3, seg * .25) : 0;
+        return <circle key={i} cx="60" cy="60" r="52" fill="none" pathLength={100} strokeWidth="10" strokeLinecap="butt"
+          stroke={i < done ? "#fff" : "#ffffff30"} strokeDasharray={`${seg - gap} ${100 - seg + gap}`} strokeDashoffset={-i * seg}
+          className="nv-dot-in" style={{ animationDelay: `${i * 70}ms`, transition: "stroke .5s" }}/>;
+      })}
+    </svg>
+    <div className="absolute inset-[26px] grid place-items-center rounded-full bg-white/[.07] text-center shadow-inner">
+      <span className="leading-none"><Pill size={16} className="mx-auto mb-1 text-pink-200"/><strong className="block text-2xl font-extrabold tabular-nums">{pct}%</strong><span className="text-[10px] font-semibold text-white/70">adesão</span></span>
+    </div>
+  </div>;
+}
+
+type Dose = { med: ClientMedication; slot: string; at: number; taken: boolean };
+/** Linha do dia com cada dose no seu horário: verde tomada, âmbar atrasada, rosa a tomar. */
+function DoseTimeline({ doses, onPick }: { doses: Dose[]; onPick: (d: Dose) => void }) {
+  const [hover, setHover] = useState<number | null>(null);
+  const now = Date.now();
+  const dayStart = doses.length ? doses[0].at - (Number(doses[0].slot.slice(0, 2)) * 60 + Number(doses[0].slot.slice(3))) * 60_000 : now;
+  const pos = (t: number) => Math.min(100, Math.max(0, ((t - dayStart) / 86_400_000) * 100));
+  const lanes = new Map<string, number>();
+  const placed = doses.map(d => { const k = d.slot; const l = lanes.get(k) ?? 0; lanes.set(k, l + 1); return { d, lane: l }; });
+  const hd = hover === null ? null : placed[hover];
+  return <figure className="rounded-2xl border border-border bg-card p-3 sm:p-4">
+    <figcaption className="flex flex-wrap items-center justify-between gap-2">
+      <span><strong className="block text-sm font-bold">Doses ao longo do dia</strong><span className="text-xs text-muted-foreground">Toque em uma dose para registrar ou desfazer</span></span>
+      <span className="flex gap-3 text-[11px] font-semibold text-muted-foreground">
+        <span className="inline-flex items-center gap-1.5"><i className="size-2.5 rounded-full bg-emerald-500"/> Tomada</span>
+        <span className="inline-flex items-center gap-1.5"><i className="size-2.5 rounded-full bg-amber-500"/> Atrasada</span>
+        <span className="inline-flex items-center gap-1.5"><i className="size-2.5 rounded-full bg-rose-500"/> A tomar</span>
+      </span>
+    </figcaption>
+    <div className="relative mt-4 h-28 select-none" onPointerLeave={() => setHover(null)}>
+      <div className="absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 overflow-hidden rounded-full bg-muted">
+        <i className="block h-full rounded-full bg-gradient-to-r from-rose-500/30 to-pink-400/40 transition-[width] duration-700" style={{ width: `${pos(now)}%` }}/>
+      </div>
+      <span className="absolute top-1 bottom-1 w-px bg-rose-500/70" style={{ left: `${pos(now)}%` }} aria-hidden="true"><span className="absolute -top-1 left-1/2 -translate-x-1/2 rounded-full bg-rose-600 px-1.5 text-[9px] font-bold text-white">agora</span></span>
+      {placed.map(({ d, lane }, i) => {
+        const late = !d.taken && d.at < now;
+        return <button key={d.med.id + d.slot} type="button" onClick={() => onPick(d)} onPointerEnter={() => setHover(i)} onFocus={() => setHover(i)} onBlur={() => setHover(null)}
+          aria-label={`${d.med.name} ${d.slot}: ${d.taken ? "tomada" : late ? "atrasada" : "a tomar"}`}
+          className={`nv-dot-in absolute grid size-8 -translate-x-1/2 place-items-center rounded-full border-2 border-card text-white shadow-md transition-transform hover:scale-125 focus-visible:scale-125 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 ${d.taken ? "bg-emerald-500" : late ? "bg-amber-500" : "bg-rose-500"}`}
+          style={{ left: `${pos(d.at)}%`, top: `calc(50% - 16px + ${(lane % 2 ? 1 : -1) * Math.ceil(lane / 2) * 26}px)`, animationDelay: `${150 + i * 60}ms` }}>
+          {d.taken ? <Check size={14}/> : <Pill size={13}/>}
+        </button>;
+      })}
+      {hd && <div className="pointer-events-none absolute -top-2 z-10 w-44 -translate-x-1/2 -translate-y-full rounded-xl bg-slate-900 px-3 py-2 text-xs text-white shadow-lg" style={{ left: `${Math.min(88, Math.max(12, pos(hd.d.at)))}%` }}>
+        <strong className="block truncate">{hd.d.med.name}</strong>{hd.d.slot} · {hd.d.med.dose}<span className="block text-white/70">{hd.d.taken ? "Tomada" : hd.d.at < now ? "Atrasada" : "A tomar"}</span>
+      </div>}
+    </div>
+    <div className="mt-1 flex justify-between text-[10px] font-semibold text-muted-foreground">{["00h", "06h", "12h", "18h", "24h"].map(t => <span key={t}>{t}</span>)}</div>
+  </figure>;
+}
+
 type Pending = { kind: "save"; value: Omit<ClientMedication, "id">; id?: string } | { kind: "delete"; med: ClientMedication } | { kind: "take"; med: ClientMedication; slot: string; taken: boolean };
 
 export function ClientMedicationManager({ patientId, ownerId }: { patientId: string; ownerId: string }) {
@@ -102,6 +161,7 @@ export function ClientMedicationManager({ patientId, ownerId }: { patientId: str
   }, [meds, intakes, day]);
   const next = doses.find(d => !d.taken && d.at >= Date.now() - 60 * 60_000);
   const done = doses.filter(d => d.taken).length;
+  const late = doses.filter(d => !d.taken && d.at < Date.now()).length;
 
   function requestSave() {
     if (!draft) return;
@@ -142,26 +202,40 @@ export function ClientMedicationManager({ patientId, ownerId }: { patientId: str
   const field = "mt-1 block h-11 w-full rounded-xl border border-border bg-surface px-3 text-sm";
   return <section className="mt-5 flex flex-col gap-4" aria-label="Meus medicamentos">
     {!remote && loaded && <p role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm">Modo local: seus medicamentos estão salvos neste navegador até a atualização do banco ser aplicada.</p>}
-    <div className="grid gap-4 lg:grid-cols-2">
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-rose-950 via-rose-900 to-pink-800 p-5 text-white shadow-card">
-        <div className="flex items-center justify-between gap-2"><p className="text-xs font-bold uppercase tracking-[.14em] text-white/70">Próxima dose</p><span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">{done} de {doses.length} hoje</span></div>
-        <div className="mt-4">{next ? <CareTimer target={next.at} title={`${next.med.name} · ${next.med.dose}`} subtitle={next.med.instructions ?? "Conforme a receita"} tone="med" dark windowMs={3 * 3600_000}/>
-          : <p className="py-5 text-base text-white/85">{doses.length ? "Todas as doses de hoje foram registradas." : "Cadastre seus medicamentos para ativar o timer."}</p>}</div>
-        {next && <button type="button" data-register-target="Registrar dose" onClick={() => setPending({ kind: "take", med: next.med, slot: next.slot, taken: false })} className="mt-4 inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-rose-900 hover:bg-white/90"><CheckCircle2 size={18}/> Registrar dose</button>}
+    <header className="nv-dark relative isolate overflow-hidden rounded-2xl bg-gradient-to-br from-[#3b0a1e] via-[#7a1238] to-[#b4235a] p-4 text-white shadow-card sm:p-5">
+      <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-24 -z-10 size-80 rounded-full bg-pink-300/20 blur-3xl"/>
+      <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 left-10 -z-10 size-56 rounded-full bg-amber-200/10 blur-3xl"/>
+      <div className="grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_minmax(0,18rem)]">
+        <AdherenceRing done={done} total={doses.length}/>
+        <div className="min-w-0 text-center lg:text-left">
+          <p className="text-3xl font-extrabold tabular-nums">{done} <span className="text-lg font-semibold text-white/65">de {doses.length} doses hoje</span></p>
+          <p className="mt-1 text-sm text-white/80">{!doses.length ? "Cadastre seus medicamentos e o NextVita avisa a hora de cada dose." : late ? `${late} ${late === 1 ? "dose atrasada" : "doses atrasadas"}. Registre só o que você realmente tomou.` : done === doses.length ? "Todas as doses de hoje foram registradas." : "Tudo em dia até agora."}</p>
+          <div className="mt-3 flex flex-wrap justify-center gap-2 lg:justify-start">
+            {next && <button type="button" data-register-target="Registrar dose" onClick={() => setPending({ kind: "take", med: next.med, slot: next.slot, taken: false })} className="nv-bump inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-rose-900 shadow-sm transition hover:bg-white/90 active:scale-[.97]"><CheckCircle2 size={17}/> Tomei {next.med.name}</button>}
+            <button type="button" onClick={() => { setMessage(null); setDraft({ times: ["08:00"], category: "outros" }); }} className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-4 text-sm font-bold text-white backdrop-blur transition hover:bg-white/20 active:scale-[.97]"><Plus size={16}/> Novo medicamento</button>
+          </div>
+        </div>
+        <div className="rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur">
+          <p className="text-[11px] font-semibold text-white/70">Próxima dose</p>
+          {next ? <CareTimer target={next.at} title={`${next.med.name} · ${next.med.dose}`} subtitle={next.med.instructions ?? "Conforme a receita"} tone="med" dark windowMs={3 * 3600_000}/>
+            : <p className="py-3 text-sm text-white/85">{doses.length ? "Nenhuma dose pendente hoje." : "Sem horários cadastrados."}</p>}
+        </div>
       </div>
-      <div className="rounded-3xl border border-border bg-card p-5 shadow-card">
-        <div className="flex items-center justify-between gap-2"><h3 className="flex items-center gap-2 text-lg font-bold"><Clock size={20} className="text-rose-500"/> Horários de hoje</h3>
-          <button type="button" onClick={() => { setMessage(null); setDraft({ times: ["08:00"], category: "outros" }); }} className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-gradient-to-r from-rose-600 to-pink-500 px-4 text-sm font-bold text-white shadow-sm hover:brightness-110"><Plus size={17}/> Novo medicamento</button></div>
-        <ul className="mt-3 grid max-h-64 gap-2 overflow-y-auto pr-1">
-          {doses.length === 0 && <li className="rounded-xl border border-dashed border-border p-5 text-center text-sm text-muted-foreground">Nenhum horário. Use <strong>Novo medicamento</strong> ou escolha na biblioteca abaixo.</li>}
-          {doses.map(({ med, slot, taken, at }) => <li key={med.id + slot} className={`flex items-center gap-3 rounded-2xl border p-3 ${taken ? "border-emerald-500/30 bg-emerald-500/[.06]" : at < Date.now() ? "border-amber-500/40 bg-amber-500/[.06]" : "border-border"}`}>
-            <span className={`grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white ${categoryOf(med.category)?.gradient ?? "from-rose-600 to-pink-500"}`}><Pill size={18}/></span>
+    </header>
+
+    {doses.length > 0 && <div className="grid gap-3 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+      <DoseTimeline doses={doses} onPick={d => setPending({ kind: "take", med: d.med, slot: d.slot, taken: d.taken })}/>
+      <div className="rounded-2xl border border-border bg-card p-3 sm:p-4">
+        <h3 className="flex items-center gap-2 text-sm font-bold"><Clock size={16} className="text-rose-500"/> Horários de hoje</h3>
+        <ul className="mt-2 grid max-h-60 gap-1.5 overflow-y-auto pr-1">
+          {doses.map(({ med, slot, taken, at }, i) => <li key={med.id + slot} className={`nv-fade-in flex items-center gap-3 rounded-xl border p-2 transition-colors ${taken ? "border-emerald-500/30 bg-emerald-500/[.06]" : at < Date.now() ? "border-amber-500/40 bg-amber-500/[.06]" : "border-border hover:bg-muted/40"}`} style={{ animationDelay: `${i * 40}ms` }}>
+            <span className={`grid size-9 shrink-0 place-items-center rounded-lg bg-gradient-to-br text-white ${categoryOf(med.category)?.gradient ?? "from-rose-600 to-pink-500"}`}><Pill size={16}/></span>
             <span className="min-w-0 flex-1"><strong className="block truncate text-sm">{med.name}</strong><span className="text-xs text-muted-foreground">{slot} · {med.dose}{!taken && at < Date.now() ? " · atrasada" : ""}</span></span>
-            <button type="button" onClick={() => setPending({ kind: "take", med, slot, taken })} className={`inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-sm font-bold ${taken ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : "bg-gradient-to-r from-rose-600 to-pink-500 text-white"}`}>{taken ? <><Undo2 size={15}/> Tomado</> : <><Check size={16}/> Tomar</>}</button>
+            <button type="button" onClick={() => setPending({ kind: "take", med, slot, taken })} className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition active:scale-95 ${taken ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : "bg-gradient-to-r from-rose-600 to-pink-500 text-white hover:brightness-110"}`}>{taken ? <><Undo2 size={14}/> Tomado</> : <><Check size={15}/> Tomar</>}</button>
           </li>)}
         </ul>
       </div>
-    </div>
+    </div>}
     {message && !draft && <p role="status" className={`rounded-xl px-3 py-2 text-sm font-medium ${message.ok ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-destructive/10 text-destructive"}`}>{message.text}</p>}
 
     {meds.length > 0 && <div className="rounded-3xl border border-border bg-card p-5 shadow-card">
