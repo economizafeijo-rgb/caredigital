@@ -200,6 +200,61 @@ export function assembleCareHistory(sources:HistorySources,now=Date.now()):Histo
         occurredAt:item.recorded_at,scheduledAt:item.scheduled_at??undefined});
       continue;
     }
+    if(item.source==="historical_reconstruction"){
+      const evidence=text(details.evidence);
+      const dateMatch=evidence.match(/(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}:\d{2}))?/);
+      const localTime=text(details.local_time,dateMatch?.[4]??"");
+      const evidenceDate=dateMatch?dateMatch[3]+"-"+dateMatch[2]+"-"+dateMatch[1]:null;
+      const occurredAt=item.happened_at??(evidenceDate&&localTime?evidenceDate+"T"+localTime+":00-05:00":item.recorded_at);
+      const items=Array.isArray(details.items)?details.items.filter((value):value is string=>typeof value==="string"):[];
+      const titleByType:Record<string,string>={
+        snapshot_tratamento:"Resumo do tratamento",
+        conferencia_confirmada:"Conferência de medicamento",
+        refeicao_confirmada:"Refeição reconstruída",
+        lanche_extra_registrado:"Lanche extra reconstruído",
+        snapshot_dashboard:"Resumo do painel",
+        snapshot_metas:"Resumo de metas",
+        medicacao_programada:"Medicação programada na captura",
+        cuidado_programado:"Cuidado programado na captura",
+        refeicao_programada:"Refeição programada na captura",
+      };
+      const summaryByType:Record<string,string>={
+        snapshot_tratamento:[
+          text(details.blister),text(details.progress),
+          details.progress_percent?String(details.progress_percent):"",
+          details.doses_confirmed?String(details.doses_confirmed)+" doses confirmadas":"",
+          details.tablets_confirmed?String(details.tablets_confirmed)+" comprimidos confirmados":"",
+          text(details.morning_dose),text(details.night_dose)
+        ].filter(Boolean).join(" · "),
+        snapshot_dashboard:[
+          text(details.hydration_display,details.hydration_ml!=null?String(details.hydration_ml)+" ml de hidratação":""),
+          details.meals_confirmed?String(details.meals_confirmed)+" refeições confirmadas":"",
+          details.care_items_completed?String(details.care_items_completed)+" cuidados concluídos":"",
+          details.medication_doses_confirmed?String(details.medication_doses_confirmed)+" doses de medicação":"",
+          details.completion_percent!=null?String(details.completion_percent)+"% de conclusão":""
+        ].filter(Boolean).join(" · "),
+        snapshot_metas:[
+          details.nutrition_kcal!=null?String(details.nutrition_kcal)+" kcal":"",
+          details.protein_g!=null?String(details.protein_g)+" g de proteína":"",
+          details.hydration_ml!=null?String(details.hydration_ml)+" ml de hidratação":""
+        ].filter(Boolean).join(" · "),
+        refeicao_confirmada:[text(details.meal),items.join(", ")].filter(Boolean).join(": "),
+        lanche_extra_registrado:[text(details.meal),items.join(", "),text(details.quantity)].filter(Boolean).join(" · "),
+      };
+      const summary=summaryByType[item.event_type]||text(details.description)||text(details.title);
+      const status=details.status==="programado_na_captura"?"nao_confirmado":"registrado";
+      const group:HistoryGroup=item.category==="hidratacao"?"liquidos":item.category==="refeicao"?"refeicoes":"cuidados";
+      const subtype=item.category==="hidratacao"?"agua":item.category==="refeicao"?(item.event_type==="lanche_extra_registrado"?"lanche":"refeicao"): "medicacao";
+      const provenance=evidence?"Fonte: "+evidence+". ":"";
+      const note=details.status==="programado_na_captura"?"Programado na captura; não há confirmação de execução.":"Reconstruído de captura histórica.";
+      events.push({
+        id:"reconstructed-"+item.id,group,subtype,status,
+        title:titleByType[item.event_type]??text(details.description,"Registro histórico reconstruído"),
+        description:[summary,provenance+note].filter(Boolean).join(" · "),
+        occurredAt,scheduledAt:item.scheduled_at??undefined
+      });
+      continue;
+    }
     events.push({id:"audit-"+item.id,group:groupOf(item.category),subtype:item.category,status:"registrado",
       title:text(details.title,"Registro de "+(item.category==="hidratacao"?"hidratação":item.category==="refeicao"?"refeição":"cuidado")),
       description:"Evento do prontuário: "+text(item.event_type,"registro"),
