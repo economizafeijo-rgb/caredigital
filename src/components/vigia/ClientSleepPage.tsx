@@ -43,10 +43,26 @@ const fromLocalInput = (value: string) => new Date(value + ":00-05:00");
 
 function ScoreRing({ score }: { score: number }) {
   const r = 70, c = 2 * Math.PI * r, color = scoreColor(score);
-  return <div className="relative size-[176px] shrink-0">
-    <svg viewBox="0 0 176 176" className="-rotate-90"><circle cx="88" cy="88" r={r} fill="none" strokeWidth="14" className="stroke-white/15"/>
+  return <div className="relative mx-auto size-[150px] shrink-0 sm:size-[176px]">
+    <svg viewBox="0 0 176 176" className="size-full -rotate-90"><circle cx="88" cy="88" r={r} fill="none" strokeWidth="14" className="stroke-white/15"/>
       <circle cx="88" cy="88" r={r} fill="none" strokeWidth="14" stroke={color} strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - score / 100)} style={{ transition: "stroke-dashoffset 1s ease", filter: `drop-shadow(0 0 8px ${color})` }}/></svg>
     <div className="absolute inset-0 grid place-items-center text-center"><div><strong className="block text-5xl font-extrabold tabular-nums leading-none">{score}</strong><span className="text-xs font-semibold uppercase tracking-widest text-white/70">{scoreLabel(score)}</span></div></div>
+  </div>;
+}
+
+/** Régua da noite (18h → 12h): mostra quando deitou e acordou frente à janela ideal 22h–06h. */
+function NightBar({ log }: { log: SleepLog }) {
+  const minutesFrom18 = (iso: string) => { const d = new Date(Date.parse(iso) - 5 * 3_600_000); let m = d.getUTCHours() * 60 + d.getUTCMinutes() - 18 * 60; if (m < 0) m += 24 * 60; return m; };
+  const span = 18 * 60, pos = (m: number) => Math.min(100, Math.max(0, (m / span) * 100));
+  const a = pos(minutesFrom18(log.bed_at)), b = pos(minutesFrom18(log.wake_at));
+  return <div className="mt-3" aria-label={`Dormiu ${clock(log.bed_at)}, acordou ${clock(log.wake_at)}`}>
+    <div className="relative h-9 rounded-xl bg-white/10">
+      <span aria-hidden="true" className="absolute inset-y-0 rounded-xl border border-dashed border-white/25" style={{ left: `${pos(4 * 60)}%`, width: `${pos(12 * 60) - pos(4 * 60)}%` }}/>
+      <span className="nv-progress absolute inset-y-1 rounded-lg bg-gradient-to-r from-indigo-400 via-violet-400 to-amber-300 shadow-[0_0_18px_rgba(167,139,250,.55)]" style={{ left: `${a}%`, width: `${Math.max(2, b - a)}%` }}/>
+      <span className="absolute top-1/2 grid size-7 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-indigo-950 text-indigo-200 ring-2 ring-indigo-300" style={{ left: `${a}%` }}><Moon size={13}/></span>
+      <span className="absolute top-1/2 grid size-7 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-amber-300 text-amber-900 ring-2 ring-amber-100" style={{ left: `${b}%` }}><Sunrise size={13}/></span>
+    </div>
+    <div className="mt-1 flex justify-between text-[10px] font-semibold text-white/55">{["18h", "21h", "00h", "03h", "06h", "09h", "12h"].map(t => <span key={t}>{t}</span>)}</div>
   </div>;
 }
 
@@ -164,27 +180,30 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
     : "Bom padrão de sono. Mantenha o horário regular e a rotina de desaceleração.";
   const field = "mt-1 block h-11 w-full rounded-xl border border-border bg-surface px-3 text-sm";
 
-  return <div className="flex flex-col gap-4">
+  return <div className="flex flex-col gap-3">
     {!remote && loaded && <p role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm">Modo local: seus registros de sono ficam neste navegador até a atualização do banco ser aplicada.</p>}
 
-    <div className="grid gap-4 xl:grid-cols-[1.25fr_1fr]">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-950 via-slate-900 to-violet-950 p-5 text-white shadow-card sm:p-6" aria-label="Resumo do sono">
+    <div className="grid gap-3 xl:grid-cols-[1.25fr_1fr]">
+      <section className="nv-dark relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#120d3a] via-[#1e1b4b] to-[#3b1d6e] p-4 text-white shadow-card sm:p-5" aria-label="Resumo do sono">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full bg-amber-100/10 shadow-[inset_-18px_-6px_0_rgba(255,255,255,.08)]"/>
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-70" style={{ backgroundImage: "radial-gradient(1.5px 1.5px at 12% 22%, #fff, transparent), radial-gradient(1px 1px at 38% 12%, #fff, transparent), radial-gradient(1.5px 1.5px at 64% 30%, #fff, transparent), radial-gradient(1px 1px at 84% 16%, #fff, transparent), radial-gradient(1px 1px at 74% 62%, #fff, transparent), radial-gradient(1.5px 1.5px at 22% 70%, #fff, transparent)" }}/>
         <div className="relative flex flex-wrap items-center gap-5">
           <ScoreRing score={focus ? sleepScore(focus) : 0}/>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-bold uppercase tracking-[.14em] text-white/70">{selected ? "Noite selecionada" : "Última noite"}{focus ? ` · ${short(focus.sleep_date)}` : ""}</p>
             <p className="mt-1 text-4xl font-extrabold tabular-nums">{focus ? hm(hours(focus)) : "—"}<span className="ml-2 text-base font-semibold text-white/70">de sono</span></p>
-            {focus && <div className="mt-3 grid grid-cols-2 gap-2 text-sm 2xl:grid-cols-4">
-              {[[Moon, "Dormiu", clock(focus.bed_at)], [Sunrise, "Acordou", clock(focus.wake_at)], [AlarmClock, "Despertares", String(focus.awakenings)], [HeartPulse, "FC média", focus.avg_hr ? `${focus.avg_hr} bpm` : "—"]].map(([Icon, label, value]: any) =>
-                <div key={label} className="rounded-xl bg-white/10 px-3 py-2"><span className="flex items-center gap-1.5 whitespace-nowrap text-xs text-white/70"><Icon size={13}/>{label}</span><strong className="tabular-nums">{value}</strong></div>)}
+            {focus && <NightBar log={focus}/>}
+            {focus && <div className="mt-2 flex flex-wrap gap-1.5 text-xs">
+              {[[Moon, "Dormiu", clock(focus.bed_at)], [Sunrise, "Acordou", clock(focus.wake_at)], [AlarmClock, "Despertares", String(focus.awakenings)], ...(focus.avg_hr ? [[HeartPulse, "FC média", `${focus.avg_hr} bpm`]] : [])].map(([Icon, label, value]: any) =>
+                <span key={label} className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1"><Icon size={12} className="text-white/70"/><span className="text-white/70">{label}</span><strong className="tabular-nums">{value}</strong></span>)}
             </div>}
             <p className="mt-3 flex gap-2 rounded-xl bg-white/10 p-3 text-sm"><Lightbulb size={17} className="mt-0.5 shrink-0 text-amber-300"/>{tip}</p>
+            <a href="#nv-sleep-form" className="nv-bump mt-3 inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-indigo-950 shadow-sm transition hover:bg-white/90 active:scale-[.97]"><BedDouble size={17}/> Registrar noite</a>
           </div>
         </div>
       </section>
 
-      <section className="rounded-3xl border border-border bg-card p-5 shadow-card" aria-label="Sensor em tempo real">
+      <section className="rounded-2xl border border-border bg-card p-4 shadow-card sm:p-5" aria-label="Sensor em tempo real">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="flex items-center gap-2 text-lg font-bold"><HeartPulse size={20} className="text-rose-500"/> Sensor em tempo real</h3>
           {deviceName ? <button type="button" onClick={disconnect} className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-border px-3 text-sm font-bold hover:bg-muted"><BluetoothOff size={16}/> Desconectar</button>
@@ -210,7 +229,7 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
       </section>
     </div>
 
-    <section className="rounded-3xl border border-border bg-card p-5 shadow-card" aria-label="Evolução do sono">
+    <section className="rounded-2xl border border-border bg-card p-4 shadow-card sm:p-5" aria-label="Evolução do sono">
       <div className="flex flex-wrap items-center gap-3">
         <div className="mr-auto"><h3 className="text-lg font-bold">Evolução do sono</h3><p className="text-sm text-muted-foreground">Horas dormidas e nota de cada noite. Toque em uma barra para ver os detalhes.</p></div>
         <div role="group" aria-label="Período" className="flex gap-1 rounded-xl bg-muted p-1">{([7, 14, 30] as const).map(v => <button key={v} type="button" aria-pressed={range === v} onClick={() => setRange(v)} className={`h-9 rounded-lg px-3 text-sm font-semibold ${range === v ? "bg-card shadow-sm" : "text-muted-foreground"}`}>{v} dias</button>)}</div>
@@ -243,7 +262,7 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
       </div>
     </section>
 
-    <section className="rounded-3xl border border-border bg-card p-5 shadow-card" aria-label="Registrar noite" data-register-target="Registrar noite">
+    <section className="rounded-2xl border border-border bg-card p-4 shadow-card sm:p-5" id="nv-sleep-form" aria-label="Registrar noite" data-register-target="Registrar noite">
       <h3 className="flex items-center gap-2 text-lg font-bold"><Sparkles size={20} className="text-indigo-500"/> Registrar noite de sono</h3>
       <div className="mt-3 grid gap-3 text-sm font-semibold sm:grid-cols-2 lg:grid-cols-4">
         <label>Fui dormir<input type="datetime-local" className={field} value={bed} onChange={e => setBed(e.target.value)}/></label>
