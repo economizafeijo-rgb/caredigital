@@ -43,7 +43,8 @@ export function AdminTestStores() {
     <section aria-label="Lojas de teste" className="grid gap-3 rounded-3xl border border-border bg-card/60 p-3 shadow-card sm:p-5">
       <header className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2"><span className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white"><FlaskConical size={20} /></span><div><p className="text-[11px] font-bold text-primary">Testes</p><h2 className="text-lg font-extrabold leading-tight">Lojas de teste e acesso dos lojistas</h2></div></div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <a href="/lojista" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-amber-400 px-3 text-xs font-bold text-slate-950"><ExternalLink size={14} /> Abrir painel das lojas</a>
           <button type="button" onClick={() => void load()} className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-border bg-surface px-3 text-xs font-bold"><RefreshCw size={14} /> Atualizar</button>
           <button type="button" disabled={busy} onClick={() => void link()} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground disabled:opacity-50"><Link2 size={14} /> Vincular contas criadas</button>
         </div>
