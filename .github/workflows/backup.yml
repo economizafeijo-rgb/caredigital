@@ -1,0 +1,61 @@
+name: Backup diário (Supabase + repositório)
+
+on:
+  schedule:
+    - cron: "0 6 * * 0"   # a cada 7 dias, domingo 03:00 em Brasília (06:00 UTC)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+      RCLONE_CONFIG_CONTENT: ${{ secrets.RCLONE_CONFIG }}
+      DRIVE_FOLDER_ID: ${{ secrets.DRIVE_FOLDER_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar cliente PostgreSQL 17 e rclone
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+          curl -fsSL https://rclone.org/install.sh | sudo bash
+
+      - name: Gerar dump do banco e zip do repositório (criptografados)
+        run: |
+          set -euo pipefail
+          if [ -z "$SUPABASE_DB_URL" ] || [ -z "$BACKUP_PASSPHRASE" ]; then
+            echo "Secrets SUPABASE_DB_URL ou BACKUP_PASSPHRASE não configurados."; exit 1
+          fi
+          STAMP=$(date -u +%Y%m%d-%H%M)
+          mkdir -p out
+          pg_dump "$SUPABASE_DB_URL" --format=custom --no-owner --no-privileges -f db.dump
+          git archive --format=zip --prefix=caredigital/ -o repo.zip HEAD
+          openssl enc -aes-256-cbc -pbkdf2 -salt -pass env:BACKUP_PASSPHRASE -in db.dump  -out "out/db-$STAMP.dump.enc"
+          openssl enc -aes-256-cbc -pbkdf2 -salt -pass env:BACKUP_PASSPHRASE -in repo.zip -out "out/repo-$STAMP.zip.enc"
+          rm -f db.dump repo.zip
+          ls -la out
+
+      - name: Guardar cópia como artifact (30 dias)
+        uses: actions/upload-artifact@v4
+        with:
+          name: caredigital-backup-${{ github.run_id }}
+          path: out/
+          retention-days: 30
+
+      - name: Enviar para a pasta do Google Drive
+        run: |
+          set -euo pipefail
+          if [ -z "$RCLONE_CONFIG_CONTENT" ] || [ -z "$DRIVE_FOLDER_ID" ]; then
+            echo "RCLONE_CONFIG ou DRIVE_FOLDER_ID não configurados; envio ao Drive pulado."; exit 0
+          fi
+          mkdir -p ~/.config/rclone
+          printf '%s\n' "$RCLONE_CONFIG_CONTENT" > ~/.config/rclone/rclone.conf
+          rclone copy out gdrive: --drive-root-folder-id "$DRIVE_FOLDER_ID" --progress
