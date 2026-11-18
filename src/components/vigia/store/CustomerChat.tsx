@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { LogIn, Send, X } from "lucide-react";
+import { LogIn, Send, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { ChatMessage } from "@/lib/marketplace";
 
@@ -31,7 +31,7 @@ export function CustomerChat({ vendor, onClose, orderId }: { vendor: { id: strin
   useEffect(() => {
     const db = supabase as any;
     if (!user || typeof db.channel !== "function") return;
-    const ch = db.channel(`chat-${vendor.id}-${user.id}`).on("postgres_changes", { event: "INSERT", schema: "public", table: "care_store_messages", filter: `vendor_id=eq.${vendor.id}` }, () => void load()).subscribe();
+    const ch = db.channel(`chat-${vendor.id}-${user.id}`).on("postgres_changes", { event: "*", schema: "public", table: "care_store_messages", filter: `vendor_id=eq.${vendor.id}` }, () => void load()).subscribe();
     return () => { void db.removeChannel(ch); };
   }, [user, vendor.id, load]);
   useEffect(() => { end.current?.scrollIntoView({ block: "end" }); }, [msgs.length]);
@@ -43,6 +43,10 @@ export function CustomerChat({ vendor, onClose, orderId }: { vendor: { id: strin
     const { error } = await (supabase as any).from("care_store_messages").insert({ vendor_id: vendor.id, customer_id: user.id, customer_name: user.name, from_vendor: false, body: text.trim(), order_id: orderId ?? null });
     if (error) { setErr("Mensagem não enviada. Tente de novo."); return; }
     setErr(""); setText(""); void load();
+  }
+  async function remove(id: string) {
+    const { error } = await (supabase as any).rpc("care_store_delete_message", { p_message: id });
+    if (error) setErr("Não foi possível apagar a mensagem."); else void load();
   }
   const login = () => { try { window.sessionStorage.setItem("nv_after_login", window.location.pathname + window.location.search); } catch { /* ok */ } window.location.assign("/entrar"); };
 
@@ -64,9 +68,10 @@ export function CustomerChat({ vendor, onClose, orderId }: { vendor: { id: strin
             <div className="min-h-0 flex-1 space-y-2 overflow-y-auto bg-muted/40 px-3 py-3">
               {!msgs.length && <p className="mx-auto mt-6 max-w-[16rem] text-center text-xs text-muted-foreground">Mande sua dúvida sobre produtos, prazos ou retirada. A loja recebe na hora.</p>}
               {msgs.map((m) => (
-                <div key={m.id} className={`flex ${m.from_vendor ? "justify-start" : "justify-end"}`}>
-                  <p className={`max-w-[80%] rounded-2xl px-3 py-2 text-[13.5px] shadow-sm ${m.from_vendor ? "rounded-bl-md bg-card" : "rounded-br-md text-white"}`} style={m.from_vendor ? undefined : { background: accent }}>
-                    {m.body}<span className={`mt-0.5 block text-right text-[10px] ${m.from_vendor ? "text-muted-foreground" : "text-white/70"}`}>{time(m.created_at)}</span>
+                <div key={m.id} className={`group flex items-center gap-1 ${m.from_vendor ? "justify-start" : "justify-end"}`}>
+                  {!m.from_vendor && !m.deleted_at && <button type="button" onClick={() => void remove(m.id)} aria-label="Apagar mensagem" title="Apagar mensagem" className="grid size-7 place-items-center rounded-full text-muted-foreground opacity-0 transition hover:bg-muted hover:text-rose-500 focus:opacity-100 group-hover:opacity-100"><Trash2 size={13} /></button>}
+                  <p className={`max-w-[80%] rounded-2xl px-3 py-2 text-[13.5px] shadow-sm ${m.deleted_at ? "border border-dashed border-border bg-transparent italic text-muted-foreground" : m.from_vendor ? "rounded-bl-md bg-card" : "rounded-br-md text-white"}`} style={m.from_vendor || m.deleted_at ? undefined : { background: accent }}>
+                    {m.deleted_at ? "Mensagem apagada" : m.body}<span className={`mt-0.5 block text-right text-[10px] ${m.from_vendor || m.deleted_at ? "text-muted-foreground" : "text-white/70"}`}>{time(m.created_at)}</span>
                   </p>
                 </div>
               ))}

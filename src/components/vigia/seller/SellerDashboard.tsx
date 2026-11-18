@@ -13,8 +13,8 @@ export type SellerTab = "visao" | "pedidos" | "produtos" | "caixa" | "mensagens"
 const STATUS = { pendente: ["Em análise", "bg-amber-400"], ativo: ["Loja aberta", "bg-emerald-400"], suspenso: ["Suspensa", "bg-rose-400"] } as const;
 
 /** Painel do lojista: navegação lateral, cabeçalho da loja e os módulos de operação. */
-export function SellerDashboard({ vendors, onChanged }: { vendors: Vendor[]; onChanged: () => void }) {
-  const [vendorId, setVendorId] = useState(vendors[0].id);
+export function SellerDashboard({ vendors, onChanged, initialId }: { vendors: Vendor[]; onChanged: () => void; initialId?: string }) {
+  const [vendorId, setVendorId] = useState(vendors.find((v) => v.id === initialId)?.id ?? vendors[0].id);
   const vendor = vendors.find((v) => v.id === vendorId) ?? vendors[0];
   const [tab, setTab] = useState<SellerTab>("visao");
   const [chatWith, setChatWith] = useState<string | null>(null);

@@ -3,6 +3,7 @@ import { BadgeCheck, CalendarClock, CircleDollarSign, Percent, ReceiptText, Refr
 import { supabase } from "@/integrations/supabase/client";
 import { COUNTED, money, PLANS, pct, segmentLabel, type Invoice, type PlanKey, type Vendor, type VendorOrder, type VendorStatus } from "@/lib/marketplace";
 import { NiceSelect } from "./NiceSelect";
+import { AdminVendorDetail } from "./AdminVendorDetail";
 
 const inputCls = "mt-1 block h-10 w-full rounded-lg border border-border bg-surface px-2 text-sm";
 const monthNow = () => new Date(Date.now() - 5 * 3_600_000).toISOString().slice(0, 7);
@@ -126,6 +127,7 @@ function VendorRow({ v, stats, rating, onSaved }: { v: Vendor; stats?: { gross: 
   const [featured, setFeatured] = useState(v.featured_until ?? "");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [detail, setDetail] = useState(false);
 
   function pickPlan(next: PlanKey) { setPlan(next); setFee((PLANS[next].feeCents / 100).toFixed(2).replace(".", ",")); setBps(String(PLANS[next].bps / 100).replace(".", ",")); }
   async function save() {
@@ -144,7 +146,12 @@ function VendorRow({ v, stats, rating, onSaved }: { v: Vendor; stats?: { gross: 
         <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${STATUS_TONE[v.status]}`}>{v.status}</span>
         <span className="text-xs text-muted-foreground">{segmentLabel(v.segment)} · {v.city} · {v.phone}</span>
         <span className="ml-auto flex items-center gap-1 text-xs font-semibold"><Star size={14} className="fill-amber-400 text-amber-400" />{rating ? `${Number(rating.rating_avg).toLocaleString("pt-BR", { minimumFractionDigits: 1 })} (${rating.rating_count})` : "sem avaliações"}</span>
+        <span className="flex w-full gap-2 sm:w-auto">
+          <button type="button" onClick={() => setDetail(true)} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-xs font-bold hover:border-primary/40">Detalhes e acesso</button>
+          <a href={`/lojista?loja=${v.id}`} className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-bold text-primary-foreground">Abrir painel</a>
+        </span>
       </header>
+      {detail && <AdminVendorDetail vendor={v} onClose={() => { setDetail(false); onSaved(); }} />}
       <p className="text-xs text-muted-foreground">Vendas confirmadas <strong className="text-foreground">{money(stats?.gross ?? 0)}</strong> · {stats?.count ?? 0} pedidos · comissão gerada <strong className="text-foreground">{money(stats?.commission ?? 0)}</strong> · atual: {PLANS[v.plan].label}, {pct(v.commission_bps)} + {money(v.monthly_fee_cents)}/mês · {v.offers_delivery ? "entrega" : ""}{v.offers_delivery && v.offers_pickup ? " e " : ""}{v.offers_pickup ? "retirada" : ""}</p>
       <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
         <div className="text-[11px] font-semibold">Situação<NiceSelect className="mt-1" ariaLabel={`Situação de ${v.name}`} value={status} onChange={(x) => setStatus(x as VendorStatus)} options={[{ value: "pendente", label: "Pendente" }, { value: "ativo", label: "Ativa" }, { value: "suspenso", label: "Suspensa" }]} /></div>

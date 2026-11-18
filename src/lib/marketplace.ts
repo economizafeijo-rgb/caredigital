@@ -96,7 +96,7 @@ export type VendorOrder = {
 export type OrderEvent = { id: string; order_id: string; status: OrderStatus; note: string | null; created_at: string };
 export type CashEntry = { id: string; vendor_id: string; kind: "entrada" | "saida"; amount_cents: number; category: string; description: string | null; order_id: string | null; occurred_at: string };
 export type StockMove = { id: string; product_id: string; delta: number; stock_after: number; reason: string; created_at: string };
-export type ChatMessage = { id: string; vendor_id: string; customer_id: string; customer_name: string | null; from_vendor: boolean; body: string; order_id: string | null; read_at: string | null; created_at: string };
+export type ChatMessage = { id: string; vendor_id: string; customer_id: string; customer_name: string | null; from_vendor: boolean; body: string; order_id: string | null; read_at: string | null; created_at: string; deleted_at?: string | null };
 export const PAYMENT_LABEL: Record<string, string> = { pix: "Pix", cartao: "Cartão", boleto: "Boleto", dinheiro: "Dinheiro" };
 export const storeUrl = (slug: string) => `https://nextvita.life/loja?loja=${encodeURIComponent(slug)}`;
 export const orderUrl = (id: string) => `https://nextvita.life/loja?pedido=${encodeURIComponent(id)}`;

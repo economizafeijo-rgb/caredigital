@@ -147,6 +147,7 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
         { to: "/admin", hash: "visao", label: "Visão geral", icon: Settings2 },
         { to: "/admin", hash: "clientes", label: "Clientes", icon: Users },
         { to: "/admin", hash: "lojas", label: "Lojas e estabelecimentos", icon: Store },
+        { to: "/lojista", label: "Painel das lojas", icon: LayoutDashboard },
       ],
     },
     {

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { ArrowLeft, MessageCircle, Send } from "lucide-react";
+import { ArrowLeft, MessageCircle, Send, Trash2 } from "lucide-react";
+import { useDialog } from "@/lib/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import type { ChatMessage, Vendor } from "@/lib/marketplace";
 
@@ -27,6 +28,12 @@ export function SellerChat({ vendor, messages, onChanged, initial }: { vendor: V
   const [text, setText] = useState("");
   const [err, setErr] = useState("");
   const end = useRef<HTMLDivElement>(null);
+  const { confirm } = useDialog();
+  async function remove(id: string) {
+    if (!(await confirm("Apagar esta mensagem?", "Ela some para você e para o cliente, ficando só o aviso “Mensagem apagada”.", true, "Apagar"))) return;
+    const { error } = await (supabase as any).rpc("care_store_delete_message", { p_message: id });
+    if (error) setErr("Não foi possível apagar a mensagem."); else onChanged();
+  }
 
   useEffect(() => { end.current?.scrollIntoView({ block: "end" }); }, [convo.length, active]);
   useEffect(() => {
@@ -54,7 +61,7 @@ export function SellerChat({ vendor, messages, onChanged, initial }: { vendor: V
               <button type="button" onClick={() => setSel(t.id)} aria-current={t.id === active ? "true" : undefined}
                 className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors ${t.id === active ? "bg-[color-mix(in_srgb,var(--accent-store)_10%,transparent)]" : "hover:bg-muted/50"}`}>
                 <span className="grid size-9 shrink-0 place-items-center rounded-full text-sm font-bold text-white" style={{ background: "var(--accent-store)" }}>{t.name.slice(0, 1).toUpperCase()}</span>
-                <span className="min-w-0 flex-1"><span className="flex justify-between gap-2"><strong className="truncate text-[13px]">{t.name}</strong><span className="shrink-0 text-[10.5px] text-muted-foreground">{time(t.last.created_at).slice(6)}</span></span><span className="block truncate text-xs text-muted-foreground">{t.last.from_vendor ? "Você: " : ""}{t.last.body}</span></span>
+                <span className="min-w-0 flex-1"><span className="flex justify-between gap-2"><strong className="truncate text-[13px]">{t.name}</strong><span className="shrink-0 text-[10.5px] text-muted-foreground">{time(t.last.created_at).slice(6)}</span></span><span className="block truncate text-xs text-muted-foreground">{t.last.deleted_at ? "Mensagem apagada" : `${t.last.from_vendor ? "Você: " : ""}${t.last.body}`}</span></span>
                 {t.unread > 0 && <span className="grid min-w-5 place-items-center rounded-full bg-sky-500 px-1.5 text-[10.5px] font-bold text-white">{t.unread}</span>}
               </button>
             </li>
@@ -72,9 +79,10 @@ export function SellerChat({ vendor, messages, onChanged, initial }: { vendor: V
             </header>
             <div className="min-h-0 flex-1 space-y-2 overflow-y-auto bg-[radial-gradient(circle_at_1px_1px,color-mix(in_srgb,currentColor_6%,transparent)_1px,transparent_0)] [background-size:18px_18px] px-4 py-4">
               {convo.map((m) => (
-                <div key={m.id} className={`flex ${m.from_vendor ? "justify-end" : "justify-start"}`}>
-                  <p className={`nv-fade-in max-w-[78%] rounded-2xl px-3.5 py-2 text-[13.5px] leading-snug shadow-sm ${m.from_vendor ? "rounded-br-md text-white" : "rounded-bl-md bg-muted"}`} style={m.from_vendor ? { background: "var(--accent-store)" } : undefined}>
-                    {m.body}<span className={`mt-0.5 block text-right text-[10px] ${m.from_vendor ? "text-white/70" : "text-muted-foreground"}`}>{time(m.created_at)}{m.from_vendor && m.read_at ? " · lida" : ""}</span>
+                <div key={m.id} className={`group flex items-center gap-1 ${m.from_vendor ? "justify-end" : "justify-start"}`}>
+                  {m.from_vendor && !m.deleted_at && <button type="button" onClick={() => void remove(m.id)} aria-label="Apagar mensagem" title="Apagar mensagem" className="grid size-7 place-items-center rounded-full text-muted-foreground opacity-0 transition hover:bg-muted hover:text-rose-500 focus:opacity-100 group-hover:opacity-100"><Trash2 size={13} /></button>}
+                  <p className={`nv-fade-in max-w-[78%] rounded-2xl px-3.5 py-2 text-[13.5px] leading-snug shadow-sm ${m.deleted_at ? "border border-dashed border-border bg-transparent italic text-muted-foreground" : m.from_vendor ? "rounded-br-md text-white" : "rounded-bl-md bg-muted"}`} style={m.from_vendor && !m.deleted_at ? { background: "var(--accent-store)" } : undefined}>
+                    {m.deleted_at ? "Mensagem apagada" : m.body}<span className={`mt-0.5 block text-right text-[10px] ${m.from_vendor && !m.deleted_at ? "text-white/70" : "text-muted-foreground"}`}>{time(m.created_at)}{m.from_vendor && m.read_at && !m.deleted_at ? " · lida" : ""}</span>
                   </p>
                 </div>
               ))}

@@ -49,7 +49,7 @@ export function useSellerData(vendorId: string) {
     const soon = () => { window.clearTimeout(timer); timer = window.setTimeout(() => void load(), 400); };
     const ch = db.channel(`seller-${vendorId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "care_store_orders", filter: `vendor_id=eq.${vendorId}` }, soon)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "care_store_messages", filter: `vendor_id=eq.${vendorId}` }, soon)
+      .on("postgres_changes", { event: "*", schema: "public", table: "care_store_messages", filter: `vendor_id=eq.${vendorId}` }, soon)
       .subscribe();
     return () => { window.clearTimeout(timer); void db.removeChannel(ch); };
   }, [vendorId, load]);
