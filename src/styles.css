@@ -739,3 +739,9 @@ body:has(.care-shell #care-client-tab-panel) {
 @keyframes nv-dot-in { from { transform: scale(0); } to { transform: scale(1); } }
 .nv-dot-in { transform-box: fill-box; transform-origin: center; animation: nv-dot-in .4s cubic-bezier(.34,1.56,.64,1) both; }
 @media (prefers-reduced-motion: reduce) { .nv-ring-draw, .nv-dot-in { animation: none; } }
+
+/* Botões flutuantes (carrinho, registro rápido) acima da barra inferior do celular. */
+@media (max-width: 1023px) {
+  body[data-bottom-nav] .nv-fab { bottom: calc(5rem + env(safe-area-inset-bottom)); }
+  body[data-bottom-nav] .nv-fab-menu { bottom: calc(9.25rem + env(safe-area-inset-bottom)); }
+}

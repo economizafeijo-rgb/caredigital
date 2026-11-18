@@ -209,7 +209,7 @@ export function StorePage() {
         <Link to="/lojista" className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-600 px-5 text-sm font-bold text-white shadow">Quero vender aqui <ArrowRight size={16} /></Link>
       </aside>
 
-      <button type="button" onClick={() => setCartOpen(true)} aria-label={`Abrir carrinho, ${count} itens`} className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-4 z-[90] inline-flex h-14 items-center gap-2 rounded-full bg-slate-950 px-5 text-sm font-extrabold text-white shadow-xl ring-4 ring-white/70 dark:ring-slate-900/70">
+      <button type="button" onClick={() => setCartOpen(true)} aria-label={`Abrir carrinho, ${count} itens`} className="nv-fab fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-4 z-[90] inline-flex h-14 items-center gap-2 rounded-full bg-slate-950 px-5 text-sm font-extrabold text-white shadow-xl ring-4 ring-white/70 dark:ring-slate-900/70">
         <ShoppingCart size={22} /> Carrinho{count > 0 && <span className="grid size-6 place-items-center rounded-full bg-emerald-400 text-xs text-slate-950">{count}</span>}
       </button>
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} onCheckout={() => { setCartOpen(false); setCheckout(true); }} />

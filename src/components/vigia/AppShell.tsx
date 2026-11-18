@@ -294,6 +294,12 @@ export function AppShell({ children }: { children: ReactNode }) {
     item.to === location.pathname && (!item.hash || item.hash === currentHash);
   const current = items.find(isActive);
   const panelHome = profile === "client" ? "/cliente" : profile === "admin" ? "/admin" : null;
+  // A barra inferior do celular aparece fora das páginas internas: botões flutuantes sobem acima dela.
+  useEffect(() => {
+    if (internalPage) document.body.removeAttribute("data-bottom-nav");
+    else document.body.setAttribute("data-bottom-nav", "");
+    return () => document.body.removeAttribute("data-bottom-nav");
+  }, [internalPage]);
 
   const tools = (
     <>
