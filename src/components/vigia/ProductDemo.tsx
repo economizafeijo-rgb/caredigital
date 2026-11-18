@@ -22,18 +22,34 @@ const SCENES: Scene[] = [
   {
     key: "agua", label: "Hidratação", icon: Droplets, color: "#38bdf8", cursor: ["74%", "70%"],
     render: () => (
-      <div className="grid h-full grid-cols-[auto_1fr] items-center gap-5 px-5">
-        <div className="relative size-28 overflow-hidden rounded-full bg-sky-950 ring-4 ring-sky-400/30">
-          <div className="nv-demo-fill absolute inset-x-0 bottom-0 bg-gradient-to-t from-sky-500 to-cyan-300" style={{ ["--from" as string]: "50%", ["--to" as string]: "58%" } as CSSProperties} />
-          <span className="absolute inset-0 grid place-items-center text-center font-extrabold text-white drop-shadow">
-            <span className="relative block h-6 w-16"><Before className="absolute inset-0 text-lg">1,50 L</Before><After className="absolute inset-0 text-lg">1,75 L</After></span>
-          </span>
+      <div className="grid h-full grid-cols-[auto_1fr] items-center gap-6 px-6">
+        {/* Copo com água em ondas: a gota cai no clique e o nível sobe */}
+        <div className="relative h-36 w-[5.5rem] shrink-0">
+          <span aria-hidden className="nv-demo-drop absolute left-1/2 top-0 z-10 block size-3 -translate-x-1/2 rotate-45 rounded-full rounded-tl-none bg-cyan-200 shadow-[0_0_10px_rgba(103,232,249,.8)]" />
+          <div className="absolute inset-x-0 bottom-0 top-5 overflow-hidden rounded-b-[1.6rem] rounded-t-lg border-2 border-white/20 bg-white/[.03] shadow-[inset_0_-12px_24px_rgba(56,189,248,.12)]">
+            <div className="nv-demo-fill absolute inset-x-0 bottom-0" style={{ ["--from" as string]: "50%", ["--to" as string]: "60%" } as CSSProperties}>
+              <svg aria-hidden viewBox="0 0 200 12" preserveAspectRatio="none" className="nv-wave absolute -top-[9px] left-0 h-[10px] w-[200%] opacity-50" style={{ animationDuration: "5s", animationDirection: "reverse" }}><path d="M0 6 Q 12.5 0 25 6 T 50 6 T 75 6 T 100 6 T 125 6 T 150 6 T 175 6 T 200 6 V12 H0Z" fill="#67e8f9" /></svg>
+              <svg aria-hidden viewBox="0 0 200 12" preserveAspectRatio="none" className="nv-wave absolute -top-[7px] left-0 h-[8px] w-[200%]" style={{ animationDuration: "3s" }}><path d="M0 6 Q 12.5 0 25 6 T 50 6 T 75 6 T 100 6 T 125 6 T 150 6 T 175 6 T 200 6 V12 H0Z" fill="#22d3ee" /></svg>
+              <div className="absolute inset-0 bg-gradient-to-b from-[#22d3ee] via-sky-500 to-sky-700" />
+              <span aria-hidden className="nv-demo-bubble absolute bottom-2 left-[30%] size-1.5 rounded-full bg-white/50" />
+              <span aria-hidden className="nv-demo-bubble absolute bottom-4 left-[62%] size-1 rounded-full bg-white/40" style={{ animationDelay: "1.2s" }} />
+            </div>
+            <span aria-hidden className="absolute bottom-5 left-2 top-3 w-1 rounded-full bg-gradient-to-b from-white/35 to-transparent" />
+            {[25, 50, 75].map((t) => <span key={t} aria-hidden className="absolute right-0 h-px w-2.5 bg-white/30" style={{ bottom: `${t}%` }} />)}
+          </div>
         </div>
-        <div>
-          <p className="text-[11px] text-white/55">Meta de hoje · 3,0 L</p>
-          <p className="text-sm font-bold text-white">Próximo copo às 15:30</p>
-          <div className="mt-3 flex gap-1.5">
-            {["+150", "+250", "+500"].map((v) => <span key={v} data-target={v === "+250" ? "" : undefined} className={`rounded-lg px-2.5 py-1.5 text-[11px] font-bold ${v === "+250" ? "nv-demo-press bg-white text-sky-900" : "bg-white/10 text-white/80"}`}>{v} ml</span>)}
+        <div className="min-w-0">
+          <p className="text-[11px] text-white/55">Hoje · meta de 3,0 L</p>
+          <p className="flex items-baseline gap-1.5 text-white">
+            <span className="relative inline-block h-8 w-[4.6rem] font-display text-[1.6rem] font-extrabold tabular-nums leading-8"><Before className="absolute inset-0">1,50 L</Before><After className="absolute inset-0 text-cyan-200">1,75 L</After></span>
+            <span className="text-xs text-white/50">58%</span>
+          </p>
+          <div aria-hidden className="mt-2 flex gap-1">
+            {Array.from({ length: 12 }, (_, i) => <span key={i} className={`h-1.5 flex-1 rounded-full ${i < 6 ? "bg-cyan-400" : i === 6 ? "relative overflow-hidden bg-white/10" : "bg-white/10"}`}>{i === 6 && <After className="absolute inset-0 rounded-full bg-cyan-300" />}</span>)}
+          </div>
+          <p className="mt-2 text-[11px] text-white/60">Próximo copo às <strong className="text-white">15:30</strong></p>
+          <div className="mt-2.5 flex gap-1.5">
+            {["+150", "+250", "+500"].map((v) => <span key={v} data-target={v === "+250" ? "" : undefined} className={`rounded-lg px-2.5 py-1.5 text-[11px] font-bold ${v === "+250" ? "nv-demo-press bg-cyan-300 text-sky-950" : "bg-white/[.07] text-white/75 ring-1 ring-inset ring-white/10"}`}>{v} ml</span>)}
           </div>
         </div>
         <Toast color="#7dd3fc">+250 ml registrados</Toast>
