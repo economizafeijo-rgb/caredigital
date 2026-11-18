@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
+import { ArrowRight, BarChart3, Check, ChevronLeft, ChevronRight, Droplets, HeartPulse, Pause, Pill, Play } from "lucide-react";
 import { money, products, useCart } from "@/lib/store";
 
 type Slide = {
@@ -9,7 +9,8 @@ type Slide = {
   title: string;
   text: string;
   cta: string;
-  to: "/loja" | "/sono" | "/parceiros";
+  to: "/loja" | "/sono" | "/parceiros" | "/hidratacao" | "/medicamentos" | "/metricas" | "/entrar";
+  tool?: "agua" | "medicacao" | "sono" | "metricas";
   images: string[];
   price?: string;
   tone: string;
@@ -31,10 +32,16 @@ function momentSlide(hour: number): Slide {
   return { id: "noite", kicker: "Recuperação", title: "Proteína para a recuperação da noite", text: "Whey e proteína vegetal para fechar a meta de proteína do dia.", cta: "Ver proteínas", to: "/loja", images: [img("whey-900"), img("proteina-vegetal")], price: priceOf("whey-900"), tone: "from-[#0b1f3a] to-[#1d4ed8]" };
 }
 
+const toolSlides: Slide[] = [
+  { id: "t-agua", kicker: "Ferramenta gratuita", title: "Sua meta de água calculada e lembrada", text: "O app calcula quanto beber pelo seu peso e avisa o próximo copo ao longo do dia.", cta: "Usar grátis", to: "/hidratacao", images: [], tool: "agua", tone: "from-[#062a3d] to-[#0369a1]" },
+  { id: "t-med", kicker: "Ferramenta gratuita", title: "Nenhuma dose esquecida", text: "Cartela interativa com horários, confirmação de cada dose e histórico completo.", cta: "Usar grátis", to: "/medicamentos", images: [], tool: "medicacao", tone: "from-[#3b0716] to-[#be123c]" },
+  { id: "t-sono", kicker: "Ferramenta gratuita", title: "Batimentos e nota do sono ao vivo", text: "Conecte uma cinta ou relógio Bluetooth e acompanhe a noite em tempo real.", cta: "Conhecer", to: "/sono", images: [], tool: "sono", tone: "from-[#140f3a] to-[#4338ca]" },
+  { id: "t-metricas", kicker: "Ferramenta gratuita", title: "Sua evolução em gráficos claros", text: "Água, nutrição, peso e atividade no dia, no mês e no ano.", cta: "Usar grátis", to: "/metricas", images: [], tool: "metricas", tone: "from-[#042f2e] to-[#0f766e]" },
+];
+
 const baseSlides: Slide[] = [
   { id: "moda", kicker: "Moda fitness", title: "Conjuntos e leggings para treinar com conforto", text: "Modelos femininos e masculinos com tecido que seca rápido.", cta: "Ver moda fitness", to: "/loja", images: [img("conjunto-fem-1"), img("conjunto-fem-2"), img("camiseta-regata")], price: priceOf("camiseta-regata"), tone: "from-[#3b0a24] to-[#be185d]" },
   { id: "casa", kicker: "Treino em casa", title: "Halteres, barra e tapete para montar seu espaço", text: "Acessórios resistentes para força, funcional e alongamento.", cta: "Ver acessórios", to: "/loja", images: [img("halteres"), img("kit-barra"), img("tapete")], price: priceOf("tapete"), tone: "from-[#111827] to-[#0e7a5f]" },
-  { id: "sono", kicker: "Novo recurso no app", title: "Monitoramento do sono em tempo real", text: "Nota do sono, horas dormidas e batimentos ao vivo com cinta ou relógio Bluetooth.", cta: "Conhecer o recurso", to: "/sono", images: ["/images/show-sono.webp"], tone: "from-[#1e1b4b] to-[#4338ca]" },
   { id: "vender", kicker: "Para lojistas", title: "Venda seus produtos na NextVita", text: "Vitrine própria, avaliações e painel de vendas para lojas de suplementos, moda fitness e produtos naturais.", cta: "Quero vender aqui", to: "/parceiros", images: [img("conjunto-fem-3"), img("halteres")], tone: "from-[#052e2b] to-[#0e7a5f]" },
 ];
 
@@ -61,7 +68,14 @@ export function SmartBanner({ className = "" }: { className?: string }) {
     if (count > 0)
       list.push({ id: "carrinho", kicker: "Seu carrinho", title: `Você tem ${count} ${count === 1 ? "item" : "itens"} esperando`, text: `Subtotal de ${money(subtotal)}. Pagando com Pix, você ganha 5% de desconto.`, cta: "Finalizar compra", to: "/loja", images: [img("whey-900"), img("conjunto-fem-1")], tone: "from-[#052e2b] to-[#0c8063]" });
     if (hour !== null) list.push(momentSlide(hour));
-    return [...list, ...baseSlides];
+    // Intercala ferramentas gratuitas e produtos da loja.
+    const mixed: Slide[] = [];
+    const max = Math.max(toolSlides.length, baseSlides.length);
+    for (let i = 0; i < max; i++) {
+      if (toolSlides[i]) mixed.push(toolSlides[i]);
+      if (baseSlides[i]) mixed.push(baseSlides[i]);
+    }
+    return [...list, ...mixed];
   }, [count, subtotal, hour]);
 
   const [index, setIndex] = useState(0);
@@ -100,25 +114,27 @@ export function SmartBanner({ className = "" }: { className?: string }) {
     >
       <div key={slide.id} className="nv-fade-in grid h-full min-h-[15rem] grid-cols-[1fr_auto] items-center gap-3 p-5 sm:min-h-[17rem] sm:p-7" aria-live={playing ? "off" : "polite"}>
         <div className="min-w-0 max-w-[34ch]">
-          <p className="text-xs font-semibold text-white/75">{slide.kicker}</p>
-          <h2 className="mt-1 text-balance font-display text-xl font-extrabold leading-tight sm:text-2xl">{slide.title}</h2>
-          <p className="mt-2 line-clamp-3 text-sm leading-snug text-white/85">{slide.text}</p>
-          {slide.price && <p className="mt-2 text-sm text-white/80">a partir de <strong className="text-lg font-extrabold text-white tabular-nums">{slide.price}</strong></p>}
-          <Link to={slide.to} className="mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-slate-950 hover:bg-white/90">
+          <p className="nv-rise inline-flex items-center gap-1.5 text-xs font-semibold text-white/80">
+            {slide.tool && <span className="rounded-full bg-emerald-400 px-2 py-0.5 text-[11px] font-bold text-slate-950">Grátis</span>}
+            {slide.kicker}
+          </p>
+          <h2 style={{ animationDelay: "80ms" }} className="nv-rise mt-1 text-balance font-display text-xl font-extrabold leading-tight sm:text-2xl">{slide.title}</h2>
+          <p style={{ animationDelay: "160ms" }} className="nv-rise mt-2 line-clamp-3 text-sm leading-snug text-white/85">{slide.text}</p>
+          {slide.price && <p style={{ animationDelay: "240ms" }} className="nv-rise mt-2 text-sm text-white/80">a partir de <strong className="text-lg font-extrabold text-white tabular-nums">{slide.price}</strong></p>}
+          <Link to={slide.to} style={{ animationDelay: "300ms" }} className="nv-rise mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-slate-950 hover:bg-white/90">
             {slide.cta} <ArrowRight size={16} aria-hidden="true" />
           </Link>
         </div>
-        <div className="relative flex h-full items-center" aria-hidden="true">
-          {slide.images.slice(0, 2).map((src, i) => (
-            <img
-              key={src + i}
-              src={src}
-              alt=""
-              width={360}
-              height={360}
-              className={`rounded-2xl object-cover shadow-2xl ring-1 ring-white/20 motion-safe:transition motion-safe:duration-700 motion-safe:hover:scale-105 ${i === 0 ? "nv-banner-img size-28 sm:size-40 lg:size-44" : "-ml-10 mt-16 size-20 sm:size-28 lg:size-32"}`}
-            />
-          ))}
+        <div className="relative flex h-full items-center pb-6" aria-hidden="true">
+          {slide.tool ? (
+            <ToolDemo kind={slide.tool} />
+          ) : (
+            slide.images.slice(0, 2).map((src, i) => (
+              <span key={src + i} className={`relative block overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/20 ${i === 0 ? "nv-banner-img size-28 sm:size-40 lg:size-44" : "nv-float -ml-10 mt-16 size-20 sm:size-28 lg:size-32"}`}>
+                <img src={src} alt="" width={360} height={360} className="nv-kenburns size-full object-cover" style={{ animationDuration: `${DURATION + 800}ms` }} />
+              </span>
+            ))
+          )}
         </div>
       </div>
 
@@ -151,5 +167,60 @@ export function SmartBanner({ className = "" }: { className?: string }) {
         <button type="button" onClick={() => go(safeIndex + 1)} aria-label="Próximo destaque" className="grid size-8 place-items-center rounded-full bg-white/15 hover:bg-white/25"><ChevronRight size={16} /></button>
       </div>
     </section>
+  );
+}
+
+/** Mini telas animadas das ferramentas gratuitas, como num anúncio em vídeo. */
+function ToolDemo({ kind }: { kind: NonNullable<Slide["tool"]> }) {
+  const base = "nv-banner-img w-44 rounded-2xl p-3.5 shadow-2xl sm:w-52";
+  const card = `${base} bg-white text-slate-900`;
+  if (kind === "agua")
+    return (
+      <div className={card}>
+        <p className="flex items-center gap-1.5 text-xs font-bold text-sky-700"><Droplets size={14} /> Hidratação de hoje</p>
+        <div className="mt-2 flex items-center gap-3">
+          <svg viewBox="0 0 44 44" className="size-16 -rotate-90">
+            <circle cx="22" cy="22" r="18" fill="none" stroke="#e0f2fe" strokeWidth="6" />
+            <circle className="nv-ring" cx="22" cy="22" r="18" fill="none" stroke="#0284c7" strokeWidth="6" strokeLinecap="round" strokeDasharray="113" />
+          </svg>
+          <div><strong className="block text-xl font-extrabold tabular-nums">1,8 L</strong><span className="text-[11px] text-slate-500">de 2,5 L</span></div>
+        </div>
+        <p className="nv-rise mt-2 rounded-lg bg-sky-50 px-2 py-1.5 text-[11px] font-semibold text-sky-800" style={{ animationDelay: "900ms" }}>Próximo copo às 15:30</p>
+      </div>
+    );
+  if (kind === "medicacao")
+    return (
+      <div className={card}>
+        <p className="flex items-center gap-1.5 text-xs font-bold text-rose-700"><Pill size={14} /> Doses de hoje</p>
+        <ul className="mt-2 grid gap-1.5 text-[12px]">
+          {["08:00 · Vitamina D3", "12:00 · Ômega 3", "20:00 · Magnésio"].map((d, i) => (
+            <li key={d} className="flex items-center gap-2 rounded-lg bg-slate-50 px-2 py-1.5">
+              <span className="nv-check grid size-5 place-items-center rounded-full bg-emerald-500 text-white" style={{ animationDelay: `${500 + i * 700}ms` }}><Check size={12} /></span>
+              {d}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  if (kind === "sono")
+    return (
+      <div className={`${base} bg-slate-950 text-white ring-1 ring-white/15`}>
+        <p className="flex items-center justify-between text-xs font-bold text-indigo-300"><span className="flex items-center gap-1.5"><HeartPulse size={14} /> Ao vivo</span><span className="flex items-center gap-1"><span className="nv-live size-2 rounded-full bg-rose-500" /> 58 bpm</span></p>
+        <svg viewBox="0 0 200 60" className="mt-2 h-14 w-full">
+          <polyline className="nv-heart" fill="none" stroke="#fb7185" strokeWidth="2.5" strokeLinejoin="round" points="0,35 30,35 40,35 48,12 56,52 64,30 74,35 110,35 120,35 128,14 136,50 144,32 154,35 200,35" />
+        </svg>
+        <p className="text-[11px] text-indigo-200">Nota do sono: <strong className="text-white">86</strong> · 7h42 dormidas</p>
+      </div>
+    );
+  return (
+    <div className={card}>
+      <p className="flex items-center gap-1.5 text-xs font-bold text-teal-700"><BarChart3 size={14} /> Esta semana</p>
+      <div className="mt-2 flex h-20 items-end gap-1.5">
+        {[45, 62, 50, 78, 70, 88, 95].map((h, i) => (
+          <span key={i} className="nv-bar flex-1 rounded-t bg-teal-500" style={{ height: `${h}%`, animationDelay: `${200 + i * 110}ms` }} />
+        ))}
+      </div>
+      <p className="mt-1.5 text-[11px] font-semibold text-teal-800">Meta de água: 6 de 7 dias</p>
+    </div>
   );
 }
