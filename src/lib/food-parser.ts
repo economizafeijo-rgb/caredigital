@@ -19,6 +19,8 @@ const micros: Record<string, [number, number, number, number, number]> = {
   cenoura: [1, 850, 26, .1, 176], abobora: [3, 330, 12, .2, 140], brocolis: [42, 31, 51, .5, 120], couve: [77, 400, 177, .5, 315], espinafre: [6, 470, 112, .4, 220],
   tomate: [21, 42, 7, .2, 222], alface: [4, 110, 28, .4, 267], beterraba: [3, 2, 15, .2, 245], batata: [4, 0, 4, .2, 160], batata_doce: [12, 700, 17, .2, 148],
   macaxeira: [11, 1, 19, .1, 100], cuscuz: [0, 10, 2, .2, 30], aveia: [0, 0, 48, 4.4, 336], tapioca: [0, 0, 5, .1, 5], farinha: [0, 0, 65, 1.1, 340],
+  cupuacu: [24, 3, 13, .5, 330], buriti: [21, 1700, 74, 2.6, 280], tucuma: [6, 900, 46, .6, 400], pupunha: [3, 220, 20, .7, 300], graviola: [21, 1, 14, .6, 278],
+  "tapereba": [26, 30, 26, .3, 200], jambu: [20, 100, 160, 4, 300], carne_sol: [0, 0, 10, 3, 300], galinha_caipira: [0, 20, 12, 1, 230], pacoca_carne_sol: [0, 0, 20, 3, 280],
   lentilha: [1, 1, 16, 1.5, 220], suco_maracuja: [14, 30, 4, .2, 140], cafe: [0, 0, 3, 0, 50], amendoim: [0, 0, 39, 2.2, 650], castanha_para: [1, 0, 146, 2.3, 650],
 };
 
@@ -30,7 +32,11 @@ const aliases: Array<[RegExp, string]> = [
   [/queijo coalho|queijo assado/, "queijo_coalho"], [/requeij[aã]o/, "requeijao"], [/queijo|mu[cç]arela|mussarela/, "queijo_minas"], [/presunto|peito de peru/, "presunto"],
   [/bolo/, "bolo_simples"], [/biscoito|bolacha/, "biscoito_salgado"], [/macarr[aã]o|espaguete|massa/, "macarrao"],
   [/baixaria/, "baixaria"], [/carne mo[ií]da/, "carne_moida"], [/lingui[cç]a|calabresa/, "linguica"], [/pirarucu/, "pirarucu"], [/tambaqui/, "tambaqui"],
-  [/banana cozida|banana comprida cozida/, "banana_cozida"],
+  [/banana cozida|banana comprida cozida/, "banana_cozida"], [/mingau de banana/, "mingau_banana"],
+  [/cupua[cç]u/, "cupuacu"], [/buriti/, "buriti"], [/tucum[aã]/, "tucuma"], [/pupunha/, "pupunha"], [/graviola/, "graviola"], [/bacuri/, "bacuri"], [/tapereb[aá]|caj[aá]/, "tapereba"],
+  [/tacac[aá]/, "tacaca"], [/jambu/, "jambu"], [/caldo de piranha|piranha/, "caldo_piranha"], [/galinha caipira/, "galinha_caipira"],
+  [/pa[cç]oca de carne/, "pacoca_carne_sol"], [/carne de sol|carne seca|charque/, "carne_sol"], [/matrinx[aã]/, "matrinxa"], [/jaraqui/, "jaraqui"],
+  [/beiju/, "beiju"], [/chib[eé]/, "chibe"], [/farinha d.?[aá]gua|farinha de cruzeiro/, "farinha_agua"], [/milho/, "milho_cozido"], [/quibe/, "quibe_arroz"],
   [/frango|galinha/, "frango"], [/til[aá]pia/, "tilapia"], [/sardinha/, "sardinha"], [/peixe/, "peixe"], [/carne|bife|patinho|alcatra/, "carne"],
   [/ovos?\b/, "ovo"], [/iogurte/, "iogurte"], [/leite/, "leite"], [/caf[eé]/, "cafe"], [/suco de maracuj[aá]|suco/, "suco_maracuja"],
   [/banana nanica/, "banana_nanica"], [/banana ma[cç][aã]/, "banana_maca"], [/banana comprida|banana da terra/, "banana_comprida"], [/banana/, "banana_prata"],
@@ -50,6 +56,8 @@ const defaultPortion: Record<string, number> = {
   pao_frances: 50, pao_integral: 50, manteiga: 10, margarina: 10, queijo_coalho: 40, queijo_minas: 30, requeijao: 15, presunto: 30,
   cafe_com_leite: 200, achocolatado: 200, bolo_simples: 60, biscoito_salgado: 30, macarrao: 150, carne_moida: 100, linguica: 60,
   pirarucu: 120, tambaqui: 120, baixaria: 250, banana_cozida: 120,
+  cupuacu: 100, buriti: 50, tucuma: 50, pupunha: 100, graviola: 100, bacuri: 80, "tapereba": 100, jambu: 30, tacaca: 400, caldo_piranha: 300,
+  galinha_caipira: 120, carne_sol: 100, pacoca_carne_sol: 80, matrinxa: 120, jaraqui: 120, mingau_banana: 250, beiju: 50, chibe: 250, farinha_agua: 30, milho_cozido: 100, quibe_arroz: 80,
   alface: 40, tomate: 60, cuscuz: 150, tapioca: 80, macaxeira: 150, batata: 130, batata_doce: 130, aveia: 30, farofa: 30, azeite: 8, castanha_para: 10, amendoim: 30,
 };
 const unitGrams: Array<[RegExp, number]> = [
@@ -136,3 +144,6 @@ export function goalAdvice(objective: string | null | undefined, total: Nutrient
   if (objective === "ganho_peso") return kcalGap > 300 ? `Faltam ~${Math.round(kcalGap)} kcal. Inclua lanches calóricos e nutritivos: abacate, castanhas, aveia, banana.` : "Você está próximo da meta calórica para ganho de peso.";
   return Math.abs(kcalGap) < 250 ? "Consumo equilibrado para a manutenção do peso." : kcalGap > 0 ? `Ainda há ~${Math.round(kcalGap)} kcal disponíveis no dia.` : "Consumo acima do necessário para manter o peso.";
 }
+
+/** Porção usual (g ou ml) de um alimento, usada como "1 unidade/porção" na calculadora. */
+export const typicalPortion = (id: string) => defaultPortion[id] ?? 100;

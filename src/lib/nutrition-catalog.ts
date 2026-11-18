@@ -108,7 +108,30 @@ const baseIngredients:Omit<Ingredient,"carbs"|"fat"|"fiber">[]=[
  {id:"tambaqui",name:"Tambaqui assado",group:"proteinas",protein:22,kcal:180,flags:["gorduroso"]},
  {id:"baixaria",name:"Baixaria acreana (cuscuz, carne moída e ovo)",group:"cereais",protein:9,kcal:180,note:"Estimativa para a receita tradicional do Acre."},
  {id:"banana_cozida",name:"Banana comprida cozida",group:"frutas",protein:1.2,kcal:123},
+ {id:"cupuacu",name:"Cupuaçu (polpa)",group:"frutas",protein:1.2,kcal:49,provenance:"TACO"},
+ {id:"buriti",name:"Buriti (polpa)",group:"frutas",protein:3,kcal:145,flags:["gorduroso"],note:"Estimativa editorial; varia com a maturação."},
+ {id:"tucuma",name:"Tucumã (polpa)",group:"frutas",protein:3.5,kcal:262,flags:["gorduroso"],note:"Estimativa editorial."},
+ {id:"pupunha",name:"Pupunha cozida",group:"cereais",protein:2.5,kcal:164,note:"Estimativa editorial."},
+ {id:"graviola",name:"Graviola (polpa)",group:"frutas",protein:.8,kcal:62,provenance:"TACO"},
+ {id:"bacuri",name:"Bacuri (polpa)",group:"frutas",protein:1.9,kcal:105,note:"Estimativa editorial."},
+ {id:"tapereba",name:"Taperebá / cajá (polpa)",group:"frutas",protein:.8,kcal:46,provenance:"TACO"},
+ {id:"jambu",name:"Jambu refogado",group:"legumes",protein:2,kcal:32,note:"Estimativa editorial."},
+ {id:"tacaca",name:"Tacacá (caldo com tucupi, goma e jambu)",group:"cereais",protein:4,kcal:70,flags:["picante"],note:"Estimativa por 100 g da cuia."},
+ {id:"caldo_piranha",name:"Caldo de piranha",group:"proteinas",protein:8,kcal:60,note:"Estimativa editorial."},
+ {id:"galinha_caipira",name:"Galinha caipira cozida",group:"proteinas",protein:27,kcal:200,flags:["gorduroso"]},
+ {id:"carne_sol",name:"Carne de sol cozida",group:"proteinas",protein:26,kcal:280,flags:["gorduroso"]},
+ {id:"pacoca_carne_sol",name:"Paçoca de carne de sol com farinha",group:"proteinas",protein:22,kcal:350,flags:["gorduroso"],note:"Estimativa para a receita tradicional."},
+ {id:"matrinxa",name:"Matrinxã assado",group:"proteinas",protein:24,kcal:170,flags:["gorduroso"]},
+ {id:"jaraqui",name:"Jaraqui frito",group:"proteinas",protein:22,kcal:230,flags:["frito","gorduroso"]},
+ {id:"mingau_banana",name:"Mingau de banana com leite",group:"cereais",protein:3,kcal:110},
+ {id:"beiju",name:"Beiju de tapioca",group:"cereais",protein:.5,kcal:330,note:"Estimativa para beiju seco."},
+ {id:"chibe",name:"Chibé (farinha d'água com água)",group:"cereais",protein:.6,kcal:120,note:"Estimativa editorial."},
+ {id:"farinha_agua",name:"Farinha d'água de Cruzeiro do Sul",group:"cereais",protein:1.6,kcal:360},
+ {id:"milho_cozido",name:"Milho verde cozido",group:"cereais",protein:3.4,kcal:96},
+ {id:"quibe_arroz",name:"Quibe acreano de arroz",group:"cereais",protein:7,kcal:240,flags:["frito","gorduroso"],note:"Estimativa para a receita frita tradicional."},
 ];
+/** Alimentos típicos do Acre e da Amazônia, destacados na calculadora. */
+export const regionalFoodIds=new Set(["acai","cupuacu","buriti","tucuma","pupunha","graviola","bacuri","tapereba","jambu","tacaca","caldo_piranha","galinha_caipira","carne_sol","pacoca_carne_sol","matrinxa","jaraqui","mingau_banana","beiju","chibe","farinha_agua","milho_cozido","quibe_arroz","pirarucu","tambaqui","baixaria","macaxeira","banana_comprida","banana_pacova","banana_cozida","castanha_para","farinha","farofa","tapioca","queijo_coalho","cuscuz"]);
 /* Referências TACO/UNICAMP (quando a preparação coincide) e estimativas
    editoriais TBCA/USDA para os demais. Valores podem variar conforme receita,
    marca, estágio de maturação e método de cocção. NÃO extrapolar rótulos. */
@@ -147,6 +170,9 @@ const macroMap:Record<string,[number|null,number|null,number|null,Ingredient["pr
  cafe_com_leite:[2.5,1.6,0],achocolatado:[13,2.5,.5],bolo_simples:[51,9,1],biscoito_salgado:[68.7,14.4,2.5,"TACO"],
  macarrao:[19.9,1.2,1.5,"TACO"],carne_moida:[0,10.9,0,"TACO"],linguica:[0,22,0],pirarucu:[0,1.5,0],tambaqui:[0,10,0],
  baixaria:[22,6,1.5],banana_cozida:[31,.1,2],
+ cupuacu:[10.4,.9,3.1,"TACO"],buriti:[22,9,7],tucuma:[26,19,12],pupunha:[29,4.8,3.4],graviola:[15.8,.2,1.9,"TACO"],bacuri:[23,1.9,2],"tapereba":[11.6,.3,1,"TACO"],
+ jambu:[6,.5,2],tacaca:[12,1,.5],caldo_piranha:[3,2,0],galinha_caipira:[0,10,0],carne_sol:[0,17,0],pacoca_carne_sol:[25,16,3],
+ matrinxa:[0,8,0],jaraqui:[4,14,0],mingau_banana:[19,2.5,1],beiju:[81,.3,.5],chibe:[29,.1,1.5],farinha_agua:[87,.4,6],milho_cozido:[19,1.2,2.5],quibe_arroz:[30,10,1],
 };
 export const ingredients:Ingredient[]=baseIngredients.map(food=>{
  const n=macroMap[food.id];
