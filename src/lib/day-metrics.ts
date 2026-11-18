@@ -220,7 +220,7 @@ function buildOne(index: Map<string, Slot>, plans: PlanInfo[], day: string, ctx:
   const activityMinutes = s.activities.reduce((total, item) => total + item.minutes, 0);
   const activityKm = s.activities.reduce((total, item) => total + (item.km ?? 0), 0);
   const hasData = s.water.length + s.foods.length + s.doses.length + s.activities.length > 0
-    || s.tasks.some((task) => task.completedAt) || s.sleep !== null || s.weight !== null;
+    || s.tasks.some((task) => task.completedAt) || s.sleep !== null || s.weight !== null || s.reviews.length > 0;
 
   const goals: GoalResult[] = [];
   const { targets } = ctx;
@@ -228,7 +228,7 @@ function buildOne(index: Map<string, Slot>, plans: PlanInfo[], day: string, ctx:
 
   // Hidratação: a meta do servidor do dia vence a meta atual (a meta pode ter mudado ao longo do tempo).
   // Dias sem meta guardada no servidor usam a meta atual de referência (melhor do que esconder a meta).
-  const waterTarget = s.waterGoal?.target ?? targets.waterMl;
+  const waterTarget = s.waterGoal?.target ?? (waterReview?.target > 0 ? waterReview.target : targets.waterMl);
   if (waterTarget && waterTarget > 0) {
     goals.push({
       metric: "hidratacao", label: GOAL_INFO.hidratacao.label, unit: "ml", target: waterTarget, actual: waterMl, pct: pctOf(waterMl, waterTarget),
@@ -236,21 +236,23 @@ function buildOne(index: Map<string, Slot>, plans: PlanInfo[], day: string, ctx:
       rule: "beber a meta de água ao longo do dia (registros liberados nas 24 horas)", monotonic: true,
     });
   }
-  if (targets.kcal && targets.kcal > 0 && !future) {
+  const kcalTarget = kcalReview?.target > 0 ? kcalReview.target : targets.kcal;
+  const proteinTarget = proteinReview?.target > 0 ? proteinReview.target : targets.protein;
+  if (kcalTarget && kcalTarget > 0 && !future) {
     const band = kcalBand(targets.objective);
-    const inBand = counted.kcal >= targets.kcal * band.min && counted.kcal <= targets.kcal * band.max;
+    const inBand = counted.kcal >= kcalTarget * band.min && counted.kcal <= kcalTarget * band.max;
     // Em faixa com teto, só dá para afirmar o resultado ao fechar o dia; sem teto, o resultado só melhora.
     const monotonic = band.max === Infinity;
     goals.push({
-      metric: "calorias", label: GOAL_INFO.calorias.label, unit: "kcal", target: targets.kcal, actual: Math.round(counted.kcal), pct: pctOf(counted.kcal, targets.kcal),
+      metric: "calorias", label: GOAL_INFO.calorias.label, unit: "kcal", target: kcalTarget, actual: Math.round(counted.kcal), pct: pctOf(counted.kcal, kcalTarget),
       status: monotonic ? finish("em_andamento", inBand) : closed ? (!hasData ? "sem_registro" : inBand ? "atingida" : "nao_atingida") : "em_andamento",
       rule: band.rule, monotonic,
     });
   }
-  if (targets.protein && targets.protein > 0 && !future) {
-    const met = counted.protein >= targets.protein * 0.9;
+  if (proteinTarget && proteinTarget > 0 && !future) {
+    const met = counted.protein >= proteinTarget * 0.9;
     goals.push({
-      metric: "proteina", label: GOAL_INFO.proteina.label, unit: "g", target: targets.protein, actual: Math.round(counted.protein), pct: pctOf(counted.protein, targets.protein),
+      metric: "proteina", label: GOAL_INFO.proteina.label, unit: "g", target: proteinTarget, actual: Math.round(counted.protein), pct: pctOf(counted.protein, proteinTarget),
       status: finish("em_andamento", met), rule: "pelo menos 90% da meta de proteínas", monotonic: true,
     });
   }
