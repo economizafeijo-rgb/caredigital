@@ -968,7 +968,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                 )}
               </div>
             </div>
-            <div className="flex flex-wrap items-center gap-2 [&_button]:!border-white/25 [&_button]:!bg-white/15 [&_button]:!text-white [&_button]:backdrop-blur hover:[&_button]:!bg-white/25">
+            <div className="nv-day-actions flex flex-wrap items-center gap-2.5">
               {/* Cada área mostra só o registro da sua área, direto no formulário certo (sem painel de escolha).
                   Hidratação e Alimentação já têm o próprio botão dentro da página; as demais áreas têm o formulário próprio. */}
               {activeTab === "hoje" && (
@@ -985,13 +985,15 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                   onRecorded={() => setTick((value) => value + 1)}
                 />
               )}
-              <LiveModeButton patientId={client.id} ownerId={client.owner_id} heightCm={client.height_cm} name={patientName || client.full_name} />
+              <LiveModeButton className="!h-10 !rounded-xl !px-4 !text-[13px]" patientId={client.id} ownerId={client.owner_id} heightCm={client.height_cm} name={patientName || client.full_name} />
               <button
                 type="button"
                 onClick={() => setShowHealthProfile(true)}
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-border bg-surface px-3 text-xs font-semibold text-foreground transition-colors hover:border-primary/40 hover:bg-accent"
+                aria-label="Meu perfil"
+                title="Meu perfil"
+                className="grid size-10 shrink-0 place-items-center rounded-full border border-white/30 bg-white/15 text-white backdrop-blur transition hover:bg-white/25"
               >
-                <UserRound size={15} /> Meu perfil
+                <UserRound size={17} />
               </button>
             </div>
           </header>

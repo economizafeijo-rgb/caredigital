@@ -40,9 +40,9 @@ function DayRings({ kpis, dayPercent, onOpen }: { kpis: readonly Kpi[]; dayPerce
             return (
               <g key={kp.key} onPointerEnter={() => setHover(i)} onPointerLeave={() => setHover(null)} onClick={() => onOpen(kp.key)} style={{ cursor: "pointer" }}>
                 <circle cx="100" cy="100" r={r} fill="none" stroke={st.color} strokeOpacity=".15" strokeWidth="12" />
-                <circle cx="100" cy="100" r={r} fill="none" stroke={st.color} strokeWidth={hover === i ? 14 : 12} strokeLinecap="round" pathLength={100}
-                  strokeDasharray={`${Math.max(1, kp.percent)} 100`} className="nv-ring-draw"
-                  style={{ opacity: dim ? 0.35 : 1, filter: hover === i ? `drop-shadow(0 0 6px ${st.color})` : undefined, transition: "opacity .25s, stroke-width .25s", animationDelay: `${i * 120}ms` }} />
+                {kp.percent > 0 && <circle cx="100" cy="100" r={r} fill="none" stroke={st.color} strokeWidth={hover === i ? 14 : 12} strokeLinecap="round" pathLength={100}
+                  strokeDasharray={`${kp.percent} 100`} className="nv-ring-draw"
+                  style={{ opacity: dim ? 0.35 : 1, filter: hover === i ? `drop-shadow(0 0 6px ${st.color})` : undefined, transition: "opacity .25s, stroke-width .25s", animationDelay: `${i * 120}ms` }} />}
               </g>
             );
           })}

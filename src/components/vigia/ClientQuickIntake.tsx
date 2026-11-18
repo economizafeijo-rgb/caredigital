@@ -154,8 +154,8 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
       className={variant === "home"
         ? "inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-sky-300/40 bg-sky-300/15 px-2.5 text-[11px] font-bold text-primary-foreground transition hover:bg-sky-300/25 dark:text-sky-100 disabled:opacity-50"
         : mode === "water"
-          ? "inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-sky-500/35 bg-sky-500/10 px-3 text-xs font-bold text-foreground transition hover:bg-sky-500/20 disabled:opacity-50"
-          : "inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground transition hover:opacity-90 disabled:opacity-50"}>
+          ? "inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-sky-500 px-4 text-[13px] font-bold text-white shadow-lg shadow-sky-900/30 transition hover:bg-sky-400 active:scale-[.97] disabled:opacity-50"
+          : "inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-emerald-500 px-4 text-[13px] font-bold text-white shadow-lg shadow-emerald-900/30 transition hover:bg-emerald-400 active:scale-[.97] disabled:opacity-50"}>
       {mode === "water"||mode==="drink" ? <Droplets size={16}/> : mode==="food"?<UtensilsCrossed size={16}/>:<Plus size={16}/>} {mode === "water" ? "Registrar água" : mode==="food"?"Registrar alimento":mode==="drink"?"Registrar bebida":"Registrar consumo"}
     </button>
     {notice && typeof document !== "undefined" && createPortal(

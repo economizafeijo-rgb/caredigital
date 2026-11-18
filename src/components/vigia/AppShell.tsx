@@ -396,9 +396,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         ))}
       </nav>
       <div className="shrink-0 border-t border-white/10 p-3">
-        <div className="flex items-center gap-2.5 rounded-xl bg-white/5 p-2">
+        <div className="flex items-center gap-2.5 rounded-xl border border-emerald-400/20 bg-gradient-to-r from-emerald-500/20 via-teal-500/10 to-transparent p-2">
           <span
-            className="grid size-8 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-white"
+            className="grid size-8 shrink-0 place-items-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-xs font-bold text-white ring-2 ring-emerald-300/30"
             aria-hidden="true"
           >
             {(access.name || access.email || "C").slice(0, 1).toUpperCase()}
@@ -499,7 +499,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <span className="flex-1 lg:hidden" />
                 </>
               )}
-              <div className="flex shrink-0 items-center gap-1.5">
+              <div className="flex shrink-0 items-center gap-2">
                 {signedIn &&
                   (location.pathname === "/" ? (
                     panelHome && (
@@ -519,10 +519,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                       title="Ir à página inicial sem sair da conta"
                     >
                       <Home size={16} />
-                      <span className="hidden sm:inline">Página inicial</span>
+                      <span className="hidden 2xl:inline">Página inicial</span>
                     </Link>
                   ))}
-                {signedIn && <LiveModeLauncher iconOnlyOnMobile />}
+                {signedIn && !location.pathname.startsWith("/cliente") && <LiveModeLauncher iconOnlyOnMobile />}
                 <InstallAppButton className="max-sm:!hidden" />
                 {tools}
                 {signedIn && (
@@ -535,7 +535,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     className="inline-flex h-9 items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 text-sm font-semibold text-destructive transition hover:bg-destructive/20 disabled:opacity-50"
                   >
                     <LogOut size={16} />
-                    <span className="hidden sm:inline">{signingOut ? "Saindo…" : "Sair"}</span>
+                    <span className="hidden 2xl:inline">{signingOut ? "Saindo…" : "Sair"}</span>
                   </button>
                 )}
                 {!signedIn && access.status !== "loading" && loginButton}
