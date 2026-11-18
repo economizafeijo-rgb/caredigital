@@ -1,6 +1,6 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, BadgeCheck, CheckCircle2, CreditCard, FileText, Minus, Plus, QrCode, ShieldCheck, ShoppingBag, ShoppingCart, Store, Trash2, Truck, X, Construction, MessageCircle } from "lucide-react";
+import { ArrowRight, BadgeCheck, CheckCircle2, CreditCard, FileText, Minus, Plus, QrCode, ShieldCheck, ShoppingBag, ShoppingCart, Store, Trash2, Truck, X, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cart, categories, categoryLabel, money, orderTotal, paymentMethods, products, STORE_WHATSAPP, useCart, type PaymentKey, type Product, type StoreCategory } from "@/lib/store";
 import { useAccess } from "@/lib/use-access";
@@ -10,10 +10,12 @@ const payIcon = { pix: QrCode, cartao: CreditCard, boleto: FileText } as const;
 
 export function StoreDevBanner({ className = "" }: { className?: string }) {
   return (
-    <div role="note" className={`flex items-start gap-3 rounded-2xl border border-amber-400/50 bg-gradient-to-r from-amber-100 to-yellow-50 px-4 py-3 text-amber-950 shadow-sm dark:from-amber-500/20 dark:to-yellow-500/10 dark:text-amber-100 ${className}`}>
-      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-amber-500 text-white"><Construction size={19} /></span>
-      <p className="text-sm leading-snug"><strong className="block text-[13px] font-semibold">Loja em pré-lançamento</strong>As vendas ainda não estão abertas. Produtos, preços e lojas exibidos são ilustrativos e mostram como a vitrine vai funcionar no lançamento. Pedidos registrados agora servem apenas como teste e não geram cobrança automática; nossa equipe entra em contato para combinar qualquer compra.</p>
-    </div>
+    <p role="note" className={`flex flex-wrap items-center gap-x-2.5 gap-y-1 rounded-xl border border-border bg-card px-4 py-2.5 text-xs text-muted-foreground ${className}`}>
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-2 py-0.5 text-[11px] font-semibold text-foreground">
+        <span className="size-1.5 rounded-full bg-amber-500" aria-hidden="true" /> Pré-lançamento
+      </span>
+      Produtos, preços e lojas são ilustrativos. Pedidos feitos agora são apenas de teste, sem cobrança; nossa equipe confirma qualquer compra com você.
+    </p>
   );
 }
 
