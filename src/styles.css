@@ -703,3 +703,24 @@ body:has(.care-shell #care-client-tab-panel) {
 .nv-mosaic-rev { animation-direction: reverse; }
 .nv-mosaic:hover .nv-mosaic-col { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) { .nv-mosaic-col { animation: none; } }
+
+/* ---------- Tela de acesso: órbita, anel de progresso, pulso ao digitar, erro e sucesso ---------- */
+@keyframes nv-auth-rot { to { transform: rotate(360deg); } }
+@keyframes nv-auth-rot-back { to { transform: rotate(-360deg); } }
+.nv-auth-spin { animation: nv-auth-rot 50s linear infinite; }
+.nv-auth-spin-fast { animation: nv-auth-rot 4s linear infinite; }
+.nv-auth-spin .nv-auth-counter { animation: nv-auth-rot-back 50s linear infinite; }
+.nv-auth-spin-fast .nv-auth-counter { animation: nv-auth-rot-back 4s linear infinite; }
+@keyframes nv-auth-busy { 0% { stroke-dasharray: 10 100; } 50% { stroke-dasharray: 70 100; } 100% { stroke-dasharray: 10 100; } }
+.nv-auth-busy { animation: nv-auth-busy 1.2s ease-in-out infinite; }
+@keyframes nv-auth-shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-8px); } 40% { transform: translateX(7px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(3px); } }
+.nv-auth-shake { animation: nv-auth-shake .5s ease-in-out; }
+@keyframes nv-auth-ping { from { transform: scale(1); opacity: .7; } to { transform: scale(1.35); opacity: 0; } }
+.nv-auth-ping { transform-box: fill-box; transform-origin: center; animation: nv-auth-ping .6s ease-out; }
+@keyframes nv-auth-burst { from { box-shadow: 0 0 0 0 rgba(52,211,153,.7); } to { box-shadow: 0 0 0 40px rgba(52,211,153,0); } }
+.nv-auth-burst { animation: nv-auth-burst .8s ease-out 2; }
+.field { transition: border-color .2s, box-shadow .2s; }
+.field:focus { border-color: var(--primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 18%, transparent); }
+@media (prefers-reduced-motion: reduce) {
+  .nv-auth-spin, .nv-auth-spin-fast, .nv-auth-spin .nv-auth-counter, .nv-auth-spin-fast .nv-auth-counter, .nv-auth-busy, .nv-auth-shake, .nv-auth-ping, .nv-auth-burst { animation: none; }
+}

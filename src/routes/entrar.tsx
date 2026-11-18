@@ -1,5 +1,6 @@
 import { FitPage } from "@/components/vigia/FitPage";
 import { endOtherSessions } from "@/components/vigia/SessionGuard";
+import { AuthStage, type AuthStatus } from "@/components/vigia/AuthStage";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent, type InputHTMLAttributes } from "react";
 import {
@@ -75,6 +76,8 @@ function Entrar() {
   const [resendBusy, setResendBusy] = useState(false);
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
+  const [focus, setFocus] = useState<"email" | "password" | "other" | null>(null);
+  const [authStatus, setAuthStatus] = useState<AuthStatus>("idle");
   // Aparelho desconectado porque a conta entrou em outro dispositivo.
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get("reason") === "other-device")
@@ -156,8 +159,10 @@ function Entrar() {
     event.preventDefault();
     if (busy || configurationIssue) return;
     setBusy(true);
+    setAuthStatus("busy");
     setNotice(null);
     setNeedsConfirmation(false);
+    const fail = () => { setAuthStatus("error"); window.setTimeout(() => setAuthStatus("idle"), 1600); };
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
@@ -170,6 +175,7 @@ function Entrar() {
           error.code === "invalid_credentials";
         setNeedsConfirmation(confirmationRequired);
         setNotice({ type: "error", message: authErrorMessage(error) });
+        fail();
         return;
       }
       if (!data.user || !data.session) {
@@ -177,13 +183,17 @@ function Entrar() {
           type: "error",
           message: "A autenticação não criou uma sessão. Entre novamente.",
         });
+        fail();
         return;
       }
       // Sessão única: este login passa a ser o único ativo da conta.
       await endOtherSessions();
       if (data.user.user_metadata?.nextvita_signup) await bootstrapPublicSignup(data.user);
+      setAuthStatus("success");
+      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) await new Promise((r) => window.setTimeout(r, 700));
       await openAuthenticatedArea(data.user.id, data.user.email ?? "");
     } catch (error: any) {
+      fail();
       setNotice({
         type: "error",
         message: error?.message?.includes("CPF")
@@ -443,47 +453,11 @@ function Entrar() {
       label="Acesso NextVita"
       className="mx-auto grid w-full max-w-5xl items-stretch gap-5 py-1 lg:grid-cols-[1.05fr_1fr]"
     >
-      <aside className="relative isolate flex min-h-[260px] flex-col justify-end overflow-hidden rounded-3xl bg-slate-950 p-6 text-white shadow-pop lg:min-h-0 lg:p-8">
-        <img
-          src="/images/caredigital-care-hero.webp"
-          alt=""
-          aria-hidden="true"
-          width={1672}
-          height={941}
-          className="absolute inset-0 -z-20 h-full w-full object-cover object-[70%_20%]"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 -z-10 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent"
-        />
-        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[linear-gradient(160deg,rgba(4,31,29,.7),rgba(10,63,57,.35))]" />
-        <div aria-hidden="true" className="nv-float absolute left-5 top-5 hidden w-60 rounded-2xl border border-white/25 bg-slate-950/55 p-3 shadow-2xl backdrop-blur-md sm:block lg:left-7 lg:top-7">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-300">Agenda de hoje</p>
-          {[["08:00", "Losartana 50 mg", true], ["10:30", "Água · 250 ml", true], ["12:30", "Almoço", false]].map(([time, name, done]) => (
-            <div key={String(time)} className="mt-1.5 flex items-center gap-2 rounded-xl bg-white/10 px-2.5 py-1.5 text-xs"><span className="font-mono font-bold text-white/70">{time}</span><span className="flex-1 truncate font-semibold">{name}</span>{done ? <CheckCircle2 size={14} className="text-emerald-300" /> : <i className="size-3 rounded-full border-2 border-amber-300" />}</div>
-          ))}
-        </div>
-        <div aria-hidden="true" className="nv-float absolute right-5 top-32 hidden items-center gap-2.5 rounded-2xl border border-emerald-300/40 bg-emerald-500/25 px-3 py-2 text-white shadow-2xl backdrop-blur-md sm:flex lg:right-7 lg:top-40" style={{ animationDelay: "-3s" }}>
-          <span className="grid size-8 place-items-center rounded-xl bg-emerald-400 text-slate-950"><ShieldCheck size={16} /></span>
-          <div><p className="text-sm font-extrabold leading-tight">Meta atingida!</p><p className="text-[11px] text-emerald-100">5 de 6 metas hoje</p></div>
-        </div>
-        <p className="text-xs font-bold uppercase tracking-[.14em] text-white/70">NextVita</p>
-        <h1 className="mt-1 text-2xl font-extrabold leading-tight sm:text-3xl">
-          Seu bem-estar organizado, todos os dias.
-        </h1>
-        <ul className="mt-3 hidden gap-2 text-sm text-slate-200 sm:grid">
-          <li className="flex items-center gap-2">
-            <ShieldCheck size={16} /> Nutrição, hidratação e rotina com horários e lembretes
-          </li>
-          <li className="flex items-center gap-2">
-            <ShieldCheck size={16} /> Peso, suplementos e evolução acompanhados
-          </li>
-          <li className="flex items-center gap-2">
-            <ShieldCheck size={16} /> Dados pessoais em um espaço protegido
-          </li>
-        </ul>
-      </aside>
-      <section className="flex min-h-0 flex-col justify-center overflow-hidden rounded-2xl border border-border bg-card shadow-pop">
+      <AuthStage mode={mode} email={email} password={mode === "login" ? password : newPassword || password} focus={focus} status={authStatus} />
+      <section
+        onFocusCapture={(e) => { const t = (e.target as HTMLInputElement).type; setFocus(t === "email" ? "email" : t === "password" || (e.target as HTMLInputElement).autocomplete?.includes("password") ? "password" : "other"); }}
+        onBlurCapture={() => setFocus(null)}
+        className="flex min-h-0 flex-col justify-center overflow-hidden rounded-2xl border border-border bg-card shadow-pop">
         <div className="flex items-center gap-3 border-b border-border px-4 py-2.5 sm:px-5">
           <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
             <LockKeyhole size={21} />
