@@ -64,7 +64,7 @@ function Donut({ n: nut, hover, setHover }: { n: Nutrients; hover: string | null
   let acc = 0;
   const h = parts.find((p) => p.k === hover);
   return (
-    <div className="relative size-40 shrink-0">
+    <div className="relative size-32 shrink-0 2xl:size-36">
       <svg viewBox="0 0 120 120" className="size-full -rotate-90">
         <circle cx="60" cy="60" r={R} fill="none" stroke="currentColor" className="text-muted" strokeWidth="14" />
         {parts.map((p) => {
@@ -207,24 +207,48 @@ export function NutritionCalculator({ patientId, nutrition, onLogged }: { patien
     { k: "fat" as const, label: "Gorduras", g: nut.fat, goal: target.fat, left: left.fat },
   ];
 
+  const gm = groupMeta(food.group);
+  const card = "rounded-2xl border border-border bg-card";
   return (
-    <div className="grid gap-3 xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
-      {/* Escolha do alimento */}
-      <aside className="flex min-h-0 flex-col rounded-2xl border border-border bg-card p-3">
-        <label className="relative block">
-          <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} type="search" placeholder="Buscar alimento: pirarucu, tapioca, ovo…" aria-label="Buscar alimento"
-            className="h-11 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15" />
-        </label>
-        <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label="Grupos de alimentos">
-          {groups.map((g) => <button key={g.key} type="button" aria-pressed={group === g.key} onClick={() => setGroup(g.key)}
-            className={`inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-semibold transition active:scale-95 ${group === g.key ? "text-white shadow-sm" : "bg-muted text-muted-foreground hover:text-foreground"}`}
-            style={group === g.key ? { background: g.color } : undefined}><g.icon size={13} />{g.label}</button>)}
+    <div className="grid gap-3 xl:grid-cols-[minmax(0,19rem)_minmax(0,1fr)]">
+      {/* Catálogo */}
+      <aside className={`${card} flex min-h-0 flex-col overflow-hidden xl:sticky xl:top-2 xl:max-h-[calc(100dvh-7rem)]`} aria-label="Catálogo de alimentos">
+        <div className="border-b border-border p-3">
+          <label className="relative block">
+            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} type="search" placeholder="Buscar alimento…" aria-label="Buscar alimento"
+              className="h-10 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15" />
+          </label>
+          <div className="-mx-3 mt-2 flex gap-1.5 overflow-x-auto px-3 pb-0.5 [scrollbar-width:none]" role="group" aria-label="Grupos de alimentos">
+            {groups.map((g) => <button key={g.key} type="button" aria-pressed={group === g.key} onClick={() => setGroup(g.key)}
+              className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-xs font-semibold transition active:scale-95 ${group === g.key ? "text-white shadow-sm" : "bg-muted text-muted-foreground hover:text-foreground"}`}
+              style={group === g.key ? { background: g.color } : undefined}><g.icon size={13} />{g.label}</button>)}
+          </div>
         </div>
-        <div className="mt-2 flex items-center justify-between gap-2">
-          <p className="text-[11px] text-muted-foreground">{list.length} alimentos · valores por 100 g ou 100 ml</p>
-          <button type="button" onClick={() => setCreating((v) => !v)} aria-expanded={creating} className="inline-flex h-8 items-center gap-1 rounded-lg border border-border px-2.5 text-xs font-semibold text-primary transition hover:bg-primary/10"><Plus size={13} /> Criar alimento</button>
-        </div>
+        <ul className="min-h-0 flex-1 overflow-y-auto p-1.5 max-xl:max-h-[22rem]">
+          {list.map((f) => {
+            const on = f.id === food.id;
+            return (
+              <li key={f.id}>
+                <button type="button" onClick={() => setFoodId(f.id)} aria-pressed={on}
+                  className={`group flex w-full items-center gap-2.5 rounded-xl px-2 py-1.5 text-left transition ${on ? "bg-primary/10 ring-1 ring-primary/40" : "hover:bg-muted/60"}`}>
+                  <FoodBadge food={f} size={32} />
+                  <span className="min-w-0 flex-1">
+                    <strong className="block truncate text-[13px] leading-tight">{f.name}</strong>
+                    <span className="flex gap-1.5 text-[10.5px] font-semibold tabular-nums"><span style={{ color: macroColors.protein }}>P {n(f.protein ?? 0, 1)}</span><span style={{ color: macroColors.carbs }}>C {n(f.carbs ?? 0, 1)}</span><span style={{ color: macroColors.fat }}>G {n(f.fat ?? 0, 1)}</span></span>
+                  </span>
+                  <span className="shrink-0 rounded-lg bg-muted px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-muted-foreground">{n(f.kcal ?? 0)}</span>
+                </button>
+              </li>
+            );
+          })}
+          {!list.length && <li className="m-2 rounded-xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground">Nenhum alimento encontrado.</li>}
+        </ul>
+        <div className="border-t border-border p-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[11px] text-muted-foreground">{list.length} alimentos · kcal por 100 g</p>
+            <button type="button" onClick={() => setCreating((v) => !v)} aria-expanded={creating} className="inline-flex h-8 items-center gap-1 rounded-lg bg-primary/10 px-2.5 text-xs font-bold text-primary transition hover:bg-primary/15"><Plus size={13} /> Criar alimento</button>
+          </div>
         {creating && (
           <div className="nv-rise mt-2 grid gap-2 rounded-xl border border-primary/30 bg-primary/[.04] p-3 text-xs">
             <p className="font-bold">Novo alimento <span className="font-normal text-muted-foreground">· só você vê</span></p>
@@ -244,179 +268,165 @@ export function NutritionCalculator({ patientId, nutrition, onLogged }: { patien
             </div>
           </div>
         )}
-        <ul className="mt-1 -mx-1 max-h-[26rem] min-h-0 flex-1 overflow-y-auto px-1 xl:max-h-[34rem]">
-          {list.map((f) => {
-            const on = f.id === food.id;
-            return (
-              <li key={f.id}>
-                <button type="button" onClick={() => setFoodId(f.id)} aria-pressed={on}
-                  className={`group flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition ${on ? "bg-primary/10 ring-1 ring-primary/40" : "hover:bg-muted/60"}`}>
-                  <FoodBadge food={f} size={36} />
-                  <span className="min-w-0 flex-1">
-                    <strong className="block truncate text-sm">{f.name}</strong>
-                    <span className="flex gap-2 text-[11px] tabular-nums text-muted-foreground"><span>{n(f.kcal ?? 0)} kcal</span><span style={{ color: macroColors.protein }}>P {n(f.protein ?? 0, 1)}</span><span style={{ color: macroColors.carbs }}>C {n(f.carbs ?? 0, 1)}</span><span style={{ color: macroColors.fat }}>G {n(f.fat ?? 0, 1)}</span></span>
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-          {!list.length && <li className="rounded-xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground">Nenhum alimento encontrado.</li>}
-        </ul>
+        </div>
       </aside>
 
-      {/* Resultado */}
-      <section key={food.id} className="nv-fade-in grid min-w-0 gap-3" aria-label={`Valores de ${food.name}`}>
-        <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+      <section key={food.id} className="nv-fade-in grid min-w-0 content-start gap-3" aria-label={`Valores de ${food.name}`}>
+        {/* Alimento escolhido + medida + ações */}
+        <div className="nv-dark relative isolate overflow-hidden rounded-2xl p-4 text-white shadow-card sm:p-5" style={{ background: `linear-gradient(135deg, color-mix(in srgb, ${gm.color} 55%, #020617) 0%, #0b1220 70%)` }}>
+          <div aria-hidden className="pointer-events-none absolute -right-20 -top-24 -z-10 size-72 rounded-full blur-3xl" style={{ background: `${gm.color}55` }} />
+          <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 opacity-[.06] [background-image:radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" />
           <div className="flex flex-wrap items-start gap-3">
             <FoodBadge food={food} size={52} />
             <div className="min-w-0 flex-1">
-              <h3 className="text-xl font-extrabold leading-tight">{food.name}</h3>
+              <h3 className="text-xl font-extrabold leading-tight sm:text-2xl">{food.name}</h3>
               <p className="mt-1 flex flex-wrap gap-1.5 text-[11px] font-semibold">
-                <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">{groupMeta(food.group).label}</span>
-                {regionalFoodIds.has(food.id) && <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-emerald-700 dark:text-emerald-300">Típico do Acre</span>}
-                <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">{customIds.has(food.id) ? "Criado por você" : food.provenance === "TACO" ? "Tabela TACO" : "Estimativa"}</span>
-                {customIds.has(food.id) && <button type="button" onClick={() => void removeFood()} className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-destructive hover:bg-destructive/10"><Trash2 size={11} /> Remover</button>}
+                <span className="rounded-full bg-white/12 px-2 py-0.5">{gm.label}</span>
+                {regionalFoodIds.has(food.id) && <span className="rounded-full bg-emerald-400/20 px-2 py-0.5 text-emerald-200">Típico do Acre</span>}
+                <span className="rounded-full bg-white/12 px-2 py-0.5 text-white/75">{customIds.has(food.id) ? "Criado por você" : food.provenance === "TACO" ? "Tabela TACO" : "Estimativa"}</span>
+                {customIds.has(food.id) && <button type="button" onClick={() => void removeFood()} className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-rose-200 hover:bg-rose-500/20"><Trash2 size={11} /> Remover</button>}
               </p>
+            </div>
+            <div className="text-right">
+              <p className="font-display text-4xl font-extrabold leading-none tabular-nums">{n(nut.kcal)}<span className="ml-1 text-base font-semibold text-white/60">kcal</span></p>
+              <p className="mt-1 text-[11px] text-white/60">em {n(grams)} {U} · {n(per100.kcal)} kcal/100 {U}</p>
             </div>
           </div>
 
-          {/* Medida */}
-          <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
-            <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Medida">
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap gap-1 rounded-xl bg-black/25 p-1" role="radiogroup" aria-label="Medida">
               {unitList.map((x) => <button key={x.key} type="button" role="radio" aria-checked={unit === x.key} onClick={() => { setUnit(x.key); setQty(x.key === "g" ? Math.round(grams) : 1); }}
-                className={`h-9 rounded-xl border px-3 text-xs font-semibold transition active:scale-95 ${unit === x.key ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary/40"}`}>
-                {x.label}{x.key !== "g" && <span className={unit === x.key ? "text-primary-foreground/70" : "text-muted-foreground"}> · {n(x.grams(food))} {U}</span>}
+                className={`h-8 rounded-lg px-2.5 text-xs font-semibold transition active:scale-95 ${unit === x.key ? "bg-white text-slate-900 shadow-sm" : "text-white/75 hover:bg-white/10 hover:text-white"}`}>
+                {x.label}{x.key !== "g" && <span className={unit === x.key ? "text-slate-500" : "text-white/45"}> · {n(x.grams(food))}</span>}
               </button>)}
             </div>
-            <div className="flex items-center gap-2">
-              <button type="button" aria-label="Diminuir quantidade" onClick={() => setQty((q) => Math.max(unit === "g" ? 5 : 0.5, +(q - (unit === "g" ? 10 : 0.5)).toFixed(1)))} className="grid size-10 place-items-center rounded-xl border border-border transition hover:bg-muted active:scale-90"><Minus size={16} /></button>
+            <div className="ml-auto flex items-center gap-1.5">
+              <button type="button" aria-label="Diminuir quantidade" onClick={() => setQty((q) => Math.max(unit === "g" ? 5 : 0.5, +(q - (unit === "g" ? 10 : 0.5)).toFixed(1)))} className="grid size-9 place-items-center rounded-xl bg-white/10 transition hover:bg-white/20 active:scale-90"><Minus size={15} /></button>
               <label className="sr-only" htmlFor="nv-calc-qty">Quantidade</label>
               <input id="nv-calc-qty" inputMode="decimal" value={qty} onChange={(e) => { const v = Number(e.target.value.replace(",", ".")); if (Number.isFinite(v) && v >= 0) setQty(Math.min(unit === "g" ? 2000 : 20, v)); }}
-                className="h-10 w-20 rounded-xl border border-border bg-background text-center text-lg font-bold tabular-nums outline-none focus:border-primary" />
-              <button type="button" aria-label="Aumentar quantidade" onClick={() => setQty((q) => Math.min(unit === "g" ? 2000 : 20, +(q + (unit === "g" ? 10 : 0.5)).toFixed(1)))} className="grid size-10 place-items-center rounded-xl border border-border transition hover:bg-muted active:scale-90"><Plus size={16} /></button>
-              <span className="min-w-[4.5rem] text-sm font-semibold tabular-nums text-muted-foreground">= {n(grams)} {U}</span>
+                className="h-9 w-16 rounded-xl border border-white/15 bg-black/25 text-center text-base font-bold tabular-nums text-white outline-none focus:border-white/50" />
+              <button type="button" aria-label="Aumentar quantidade" onClick={() => setQty((q) => Math.min(unit === "g" ? 2000 : 20, +(q + (unit === "g" ? 10 : 0.5)).toFixed(1)))} className="grid size-9 place-items-center rounded-xl bg-white/10 transition hover:bg-white/20 active:scale-90"><Plus size={15} /></button>
+              <span className="min-w-[4.5rem] text-sm font-bold tabular-nums text-white/80">= {n(grams)} {U}</span>
             </div>
           </div>
           <input type="range" min={5} max={600} step={5} value={Math.min(600, grams)} aria-label={liquid ? "Quantidade em mililitros" : "Quantidade em gramas"} onChange={(e) => { setUnit("g"); setQty(Number(e.target.value)); }}
             className="nv-range mt-3 w-full" style={{ ["--nv-pct" as string]: `${(Math.min(600, grams) / 600) * 100}%` }} />
 
-          {/* Energia e macros */}
-          <div className="mt-5 grid items-center gap-5 md:grid-cols-[auto_minmax(0,1fr)]">
-            <div className="mx-auto"><Donut n={nut} hover={hover} setHover={setHover} /></div>
-            <div className="grid gap-3">
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <button type="button" onClick={() => void logNow()} disabled={busy} className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-white px-4 text-sm font-bold text-slate-900 shadow-sm transition hover:bg-white/90 active:scale-[.97] disabled:opacity-60">{busy ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />} Registrar {n(grams)} {U}</button>
+            <button type="button" onClick={() => setTray((t) => [...t, { id: food.id, name: food.name, grams, food }])} className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-white/20 bg-white/5 px-4 text-sm font-bold text-white transition hover:bg-white/15 active:scale-[.97]"><Plus size={15} /> Adicionar ao prato{tray.length ? ` (${tray.length})` : ""}</button>
+            {notice && <p role="status" className={`rounded-lg px-3 py-2 text-xs font-semibold ${notice.ok ? "bg-emerald-400/15 text-emerald-200" : "bg-rose-500/20 text-rose-100"}`}>{notice.text}</p>}
+          </div>
+        </div>
+
+        {/* Análise */}
+        <div className="grid gap-3 lg:grid-cols-3">
+          <div className={`${card} p-4`}>
+            <h4 className="text-sm font-bold">Composição da porção</h4>
+            <div className="mt-3 flex items-center gap-4">
+              <Donut n={nut} hover={hover} setHover={setHover} />
+              <ul className="grid min-w-0 flex-1 gap-2">
+                {macroRows.map((m) => (
+                  <li key={m.k} onPointerEnter={() => setHover(m.k)} onPointerLeave={() => setHover(null)} className={`rounded-lg px-2 py-1 transition ${hover === m.k ? "bg-muted" : ""}`}>
+                    <span className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground"><i className="size-2 rounded-full" style={{ background: macroColors[m.k] }} />{m.label}</span>
+                    <strong className="text-base tabular-nums" style={{ color: macroColors[m.k] }}>{n(m.g, 1)} g</strong>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className={`${card} p-4`}>
+            <div className="flex items-center justify-between gap-2"><h4 className="flex items-center gap-1.5 text-sm font-bold"><Target size={15} className="text-primary" /> Meta de hoje</h4><span className="text-[11px] text-muted-foreground">{n(total.kcal)} / {n(target.kcal)} kcal</span></div>
+            <ul className="mt-3 grid gap-3">
               {macroRows.map((m) => {
                 const pct = m.goal ? Math.min(100, (m.g / m.goal) * 100) : 0;
                 const prev = m.goal ? Math.min(100, ((m.goal - m.left) / m.goal) * 100) : 0;
                 return (
-                  <div key={m.k} onPointerEnter={() => setHover(m.k)} onPointerLeave={() => setHover(null)} className={`rounded-xl p-2 transition ${hover === m.k ? "bg-muted/60" : ""}`}>
-                    <div className="flex items-baseline justify-between gap-2 text-sm">
-                      <span className="font-semibold">{m.label}</span>
-                      <span className="tabular-nums"><strong className="text-base" style={{ color: macroColors[m.k] }}>{n(m.g, 1)} g</strong> <span className="text-xs text-muted-foreground">· {n(pct)}% da meta de {n(m.goal)} g</span></span>
-                    </div>
-                    <div className="relative mt-1.5 h-2.5 overflow-hidden rounded-full bg-muted" title="Cinza: já consumido hoje · cor: esta porção">
-                      <i className="absolute inset-y-0 left-0 rounded-full bg-foreground/15" style={{ width: `${prev}%` }} />
+                  <li key={m.k}>
+                    <div className="flex items-baseline justify-between gap-2 text-xs"><span className="font-semibold">{m.label}</span><span className="tabular-nums text-muted-foreground">{m.left > 0 ? `faltam ${n(m.left)} g` : "meta atingida"}</span></div>
+                    <div className="relative mt-1 h-2 overflow-hidden rounded-full bg-muted">
+                      <i className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${prev}%`, background: `color-mix(in srgb, ${macroColors[m.k]} 35%, transparent)` }} />
                       <i className="absolute inset-y-0 rounded-full transition-[width,left] duration-700 ease-out" style={{ left: `${prev}%`, width: `${Math.min(100 - prev, pct)}%`, background: macroColors[m.k] }} />
                     </div>
-                  </div>
+                  </li>
                 );
               })}
-              <p className="flex items-center gap-3 px-2 text-[11px] text-muted-foreground"><span className="inline-flex items-center gap-1"><i className="h-2 w-4 rounded-full bg-foreground/15" /> já consumido hoje</span><span className="inline-flex items-center gap-1"><i className="h-2 w-4 rounded-full bg-gradient-to-r from-rose-500 to-amber-400" /> esta porção</span></p>
-            </div>
+            </ul>
+            <p className="mt-3 rounded-xl bg-muted/60 p-2.5 text-xs leading-snug">
+              {left.protein <= 0 ? "Proteína de hoje alcançada. Prefira variar os alimentos."
+                : toFillProtein ? <>Esta porção cobre <strong>{n(Math.min(100, (nut.protein / left.protein) * 100))}%</strong> da proteína que falta. Só com {food.name.toLowerCase()}, seriam <strong>{n(toFillProtein)} g</strong>.</>
+                : `${food.name} tem pouca proteína. Combine com pirarucu, frango ou ovo.`}
+            </p>
+            <p className="mt-1.5 flex gap-3 text-[10.5px] text-muted-foreground"><span className="inline-flex items-center gap-1"><i className="h-1.5 w-3 rounded-full bg-rose-500/35" /> já comido</span><span className="inline-flex items-center gap-1"><i className="h-1.5 w-3 rounded-full bg-rose-500" /> esta porção</span></p>
           </div>
-        </div>
 
-        <div className="grid gap-3 lg:grid-cols-2">
-          {/* Vitaminas e minerais */}
-          <div className="rounded-2xl border border-border bg-card p-4">
-            <div className="flex items-center justify-between gap-2"><h4 className="flex items-center gap-2 text-sm font-bold"><Leaf size={16} className="text-emerald-600" /> Vitaminas, minerais e fibras</h4><span className="text-[11px] text-muted-foreground">% do valor diário</span></div>
-            {rich.length > 0 && <p className="mt-2 flex flex-wrap gap-1.5">{rich.map((r) => <span key={r} className="rounded-full bg-emerald-500/12 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">Fonte de {r.toLowerCase()}</span>)}</p>}
-            <ul className="mt-3 grid gap-2.5">
+          <div className={`${card} p-4`}>
+            <div className="flex items-center justify-between gap-2"><h4 className="flex items-center gap-1.5 text-sm font-bold"><Leaf size={15} className="text-emerald-600" /> Vitaminas e fibras</h4><span className="text-[11px] text-muted-foreground">% do dia</span></div>
+            {rich.length > 0 && <p className="mt-2 flex flex-wrap gap-1">{rich.slice(0, 3).map((r) => <span key={r} className="rounded-full bg-emerald-500/12 px-2 py-0.5 text-[10.5px] font-bold text-emerald-700 dark:text-emerald-300">Fonte de {r.toLowerCase()}</span>)}</p>}
+            <ul className="mt-2.5 grid gap-2">
               {[{ k: "fiber", label: "Fibras", value: nut.fiber, unit: "g", pct: fiberPct }, ...micros].map((m, i) => (
-                <li key={m.k} className="grid grid-cols-[6.5rem_1fr_4.5rem] items-center gap-2 text-xs">
-                  <span className="font-semibold">{m.label}</span>
-                  <span className="h-2 overflow-hidden rounded-full bg-muted"><i className="block h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-[width] duration-700 ease-out" style={{ width: `${m.pct}%`, transitionDelay: `${i * 60}ms` }} /></span>
-                  <span className="text-right tabular-nums text-muted-foreground">{n(m.value, m.value < 10 ? 1 : 0)} {m.unit} · {n(m.pct)}%</span>
+                <li key={m.k} className="grid grid-cols-[5.5rem_1fr_2.5rem] items-center gap-2 text-xs">
+                  <span className="truncate font-semibold" title={`${n(m.value, m.value < 10 ? 1 : 0)} ${m.unit}`}>{m.label}</span>
+                  <span className="h-1.5 overflow-hidden rounded-full bg-muted"><i className="block h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-[width] duration-700 ease-out" style={{ width: `${Math.max(m.pct, m.value > 0 ? 2 : 0)}%`, transitionDelay: `${i * 50}ms` }} /></span>
+                  <span className="text-right font-semibold tabular-nums text-muted-foreground">{n(m.pct)}%</span>
                 </li>
               ))}
             </ul>
-            <p className="mt-2 text-[11px] text-muted-foreground">Referência diária de adultos (Anvisa/IOM). Micronutrientes são aproximados.</p>
-          </div>
-
-          {/* Para a meta */}
-          <div className="relative overflow-hidden rounded-2xl bg-[#071512] p-4 text-white">
-            <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full bg-emerald-400/20 blur-3xl" />
-            <h4 className="relative flex items-center gap-2 text-sm font-bold"><Target size={16} className="text-emerald-300" /> Para a sua meta de hoje</h4>
-            <div className="relative mt-3 grid grid-cols-2 gap-2">
-              {(["protein", "kcal"] as const).map((k) => (
-                <div key={k} className="rounded-xl bg-white/[.06] p-3">
-                  <p className="text-[11px] text-white/60">{k === "protein" ? "Proteína que falta" : "Energia que falta"}</p>
-                  <p className="text-xl font-extrabold tabular-nums">{n(left[k])} <span className="text-xs font-semibold text-white/50">{k === "protein" ? "g" : "kcal"}</span></p>
-                  <p className="text-[11px] text-white/55">esta porção cobre {n(left[k] ? Math.min(100, ((k === "protein" ? nut.protein : nut.kcal) / left[k]) * 100) : 0)}%</p>
-                </div>
-              ))}
-            </div>
-            <p className="relative mt-3 text-sm text-white/85">
-              {left.protein <= 0 ? "Você já alcançou a proteína de hoje. Prefira variar os alimentos."
-                : toFillProtein ? <>Para completar a proteína só com <strong>{food.name.toLowerCase()}</strong>, seriam <strong>{n(toFillProtein)} g</strong> (≈ {n(toFillProtein / typicalPortion(food.id), 1)} porções).</>
-                : `${food.name} tem pouca proteína. Combine com uma fonte como pirarucu, frango ou ovo.`}
-            </p>
-            <p className="relative mt-1 text-[11px] text-white/45">Meta: {n(target.protein)} g de proteína e {n(target.kcal)} kcal · já consumido hoje: {n(total.protein)} g e {n(total.kcal)} kcal.</p>
-            <div className="relative mt-4 flex flex-wrap gap-2">
-              <button type="button" onClick={() => void logNow()} disabled={busy} className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-white px-4 text-sm font-bold text-[#062019] transition hover:bg-emerald-50 active:scale-[.97] disabled:opacity-60">{busy ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />} Registrar {n(grams)} {U}</button>
-              <button type="button" onClick={() => setTray((t) => [...t, { id: food.id, name: food.name, grams, food }])} className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-white/20 px-4 text-sm font-bold text-white transition hover:bg-white/10 active:scale-[.97]"><Plus size={15} /> Adicionar ao prato</button>
-            </div>
-            {notice && <p role="status" className={`relative mt-3 rounded-lg px-3 py-2 text-xs font-semibold ${notice.ok ? "bg-emerald-400/15 text-emerald-200" : "bg-rose-500/20 text-rose-100"}`}>{notice.text}</p>}
+            <p className="mt-2 text-[10.5px] text-muted-foreground">Referência Anvisa/IOM · valores aproximados.</p>
           </div>
         </div>
 
-        {/* Comparação */}
-        <div className="rounded-2xl border border-border bg-card p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h4 className="text-sm font-bold">Compare com {groupMeta(food.group).label.toLowerCase()} <span className="font-normal text-muted-foreground">· por 100 g</span></h4>
-            <div className="flex gap-1 rounded-xl bg-muted p-1" role="group" aria-label="Comparar por">
-              {([["protein", "Proteína"], ["carbs", "Carboidrato"], ["fat", "Gordura"], ["kcal", "Calorias"]] as const).map(([k, l]) => <button key={k} type="button" aria-pressed={compareBy === k} onClick={() => setCompareBy(k)} className={`h-7 rounded-lg px-2.5 text-[11px] font-semibold transition ${compareBy === k ? "bg-card shadow-sm" : "text-muted-foreground"}`}>{l}</button>)}
-            </div>
-          </div>
-          <ul className="mt-3 grid gap-1.5">
-            {similar.items.map((f, i) => {
-              const v = similar.val(f), on = f.id === food.id;
-              const color = compareBy === "kcal" ? "#f97316" : macroColors[compareBy];
-              return (
-                <li key={f.id}>
-                  <button type="button" onClick={() => setFoodId(f.id)} className={`group grid w-full grid-cols-[9rem_1fr_4rem] items-center gap-2 rounded-lg px-1.5 py-1 text-left text-xs transition hover:bg-muted/60 sm:grid-cols-[12rem_1fr_4rem] ${on ? "bg-muted/70" : ""}`}>
-                    <span className={`truncate ${on ? "font-bold" : ""}`}>{f.name}</span>
-                    <span className="h-3 overflow-hidden rounded-full bg-muted"><i className="block h-full rounded-full transition-[width] duration-700 ease-out group-hover:brightness-110" style={{ width: `${(v / similar.max) * 100}%`, background: on ? color : `color-mix(in srgb, ${color} 45%, transparent)`, transitionDelay: `${i * 40}ms` }} /></span>
-                    <span className="text-right font-semibold tabular-nums">{n(v, compareBy === "kcal" ? 0 : 1)}{compareBy === "kcal" ? "" : " g"}</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-          <p className="mt-2 text-[11px] text-muted-foreground">Por 100 {U} de {food.name.toLowerCase()}: {n(per100.kcal)} kcal · proteína {n(per100.protein, 1)} g · carboidrato {n(per100.carbs, 1)} g · gordura {n(per100.fat, 1)} g. Toque em outro alimento para trocar.</p>
-        </div>
-
-        {/* Prato */}
-        {tray.length > 0 && (
-          <div className="nv-rise rounded-2xl border-2 border-primary/30 bg-primary/[.04] p-4">
+        {/* Comparação + prato */}
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+          <div className={`${card} p-4`}>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h4 className="text-sm font-bold">Meu prato · {tray.length} {tray.length === 1 ? "alimento" : "alimentos"}</h4>
-              <select value={mealName} onChange={(e) => setMealName(e.target.value)} aria-label="Refeição" className="h-9 rounded-lg border border-border bg-background px-2 text-sm">
+              <h4 className="text-sm font-bold">Compare com {gm.label.toLowerCase()} <span className="font-normal text-muted-foreground">· por 100 {U}</span></h4>
+              <div className="flex gap-0.5 rounded-lg bg-muted p-0.5" role="group" aria-label="Comparar por">
+                {([["protein", "Proteína"], ["carbs", "Carbo"], ["fat", "Gordura"], ["kcal", "Calorias"]] as const).map(([k, l]) => <button key={k} type="button" aria-pressed={compareBy === k} onClick={() => setCompareBy(k)} className={`h-7 rounded-md px-2.5 text-[11px] font-semibold transition ${compareBy === k ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>{l}</button>)}
+              </div>
+            </div>
+            <ul className="mt-3 grid gap-1">
+              {similar.items.map((f, i) => {
+                const v = similar.val(f), on = f.id === food.id;
+                const color = compareBy === "kcal" ? "#f97316" : macroColors[compareBy];
+                return (
+                  <li key={f.id}>
+                    <button type="button" onClick={() => setFoodId(f.id)} className={`group grid w-full grid-cols-[8rem_1fr_3.5rem] items-center gap-2 rounded-lg px-1.5 py-1 text-left text-xs transition hover:bg-muted/60 sm:grid-cols-[11rem_1fr_3.5rem] ${on ? "bg-muted/70" : ""}`}>
+                      <span className={`truncate ${on ? "font-bold" : ""}`}>{f.name}</span>
+                      <span className="h-2.5 overflow-hidden rounded-full bg-muted"><i className="block h-full rounded-full transition-[width] duration-700 ease-out" style={{ width: `${(v / similar.max) * 100}%`, background: on ? color : `color-mix(in srgb, ${color} 40%, transparent)`, transitionDelay: `${i * 40}ms` }} /></span>
+                      <span className="text-right font-semibold tabular-nums">{n(v, compareBy === "kcal" ? 0 : 1)}{compareBy === "kcal" ? "" : " g"}</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+
+          <div className={`flex flex-col rounded-2xl border p-4 ${tray.length ? "border-primary/40 bg-primary/[.04]" : "border-dashed border-border bg-card"}`}>
+            <div className="flex items-center justify-between gap-2">
+              <h4 className="text-sm font-bold">Meu prato{tray.length ? ` · ${tray.length}` : ""}</h4>
+              <select value={mealName} onChange={(e) => setMealName(e.target.value)} aria-label="Refeição" className="h-8 rounded-lg border border-border bg-background px-2 text-xs">
                 {["Café da manhã", "Lanche da manhã", "Almoço", "Lanche da tarde", "Jantar", "Ceia"].map((m) => <option key={m}>{m}</option>)}
               </select>
             </div>
-            <ul className="mt-2 grid gap-1">
-              {tray.map((t, i) => <li key={i} className="flex items-center gap-2 rounded-lg bg-card px-2 py-1.5 text-sm"><FoodBadge food={t.food} size={26} /><span className="min-w-0 flex-1 truncate">{t.name}</span><span className="tabular-nums text-muted-foreground">{n(t.grams)} {t.food.group === "bebidas" || isLiquid(t.food.id) ? "ml" : "g"}</span>
-                <button type="button" aria-label={`Remover ${t.name}`} onClick={() => setTray((x) => x.filter((_, j) => j !== i))} className="grid size-7 place-items-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 size={14} /></button></li>)}
-            </ul>
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-              <p className="text-sm tabular-nums"><strong>{n(trayTotal.kcal)} kcal</strong> · <span style={{ color: macroColors.protein }}>P {n(trayTotal.protein, 1)} g</span> · <span style={{ color: macroColors.carbs }}>C {n(trayTotal.carbs, 1)} g</span> · <span style={{ color: macroColors.fat }}>G {n(trayTotal.fat, 1)} g</span></p>
-              <div className="flex gap-2">
-                <button type="button" onClick={() => setTray([])} className="inline-flex h-10 items-center gap-1 rounded-xl border border-border px-3 text-sm font-semibold hover:bg-muted"><X size={14} /> Limpar</button>
-                <button type="button" onClick={() => void logTray()} disabled={busy} className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:brightness-110 active:scale-[.97] disabled:opacity-60"><Check size={15} /> Registrar prato</button>
-              </div>
-            </div>
+            {tray.length === 0 ? (
+              <p className="my-auto py-6 text-center text-xs text-muted-foreground">Monte uma refeição com vários alimentos: escolha a medida e toque em <strong>Adicionar ao prato</strong>. Depois registre tudo de uma vez.</p>
+            ) : (
+              <>
+                <ul className="mt-2 grid gap-1">
+                  {tray.map((t, i) => <li key={i} className="flex items-center gap-2 rounded-lg bg-card px-2 py-1.5 text-sm"><FoodBadge food={t.food} size={24} /><span className="min-w-0 flex-1 truncate">{t.name}</span><span className="tabular-nums text-muted-foreground">{n(t.grams)} {t.food.group === "bebidas" || isLiquid(t.food.id) ? "ml" : "g"}</span>
+                    <button type="button" aria-label={`Remover ${t.name}`} onClick={() => setTray((x) => x.filter((_, j) => j !== i))} className="grid size-7 place-items-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 size={13} /></button></li>)}
+                </ul>
+                <p className="mt-2 text-xs tabular-nums"><strong>{n(trayTotal.kcal)} kcal</strong> · <span style={{ color: macroColors.protein }}>P {n(trayTotal.protein, 1)}</span> · <span style={{ color: macroColors.carbs }}>C {n(trayTotal.carbs, 1)}</span> · <span style={{ color: macroColors.fat }}>G {n(trayTotal.fat, 1)}</span></p>
+                <div className="mt-auto flex gap-2 pt-3">
+                  <button type="button" onClick={() => setTray([])} className="inline-flex h-9 items-center gap-1 rounded-xl border border-border px-3 text-xs font-semibold hover:bg-muted"><X size={13} /> Limpar</button>
+                  <button type="button" onClick={() => void logTray()} disabled={busy} className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground transition hover:brightness-110 active:scale-[.97] disabled:opacity-60"><Check size={14} /> Registrar prato</button>
+                </div>
+              </>
+            )}
           </div>
-        )}
+        </div>
       </section>
     </div>
   );
