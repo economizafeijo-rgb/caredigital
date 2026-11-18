@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { ArrowRight, Droplets, Leaf, Pill, Dumbbell, HeartPulse, Moon } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import { Activity, ArrowRight, BarChart3, Check, Droplets, Dumbbell, HeartPulse, Leaf, Moon, Pill, Scale, ShoppingCart, Timer, Utensils } from "lucide-react";
 
 /** Coluna de arte gráfica para as faixas laterais vazias em telas largas: anéis, pulso, pontos e ícones flutuando. */
 function SideColumn({ side }: { side: "left" | "right" }) {
@@ -53,103 +53,101 @@ export function HomeSideArt() {
   );
 }
 
-const weeks = [38, 44, 41, 55, 60, 58, 71, 78];
-
-/** Faixa de encerramento: aurora com foco de luz que segue o ponteiro e gráfico de evolução interativo (exemplo). */
-export function HomeBottomArt() {
-  const box = useRef<HTMLDivElement>(null);
-  const chart = useRef<SVGSVGElement>(null);
-  const [seen, setSeen] = useState(false);
-  const [hover, setHover] = useState<number | null>(null);
-
+/** Relógio compartilhado do timer de suplementos (conta para trás e reinicia). */
+function useCountdown(start: number) {
+  const [left, setLeft] = useState(start);
   useEffect(() => {
-    const el = box.current;
-    if (!el) return;
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setSeen(true); io.disconnect(); } }, { threshold: 0.35 });
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const t = window.setInterval(() => setLeft((l) => (l <= 0 ? start : l - 1)), 1000);
+    return () => window.clearInterval(t);
+  }, [start]);
+  const m = String(Math.floor(left / 60)).padStart(2, "0");
+  const sec = String(left % 60).padStart(2, "0");
+  return `00:${m}:${sec}`;
+}
 
-  const W = 520, H = 150, pad = 14;
-  const pts = weeks.map((v, i) => [pad + (i * (W - pad * 2)) / (weeks.length - 1), H - pad - (v / 100) * (H - pad * 2)] as const);
-  const line = pts.map(([x, y], i) => {
-    if (i === 0) return `M${x} ${y}`;
-    const [px, py] = pts[i - 1];
-    const cx = (px + x) / 2;
-    return `C${cx} ${py} ${cx} ${y} ${x} ${y}`;
-  }).join(" ");
-  const area = `${line} L${pts[pts.length - 1][0]} ${H} L${pts[0][0]} ${H}Z`;
-
-  const onMove = (e: ReactPointerEvent<HTMLDivElement>) => {
-    const el = box.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    el.style.setProperty("--mx", `${e.clientX - r.left}px`);
-    el.style.setProperty("--my", `${e.clientY - r.top}px`);
-  };
-  const onChart = (e: ReactPointerEvent<SVGSVGElement>) => {
-    const svg = chart.current;
-    if (!svg) return;
-    const r = svg.getBoundingClientRect();
-    const x = ((e.clientX - r.left) / r.width) * W;
-    let best = 0;
-    pts.forEach(([px], i) => { if (Math.abs(px - x) < Math.abs(pts[best][0] - x)) best = i; });
-    setHover(best);
-  };
-
+function Card({ icon: Icon, color, title, value, children, dup }: { icon: typeof Droplets; color: string; title: string; value: string; children: ReactNode; dup?: boolean }) {
   return (
-    <section
-      ref={box}
-      onPointerMove={onMove}
-      aria-labelledby="nv-bottom-title"
-      className={`nv-aurora nv-dark relative isolate grid gap-5 overflow-hidden rounded-2xl bg-[#05110e] p-5 text-white sm:p-7 lg:grid-cols-[1fr_1.1fr] lg:items-center ${seen ? "nv-seen" : ""}`}
-    >
-      <div aria-hidden="true" className="nv-aurora-a pointer-events-none absolute -left-20 -top-28 -z-10 h-80 w-[36rem] rounded-full" />
-      <div aria-hidden="true" className="nv-aurora-b pointer-events-none absolute -bottom-32 right-0 -z-10 h-80 w-[40rem] rounded-full" />
-      <div aria-hidden="true" className="nv-spotlight pointer-events-none absolute inset-0 -z-10" />
+    <li aria-hidden={dup || undefined} className="nv-svc flex w-56 shrink-0 flex-col gap-3 rounded-2xl border border-white/10 bg-white/[.05] p-4 backdrop-blur" style={{ ["--c" as string]: color }}>
+      <div className="flex items-center justify-between">
+        <span className="flex items-center gap-2 text-sm font-semibold"><span className="grid size-7 place-items-center rounded-lg" style={{ background: `${color}26`, color }}><Icon size={15} aria-hidden="true" /></span>{title}</span>
+        <span className="flex items-center gap-1 text-[10px] font-semibold text-white/50"><span className="nv-live size-1.5 rounded-full" style={{ background: color }} /> ao vivo</span>
+      </div>
+      <div className="grid h-20 place-items-center">{children}</div>
+      <p className="text-xs text-white/65">{value}</p>
+    </li>
+  );
+}
 
-      <div className="max-w-[34rem]">
-        <h2 id="nv-bottom-title" className="text-balance font-display text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">
-          Cuidar de si é acompanhar a sua evolução.
-        </h2>
-        <p className="mt-2 text-sm leading-relaxed text-white/70 sm:text-[15px]">
-          Cada copo de água, refeição e dose registrada vira um gráfico. Semana após semana, você vê o que está funcionando.
-        </p>
-        <a href="/entrar?mode=signup" className="nv-cta mt-4 inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-400 px-5 text-sm font-bold text-slate-950" style={{ ["--area" as string]: "#34d399" }}>
-          Começar a acompanhar <ArrowRight size={16} aria-hidden="true" className="nv-cta-arrow" />
+function ServiceCards({ timer, dup = false }: { timer: string; dup?: boolean }) {
+  return (
+    <>
+      <Card dup={dup} icon={Droplets} color="#38bdf8" title="Hidratação" value="1,8 L de 2,5 L hoje">
+        <svg viewBox="0 0 60 80" className="h-20"><rect x="16" y="6" width="28" height="8" rx="3" fill="#ffffff33" /><rect x="10" y="14" width="40" height="62" rx="10" fill="none" stroke="#ffffff55" strokeWidth="2" /><clipPath id={dup ? "nv-bottle-2" : "nv-bottle"}><rect x="11" y="15" width="38" height="60" rx="9" /></clipPath><g clipPath={dup ? "url(#nv-bottle-2)" : "url(#nv-bottle)"}><rect x="0" y="0" width="60" height="80" fill="#38bdf8" className="nv-m-fill" /></g></svg>
+      </Card>
+      <Card dup={dup} icon={Pill} color="#fb7185" title="Medicação" value="3 de 3 doses confirmadas">
+        <ul className="grid w-full gap-1.5 text-[11px]">
+          {["08:00 Vitamina D3", "12:00 Ômega 3", "20:00 Magnésio"].map((d, i) => (
+            <li key={d} className="flex items-center gap-2 rounded-md bg-white/5 px-2 py-1"><span className="nv-m-check grid size-4 place-items-center rounded-full bg-emerald-500" style={{ animationDelay: `${i * 0.7}s` }}><Check size={10} /></span>{d}</li>
+          ))}
+        </ul>
+      </Card>
+      <Card dup={dup} icon={Utensils} color="#34d399" title="Alimentação" value="Proteína, carboidrato e gordura">
+        <svg viewBox="0 0 42 42" className="h-20 -rotate-90">
+          <circle cx="21" cy="21" r="15.9" fill="none" stroke="#ffffff1a" strokeWidth="5" />
+          <circle cx="21" cy="21" r="15.9" fill="none" stroke="#34d399" strokeWidth="5" pathLength="100" strokeDasharray="40 60" className="nv-m-donut" />
+          <circle cx="21" cy="21" r="15.9" fill="none" stroke="#facc15" strokeWidth="5" pathLength="100" strokeDasharray="35 65" strokeDashoffset="-40" className="nv-m-donut" style={{ animationDelay: ".4s" }} />
+          <circle cx="21" cy="21" r="15.9" fill="none" stroke="#f472b6" strokeWidth="5" pathLength="100" strokeDasharray="25 75" strokeDashoffset="-75" className="nv-m-donut" style={{ animationDelay: ".8s" }} />
+        </svg>
+      </Card>
+      <Card dup={dup} icon={Timer} color="#a78bfa" title="Suplementos" value="Próxima dose: creatina">
+        <span className="font-mono text-2xl font-bold tabular-nums text-violet-200">{timer}</span>
+      </Card>
+      <Card dup={dup} icon={Activity} color="#fb923c" title="Treinos" value="5,2 km · ritmo 5'48&quot;/km">
+        <svg viewBox="0 0 160 70" className="h-20 w-full"><path d="M8 58 C 30 20, 50 64, 72 34 S 112 6, 128 30 S 150 60, 154 18" fill="none" stroke="#ffffff22" strokeWidth="4" strokeLinecap="round" /><path d="M8 58 C 30 20, 50 64, 72 34 S 112 6, 128 30 S 150 60, 154 18" fill="none" stroke="#fb923c" strokeWidth="4" strokeLinecap="round" pathLength="1" className="nv-m-route" /></svg>
+      </Card>
+      <Card dup={dup} icon={HeartPulse} color="#f43f5e" title="Sono" value="Nota 86 · 58 bpm agora">
+        <svg viewBox="0 0 200 60" className="h-16 w-full"><polyline className="nv-heart" fill="none" stroke="#fb7185" strokeWidth="2.5" strokeLinejoin="round" points="0,35 30,35 40,35 48,12 56,52 64,30 74,35 110,35 120,35 128,14 136,50 144,32 154,35 200,35" /></svg>
+      </Card>
+      <Card dup={dup} icon={Scale} color="#e879f9" title="Peso" value="-2,4 kg em 8 semanas">
+        <svg viewBox="0 0 160 70" className="h-20 w-full"><path d="M6 14 L30 22 L54 20 L78 34 L102 38 L126 50 L154 56" fill="none" stroke="#e879f9" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" pathLength="1" className="nv-m-route" /></svg>
+      </Card>
+      <Card dup={dup} icon={ShoppingCart} color="#fbbf24" title="Loja" value="Whey Protein 900 g no carrinho">
+        <div className="relative flex items-center gap-3">
+          <img src="/loja/v2/whey.webp" alt="" className="nv-m-drop size-14 rounded-xl object-cover" />
+          <span className="relative grid size-11 place-items-center rounded-xl bg-amber-400/20 text-amber-300"><ShoppingCart size={20} /><span className="nv-m-badge absolute -right-1.5 -top-1.5 grid size-5 place-items-center rounded-full bg-amber-400 text-[10px] font-bold text-slate-950">1</span></span>
+        </div>
+      </Card>
+      <Card dup={dup} icon={BarChart3} color="#2dd4bf" title="Métricas" value="Meta de água em 6 de 7 dias">
+        <div className="flex h-16 w-full items-end gap-1.5">
+          {[45, 62, 50, 78, 70, 88, 95].map((h, i) => <span key={i} className="nv-m-bar flex-1 rounded-t bg-teal-400" style={{ height: `${h}%`, animationDelay: `${i * 0.12}s` }} />)}
+        </div>
+      </Card>
+    </>
+  );
+}
+
+/** Faixa final: trilho contínuo de cartões mostrando cada serviço da plataforma funcionando ao vivo. */
+export function HomeBottomArt() {
+  const timer = useCountdown(14 * 60 + 59);
+  return (
+    <section aria-labelledby="nv-bottom-title" className="nv-dark relative isolate overflow-hidden rounded-2xl bg-[#060d0b] py-6 text-white">
+      <div aria-hidden="true" className="nv-aurora-a pointer-events-none absolute -left-20 -top-32 -z-10 h-72 w-[34rem] rounded-full" />
+      <div className="flex flex-wrap items-end justify-between gap-3 px-5 sm:px-7">
+        <div>
+          <h2 id="nv-bottom-title" className="font-display text-2xl font-extrabold tracking-tight sm:text-3xl">Tudo isso funcionando para você, todos os dias.</h2>
+          <p className="mt-1 text-sm text-white/65">Cada ferramenta da NextVita em ação. Passe o mouse para pausar.</p>
+        </div>
+        <a href="/entrar?mode=signup" className="nv-cta inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-400 px-5 text-sm font-bold text-slate-950" style={{ ["--area" as string]: "#34d399" }}>
+          Criar conta grátis <ArrowRight size={16} aria-hidden="true" className="nv-cta-arrow" />
         </a>
       </div>
-
-      <figure className="relative rounded-2xl border border-white/10 bg-white/[.04] p-4 backdrop-blur" aria-label="Exemplo de evolução das metas em 8 semanas">
-        <figcaption className="flex items-center justify-between text-xs text-white/60">
-          <span>Metas cumpridas por semana</span>
-          <span className="rounded-full bg-white/10 px-2 py-0.5">exemplo</span>
-        </figcaption>
-        <svg ref={chart} viewBox={`0 0 ${W} ${H}`} className="mt-2 h-36 w-full touch-none" onPointerMove={onChart} onPointerLeave={() => setHover(null)} role="img" aria-label="Linha subindo de 38% para 78% em 8 semanas">
-          <defs>
-            <linearGradient id="nv-evo-fill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor="#34d399" stopOpacity=".35" />
-              <stop offset="1" stopColor="#34d399" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          {[0.25, 0.5, 0.75].map((g) => <line key={g} x1={pad} x2={W - pad} y1={H * g} y2={H * g} stroke="#ffffff" strokeOpacity=".08" strokeDasharray="3 5" />)}
-          <path d={area} fill="url(#nv-evo-fill)" className="nv-evo-area" />
-          <path d={line} fill="none" stroke="#6ee7b7" strokeWidth="3" strokeLinecap="round" className="nv-evo-line" pathLength={1} />
-          {pts.map(([x, y], i) => (
-            <circle key={i} cx={x} cy={y} r={hover === i ? 6 : 3.5} fill={hover === i ? "#ffffff" : "#6ee7b7"} className="nv-evo-dot" style={{ animationDelay: `${600 + i * 90}ms`, transition: "r .2s" }} />
-          ))}
-          {hover !== null && (
-            <g>
-              <line x1={pts[hover][0]} x2={pts[hover][0]} y1={pad} y2={H} stroke="#ffffff" strokeOpacity=".35" />
-              <g transform={`translate(${Math.min(Math.max(pts[hover][0] - 46, 0), W - 92)} ${Math.max(pts[hover][1] - 44, 0)})`}>
-                <rect width="92" height="32" rx="8" fill="#ffffff" />
-                <text x="46" y="13" textAnchor="middle" fontSize="10" fill="#475569">Semana {hover + 1}</text>
-                <text x="46" y="26" textAnchor="middle" fontSize="12" fontWeight="700" fill="#0f172a">{weeks[hover]}% das metas</text>
-              </g>
-            </g>
-          )}
-        </svg>
-      </figure>
+      <div className="nv-marquee relative mt-5 [mask-image:linear-gradient(90deg,transparent,#000_6%,#000_94%,transparent)]">
+        <ul className="nv-marquee-track flex w-max gap-3 px-3">
+          <ServiceCards timer={timer} />
+          <ServiceCards timer={timer} dup />
+        </ul>
+      </div>
     </section>
   );
 }

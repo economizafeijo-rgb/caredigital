@@ -71,10 +71,17 @@ export function PartnerCommercial({ className = "" }: { className?: string }) {
           <div key={scene.id} className="absolute inset-0">
             {scene.dev ? (
               <div className="absolute inset-0 bg-gradient-to-br from-[#0b1120] via-[#0f2a2a] to-[#0c8063]" aria-hidden="true">
-                <div className="absolute right-6 top-1/2 hidden w-[22rem] -translate-y-1/2 rounded-xl bg-[#0b1220]/90 p-4 font-mono text-[12px] leading-6 text-emerald-200 shadow-2xl ring-1 ring-white/10 md:block">
-                  {["const ideia = 'seu negócio';", "criarApp(ideia, { celular: true });", "publicar('www.seusite.com.br');", "// pronto para o seu público ✓"].map((line, i) => (
-                    <span key={line} className="nv-type block truncate" style={{ animationDelay: `${400 + i * 550}ms` }}>{line}</span>
-                  ))}
+                <div className="nv-banner-img absolute right-8 top-1/2 hidden w-[24rem] -translate-y-1/2 md:block lg:right-14 lg:w-[28rem]">
+                  <span className="absolute -left-3 -top-3 z-10 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-slate-900 shadow-lg">Projeto real: NextVita</span>
+                  <div className="rounded-xl bg-slate-900 p-1.5 shadow-2xl ring-1 ring-white/15">
+                    <div className="overflow-hidden rounded-md bg-white">
+                      <img src="/images/dev-nextvita-desktop.webp" alt="" width={800} height={450} className="nv-kenburns aspect-[16/9] w-full object-cover object-top" style={{ animationDuration: "6000ms" }} />
+                    </div>
+                  </div>
+                  <div className="relative left-1/2 h-2.5 w-[112%] -translate-x-1/2 rounded-b-xl bg-gradient-to-b from-slate-400 to-slate-600 shadow-xl" />
+                  <div className="nv-float absolute -bottom-8 -right-6 w-20 rounded-[16px] bg-slate-900 p-1 shadow-2xl ring-1 ring-white/25 lg:w-24">
+                    <img src="/images/dev-nextvita-mobile.webp" alt="" width={300} height={560} className="aspect-[9/17] w-full rounded-[12px] object-cover object-top" />
+                  </div>
                 </div>
               </div>
             ) : scene.images.length === 1 ? (
