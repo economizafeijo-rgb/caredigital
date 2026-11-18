@@ -2,7 +2,7 @@ name: Backup diário (Supabase + repositório)
 
 on:
   schedule:
-    - cron: "*/15 * * * *"   # a cada 15 minutos (UTC)
+    - cron: "0 6 * * 0"   # a cada 7 dias, domingo 03:00 em Brasília (06:00 UTC)
   workflow_dispatch:
 
 permissions:
