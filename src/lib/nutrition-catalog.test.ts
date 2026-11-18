@@ -37,7 +37,7 @@ describe("NextVita nutrition safety and planning",()=>{
   expect(chicken.fat).toBe(3.2);
   expect(chicken.kcal).toBe(163);
   expect(chicken.provenance).toBe("TACO");
-  expect(ingredients).toHaveLength(66);
+  expect(ingredients).toHaveLength(85);
   expect(ingredients.filter(x=>x.protein!==null&&x.carbs!==null&&x.fat!==null).length).toBe(63);
  });
  it("converts 100g and calculated portions without pretending labels are verified",()=>{
