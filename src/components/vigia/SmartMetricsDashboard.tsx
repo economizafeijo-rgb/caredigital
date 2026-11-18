@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Activity, BedDouble, Droplets, Pill, Scale, Sparkles, UtensilsCrossed } from "lucide-react";
 import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart,
@@ -41,7 +41,7 @@ function EmptyChart({ children }: { children: string }) {
   return <div className="grid h-44 place-items-center rounded-xl border border-dashed border-border bg-muted/30 px-5 text-center text-sm text-muted-foreground">{children}</div>;
 }
 function ChartCard({ title, eyebrow, icon: Icon, children }: {
-  title: string; eyebrow: string; icon: typeof Activity; children: React.ReactNode;
+  title: string; eyebrow: string; icon: typeof Activity; children: ReactNode;
 }) {
   return <article className="min-w-0 rounded-2xl border border-border bg-card p-4 shadow-card">
     <div className="mb-3 flex items-center justify-between gap-3">
