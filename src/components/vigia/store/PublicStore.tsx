@@ -6,6 +6,7 @@ import { categoryName, money, type Vendor, type VendorProduct } from "@/lib/mark
 import { downloadStoreCard, initialsOf as ini, QrImage, shortStoreUrl, socialLinks } from "../seller/shared";
 import { CustomerChat } from "./CustomerChat";
 import { useVCart, vcart } from "./vendorCart";
+import { STORE_LIVE } from "@/lib/store";
 
 type Sort = "relevancia" | "menor" | "desconto";
 const offOf = (p: VendorProduct) => (p.old_price_cents ? Math.round((1 - p.price_cents / p.old_price_cents) * 100) : 0);
@@ -144,6 +145,7 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
                 <span className="text-[10.5px] font-medium text-muted-foreground">{categoryName(p.category)}</span>
                 <h3 className="mt-0.5 line-clamp-2 min-h-[2.5em] text-[13.5px] font-semibold leading-tight">{p.name}</h3>
                 <p className="mt-2 flex items-baseline gap-1.5"><strong className="text-[17px] font-extrabold tabular-nums">{money(p.price_cents)}</strong>{p.old_price_cents && <span className="text-[11px] text-muted-foreground line-through tabular-nums">{money(p.old_price_cents)}</span>}</p>
+                {!STORE_LIVE && <p className="text-[11px] text-muted-foreground">Vendas em breve</p>}
                 <button type="button" disabled={out || inCart >= p.stock} onClick={() => { vcart.add(vendor.id, p.id, Math.min(20, p.stock)); setAdded(p.id); }}
                   className="mt-2.5 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg text-[13px] font-bold text-white transition hover:brightness-110 active:scale-[.97] disabled:opacity-45" style={{ background: added === p.id ? "#059669" : accent }}>
                   {added === p.id ? <><CheckCircle2 size={15} /> Adicionado</> : out ? "Esgotado" : <><ShoppingCart size={15} /> Adicionar{inCart ? ` (${inCart})` : ""}</>}
@@ -254,7 +256,11 @@ function VendorCheckout({ vendor, products, onClose }: { vendor: Vendor; product
             </ul>
             <footer className="grid gap-3 border-t border-border p-5">
               <p className="flex justify-between text-sm"><span className="text-muted-foreground">Subtotal</span><strong className="tabular-nums">{money(subtotal)}</strong></p>
-              <button type="button" disabled={!items.length} onClick={() => setStep("dados")} className="h-12 rounded-xl text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-45" style={{ background: accent }}>Continuar</button>
+              {STORE_LIVE ? (
+                <button type="button" disabled={!items.length} onClick={() => setStep("dados")} className="h-12 rounded-xl text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-45" style={{ background: accent }}>Continuar</button>
+              ) : (
+                <p className="rounded-xl border border-border bg-muted/50 px-3 py-2.5 text-center text-xs text-muted-foreground">Compras em breve. A loja está em fase de implantação; seu carrinho fica guardado.</p>
+              )}
             </footer>
           </>
         ) : (

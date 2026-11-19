@@ -7,6 +7,7 @@ import { ArrowRight, CheckCircle2, CreditCard, FileText, Minus, Plus, QrCode, Sh
 import { countdownParts, currentCampaign, nextCampaignTeaser, productBadges, type Campaign } from "@/lib/store-promos";
 import { supabase } from "@/integrations/supabase/client";
 import { cart, categories, categoryLabel, money, orderTotal, paymentMethods, products, STORE_WHATSAPP, useCart, vendorById, type PaymentKey, type Product, type StoreCategory, type VendorId } from "@/lib/store";
+import { STORE_LIVE } from "@/lib/store";
 import { useAccess } from "@/lib/use-access";
 import { ShareButton } from "./ShareButton";
 
@@ -191,7 +192,11 @@ function CartDrawer({ open, onClose, onCheckout }: { open: boolean; onClose: () 
         <footer className="border-t border-border p-4">
           <div className="flex items-center justify-between text-sm"><span>Subtotal</span><strong className="text-xl">{money(subtotal)}</strong></div>
           <p className="mt-1 text-[11px] text-muted-foreground">Pix tem 5% de desconto no fechamento do pedido.</p>
-          <button type="button" disabled={lines.length === 0} onClick={onCheckout} className="mt-3 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-base font-extrabold text-white disabled:opacity-50">Finalizar pedido <ArrowRight size={18} /></button>
+          {STORE_LIVE ? (
+            <button type="button" disabled={lines.length === 0} onClick={onCheckout} className="mt-3 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-base font-extrabold text-white disabled:opacity-50">Finalizar pedido <ArrowRight size={18} /></button>
+          ) : (
+            <p className="mt-3 rounded-xl border border-border bg-muted/50 px-3 py-2.5 text-center text-xs text-muted-foreground">Compras em breve. A loja está em fase de implantação; seu carrinho fica guardado.</p>
+          )}
         </footer>
       </aside>
     </div>
