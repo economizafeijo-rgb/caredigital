@@ -31,3 +31,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Skills de design locais (não vão para o repositório; evitam travar a sincronização do Lovable)
+.claude/skills/
