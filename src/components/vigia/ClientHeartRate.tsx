@@ -273,16 +273,73 @@ export function ClientHeartRate({ patientId, ownerId, ageYears }: { patientId: s
             {!history.length && <li className="py-6 text-center text-sm text-muted-foreground">Nenhuma sessão salva ainda.</li>}
           </ul>
         </section>
-        <section className="rounded-2xl border border-border bg-card p-4 text-[13px]" aria-label="Como conectar">
-          <h3 className="flex items-center gap-2 text-sm font-bold"><Watch size={15} /> Como conectar</h3>
-          <ol className="mt-2 grid list-decimal gap-1.5 pl-5 text-muted-foreground">
-            <li>Ligue o Bluetooth do celular ou do computador.</li>
-            <li>No relógio, ative a <strong className="text-foreground">transmissão da frequência cardíaca</strong> (Garmin: "Transmitir FC"; Polar, Coros, Amazfit: "Compartilhar FC"). Cintas peitorais transmitem sozinhas ao vestir.</li>
-            <li>Toque em <strong className="text-foreground">Conectar relógio ou cinta</strong> e escolha o aparelho na lista.</li>
-          </ol>
-          <p className="mt-3 rounded-lg bg-muted/60 p-2.5 text-xs text-muted-foreground">Funciona no Chrome e no Edge (Android e computador). Apple Watch e Galaxy Watch não transmitem a frequência para sites. Valores apenas informativos, não substituem avaliação médica.</p>
-        </section>
+        <ConnectGuide />
       </div>
     </div>
+  );
+}
+
+type Brand = { key: string; label: string; ok: "sim" | "alguns" | "nao"; steps: string[]; note?: string };
+const BRANDS: Brand[] = [
+  { key: "garmin", label: "Garmin", ok: "sim", steps: [
+    "No relógio, segure o botão de menu e abra Configurações > Saúde e bem-estar > FC no pulso > Transmitir FC (ou abra o menu de controles e toque em Transmitir FC).",
+    "Confirme com o botão de iniciar: o relógio começa a transmitir.",
+    "Aqui, toque em Conectar relógio ou cinta e escolha o Garmin na lista.",
+  ], note: "Transmitir a frequência gasta mais bateria. Para parar, use o mesmo botão." },
+  { key: "huawei", label: "Huawei", ok: "alguns", steps: [
+    "No relógio ou na pulseira, abra a lista de apps e vá em Configurações > Transmissão de dados de FC.",
+    "Ative a opção. Você também pode iniciar um treino: a transmissão continua.",
+    "Aqui, toque em Conectar relógio ou cinta e escolha o aparelho Huawei.",
+  ], note: "Se a opção não aparecer no menu, o seu modelo não tem esse recurso. Modelos que só aceitam uma conexão se desligam do app Huawei Saúde enquanto transmitem." },
+  { key: "amazfit", label: "Amazfit", ok: "sim", steps: [
+    "Abra o app Zepp > Dispositivo > seu Amazfit > Monitoramento de saúde (ou o app Frequência no relógio).",
+    "Ative Transmissão de frequência (Heart Rate Push). Em alguns modelos é preciso iniciar um treino.",
+    "Aqui, toque em Conectar relógio ou cinta e escolha o Amazfit.",
+  ] },
+  { key: "xiaomi", label: "Xiaomi", ok: "alguns", steps: [
+    "Abra o app Mi Fitness > Dispositivo > Frequência cardíaca e procure a opção de compartilhar/transmitir a frequência.",
+    "Se existir, ative e deixe a pulseira por perto.",
+    "Aqui, toque em Conectar relógio ou cinta e escolha a pulseira.",
+  ], note: "Depende do modelo e da versão: em várias Smart Band recentes a Xiaomi não oferece mais essa opção. Se não aparecer, a pulseira não transmite para outros apps." },
+  { key: "cinta", label: "Polar, Coros e cintas", ok: "sim", steps: [
+    "Cintas peitorais: umedeça os sensores e vista; elas transmitem sozinhas.",
+    "Relógios Polar e Coros: ative a opção de compartilhar a frequência com outros dispositivos nas configurações do relógio.",
+    "Aqui, toque em Conectar relógio ou cinta e escolha o sensor.",
+  ] },
+  { key: "apple", label: "Apple Watch", ok: "nao", steps: [
+    "O Apple Watch não transmite a frequência pelo Bluetooth para sites.",
+    "A leitura do Apple Watch vai chegar pelo aplicativo NextVita para iPhone, ligado ao app Saúde (em preparação).",
+  ] },
+  { key: "samsung", label: "Samsung", ok: "nao", steps: [
+    "O Galaxy Watch não transmite a frequência pelo Bluetooth para sites.",
+    "A leitura vai chegar pelo aplicativo NextVita para Android, ligado ao Health Connect (em preparação).",
+  ] },
+];
+const OK_LABEL = { sim: ["Funciona", "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"], alguns: ["Alguns modelos", "bg-amber-500/15 text-amber-700 dark:text-amber-300"], nao: ["Ainda não", "bg-muted text-muted-foreground"] } as const;
+
+/** Passo a passo por marca para ativar a transmissão da frequência cardíaca. */
+function ConnectGuide() {
+  const [sel, setSel] = useState("garmin");
+  const b = BRANDS.find((x) => x.key === sel) ?? BRANDS[0];
+  return (
+    <section className="rounded-2xl border border-border bg-card p-4 text-[13px]" aria-label="Como conectar">
+      <h3 className="flex items-center gap-2 text-sm font-bold"><Watch size={15} /> Como conectar o seu relógio</h3>
+      <div role="tablist" aria-label="Marca do relógio" className="mt-3 flex flex-wrap gap-1.5">
+        {BRANDS.map((x) => (
+          <button key={x.key} type="button" role="tab" aria-selected={sel === x.key} onClick={() => setSel(x.key)}
+            className={`h-8 rounded-full px-3 text-xs font-semibold transition-colors ${sel === x.key ? "bg-foreground text-background" : "border border-border text-muted-foreground hover:text-foreground"}`}>
+            {x.label}
+          </button>
+        ))}
+      </div>
+      <div role="tabpanel" key={b.key} className="nv-fade-in mt-3">
+        <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${OK_LABEL[b.ok][1]}`}>{OK_LABEL[b.ok][0]}</span>
+        <ol className="mt-2 grid list-decimal gap-1.5 pl-5 text-muted-foreground">
+          {b.steps.map((t) => <li key={t}>{t}</li>)}
+        </ol>
+        {b.note && <p className="mt-2 text-xs text-muted-foreground">{b.note}</p>}
+      </div>
+      <p className="mt-3 rounded-lg bg-muted/60 p-2.5 text-xs text-muted-foreground">Não precisa ler QR Code: o QR do relógio serve só para o app da própria marca. A conexão com a NextVita funciona no Chrome e no Edge (Android e computador). Valores apenas informativos, não substituem avaliação médica.</p>
+    </section>
   );
 }
