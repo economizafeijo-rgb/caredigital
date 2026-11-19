@@ -82,7 +82,11 @@ export async function loadPeriodRaw(patientId: string, ownerId: string, from: st
   note("medicação", medPlans.failed || medIntakes.failed); note("agenda de medicação", checklist.failed); note("sono", sleep.failed);
   note("peso", weights.failed); note("observações das metas", reviews.failed);
 
-  raw.water = water.rows.map((row) => ({ at: row.recorded_at, ml: Number(row.amount_ml) || 0 }));
+  // Hidratação = água + outras bebidas (suco, chá, café, leite…), igual ao painel de hidratação.
+  raw.water = [
+    ...water.rows.map((row) => ({ at: row.recorded_at, ml: Number(row.amount_ml) || 0 })),
+    ...beverages.rows.map((row) => ({ at: row.consumed_at, ml: Number(row.amount_ml) || 0 })),
+  ].sort((a, b) => String(a.at).localeCompare(String(b.at)));
   raw.waterGoals = waterGoals.rows.map((row) => ({ day: row.goal_date, target: Number(row.target_ml) || 0, consumed: Number(row.consumed_ml) || 0, status: row.status }));
 
   const nutritionRequests = new Set(mealLogs.rows.map((row) => row.request_id).filter(Boolean));

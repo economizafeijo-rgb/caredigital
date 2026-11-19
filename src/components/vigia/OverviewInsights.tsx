@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useGoalFx } from "./GoalFx";
 import { Activity, ArrowDownRight, ArrowUpRight, Droplets, Pill, Plus, UtensilsCrossed, type LucideIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -131,6 +132,26 @@ function targetFor(k: MetricKey, waterGoal: number, scheduled: number) {
 }
 
 function ScoreCard({ series, waterGoal, scheduled, onOpen }: { series: Series[]; waterGoal: number; scheduled: Partial<Record<MetricKey, number>>; onOpen: (k: MetricKey) => void }) {
+  const fx = useGoalFx();
+  // Comemora quando a meta de hoje é batida (uma vez por dia e por meta).
+  useEffect(() => {
+    const today = dayKey(new Date());
+    for (const k of ["hidratacao", "medicacao"] as const) {
+      const s = series.find((x) => x.key === k);
+      const value = s?.days[s.days.length - 1] ?? 0;
+      const target = targetFor(k, waterGoal, scheduled[k] ?? 0);
+      if (!target || value < target) continue;
+      const key = `nv-goal-hit-${k}-${today}`;
+      try { if (localStorage.getItem(key)) continue; localStorage.setItem(key, "1"); } catch { continue; }
+      const water = k === "hidratacao";
+      fx.push({
+        kind: "hit", metric: k, day: today, actual: value, target, pct: Math.round((value / target) * 100), unit: water ? "ml" : "doses",
+        title: water ? "Meta de hidratação batida!" : "Todas as doses de hoje tomadas!",
+        subtitle: water ? `${value.toLocaleString("pt-BR")} de ${target.toLocaleString("pt-BR")} ml` : `${value} de ${target} doses`,
+        detail: "Excelente constância. Seu progresso foi guardado no histórico.",
+      });
+    }
+  }, [series, waterGoal, scheduled, fx]);
   const rows = order.map((k) => {
     const today = series.find((s) => s.key === k)?.days[6] ?? 0;
     const target = targetFor(k, waterGoal, scheduled[k] ?? 0);

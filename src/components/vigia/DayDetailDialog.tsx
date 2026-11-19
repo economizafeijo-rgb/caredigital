@@ -46,7 +46,7 @@ export function DayDetailDialog({ patientId, ownerId, day: initialDay, waterTarg
 
   const n = (v: number, d = 0) => v.toLocaleString("pt-BR", { maximumFractionDigits: d });
   const chips = metrics ? [
-    { icon: Target, label: "Metas", value: metrics.score === null ? "—" : `${metrics.score}%`, tone: "from-fuchsia-500 to-violet-500" },
+    { icon: Target, label: "Metas", value: metrics.goals.length ? `${metrics.goals.filter((g) => g.status === "atingida").length} de ${metrics.goals.length}` : "—", tone: "from-fuchsia-500 to-violet-500" },
     { icon: Droplets, label: "Líquidos", value: metrics.waterMl ? `${n(metrics.waterMl / 1000, 1)} L` : "—", tone: "from-sky-500 to-cyan-400" },
     { icon: Flame, label: "Calorias", value: metrics.kcal ? `${n(metrics.kcal)} kcal` : "—", tone: "from-emerald-500 to-lime-400" },
     { icon: Pill, label: "Doses", value: metrics.medication.planned + metrics.supplements.planned ? `${metrics.medication.taken + metrics.supplements.taken}/${metrics.medication.planned + metrics.supplements.planned}` : "—", tone: "from-rose-500 to-pink-400" },
@@ -66,7 +66,7 @@ export function DayDetailDialog({ patientId, ownerId, day: initialDay, waterTarg
             <div className="min-w-0 flex-1">
               <p className="text-xs font-semibold text-white/60">{focus ? `${FOCUS_LABEL[focus]} · detalhes do dia` : "Seu dia completo · 24 horas"}{day === today ? " · hoje" : ""}</p>
               <h2 id="day-detail-title" className="mt-0.5 font-display text-2xl font-extrabold leading-tight tracking-tight first-letter:uppercase sm:text-[1.75rem]">{title}</h2>
-              {metrics && <p className="mt-1 text-xs text-white/60">{metrics.score === null ? "Sem metas avaliadas neste dia." : `${metrics.score}% das metas atingidas`} · {metrics.water.length + metrics.foods.length + metrics.medication.taken + metrics.supplements.taken} registros</p>}
+              {metrics && <p className="mt-1 text-xs text-white/60">{(() => { const met = metrics.goals.filter((g) => g.status === "atingida").length; const open = metrics.goals.filter((g) => g.status === "em_andamento").length; return metrics.goals.length ? `${met} de ${metrics.goals.length} metas atingidas${open ? ` · ${open} em andamento` : ""}` : "Sem metas avaliadas neste dia."; })()} · {metrics.water.length + metrics.foods.length + metrics.medication.taken + metrics.supplements.taken} registros</p>}
             </div>
             <div className="flex items-center gap-1.5 self-start">
               <button type="button" onClick={() => setDay(acreAddDays(day, -1))} aria-label="Dia anterior" className="grid size-9 place-items-center rounded-xl border border-white/15 bg-white/[.06] transition hover:bg-white/15 active:scale-95"><ChevronLeft size={17} /></button>
