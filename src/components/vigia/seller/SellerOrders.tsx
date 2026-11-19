@@ -87,7 +87,7 @@ export function SellerOrders({ vendor, orders, onChanged, openChat }: { vendor: 
           <label htmlFor="pickup-code" className="flex items-center gap-1.5 text-xs font-bold"><KeyRound size={14} /> Retirada no balcão</label>
           <div className="mt-1.5 flex gap-2">
             <input id="pickup-code" value={code} onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6))} placeholder="Código do cliente" autoComplete="off"
-              className="h-10 min-w-0 flex-1 rounded-lg border border-border bg-card px-3 font-mono text-base font-bold uppercase tracking-[.2em]" />
+              className="h-10 min-w-0 flex-1 rounded-lg border border-border bg-card px-3 font-mono text-base font-bold" />
             <button type="submit" className={btn.primary}>Validar</button>
           </div>
         </form>

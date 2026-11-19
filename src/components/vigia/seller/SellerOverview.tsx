@@ -62,9 +62,9 @@ export function SellerOverview({ vendor, data, go }: { vendor: Vendor; data: Sel
           <div className="flex h-44 items-end gap-1.5 px-4 pb-3 pt-5" role="img" aria-label="Gráfico de vendas por dia">
             {s.series.map((x, i) => (
               <div key={x.d} className="group relative flex h-full flex-1 flex-col justify-end">
-                <span className="pointer-events-none absolute -top-1 left-1/2 z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-md bg-foreground px-1.5 py-0.5 text-[10px] font-semibold text-background opacity-0 transition group-hover:opacity-100">{money(x.v)}</span>
+                <span className="pointer-events-none absolute -top-1 left-1/2 z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-md bg-foreground px-1.5 py-0.5 text-[11px] font-semibold text-background opacity-0 transition group-hover:opacity-100">{money(x.v)}</span>
                 <span className="nv-bar block w-full rounded-t-[4px] transition-[filter] group-hover:brightness-110" style={{ height: `${Math.max(2, (x.v / max) * 100)}%`, background: x.v ? "var(--accent-store)" : "color-mix(in srgb, currentColor 10%, transparent)", animationDelay: `${i * 30}ms` }} />
-                <span className="mt-1 text-center text-[9.5px] tabular-nums text-muted-foreground">{x.d.slice(8)}</span>
+                <span className="mt-1 text-center text-[11px] tabular-nums text-muted-foreground">{x.d.slice(8)}</span>
               </div>
             ))}
           </div>

@@ -160,11 +160,11 @@ export function ClientNutritionStudio({patientId,ownerId,onLogged}:Props){
    </div>
    <div className="p-4">
     <p className="text-sm text-muted-foreground">{r.description}</p>
-    <div className="mt-3 grid grid-cols-4 gap-1.5 text-center">{[["kcal",totals.kcal,""],["Prot.",totals.protein,"g"],["Carb.",totals.carbs,"g"],["Gord.",totals.fat,"g"]].map(([l,v,u])=><span key={l as string} className="rounded-xl bg-muted/60 py-2"><strong className="block text-sm tabular-nums">{safeNumber(Number(v))}{u}</strong><span className="text-[10px] text-muted-foreground">{l}</span></span>)}</div>
+    <div className="mt-3 grid grid-cols-4 gap-1.5 text-center">{[["kcal",totals.kcal,""],["Prot.",totals.protein,"g"],["Carb.",totals.carbs,"g"],["Gord.",totals.fat,"g"]].map(([l,v,u])=><span key={l as string} className="rounded-xl bg-muted/60 py-2"><strong className="block text-sm tabular-nums">{safeNumber(Number(v))}{u}</strong><span className="text-[11px] text-muted-foreground">{l}</span></span>)}</div>
     <h5 className="mt-4 text-xs font-bold">Ingredientes</h5>
     <ul className="mt-1 divide-y divide-border/60">{r.ingredients.map(([id,grams])=><li key={id} className="flex justify-between gap-2 py-1.5 text-xs"><span>{ingredientById.get(id)?.name??id}</span><strong className="shrink-0 tabular-nums">{grams} g</strong></li>)}</ul>
     <h5 className="mt-3 text-xs font-bold">Preparo</h5>
-    <ol className="mt-1 grid gap-1.5 text-xs leading-relaxed">{r.steps.map((step,i)=><li key={i} className="flex gap-2"><span className="grid size-5 shrink-0 place-items-center rounded-full bg-muted text-[10px] font-bold">{i+1}</span>{step}</li>)}</ol>
+    <ol className="mt-1 grid gap-1.5 text-xs leading-relaxed">{r.steps.map((step,i)=><li key={i} className="flex gap-2"><span className="grid size-5 shrink-0 place-items-center rounded-full bg-muted text-[11px] font-bold">{i+1}</span>{step}</li>)}</ol>
     {triggers(r).length>0&&<p className="mt-3 rounded-lg border border-amber-500/25 bg-amber-500/[.06] p-2 text-[11px]"><AlertTriangle size={12} className="mr-1 inline"/> Verifique tolerância a: {triggers(r).join(", ")}.</p>}
     <p className="mt-3 text-[11px] text-muted-foreground">Valores aproximados; variam com marca, preparo e porção.</p>
    </div>
@@ -184,7 +184,7 @@ export function ClientNutritionStudio({patientId,ownerId,onLogged}:Props){
        </div>
       </div>
       <div className="flex flex-wrap gap-2"><ExportPlanButton patientId={patientId} ownerId={ownerId} label="Exportar cardápio"/>
-      <button type="button" onClick={()=>setShowSettings(v=>!v)} aria-expanded={showSettings} className={"inline-flex h-10 items-center gap-1.5 rounded-xl border px-3 text-sm font-semibold backdrop-blur transition "+(showSettings?"border-white bg-white text-[#062019]":"border-white/20 bg-white/10 text-white hover:bg-white/20")}><Settings2 size={16}/> Preferências{avoided.length||sensitive?<span className="grid size-5 place-items-center rounded-full bg-emerald-400 text-[10px] font-bold text-emerald-950">{avoided.length+(sensitive?1:0)}</span>:null}</button></div>
+      <button type="button" onClick={()=>setShowSettings(v=>!v)} aria-expanded={showSettings} className={"inline-flex h-10 items-center gap-1.5 rounded-xl border px-3 text-sm font-semibold backdrop-blur transition "+(showSettings?"border-white bg-white text-[#062019]":"border-white/20 bg-white/10 text-white hover:bg-white/20")}><Settings2 size={16}/> Preferências{avoided.length||sensitive?<span className="grid size-5 place-items-center rounded-full bg-emerald-400 text-[11px] font-bold text-emerald-950">{avoided.length+(sensitive?1:0)}</span>:null}</button></div>
      </div>
      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
       {targetChips.map(c=>{const pct=c.goal?Math.min(100,(c.v/c.goal)*100):0;return <div key={c.k} className="rounded-xl border border-white/10 bg-white/[.06] p-3 backdrop-blur">

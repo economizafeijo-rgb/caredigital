@@ -270,13 +270,13 @@ function HeaderCart() {
     <div ref={wrap} className="relative">
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label={`Carrinho, ${count} ${count === 1 ? "item" : "itens"}`} title="Carrinho" className={`${iconButton} relative`}>
         <ShoppingCart size={17} />
-        {count > 0 && <span key={count} className="nv-heart-pop absolute -right-1 -top-1 grid min-w-[1.15rem] place-items-center rounded-full bg-emerald-400 px-1 text-[10px] font-extrabold leading-[1.15rem] text-slate-950 ring-2 ring-surface">{count}</span>}
+        {count > 0 && <span key={count} className="nv-heart-pop absolute -right-1 -top-1 grid min-w-[1.15rem] place-items-center rounded-full bg-emerald-400 px-1 text-[11px] font-extrabold leading-[1.15rem] text-slate-950 ring-2 ring-surface">{count}</span>}
       </button>
       {open && (
         <div className="nv-pop absolute right-0 top-full z-50 mt-3 w-80 overflow-hidden rounded-2xl border border-border bg-surface/95 shadow-pop backdrop-blur-xl">
           <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
             <strong className="text-sm">Carrinho</strong>
-            {!STORE_LIVE && <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-300">Em breve</span>}
+            {!STORE_LIVE && <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-bold text-amber-600 dark:text-amber-300">Em breve</span>}
           </div>
           {lines.length ? (
             <ul className="grid max-h-56 gap-1 overflow-y-auto p-2">
@@ -471,7 +471,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       >
         {groups.map((group) => (
           <div key={group.title}>
-            <p className="flex h-5 items-center gap-2 px-2 pb-1 text-[10px] font-bold uppercase tracking-[.12em] text-slate-500">
+            <p className="flex h-5 items-center gap-2 px-2 pb-1 text-[11px] font-bold text-slate-500">
               <span className="nv-rail-label whitespace-nowrap">{group.title}</span><i className="h-px flex-1 bg-gradient-to-r from-white/15 to-transparent" />
             </p>
             <div className="grid gap-0.5">{group.items.map(sideLink)}</div>
@@ -511,7 +511,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <LogOut size={16} />
           </button>
         </div>
-        <p className="nv-rail-label mt-2 whitespace-nowrap text-center text-[10px] leading-tight text-slate-500">
+        <p className="nv-rail-label mt-2 whitespace-nowrap text-center text-[11px] leading-tight text-slate-500">
           Desenvolvido por <span className="font-semibold text-slate-300">Franc D&apos;nis</span>
           <br />
           Feijó, Acre
@@ -553,7 +553,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 >
                   <span className="grid size-8 shrink-0 place-items-center">{sidebarPinned ? <PanelLeftClose size={17} /> : <PanelLeftOpen size={17} />}</span>
                   <span className="nv-rail-label truncate">{sidebarPinned ? "Recolher menu" : "Fixar menu aberto"}</span>
-                  <kbd className="nv-rail-label ml-auto rounded border border-white/15 px-1.5 text-[10px] text-slate-500">[</kbd>
+                  <kbd className="nv-rail-label ml-auto rounded border border-white/15 px-1.5 text-[11px] text-slate-500">[</kbd>
                 </button>
               </aside>
             </div>

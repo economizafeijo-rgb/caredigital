@@ -466,7 +466,7 @@ export function CareCategoryReport({
           >
             <header className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-3 py-2 sm:px-4 sm:py-2.5">
               <div>
-                <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-primary">
+                <p className="flex items-center gap-2 text-[11px] font-bold text-primary">
                   <BarChart3 size={15} /> Relatório de acompanhamento
                 </p>
                 <h2 className="text-base font-bold sm:text-lg">{labels[category]}</h2>
@@ -703,7 +703,7 @@ export function CareCategoryReport({
                 >
                   <header className="flex items-start justify-between gap-3 border-b border-border bg-white/[.04] px-4 py-3">
                     <div className="min-w-0">
-                      <p className="text-[11px] font-bold uppercase tracking-widest text-primary">
+                      <p className="text-[11px] font-bold text-primary">
                         {category === "hidratacao"
                           ? "Detalhes da hidratação"
                           : category === "refeicao"

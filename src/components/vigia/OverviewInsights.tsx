@@ -100,7 +100,7 @@ function MetricCard({ k, days, keys, goal, scheduled, onOpen, index }: { k: Metr
               <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" className="text-muted" strokeWidth="4" />
               <circle cx="18" cy="18" r="15" fill="none" stroke={m.color} strokeWidth="4" strokeLinecap="round" pathLength={100} strokeDasharray={`${pct} 100`} className="nv-ring-draw" />
             </svg>
-            <span className="absolute inset-0 grid place-items-center text-[10px] font-bold tabular-nums">{pct}%</span>
+            <span className="absolute inset-0 grid place-items-center text-[11px] font-bold tabular-nums">{pct}%</span>
           </div>
         )}
       </div>
@@ -110,7 +110,7 @@ function MetricCard({ k, days, keys, goal, scheduled, onOpen, index }: { k: Metr
             className="flex h-full flex-1 flex-col items-center justify-end gap-1">
             <span className="nv-m-bar w-full rounded-md transition-[opacity,transform] duration-200"
               style={{ height: `${empty ? 12 + ((i * 37) % 30) : Math.max(6, (v / max) * 100)}%`, background: empty ? "color-mix(in srgb, currentColor 10%, transparent)" : i === 6 ? m.color : `color-mix(in srgb, ${m.color} 35%, transparent)`, opacity: hover === null || hover === i ? 1 : 0.45, animationDelay: `${i * 50}ms`, animationIterationCount: 1 }} />
-            <span className={`text-[10px] capitalize ${i === 6 ? "font-bold text-foreground" : "text-muted-foreground"}`}>{i === 6 ? "hoje" : weekday(keys[i]).slice(0, 3)}</span>
+            <span className={`text-[11px] capitalize ${i === 6 ? "font-bold text-foreground" : "text-muted-foreground"}`}>{i === 6 ? "hoje" : weekday(keys[i]).slice(0, 3)}</span>
           </button>
         ))}
       </div>
@@ -146,7 +146,7 @@ function ScoreCard({ series, waterGoal, scheduled, onOpen }: { series: Series[];
       <div aria-hidden="true" className="pointer-events-none absolute -left-16 -top-20 -z-10 size-64 rounded-full bg-emerald-400/20 blur-3xl" />
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-semibold text-emerald-200">Pontuação do dia</p>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold text-emerald-100"><i className="nv-live size-1.5 rounded-full bg-emerald-300" /> ao vivo</span>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-bold text-emerald-100"><i className="nv-live size-1.5 rounded-full bg-emerald-300" /> ao vivo</span>
       </div>
       <div className="mt-3 flex items-center gap-4">
         <div className="relative size-28 shrink-0" role="img" aria-label={`Pontuação ${score} de 100`}>
@@ -156,7 +156,7 @@ function ScoreCard({ series, waterGoal, scheduled, onOpen }: { series: Series[];
             <circle cx="60" cy="60" r={R} fill="none" stroke="#ffffff10" strokeWidth="10" strokeDasharray="2 6" />
             <circle cx="60" cy="60" r={R} fill="none" stroke="url(#nv-score-g)" strokeWidth="10" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C * (1 - score / 100)} style={{ transition: "stroke-dashoffset 1.1s cubic-bezier(.2,.8,.2,1)", filter: "drop-shadow(0 0 6px rgba(52,211,153,.55))" }} />
           </svg>
-          <span className="absolute inset-0 grid place-items-center text-center leading-none"><span><strong className="block font-display text-3xl font-extrabold tabular-nums">{score}</strong><span className="text-[10px] font-semibold text-white/60">de 100</span></span></span>
+          <span className="absolute inset-0 grid place-items-center text-center leading-none"><span><strong className="block font-display text-3xl font-extrabold tabular-nums">{score}</strong><span className="text-[11px] font-semibold text-white/60">de 100</span></span></span>
         </div>
         <div className="min-w-0">
           <p className="font-display text-xl font-extrabold">{status}</p>

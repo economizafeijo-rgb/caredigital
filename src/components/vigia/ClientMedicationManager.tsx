@@ -83,7 +83,7 @@ function AdherenceRing({ done, total }: { done: number; total: number }) {
       })}
     </svg>
     <div className="absolute inset-[26px] grid place-items-center rounded-full bg-white/[.07] text-center shadow-inner">
-      <span className="leading-none"><Pill size={16} className="mx-auto mb-1 text-pink-200"/><strong className="block text-2xl font-extrabold tabular-nums">{pct}%</strong><span className="text-[10px] font-semibold text-white/70">adesão</span></span>
+      <span className="leading-none"><Pill size={16} className="mx-auto mb-1 text-pink-200"/><strong className="block text-2xl font-extrabold tabular-nums">{pct}%</strong><span className="text-[11px] font-semibold text-white/70">adesão</span></span>
     </div>
   </div>;
 }
@@ -111,7 +111,7 @@ function DoseTimeline({ doses, onPick, bare = false }: { doses: Dose[]; onPick: 
       <div className="absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 overflow-hidden rounded-full bg-muted">
         <i className="block h-full rounded-full bg-gradient-to-r from-rose-500/30 to-pink-400/40 transition-[width] duration-700" style={{ width: `${pos(now)}%` }}/>
       </div>
-      <span className="absolute top-1 bottom-1 w-px bg-rose-500/70" style={{ left: `${pos(now)}%` }} aria-hidden="true"><span className="absolute -top-1 left-1/2 -translate-x-1/2 rounded-full bg-rose-600 px-1.5 text-[9px] font-bold text-white">agora</span></span>
+      <span className="absolute top-1 bottom-1 w-px bg-rose-500/70" style={{ left: `${pos(now)}%` }} aria-hidden="true"><span className="absolute -top-1 left-1/2 -translate-x-1/2 rounded-full bg-rose-600 px-1.5 text-[11px] font-bold text-white">agora</span></span>
       {placed.map(({ d, lane }, i) => {
         const late = !d.taken && d.at < now;
         return <button key={d.med.id + d.slot} type="button" onClick={() => onPick(d)} onPointerEnter={() => setHover(i)} onFocus={() => setHover(i)} onBlur={() => setHover(null)}
@@ -125,7 +125,7 @@ function DoseTimeline({ doses, onPick, bare = false }: { doses: Dose[]; onPick: 
         <strong className="block truncate">{hd.d.med.name}</strong>{hd.d.slot} · {hd.d.med.dose}<span className="block text-white/70">{hd.d.taken ? "Tomada" : hd.d.at < now ? "Atrasada" : "A tomar"}</span>
       </div>}
     </div>
-    <div className="mt-1 flex justify-between text-[10px] font-semibold text-muted-foreground">{["00h", "06h", "12h", "18h", "24h"].map(t => <span key={t}>{t}</span>)}</div>
+    <div className="mt-1 flex justify-between text-[11px] font-semibold text-muted-foreground">{["00h", "06h", "12h", "18h", "24h"].map(t => <span key={t}>{t}</span>)}</div>
   </figure>;
 }
 

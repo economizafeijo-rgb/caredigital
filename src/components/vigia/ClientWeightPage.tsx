@@ -316,9 +316,9 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
           <div className="relative mt-3 h-3 rounded-full bg-gradient-to-r from-sky-400 via-emerald-500 via-40% to-red-600">
             {bmi && <span className="absolute top-1/2 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white shadow-md" style={{ left: `${bmiPercent}%`, background: category?.color }}/>}
           </div>
-          <div className="mt-1.5 flex justify-between text-[10px] text-muted-foreground"><span>15</span><span>18,5</span><span>25</span><span>30</span><span>40</span></div>
+          <div className="mt-1.5 flex justify-between text-[11px] text-muted-foreground"><span>15</span><span>18,5</span><span>25</span><span>30</span><span>40</span></div>
           <p className="mt-2 text-xs">{bmi ? <>IMC <strong>{nf(bmi)}</strong> · <strong style={{ color: guidance.adultBmi ? category?.color : undefined }}>{guidance.adultBmi ? category?.label : "avaliar por percentil de idade"}</strong>{guidance.healthyRangeKg ? ` · faixa adequada: ${nf(guidance.healthyRangeKg[0])}–${nf(guidance.healthyRangeKg[1])} kg` : ""}</> : "Registre peso e altura para calcular."}</p>
-          <p className={`mt-1 text-[10px] ${guidance.pace === "fast_loss" || guidance.pace === "fast_gain" ? "font-semibold text-amber-600" : "text-muted-foreground"}`}>{guidance.message} Não substitui avaliação profissional.</p>
+          <p className={`mt-1 text-[11px] ${guidance.pace === "fast_loss" || guidance.pace === "fast_gain" ? "font-semibold text-amber-600" : "text-muted-foreground"}`}>{guidance.message} Não substitui avaliação profissional.</p>
         </section>
       </aside>
     </div>
@@ -363,10 +363,10 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
                   </tr>;
                 }
                 return <tr key={point.id} className={`border-t border-border ${highlightId === point.id ? "bg-fuchsia-500/10 ring-1 ring-fuchsia-500/40" : ""}`}>
-                  <td className="py-1.5"><span className="inline-flex items-center gap-1">{!unlocked && <Lock size={11} aria-hidden="true" className="text-muted-foreground"/>}{label}{point.id === "initial" && <span className="rounded-full bg-sky-500/15 px-1.5 py-0.5 text-[10px] font-bold text-sky-700 dark:text-sky-300">1º cadastro</span>}</span></td>
+                  <td className="py-1.5"><span className="inline-flex items-center gap-1">{!unlocked && <Lock size={11} aria-hidden="true" className="text-muted-foreground"/>}{label}{point.id === "initial" && <span className="rounded-full bg-sky-500/15 px-1.5 py-0.5 text-[11px] font-bold text-sky-700 dark:text-sky-300">1º cadastro</span>}</span></td>
                   <td className="font-semibold tabular-nums">{nf(point.weight_kg)} kg</td>
                   <td className={`tabular-nums ${diff === null ? "text-muted-foreground" : diff <= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-orange-600 dark:text-orange-400"}`}>{diff === null ? "—" : `${diff > 0 ? "+" : ""}${nf(diff)}`}</td>
-                  <td><span className="rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-white" style={{ background: bmiCategory(pointBmi).color }}>{nf(pointBmi)}</span></td>
+                  <td><span className="rounded-full px-1.5 py-0.5 text-[11px] font-semibold text-white" style={{ background: bmiCategory(pointBmi).color }}>{nf(pointBmi)}</span></td>
                   <td className="text-right">
                     <span className="inline-flex gap-1">
                       <button type="button" disabled={!unlocked || busy || point.id === "initial"} aria-label={`Editar registro de ${label}`} title={unlocked ? "Editar" : "Bloqueado: libere a edição com o cadeado"}

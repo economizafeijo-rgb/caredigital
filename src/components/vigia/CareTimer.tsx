@@ -69,12 +69,12 @@ export function CareTimer({ target, title, subtitle, tone = "primary", windowMs 
           ? <span className={`flex flex-col items-center gap-1 font-bold ${dark ? "text-white" : "text-foreground"}`}><BellRing size={size === "sm" ? 18 : 24} className="animate-pulse text-amber-400"/><span className="text-xs">Agora</span></span>
           : <span className={`font-mono font-bold tabular-nums tracking-tight ${digits} ${dark ? "text-white" : "text-foreground"}`}>
               {h > 0 ? `${String(h).padStart(2, "0")}:` : ""}{String(m).padStart(2, "0")}:{String(s).padStart(2, "0")}
-              <span className={`block text-[10px] font-semibold uppercase tracking-[.12em] ${dark ? "text-white/60" : "text-muted-foreground"}`}>{h > 0 ? "h · min · s" : "min · s"}</span>
+              <span className={`block text-[11px] font-semibold ${dark ? "text-white/60" : "text-muted-foreground"}`}>{h > 0 ? "h · min · s" : "min · s"}</span>
             </span>}
       </div>
     </div>
     {(title || subtitle) && <div className="min-w-0">
-      <span className={`inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-white ${palette.chip}`}><Icon size={13}/>Às {hhmm(target)}</span>
+      <span className={`inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r px-2.5 py-1 text-[11px] font-bold text-white ${palette.chip}`}><Icon size={13}/>Às {hhmm(target)}</span>
       {title && <p className={`mt-2 line-clamp-2 text-base font-bold leading-snug ${dark ? "text-white" : ""}`}>{title}</p>}
       {subtitle && <p className={`mt-0.5 text-sm ${dark ? "text-white/70" : "text-muted-foreground"}`}>{subtitle}</p>}
     </div>}
@@ -117,7 +117,7 @@ export function HomeNextCareCard({ panel }: { panel: string }) {
   const { task, ready } = useNextCare();
   if (!ready) return <div className="h-[184px] animate-pulse rounded-3xl bg-white/10"/>;
   return <div className="rounded-3xl border border-white/15 bg-white/10 p-5 text-white shadow-2xl backdrop-blur-md">
-    <p className="text-[11px] font-bold uppercase tracking-[.14em] text-white/70">Seu próximo cuidado</p>
+    <p className="text-[11px] font-bold text-white/70">Seu próximo cuidado</p>
     {task
       ? <div className="mt-3"><CareTimer target={Date.parse(task.scheduled_at)} title={task.title} subtitle={categoryLabel[task.category] ?? "Cuidado"} tone={toneForCategory(task.category)} dark/></div>
       : <p className="mt-3 text-sm text-white/80">Nenhum cuidado pendente para hoje. Aproveite o dia!</p>}

@@ -895,7 +895,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                 );
               })()}
               <div className="min-w-0">
-                <p className="!text-[10px] font-bold uppercase tracking-[.14em] !text-white/70">
+                <p className="!text-[11px] font-bold !text-white/70">
                   {clientSectionLabels[activeTab].tagline}
                 </p>
                 <h1 className="truncate text-lg font-bold tracking-tight sm:text-xl">
@@ -994,7 +994,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                     aria-label="Próximo cuidado"
                     className="relative shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-950 via-indigo-900 to-blue-800 p-4 text-white shadow-card"
                   >
-                    <div className="flex items-center justify-between gap-2 text-[11px] font-semibold uppercase tracking-wider opacity-85">
+                    <div className="flex items-center justify-between gap-2 text-[11px] font-semibold opacity-85">
                       <span>Próximo cuidado</span>
                       <span className="inline-flex items-center gap-1 normal-case tracking-normal">
                         <Clock3 size={12} /> Horário do Acre
@@ -1576,7 +1576,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                     Prevista: {timeInAcre(pending.scheduled_at)} · Acre
                   </p>
                 </div>
-                <p className="text-[10px] leading-snug text-muted-foreground">
+                <p className="text-[11px] leading-snug text-muted-foreground">
                   Se tomou esta dose agora, confirme para registrar a hora real do servidor, mesmo
                   com atraso. Se ainda não tomou, procure orientação profissional antes de decidir;
                   não dobre a dose.

@@ -239,7 +239,7 @@ export function ClientDayPlanner({ patientId, ownerId, waterTarget, tasks, resol
                 <circle cx="60" cy="60" r="52" fill="none" stroke="url(#nv-day-ring)" strokeWidth="10" strokeLinecap="round" pathLength={100} strokeDasharray={`${pct} 100`} className="nv-ring-draw" style={{ transition: "stroke-dasharray .8s ease" }} />
                 <defs><linearGradient id="nv-day-ring" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#f0abfc" /><stop offset="1" stopColor="#facc15" /></linearGradient></defs>
               </svg>
-              <span className="absolute inset-0 grid place-items-center text-center leading-none"><span><strong className="block text-2xl font-extrabold tabular-nums">{pct}%</strong><span className="text-[10px] text-white/75">em dia</span></span></span>
+              <span className="absolute inset-0 grid place-items-center text-center leading-none"><span><strong className="block text-2xl font-extrabold tabular-nums">{pct}%</strong><span className="text-[11px] text-white/75">em dia</span></span></span>
             </div>
             <div className="min-w-0 lg:hidden"><p className="text-xl font-extrabold">Meu dia</p><p className="text-xs text-white/75">{doneCount} de {actionable.length} feitos até agora</p></div>
           </div>
@@ -288,7 +288,7 @@ export function ClientDayPlanner({ patientId, ownerId, waterTarget, tasks, resol
                 <header className="mb-1.5 flex items-center gap-2 px-1">
                   <p.icon size={15} className={isNow ? "text-violet-500" : "text-muted-foreground"} />
                   <strong className="text-sm">{p.label}</strong>
-                  {isNow && <span className="rounded-full bg-violet-500 px-1.5 py-0.5 text-[10px] font-bold text-white">agora</span>}
+                  {isNow && <span className="rounded-full bg-violet-500 px-1.5 py-0.5 text-[11px] font-bold text-white">agora</span>}
                   <span className="ml-auto text-[11px] tabular-nums text-muted-foreground">{done}/{list.length}</span>
                 </header>
                 <div className="mb-2 h-1 overflow-hidden rounded-full bg-muted"><i className="block h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-400 transition-[width] duration-700" style={{ width: `${list.length ? (done / list.length) * 100 : 0}%` }} /></div>
@@ -326,7 +326,7 @@ function FilterChip({ on, onClick, color, label, count, icon: Icon }: { on: bool
       style={on ? { background: color } : undefined}>
       {Icon ? <span style={on ? undefined : { color }}><Icon size={13} /></span> : <i className="size-2 rounded-full" style={{ background: on ? "#fff" : color }} />}
       {label}
-      <span className={`rounded-full px-1.5 text-[10px] tabular-nums ${on ? "bg-white/25" : "bg-muted text-muted-foreground"}`}>{count}</span>
+      <span className={`rounded-full px-1.5 text-[11px] tabular-nums ${on ? "bg-white/25" : "bg-muted text-muted-foreground"}`}>{count}</span>
     </button>
   );
 }
@@ -336,7 +336,7 @@ function NowLine({ now }: { now: number }) {
     <div className="relative flex items-center gap-2 py-0.5 pl-[1.05rem]" aria-label={`Agora, ${hm(now)}`}>
       <span className="relative z-10 grid size-3 place-items-center"><i className="absolute size-3 rounded-full bg-fuchsia-500/40 nv-evo-ping" /><i className="size-2 rounded-full bg-fuchsia-500" /></span>
       <span className="h-px flex-1 bg-gradient-to-r from-fuchsia-500 to-transparent" />
-      <span className="text-[10px] font-bold tabular-nums text-fuchsia-600 dark:text-fuchsia-300">agora · {hm(now)}</span>
+      <span className="text-[11px] font-bold tabular-nums text-fuchsia-600 dark:text-fuchsia-300">agora · {hm(now)}</span>
     </div>
   );
 }

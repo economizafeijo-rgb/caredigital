@@ -46,7 +46,7 @@ function ChartCard({ title, eyebrow, icon: Icon, children }: {
 }) {
   return <article className="min-w-0 rounded-2xl border border-border bg-card p-4 shadow-card">
     <div className="mb-3 flex items-center justify-between gap-3">
-      <div><p className="text-[11px] font-bold uppercase tracking-[.14em] text-primary">{eyebrow}</p><h3 className="text-lg font-bold">{title}</h3></div>
+      <div><p className="text-[11px] font-bold text-primary">{eyebrow}</p><h3 className="text-lg font-bold">{title}</h3></div>
       <Icon className="shrink-0 text-primary" size={20}/>
     </div>
     {children}
@@ -180,7 +180,7 @@ export function SmartMetricsDashboard() {
         </BarChart></ResponsiveContainer></div> : <EmptyChart>Nenhuma atividade com duração registrada neste período. Caminhadas e treinos aparecerão aqui após serem salvos.</EmptyChart>}
       </ChartCard>
       <article className="grid grid-cols-2 gap-3 rounded-2xl border border-border bg-card p-4 shadow-card">
-        <div className="col-span-2"><p className="text-[11px] font-bold uppercase tracking-[.14em] text-muted-foreground">Registros de rotina</p><h3 className="text-lg font-bold">Acompanhamento inteligente</h3></div>
+        <div className="col-span-2"><p className="text-[11px] font-bold text-muted-foreground">Registros de rotina</p><h3 className="text-lg font-bold">Acompanhamento inteligente</h3></div>
         <div className="rounded-xl bg-med/10 p-3"><Pill className="text-med" size={20}/><strong className="mt-2 block text-2xl">{metrics.medicationCount}</strong><span className="text-xs text-muted-foreground">doses registradas</span></div>
         <div className="rounded-xl bg-amber-500/10 p-3"><Sparkles className="text-amber-600" size={20}/><strong className="mt-2 block text-2xl">{metrics.supplementCount}</strong><span className="text-xs text-muted-foreground">doses de suplementos</span></div>
         <div className="col-span-2 rounded-xl bg-muted p-3 text-xs text-muted-foreground"><Activity className="mr-1 inline text-primary" size={15}/>Os gráficos mostram somente dados efetivamente salvos no seu prontuário. Ausência de registros não é interpretada como consumo ou atividade igual a zero.</div>

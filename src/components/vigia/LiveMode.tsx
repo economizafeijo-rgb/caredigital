@@ -98,10 +98,10 @@ function Tile({ k, on, onPick, icon: Icon, tone, title, children }: { k: MetricK
       <div className="flex w-full items-center gap-2.5">
         <span className="grid size-10 place-items-center rounded-2xl text-white shadow-lg ring-1 ring-white/25 transition-transform duration-300 group-hover:scale-110" style={{ background: tone }}><Icon size={19} /></span>
         <strong className="flex-1 text-sm font-bold tracking-wide text-white/95">{title}</strong>
-        <button type="button" onClick={() => onPick(k)} aria-pressed={on} aria-label={`Ver gráfico de ${title}`} className={`inline-flex cursor-pointer items-center gap-0.5 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider transition ${on ? "bg-white/25 text-white" : "bg-white/10 text-white/60 hover:bg-white/20 hover:text-white"}`}>Gráfico <ChevronRight size={11} /></button>
+        <button type="button" onClick={() => onPick(k)} aria-pressed={on} aria-label={`Ver gráfico de ${title}`} className={`inline-flex cursor-pointer items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-bold transition ${on ? "bg-white/25 text-white" : "bg-white/10 text-white/60 hover:bg-white/20 hover:text-white"}`}>Gráfico <ChevronRight size={11} /></button>
       </div>
       <div className="mt-3">{children}</div>
-      {area && <span aria-hidden="true" className="pointer-events-none absolute bottom-3 right-3 inline-flex translate-y-1 items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-bold text-white opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100">Abrir área <ChevronRight size={11} /></span>}
+      {area && <span aria-hidden="true" className="pointer-events-none absolute bottom-3 right-3 inline-flex translate-y-1 items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[11px] font-bold text-white opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100">Abrir área <ChevronRight size={11} /></span>}
     </section>
   );
 }
@@ -301,7 +301,7 @@ function LiveDashboard({ patientId, ownerId, heightCm, name, onClose }: Props & 
     <div ref={root} className="fixed inset-0 z-[500] overflow-y-auto overscroll-contain bg-[radial-gradient(ellipse_at_top,#0b3b3a_0%,#020617_62%)] text-white" role="dialog" aria-modal="true" aria-label="Painel ao vivo">
       <div className="mx-auto flex min-h-full max-w-[1500px] flex-col gap-4 p-3 pb-24 sm:p-6">
         <header className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-          <span className="inline-flex items-center gap-2 rounded-full bg-emerald-400/15 px-3 py-2 text-xs font-extrabold uppercase tracking-widest text-emerald-300 ring-1 ring-emerald-400/40"><span className="relative flex size-2.5"><span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" /><span className="relative inline-flex size-2.5 rounded-full bg-emerald-400" /></span> Ao vivo</span>
+          <span className="inline-flex items-center gap-2 rounded-full bg-emerald-400/15 px-3 py-2 text-xs font-extrabold text-emerald-300 ring-1 ring-emerald-400/40"><span className="relative flex size-2.5"><span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" /><span className="relative inline-flex size-2.5 rounded-full bg-emerald-400" /></span> Ao vivo</span>
           <span className="flex-1 sm:hidden" />
           <div className="order-last min-w-0 basis-full sm:order-none sm:flex-1 sm:basis-auto"><p className="truncate text-xs text-white/60 first-letter:uppercase">{dateFmt.format(now)}{name ? ` · ${name.split(" ")[0]}` : ""}</p><p className="font-mono text-3xl font-extrabold tabular-nums leading-none sm:text-4xl">{clockFmt.format(now)}</p></div>
           <div className="flex items-center gap-2">
@@ -318,16 +318,16 @@ function LiveDashboard({ patientId, ownerId, heightCm, name, onClose }: Props & 
           <>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <Tile k="score" on={selected === "score"} onPick={pick} icon={Target} tone="linear-gradient(135deg,#10b981,#06b6d4)" title="Dia em dia">
-                <div className="flex items-center gap-4"><Ring pct={today?.score ?? 0} color="#34d399"><div><p className="text-3xl font-extrabold tabular-nums">{today?.score == null ? "—" : `${Math.round(scoreShown)}%`}</p><p className="text-[10px] uppercase tracking-wider text-white/60">metas</p></div></Ring>
+                <div className="flex items-center gap-4"><Ring pct={today?.score ?? 0} color="#34d399"><div><p className="text-3xl font-extrabold tabular-nums">{today?.score == null ? "—" : `${Math.round(scoreShown)}%`}</p><p className="text-[11px] text-white/60">metas</p></div></Ring>
                   <p className="text-sm text-white/70">{today?.score == null ? "As metas aparecem conforme o dia avança." : `${today.goals.filter((g) => g.status === "atingida").length} de ${today.goals.length} metas atingidas hoje.`}</p></div>
               </Tile>
 
               <Tile k="agua" on={selected === "agua"} onPick={pick} icon={Droplets} tone="linear-gradient(135deg,#0ea5e9,#22d3ee)" title="Hidratação">
-                <div className="flex items-center gap-4"><Ring pct={waterPct} color="#38bdf8"><div><p className="text-2xl font-extrabold tabular-nums">{nf(waterShown)}</p><p className="text-[10px] text-white/60">{waterTarget ? `de ${nf(waterTarget)} ml` : "ml hoje"}</p></div></Ring>
+                <div className="flex items-center gap-4"><Ring pct={waterPct} color="#38bdf8"><div><p className="text-2xl font-extrabold tabular-nums">{nf(waterShown)}</p><p className="text-[11px] text-white/60">{waterTarget ? `de ${nf(waterTarget)} ml` : "ml hoje"}</p></div></Ring>
                   <div className="grid flex-1 grid-cols-3 gap-1.5">
                     {[{ ml: 150, label: "Gole", size: 16 }, { ml: 250, label: "Copo", size: 20 }, { ml: 500, label: "Garrafa", size: 25 }].map((c) => (
                       <button key={c.ml} type="button" disabled={busy} onClick={() => askWater(c.ml)} className="flex flex-col items-center justify-center gap-0.5 rounded-2xl bg-gradient-to-b from-sky-300/30 to-sky-500/10 py-2.5 ring-1 ring-sky-300/40 transition hover:from-sky-300/45 active:scale-95 disabled:opacity-50" aria-label={`Registrar ${c.ml} ml de água`}>
-                        <Droplets size={c.size} className="text-sky-200" /><span className="text-sm font-extrabold leading-none">+{c.ml}</span><span className="text-[9px] font-bold uppercase tracking-wider text-sky-100/70">{c.label}</span>
+                        <Droplets size={c.size} className="text-sky-200" /><span className="text-sm font-extrabold leading-none">+{c.ml}</span><span className="text-[11px] font-bold text-sky-100/70">{c.label}</span>
                       </button>))}
                   </div></div>
                 <button type="button" onClick={() => setCustomOpen((v) => !v)} aria-expanded={customOpen} className="mt-2 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-xl bg-white/10 text-xs font-bold ring-1 ring-white/15 transition hover:bg-white/20"><Plus size={14} /> Outro valor</button>
@@ -354,7 +354,7 @@ function LiveDashboard({ patientId, ownerId, heightCm, name, onClose }: Props & 
                 <div className="relative mt-3 h-3 overflow-hidden rounded-full" style={{ background: "linear-gradient(90deg,#38bdf8 0 14%,#10b981 14% 40%,#f59e0b 40% 60%,#f97316 60% 80%,#ef4444 80%)" }} aria-hidden="true">
                   {bmi && <span className="absolute top-0 h-3 w-1 -translate-x-1/2 rounded bg-white shadow-[0_0_8px_#fff]" style={{ left: `${Math.max(0, Math.min(100, ((bmi - 15) / 25) * 100))}%`, transition: "left 1s" }} />}
                 </div>
-                <div className="mt-1 flex justify-between text-[10px] text-white/50"><span>15</span><span>25</span><span>40</span></div>
+                <div className="mt-1 flex justify-between text-[11px] text-white/50"><span>15</span><span>25</span><span>40</span></div>
               </Tile>
 
               <Tile k="metapeso" on={selected === "metapeso"} onPick={pick} icon={Trophy} tone="linear-gradient(135deg,#ec4899,#f59e0b)" title="Meta de peso">
@@ -367,14 +367,14 @@ function LiveDashboard({ patientId, ownerId, heightCm, name, onClose }: Props & 
               </Tile>
 
               <Tile k="sono" on={selected === "sono"} onPick={pick} icon={BedDouble} tone="linear-gradient(135deg,#6366f1,#8b5cf6)" title="Sono">
-                <div className="flex items-center gap-4"><Ring pct={sleep ? (sleep.hours / SLEEP_GOAL) * 100 : 0} color="#818cf8"><div><p className="text-2xl font-extrabold tabular-nums">{sleep ? nf(sleep.hours, 1) : "—"}</p><p className="text-[10px] text-white/60">horas</p></div></Ring>
+                <div className="flex items-center gap-4"><Ring pct={sleep ? (sleep.hours / SLEEP_GOAL) * 100 : 0} color="#818cf8"><div><p className="text-2xl font-extrabold tabular-nums">{sleep ? nf(sleep.hours, 1) : "—"}</p><p className="text-[11px] text-white/60">horas</p></div></Ring>
                   <div className="text-sm text-white/70">{sleep ? <><p>Qualidade {"★".repeat(Math.max(0, Math.min(5, sleep.quality)))}{"☆".repeat(5 - Math.max(0, Math.min(5, sleep.quality)))}</p><p className="text-xs">Meta de {SLEEP_GOAL} h por noite</p>{sleepAvg !== null && <p className="mt-1 text-xs text-indigo-200">Média de 7 noites: {nf(sleepAvg, 1)} h</p>}</> : "Sem noite registrada."}</div></div>
                 <Spark data={series.sono} color="#818cf8" goal={SLEEP_GOAL} />
               {nextUps?.sono && <NextUpClock compact className="mt-3" alertKey="ao-vivo-sono" title="Hora de desacelerar" color="#a5b4fc" target={nextUps.sono.at} from={nextUps.sono.from} detail={nextUps.sono.detail} />}
               </Tile>
 
               <Tile k="exercicio" on={selected === "exercicio"} onPick={pick} icon={Activity} tone="linear-gradient(135deg,#f97316,#f59e0b)" title="Exercício hoje">
-                <div className="flex items-center gap-4"><Ring pct={((today?.activityMinutes ?? 0) / EXERCISE_GOAL) * 100} color="#fb923c"><div><p className="text-2xl font-extrabold tabular-nums">{today?.activityMinutes ?? 0}</p><p className="text-[10px] text-white/60">min hoje</p></div></Ring>
+                <div className="flex items-center gap-4"><Ring pct={((today?.activityMinutes ?? 0) / EXERCISE_GOAL) * 100} color="#fb923c"><div><p className="text-2xl font-extrabold tabular-nums">{today?.activityMinutes ?? 0}</p><p className="text-[11px] text-white/60">min hoje</p></div></Ring>
                   <p className="text-sm text-white/70">{today && today.activityKm > 0 ? `${nf(today.activityKm, 1)} km percorridos. ` : ""}Referência: {EXERCISE_GOAL} min por dia.</p></div>
                 <Spark data={series.exercicio} color="#fb923c" goal={EXERCISE_GOAL} />
               {nextUps?.exercicio && <NextUpClock compact className="mt-3" alertKey="ao-vivo-atividade" title="Hora de se mexer" color="#fdba74" target={nextUps.exercicio.at} from={nextUps.exercicio.from} detail={nextUps.exercicio.detail} />}
@@ -412,13 +412,13 @@ function LiveDashboard({ patientId, ownerId, heightCm, name, onClose }: Props & 
               </Tile>
 
               <Tile k="med" on={selected === "med"} onPick={pick} icon={Pill} tone="linear-gradient(135deg,#f43f5e,#fb7185)" title="Medicação">
-                <div className="flex items-center gap-4"><Ring pct={today?.medication.planned ? (today.medication.taken / today.medication.planned) * 100 : 0} color="#fb7185" size={96} stroke={9}><div><p className="text-xl font-extrabold tabular-nums">{today?.medication.taken ?? 0}/{today?.medication.planned ?? 0}</p><p className="text-[10px] text-white/60">doses</p></div></Ring>
+                <div className="flex items-center gap-4"><Ring pct={today?.medication.planned ? (today.medication.taken / today.medication.planned) * 100 : 0} color="#fb7185" size={96} stroke={9}><div><p className="text-xl font-extrabold tabular-nums">{today?.medication.taken ?? 0}/{today?.medication.planned ?? 0}</p><p className="text-[11px] text-white/60">doses</p></div></Ring>
                   <p className="text-sm text-white/70">{today?.medication.planned ? (today.medication.taken >= today.medication.planned ? "Todas as doses de hoje registradas." : `${today.medication.planned - today.medication.taken} dose(s) para registrar hoje.`) : "Sem medicação programada hoje."}</p></div>
               {nextUps?.med && <NextUpClock compact className="mt-3" alertKey="ao-vivo-medicacao" title="Próxima dose" color="#fb7185" target={nextUps.med.at} from={nextUps.med.from} detail={nextUps.med.detail} />}
               </Tile>
 
               <Tile k="supl" on={selected === "supl"} onPick={pick} icon={Sparkles} tone="linear-gradient(135deg,#a855f7,#6366f1)" title="Suplementos">
-                <div className="flex items-center gap-4"><Ring pct={today?.supplements.planned ? (today.supplements.taken / today.supplements.planned) * 100 : 0} color="#c084fc" size={96} stroke={9}><div><p className="text-xl font-extrabold tabular-nums">{today?.supplements.taken ?? 0}/{today?.supplements.planned ?? 0}</p><p className="text-[10px] text-white/60">doses</p></div></Ring>
+                <div className="flex items-center gap-4"><Ring pct={today?.supplements.planned ? (today.supplements.taken / today.supplements.planned) * 100 : 0} color="#c084fc" size={96} stroke={9}><div><p className="text-xl font-extrabold tabular-nums">{today?.supplements.taken ?? 0}/{today?.supplements.planned ?? 0}</p><p className="text-[11px] text-white/60">doses</p></div></Ring>
                   <p className="text-sm text-white/70">{today?.supplements.planned ? (today.supplements.taken >= today.supplements.planned ? "Suplementação de hoje completa." : `${today.supplements.planned - today.supplements.taken} dose(s) a tomar hoje.`) : "Nenhum suplemento programado hoje."}</p></div>
               {nextUps?.supl && <NextUpClock compact className="mt-3" alertKey="ao-vivo-suplemento" title="Próximo suplemento" color="#c084fc" target={nextUps.supl.at} from={nextUps.supl.from} detail={nextUps.supl.detail} />}
               </Tile>

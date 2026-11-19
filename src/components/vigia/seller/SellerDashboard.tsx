@@ -57,8 +57,8 @@ export function SellerDashboard({ vendors, onChanged, initialId }: { vendors: Ve
                 <ul className="absolute left-0 top-full z-30 mt-2 w-72 overflow-hidden rounded-xl border border-border bg-card p-1 text-foreground shadow-2xl">
                   {vendors.map((v) => (
                     <li key={v.id}><button type="button" onClick={() => { setVendorId(v.id); setSwitcher(false); setTab("visao"); }} className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm hover:bg-muted ${v.id === vendor.id ? "bg-muted font-semibold" : ""}`}>
-                      <span className="grid size-7 place-items-center rounded-md text-[10px] font-extrabold text-white" style={{ background: v.accent_hex ?? "#0e7a5f" }}>{v.name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("")}</span>
-                      <span className="min-w-0 flex-1 truncate">{v.name}</span>{v.is_demo && <span className="rounded bg-muted-foreground/15 px-1 text-[10px]">teste</span>}
+                      <span className="grid size-7 place-items-center rounded-md text-[11px] font-extrabold text-white" style={{ background: v.accent_hex ?? "#0e7a5f" }}>{v.name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("")}</span>
+                      <span className="min-w-0 flex-1 truncate">{v.name}</span>{v.is_demo && <span className="rounded bg-muted-foreground/15 px-1 text-[11px]">teste</span>}
                     </button></li>
                   ))}
                 </ul>
@@ -84,7 +84,7 @@ export function SellerDashboard({ vendors, onChanged, initialId }: { vendors: Ve
                 className={`relative inline-flex h-10 shrink-0 items-center gap-2.5 rounded-xl px-3 text-[13px] font-semibold transition-colors ${on ? "text-white shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground max-lg:border max-lg:border-border max-lg:bg-card"}`}
                 style={on ? { background: accent } : undefined}>
                 <n.icon size={16} /> {n.label}
-                {!!n.badge && <span className={`ml-auto grid min-w-5 place-items-center rounded-full px-1.5 text-[10.5px] font-bold tabular-nums ${on ? "bg-white/25 text-white" : "bg-[var(--accent-store)] text-white"}`}>{n.badge}</span>}
+                {!!n.badge && <span className={`ml-auto grid min-w-5 place-items-center rounded-full px-1.5 text-[11px] font-bold tabular-nums ${on ? "bg-white/25 text-white" : "bg-[var(--accent-store)] text-white"}`}>{n.badge}</span>}
               </button>
             );
           })}

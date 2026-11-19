@@ -122,7 +122,7 @@ export function SellerStore({ vendor, invoices, onChanged }: { vendor: Vendor; i
           </div>
           <ul className="divide-y divide-border border-t border-border text-[13px]">
             {invoices.map((i) => (
-              <li key={i.id} className="flex items-center justify-between gap-2 px-4 py-2"><span>{i.period.slice(5)}/{i.period.slice(0, 4)} · vence {new Date(i.due_date + "T12:00").toLocaleDateString("pt-BR")}</span><span className="flex items-center gap-2"><strong className="tabular-nums">{money(i.total_due_cents)}</strong><span className={`rounded-full px-1.5 text-[10.5px] font-semibold ${i.status === "pago" ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : "bg-amber-500/15 text-amber-700 dark:text-amber-300"}`}>{i.status}</span></span></li>
+              <li key={i.id} className="flex items-center justify-between gap-2 px-4 py-2"><span>{i.period.slice(5)}/{i.period.slice(0, 4)} · vence {new Date(i.due_date + "T12:00").toLocaleDateString("pt-BR")}</span><span className="flex items-center gap-2"><strong className="tabular-nums">{money(i.total_due_cents)}</strong><span className={`rounded-full px-1.5 text-[11px] font-semibold ${i.status === "pago" ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : "bg-amber-500/15 text-amber-700 dark:text-amber-300"}`}>{i.status}</span></span></li>
             ))}
             {!invoices.length && <li className="px-4 py-4 text-center text-xs text-muted-foreground">Nenhuma cobrança fechada ainda.</li>}
           </ul>

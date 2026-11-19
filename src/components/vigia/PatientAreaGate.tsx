@@ -14,7 +14,7 @@ function GateArt() {
       <div className="absolute -bottom-24 -right-10 -z-10 size-72 rounded-full bg-teal-300/20 blur-3xl" />
 
       <div className="nv-float absolute left-4 top-5 w-[15.5rem] rounded-2xl border border-white/25 bg-slate-950/55 p-3.5 text-white shadow-2xl backdrop-blur-md sm:left-6 sm:top-7 sm:w-[17rem]">
-        <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-300"><CalendarCheck size={13} /> Agenda de hoje</p>
+        <p className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-300"><CalendarCheck size={13} /> Agenda de hoje</p>
         <ul className="mt-2.5 grid gap-1.5">
           {agenda.map(([time, name, done]) => (
             <li key={time} className="flex items-center gap-2.5 rounded-xl bg-white/10 px-2.5 py-1.5 text-xs">
@@ -27,7 +27,7 @@ function GateArt() {
 
       <div className="nv-float absolute bottom-24 right-4 flex items-center gap-3 rounded-2xl border border-white/25 bg-slate-950/55 p-3 text-white shadow-2xl backdrop-blur-md sm:bottom-28 sm:right-6" style={{ animationDelay: "-2s" }}>
         <svg viewBox="0 0 44 44" className="size-14 -rotate-90"><circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,.2)" strokeWidth="5" /><circle cx="22" cy="22" r="18" fill="none" stroke="#38bdf8" strokeWidth="5" strokeLinecap="round" strokeDasharray="113" strokeDashoffset="36" /></svg>
-        <div><p className="text-[10px] font-bold uppercase tracking-widest text-sky-300">Hidratação</p><p className="text-lg font-extrabold tabular-nums leading-tight">1.700 <span className="text-xs font-semibold text-white/70">/ 2.500 ml</span></p></div>
+        <div><p className="text-[11px] font-bold text-sky-300">Hidratação</p><p className="text-lg font-extrabold tabular-nums leading-tight">1.700 <span className="text-xs font-semibold text-white/70">/ 2.500 ml</span></p></div>
       </div>
 
       <div className="nv-float absolute bottom-5 left-4 flex items-center gap-2.5 rounded-2xl border border-emerald-300/40 bg-emerald-500/25 px-3.5 py-2.5 text-white shadow-2xl backdrop-blur-md sm:bottom-7 sm:left-6" style={{ animationDelay: "-4s" }}>
@@ -44,7 +44,7 @@ export function PatientAreaGate() {
       <GateArt />
       <div className="flex flex-col justify-center p-6 sm:p-10 lg:p-12">
         <span className="grid size-12 place-items-center rounded-2xl bg-accent text-accent-foreground"><UserRound size={24} /></span>
-        <p className="mt-5 text-[11px] font-bold uppercase tracking-[.2em] text-primary">Acompanhamento individual</p>
+        <p className="mt-5 text-[11px] font-bold text-primary">Acompanhamento individual</p>
         <h1 id="gate-title" className="mt-1 font-display text-3xl font-extrabold leading-tight sm:text-4xl">Área do paciente</h1>
         <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
           Entre com sua conta para acompanhar medicação, hidratação, alimentação, treinos, sono e a sua evolução, com histórico por dia, mês e ano.

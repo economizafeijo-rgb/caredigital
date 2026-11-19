@@ -128,7 +128,7 @@ export function ClientBodyMeasures({ patientId, ownerId, heightCm, sex, weightKg
             </div>
             <div className="mt-3 grid grid-cols-3 gap-2">
               {[["Atual", selLast !== null ? `${nf(selLast)} cm` : "—", ""], ["Desde a anterior", selLast !== null && selPrev !== null ? `${selLast - selPrev > 0 ? "+" : ""}${nf(selLast - selPrev)} cm` : "—", ""], ["Desde o início", delta !== null ? `${delta > 0 ? "+" : ""}${nf(delta)} cm` : "—", good === null ? "" : good ? "text-emerald-300" : "text-amber-300"]].map(([l, v, c]) => (
-                <div key={l} className="rounded-xl border border-white/10 bg-white/[.05] px-3 py-2"><p className="text-[10px] text-white/55">{l}</p><p className={`text-lg font-extrabold tabular-nums ${c}`}>{v}</p></div>
+                <div key={l} className="rounded-xl border border-white/10 bg-white/[.05] px-3 py-2"><p className="text-[11px] text-white/55">{l}</p><p className={`text-lg font-extrabold tabular-nums ${c}`}>{v}</p></div>
               ))}
             </div>
             <div className="mt-3 min-h-[12rem] flex-1 rounded-xl border border-white/10 bg-white/[.03] p-2">
@@ -179,7 +179,7 @@ export function ClientBodyMeasures({ patientId, ownerId, heightCm, sex, weightKg
           </div>
           {(["Tronco", "Braços", "Pernas"] as const).map((g) => (
             <fieldset key={g} className="mt-3">
-              <legend className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{g}</legend>
+              <legend className="mb-1.5 text-[11px] font-bold text-muted-foreground">{g}</legend>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
                 {MEASURES.filter((m) => m.group === g).map((m) => (
                   <label key={m.key} onFocus={() => setSelected(m.key)} className={`rounded-xl border p-2 text-xs font-semibold transition ${selected === m.key ? "border-primary bg-primary/5" : "border-border bg-card"}`}>
@@ -232,7 +232,7 @@ export function ClientBodyMeasures({ patientId, ownerId, heightCm, sex, weightKg
                 <li key={r.id} className="flex items-center gap-3 rounded-xl border border-border bg-background px-3 py-2">
                   <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-cyan-500/12 text-cyan-600 dark:text-cyan-300"><Ruler size={16} /></span>
                   <span className="min-w-0 flex-1">
-                    <strong className="block text-sm">{br(r.measured_on)}{r.goal_label ? <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">{r.goal_label}</span> : null}</strong>
+                    <strong className="block text-sm">{br(r.measured_on)}{r.goal_label ? <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">{r.goal_label}</span> : null}</strong>
                     <span className="block truncate text-[11px] text-muted-foreground">{MEASURES.filter((m) => r[m.key] != null).map((m) => `${m.label} ${nf(Number(r[m.key]))}`).join(" · ")}{r.body_fat_pct != null ? ` · gordura ${nf(Number(r.body_fat_pct))}%` : ""}</span>
                   </span>
                   <button type="button" onClick={() => openEdit(r)} title="Editar" className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"><Pencil size={14} /></button>
