@@ -181,13 +181,20 @@ export function EvolutionMonthView({ year, month, days, targets, onOpenDay }: { 
       <Panel title="Metas por categoria" note="Quantas vezes cada meta foi atingida neste mês"><MetricStats days={days} /></Panel>
       <Panel title="Observações do mês" note="Registradas pelo sistema quando uma meta não foi atingida">
         {misses.length === 0 ? <p className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">Nenhuma meta deixou de ser atingida neste mês.</p> : (
-          <ul className="grid max-h-72 gap-2 overflow-y-auto pr-1">
-            {misses.slice(0, 40).map(({ day, goal, saved }) => (
-              <li key={`${day}-${goal.metric}`}>
-                <button type="button" onClick={() => onOpenDay(day)} className="flex w-full items-start gap-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-left text-xs transition hover:bg-amber-500/15">
-                  <ClipboardList size={16} className="mt-0.5 shrink-0 text-amber-600" />
-                  <span className="min-w-0 flex-1"><span className="block font-semibold leading-snug">{goalObservation(goal, day)}</span><span className="text-[11px] text-muted-foreground">{saved ? "Registrada no histórico" : "Será registrada no histórico"} · abrir o dia</span></span>
-                </button>
+          <ul className="grid max-h-80 gap-2 overflow-y-auto pr-1">
+            {Object.entries(misses.slice(0, 60).reduce<Record<string, typeof misses>>((acc, m) => { (acc[m.day] ??= []).push(m); return acc; }, {})).map(([day, list]) => (
+              <li key={day}>
+                <div className="grid gap-1.5 rounded-xl border border-border bg-card p-3 text-xs transition hover:border-amber-500/40">
+                  <button type="button" onClick={() => onOpenDay(day)} className="group flex w-full items-center gap-2 text-left">
+                    <ClipboardList size={15} className="shrink-0 text-amber-500" />
+                    <strong className="text-[13px] first-letter:uppercase">{longDay(day)}</strong>
+                    <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-300">{list.length} {list.length === 1 ? "meta não atingida" : "metas não atingidas"}</span>
+                    <span className="ml-auto text-[11px] font-semibold text-muted-foreground transition-colors group-hover:text-foreground">Abrir o dia</span>
+                  </button>
+                  <ul className="grid gap-1 pl-6 text-muted-foreground">
+                    {list.map(({ goal, saved }) => <li key={goal.metric} className="leading-snug"><span className="text-foreground">{goalObservation(goal, day)}</span>{!saved && <span className="text-[11px]"> · será registrada no histórico</span>}</li>)}
+                  </ul>
+                </div>
               </li>
             ))}
           </ul>

@@ -51,7 +51,7 @@ export function ClientOverviewIndicators({ heightCm, weightKg, waterTarget, prot
 
   return <section className="care-overview-indicators" aria-label="Indicadores de saúde">
     <div className="care-overview-section-heading">
-      <div><span className="care-overview-eyebrow">SEUS INDICADORES</span><h3>Saúde e nutrição</h3></div>
+      <div><span className="care-overview-eyebrow">Seus indicadores</span><h3>Saúde e nutrição</h3></div>
       <span className="care-overview-heading-note">{full?"Histórico por dia, mês e ano":"Metas do dia"}</span>
     </div>
     <div className="care-overview-indicator-grid">

@@ -895,7 +895,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                 );
               })()}
               <div className="min-w-0">
-                <p className="!text-[11px] font-bold !text-white/70">
+                <p className="sr-only">
                   {clientSectionLabels[activeTab].tagline}
                 </p>
                 <h1 className="truncate text-lg font-bold tracking-tight sm:text-xl">
@@ -905,7 +905,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                 </h1>
                 <p className="truncate text-xs text-muted-foreground first-letter:uppercase">
                   {activeTab === "hoje"
-                    ? `${today} · ${completed} de ${tasks.length} cuidados concluídos`
+                    ? tasks.length ? `${today} · ${completed} de ${tasks.length} cuidados concluídos` : today
                     : clientSectionLabels[activeTab].subtitle}
                   {activeTab !== "hoje" && sectionCount != null && ` · ${sectionCount} hoje`}
                 </p>
@@ -1780,9 +1780,9 @@ function BirthChips({ summary }: { summary: ReturnType<typeof patientDateSummary
     { k: "signo", icon: zodiacGlyph[summary.sign] ?? "✦", label: "Signo", value: titleCase(summary.sign), more: summary.signCusp ? `Nasceu na cúspide com ${titleCase(summary.signCusp)}: depende da hora de nascimento` : "Calculado pela posição do Sol no nascimento" },
   ];
   return (
-    <ul className="mt-2 flex flex-wrap gap-1.5" aria-label="Dados de nascimento">
+    <ul className="-mx-1 mt-2 flex gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] sm:flex-wrap [&::-webkit-scrollbar]:hidden" aria-label="Dados de nascimento">
       {chips.map((c) => (
-        <li key={c.k} className="relative">
+        <li key={c.k} className="relative shrink-0">
           <button type="button" onClick={() => setOpen((o) => (o === c.k ? null : c.k))} onMouseEnter={() => setOpen(c.k)} onMouseLeave={() => setOpen(null)} aria-expanded={open === c.k}
             className={`group inline-flex h-8 items-center gap-1.5 rounded-full border px-2.5 text-xs backdrop-blur transition hover:-translate-y-px ${c.hot ? "border-amber-300/60 bg-amber-300/20" : "border-white/20 bg-white/10 hover:bg-white/20"}`}>
             <span aria-hidden="true" className="text-sm transition-transform group-hover:scale-125">{c.icon}</span>
@@ -1791,7 +1791,7 @@ function BirthChips({ summary }: { summary: ReturnType<typeof patientDateSummary
           </button>
         </li>
       ))}
-      <li className="h-4 w-full truncate text-[11px] text-white/75" aria-live="polite">{open ? chips.find((c) => c.k === open)?.more : "Passe o mouse ou toque nas fichas para ver detalhes"}</li>
+      <li className={`w-full truncate text-[11px] text-white/80 ${open ? "h-4" : "h-0"}`} aria-live="polite">{open ? chips.find((c) => c.k === open)?.more : ""}</li>
     </ul>
   );
 }
