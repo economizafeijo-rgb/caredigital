@@ -108,6 +108,7 @@ function DialogOverlay({
             >
               Cancelar
             </button>
+            {/* Botão principal: texto escuro sobre o verde do tema (legível no modo escuro e claro). */}
             <button
               onClick={() => close(request.kind === "confirm" ? true : value)}
               className={`rounded-xl px-4 py-2.5 text-sm font-bold transition hover:brightness-110 active:scale-[.98] ${request.danger ? "bg-destructive text-white" : "bg-primary text-primary-foreground"}`}
