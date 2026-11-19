@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
-import { AlertTriangle, CheckCircle2, Image as ImageIcon, X } from "lucide-react";
+import { AlertTriangle, CheckCircle2, X } from "lucide-react";
 
 type DialogRequest = {
   kind: "confirm" | "prompt";
@@ -68,21 +68,7 @@ function DialogOverlay({
       aria-modal="true"
       aria-labelledby="nextvita-dialog-title"
     >
-      <div className="w-full max-w-md overflow-hidden rounded-3xl border border-border bg-card shadow-2xl">
-        <div className="h-24 bg-gradient-to-br from-[#0b302d] via-[#0e5f54] to-primary p-5 text-white">
-          <div className="flex items-start justify-between">
-            <span className="grid size-11 place-items-center rounded-2xl bg-white/15">
-              <ImageIcon size={22} />
-            </span>
-            <button
-              onClick={() => close(null)}
-              aria-label="Fechar"
-              className="rounded-lg p-1 text-white/80 hover:bg-white/10"
-            >
-              <X size={18} />
-            </button>
-          </div>
-        </div>
+      <div className="nv-fade-in w-full max-w-md overflow-hidden rounded-3xl border border-border bg-card shadow-2xl">
         <div className="p-5">
           <div className="flex items-start gap-3">
             <span
@@ -98,6 +84,13 @@ function DialogOverlay({
                 {request.message}
               </p>
             </div>
+            <button
+              onClick={() => close(null)}
+              aria-label="Fechar"
+              className="-mr-1 -mt-1 ml-auto shrink-0 rounded-lg p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground"
+            >
+              <X size={18} />
+            </button>
           </div>
           {request.kind === "prompt" && (
             <input
@@ -111,13 +104,13 @@ function DialogOverlay({
           <div className="mt-5 flex justify-end gap-2">
             <button
               onClick={() => close(null)}
-              className="rounded-xl border border-border px-4 py-2.5 text-sm font-semibold"
+              className="rounded-xl border border-border px-4 py-2.5 text-sm font-semibold transition hover:bg-muted"
             >
               Cancelar
             </button>
             <button
               onClick={() => close(request.kind === "confirm" ? true : value)}
-              className={`rounded-xl px-4 py-2.5 text-sm font-bold text-white ${request.danger ? "bg-destructive" : "bg-primary"}`}
+              className={`rounded-xl px-4 py-2.5 text-sm font-bold transition hover:brightness-110 active:scale-[.98] ${request.danger ? "bg-destructive text-white" : "bg-primary text-primary-foreground"}`}
             >
               {request.confirmLabel ?? (request.kind === "prompt" ? "Confirmar" : request.danger ? "Excluir" : "Continuar")}
             </button>
