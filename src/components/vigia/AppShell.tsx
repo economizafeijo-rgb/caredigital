@@ -130,6 +130,7 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
       items: [
         section("peso", "Peso e evolução", Scale),
         section("medidas", "Medidas do corpo", Ruler),
+        section("batimentos", "Batimentos cardíacos", HeartPulse),
         section("sono", "Sono", BedDouble),
         section("suplementos", "Suplementos", Sparkles),
         section("indicadores", "Indicadores", Target),

@@ -30,6 +30,7 @@ import { ClientHydrationTab } from "./ClientHydrationTab";
 import { SectionInsights, isInsightSection } from "./SectionInsights";
 import { ClientSleepPage } from "./ClientSleepPage";
 import { WeightExplorer } from "./WeightExplorer";
+import { ClientHeartRate } from "./ClientHeartRate";
 import { ClientBodyMeasures } from "./ClientBodyMeasures";
 import { ClientDayPlanner } from "./ClientDayPlanner";
 import { ClientMealsPage } from "./ClientMealsPage";
@@ -1392,6 +1393,9 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                   ageYears={healthProfile.age}
                   onRecorded={() => setTick((value) => value + 1)}
                 />
+              )}
+              {activeTab === "batimentos" && (
+                <ClientHeartRate patientId={client.id} ownerId={client.owner_id} ageYears={healthProfile.age} />
               )}
               {activeTab === "medidas" && (
                 <ClientBodyMeasures patientId={client.id} ownerId={client.owner_id} heightCm={client.height_cm} sex={healthProfile.sex ?? null} weightKg={healthProfile.weightKg ?? client.weight_kg} />

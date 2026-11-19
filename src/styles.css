@@ -947,3 +947,10 @@ html, #care-content { scrollbar-gutter: stable; }
   .nv-demo-fill { animation: none; height: var(--to); } .nv-demo-grow { animation: none; width: var(--to); }
   .nv-demo-type, .nv-demo-draw, .nv-demo-bar, .nv-demo-press, .nv-demo-progress { animation: none; }
 }
+
+/* Batimentos ao vivo: coração e anéis no ritmo da frequência real (--beat = 60 / bpm segundos). */
+@keyframes nv-hr-heart { 0%, 100% { transform: scale(1); } 14% { transform: scale(1.22); } 28% { transform: scale(.96); } 42% { transform: scale(1.1); } 60% { transform: scale(1); } }
+.nv-hr-heart { animation: nv-hr-heart var(--beat, 1s) ease-in-out infinite; transform-origin: center; }
+@keyframes nv-hr-ring { 0% { transform: scale(.82); opacity: .55; } 100% { transform: scale(1.28); opacity: 0; } }
+.nv-hr-ring { animation: nv-hr-ring var(--beat, 1s) cubic-bezier(0, 0, .2, 1) infinite; }
+@media (prefers-reduced-motion: reduce) { .nv-hr-heart, .nv-hr-ring { animation: none; } .nv-hr-ring { opacity: 0; } }
