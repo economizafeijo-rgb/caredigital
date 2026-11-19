@@ -30,7 +30,7 @@ export function SellerDashboard({ vendors, onChanged, initialId }: { vendors: Ve
   const nav: { key: SellerTab; label: string; icon: typeof Store; badge?: number }[] = [
     { key: "visao", label: "Visão geral", icon: LayoutDashboard },
     { key: "pedidos", label: "Pedidos", icon: ShoppingBag, badge: badges.pedidos },
-    { key: "produtos", label: "Produtos e estoque", icon: Boxes, badge: badges.produtos },
+    { key: "produtos", label: "Estoque", icon: Boxes, badge: badges.produtos },
     { key: "caixa", label: "Caixa", icon: Wallet },
     { key: "mensagens", label: "Mensagens", icon: MessageCircle, badge: badges.mensagens },
     { key: "loja", label: "Minha loja", icon: Store },
@@ -42,14 +42,14 @@ export function SellerDashboard({ vendors, onChanged, initialId }: { vendors: Ve
     <div className="grid gap-4" style={{ "--accent-store": accent } as CSSProperties}>
       <header className="nv-dark relative isolate overflow-hidden rounded-2xl text-white" style={{ background: `linear-gradient(120deg, color-mix(in srgb, ${accent} 70%, #020617) 0%, #0b1220 70%)` }}>
         <div aria-hidden className="absolute -right-16 -top-20 -z-10 size-72 rounded-full blur-3xl" style={{ background: `color-mix(in srgb, ${accent} 45%, transparent)` }} />
-        <div className="flex flex-wrap items-center gap-4 p-4 sm:p-5">
-          <span className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white text-lg font-black shadow-lg" style={{ color: accent }}>
+        <div className="flex items-center gap-3 p-3.5 sm:gap-4 sm:p-5">
+          <span className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-white text-base font-black shadow-lg sm:size-14 sm:rounded-2xl sm:text-lg" style={{ color: accent }}>
             {vendor.logo_url ? <img src={vendor.logo_url} alt="" className="size-full object-cover" /> : initials}
           </span>
           <div className="min-w-0 flex-1">
-            <div className="relative inline-block">
-              <button type="button" onClick={() => vendors.length > 1 && setSwitcher((v) => !v)} aria-expanded={vendors.length > 1 ? switcher : undefined} className="flex items-center gap-2 text-left">
-                <h1 className="truncate font-display text-xl font-extrabold tracking-tight sm:text-2xl">{vendor.name}</h1>
+            <div className="relative max-w-full">
+              <button type="button" onClick={() => vendors.length > 1 && setSwitcher((v) => !v)} aria-expanded={vendors.length > 1 ? switcher : undefined} className="flex max-w-full items-center gap-2 text-left">
+                <h1 className="truncate font-display text-lg font-extrabold tracking-tight sm:text-2xl">{vendor.name}</h1>
                 {vendor.verified && <BadgeCheck size={18} className="shrink-0 text-sky-300" aria-label="Loja verificada" />}
                 {vendors.length > 1 && <ChevronDown size={18} className={`shrink-0 text-white/70 transition ${switcher ? "rotate-180" : ""}`} />}
               </button>
@@ -66,12 +66,12 @@ export function SellerDashboard({ vendors, onChanged, initialId }: { vendors: Ve
             </div>
             <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/70">
               <span className="inline-flex items-center gap-1.5"><span className={`size-2 rounded-full ${STATUS[vendor.status][1]}`} />{STATUS[vendor.status][0]}</span>
-              <span>{segmentLabel(vendor.segment)}</span><span>{vendor.city}</span>
-              <span className="inline-flex items-center gap-1"><ReceiptText size={12} /> Plano {PLANS[vendor.plan].label}</span>
+              <span className="hidden sm:inline">{segmentLabel(vendor.segment)}</span><span className="hidden sm:inline">{vendor.city}</span>
+              <span className="hidden items-center gap-1 sm:inline-flex"><ReceiptText size={12} /> Plano {PLANS[vendor.plan].label}</span>
               {vendor.is_demo && <span className="rounded-full bg-white/15 px-2 py-0.5 font-semibold text-white">Loja de teste</span>}
             </p>
           </div>
-          <a href={`/loja?loja=${vendor.slug}`} target="_blank" rel="noopener noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-white/10 px-3 text-[13px] font-semibold ring-1 ring-white/20 backdrop-blur transition hover:bg-white/20"><ExternalLink size={14} /> Ver loja</a>
+          <a href={`/loja?loja=${vendor.slug}`} target="_blank" rel="noopener noreferrer" aria-label="Ver a página pública da loja" className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-white/10 px-2.5 text-[13px] font-semibold ring-1 ring-white/20 backdrop-blur transition hover:bg-white/20 sm:px-3"><ExternalLink size={14} /> <span className="hidden sm:inline">Ver loja</span></a>
         </div>
       </header>
 
