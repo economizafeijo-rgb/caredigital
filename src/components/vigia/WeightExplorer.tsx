@@ -133,18 +133,18 @@ export function WeightExplorer({
         });
   return (
     <section
-      className="mb-4 overflow-hidden rounded-2xl border border-border bg-card shadow-card"
+      className="overflow-hidden border border-border bg-card shadow-card"
       aria-label="Explorador de peso"
     >
-      <header className="flex flex-wrap items-center gap-3 p-4 pb-2 sm:p-5 sm:pb-2">
+      <header className="flex flex-wrap items-center gap-3 p-3 pb-1.5">
         <div className="mr-auto min-w-0">
-          <h3 className="text-base font-bold">Evolução do peso</h3>
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <h3 className="text-sm font-bold">Evolução do peso</h3>
+          <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
             <MousePointerClick size={13} /> Escolha o período e toque num ponto para ver o dia.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
-          <div role="group" aria-label="Período" className="flex gap-0.5 rounded-lg bg-muted p-0.5">
+          <div role="group" aria-label="Período" className="flex gap-0.5 bg-muted p-0.5">
             {(
               [
                 [30, "30 d"],
@@ -158,7 +158,7 @@ export function WeightExplorer({
                 type="button"
                 aria-pressed={range === v}
                 onClick={() => setRange(v)}
-                className={`h-7 rounded-md px-2.5 text-xs font-semibold transition ${range === v ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                className={`h-7 px-2.5 text-xs font-semibold transition ${range === v ? "bg-fuchsia-500 text-white shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
               >
                 {l}
               </button>
@@ -170,7 +170,7 @@ export function WeightExplorer({
               type="button"
               aria-pressed={show[key]}
               onClick={() => setShow((v) => ({ ...v, [key]: !v[key] }))}
-              className={`inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[11px] font-semibold transition ${show[key] ? "bg-muted text-foreground" : "text-muted-foreground line-through opacity-60"}`}
+              className={`inline-flex h-7 items-center gap-1.5 border border-border px-2.5 text-[11px] font-semibold transition ${show[key] ? "bg-muted text-foreground" : "text-muted-foreground line-through opacity-60"}`}
             >
               <i
                 className={`inline-block w-3.5 ${key === "avg" ? "border-t-2 border-dashed" : "h-[3px] rounded-full"}`}
@@ -181,10 +181,10 @@ export function WeightExplorer({
           ))}
         </div>
       </header>
-      <div className="grid gap-4 p-4 pt-2 sm:p-5 sm:pt-2 xl:grid-cols-[minmax(0,1fr)_16rem]">
+      <div className="grid gap-3 p-3 pt-1 xl:grid-cols-[minmax(0,1fr)_15rem]">
         <div className="min-w-0">
           <EvoChart
-            height={300}
+            height={210}
             yAuto
             ariaLabel={`Peso: ${view.length} medidas`}
             xMin={x0 - padX}
@@ -247,13 +247,13 @@ export function WeightExplorer({
             }}
           />
         </div>
-        <aside className="flex flex-col gap-2.5">
-          <div className="rounded-2xl bg-gradient-to-br from-fuchsia-600 to-pink-500 p-3.5 text-white">
+        <aside className="grid content-start gap-2 sm:grid-cols-2 xl:grid-cols-1">
+          <div className="bg-gradient-to-br from-fuchsia-600 to-pink-500 p-3 text-white sm:col-span-2 xl:col-span-1">
             <p className="text-xs font-bold uppercase tracking-[.14em] text-white/75">
               {picked ? "Dia selecionado" : "Último registro"}
             </p>
             <p className="mt-1 font-bold">{focus ? long(focus.day) : "—"}</p>
-            <p className="mt-1.5 text-3xl font-extrabold tabular-nums leading-none">
+            <p className="mt-1 text-2xl font-extrabold tabular-nums leading-none">
               {focus ? nf(focus.weight) : "—"}
               <span className="ml-1 text-base font-semibold text-white/80">kg</span>
             </p>
@@ -268,7 +268,7 @@ export function WeightExplorer({
             <button
               type="button"
               onClick={() => setDetail((picked ?? points[points.length - 1]?.day) || null)}
-              className="mt-3 h-9 w-full rounded-xl bg-white text-sm font-extrabold text-slate-900 shadow transition hover:bg-white/90 active:scale-[.98]"
+              className="mt-2 h-8 w-full bg-white text-xs font-extrabold text-slate-900 shadow transition hover:bg-white/90 active:scale-[.98]"
             >
               Ver dia completo
             </button>
@@ -276,13 +276,13 @@ export function WeightExplorer({
               <button
                 type="button"
                 onClick={() => setPicked(null)}
-                className="mt-2 h-9 w-full rounded-xl bg-white/20 text-sm font-bold hover:bg-white/30"
+                className="mt-1.5 h-8 w-full bg-white/20 text-xs font-bold hover:bg-white/30"
               >
                 Voltar ao último
               </button>
             )}
           </div>
-          <div className="rounded-2xl border border-border bg-muted/30 p-3.5">
+          <div className="border border-border bg-muted/30 p-2.5">
             <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
               {trend !== null && trend < 0 ? (
                 <TrendingDown size={14} className="text-emerald-500" />
@@ -291,13 +291,13 @@ export function WeightExplorer({
               )}{" "}
               Ritmo atual
             </p>
-            <p className="text-2xl font-extrabold tabular-nums">
+            <p className="text-lg font-extrabold tabular-nums">
               {trend === null ? "—" : `${trend > 0 ? "+" : ""}${nf(trend, 2)} kg`}
               <span className="ml-1 text-sm font-semibold text-muted-foreground">/semana</span>
             </p>
             <p className="text-xs text-muted-foreground">tendência das últimas semanas</p>
           </div>
-          <div className="rounded-2xl border border-border bg-muted/30 p-3.5">
+          <div className="border border-border bg-muted/30 p-2.5">
             <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
               <Flag size={14} className="text-violet-500" /> Previsão da meta
             </p>
@@ -309,7 +309,7 @@ export function WeightExplorer({
               <p className="mt-1 text-lg font-extrabold text-emerald-600">Meta alcançada!</p>
             ) : eta ? (
               <>
-                <p className="flex items-center gap-1.5 text-2xl font-extrabold tabular-nums">
+                <p className="flex items-center gap-1.5 text-lg font-extrabold tabular-nums">
                   <CalendarClock size={18} />
                   {long(eta)}
                 </p>

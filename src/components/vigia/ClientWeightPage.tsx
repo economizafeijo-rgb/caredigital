@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { HowItWorks, weightHowTo } from "./HowItWorks";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -80,32 +81,30 @@ function StatCard({
   label,
   value,
   note,
-  gradient,
+  color,
 }: {
   icon: typeof Scale;
   label: string;
   value: string;
   note: string;
-  gradient: string;
+  color: string;
 }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-3.5 shadow-card">
-      <div
-        aria-hidden="true"
-        className={`absolute -right-6 -top-6 size-20 rounded-full opacity-20 blur-xl ${gradient}`}
-      />
-      <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-        <span
-          className={`grid size-8 place-items-center rounded-xl text-white shadow-sm ${gradient}`}
-        >
-          <Icon size={16} />
-        </span>
-        {label}
+    <div
+      className="flex items-center gap-2.5 border border-border bg-card p-2.5 shadow-card transition hover:-translate-y-px"
+      style={{ ["--ca" as string]: color }}
+    >
+      <span
+        className="grid size-10 shrink-0 place-items-center"
+        style={{ background: `${color}26`, color }}
+      >
+        <Icon size={18} />
+      </span>
+      <div className="min-w-0 leading-tight">
+        <p className="truncate text-[11px] font-semibold text-muted-foreground">{label}</p>
+        <p className="font-display text-xl font-extrabold tabular-nums tracking-tight">{value}</p>
+        <p className="truncate text-[10px] text-muted-foreground">{note}</p>
       </div>
-      <p className="mt-2 font-display text-2xl font-extrabold tabular-nums tracking-tight">
-        {value}
-      </p>
-      <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{note}</p>
     </div>
   );
 }
@@ -117,7 +116,8 @@ export function ClientWeightPage({
   currentWeight,
   ageYears = null,
   onRecorded,
-}: Props) {
+  explorer = null,
+}: Props & { explorer?: ReactNode }) {
   const [points, setPoints] = useState<Point[]>([]);
   const [target, setTarget] = useState<number | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -484,13 +484,13 @@ export function ClientWeightPage({
     );
 
   return (
-    <div className="flex flex-col gap-3" aria-label="Registro e evolução do peso">
+    <div className="flex flex-col gap-2.5" aria-label="Registro e evolução do peso">
       <HowItWorks>{weightHowTo}</HowItWorks>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
         <StatCard
           icon={Scale}
           label="Peso atual"
-          gradient="bg-gradient-to-br from-fuchsia-500 to-pink-500"
+          color="#e879f9"
           value={last ? `${nf(last.weight_kg)} kg` : "—"}
           note={last ? `Registrado em ${longDate(last.recorded_on)}` : "Faça o primeiro registro"}
         />
@@ -503,25 +503,21 @@ export function ClientWeightPage({
                 : Minus
           }
           label="Variação no período"
-          gradient={
-            delta !== null && delta < 0
-              ? "bg-gradient-to-br from-emerald-500 to-teal-500"
-              : "bg-gradient-to-br from-amber-500 to-orange-500"
-          }
+          color={delta !== null && delta < 0 ? "#34d399" : "#fbbf24"}
           value={delta !== null ? `${delta > 0 ? "+" : ""}${nf(delta)} kg` : "—"}
           note={first ? `Desde ${longDate(first.recorded_on)}` : "Sem registros no período"}
         />
         <StatCard
           icon={Activity}
           label="IMC"
-          gradient="bg-gradient-to-br from-sky-500 to-indigo-500"
+          color="#38bdf8"
           value={bmi ? nf(bmi) : "—"}
           note={category?.label ?? "Informe peso e altura"}
         />
         <StatCard
           icon={Flag}
           label="Meta de peso"
-          gradient="bg-gradient-to-br from-violet-500 to-purple-600"
+          color="#a78bfa"
           value={target ? `${nf(target)} kg` : "—"}
           note={
             toTarget !== null
@@ -533,63 +529,11 @@ export function ClientWeightPage({
         />
       </div>
 
-      <div className="grid gap-3 xl:grid-cols-[1fr_320px]">
-        <section
-          className="min-w-0 rounded-2xl border border-border bg-card p-4 shadow-card"
-          aria-label="Gráfico de evolução do peso"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h3 className="font-display text-base font-bold">Evolução do peso</h3>
-              <p className="text-xs text-muted-foreground">
-                Valor e variação em cada medida, média móvel de 7 registros e faixa de peso adequado
-                (IMC 18,5–24,9)
-              </p>
-            </div>
-            <div
-              role="group"
-              aria-label="Período do gráfico"
-              className="flex gap-1 rounded-xl bg-muted p-1"
-            >
-              {ranges.map((item) => (
-                <button
-                  key={item.key}
-                  type="button"
-                  aria-pressed={range === item.key}
-                  onClick={() => setRange(item.key)}
-                  className={`h-8 rounded-lg px-2.5 text-[11px] font-semibold transition ${range === item.key ? "bg-gradient-to-r from-fuchsia-600 to-pink-500 text-white shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="mt-3 w-full">
-            {!loaded ? (
-              <div className="h-[320px] animate-pulse rounded-xl bg-muted/60" />
-            ) : chart.length === 0 ? (
-              <div className="grid h-[320px] place-items-center rounded-xl border border-dashed border-border text-center text-sm text-muted-foreground">
-                <span>
-                  <Scale className="mx-auto mb-2 text-fuchsia-500" size={28} />
-                  Nenhum registro neste período.
-                  <br />
-                  Use o formulário para registrar seu peso.
-                </span>
-              </div>
-            ) : (
-              <WeightEvolutionChart
-                rows={chart}
-                target={target}
-                healthy={healthyMin && healthyMax ? [healthyMin, healthyMax] : null}
-                onPick={setDetailDay}
-              />
-            )}
-          </div>
-        </section>
-
-        <aside className="flex flex-col gap-3">
+      {explorer}
+      <div className="grid gap-3 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+        <aside className="contents">
           <section
-            className="rounded-2xl border border-border bg-card p-4 shadow-card"
+            className="border border-border bg-card p-3.5 shadow-card"
             aria-label="Inserir peso"
             data-register-target="Inserir peso"
           >
@@ -599,7 +543,7 @@ export function ClientWeightPage({
               </span>
               Inserir peso
             </h3>
-            <div className="mt-3 grid gap-2">
+            <div className="mt-2.5 grid gap-2 sm:grid-cols-3">
               <label className="text-xs font-semibold">
                 Data
                 <span className="relative mt-1 block">
@@ -612,11 +556,11 @@ export function ClientWeightPage({
                     max={acreDateKey()}
                     value={date}
                     onChange={(event) => setDate(event.target.value)}
-                    className="block h-10 w-full rounded-xl border border-border bg-surface pl-8 pr-2 text-sm"
+                    className="block h-10 w-full border border-border bg-surface pl-8 pr-2 text-sm"
                   />
                 </span>
               </label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="contents">
                 <label className="text-xs font-semibold">
                   Peso (kg)
                   <span className="relative mt-1 block">
@@ -629,7 +573,7 @@ export function ClientWeightPage({
                       value={weight}
                       onChange={(event) => setWeight(event.target.value)}
                       placeholder="75,5"
-                      className="block h-10 w-full rounded-xl border border-border bg-surface pl-8 pr-2 text-sm"
+                      className="block h-10 w-full border border-border bg-surface pl-8 pr-2 text-sm"
                     />
                   </span>
                 </label>
@@ -645,7 +589,7 @@ export function ClientWeightPage({
                       value={height}
                       onChange={(event) => setHeight(event.target.value)}
                       placeholder="170"
-                      className="block h-10 w-full rounded-xl border border-border bg-surface pl-8 pr-2 text-sm"
+                      className="block h-10 w-full border border-border bg-surface pl-8 pr-2 text-sm"
                     />
                   </span>
                 </label>
@@ -654,12 +598,12 @@ export function ClientWeightPage({
                 type="button"
                 disabled={saving}
                 onClick={() => void save()}
-                className="mt-1 inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-500 text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:opacity-60"
+                className="inline-flex h-10 items-center justify-center gap-2 bg-gradient-to-r from-fuchsia-600 to-pink-500 text-sm font-bold text-white shadow-sm transition hover:brightness-110 active:scale-[.98] disabled:opacity-60 sm:col-span-3"
               >
                 <Scale size={16} />
                 {saving ? "Salvando…" : "Inserir registro"}
               </button>
-              <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
+              <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground sm:col-span-3">
                 <Lock size={12} className="mt-0.5 shrink-0" />
                 Um registro por dia. Inserir nunca substitui um valor já salvo: para corrigir,
                 libere a edição com o cadeado em “Registros”.
@@ -676,7 +620,7 @@ export function ClientWeightPage({
           </section>
 
           <section
-            className="rounded-2xl border border-border bg-card p-4 shadow-card"
+            className="border border-border bg-card p-3.5 shadow-card"
             aria-label="Classificação do IMC"
           >
             <h3 className="font-display text-sm font-bold">Classificação do IMC</h3>
@@ -725,7 +669,7 @@ export function ClientWeightPage({
           onPick={setDetailDay}
         />
         <section
-          className="rounded-2xl border border-border bg-card p-4 shadow-card"
+          className="border border-border bg-card p-3.5 shadow-card"
           aria-label="Registros de peso"
         >
           <div className="flex flex-wrap items-center justify-between gap-2">

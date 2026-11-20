@@ -1411,13 +1411,6 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                       <ClientSleepPage patientId={client.id} ownerId={client.owner_id} />
                     )}
                     {activeTab === "peso" && (
-                      <WeightExplorer
-                        patientId={client.id}
-                        ownerId={client.owner_id}
-                        revision={tick}
-                      />
-                    )}
-                    {activeTab === "peso" && (
                       <ClientWeightPage
                         patientId={client.id}
                         ownerId={client.owner_id}
@@ -1425,6 +1418,13 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                         currentWeight={healthProfile.weightKg ?? client.weight_kg}
                         ageYears={healthProfile.age}
                         onRecorded={() => setTick((value) => value + 1)}
+                        explorer={
+                          <WeightExplorer
+                            patientId={client.id}
+                            ownerId={client.owner_id}
+                            revision={tick}
+                          />
+                        }
                       />
                     )}
                     {activeTab === "batimentos" && (
