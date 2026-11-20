@@ -133,9 +133,32 @@ const baseIngredients:Omit<Ingredient,"carbs"|"fat"|"fiber">[]=[
  {id:"agua_coco",name:"Água de coco",group:"bebidas",protein:0,kcal:22,provenance:"TACO"},
  {id:"refrigerante",name:"Refrigerante tipo cola",group:"bebidas",protein:0,kcal:41,provenance:"TACO",flags:["industrializado","cafeina"]},
  {id:"quibe_arroz",name:"Quibe acreano de arroz",group:"cereais",protein:7,kcal:240,flags:["frito","gorduroso"],note:"Estimativa para a receita frita tradicional."},
+ {id:"pamonha",name:"Pamonha de milho verde (doce)",group:"cereais",protein:2.6,kcal:171,note:"Estimativa por 100 g; 1 pamonha tem cerca de 150 g. Salgada com queijo tem mais gordura e proteína."},
+ {id:"canjica",name:"Canjica de milho verde (curau)",group:"cereais",protein:2.8,kcal:140,flags:["laticinio"],note:"Creme de milho verde com leite, açúcar e coco."},
+ {id:"mungunza",name:"Mungunzá (milho branco com leite)",group:"cereais",protein:2.6,kcal:130,flags:["laticinio"],note:"Estimativa com leite e leite de coco, adoçado."},
+ {id:"banana_frita",name:"Banana comprida (da terra) frita",group:"frutas",protein:1.5,kcal:230,flags:["frito", "gorduroso"],note:"Frita em óleo; absorve gordura conforme o tempo de fritura."},
+ {id:"acai_acucar",name:"Açaí com xarope de guaraná (na tigela)",group:"frutas",protein:.7,kcal:110,provenance:"TACO",flags:["gorduroso"],note:"Granola, leite condensado, farinha e frutas aumentam as calorias."},
+ {id:"abacatada",name:"Abacatada (abacate batido com leite e açúcar)",group:"bebidas",protein:2,kcal:96,flags:["gorduroso", "laticinio"],note:"Estimativa: metade abacate, metade leite integral, 5% de açúcar."},
+ {id:"suco_goiaba",name:"Suco natural de goiaba sem açúcar",group:"bebidas",protein:.3,kcal:25,note:"Com açúcar, registre o açúcar à parte (1 colher de sopa ≈ 12 g, 46 kcal)."},
+ {id:"mingau_aveia_leite",name:"Mingau de aveia com leite",group:"cereais",protein:4.4,kcal:110,flags:["laticinio"],note:"Estimativa: leite integral, aveia e um pouco de açúcar."},
+ {id:"mingau_maisena",name:"Mingau de maisena com leite",group:"cereais",protein:2.7,kcal:108,flags:["laticinio"],note:"Estimativa: leite integral, amido de milho e açúcar."},
+ {id:"cereal_milho",name:"Cereal matinal de milho (flocos)",group:"cereais",protein:7.3,kcal:370,provenance:"TACO",flags:["industrializado"],note:"Versões açucaradas ou de chocolate variam: confira o rótulo."},
+ {id:"acucar_gramixo",name:"Açúcar mascavo / gramixó (açúcar macaco)",group:"cereais",protein:.8,kcal:369,provenance:"TACO",note:"Gramixó: açúcar artesanal da cana, semelhante ao mascavo; ainda é açúcar."},
+ {id:"acucar",name:"Açúcar refinado",group:"cereais",protein:0,kcal:387,provenance:"TACO",flags:["industrializado"]},
+ {id:"pizza",name:"Pizza de mussarela",group:"cereais",protein:11,kcal:270,flags:["gorduroso", "laticinio", "industrializado"],note:"Estimativa por 100 g; 1 fatia média ≈ 110 g. Calabresa e bordas recheadas somam mais gordura."},
+ {id:"feijoada",name:"Feijoada",group:"proteinas",protein:8.7,kcal:117,provenance:"TACO",flags:["gorduroso", "fermentavel"],note:"Receita com carnes de porco e embutidos."},
+ {id:"macarronada",name:"Macarronada (macarrão com molho e carne moída)",group:"cereais",protein:7.5,kcal:150,flags:["acido"],note:"Estimativa para a receita caseira."},
+ {id:"crepioca",name:"Crepioca (tapioca com ovo)",group:"cereais",protein:8.8,kcal:200,note:"Estimativa: 2 colheres de goma de tapioca e 1 ovo; 1 unidade ≈ 90 g."},
+ {id:"sopa_carne_legumes",name:"Sopa de carne com legumes",group:"legumes",protein:4.5,kcal:55,note:"Estimativa para sopa caseira com batata, cenoura e carne."},
+ {id:"panelada",name:"Panelada (bucho e mocotó cozidos)",group:"proteinas",protein:14,kcal:140,flags:["gorduroso"],note:"Estimativa para a receita tradicional."},
+ {id:"churrasco",name:"Churrasco de carne bovina (com gordura)",group:"proteinas",protein:27,kcal:250,flags:["gorduroso"],note:"Picanha e costela têm mais gordura que maminha e alcatra."},
+ {id:"carne_assada",name:"Carne bovina assada",group:"proteinas",protein:32,kcal:220},
+ {id:"frango_assado",name:"Frango assado com pele",group:"proteinas",protein:28,kcal:215,flags:["gorduroso"],note:"Sem pele, cerca de 30% menos gordura."},
+ {id:"calabresa",name:"Linguiça calabresa defumada",group:"proteinas",protein:15,kcal:300,flags:["gorduroso", "industrializado"],note:"Embutido rico em sódio; varia por marca."},
+ {id:"salsicha",name:"Salsicha",group:"proteinas",protein:12,kcal:244,flags:["gorduroso", "industrializado"],note:"Embutido rico em sódio; 1 unidade ≈ 50 g."},
 ];
 /** Alimentos típicos do Acre e da Amazônia, destacados na calculadora. */
-export const regionalFoodIds=new Set(["acai","cupuacu","buriti","tucuma","pupunha","graviola","bacuri","tapereba","jambu","tacaca","caldo_piranha","galinha_caipira","carne_sol","pacoca_carne_sol","matrinxa","jaraqui","mingau_banana","beiju","chibe","farinha_agua","milho_cozido","quibe_arroz","pirarucu","tambaqui","baixaria","macaxeira","banana_comprida","banana_pacova","banana_cozida","castanha_para","farinha","farofa","tapioca","queijo_coalho","cuscuz"]);
+export const regionalFoodIds=new Set(["acai","cupuacu","buriti","tucuma","pupunha","graviola","bacuri","tapereba","jambu","tacaca","caldo_piranha","galinha_caipira","carne_sol","pacoca_carne_sol","matrinxa","jaraqui","mingau_banana","beiju","chibe","farinha_agua","milho_cozido","quibe_arroz","pirarucu","tambaqui","baixaria","macaxeira","banana_comprida","banana_pacova","banana_cozida","castanha_para","farinha","farofa","tapioca","queijo_coalho","cuscuz","pamonha","canjica","mungunza","banana_frita","abacatada","acucar_gramixo","panelada","crepioca","acai_acucar"]);
 /* Referências TACO/UNICAMP (quando a preparação coincide) e estimativas
    editoriais TBCA/USDA para os demais. Valores podem variar conforme receita,
    marca, estágio de maturação e método de cocção. NÃO extrapolar rótulos. */
@@ -178,6 +201,7 @@ const macroMap:Record<string,[number|null,number|null,number|null,Ingredient["pr
  cupuacu:[10.4,.9,3.1,"TACO"],buriti:[22,9,7],tucuma:[26,19,12],pupunha:[29,4.8,3.4],graviola:[15.8,.2,1.9,"TACO"],bacuri:[23,1.9,2],"tapereba":[11.6,.3,1,"TACO"],
  jambu:[6,.5,2],tacaca:[12,1,.5],caldo_piranha:[3,2,0],galinha_caipira:[0,10,0],carne_sol:[0,17,0],pacoca_carne_sol:[25,16,3],
  matrinxa:[0,8,0],jaraqui:[4,14,0],mingau_banana:[19,2.5,1],beiju:[81,.3,.5],chibe:[29,.1,1.5],farinha_agua:[87,.4,6],milho_cozido:[19,1.2,2.5],quibe_arroz:[30,10,1],
+ pamonha:[30.7,4.8,2.4],canjica:[26,3,1.2],mungunza:[22,3.6,1.2],banana_frita:[36,9,2.3],acai_acucar:[21.5,3.7,1.7,"TACO"],abacatada:[10,5.4,3],suco_goiaba:[6,.1,1.5],mingau_aveia_leite:[15.8,3.3,.9],mingau_maisena:[18.5,2.5,.1],cereal_milho:[80.8,1.6,5.3,"TACO"],acucar_gramixo:[94.5,.1,0,"TACO"],acucar:[99.5,0,0,"TACO"],pizza:[30,11.5,1.6],feijoada:[11.6,6.5,5.1,"TACO"],macarronada:[19,4.8,1.4],crepioca:[26,6.7,.2],sopa_carne_legumes:[5.5,1.6,1],panelada:[2,8.5,.3],churrasco:[0,15.5,0],carne_assada:[0,10,0],frango_assado:[0,11,0],calabresa:[1.5,26,0],salsicha:[4,20,0],
 };
 export const ingredients:Ingredient[]=baseIngredients.map(food=>{
  const n=macroMap[food.id];

@@ -21,18 +21,20 @@ const micros: Record<string, [number, number, number, number, number]> = {
   macaxeira: [11, 1, 19, .1, 100], cuscuz: [0, 10, 2, .2, 30], aveia: [0, 0, 48, 4.4, 336], tapioca: [0, 0, 5, .1, 5], farinha: [0, 0, 65, 1.1, 340],
   cupuacu: [24, 3, 13, .5, 330], buriti: [21, 1700, 74, 2.6, 280], tucuma: [6, 900, 46, .6, 400], pupunha: [3, 220, 20, .7, 300], graviola: [21, 1, 14, .6, 278],
   "tapereba": [26, 30, 26, .3, 200], jambu: [20, 100, 160, 4, 300], carne_sol: [0, 0, 10, 3, 300], galinha_caipira: [0, 20, 12, 1, 230], pacoca_carne_sol: [0, 0, 20, 3, 280],
+  pamonha: [3, 10, 5, .4, 170], canjica: [1, 20, 60, .3, 140], mungunza: [0, 15, 55, .4, 120], banana_frita: [10, 45, 4, .6, 420], acai_acucar: [1, 20, 30, .3, 110], abacatada: [5, 15, 55, .2, 170], suco_goiaba: [40, 15, 3, .1, 95], mingau_aveia_leite: [1, 40, 105, .5, 170], mingau_maisena: [1, 40, 95, .1, 120], cereal_milho: [0, 0, 3, 1.2, 100], acucar_gramixo: [0, 0, 127, 8.3, 522], acucar: [0, 0, 4, .1, 6], pizza: [2, 60, 200, 1.2, 180], feijoada: [1, 10, 25, 1.3, 220], macarronada: [5, 40, 20, 1.1, 200], crepioca: [0, 100, 35, .9, 95], sopa_carne_legumes: [4, 120, 15, .6, 170], panelada: [0, 0, 40, 1.5, 60], churrasco: [0, 0, 10, 2.7, 320], carne_assada: [0, 0, 6, 3, 330], frango_assado: [0, 40, 12, 1.1, 240], calabresa: [0, 0, 10, 1, 250], salsicha: [0, 0, 10, 1.2, 180],
   lentilha: [1, 1, 16, 1.5, 220], suco_maracuja: [14, 30, 4, .2, 140], cafe: [0, 0, 3, 0, 50], amendoim: [0, 0, 39, 2.2, 650], castanha_para: [1, 0, 146, 2.3, 650],
 };
 
 /** Palavras-chave → alimento do catálogo. Ordem importa: termos mais específicos primeiro. */
 const aliases: Array<[RegExp, string]> = [
+  [/pamonha/, "pamonha"], [/canjica|curau/, "canjica"], [/mungunz[aá]|munguz[aá]|chá de burro/, "mungunza"], [/banana(-| )?(comprida |da terra |prata |nanica )?frita/, "banana_frita"], [/a[cç]a[ií] (na tigela|no copo|com xarope|ado[cç]ado|com guaran[aá])/, "acai_acucar"], [/abacatada|vitamina de abacate|abacate batido/, "abacatada"], [/suco de goiaba/, "suco_goiaba"], [/mingau de aveia/, "mingau_aveia_leite"], [/mingau de (maisena|maizena|amido)/, "mingau_maisena"], [/cereal|sucrilhos|corn ?flakes|flocos de milho/, "cereal_milho"], [/gramix[oó]|a[cç][uú]car (macaco|mascavo|preto)|rapadura/, "acucar_gramixo"], [/pizza/, "pizza"], [/feijoada/, "feijoada"], [/macarronada|macarr[aã]o (ao|à|a) bolonhesa|espaguete (ao|à|a) bolonhesa/, "macarronada"], [/crepioca/, "crepioca"], [/sopa/, "sopa_carne_legumes"], [/panelada|dobradinha|bucho/, "panelada"], [/churrasco|picanha|espetinho|costela/, "churrasco"], [/carne assada|assado de panela|lagarto/, "carne_assada"], [/frango assado|galeto/, "frango_assado"],
   [/arroz integral/, "arroz_integral"], [/arroz/, "arroz"], [/feij[aã]o preto/, "feijao_preto"], [/feij[aã]o/, "feijao"],
   [/caf[eé][ _]com[ _]leite (de gado|de vaca|fresco|da fazenda)/, "cafe_leite_gado"], [/caf[eé][ _]com[ _]leite em p[oó]|leite em p[oó]|leite ninho/, "cafe_leite_po"],
   [/caf[eé][ _]com[ _]leite|pingado/, "cafe_com_leite"], [/achocolatado|nescau|toddy|chocolate quente/, "achocolatado"],
   [/p[aã]o integral|p[aã]o de forma/, "pao_integral"], [/p[aã]o|p[aã]ozinho|cacetinho/, "pao_frances"], [/manteiga/, "manteiga"], [/margarina/, "margarina"],
   [/queijo coalho|queijo assado/, "queijo_coalho"], [/requeij[aã]o/, "requeijao"], [/queijo|mu[cç]arela|mussarela/, "queijo_minas"], [/presunto|peito de peru/, "presunto"],
   [/bolo/, "bolo_simples"], [/biscoito|bolacha/, "biscoito_salgado"], [/macarr[aã]o|espaguete|massa/, "macarrao"],
-  [/baixaria/, "baixaria"], [/carne mo[ií]da/, "carne_moida"], [/lingui[cç]a|calabresa/, "linguica"], [/pirarucu/, "pirarucu"], [/tambaqui/, "tambaqui"],
+  [/baixaria/, "baixaria"], [/carne mo[ií]da/, "carne_moida"], [/calabresa/, "calabresa"], [/salsicha|cachorro.quente/, "salsicha"], [/lingui[cç]a/, "linguica"], [/pirarucu/, "pirarucu"], [/tambaqui/, "tambaqui"],
   [/banana cozida|banana comprida cozida/, "banana_cozida"], [/mingau de banana/, "mingau_banana"],
   [/[aá]gua de coco/, "agua_coco"], [/refrigerante|refri\b|coca/, "refrigerante"], [/cupua[cç]u/, "cupuacu"], [/buriti/, "buriti"], [/tucum[aã]/, "tucuma"], [/pupunha/, "pupunha"], [/graviola/, "graviola"], [/bacuri/, "bacuri"], [/tapereb[aá]|caj[aá]/, "tapereba"],
   [/tacac[aá]/, "tacaca"], [/jambu/, "jambu"], [/caldo de piranha|piranha/, "caldo_piranha"], [/galinha caipira/, "galinha_caipira"],
@@ -46,7 +48,7 @@ const aliases: Array<[RegExp, string]> = [
   [/cenoura/, "cenoura"], [/ab[oó]bora/, "abobora"], [/br[oó]colis/, "brocolis"], [/couve/, "couve"], [/espinafre/, "espinafre"],
   [/tomate/, "tomate"], [/alface|salada/, "alface"], [/beterraba/, "beterraba"], [/batata doce|batata-doce/, "batata_doce"], [/batata/, "batata"],
   [/macaxeira|mandioca|aipim/, "macaxeira"], [/cuscuz/, "cuscuz"], [/mingau/, "mingau_aveia"], [/aveia/, "aveia"], [/tapioca/, "tapioca"],
-  [/farofa/, "farofa"], [/farinha/, "farinha"], [/lentilha/, "lentilha"], [/amendoim/, "amendoim"], [/castanha/, "castanha_para"], [/azeite/, "azeite"],
+  [/a[cç][uú]car/, "acucar"], [/farofa/, "farofa"], [/farinha/, "farinha"], [/lentilha/, "lentilha"], [/amendoim/, "amendoim"], [/castanha/, "castanha_para"], [/azeite/, "azeite"],
 ];
 
 /** Porção padrão em gramas/ml quando o usuário não informa a quantidade. */
@@ -59,6 +61,7 @@ const defaultPortion: Record<string, number> = {
   cafe_leite_gado: 200, cafe_leite_po: 200, agua_coco: 300, refrigerante: 350, pirarucu: 120, tambaqui: 120, baixaria: 250, banana_cozida: 120,
   cupuacu: 100, buriti: 50, tucuma: 50, pupunha: 100, graviola: 100, bacuri: 80, "tapereba": 100, jambu: 30, tacaca: 400, caldo_piranha: 300,
   galinha_caipira: 120, carne_sol: 100, pacoca_carne_sol: 80, matrinxa: 120, jaraqui: 120, mingau_banana: 250, beiju: 50, chibe: 250, farinha_agua: 30, milho_cozido: 100, quibe_arroz: 80,
+  pamonha: 150, canjica: 150, mungunza: 250, banana_frita: 100, acai_acucar: 300, abacatada: 250, suco_goiaba: 250, mingau_aveia_leite: 250, mingau_maisena: 250, cereal_milho: 30, acucar_gramixo: 15, acucar: 10, pizza: 110, feijoada: 250, macarronada: 250, crepioca: 90, sopa_carne_legumes: 350, panelada: 300, churrasco: 150, carne_assada: 120, frango_assado: 150, calabresa: 60, salsicha: 50,
   alface: 40, tomate: 60, cuscuz: 150, tapioca: 80, macaxeira: 150, batata: 130, batata_doce: 130, aveia: 30, farofa: 30, azeite: 8, castanha_para: 10, amendoim: 30,
 };
 const unitGrams: Array<[RegExp, number]> = [
@@ -79,7 +82,9 @@ export function nutrientsFor(item: Ingredient, grams: number): Nutrients {
 /** Reconhece alimentos e quantidades em um texto livre. `liquidMl` é usado quando o registro é de um líquido. */
 export function parseFoodText(text: string, liquidMl?: number | null): ParsedFood[] {
   // Preparos que levam "com" no nome não devem ser separados em dois alimentos.
-  const source = text.toLowerCase().normalize("NFC").replace(/caf[eé] com leite/g, "café_com_leite");
+  const source = text.toLowerCase().normalize("NFC").replace(/caf[eé] com leite/g, "café_com_leite")
+    .replace(/(mingau de [a-zà-ú]+) com leite/g, "$1").replace(/tapioca com ovos?/g, "crepioca")
+    .replace(/sopa de carne com legumes/g, "sopa de carne").replace(/macarr[aã]o com (molho e )?carne mo[ií]da/g, "macarronada");
   const segments = source.split(/,|;|\+|\be\b|\bcom\b/).map(part => part.trim()).filter(Boolean);
   const found: ParsedFood[] = [];
   for (const segment of segments) {
@@ -96,7 +101,10 @@ export function parseFoodText(text: string, liquidMl?: number | null): ParsedFoo
       const countMatch = segment.match(/(\d+(?:[.,]\d+)?)|\b(um|uma|dois|duas|tr[eê]s|quatro|cinco|meio|meia)\b/);
       const count = countMatch ? (countMatch[1] ? Number(countMatch[1].replace(",", ".")) : numberWords[countMatch[2]] ?? 1) : 1;
       const unit = unitGrams.find(([pattern]) => pattern.test(segment));
-      const base = unit && unit[1] > 0 ? unit[1] : defaultPortion[item.id] ?? 100;
+      const slice = item.id === "pizza" && /fatia/.test(segment);
+      // Açúcar: colher de sopa ≈ 12 g; colher de chá ≈ 5 g.
+      const sugarSpoon = /^acucar/.test(item.id) && /colher/.test(segment) ? (/sopa/.test(segment) ? 12 : 5) : 0;
+      const base = slice ? 110 : sugarSpoon ? sugarSpoon : unit && unit[1] > 0 ? unit[1] : defaultPortion[item.id] ?? 100;
       grams = count * base;
     }
     if (liquidMl && !explicit && segments.length === 1) grams = liquidMl;
@@ -149,7 +157,7 @@ export function goalAdvice(objective: string | null | undefined, total: Nutrient
 /** Porção usual (g ou ml) de um alimento, usada como "1 unidade/porção" na calculadora. */
 export const typicalPortion = (id: string) => defaultPortion[id] ?? 100;
 
-const liquidIds = new Set(["leite", "caldo_piranha", "tacaca", "iogurte"]);
+const liquidIds = new Set(["leite", "caldo_piranha", "tacaca", "iogurte", "sopa_carne_legumes"]);
 /** Líquidos são medidos em ml (densidade ≈ 1 g/ml); sólidos em g. */
 export function isLiquid(id: string): boolean {
   return liquidIds.has(id) || ingredientById.get(id)?.group === "bebidas";
