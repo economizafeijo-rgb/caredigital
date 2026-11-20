@@ -665,14 +665,6 @@ export function ClientHydrationTab({
               actionLabel={nextPlan ? `Bebi ${nextPlan.suggestedMl} ml` : "Registrar"}
               onAction={nextPlan ? () => void quickDrink(nextPlan.suggestedMl) : undefined}
             />
-            <p className="col-span-2 flex items-center justify-between rounded-lg border border-white/15 bg-white/10 px-2.5 py-1 text-[11px] text-white/75 backdrop-blur lg:col-span-1">
-              <span>Último registro</span>
-              <strong className="tabular-nums text-white">
-                {lastWater
-                  ? `${Number(lastWater.amount_ml)} ml · ${time(lastWater.recorded_at)}`
-                  : "Nenhum hoje"}
-              </strong>
-            </p>
           </div>
         </div>
       </header>
@@ -835,6 +827,7 @@ export function ClientHydrationTab({
           goal={goal}
           nowMs={clock}
           lastHour={WATER_LAST_RECOMMENDED_HOUR}
+          note={!loading && dailyGoal && dailyGoal.status !== "sem_meta" ? goalSummary : null}
         />
         {drinks.length + otherDrinks.length > 0 ? (
           <HydrationEntries
@@ -865,26 +858,6 @@ export function ClientHydrationTab({
           Defina uma meta em <strong>Ajustar meta</strong> para calcular volumes sugeridos. Os
           registros reais continuam disponíveis.
         </button>
-      )}
-      {!loading && dailyGoal && dailyGoal.status !== "sem_meta" && (
-        <div
-          role="status"
-          aria-live="polite"
-          className={`flex items-start gap-1.5 rounded-lg border px-2.5 py-2 text-[11px] leading-snug ${goalSummary.kind === "met" ? "border-emerald-500/25 bg-emerald-500/[.045] text-foreground" : goalSummary.kind === "missed" ? "border-amber-500/25 bg-amber-500/[.04] text-foreground" : "border-border/70 bg-muted/25 text-foreground"}`}
-        >
-          {goalSummary.kind === "met" ? (
-            <CheckCircle2
-              size={14}
-              className="mt-0.5 shrink-0 text-emerald-600 dark:text-emerald-300"
-            />
-          ) : (
-            <Info size={14} className="mt-0.5 shrink-0 text-muted-foreground" />
-          )}
-          <div>
-            <strong className="block text-[11px] font-bold">{goalSummary.title}</strong>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">{goalSummary.message}</p>
-          </div>
-        </div>
       )}
       {!loading && !dailyGoal && goal > 0 && (
         <p className="text-[11px] text-muted-foreground">
