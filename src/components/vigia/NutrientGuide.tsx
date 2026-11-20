@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { GainPlanner } from "./GainPlanner";
 import { Beef, Droplets, Info, Sparkles, Wheat, Zap, type LucideIcon } from "lucide-react";
 import {
   amdr,
@@ -238,12 +239,22 @@ export function NutrientGuide() {
         <p className="mt-2.5 text-sm">{goal.summary}</p>
       </div>
 
+      {(goalKey === "hipertrofia" || goalKey === "ganho_peso") && (
+        <GainPlanner
+          weightKg={kg > 0 ? kg : 0}
+          maintenanceKcal={energy > 0 ? energy : 0}
+          proteinKg={goal.proteinKg}
+          fatPct={split[2]}
+          mode={goalKey === "hipertrofia" ? "massa" : "peso"}
+        />
+      )}
+
       <div className="grid gap-3 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
         <div className="border border-border bg-card p-3">
           <h3 className="text-sm font-bold">Divisão ideal da energia</h3>
-          <div className="mt-2 flex items-center gap-3">
+          <div className="mt-2 grid justify-items-center gap-3">
             <Donut split={split} active={activeMacro} onPick={(k) => setTab(k)} />
-            <ul className="min-w-0 flex-1 space-y-1.5 text-xs">
+            <ul className="w-full min-w-0 space-y-1.5 text-xs">
               {(["protein", "carbs", "fat"] as MacroKey[]).map((k) => (
                 <li key={k}>
                   <button
@@ -287,7 +298,7 @@ export function NutrientGuide() {
                   onClick={() => setTab(t.key)}
                   aria-current={on ? "page" : undefined}
                   className={
-                    "-mb-px inline-flex h-9 flex-1 items-center justify-center gap-1.5 whitespace-nowrap border-b-2 px-3 text-xs font-semibold " +
+                    "-mb-px inline-flex h-9 min-w-0 flex-1 items-center justify-center gap-1 whitespace-nowrap border-b-2 px-1.5 text-xs font-semibold " +
                     (on
                       ? "border-foreground text-foreground"
                       : "border-transparent text-muted-foreground hover:text-foreground")
@@ -355,6 +366,12 @@ export function NutrientGuide() {
             "https://www.who.int/news-room/fact-sheets/detail/healthy-diet",
           ],
           ["ISSN: proteína e exercício", "https://pubmed.ncbi.nlm.nih.gov/28642676/"],
+          ["ISSN: dietas e composição corporal", "https://pubmed.ncbi.nlm.nih.gov/28630601/"],
+          ["Revisão: ganho de peso em atletas", "https://pubmed.ncbi.nlm.nih.gov/35233712/"],
+          [
+            "NHS: ganhar peso",
+            "https://www.nhs.uk/live-well/healthy-weight/keeping-your-weight-up-in-later-life/",
+          ],
           [
             "ACSM: nutrição e desempenho",
             "https://journals.lww.com/acsm-msse/Fulltext/2016/03000/Nutrition_and_Athletic_Performance.25.aspx",
