@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Bell, BellOff, Check, Clock3, TimerReset } from "lucide-react";
+import { Bell, BellOff, Check, Clock3, Pencil, TimerReset } from "lucide-react";
 
 const SOUND_KEY = "nv-alert-sound";
 let audioCtx: AudioContext | null = null;
@@ -92,6 +92,8 @@ type Props = {
   emptyText?: string;
   actionLabel?: string;
   onAction?: () => void;
+  /** Alterar a quantidade antes de registrar. */
+  onEdit?: () => void;
   /** Identifica o tipo de lembrete para não repetir o alerta do mesmo horário. */
   alertKey: string;
   className?: string;
@@ -112,6 +114,7 @@ export function NextUpClock({
   emptyText = "Sem próximo horário",
   actionLabel,
   onAction,
+  onEdit,
   alertKey,
   className = "",
   compact = false,
@@ -326,6 +329,17 @@ export function NextUpClock({
                 className="inline-flex h-8 items-center gap-1 rounded-lg bg-white px-2.5 text-xs font-bold text-slate-900 transition hover:bg-white/90 active:scale-95"
               >
                 <Check size={13} /> {actionLabel ?? "Registrar"}
+              </button>
+            )}
+            {onAction && onEdit && (
+              <button
+                type="button"
+                onClick={onEdit}
+                title="Alterar a quantidade"
+                aria-label="Alterar a quantidade antes de registrar"
+                className="inline-flex h-8 items-center gap-1 rounded-lg border border-white/25 px-2.5 text-xs font-semibold text-white/85 transition hover:bg-white/10 active:scale-95"
+              >
+                <Pencil size={12} /> Alterar
               </button>
             )}
             {due && (

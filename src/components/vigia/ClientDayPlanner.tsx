@@ -4,6 +4,7 @@ import {
   Check,
   ChevronRight,
   CircleSlash,
+  Pencil,
   Droplets,
   HeartPulse,
   Moon,
@@ -41,6 +42,8 @@ type Item = {
   status: Status;
   doneAt?: number;
   action?: { label: string; run: () => void };
+  /** Alterar a quantidade consumida (antes de registrar ou depois de registrada). */
+  edit?: () => void;
   undo?: () => void;
   task?: PatientCare;
   /** Pode ser respondido como "não fiz" (com motivo). */
@@ -322,10 +325,31 @@ export function ClientDayPlanner({
     setReload((n) => n + 1);
     onRecorded?.();
   };
+  async function askAmount(current: number): Promise<number | null> {
+    const answer = await dialog.prompt(
+      "Quantidade consumida",
+      "Informe quantos ml foram consumidos (de 10 a 2.000).",
+      String(current),
+    );
+    if (answer === null) return null;
+    const value = Math.round(
+      Number(
+        String(answer)
+          .replace(",", ".")
+          .replace(/[^\d.]/g, ""),
+      ),
+    );
+    if (!Number.isFinite(value) || value < 10 || value > 2000) {
+      dialog.notify?.("Informe uma quantidade entre 10 e 2.000 ml.", "danger");
+      return null;
+    }
+    return value;
+  }
   async function run(
     id: string,
     ask: [string, string, string],
     fn: () => Promise<{ error?: { message?: string } | null }>,
+    success = "Registro salvo com sucesso.",
   ) {
     if (busy) return;
     if (!(await dialog.confirm(ask[0], ask[1], false, ask[2]))) return;
@@ -337,6 +361,7 @@ export function ClientDayPlanner({
       setError(res.error.message || "Não foi possível registrar. Tente novamente.");
       return;
     }
+    dialog.notify?.(success);
     refresh();
   }
 
@@ -436,12 +461,14 @@ export function ClientDayPlanner({
         t: Date.parse(r.recorded_at),
         ml: Number(r.amount_ml),
         name: "Água",
+        src: "water" as const,
       })),
       ...raw.bev.map((r) => ({
         id: r.id,
         t: Date.parse(r.consumed_at),
         ml: Number(r.amount_ml),
         name: r.name || "Bebida",
+        src: "beverage" as const,
       })),
     ].sort((a, b) => a.t - b.t);
     for (const d of drinks)
@@ -453,6 +480,28 @@ export function ClientDayPlanner({
         detail: "registrado",
         status: "done",
         doneAt: d.t,
+        edit: () =>
+          void askAmount(d.ml).then((value) => {
+            if (value === null || value === d.ml) return;
+            void run(
+              `agua-${d.id}`,
+              [
+                "Salvar alteração?",
+                `Alterar ${d.name} de ${d.ml} ml para ${value} ml?`,
+                "Salvar alteração",
+              ],
+              () =>
+                db.rpc("care_update_intake_entry", {
+                  p_patient_id: patientId,
+                  p_entry_type: d.src,
+                  p_entry_id: d.id,
+                  p_description: d.src === "beverage" ? d.name : null,
+                  p_amount_ml: value,
+                  p_consumed_at: new Date(d.t).toISOString(),
+                }),
+              "Quantidade alterada com sucesso.",
+            );
+          }),
       });
     const target = waterTarget ?? 0;
     if (target > 0) {
@@ -477,6 +526,31 @@ export function ClientDayPlanner({
           title: `Copo de água · ~${ml} ml`,
           detail: i === 0 ? "próximo copo sugerido" : "sugestão para bater a meta",
           status: i === 0 && next.at <= now + 15 * 60_000 ? "now" : "planned",
+          edit:
+            i === 0
+              ? () =>
+                  void askAmount(ml).then((value) => {
+                    if (value === null) return;
+                    void run(
+                      id,
+                      [
+                        "Confirmar registro?",
+                        `Registrar ${value} ml de água agora?`,
+                        "Confirmar registro",
+                      ],
+                      () =>
+                        db.rpc("care_log_unscheduled_intake", {
+                          p_patient_id: patientId,
+                          p_kind: "agua",
+                          p_description: "Água",
+                          p_amount_ml: value,
+                          p_request_id: crypto.randomUUID(),
+                          p_consumed_at: null,
+                        }),
+                      `${value} ml de água registrados.`,
+                    );
+                  })
+              : undefined,
           action:
             i === 0
               ? {
@@ -664,6 +738,7 @@ export function ClientDayPlanner({
       it.status = "skipped";
       it.detail = reasonLabel(r.reason) + (r.note ? ` · ${r.note}` : "");
       it.action = undefined;
+      it.edit = undefined;
       it.skippable = false;
       it.undo = () =>
         void run(
@@ -788,6 +863,7 @@ export function ClientDayPlanner({
             emptyText="Tudo feito por hoje"
             actionLabel={next?.action?.label}
             onAction={next?.action?.run}
+            onEdit={next?.edit}
           />
         </div>
       </header>
@@ -1035,6 +1111,18 @@ function Row({
           className="grid size-7 shrink-0 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-rose-400/50 hover:bg-rose-500/10 hover:text-rose-600 active:scale-95 disabled:opacity-50"
         >
           <CircleSlash size={13} />
+        </button>
+      )}
+      {item.edit && (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={item.edit}
+          title="Alterar a quantidade"
+          aria-label={`Alterar a quantidade: ${item.title}`}
+          className="grid size-7 shrink-0 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:bg-muted hover:text-foreground active:scale-95 disabled:opacity-50"
+        >
+          <Pencil size={13} />
         </button>
       )}
       {item.action ? (

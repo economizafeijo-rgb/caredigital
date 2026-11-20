@@ -409,15 +409,18 @@ export function ClientHealthProfile({ patientId, ownerId, initial, onSaved, onCl
           )}
           {tab === "metas" && (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="col-span-full rounded-lg border border-primary/30 bg-accent p-3 text-xs">
-                Referências iniciais por peso para {selectedGoal.label.toLowerCase()}: proteína{" "}
-                {suggestedProtein ?? "—"} g · carboidratos {suggestedCarbs ?? "—"} g · gorduras{" "}
-                {suggestedFat ?? "—"} g · energia correspondente{" "}
-                {suggestedKcal?.toLocaleString("pt-BR") ?? "—"} kcal. Não representam
-                necessariamente déficit ou superávit energético: para isso é preciso estimar
-                manutenção com sexo, idade, altura e atividade. Campos preenchidos manualmente têm
-                prioridade.
-              </div>
+              {/* Metas já definidas por você: a referência automática fica desativada (oculta). */}
+              {!(protein.trim() && carbs.trim() && fat.trim()) && (
+                <div className="col-span-full rounded-lg border border-primary/30 bg-accent p-3 text-xs">
+                  Referências iniciais por peso para {selectedGoal.label.toLowerCase()}: proteína{" "}
+                  {suggestedProtein ?? "—"} g · carboidratos {suggestedCarbs ?? "—"} g · gorduras{" "}
+                  {suggestedFat ?? "—"} g · energia correspondente{" "}
+                  {suggestedKcal?.toLocaleString("pt-BR") ?? "—"} kcal. Não representam
+                  necessariamente déficit ou superávit energético: para isso é preciso estimar
+                  manutenção com sexo, idade, altura e atividade. Campos preenchidos manualmente têm
+                  prioridade.
+                </div>
+              )}
               {input("Meta de proteína (g/dia) · opcional", protein, setProtein, "Automática")}
               {input("Meta de carboidratos (g/dia) · opcional", carbs, setCarbs, "Automática")}
               {input("Meta de gorduras (g/dia) · opcional", fat, setFat, "Automática")}

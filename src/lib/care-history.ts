@@ -274,6 +274,8 @@ export function assembleCareHistory(sources: HistorySources, now = Date.now()): 
   for (const day of sources.dailyGoals ?? []) {
     if (day.status === "em_andamento") continue;
     const reached = day.status === "atingida";
+    // O dia de hoje ainda está em andamento: "não atingida" só aparece depois que o dia fecha.
+    if (!reached && day.goal_date >= today) continue;
     const rest = Math.max(0, day.target_ml - day.consumed_ml);
     const formattedDate = day.goal_date.split("-").reverse().join("/");
     events.push({
