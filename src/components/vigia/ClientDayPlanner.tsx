@@ -235,6 +235,7 @@ export function ClientDayPlanner({
   const [raw, setRaw] = useState<Raw | null>(null);
   const [reload, setReload] = useState(0);
   const [filter, setFilter] = useState<Kind | "todos">("todos");
+  const [allWater, setAllWater] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [sheet, setSheet] = useState<Item | null>(null);
@@ -1046,7 +1047,14 @@ export function ClientDayPlanner({
     for (const i of items) c[i.kind]++;
     return c;
   }, [items]);
-  const visible = items.filter((i) => filter === "todos" || i.kind === filter);
+  const matching = items.filter((i) => filter === "todos" || i.kind === filter);
+  // Copos sugeridos: mostra só os 2 próximos e junta o resto numa linha expansível.
+  const isPlan = (i: Item) => i.id.startsWith("agua-plan-");
+  const planned = matching.filter(isPlan);
+  const hiddenPlan = allWater ? [] : planned.slice(2);
+  const hiddenIds = new Set(hiddenPlan.map((i) => i.id));
+  const visible = matching.filter((i) => !hiddenIds.has(i.id));
+  const lastPlanAt = planned.at(-1)?.at ?? 0;
   const actionable = items.filter(
     (i) =>
       i.kind !== "sono" &&
@@ -1230,7 +1238,8 @@ export function ClientDayPlanner({
                     }}
                   />
                 </div>
-                {list.length === 0 ? (
+                {list.length === 0 &&
+                !(hiddenPlan.length > 0 && p.test(hourOf(hiddenPlan[0].at))) ? (
                   <p className="grid flex-1 place-items-center rounded-xl border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground">
                     Nada planejado neste período.
                   </p>
@@ -1242,6 +1251,30 @@ export function ClientDayPlanner({
                         <Row item={i} busy={busy === i.id} onView={onView} onResolve={setSheet} />
                       </li>
                     ))}
+                    {hiddenPlan.length > 0 && p.test(hourOf(hiddenPlan[0].at)) && (
+                      <li className="contents">
+                        <button
+                          type="button"
+                          onClick={() => setAllWater(true)}
+                          className="mt-1 flex h-8 items-center gap-2 border border-dashed border-sky-500/40 bg-sky-500/5 px-2.5 text-left text-[11px] font-semibold text-sky-700 transition hover:bg-sky-500/10 dark:text-sky-300"
+                        >
+                          <Droplets size={13} />+ {hiddenPlan.length}{" "}
+                          {hiddenPlan.length === 1 ? "copo" : "copos"} até as {hm(lastPlanAt)}
+                          <span className="ml-auto font-normal opacity-70">ver todos</span>
+                        </button>
+                      </li>
+                    )}
+                    {allWater && p.test(hourOf(planned[2]?.at ?? 0)) && planned.length > 2 && (
+                      <li className="contents">
+                        <button
+                          type="button"
+                          onClick={() => setAllWater(false)}
+                          className="mt-1 flex h-7 items-center justify-center text-[11px] font-semibold text-muted-foreground hover:text-foreground"
+                        >
+                          Recolher copos sugeridos
+                        </button>
+                      </li>
+                    )}
                     {isNow && nowIdx === -1 && (
                       <li className="contents">
                         <NowLine now={now} />
