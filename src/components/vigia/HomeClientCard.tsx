@@ -1,3 +1,4 @@
+import { SmartMetricsDashboard } from "@/components/vigia/SmartMetricsDashboard";
 import { DayTimeline } from "./OverviewCommandCenter";
 import { OverviewInsights } from "./OverviewInsights";
 import { useEffect, useRef, useState } from "react";
@@ -1351,12 +1352,15 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                       </div>
                     )}
                     {activeTab === "historico" && (
-                      <PatientActivityHistory
-                        patientId={client.id}
-                        ownerId={client.owner_id}
-                        revision={tick}
-                        onRecordChanged={() => setTick((value) => value + 1)}
-                      />
+                      <>
+                        <SmartMetricsDashboard />
+                        <PatientActivityHistory
+                          patientId={client.id}
+                          ownerId={client.owner_id}
+                          revision={tick}
+                          onRecordChanged={() => setTick((value) => value + 1)}
+                        />
+                      </>
                     )}
                     {activeTab === "alimentacao" && (
                       <ClientMealsPage
