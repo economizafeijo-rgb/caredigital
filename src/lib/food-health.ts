@@ -65,6 +65,7 @@ const overrides: Record<string, [HealthLevel, string]> = {
   mungunza: ["moderacao", "Adoçado e com leite de coco: porção pequena."],
   mingau_maisena: ["moderacao", "Amido refinado e açúcar: o de aveia sacia mais."],
   macarronada: ["moderacao", "Massa refinada: capriche no molho de tomate e na salada."],
+  frango_molho: ["moderacao", "Prefira sem pele e com pouco óleo no molho; o frango cozido simples é mais leve."],
   frango_assado: ["moderacao", "A pele concentra a gordura: retire antes de comer."],
   hamburguer_grelhado: [
     "moderacao",
@@ -157,6 +158,7 @@ const swaps: Record<string, string[]> = {
   cereal_milho: ["aveia", "mingau_aveia_leite"],
   mingau_maisena: ["mingau_aveia_leite"],
   frango_assado: ["frango_grelhado"],
+  frango_molho: ["frango", "frango_grelhado"],
   churrasco: ["contrafile_grelhado", "frango_grelhado"],
   bisteca_grelhada: ["contrafile_grelhado", "frango_grelhado"],
   tapioca: ["crepioca"],
