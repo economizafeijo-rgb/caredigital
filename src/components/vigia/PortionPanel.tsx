@@ -59,6 +59,15 @@ const NUTRIENTS = [
   { key: "kcal", label: "Calorias", unit: "kcal", ref: 2000 },
 ] as const;
 type NKey = (typeof NUTRIENTS)[number]["key"];
+const step = (g: number) => (g >= 500 ? 100 : g >= 100 ? 25 : g >= 20 ? 5 : 1);
+const presetsFor = (unit: string) =>
+  unit === "g"
+    ? [10, 20, 30, 50]
+    : unit === "kcal"
+      ? [100, 200, 300, 500]
+      : unit === "mg"
+        ? [50, 100, 500, 1000]
+        : [10, 25, 50, 100];
 
 export function PortionPanel({
   food,
@@ -271,9 +280,12 @@ export function PortionPanel({
         <h2 className="mb-3 flex items-center gap-2 text-sm font-bold text-muted-foreground">
           <Calculator size={16} className="text-primary" /> Quanto preciso comer?
         </h2>
-        <div className="grid grid-cols-2 gap-2">
+        <p className="mb-2 text-[11px] text-muted-foreground">
+          Escolha o nutriente e a meta. O NextVita calcula quanto de {food.name} você precisa comer.
+        </p>
+        <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
           <label className="text-xs font-bold">
-            Nutriente
+            1. O que você quer obter?
             <select
               className="field mt-1 w-full"
               value={need}
@@ -286,19 +298,52 @@ export function PortionPanel({
               ))}
             </select>
           </label>
-          <label className="text-xs font-bold">
-            Quero obter ({nut.unit})
-            <input
-              inputMode="decimal"
-              value={target}
-              onChange={(e) => setTarget(e.target.value)}
-              className="field mt-1 w-full"
-            />
-          </label>
+          <div className="text-xs font-bold">
+            2. Quanto? ({nut.unit})
+            <div className="mt-1 flex h-10 items-stretch border border-border bg-surface">
+              <button
+                type="button"
+                aria-label="Diminuir a meta"
+                onClick={() => setTarget(String(Math.max(0, goal - step(goal))))}
+                className="grid w-9 place-items-center text-muted-foreground hover:bg-muted"
+              >
+                <Minus size={14} />
+              </button>
+              <input
+                inputMode="decimal"
+                aria-label={`Meta de ${nut.label.toLowerCase()} em ${nut.unit}`}
+                value={target}
+                onChange={(e) => setTarget(e.target.value)}
+                onFocus={(e) => e.currentTarget.select()}
+                className="w-16 bg-transparent text-center text-sm font-bold tabular-nums outline-none"
+              />
+              <button
+                type="button"
+                aria-label="Aumentar a meta"
+                onClick={() => setTarget(String(goal + step(goal)))}
+                className="grid w-9 place-items-center text-muted-foreground hover:bg-muted"
+              >
+                <Plus size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="mt-1.5 flex flex-wrap gap-1">
+          {presetsFor(nut.unit).map((v) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setTarget(String(v))}
+              aria-pressed={goal === v}
+              className={`h-6 border px-2 text-[11px] font-bold tabular-nums transition ${goal === v ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground hover:bg-muted"}`}
+            >
+              {v} {nut.unit}
+            </button>
+          ))}
         </div>
 
         <div
-          className={`mt-3 border p-4 ${unrealistic ? "border-amber-400/50 bg-amber-400/10" : "border-primary/30 bg-primary/10"}`}
+          className={`mt-3 border p-3 ${unrealistic ? "border-amber-400/50 bg-amber-400/10" : "border-primary/30 bg-primary/10"}`}
         >
           {required === null || goal === 0 ? (
             <p className="text-sm text-muted-foreground">
@@ -308,11 +353,11 @@ export function PortionPanel({
             </p>
           ) : (
             <>
-              <p className="text-xs font-semibold">
-                Para obter {fmt(goal)} {nut.unit} de {nut.label.toLowerCase()} com {food.name}
+              <p className="text-[11px] font-semibold text-muted-foreground">
+                3. Você precisa comer
               </p>
-              <p className="mt-1 flex flex-wrap items-baseline gap-x-3">
-                <strong className="text-2xl font-bold tabular-nums text-primary">
+              <p className="mt-0.5 flex flex-wrap items-baseline gap-x-3">
+                <strong className="text-3xl font-extrabold tabular-nums text-primary">
                   {fmt(required, 0)} {base}
                 </strong>
                 {unit.base !== 1 && (
@@ -322,12 +367,53 @@ export function PortionPanel({
                   </span>
                 )}
               </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Este alimento tem {fmt(per100)} {nut.unit} de {nut.label.toLowerCase()} a cada 100{" "}
-                {base}.
-                {valid &&
-                  ` A porção atual de ${fmt(amount, 0)} ${base} fornece ${fmt(provided)} ${nut.unit} (${fmt(goal > 0 ? (provided / goal) * 100 : 0, 0)}% da meta).`}
+              <p className="mt-1 text-sm">
+                {fmt(required, 0)} {base} de {food.name} entregam{" "}
+                <b>
+                  {fmt(goal)} {nut.unit}
+                </b>{" "}
+                de {nut.label.toLowerCase()}.
               </p>
+              <div className="mt-2 border border-border bg-black/10 px-2.5 py-1.5 font-mono text-[11px] leading-relaxed text-muted-foreground">
+                <div>
+                  Em 100 {base} há {fmt(per100)} {nut.unit}
+                </div>
+                <div>
+                  {fmt(goal)} ÷ {fmt(per100)} × 100 ={" "}
+                  <b className="text-foreground">
+                    {fmt(required, 0)} {base}
+                  </b>
+                </div>
+              </div>
+              {valid && (
+                <div className="mt-2.5">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-muted-foreground">
+                      Sua porção atual ({fmt(amount, 0)} {base}) entrega
+                    </span>
+                    <b className="tabular-nums">
+                      {fmt(provided)} {nut.unit} · {fmt(goal > 0 ? (provided / goal) * 100 : 0, 0)}%
+                      da meta
+                    </b>
+                  </div>
+                  <div className="relative mt-1 h-2 bg-black/15">
+                    <i
+                      className="absolute inset-y-0 left-0 transition-[width] duration-500"
+                      style={{
+                        width: `${Math.min(100, goal > 0 ? (provided / goal) * 100 : 0)}%`,
+                        background: provided > goal * 1.1 ? "#f59e0b" : "#10b981",
+                      }}
+                    />
+                  </div>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    {Math.abs(provided - goal) <= goal * 0.03
+                      ? "A porção atual já atende a meta."
+                      : provided > goal
+                        ? `Está ${fmt(provided - goal)} ${nut.unit} acima da meta.`
+                        : `Faltam ${fmt(goal - provided)} ${nut.unit} para a meta.`}
+                  </p>
+                </div>
+              )}
               {unrealistic && (
                 <p className="mt-2 text-xs font-semibold text-amber-300">
                   É uma quantidade irreal para uma refeição: {food.name} não é boa fonte desse
