@@ -626,14 +626,14 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         ))}
       </nav>
-      <div className="shrink-0 border-t border-white/[.07] p-2">
-        <div className="nv-rail-account flex items-center gap-2.5 rounded-lg p-1">
+      <div className="shrink-0 border-t border-white/[.07] px-2 pt-1.5">
+        <div className="nv-rail-account flex items-center gap-2 p-0.5">
           <span
-            className="relative grid size-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 text-xs font-extrabold text-white shadow-[inset_0_1px_0_rgba(255,255,255,.35)]"
+            className="relative grid size-7 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 text-[11px] font-extrabold text-white shadow-[inset_0_1px_0_rgba(255,255,255,.35)]"
             aria-hidden="true"
           >
             {(access.name || access.email || "C").slice(0, 1).toUpperCase()}
-            <i className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-emerald-300 ring-2 ring-[#0b1219]" />
+            <i className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-300 ring-2 ring-[#0b1219]" />
           </span>
           <span className="sidebar-account-copy min-w-0 flex-1 leading-tight">
             <span className="block truncate text-[13px] font-semibold text-white">
@@ -655,16 +655,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             disabled={signingOut}
             aria-label="Sair da conta"
             title="Sair da conta"
-            className="sidebar-account-action grid size-8 shrink-0 place-items-center rounded-lg text-slate-300 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-50"
+            className="sidebar-account-action grid size-7 shrink-0 place-items-center rounded-lg text-slate-300 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-50"
           >
-            <LogOut size={16} />
+            <LogOut size={15} />
           </button>
         </div>
-        <p className="nv-rail-label nv-rail-credit mt-2 whitespace-nowrap text-center text-[11px] leading-tight text-slate-500">
-          Desenvolvido por <span className="font-semibold text-slate-300">Franc D&apos;nis</span>
-          <br />
-          Feijó, Acre
-        </p>
       </div>
     </>
   );
@@ -708,23 +703,21 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <Brand onDark />
                 </div>
                 {sidebarBody}
-                <button
-                  type="button"
-                  onClick={togglePin}
-                  aria-pressed={sidebarPinned}
-                  title={sidebarPinned ? "Recolher menu ( [ )" : "Fixar menu aberto ( [ )"}
-                  className="relative mx-2 mb-2 flex h-9 shrink-0 items-center gap-3 rounded-lg px-1.5 text-[13px] font-semibold text-slate-500 transition-colors hover:bg-white/[.06] hover:text-white"
-                >
-                  <span className="grid size-7 shrink-0 place-items-center">
-                    {sidebarPinned ? <PanelLeftClose size={17} /> : <PanelLeftOpen size={17} />}
-                  </span>
-                  <span className="nv-rail-label truncate">
-                    {sidebarPinned ? "Recolher menu" : "Fixar menu aberto"}
-                  </span>
-                  <kbd className="nv-rail-label ml-auto rounded border border-white/15 px-1.5 text-[11px] text-slate-500">
-                    [
-                  </kbd>
-                </button>
+                <div className="relative flex h-7 shrink-0 items-center gap-1 px-2 pb-1">
+                  <p className="nv-rail-label nv-rail-credit min-w-0 flex-1 truncate text-[10px] text-slate-600">
+                    Franc D&apos;nis · Feijó, Acre
+                  </p>
+                  <button
+                    type="button"
+                    onClick={togglePin}
+                    aria-pressed={sidebarPinned}
+                    aria-label={sidebarPinned ? "Recolher menu" : "Fixar menu aberto"}
+                    title={sidebarPinned ? "Recolher menu ( [ )" : "Fixar menu aberto ( [ )"}
+                    className="mx-auto grid size-6 shrink-0 place-items-center text-slate-500 transition-colors hover:bg-white/[.08] hover:text-white"
+                  >
+                    {sidebarPinned ? <PanelLeftClose size={14} /> : <PanelLeftOpen size={14} />}
+                  </button>
+                </div>
               </aside>
             </div>
           )}
@@ -802,7 +795,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     title="Sair da conta"
                     className="inline-flex h-9 items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 text-sm font-semibold text-destructive transition hover:bg-destructive/20 disabled:opacity-50"
                   >
-                    <LogOut size={16} />
+                    <LogOut size={15} />
                     <span className="hidden 2xl:inline">{signingOut ? "Saindo…" : "Sair"}</span>
                   </button>
                 )}

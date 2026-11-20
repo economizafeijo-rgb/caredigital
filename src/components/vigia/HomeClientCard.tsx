@@ -917,8 +917,8 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                         : today
                       : clientSectionLabels[activeTab].subtitle}
                     {activeTab !== "hoje" && sectionCount != null && ` · ${sectionCount} hoje`}
+                    {birthSummary && activeTab === "hoje" && <BirthChips summary={birthSummary} />}
                   </p>
-                  {birthSummary && activeTab === "hoje" && <BirthChips summary={birthSummary} />}
                 </div>
               </div>
               <ExportPlanButton
@@ -1862,24 +1862,26 @@ function BirthChips({ summary }: { summary: ReturnType<typeof patientDateSummary
     },
   ];
   return (
-    <ul
-      className="-mx-1 mt-2 flex gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] sm:flex-wrap [&::-webkit-scrollbar]:hidden"
-      aria-label="Dados de nascimento"
-    >
+    <span aria-label="Dados de nascimento" className="hidden md:inline">
       {chips.map((c) => (
-        <li key={c.k} className="relative shrink-0">
-          <span
-            title={c.more}
-            className={`group inline-flex h-8 items-center gap-1.5 rounded-full border px-2.5 text-xs backdrop-blur ${c.hot ? "border-amber-300/60 bg-amber-300/20" : "border-white/20 bg-white/10 hover:bg-white/20"}`}
-          >
-            <span aria-hidden="true" className="text-sm">
-              {c.icon}
-            </span>
-            <span className="text-white/65">{c.label}</span>
-            <strong className="font-bold text-white">{c.value}</strong>
+        <span
+          key={c.k}
+          title={c.more}
+          className={`group cursor-default whitespace-nowrap transition-colors hover:text-foreground ${c.hot ? "font-semibold text-amber-300" : ""}`}
+        >
+          <span aria-hidden="true" className="mx-1.5 opacity-40">
+            ·
           </span>
-        </li>
+          <span
+            aria-hidden="true"
+            className="mr-1 inline-block transition-transform group-hover:scale-125"
+          >
+            {c.icon}
+          </span>
+          {c.k === "idade" || c.k === "signo" ? "" : `${c.label} `}
+          <strong className="font-semibold">{c.value}</strong>
+        </span>
       ))}
-    </ul>
+    </span>
   );
 }
