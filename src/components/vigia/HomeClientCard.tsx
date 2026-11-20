@@ -52,6 +52,7 @@ import { CareReminderBeacon } from "./CareReminderBeacon";
 import { CareRecentHistory } from "./CareRecentHistory";
 import { ClientHealthProfile } from "./ClientHealthProfile";
 import { ClientOverviewIndicators } from "./ClientOverviewIndicators";
+import { TodayGoalsCard } from "./TodayGoalsCard";
 import { GoalFxProvider } from "./GoalFx";
 import { GoalWatcher } from "./GoalWatcher";
 import { EvolutionHub } from "./EvolutionHub";
@@ -1047,7 +1048,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                 )}
 
                 <div
-                  className={`grid items-start gap-3 ${tasks.length > 0 ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}
+                  className={`grid gap-3 ${tasks.length > 0 ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}
                 >
                   <div className="flex flex-col gap-3 lg:pr-0.5">
                     {tasks.length > 0 && (
@@ -1089,7 +1090,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                         )}
                       </section>
                     )}
-                    <div className={card + " flex-1 p-4"}>
+                    <div className={card + " shrink-0 p-3.5"}>
                       <ClientOverviewIndicators
                         heightCm={client.height_cm}
                         weightKg={healthProfile.weightKg ?? client.weight_kg}
@@ -1105,6 +1106,11 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                         onCompleteProfile={() => setOnboardingSignal((v) => v + 1)}
                       />
                     </div>
+                    <TodayGoalsCard
+                      patientId={client.id}
+                      ownerId={client.owner_id}
+                      revision={tick}
+                    />
                   </div>
 
                   {tasks.length > 0 && (
