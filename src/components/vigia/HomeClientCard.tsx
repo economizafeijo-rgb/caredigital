@@ -53,6 +53,7 @@ import { CareRecentHistory } from "./CareRecentHistory";
 import { ClientHealthProfile } from "./ClientHealthProfile";
 import { ClientOverviewIndicators } from "./ClientOverviewIndicators";
 import { TodayGoalsCard } from "./TodayGoalsCard";
+import { NutritionGuardWatcher } from "./NutritionGuard";
 import { GoalFxProvider } from "./GoalFx";
 import { GoalWatcher } from "./GoalWatcher";
 import { EvolutionHub } from "./EvolutionHub";
@@ -817,6 +818,14 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
           ownerId={client.owner_id}
           waterTarget={hydrationTarget || null}
           revision={tick}
+        />
+      )}
+      {owner && client && (
+        <NutritionGuardWatcher
+          patientId={client.id}
+          ownerId={client.owner_id}
+          revision={tick}
+          onOpen={() => openSection("alimentacao" as Parameters<typeof openSection>[0])}
         />
       )}
       <section

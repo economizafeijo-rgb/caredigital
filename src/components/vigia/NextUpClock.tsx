@@ -20,6 +20,55 @@ function audio() {
   }
 }
 
+/** O usuário pode silenciar os alertas sonoros pelo ícone de som do relógio. */
+export function alertSoundOn() {
+  try {
+    return localStorage.getItem(SOUND_KEY) !== "off";
+  } catch {
+    return true;
+  }
+}
+
+/** Alarme de limite de saúde: "near" = dois toques descendentes; "over"/"severe" = sirene curta e urgente. */
+export function playWarning(level: "near" | "over" | "severe") {
+  const ctx = audio();
+  if (!ctx) return;
+  const seq =
+    level === "near"
+      ? [
+          [660, 0],
+          [494, 0.22],
+        ]
+      : level === "over"
+        ? [
+            [880, 0],
+            [660, 0.18],
+            [880, 0.36],
+            [660, 0.54],
+          ]
+        : [
+            [988, 0],
+            [740, 0.15],
+            [988, 0.3],
+            [740, 0.45],
+            [988, 0.6],
+            [740, 0.75],
+          ];
+  for (const [freq, at] of seq) {
+    const t = ctx.currentTime + at;
+    const osc = ctx.createOscillator(),
+      gain = ctx.createGain();
+    osc.type = level === "near" ? "triangle" : "square";
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(level === "near" ? 0.16 : 0.09, t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.2);
+  }
+}
+
 /** Alerta curto e agradável: três notas ascendentes, como um sino digital. */
 export function playChime(volume = 0.25) {
   const ctx = audio();

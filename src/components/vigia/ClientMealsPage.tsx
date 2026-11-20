@@ -1,4 +1,5 @@
 import { DailyNutritionPanel, useDailyNutrition } from "./DailyNutritionPanel";
+import { NutritionGuardPanel } from "./NutritionGuard";
 import { MealMacroBars, NutritionDayChart, NutritionHero } from "./NutritionHero";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -207,6 +208,7 @@ export function ClientMealsPage({
           />
         }
       />
+      <NutritionGuardPanel data={nutrition} />
       <div className="grid shrink-0 gap-3 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
         <div className="grid min-w-0 content-start gap-3">
           <NutritionDayChart data={nutrition} />

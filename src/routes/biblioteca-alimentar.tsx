@@ -455,11 +455,11 @@ function BibliotecaAlimentar() {
       )}
       <main
         role="tabpanel"
-        className="min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-2xl"
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-2xl lg:overflow-hidden"
       >
         {
-          <div className="grid gap-3 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,.95fr)]">
-            <article className="min-w-0 rounded-2xl border border-border bg-card p-4 shadow-sm">
+          <div className="grid gap-3 lg:h-full lg:min-h-0 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,.95fr)] lg:grid-rows-[minmax(0,1fr)]">
+            <article className="flex min-h-[26rem] min-w-0 flex-col rounded-2xl border border-border bg-card p-4 shadow-sm lg:min-h-0">
               <div className="mb-3 flex items-center gap-2 font-bold">
                 <Search size={18} className="text-primary" /> Consultar alimentos{" "}
                 <span className="ml-auto text-xs font-normal text-muted-foreground">
@@ -483,7 +483,7 @@ function BibliotecaAlimentar() {
                   <option key={g}>{g}</option>
                 ))}
               </select>
-              <div className="max-h-[min(49dvh,480px)] space-y-1 overflow-y-auto pr-1">
+              <div className="max-h-[60dvh] min-h-0 flex-1 space-y-1 overflow-y-auto pr-1 lg:max-h-none">
                 {loading ? (
                   <p className="p-4 text-sm text-muted-foreground">Carregando alimentos...</p>
                 ) : filtered.length === 0 ? (
@@ -517,25 +517,27 @@ function BibliotecaAlimentar() {
               </div>
             </article>
 
-            {food ? (
-              <PortionPanel
-                key={food.id}
-                food={food}
-                foods={foods}
-                amount={grams}
-                setAmount={setGrams}
-                onPick={(id) => {
-                  setSelected(id);
-                  setGrams(100);
-                }}
-                canRegister={Boolean(patientId)}
-                saving={saving}
-                feedback={feedback}
-                onRegister={() => void registerPortion()}
-              />
-            ) : (
-              <p className="text-sm text-muted-foreground">Selecione um alimento no catálogo.</p>
-            )}
+            <div className="min-h-0 min-w-0 lg:overflow-y-auto lg:overscroll-contain">
+              {food ? (
+                <PortionPanel
+                  key={food.id}
+                  food={food}
+                  foods={foods}
+                  amount={grams}
+                  setAmount={setGrams}
+                  onPick={(id) => {
+                    setSelected(id);
+                    setGrams(100);
+                  }}
+                  canRegister={Boolean(patientId)}
+                  saving={saving}
+                  feedback={feedback}
+                  onRegister={() => void registerPortion()}
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground">Selecione um alimento no catálogo.</p>
+              )}
+            </div>
           </div>
         }
       </main>
