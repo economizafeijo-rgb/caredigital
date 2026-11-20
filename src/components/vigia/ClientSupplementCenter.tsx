@@ -773,7 +773,7 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
           aria-hidden="true"
           className="pointer-events-none absolute -bottom-16 left-1/4 -z-10 size-56 rounded-full bg-fuchsia-400/15 blur-3xl"
         />
-        <div className="grid items-center gap-3 lg:grid-cols-[auto_minmax(0,1fr)_17rem]">
+        <div className="grid items-center gap-3 lg:grid-cols-[auto_minmax(0,1fr)_26rem]">
           <div
             className="relative mx-auto size-[68px] shrink-0 lg:mx-0"
             role="img"
@@ -851,7 +851,6 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
             </div>
           </div>
           <NextUpClock
-            compact
             alertKey="suplemento"
             title="Próxima dose"
             color="#fbbf24"

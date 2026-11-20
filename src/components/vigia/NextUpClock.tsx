@@ -209,12 +209,12 @@ export function NextUpClock({
 
   return (
     <div
-      className={`${compact ? "flex items-center gap-2.5 rounded-xl p-2" : "flex flex-col gap-3 p-3.5"} border backdrop-blur transition-colors duration-500 ${due ? "nv-due border-white/15 border-l-[3px] !border-l-amber-300 bg-amber-400/[.10]" : "border-white/15 bg-white/10"} ${className}`}
+      className={`${compact ? "flex items-center gap-2.5 rounded-xl p-2" : "flex flex-wrap items-center gap-x-3 gap-y-2 p-2.5"} border backdrop-blur transition-colors duration-500 ${due ? "nv-due border-white/15 border-l-[3px] !border-l-amber-300 bg-amber-400/[.10]" : "border-white/15 bg-white/10"} ${className}`}
       style={{ ["--due" as string]: PEND }}
     >
-      <div className={`flex items-center ${compact ? "gap-2.5" : "gap-4"}`}>
+      <div className={`flex items-center gap-2.5 ${compact ? "" : "min-w-[13rem] flex-1"}`}>
         <div
-          className={`relative shrink-0 ${compact ? "size-[54px]" : "size-[88px]"}`}
+          className={`relative shrink-0 ${compact ? "size-[54px]" : "size-[56px]"}`}
           aria-hidden="true"
         >
           <svg viewBox="0 0 100 100" className="size-full">
@@ -270,9 +270,7 @@ export function NextUpClock({
           </svg>
           <span className="absolute inset-0 grid place-items-center">
             {due ? (
-              <span
-                className={`relative grid place-items-center ${compact ? "size-8" : "size-12"}`}
-              >
+              <span className={`relative grid place-items-center ${compact ? "size-8" : "size-9"}`}>
                 <svg viewBox="0 0 48 48" className="absolute inset-0 size-full">
                   <circle cx="24" cy="24" r="20" fill="#fbbf24" fillOpacity=".14" />
                   <circle
@@ -295,13 +293,13 @@ export function NextUpClock({
                   />
                 </svg>
                 <Bell
-                  size={compact ? 14 : 20}
+                  size={compact ? 14 : 15}
                   className="nv-bell-swing relative"
                   style={{ color: PEND }}
                 />
               </span>
             ) : (
-              !compact && <Clock3 size={14} className="mt-7 text-white/50" />
+              !compact && <Clock3 size={11} className="mt-5 text-white/50" />
             )}
           </span>
         </div>
@@ -323,7 +321,7 @@ export function NextUpClock({
             <p className="mt-0.5 truncate text-sm font-bold">{emptyText}</p>
           ) : due ? (
             <p
-              className={`mt-0.5 flex items-baseline gap-2 font-extrabold leading-none ${compact ? "text-lg" : "text-2xl"}`}
+              className={`mt-0.5 flex items-baseline gap-2 font-extrabold leading-none text-lg`}
               style={{ color: PEND }}
             >
               {lateMin < 1 ? "É hora!" : "Pendente"}
@@ -337,9 +335,7 @@ export function NextUpClock({
               )}
             </p>
           ) : (
-            <p
-              className={`mt-0.5 font-mono font-bold tabular-nums leading-none ${compact ? "text-lg" : "text-2xl"}`}
-            >
+            <p className={`mt-0.5 font-mono font-bold tabular-nums leading-none text-lg`}>
               {countdown(when - now)}
             </p>
           )}
@@ -353,7 +349,7 @@ export function NextUpClock({
       </div>
       {!compact && when !== null && (
         <div
-          className={`flex h-10 items-stretch gap-1.5 transition-opacity duration-300 ${due || onPostpone || when - now < 15 * 60_000 ? "opacity-100" : "pointer-events-none opacity-0"}`}
+          className={`flex h-8 shrink-0 items-stretch gap-1 transition-opacity duration-300 ${due || onPostpone || when - now < 15 * 60_000 ? "opacity-100" : "pointer-events-none opacity-0"}`}
           aria-hidden={!(due || onPostpone || when - now < 15 * 60_000)}
         >
           {onAction && (
