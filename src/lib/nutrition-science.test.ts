@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { fluidTargetMl, lastRecommendedDrinkHour, proteinTarget, totalWaterReferenceMl, weightGuidance, WATER_LAST_RECOMMENDED_HOUR } from "./nutrition-science";
+import {
+  fluidTargetMl,
+  lastRecommendedDrinkHour,
+  proteinTarget,
+  totalWaterReferenceMl,
+  weightGuidance,
+  WATER_LAST_RECOMMENDED_HOUR,
+} from "./nutrition-science";
 
 describe("água (EFSA 2010)", () => {
   it("usa a ingestão adequada de água total por sexo e idade", () => {
@@ -37,21 +44,47 @@ describe("água (EFSA 2010)", () => {
 describe("proteína por peso, idade e objetivo", () => {
   const base = { ageYears: 30, sex: "female" as const, weightKg: 70, heightCm: 165 };
   it("segue o objetivo com faixas da literatura", () => {
-    expect(proteinTarget({ ...base, objective: "equilibrio" })).toMatchObject({ perKg: 1.0, grams: 70, minPerKg: 0.8 });
-    expect(proteinTarget({ ...base, objective: "emagrecimento" })).toMatchObject({ perKg: 1.4, grams: 98 });
-    expect(proteinTarget({ ...base, objective: "hipertrofia" })).toMatchObject({ perKg: 1.6, grams: 112, maxPerKg: 2.0 });
+    expect(proteinTarget({ ...base, objective: "equilibrio" })).toMatchObject({
+      perKg: 1.0,
+      grams: 70,
+      minPerKg: 0.8,
+    });
+    expect(proteinTarget({ ...base, objective: "emagrecimento" })).toMatchObject({
+      perKg: 1.4,
+      grams: 98,
+    });
+    expect(proteinTarget({ ...base, objective: "hipertrofia" })).toMatchObject({
+      perKg: 1.6,
+      grams: 112,
+      maxPerKg: 2.0,
+    });
   });
   it("idosos pedem mais proteína por kg", () => {
     expect(proteinTarget({ ...base, ageYears: 70, objective: "equilibrio" })!.perKg).toBe(1.2);
   });
   it("crianças usam a DRI por idade, sem objetivo de ganho", () => {
-    const child = proteinTarget({ ageYears: 6, sex: "male", weightKg: 20, heightCm: 115, objective: "hipertrofia" })!;
+    const child = proteinTarget({
+      ageYears: 6,
+      sex: "male",
+      weightKg: 20,
+      heightCm: 115,
+      objective: "hipertrofia",
+    })!;
     expect(child.perKg).toBe(0.95);
     expect(child.grams).toBe(19);
-    expect(proteinTarget({ ageYears: 16, sex: "male", weightKg: 60, heightCm: 172, objective: null })!.perKg).toBe(0.85);
+    expect(
+      proteinTarget({ ageYears: 16, sex: "male", weightKg: 60, heightCm: 172, objective: null })!
+        .perKg,
+    ).toBe(0.85);
   });
   it("com IMC ≥ 30 usa o peso ajustado e nunca passa de 2,2 g/kg", () => {
-    const obese = proteinTarget({ ageYears: 40, sex: "male", weightKg: 130, heightCm: 175, objective: "hipertrofia" })!;
+    const obese = proteinTarget({
+      ageYears: 40,
+      sex: "male",
+      weightKg: 130,
+      heightCm: 175,
+      objective: "hipertrofia",
+    })!;
     expect(obese.adjusted).toBe(true);
     expect(obese.basisKg).toBeLessThan(130);
     expect(obese.grams).toBeLessThan(Math.round(1.6 * 130));
@@ -76,8 +109,14 @@ describe("orientação de peso", () => {
     expect(result.message).toContain("percentil");
   });
   it("alerta ritmo de perda acima de 1% do peso por semana", () => {
-    expect(weightGuidance({ ageYears: 35, heightCm: 170, weightKg: 80, trendKgPerWeek: -1.2 }).pace).toBe("fast_loss");
-    expect(weightGuidance({ ageYears: 35, heightCm: 170, weightKg: 80, trendKgPerWeek: -0.5 }).pace).toBe("ok");
-    expect(weightGuidance({ ageYears: 35, heightCm: 170, weightKg: 80, trendKgPerWeek: 0.6 }).pace).toBe("fast_gain");
+    expect(
+      weightGuidance({ ageYears: 35, heightCm: 170, weightKg: 80, trendKgPerWeek: -1.2 }).pace,
+    ).toBe("fast_loss");
+    expect(
+      weightGuidance({ ageYears: 35, heightCm: 170, weightKg: 80, trendKgPerWeek: -0.5 }).pace,
+    ).toBe("ok");
+    expect(
+      weightGuidance({ ageYears: 35, heightCm: 170, weightKg: 80, trendKgPerWeek: 0.6 }).pace,
+    ).toBe("fast_gain");
   });
 });

@@ -2,7 +2,11 @@
 export const CARE_CONFIRM_WINDOW_MS = 15 * 60 * 1000;
 
 export type CareScheduleState = "confirmed" | "waiting" | "available" | "missed";
-export type ScheduledCare = {scheduled_at: string; completed_at?: string | null; category?: string};
+export type ScheduledCare = {
+  scheduled_at: string;
+  completed_at?: string | null;
+  category?: string;
+};
 
 export function getCareScheduleState(task: ScheduledCare, now = Date.now()): CareScheduleState {
   if (task.completed_at) return "confirmed";
@@ -20,10 +24,16 @@ export const canConfirmCare = (task: ScheduledCare, now = Date.now()) =>
 
 export function careScheduleLabel(task: ScheduledCare, now = Date.now()): string {
   const state = getCareScheduleState(task, now);
-  return state === "confirmed" ? "Confirmado"
-    : state === "waiting" ? "Aguardando horário"
-    : state === "available" ? ((task.category === "refeicao" || task.category === "hidratacao") && now >= Date.parse(task.scheduled_at) + CARE_CONFIRM_WINDOW_MS ? "Registro em atraso · hora real" : "Disponível para confirmação")
-    : "Não confirmado";
+  return state === "confirmed"
+    ? "Confirmado"
+    : state === "waiting"
+      ? "Aguardando horário"
+      : state === "available"
+        ? (task.category === "refeicao" || task.category === "hidratacao") &&
+          now >= Date.parse(task.scheduled_at) + CARE_CONFIRM_WINDOW_MS
+          ? "Registro em atraso · hora real"
+          : "Disponível para confirmação"
+        : "Não confirmado";
 }
 
 export function careScheduleBlockMessage(task: ScheduledCare, now = Date.now()): string {
@@ -34,7 +44,5 @@ export function careScheduleBlockMessage(task: ScheduledCare, now = Date.now()):
   if (state === "missed") {
     return "O horário programado já passou. Se for medicação, confirme somente uma dose realmente tomada agora; caso contrário, procure orientação do profissional responsável. Não dobre a dose.";
   }
-  return state === "confirmed"
-    ? "Este cuidado já está confirmado no prontuário."
-    : "";
+  return state === "confirmed" ? "Este cuidado já está confirmado no prontuário." : "";
 }

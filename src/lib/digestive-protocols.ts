@@ -41,16 +41,28 @@ export type DigestiveDietGuide = {
 };
 
 export type SportsSupplement = {
-  id: string; name: string; category: string; purpose: string; evidence: string;
-  use_case: string; common_dose: string; timing: string; cautions: string;
+  id: string;
+  name: string;
+  category: string;
+  purpose: string;
+  evidence: string;
+  use_case: string;
+  common_dose: string;
+  timing: string;
+  cautions: string;
   sources: { label: string; url: string }[];
 };
 
 export type SportsGoalPlan = {
-  id: string; goal_key: string; name: string; summary: string;
-  priorities: string[]; foods: string[];
+  id: string;
+  goal_key: string;
+  name: string;
+  summary: string;
+  priorities: string[];
+  foods: string[];
   meals: { time: string; name: string; items: string }[];
-  note: string; sources: { label: string; url: string }[];
+  note: string;
+  sources: { label: string; url: string }[];
 };
 
 async function readTable<T>(table: string, select: string, order: string): Promise<T[]> {
@@ -67,17 +79,19 @@ async function readTable<T>(table: string, select: string, order: string): Promi
   endpoint.searchParams.set("is_active", "eq.true");
 
   try {
-  const response = await fetch(endpoint, {
-    headers: { apikey: key, Accept: "application/json" },
-  });
+    const response = await fetch(endpoint, {
+      headers: { apikey: key, Accept: "application/json" },
+    });
 
-  if (!response.ok) {
+    if (!response.ok) {
+      return fallbackFor<T>(table);
+    }
+
+    const rows = (await response.json()) as T[];
+    return rows.length ? rows : fallbackFor<T>(table);
+  } catch {
     return fallbackFor<T>(table);
   }
-
-  const rows = await response.json() as T[];
-  return rows.length ? rows : fallbackFor<T>(table);
-  } catch { return fallbackFor<T>(table); }
 }
 
 function fallbackFor<T>(table: string): T[] {
@@ -89,21 +103,41 @@ function fallbackFor<T>(table: string): T[] {
 
 /** Reads the published, read-only clinical library from Supabase PostgREST. */
 export async function loadDigestiveProtocols(): Promise<DigestiveProtocol[]> {
-  return readTable("digestive_protocols", "id,category,name,summary,guidance,caution,sources,updated_at,is_active", "category.asc,name.asc");
+  return readTable(
+    "digestive_protocols",
+    "id,category,name,summary,guidance,caution,sources,updated_at,is_active",
+    "category.asc,name.asc",
+  );
 }
 
 export async function loadDietPlans(): Promise<DietPlan[]> {
-  return readTable("diet_plans", "id,name,goal,category,condition_key,variant,variant_label,summary,caution,sources,beverages,meals,updated_at,is_active", "category.asc,name.asc,variant.asc");
+  return readTable(
+    "diet_plans",
+    "id,name,goal,category,condition_key,variant,variant_label,summary,caution,sources,beverages,meals,updated_at,is_active",
+    "category.asc,name.asc,variant.asc",
+  );
 }
 
 export async function loadDigestiveDietGuides(): Promise<DigestiveDietGuide[]> {
-  return readTable("digestive_diet_guides", "id,category,name,summary,guidance,caution,sources,updated_at,is_active", "category.asc,name.asc");
+  return readTable(
+    "digestive_diet_guides",
+    "id,category,name,summary,guidance,caution,sources,updated_at,is_active",
+    "category.asc,name.asc",
+  );
 }
 
 export async function loadSportsSupplements(): Promise<SportsSupplement[]> {
-  return readTable("sports_supplements", "id,name,category,purpose,evidence,use_case,common_dose,timing,cautions,sources", "name.asc");
+  return readTable(
+    "sports_supplements",
+    "id,name,category,purpose,evidence,use_case,common_dose,timing,cautions,sources",
+    "name.asc",
+  );
 }
 
 export async function loadSportsGoalPlans(): Promise<SportsGoalPlan[]> {
-  return readTable("sports_goal_plans", "id,goal_key,name,summary,priorities,foods,meals,note,sources", "goal_key.asc");
+  return readTable(
+    "sports_goal_plans",
+    "id,goal_key,name,summary,priorities,foods,meals,note,sources",
+    "goal_key.asc",
+  );
 }

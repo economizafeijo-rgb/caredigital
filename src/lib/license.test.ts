@@ -11,7 +11,9 @@ describe("licenças", () => {
   });
   it("a plataforma é gratuita: a validade não bloqueia, só a suspensão", () => {
     expect(licenseState({ plan: "premium", status: "ativa", expires: "2026-11-10" })).toBe("ativa");
-    expect(licenseState({ plan: "premium", status: "teste", expires: "2026-11-10" })).toBe("gratuita");
+    expect(licenseState({ plan: "premium", status: "teste", expires: "2026-11-10" })).toBe(
+      "gratuita",
+    );
     expect(licenseState({ plan: "premium", status: "expirada", expires: null })).toBe("gratuita");
     expect(licenseState({ plan: "premium", status: "gratuita", expires: null })).toBe("gratuita");
     expect(licenseState({ plan: "premium", status: "suspensa", expires: null })).toBe("suspensa");

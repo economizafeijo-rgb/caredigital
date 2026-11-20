@@ -16,13 +16,18 @@ export function isSupabaseConfigured() {
 }
 
 export async function getProfessionalSession() {
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
   if (authError) throw authError;
   if (!user) return { user: null, profile: null };
 
-  const { data: profile, error } = await supabase.from("professional_profiles")
-    .select("*").eq("user_id", user.id).maybeSingle();
+  const { data: profile, error } = await supabase
+    .from("professional_profiles")
+    .select("*")
+    .eq("user_id", user.id)
+    .maybeSingle();
   if (error) throw error;
   return { user, profile };
 }
-

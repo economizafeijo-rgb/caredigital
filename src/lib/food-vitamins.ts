@@ -196,8 +196,15 @@ const extra = new Map<string, NutrientKey[]>([
     "pao_frances pao_integral pao_massa_fina macarrao macarronada biscoito_salgado misto_quente sanduiche_natural cuscuz milho_cozido",
     ["B1", "B9", "ferro"],
   ),
-  ...G("cupuacu camu_camu araca_boi suco_acerola mangaba suco_caju suco_laranja suco_goiaba suco_maracuja suco_abacaxi vitamina_mamao", ["C"]),
-  ...G("leite_desnatado cafe_leite_desnatado leite_po_dissolvido vitamina_banana vitamina_mamao", ["B2", "B12", "calcio"]),
+  ...G(
+    "cupuacu camu_camu araca_boi suco_acerola mangaba suco_caju suco_laranja suco_goiaba suco_maracuja suco_abacaxi vitamina_mamao",
+    ["C"],
+  ),
+  ...G("leite_desnatado cafe_leite_desnatado leite_po_dissolvido vitamina_banana vitamina_mamao", [
+    "B2",
+    "B12",
+    "calcio",
+  ]),
   ...G("presunto linguica calabresa salsicha bisteca_grelhada", ["B1", "B12"]),
   ...G("tomate pimentao pimentao_vermelho pimentao_amarelo", ["C", "A"]),
   ...G("cenoura cenoura_crua abobora", ["A"]),
@@ -228,6 +235,8 @@ export function nutrientsInFood(id: string): NutrientInfo[] {
 
 /** União dos destaques de vários alimentos (ex.: uma refeição completa), sem repetições. */
 export function nutrientsInFoods(ids: string[]): NutrientInfo[] {
-  const keys = new Set(ids.flatMap(id => nutrientsInFood(id).map(n => n.key)));
-  return (Object.keys(nutrientGuide) as NutrientKey[]).filter(k => keys.has(k)).map(k => nutrientGuide[k]);
+  const keys = new Set(ids.flatMap((id) => nutrientsInFood(id).map((n) => n.key)));
+  return (Object.keys(nutrientGuide) as NutrientKey[])
+    .filter((k) => keys.has(k))
+    .map((k) => nutrientGuide[k]);
 }

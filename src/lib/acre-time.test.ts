@@ -23,15 +23,12 @@ describe("Acre timezone helpers", () => {
   });
 
   it("converts Acre wall-clock time to the correct absolute instant", () => {
-    expect(acreDateAtTime("2026-11-07", "00:15").toISOString())
-      .toBe("2026-11-07T05:15:00.000Z");
+    expect(acreDateAtTime("2026-11-07", "00:15").toISOString()).toBe("2026-11-07T05:15:00.000Z");
   });
 
   it("builds a full Acre day without using the device timezone", () => {
-    expect(acreStartOfDay("2026-11-07").toISOString())
-      .toBe("2026-11-07T05:00:00.000Z");
-    expect(acreEndOfDay("2026-11-07").toISOString())
-      .toBe("2026-11-08T05:00:00.000Z");
+    expect(acreStartOfDay("2026-11-07").toISOString()).toBe("2026-11-07T05:00:00.000Z");
+    expect(acreEndOfDay("2026-11-07").toISOString()).toBe("2026-11-08T05:00:00.000Z");
   });
 
   it("adds calendar days across month and year boundaries", () => {

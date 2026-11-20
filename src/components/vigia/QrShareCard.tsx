@@ -87,7 +87,9 @@ export function QrShareCard({
           Abra o app no celular em segundos
         </h3>
         <p className={"mt-0.5 text-xs " + muted}>
-          <span className="hidden sm:inline">Aponte a câmera do celular para o código e acesse </span>
+          <span className="hidden sm:inline">
+            Aponte a câmera do celular para o código e acesse{" "}
+          </span>
           <span className="sm:hidden">Escaneie o código ou use os botões para acessar </span>
           <strong className={dark ? "text-white" : "text-foreground"}>nextvita.life</strong>.
         </p>

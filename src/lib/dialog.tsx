@@ -11,7 +11,12 @@ type DialogRequest = {
   resolve: (value: boolean | string | null) => void;
 };
 const DialogContext = createContext<{
-  confirm: (title: string, message: string, danger?: boolean, confirmLabel?: string) => Promise<boolean>;
+  confirm: (
+    title: string,
+    message: string,
+    danger?: boolean,
+    confirmLabel?: string,
+  ) => Promise<boolean>;
   prompt: (title: string, message: string, placeholder?: string) => Promise<string | null>;
 } | null>(null);
 export function useDialog() {
@@ -113,7 +118,12 @@ function DialogOverlay({
               onClick={() => close(request.kind === "confirm" ? true : value)}
               className={`rounded-xl px-4 py-2.5 text-sm font-bold transition hover:brightness-110 active:scale-[.98] ${request.danger ? "bg-destructive text-white" : "bg-primary text-primary-foreground"}`}
             >
-              {request.confirmLabel ?? (request.kind === "prompt" ? "Confirmar" : request.danger ? "Excluir" : "Continuar")}
+              {request.confirmLabel ??
+                (request.kind === "prompt"
+                  ? "Confirmar"
+                  : request.danger
+                    ? "Excluir"
+                    : "Continuar")}
             </button>
           </div>
         </div>

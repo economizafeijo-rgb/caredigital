@@ -16,7 +16,11 @@ const round = (value: number, step: number) => Math.round(value / step) * step;
  * homens adultos 2,5 L; mulheres adultas 2,0 L; meninos de 9 a 13 anos 2,1 L; meninas 1,9 L;
  * 4 a 8 anos 1,6 L; 2 a 3 anos 1,3 L; 1 ano 1,1 a 1,2 L. Gestação +300 ml; lactação +700 ml.
  */
-export function totalWaterReferenceMl(sex: SexRef, ageYears: number | null, situation?: "pregnant" | "lactating" | null): number | null {
+export function totalWaterReferenceMl(
+  sex: SexRef,
+  ageYears: number | null,
+  situation?: "pregnant" | "lactating" | null,
+): number | null {
   if (ageYears === null || !Number.isFinite(ageYears) || ageYears < 1) return null; // lactentes: orientação pediátrica
   const s = sexKey(sex);
   let base: number | null;
@@ -34,7 +38,11 @@ export function totalWaterReferenceMl(sex: SexRef, ageYears: number | null, situ
 export const WATER_FROM_FLUIDS_SHARE = 0.8;
 
 /** Meta de LÍQUIDOS para beber no dia (ml), arredondada a 50 ml. */
-export function fluidTargetMl(sex: SexRef, ageYears: number | null, situation?: "pregnant" | "lactating" | null): number | null {
+export function fluidTargetMl(
+  sex: SexRef,
+  ageYears: number | null,
+  situation?: "pregnant" | "lactating" | null,
+): number | null {
   const total = totalWaterReferenceMl(sex, ageYears, situation);
   return total === null ? null : round(total * WATER_FROM_FLUIDS_SHARE, 50);
 }
@@ -49,7 +57,10 @@ export const WATER_DEFAULT_BEDTIME_HOUR = 23;
 export const WATER_HOURS_BEFORE_BED = 3;
 export const WATER_LAST_RECOMMENDED_HOUR = WATER_DEFAULT_BEDTIME_HOUR - WATER_HOURS_BEFORE_BED;
 export function lastRecommendedDrinkHour(bedtimeHour: number | null = null): number {
-  const bed = bedtimeHour === null || !Number.isFinite(bedtimeHour) ? WATER_DEFAULT_BEDTIME_HOUR : bedtimeHour;
+  const bed =
+    bedtimeHour === null || !Number.isFinite(bedtimeHour)
+      ? WATER_DEFAULT_BEDTIME_HOUR
+      : bedtimeHour;
   const adjusted = bed < 6 ? bed + 24 : bed; // deitar de madrugada conta como o fim da noite
   return Math.min(23, Math.max(12, Math.round(adjusted - WATER_HOURS_BEFORE_BED)));
 }
@@ -81,29 +92,71 @@ export function idealWeightKg(sex: SexRef, heightCm: number): number | null {
  *  - Crianças e adolescentes: DRI por idade (IOM 2005): 1-3 anos 1,05 g/kg; 4-13 anos 0,95 g/kg; 14-18 anos 0,85 g/kg.
  *  - IMC ≥ 30: usa peso ajustado (ideal + 25% do excesso), prática clínica comum, para não superestimar.
  */
-export function proteinTarget(input: { ageYears: number | null; sex: SexRef; weightKg: number | null; heightCm: number | null; objective: string | null }): ProteinTarget | null {
+export function proteinTarget(input: {
+  ageYears: number | null;
+  sex: SexRef;
+  weightKg: number | null;
+  heightCm: number | null;
+  objective: string | null;
+}): ProteinTarget | null {
   const { ageYears, sex, weightKg, heightCm, objective } = input;
-  if (weightKg === null || !Number.isFinite(weightKg) || weightKg < 8 || weightKg > 300) return null;
+  if (weightKg === null || !Number.isFinite(weightKg) || weightKg < 8 || weightKg > 300)
+    return null;
   const age = ageYears !== null && Number.isFinite(ageYears) ? ageYears : 30;
-  let perKg: number; let min: number; let max: number; let note: string;
+  let perKg: number;
+  let min: number;
+  let max: number;
+  let note: string;
   if (age < 1) return null;
   if (age < 18) {
-    perKg = age < 4 ? 1.05 : age < 14 ? 0.95 : 0.85; min = perKg; max = Math.round(perKg * 1.3 * 100) / 100;
-    note = "Crianças e adolescentes: referência por idade (DRI). Objetivos de peso devem ser acompanhados por pediatra.";
+    perKg = age < 4 ? 1.05 : age < 14 ? 0.95 : 0.85;
+    min = perKg;
+    max = Math.round(perKg * 1.3 * 100) / 100;
+    note =
+      "Crianças e adolescentes: referência por idade (DRI). Objetivos de peso devem ser acompanhados por pediatra.";
   } else if (age >= 65) {
-    perKg = objective === "hipertrofia" ? 1.5 : objective === "ganho_peso" ? 1.3 : 1.2; min = 1.0; max = 1.5;
-    note = "Acima de 65 anos o consenso recomenda 1,0 a 1,2 g/kg ou mais para preservar a massa muscular.";
-  } else if (objective === "hipertrofia") { perKg = 1.6; min = 1.4; max = 2.0; note = "Ganho de massa com treino de força: 1,4 a 2,0 g/kg (ISSN)."; }
-  else if (objective === "emagrecimento") { perKg = 1.4; min = 1.2; max = 1.6; note = "Em déficit calórico, mais proteína ajuda a preservar a massa magra (1,2 a 1,6 g/kg; até 2,4 g/kg com treino intenso, ISSN)."; }
-  else if (objective === "ganho_peso") { perKg = 1.4; min = 1.2; max = 1.6; note = "Para ganhar peso com qualidade: 1,2 a 1,6 g/kg, com treino de força."; }
-  else { perKg = 1.0; min = 0.8; max = 1.2; note = "Manutenção: o mínimo (RDA) é 0,8 g/kg; 1,0 g/kg cobre quem é ativo."; }
+    perKg = objective === "hipertrofia" ? 1.5 : objective === "ganho_peso" ? 1.3 : 1.2;
+    min = 1.0;
+    max = 1.5;
+    note =
+      "Acima de 65 anos o consenso recomenda 1,0 a 1,2 g/kg ou mais para preservar a massa muscular.";
+  } else if (objective === "hipertrofia") {
+    perKg = 1.6;
+    min = 1.4;
+    max = 2.0;
+    note = "Ganho de massa com treino de força: 1,4 a 2,0 g/kg (ISSN).";
+  } else if (objective === "emagrecimento") {
+    perKg = 1.4;
+    min = 1.2;
+    max = 1.6;
+    note =
+      "Em déficit calórico, mais proteína ajuda a preservar a massa magra (1,2 a 1,6 g/kg; até 2,4 g/kg com treino intenso, ISSN).";
+  } else if (objective === "ganho_peso") {
+    perKg = 1.4;
+    min = 1.2;
+    max = 1.6;
+    note = "Para ganhar peso com qualidade: 1,2 a 1,6 g/kg, com treino de força.";
+  } else {
+    perKg = 1.0;
+    min = 0.8;
+    max = 1.2;
+    note = "Manutenção: o mínimo (RDA) é 0,8 g/kg; 1,0 g/kg cobre quem é ativo.";
+  }
 
   const bmi = heightCm && heightCm >= 100 ? weightKg / (heightCm / 100) ** 2 : null;
   const ideal = heightCm ? idealWeightKg(sex, heightCm) : null;
   const adjusted = age >= 18 && bmi !== null && bmi >= 30 && ideal !== null;
   const basisKg = adjusted ? ideal! + 0.25 * (weightKg - ideal!) : weightKg;
   const grams = Math.min(Math.round(perKg * basisKg), Math.round(2.2 * weightKg));
-  return { grams, perKg, minPerKg: min, maxPerKg: max, basisKg: Math.round(basisKg * 10) / 10, adjusted, note: adjusted ? `${note} Calculado sobre o peso ajustado (IMC ≥ 30).` : note };
+  return {
+    grams,
+    perKg,
+    minPerKg: min,
+    maxPerKg: max,
+    basisKg: Math.round(basisKg * 10) / 10,
+    adjusted,
+    note: adjusted ? `${note} Calculado sobre o peso ajustado (IMC ≥ 30).` : note,
+  };
 }
 
 /* ---------------------------------- PESO ---------------------------------- */
@@ -122,21 +175,47 @@ export type WeightGuidance = {
  * percentil de IMC por idade e sexo. Ritmo usual de perda: cerca de 0,5 a 1 kg por semana (até ~1% do peso); acima disso
  * aumenta a perda de massa magra. Ganho de massa: até ~0,5% do peso por semana.
  */
-export function weightGuidance(input: { ageYears: number | null; heightCm: number | null; weightKg: number | null; trendKgPerWeek?: number | null }): WeightGuidance {
+export function weightGuidance(input: {
+  ageYears: number | null;
+  heightCm: number | null;
+  weightKg: number | null;
+  trendKgPerWeek?: number | null;
+}): WeightGuidance {
   const { ageYears, heightCm, weightKg, trendKgPerWeek } = input;
-  const valid = heightCm !== null && heightCm >= 100 && heightCm <= 230 && weightKg !== null && weightKg >= 8 && weightKg <= 400;
+  const valid =
+    heightCm !== null &&
+    heightCm >= 100 &&
+    heightCm <= 230 &&
+    weightKg !== null &&
+    weightKg >= 8 &&
+    weightKg <= 400;
   const bmi = valid ? Number((weightKg! / (heightCm! / 100) ** 2).toFixed(1)) : null;
   const adultBmi = ageYears === null || ageYears >= 18;
-  const healthyRangeKg: [number, number] | null = valid && adultBmi ? [Math.round(18.5 * (heightCm! / 100) ** 2 * 10) / 10, Math.round(24.9 * (heightCm! / 100) ** 2 * 10) / 10] : null;
+  const healthyRangeKg: [number, number] | null =
+    valid && adultBmi
+      ? [
+          Math.round(18.5 * (heightCm! / 100) ** 2 * 10) / 10,
+          Math.round(24.9 * (heightCm! / 100) ** 2 * 10) / 10,
+        ]
+      : null;
   let pace: WeightGuidance["pace"] = null;
-  if (valid && trendKgPerWeek !== null && trendKgPerWeek !== undefined && Number.isFinite(trendKgPerWeek)) {
+  if (
+    valid &&
+    trendKgPerWeek !== null &&
+    trendKgPerWeek !== undefined &&
+    Number.isFinite(trendKgPerWeek)
+  ) {
     const pct = (trendKgPerWeek / weightKg!) * 100;
     pace = pct < -1 ? "fast_loss" : pct > 0.5 ? "fast_gain" : "ok";
   }
-  const message = !adultBmi ? "Em crianças e adolescentes o IMC é avaliado por percentil de idade e sexo (curvas da OMS); converse com o pediatra."
-    : pace === "fast_loss" ? "Perda acima de ~1% do peso por semana: ritmos maiores aumentam a perda de massa magra. O usual é 0,5 a 1 kg por semana."
-      : pace === "fast_gain" ? "Ganho acima de ~0,5% do peso por semana tende a acumular mais gordura do que massa muscular."
-        : ageYears !== null && ageYears >= 65 ? "Acima de 65 anos faixas de IMC um pouco mais altas costumam ser aceitas; avalie com um profissional."
+  const message = !adultBmi
+    ? "Em crianças e adolescentes o IMC é avaliado por percentil de idade e sexo (curvas da OMS); converse com o pediatra."
+    : pace === "fast_loss"
+      ? "Perda acima de ~1% do peso por semana: ritmos maiores aumentam a perda de massa magra. O usual é 0,5 a 1 kg por semana."
+      : pace === "fast_gain"
+        ? "Ganho acima de ~0,5% do peso por semana tende a acumular mais gordura do que massa muscular."
+        : ageYears !== null && ageYears >= 65
+          ? "Acima de 65 anos faixas de IMC um pouco mais altas costumam ser aceitas; avalie com um profissional."
           : "Referência da OMS para adultos: IMC de 18,5 a 24,9.";
   return { bmi, adultBmi, healthyRangeKg, pace, message };
 }

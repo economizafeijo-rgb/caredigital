@@ -1,6 +1,12 @@
 import { useEffect, useState, type ReactNode, type ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { acreDateAtTime, acreDateKey, acreTimeLabel, formatAcreDateOnly } from "@/lib/acre-time";
 
 export function useNow(interval = 1000) {
@@ -15,7 +21,10 @@ export function useNow(interval = 1000) {
 
 export function secondsUntil(now: Date, hhmm: string) {
   const [h = 0, m = 0] = hhmm.split(":").map(Number);
-  const target = acreDateAtTime(acreDateKey(now), `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`);
+  const target = acreDateAtTime(
+    acreDateKey(now),
+    `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`,
+  );
   return Math.floor((target.getTime() - now.getTime()) / 1000);
 }
 
@@ -30,7 +39,10 @@ export function fmtDuration(sec: number) {
 export function fmtClock(d: Date | null) {
   if (!d) return "--:-- · --";
   const time = acreTimeLabel(d);
-  const date = formatAcreDateOnly(acreDateKey(d), { day: "2-digit", month: "short" }).replace(".", "");
+  const date = formatAcreDateOnly(acreDateKey(d), { day: "2-digit", month: "short" }).replace(
+    ".",
+    "",
+  );
   return `${time} · ${date}`;
 }
 
@@ -79,17 +91,45 @@ const tones = {
 } as const;
 export type ToneKey = keyof typeof tones;
 
-export function Tag({ tone = "muted", children, className }: { tone?: ToneKey; children: ReactNode; className?: string }) {
+export function Tag({
+  tone = "muted",
+  children,
+  className,
+}: {
+  tone?: ToneKey;
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <span className={cn("inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold", tones[tone], className)}>
+    <span
+      className={cn(
+        "inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold",
+        tones[tone],
+        className,
+      )}
+    >
       {children}
     </span>
   );
 }
 
-export function IconBox({ tone = "primary", children, round }: { tone?: ToneKey; children: ReactNode; round?: boolean }) {
+export function IconBox({
+  tone = "primary",
+  children,
+  round,
+}: {
+  tone?: ToneKey;
+  children: ReactNode;
+  round?: boolean;
+}) {
   return (
-    <div className={cn("grid size-10 shrink-0 place-items-center font-display", round ? "rounded-full" : "rounded-lg", tones[tone])}>
+    <div
+      className={cn(
+        "grid size-10 shrink-0 place-items-center font-display",
+        round ? "rounded-full" : "rounded-lg",
+        tones[tone],
+      )}
+    >
       {children}
     </div>
   );
@@ -98,7 +138,15 @@ export function IconBox({ tone = "primary", children, round }: { tone?: ToneKey;
 export const kindTone = (k: string): ToneKey =>
   k === "Natural" ? "success" : k === "Suplemento" ? "warning" : "primary";
 
-export function PageHeader({ eyebrow, title, children }: { eyebrow: string; title: string; children?: ReactNode }) {
+export function PageHeader({
+  eyebrow,
+  title,
+  children,
+}: {
+  eyebrow: string;
+  title: string;
+  children?: ReactNode;
+}) {
   return (
     <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
       <div>
@@ -110,7 +158,19 @@ export function PageHeader({ eyebrow, title, children }: { eyebrow: string; titl
   );
 }
 
-export function Panel({ title, action, children, className, delay: _delay = 0 }: { title?: string; action?: ReactNode; children: ReactNode; className?: string; delay?: number }) {
+export function Panel({
+  title,
+  action,
+  children,
+  className,
+  delay: _delay = 0,
+}: {
+  title?: string;
+  action?: ReactNode;
+  children: ReactNode;
+  className?: string;
+  delay?: number;
+}) {
   return (
     <div className={cn("panel", className)}>
       {(title || action) && (
@@ -149,25 +209,59 @@ export function SelectField({
   disabled?: boolean;
 }) {
   return (
-    <Select value={value} onValueChange={onValueChange} {...(disabled === undefined ? {} : { disabled })}>
-      <SelectTrigger className={cn("field flex items-center justify-between gap-3 text-left", className)}>
+    <Select
+      value={value}
+      onValueChange={onValueChange}
+      {...(disabled === undefined ? {} : { disabled })}
+    >
+      <SelectTrigger
+        className={cn("field flex items-center justify-between gap-3 text-left", className)}
+      >
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
-        {options.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+        {options.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   );
 }
 
-export function Modal({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
+export function Modal({
+  open,
+  onClose,
+  title,
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  children: ReactNode;
+}) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/60 p-4 backdrop-blur-sm" onClick={onClose}>
-      <div role="dialog" aria-modal="true" aria-label={title} className="panel max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-slate-950/60 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className="panel max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="mb-5 flex items-center justify-between">
           <h3 className="text-lg font-bold tracking-tight">{title}</h3>
-          <button onClick={onClose} className="label-mono text-muted-foreground hover:text-foreground">Fechar</button>
+          <button
+            onClick={onClose}
+            className="label-mono text-muted-foreground hover:text-foreground"
+          >
+            Fechar
+          </button>
         </div>
         {children}
       </div>

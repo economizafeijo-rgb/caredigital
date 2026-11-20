@@ -22,7 +22,10 @@ import {
   parseFoodText,
   sumNutrients,
   type Nutrients,
-  type ParsedFood, isLiquid, measureUnit } from "@/lib/food-parser";
+  type ParsedFood,
+  isLiquid,
+  measureUnit,
+} from "@/lib/food-parser";
 import { objectiveLabel } from "@/lib/objective-nutrition";
 import { useDialog } from "@/lib/dialog";
 
@@ -151,10 +154,13 @@ export function useDailyNutrition(
           });
         }
         // Refeições e líquidos contam somente até o fechamento do dia (22h, horário do Acre).
-      const dayCutoff = Date.parse(acreDateKey() + `T${String(DAY_CUTOFF_HOUR).padStart(2, "0")}:00:00-05:00`);
-      const counted = list.filter(entry => Date.parse(entry.at) < dayCutoff);
-      counted.sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
-      list.length = 0; list.push(...counted);
+        const dayCutoff = Date.parse(
+          acreDateKey() + `T${String(DAY_CUTOFF_HOUR).padStart(2, "0")}:00:00-05:00`,
+        );
+        const counted = list.filter((entry) => Date.parse(entry.at) < dayCutoff);
+        counted.sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
+        list.length = 0;
+        list.push(...counted);
         setEntries(list);
         const p = pref.data ?? {};
         const num = (v: unknown) =>
@@ -357,58 +363,64 @@ export function DailyNutritionPanel({
       className="rounded-3xl border border-border bg-card p-5 shadow-card"
       aria-label="Nutrição de hoje"
     >
-      {!hideSummary && <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <h3 className="flex items-center gap-2 text-lg font-bold">
-            <Apple size={20} className="text-emerald-500" /> Nutrição de hoje
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            Calculado automaticamente a partir das refeições e líquidos que você registrou.
-          </p>
+      {!hideSummary && (
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <h3 className="flex items-center gap-2 text-lg font-bold">
+              <Apple size={20} className="text-emerald-500" /> Nutrição de hoje
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Calculado automaticamente a partir das refeições e líquidos que você registrou.
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-600 to-lime-500 px-3 py-1.5 text-xs font-bold text-white">
+            <Target size={14} /> {objectiveLabel(objective)}
+          </span>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-600 to-lime-500 px-3 py-1.5 text-xs font-bold text-white">
-          <Target size={14} /> {objectiveLabel(objective)}
-        </span>
-      </div>}
+      )}
       {!loaded ? (
         <div className="mt-4 h-40 animate-pulse rounded-2xl bg-muted" />
       ) : (
         <>
-          {!hideSummary && <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <Ring
-              value={total.kcal}
-              target={target.kcal}
-              label="Calorias"
-              unit="kcal"
-              color="#f97316"
-              icon={Flame}
-            />
-            <Ring
-              value={total.protein}
-              target={target.protein}
-              label="Proteínas"
-              unit="g"
-              color="#e11d48"
-              icon={Beef}
-            />
-            <Ring
-              value={total.carbs}
-              target={target.carbs}
-              label="Carboidratos"
-              unit="g"
-              color="#f59e0b"
-              icon={Wheat}
-            />
-            <Ring
-              value={total.fat}
-              target={target.fat}
-              label="Gorduras"
-              unit="g"
-              color="#8b5cf6"
-              icon={Droplet}
-            />
-          </div>}
-          <p className={`${hideSummary ? "" : "mt-4 "}flex gap-2 rounded-2xl bg-emerald-500/10 p-3 text-sm font-medium text-emerald-800 dark:text-emerald-200`}>
+          {!hideSummary && (
+            <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <Ring
+                value={total.kcal}
+                target={target.kcal}
+                label="Calorias"
+                unit="kcal"
+                color="#f97316"
+                icon={Flame}
+              />
+              <Ring
+                value={total.protein}
+                target={target.protein}
+                label="Proteínas"
+                unit="g"
+                color="#e11d48"
+                icon={Beef}
+              />
+              <Ring
+                value={total.carbs}
+                target={target.carbs}
+                label="Carboidratos"
+                unit="g"
+                color="#f59e0b"
+                icon={Wheat}
+              />
+              <Ring
+                value={total.fat}
+                target={target.fat}
+                label="Gorduras"
+                unit="g"
+                color="#8b5cf6"
+                icon={Droplet}
+              />
+            </div>
+          )}
+          <p
+            className={`${hideSummary ? "" : "mt-4 "}flex gap-2 rounded-2xl bg-emerald-500/10 p-3 text-sm font-medium text-emerald-800 dark:text-emerald-200`}
+          >
             <Sparkles size={18} className="mt-0.5 shrink-0" />
             {goalAdvice(objective, total, target)}
           </p>
@@ -481,16 +493,71 @@ export function DailyNutritionPanel({
                         <RecordInfo
                           title={entry.text || entry.source}
                           at={entry.at}
-                          category={entry.entryType === "beverage" ? "Bebida" : entry.entryType === "food" ? "Alimento" : "Refeição"}
+                          category={
+                            entry.entryType === "beverage"
+                              ? "Bebida"
+                              : entry.entryType === "food"
+                                ? "Alimento"
+                                : "Refeição"
+                          }
                           color={entry.entryType === "beverage" ? "#0ea5e9" : "#10b981"}
                           rows={(() => {
-                            const n = entry.direct ?? sumNutrients(entry.foods.map((f) => f.nutrients));
-                            const fmt = (v: number, d = 0) => v.toLocaleString("pt-BR", { maximumFractionDigits: d });
+                            const n =
+                              entry.direct ?? sumNutrients(entry.foods.map((f) => f.nutrients));
+                            const fmt = (v: number, d = 0) =>
+                              v.toLocaleString("pt-BR", { maximumFractionDigits: d });
                             return [
-                              ...(entry.foods.length ? [{ label: "Consumido", value: entry.foods.map((f) => `${f.name} (${fmt(f.grams)} ${measureUnit(f.id)}${f.estimatedPortion ? ", porção estimada" : ""})`).join(", ") }] : []),
-                              ...(entry.amountMl ? [{ label: "Quantidade", value: `${fmt(entry.amountMl)} ml` }] : entry.foods.length ? [{ label: "Quantidade", value: [["g", entry.foods.filter((f) => !isLiquid(f.id)).reduce((a, f) => a + f.grams, 0)], ["ml", entry.foods.filter((f) => isLiquid(f.id)).reduce((a, f) => a + f.grams, 0)]].filter(([, v]) => Number(v) > 0).map(([u, v]) => `${fmt(Number(v))} ${u}`).join(" + ") }] : []),
-                              ...(n.kcal > 0 ? [{ label: "Energia", value: `${fmt(n.kcal)} kcal` }, { label: "Macros", value: `P ${fmt(n.protein, 1)} g · C ${fmt(n.carbs, 1)} g · G ${fmt(n.fat, 1)} g` }] : []),
-                              ...(n.fiber > 0 ? [{ label: "Fibras", value: `${fmt(n.fiber, 1)} g` }] : []),
+                              ...(entry.foods.length
+                                ? [
+                                    {
+                                      label: "Consumido",
+                                      value: entry.foods
+                                        .map(
+                                          (f) =>
+                                            `${f.name} (${fmt(f.grams)} ${measureUnit(f.id)}${f.estimatedPortion ? ", porção estimada" : ""})`,
+                                        )
+                                        .join(", "),
+                                    },
+                                  ]
+                                : []),
+                              ...(entry.amountMl
+                                ? [{ label: "Quantidade", value: `${fmt(entry.amountMl)} ml` }]
+                                : entry.foods.length
+                                  ? [
+                                      {
+                                        label: "Quantidade",
+                                        value: [
+                                          [
+                                            "g",
+                                            entry.foods
+                                              .filter((f) => !isLiquid(f.id))
+                                              .reduce((a, f) => a + f.grams, 0),
+                                          ],
+                                          [
+                                            "ml",
+                                            entry.foods
+                                              .filter((f) => isLiquid(f.id))
+                                              .reduce((a, f) => a + f.grams, 0),
+                                          ],
+                                        ]
+                                          .filter(([, v]) => Number(v) > 0)
+                                          .map(([u, v]) => `${fmt(Number(v))} ${u}`)
+                                          .join(" + "),
+                                      },
+                                    ]
+                                  : []),
+                              ...(n.kcal > 0
+                                ? [
+                                    { label: "Energia", value: `${fmt(n.kcal)} kcal` },
+                                    {
+                                      label: "Macros",
+                                      value: `P ${fmt(n.protein, 1)} g · C ${fmt(n.carbs, 1)} g · G ${fmt(n.fat, 1)} g`,
+                                    },
+                                  ]
+                                : []),
+                              ...(n.fiber > 0
+                                ? [{ label: "Fibras", value: `${fmt(n.fiber, 1)} g` }]
+                                : []),
                               { label: "Origem", value: entry.source },
                             ];
                           })()}

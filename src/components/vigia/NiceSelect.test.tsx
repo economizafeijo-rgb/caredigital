@@ -5,7 +5,20 @@ import { NiceSelect } from "./NiceSelect";
 
 function Demo() {
   const [v, setV] = useState("a");
-  return <><NiceSelect ariaLabel="Categoria" value={v} onChange={setV} options={[{ value: "a", label: "Água" }, { value: "b", label: "Chá" }]} /><output>{v}</output></>;
+  return (
+    <>
+      <NiceSelect
+        ariaLabel="Categoria"
+        value={v}
+        onChange={setV}
+        options={[
+          { value: "a", label: "Água" },
+          { value: "b", label: "Chá" },
+        ]}
+      />
+      <output>{v}</output>
+    </>
+  );
 }
 
 describe("NiceSelect", () => {

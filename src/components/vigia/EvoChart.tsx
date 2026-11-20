@@ -654,7 +654,7 @@ export function EvoChart({
         {hoverX !== null && w > 0 && (
           <div
             role="status"
-            className="pointer-events-none absolute z-10 min-w-40 max-w-60 rounded-xl border border-border bg-popover/95 px-3 py-2 text-xs text-popover-foreground shadow-lg backdrop-blur"
+            className="pointer-events-none absolute z-10 w-max min-w-44 max-w-[17rem] rounded-xl border border-border bg-popover/95 px-3 py-2 text-xs text-popover-foreground shadow-lg backdrop-blur"
             style={{
               top: PAD.t,
               ...(sx(hoverX) > w * 0.6
@@ -662,17 +662,26 @@ export function EvoChart({
                 : { left: sx(hoverX) + 12 }),
             }}
           >
-            <p className="font-bold capitalize">{formatX(hoverX)}</p>
+            <p className="mb-1 whitespace-nowrap border-b border-border pb-1 font-bold capitalize">
+              {formatX(hoverX)}
+            </p>
             {series.map((s) => {
               const v = valueAt(s.points, hoverX);
               return v === null ? null : (
-                <p key={s.id} className="mt-1 flex items-center gap-2">
+                <p
+                  key={s.id}
+                  className="mt-1 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2"
+                >
                   <i
                     className={`inline-block w-3 ${s.dashed ? "border-t-2 border-dashed" : "h-[3px] rounded-full"}`}
                     style={s.dashed ? { borderColor: s.color } : { background: s.color }}
                   />
-                  <span className="text-muted-foreground">{s.label}</span>
-                  <strong className="ml-auto tabular-nums">{formatY(v)}</strong>
+                  <span className="truncate text-muted-foreground" title={s.label}>
+                    {s.label}
+                  </span>
+                  <strong className="whitespace-nowrap text-right tabular-nums">
+                    {formatY(v)}
+                  </strong>
                 </p>
               );
             })}
@@ -680,13 +689,20 @@ export function EvoChart({
               .filter((b) => b.x === hoverX)
               .flatMap((b) => b.parts.filter((p) => p.y > 0))
               .map((p) => (
-                <p key={p.label} className="mt-1 flex items-center gap-2">
+                <p
+                  key={p.label}
+                  className="mt-1 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2"
+                >
                   <i
                     className="inline-block size-2.5 rounded-[3px]"
                     style={{ background: p.color }}
                   />
-                  <span className="text-muted-foreground">{p.label}</span>
-                  <strong className="ml-auto tabular-nums">{formatY(p.y)}</strong>
+                  <span className="truncate text-muted-foreground" title={p.label}>
+                    {p.label}
+                  </span>
+                  <strong className="whitespace-nowrap text-right tabular-nums">
+                    {formatY(p.y)}
+                  </strong>
                 </p>
               ))}
             {tip?.(hoverX)}

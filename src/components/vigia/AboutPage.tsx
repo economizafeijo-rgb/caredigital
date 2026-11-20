@@ -1,5 +1,16 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { AppWindow, Check, Code2, Copy, Mail, MapPin, MessageCircle, Phone, ShoppingBag, Smartphone } from "lucide-react";
+import {
+  AppWindow,
+  Check,
+  Code2,
+  Copy,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Phone,
+  ShoppingBag,
+  Smartphone,
+} from "lucide-react";
 import { LogoMark } from "./Logo";
 import { useFitWindow } from "@/lib/use-fit-window";
 import { LiveSitePreview } from "./LiveSitePreview";
@@ -10,25 +21,85 @@ const PHONE_DIGITS = "5568992031340";
 const WHATSAPP = `https://wa.me/${PHONE_DIGITS}?text=${encodeURIComponent("Olá, Franc! Vi a NextVita e quero conversar sobre um projeto.")}`;
 
 const story = [
-  { key: "plataforma", label: "Plataforma", text: "Saúde e rotina no mesmo app: medicação, água, alimentação, treinos, sono e métricas, com lembretes e gráficos de evolução. Grátis para usar." },
-  { key: "loja", label: "Loja virtual", text: "Suplementos, fitoterápicos, moda fitness e acessórios de lojas parceiras da região, com carrinho, Pix com desconto e entrega ou retirada." },
-  { key: "lojistas", label: "Para lojistas", text: "Vitrine própria, selo da loja, avaliações e painel de vendas para quem quer vender para um público que já cuida da saúde." },
-  { key: "anuncios", label: "Anúncios", text: "Academias, personal trainers e marcas divulgam serviços e produtos para quem acompanha a própria rotina no app todos os dias." },
-  { key: "sob-medida", label: "Sob medida", text: "Quem criou a NextVita também desenvolve sites, aplicativos e lojas virtuais para quem tem uma ideia e quer levar ao seu público." },
+  {
+    key: "plataforma",
+    label: "Plataforma",
+    text: "Saúde e rotina no mesmo app: medicação, água, alimentação, treinos, sono e métricas, com lembretes e gráficos de evolução. Grátis para usar.",
+  },
+  {
+    key: "loja",
+    label: "Loja virtual",
+    text: "Suplementos, fitoterápicos, moda fitness e acessórios de lojas parceiras da região, com carrinho, Pix com desconto e entrega ou retirada.",
+  },
+  {
+    key: "lojistas",
+    label: "Para lojistas",
+    text: "Vitrine própria, selo da loja, avaliações e painel de vendas para quem quer vender para um público que já cuida da saúde.",
+  },
+  {
+    key: "anuncios",
+    label: "Anúncios",
+    text: "Academias, personal trainers e marcas divulgam serviços e produtos para quem acompanha a própria rotina no app todos os dias.",
+  },
+  {
+    key: "sob-medida",
+    label: "Sob medida",
+    text: "Quem criou a NextVita também desenvolve sites, aplicativos e lojas virtuais para quem tem uma ideia e quer levar ao seu público.",
+  },
 ] as const;
 
 const services = [
-  { key: "sites", label: "Sites", icon: AppWindow, text: "Sites rápidos e bonitos para apresentar o seu negócio e ser encontrado no Google." },
-  { key: "apps", label: "Aplicativos", icon: Smartphone, text: "Apps que funcionam no celular e no computador, instaláveis na tela inicial." },
-  { key: "lojas", label: "Lojas virtuais", icon: ShoppingBag, text: "Vitrine, carrinho e pedidos para vender pela internet com a sua marca." },
-  { key: "sistemas", label: "Sistemas", icon: Code2, text: "Painéis e sistemas sob medida para organizar clientes, agenda e vendas." },
+  {
+    key: "sites",
+    label: "Sites",
+    icon: AppWindow,
+    text: "Sites rápidos e bonitos para apresentar o seu negócio e ser encontrado no Google.",
+  },
+  {
+    key: "apps",
+    label: "Aplicativos",
+    icon: Smartphone,
+    text: "Apps que funcionam no celular e no computador, instaláveis na tela inicial.",
+  },
+  {
+    key: "lojas",
+    label: "Lojas virtuais",
+    icon: ShoppingBag,
+    text: "Vitrine, carrinho e pedidos para vender pela internet com a sua marca.",
+  },
+  {
+    key: "sistemas",
+    label: "Sistemas",
+    icon: Code2,
+    text: "Painéis e sistemas sob medida para organizar clientes, agenda e vendas.",
+  },
 ] as const;
 
 const mosaic: { src: string; label: string; tall?: boolean }[][] = [
-  [{ src: "/images/hero-alimentacao.webp", label: "Alimentação", tall: true }, { src: "/loja/v2/whey.webp", label: "Loja" }, { src: "/images/hero-sono.webp", label: "Sono", tall: true }, { src: "/loja/v2/oleo-copaiba.webp", label: "Fitoterápicos" }],
-  [{ src: "/images/dev-nextvita-desktop.webp", label: "NextVita" }, { src: "/images/hero-hidratacao.webp", label: "Hidratação", tall: true }, { src: "/loja/v2/conjunto-rose.webp", label: "Moda fitness" }, { src: "/images/hero-metricas.webp", label: "Métricas", tall: true }],
-  [{ src: "/images/hero-medicamentos.webp", label: "Medicação", tall: true }, { src: "/loja/v2/halteres.webp", label: "Acessórios" }, { src: "/images/hero-treinos.webp", label: "Treinos", tall: true }, { src: "/loja/v2/multivitaminico.webp", label: "Vitaminas" }],
-  [{ src: "/loja/v2/pre-treino.webp", label: "Suplementos" }, { src: "/images/hero-peso.webp", label: "Peso", tall: true }, { src: "/images/hero-suplementos.webp", label: "Suplementos", tall: true }, { src: "/loja/v2/guarana-po.webp", label: "Produtos da Amazônia" }],
+  [
+    { src: "/images/hero-alimentacao.webp", label: "Alimentação", tall: true },
+    { src: "/loja/v2/whey.webp", label: "Loja" },
+    { src: "/images/hero-sono.webp", label: "Sono", tall: true },
+    { src: "/loja/v2/oleo-copaiba.webp", label: "Fitoterápicos" },
+  ],
+  [
+    { src: "/images/dev-nextvita-desktop.webp", label: "NextVita" },
+    { src: "/images/hero-hidratacao.webp", label: "Hidratação", tall: true },
+    { src: "/loja/v2/conjunto-rose.webp", label: "Moda fitness" },
+    { src: "/images/hero-metricas.webp", label: "Métricas", tall: true },
+  ],
+  [
+    { src: "/images/hero-medicamentos.webp", label: "Medicação", tall: true },
+    { src: "/loja/v2/halteres.webp", label: "Acessórios" },
+    { src: "/images/hero-treinos.webp", label: "Treinos", tall: true },
+    { src: "/loja/v2/multivitaminico.webp", label: "Vitaminas" },
+  ],
+  [
+    { src: "/loja/v2/pre-treino.webp", label: "Suplementos" },
+    { src: "/images/hero-peso.webp", label: "Peso", tall: true },
+    { src: "/images/hero-suplementos.webp", label: "Suplementos", tall: true },
+    { src: "/loja/v2/guarana-po.webp", label: "Produtos da Amazônia" },
+  ],
 ];
 
 /** Mosaico da plataforma: colunas inclinadas que deslizam com as áreas, a loja e a tela real do site. */
@@ -38,11 +109,19 @@ function AcreArt() {
       <div className="absolute -inset-[18%] grid rotate-[-10deg] grid-cols-4 gap-3">
         {mosaic.map((col, ci) => (
           <div key={ci} className="overflow-hidden">
-            <div className={`nv-mosaic-col flex flex-col gap-3 ${ci % 2 ? "nv-mosaic-rev" : ""}`} style={{ animationDuration: `${38 + ci * 6}s` }}>
+            <div
+              className={`nv-mosaic-col flex flex-col gap-3 ${ci % 2 ? "nv-mosaic-rev" : ""}`}
+              style={{ animationDuration: `${38 + ci * 6}s` }}
+            >
               {[...col, ...col].map((t, i) => (
-                <figure key={i} className={`relative overflow-hidden rounded-2xl bg-[#e6e7e9] ring-1 ring-white/10 ${t.tall ? "aspect-[3/4]" : "aspect-square"}`}>
+                <figure
+                  key={i}
+                  className={`relative overflow-hidden rounded-2xl bg-[#e6e7e9] ring-1 ring-white/10 ${t.tall ? "aspect-[3/4]" : "aspect-square"}`}
+                >
                   <img src={t.src} alt="" loading="lazy" className="size-full object-cover" />
-                  <figcaption className="absolute bottom-2 left-2 rounded-full bg-slate-950/70 px-2 py-0.5 text-[11px] font-semibold text-white backdrop-blur">{t.label}</figcaption>
+                  <figcaption className="absolute bottom-2 left-2 rounded-full bg-slate-950/70 px-2 py-0.5 text-[11px] font-semibold text-white backdrop-blur">
+                    {t.label}
+                  </figcaption>
                 </figure>
               ))}
             </div>
@@ -52,7 +131,6 @@ function AcreArt() {
     </div>
   );
 }
-
 
 /** Página "Sobre": a história do projeto, o desenvolvedor, o portfólio e o contato, em tela fixa. */
 export function AboutPage() {
@@ -82,56 +160,116 @@ export function AboutPage() {
     el.style.setProperty("--py", `${((e.clientY - r.top) / r.height - 0.5) * -16}px`);
   };
   const copyEmail = async () => {
-    try { await navigator.clipboard.writeText(EMAIL); setCopied(true); } catch { window.location.href = `mailto:${EMAIL}`; }
+    try {
+      await navigator.clipboard.writeText(EMAIL);
+      setCopied(true);
+    } catch {
+      window.location.href = `mailto:${EMAIL}`;
+    }
   };
   const S = services[service];
 
   return (
-    <div ref={fitRef} className="mx-auto grid w-full max-w-[1680px] gap-3 lg:grid-cols-[1.1fr_0.9fr] lg:grid-rows-[minmax(0,1fr)]">
+    <div
+      ref={fitRef}
+      className="mx-auto grid w-full max-w-[1680px] gap-3 lg:grid-cols-[1.1fr_0.9fr] lg:grid-rows-[minmax(0,1fr)]"
+    >
       {/* História: foto do Acre com paralaxe e linha do tempo interativa */}
       <div
         ref={photo}
         onPointerMove={move}
-        onPointerLeave={() => { photo.current?.style.setProperty("--px", "0px"); photo.current?.style.setProperty("--py", "0px"); }}
+        onPointerLeave={() => {
+          photo.current?.style.setProperty("--px", "0px");
+          photo.current?.style.setProperty("--py", "0px");
+        }}
         className="nv-parallax nv-dark relative isolate flex min-h-[30rem] flex-col justify-end overflow-hidden rounded-2xl bg-[#06150d] text-white lg:min-h-0"
       >
         <AcreArt />
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-t from-[#06150d] via-[#06150d]/80 to-[#06150d]/10" />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-t from-[#06150d] via-[#06150d]/80 to-[#06150d]/10"
+        />
         <div className="flex flex-col gap-4 p-5 lg:p-10">
           <span className="nv-rise inline-flex w-fit items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur">
             <MapPin size={13} className="text-yellow-300" aria-hidden="true" /> Feijó, Acre, Brasil
           </span>
-          <h1 className="nv-rise max-w-[20ch] text-balance font-display text-3xl font-extrabold leading-[1.06] tracking-tight xl:text-5xl" style={{ animationDelay: "60ms" }}>
+          <h1
+            className="nv-rise max-w-[20ch] text-balance font-display text-3xl font-extrabold leading-[1.06] tracking-tight xl:text-5xl"
+            style={{ animationDelay: "60ms" }}
+          >
             Saúde, loja e tecnologia em uma só plataforma, feita no Acre.
           </h1>
-          <div onMouseEnter={() => setHold(true)} onMouseLeave={() => setHold(false)} className="max-w-[46rem]">
-            <div role="tablist" aria-label="A história da NextVita" className="flex flex-wrap gap-1.5">
+          <div
+            onMouseEnter={() => setHold(true)}
+            onMouseLeave={() => setHold(false)}
+            className="max-w-[46rem]"
+          >
+            <div
+              role="tablist"
+              aria-label="A história da NextVita"
+              className="flex flex-wrap gap-1.5"
+            >
               {story.map((s, i) => (
-                <button key={s.key} role="tab" type="button" aria-selected={i === step} onClick={() => setStep(i)} onFocus={() => { setHold(true); setStep(i); }}
-                  className={`relative overflow-hidden rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${i === step ? "bg-yellow-300 text-[#0b2418]" : "bg-white/10 text-white/80 hover:bg-white/20"}`}>
+                <button
+                  key={s.key}
+                  role="tab"
+                  type="button"
+                  aria-selected={i === step}
+                  onClick={() => setStep(i)}
+                  onFocus={() => {
+                    setHold(true);
+                    setStep(i);
+                  }}
+                  className={`relative overflow-hidden rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${i === step ? "bg-yellow-300 text-[#0b2418]" : "bg-white/10 text-white/80 hover:bg-white/20"}`}
+                >
                   {s.label}
-                  {i === step && !hold && <span className="nv-progress absolute inset-x-0 bottom-0 block h-0.5 bg-[#0b2418]/50" style={{ animationDuration: "4200ms" }} />}
+                  {i === step && !hold && (
+                    <span
+                      className="nv-progress absolute inset-x-0 bottom-0 block h-0.5 bg-[#0b2418]/50"
+                      style={{ animationDuration: "4200ms" }}
+                    />
+                  )}
                 </button>
               ))}
             </div>
-            <p key={step} role="tabpanel" className="nv-fade-in mt-3 min-h-[4.8em] text-[15px] leading-relaxed text-white/85">{story[step].text}</p>
+            <p
+              key={step}
+              role="tabpanel"
+              className="nv-fade-in mt-3 min-h-[4.8em] text-[15px] leading-relaxed text-white/85"
+            >
+              {story[step].text}
+            </p>
           </div>
         </div>
       </div>
 
       <div className="grid min-h-0 gap-3 lg:grid-rows-[minmax(0,1fr)_auto]">
         {/* Desenvolvedor, portfólio e serviços */}
-        <section aria-label="O desenvolvedor e o portfólio" className="relative flex min-h-0 flex-col gap-4 overflow-hidden rounded-2xl border border-border bg-card p-5">
-          <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-20 size-64 rounded-full bg-[#4d7c0f]/15 blur-3xl" />
+        <section
+          aria-label="O desenvolvedor e o portfólio"
+          className="relative flex min-h-0 flex-col gap-4 overflow-hidden rounded-2xl border border-border bg-card p-5"
+        >
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-20 -top-20 size-64 rounded-full bg-[#4d7c0f]/15 blur-3xl"
+          />
           <div className="relative flex items-center gap-3">
-            <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-[#0b2418]"><LogoMark size={34} /></span>
+            <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-[#0b2418]">
+              <LogoMark size={34} />
+            </span>
             <div className="min-w-0">
-              <h2 className="font-display text-xl font-extrabold leading-tight">Franc D&apos;nis</h2>
-              <p className="text-sm text-muted-foreground">Desenvolvedor de sites, aplicativos e sistemas. Criador da NextVita.</p>
+              <h2 className="font-display text-xl font-extrabold leading-tight">
+                Franc D&apos;nis
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Desenvolvedor de sites, aplicativos e sistemas. Criador da NextVita.
+              </p>
             </div>
           </div>
           <div className="relative mx-auto w-full max-w-[30rem] pb-4">
-            <span className="absolute -left-2 -top-2 z-10 rounded-full bg-[#0b2418] px-2.5 py-1 text-[11px] font-bold text-yellow-300 shadow">Projeto em destaque: NextVita</span>
+            <span className="absolute -left-2 -top-2 z-10 rounded-full bg-[#0b2418] px-2.5 py-1 text-[11px] font-bold text-yellow-300 shadow">
+              Projeto em destaque: NextVita
+            </span>
             <div className="rounded-xl bg-slate-900 p-1.5 shadow-xl">
               <div className="overflow-hidden rounded-md bg-white">
                 <LiveSitePreview src="/?embed=1" title="Página inicial da NextVita" />
@@ -139,40 +277,93 @@ export function AboutPage() {
             </div>
             <div className="relative left-1/2 h-2 w-[110%] -translate-x-1/2 rounded-b-xl bg-gradient-to-b from-slate-400 to-slate-600" />
             <div className="nv-float absolute -right-3 bottom-0 w-[19%] rounded-[14px] bg-slate-900 p-1 shadow-2xl">
-              <img src="/images/dev-nextvita-mobile.webp" alt="NextVita no celular" width={300} height={560} className="aspect-[9/17] w-full rounded-[10px] object-cover object-top" />
+              <img
+                src="/images/dev-nextvita-mobile.webp"
+                alt="NextVita no celular"
+                width={300}
+                height={560}
+                className="aspect-[9/17] w-full rounded-[10px] object-cover object-top"
+              />
             </div>
           </div>
           <div role="tablist" aria-label="Serviços" className="grid shrink-0 grid-cols-4 gap-1.5">
             {services.map((sv, i) => (
-              <button key={sv.key} role="tab" type="button" aria-selected={i === service} onClick={() => setService(i)} onMouseEnter={() => setService(i)}
+              <button
+                key={sv.key}
+                role="tab"
+                type="button"
+                aria-selected={i === service}
+                onClick={() => setService(i)}
+                onMouseEnter={() => setService(i)}
                 className={`nv-tile flex flex-col items-center gap-1 rounded-xl border px-1 py-2 text-xs font-semibold ${i === service ? "border-[#4d7c0f] bg-[#4d7c0f]/10" : "border-border"}`}
-                style={{ ["--tile" as string]: "#4d7c0f" }}>
-                <sv.icon size={17} className="nv-tile-icon text-[#4d7c0f] dark:text-lime-300" aria-hidden="true" /> {sv.label}
+                style={{ ["--tile" as string]: "#4d7c0f" }}
+              >
+                <sv.icon
+                  size={17}
+                  className="nv-tile-icon text-[#4d7c0f] dark:text-lime-300"
+                  aria-hidden="true"
+                />{" "}
+                {sv.label}
               </button>
             ))}
           </div>
-          <p key={service} role="tabpanel" className="nv-fade-in min-h-[2.8em] shrink-0 text-sm text-muted-foreground">{S.text}</p>
+          <p
+            key={service}
+            role="tabpanel"
+            className="nv-fade-in min-h-[2.8em] shrink-0 text-sm text-muted-foreground"
+          >
+            {S.text}
+          </p>
         </section>
 
         {/* Contato */}
-        <section aria-label="Contato" className="grid gap-2 rounded-2xl bg-[#0b2418] p-4 text-white lg:p-5">
+        <section
+          aria-label="Contato"
+          className="grid gap-2 rounded-2xl bg-[#0b2418] p-4 text-white lg:p-5"
+        >
           <p className="font-display text-lg font-bold">Tem uma ideia? Vamos conversar.</p>
           <div className="grid gap-2 sm:grid-cols-[1.2fr_1fr]">
-            <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="nv-cta inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#25d366] px-4 text-sm font-bold text-slate-950" style={{ ["--area" as string]: "#25d366" }}>
+            <a
+              href={WHATSAPP}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="nv-cta inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#25d366] px-4 text-sm font-bold text-slate-950"
+              style={{ ["--area" as string]: "#25d366" }}
+            >
               <MessageCircle size={17} aria-hidden="true" /> Chamar no WhatsApp
             </a>
-            <a href={`tel:+${PHONE_DIGITS}`} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/25 px-4 text-sm font-semibold tabular-nums hover:bg-white/10">
+            <a
+              href={`tel:+${PHONE_DIGITS}`}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/25 px-4 text-sm font-semibold tabular-nums hover:bg-white/10"
+            >
               <Phone size={16} className="text-yellow-300" aria-hidden="true" /> {PHONE_LABEL}
             </a>
           </div>
           <div className="flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2 text-sm">
             <Mail size={16} className="shrink-0 text-yellow-300" aria-hidden="true" />
-            <a href={`mailto:${EMAIL}`} className="min-w-0 flex-1 truncate hover:underline">{EMAIL}</a>
-            <button type="button" onClick={() => void copyEmail()} aria-label="Copiar e-mail" className="inline-flex h-8 items-center gap-1 rounded-lg bg-white/10 px-2.5 text-xs font-semibold hover:bg-white/20">
-              {copied ? <><Check size={13} aria-hidden="true" /> Copiado</> : <><Copy size={13} aria-hidden="true" /> Copiar</>}
+            <a href={`mailto:${EMAIL}`} className="min-w-0 flex-1 truncate hover:underline">
+              {EMAIL}
+            </a>
+            <button
+              type="button"
+              onClick={() => void copyEmail()}
+              aria-label="Copiar e-mail"
+              className="inline-flex h-8 items-center gap-1 rounded-lg bg-white/10 px-2.5 text-xs font-semibold hover:bg-white/20"
+            >
+              {copied ? (
+                <>
+                  <Check size={13} aria-hidden="true" /> Copiado
+                </>
+              ) : (
+                <>
+                  <Copy size={13} aria-hidden="true" /> Copiar
+                </>
+              )}
             </button>
           </div>
-          <p className="sr-only" role="status" aria-live="polite">{copied ? "E-mail copiado." : ""}</p>
+          <p className="sr-only" role="status" aria-live="polite">
+            {copied ? "E-mail copiado." : ""}
+          </p>
         </section>
       </div>
     </div>

@@ -102,7 +102,7 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
         { to: "/treinos", label: "Treinos", icon: Activity },
         { to: "/metricas", label: "Métricas", icon: BarChart3 },
         { to: "/loja", label: "Loja", icon: ShoppingBag },
-    { to: "/lojista", label: "Seja lojista", icon: Store },
+        { to: "/lojista", label: "Seja lojista", icon: Store },
         { to: "/sobre", label: "Sobre", icon: Info },
       ],
     },
@@ -137,7 +137,7 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
         section("cardapios", "Cardápios e dietas", BookOpen),
         { to: "/biblioteca-alimentar", label: "Biblioteca alimentar", icon: Apple },
         { to: "/loja", label: "Loja", icon: ShoppingBag },
-    { to: "/lojista", label: "Seja lojista", icon: Store },
+        { to: "/lojista", label: "Seja lojista", icon: Store },
       ],
     },
   ],
@@ -177,15 +177,7 @@ function Brand({ onDark = false }: { onDark?: boolean }) {
         className={`sidebar-brand-wordmark font-display text-[19px] font-extrabold tracking-tight ${onDark ? "text-white" : "text-foreground"}`}
       >
         Next
-        <span
-          className={
-            onDark
-              ? "text-[#7ef0cc]"
-              : "text-primary"
-          }
-        >
-          Vita
-        </span>
+        <span className={onDark ? "text-[#7ef0cc]" : "text-primary"}>Vita</span>
       </span>
     </Link>
   );
@@ -205,7 +197,16 @@ const resourceLinks = [
   { to: "/treinos", label: "Treinos", icon: Activity },
   { to: "/metricas", label: "Métricas", icon: BarChart3 },
 ] as const;
-const resourceColors: Record<string, string> = { "/medicamentos": "#fb7185", "/hidratacao": "#38bdf8", "/dietas": "#34d399", "/suplementos": "#a78bfa", "/peso": "#e879f9", "/sono": "#818cf8", "/treinos": "#fb923c", "/metricas": "#2dd4bf" };
+const resourceColors: Record<string, string> = {
+  "/medicamentos": "#fb7185",
+  "/hidratacao": "#38bdf8",
+  "/dietas": "#34d399",
+  "/suplementos": "#a78bfa",
+  "/peso": "#e879f9",
+  "/sono": "#818cf8",
+  "/treinos": "#fb923c",
+  "/metricas": "#2dd4bf",
+};
 
 /** Menu superior para visitantes: poucos itens visíveis e as áreas de saúde agrupadas em "Recursos". */
 function PublicTopNav({ pathname }: { pathname: string }) {
@@ -214,43 +215,91 @@ function PublicTopNav({ pathname }: { pathname: string }) {
   useEffect(() => setOpen(false), [pathname]);
   useEffect(() => {
     if (!open) return;
-    const onDown = (e: MouseEvent) => { if (!wrap.current?.contains(e.target as Node)) setOpen(false); };
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    const onDown = (e: MouseEvent) => {
+      if (!wrap.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
-    return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
   }, [open]);
   const resourceActive = resourceLinks.some((r) => r.to === pathname);
-  const linkCls = "relative inline-flex h-8 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground";
-  const activeCls = { className: "!bg-card !text-foreground shadow-[0_1px_2px_rgba(0,0,0,.25),inset_0_0_0_1px_var(--color-border)]" };
+  const linkCls =
+    "relative inline-flex h-8 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground";
+  const activeCls = {
+    className:
+      "!bg-card !text-foreground shadow-[0_1px_2px_rgba(0,0,0,.25),inset_0_0_0_1px_var(--color-border)]",
+  };
   return (
-    <nav className="mx-auto hidden items-center gap-0.5 rounded-full border border-border/70 bg-muted/40 p-1 backdrop-blur lg:flex" aria-label="Navegação principal">
+    <nav
+      className="mx-auto hidden items-center gap-0.5 rounded-full border border-border/70 bg-muted/40 p-1 backdrop-blur lg:flex"
+      aria-label="Navegação principal"
+    >
       {primaryPublic.map((item) => (
-        <Link key={item.to} to={item.to} activeOptions={{ exact: item.to === "/" }} className={linkCls} activeProps={activeCls}>
+        <Link
+          key={item.to}
+          to={item.to}
+          activeOptions={{ exact: item.to === "/" }}
+          className={linkCls}
+          activeProps={activeCls}
+        >
           {item.label}
         </Link>
       ))}
       <div ref={wrap} className="relative">
-        <button type="button" aria-expanded={open} aria-haspopup="true" onClick={() => setOpen((o) => !o)}
-          className={`${linkCls} ${resourceActive || open ? "!bg-card !text-foreground shadow-sm" : ""}`}>
-          Recursos <ChevronDown size={14} aria-hidden="true" className={`transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-haspopup="true"
+          onClick={() => setOpen((o) => !o)}
+          className={`${linkCls} ${resourceActive || open ? "!bg-card !text-foreground shadow-sm" : ""}`}
+        >
+          Recursos{" "}
+          <ChevronDown
+            size={14}
+            aria-hidden="true"
+            className={`transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+          />
         </button>
         {open && (
           <div className="nv-pop absolute left-1/2 top-full z-40 mt-3 grid w-[30rem] -translate-x-1/2 grid-cols-2 gap-1 rounded-2xl border border-border bg-surface/95 p-2 shadow-pop backdrop-blur-xl">
             {resourceLinks.map((r) => (
-              <Link key={r.to} to={r.to} className="group flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors hover:bg-muted" activeProps={{ className: "!bg-accent !text-accent-foreground" }}>
-                <span className="grid size-8 shrink-0 place-items-center rounded-lg text-white shadow-sm transition-transform group-hover:scale-110" style={{ background: resourceColors[r.to] }}><r.icon size={15} aria-hidden="true" /></span>
+              <Link
+                key={r.to}
+                to={r.to}
+                className="group flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors hover:bg-muted"
+                activeProps={{ className: "!bg-accent !text-accent-foreground" }}
+              >
+                <span
+                  className="grid size-8 shrink-0 place-items-center rounded-lg text-white shadow-sm transition-transform group-hover:scale-110"
+                  style={{ background: resourceColors[r.to] }}
+                >
+                  <r.icon size={15} aria-hidden="true" />
+                </span>
                 {r.label}
               </Link>
             ))}
           </div>
         )}
       </div>
-      <Link to="/loja" className={`${linkCls} font-semibold text-foreground`} activeProps={activeCls}>
+      <Link
+        to="/loja"
+        className={`${linkCls} font-semibold text-foreground`}
+        activeProps={activeCls}
+      >
         <ShoppingBag size={14} aria-hidden="true" className="text-amber-500" /> Loja
       </Link>
-      <Link to="/lojista" className={linkCls} activeProps={activeCls}>Seja lojista</Link>
-      <Link to="/sobre" className={linkCls} activeProps={activeCls}>Sobre</Link>
+      <Link to="/lojista" className={linkCls} activeProps={activeCls}>
+        Seja lojista
+      </Link>
+      <Link to="/sobre" className={linkCls} activeProps={activeCls}>
+        Sobre
+      </Link>
     </nav>
   );
 }
@@ -262,37 +311,90 @@ function HeaderCart() {
   const wrap = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
-    const onDown = (e: MouseEvent) => { if (!wrap.current?.contains(e.target as Node)) setOpen(false); };
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
-    document.addEventListener("mousedown", onDown); document.addEventListener("keydown", onKey);
-    return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
+    const onDown = (e: MouseEvent) => {
+      if (!wrap.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
   }, [open]);
   return (
     <div ref={wrap} className="relative">
-      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label={`Carrinho, ${count} ${count === 1 ? "item" : "itens"}`} title="Carrinho" className={`${iconButton} relative`}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-label={`Carrinho, ${count} ${count === 1 ? "item" : "itens"}`}
+        title="Carrinho"
+        className={`${iconButton} relative`}
+      >
         <ShoppingCart size={17} />
-        {count > 0 && <span key={count} className="nv-heart-pop absolute -right-1 -top-1 grid min-w-[1.15rem] place-items-center rounded-full bg-emerald-400 px-1 text-[11px] font-extrabold leading-[1.15rem] text-slate-950 ring-2 ring-surface">{count}</span>}
+        {count > 0 && (
+          <span
+            key={count}
+            className="nv-heart-pop absolute -right-1 -top-1 grid min-w-[1.15rem] place-items-center rounded-full bg-emerald-400 px-1 text-[11px] font-extrabold leading-[1.15rem] text-slate-950 ring-2 ring-surface"
+          >
+            {count}
+          </span>
+        )}
       </button>
       {open && (
         <div className="nv-pop absolute right-0 top-full z-50 mt-3 w-80 overflow-hidden rounded-2xl border border-border bg-surface/95 shadow-pop backdrop-blur-xl">
           <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
             <strong className="text-sm">Carrinho</strong>
-            {!STORE_LIVE && <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-bold text-amber-600 dark:text-amber-300">Em breve</span>}
+            {!STORE_LIVE && (
+              <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-bold text-amber-600 dark:text-amber-300">
+                Em breve
+              </span>
+            )}
           </div>
           {lines.length ? (
             <ul className="grid max-h-56 gap-1 overflow-y-auto p-2">
               {lines.slice(0, 5).map((l) => (
                 <li key={l.id} className="flex items-center gap-2.5 rounded-xl px-2 py-1.5">
-                  <img src={l.product.img} alt="" className="size-10 rounded-lg bg-muted object-cover" />
-                  <span className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold">{l.product.name}</span><span className="text-[11px] text-muted-foreground">{l.qty} × {money(l.product.priceCents)}</span></span>
+                  <img
+                    src={l.product.img}
+                    alt=""
+                    className="size-10 rounded-lg bg-muted object-cover"
+                  />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-xs font-semibold">{l.product.name}</span>
+                    <span className="text-[11px] text-muted-foreground">
+                      {l.qty} × {money(l.product.priceCents)}
+                    </span>
+                  </span>
                 </li>
               ))}
             </ul>
-          ) : <p className="px-4 py-5 text-center text-xs text-muted-foreground">Seu carrinho está vazio.</p>}
+          ) : (
+            <p className="px-4 py-5 text-center text-xs text-muted-foreground">
+              Seu carrinho está vazio.
+            </p>
+          )}
           <div className="border-t border-border p-3">
-            {lines.length > 0 && <p className="mb-2 flex justify-between text-sm"><span className="text-muted-foreground">Subtotal</span><strong className="tabular-nums">{money(subtotal)}</strong></p>}
-            {!STORE_LIVE && <p className="mb-2.5 rounded-xl bg-muted/60 p-2.5 text-[11px] leading-snug text-muted-foreground">As compras serão liberadas quando as lojas parceiras publicarem seus produtos oficiais. Você já pode separar o que quer comprar.</p>}
-            <Link to="/loja" onClick={() => setOpen(false)} className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-sm font-bold text-slate-950 transition hover:brightness-110">
+            {lines.length > 0 && (
+              <p className="mb-2 flex justify-between text-sm">
+                <span className="text-muted-foreground">Subtotal</span>
+                <strong className="tabular-nums">{money(subtotal)}</strong>
+              </p>
+            )}
+            {!STORE_LIVE && (
+              <p className="mb-2.5 rounded-xl bg-muted/60 p-2.5 text-[11px] leading-snug text-muted-foreground">
+                As compras serão liberadas quando as lojas parceiras publicarem seus produtos
+                oficiais. Você já pode separar o que quer comprar.
+              </p>
+            )}
+            <Link
+              to="/loja"
+              onClick={() => setOpen(false)}
+              className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-sm font-bold text-slate-950 transition hover:brightness-110"
+            >
               {STORE_LIVE ? "Finalizar compra" : "Ver vitrine da loja"}
             </Link>
           </div>
@@ -314,24 +416,47 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [sidebarPinned, setSidebarPinned] = useState(false);
   const hoverTimer = useRef<number | undefined>(undefined);
   useEffect(() => {
-    try { setSidebarPinned(localStorage.getItem("nv-sidebar-pinned") === "1"); } catch { /* sem armazenamento */ }
+    try {
+      setSidebarPinned(localStorage.getItem("nv-sidebar-pinned") === "1");
+    } catch {
+      /* sem armazenamento */
+    }
   }, []);
-  const togglePin = () => setSidebarPinned((v) => {
-    try { localStorage.setItem("nv-sidebar-pinned", v ? "0" : "1"); } catch { /* sem armazenamento */ }
-    return !v;
-  });
+  const togglePin = () =>
+    setSidebarPinned((v) => {
+      try {
+        localStorage.setItem("nv-sidebar-pinned", v ? "0" : "1");
+      } catch {
+        /* sem armazenamento */
+      }
+      return !v;
+    });
   // Atalho de teclado: [ fixa ou solta o menu lateral.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
-      if (e.key !== "[" || e.ctrlKey || e.metaKey || e.altKey || /INPUT|TEXTAREA|SELECT/.test(t.tagName) || t.isContentEditable) return;
+      if (
+        e.key !== "[" ||
+        e.ctrlKey ||
+        e.metaKey ||
+        e.altKey ||
+        /INPUT|TEXTAREA|SELECT/.test(t.tagName) ||
+        t.isContentEditable
+      )
+        return;
       togglePin();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
-  const openRail = () => { window.clearTimeout(hoverTimer.current); hoverTimer.current = window.setTimeout(() => setSidebarExpanded(true), 120); };
-  const closeRail = () => { window.clearTimeout(hoverTimer.current); setSidebarExpanded(false); };
+  const openRail = () => {
+    window.clearTimeout(hoverTimer.current);
+    hoverTimer.current = window.setTimeout(() => setSidebarExpanded(true), 120);
+  };
+  const closeRail = () => {
+    window.clearTimeout(hoverTimer.current);
+    setSidebarExpanded(false);
+  };
   const railOpen = sidebarExpanded || sidebarPinned;
   const [darkMode, setDarkMode] = useState(false);
   const [fullScreen, setFullScreen] = useState(false);
@@ -368,11 +493,19 @@ export function AppShell({ children }: { children: ReactNode }) {
   async function signOut() {
     if (signingOut) return;
     setSigningOut(true);
-    try { window.sessionStorage.setItem(MANUAL_SIGNOUT_KEY, "1"); } catch { /* sem armazenamento */ }
+    try {
+      window.sessionStorage.setItem(MANUAL_SIGNOUT_KEY, "1");
+    } catch {
+      /* sem armazenamento */
+    }
     const { error } = await supabase.auth.signOut();
     setSigningOut(false);
     if (error) {
-      try { window.sessionStorage.removeItem(MANUAL_SIGNOUT_KEY); } catch { /* sem armazenamento */ }
+      try {
+        window.sessionStorage.removeItem(MANUAL_SIGNOUT_KEY);
+      } catch {
+        /* sem armazenamento */
+      }
       setShellError("Não foi possível sair. Tente novamente.");
       return;
     }
@@ -384,23 +517,37 @@ export function AppShell({ children }: { children: ReactNode }) {
   const internalPage = signedIn && location.pathname !== "/";
   const groups = navByProfile[profile];
   const items = groups.flatMap((group) => group.items);
-  const currentHash = location.hash || (location.pathname === "/admin" ? "visao" : clientSectionHashes.hoje);
+  const currentHash =
+    location.hash || (location.pathname === "/admin" ? "visao" : clientSectionHashes.hoje);
   const isActive = (item: NavItem) =>
     item.to === location.pathname && (!item.hash || item.hash === currentHash);
   const current = items.find(isActive);
-  const panelHome = profile === "client" ? "/cliente" : profile === "admin" ? "/admin" : profile === "vendor" ? "/lojista" : null;
+  const panelHome =
+    profile === "client"
+      ? "/cliente"
+      : profile === "admin"
+        ? "/admin"
+        : profile === "vendor"
+          ? "/lojista"
+          : null;
   // Administrador e lojista ficam presos ao próprio painel: a homepage e as áreas públicas são de clientes e visitantes.
   const staff = profile === "admin" || profile === "vendor";
   const navigateTo = useNavigate();
   const searchParams = (location.search ?? {}) as Record<string, unknown>;
   const previewStore = location.pathname === "/loja" && typeof searchParams.loja === "string"; // pré-visualizar a página pública da loja
-  const staffBlocked = access.status === "admin"
-    ? !(location.pathname.startsWith("/admin") || location.pathname.startsWith("/lojista") || previewStore)
-    : access.status === "vendor"
-      ? !(location.pathname.startsWith("/lojista") || previewStore)
-      : false;
+  const staffBlocked =
+    access.status === "admin"
+      ? !(
+          location.pathname.startsWith("/admin") ||
+          location.pathname.startsWith("/lojista") ||
+          previewStore
+        )
+      : access.status === "vendor"
+        ? !(location.pathname.startsWith("/lojista") || previewStore)
+        : false;
   useEffect(() => {
-    if (staffBlocked) void navigateTo({ to: access.status === "admin" ? "/admin" : "/lojista", replace: true });
+    if (staffBlocked)
+      void navigateTo({ to: access.status === "admin" ? "/admin" : "/lojista", replace: true });
   }, [staffBlocked, access.status, navigateTo]);
   // A barra inferior do celular aparece fora das páginas internas: botões flutuantes sobem acima dela.
   useEffect(() => {
@@ -438,7 +585,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       to="/entrar"
       className="group inline-flex h-9 items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-400 to-teal-400 pl-3.5 pr-3 text-sm font-bold text-slate-950 shadow-[0_6px_18px_-8px_rgba(52,211,153,.8)] transition hover:brightness-110 active:scale-[.97]"
     >
-      <LogIn size={15} /> Entrar <ArrowRight size={14} className="-ml-0.5 transition-transform group-hover:translate-x-0.5" />
+      <LogIn size={15} /> Entrar{" "}
+      <ArrowRight size={14} className="-ml-0.5 transition-transform group-hover:translate-x-0.5" />
     </Link>
   );
 
@@ -456,8 +604,13 @@ export function AppShell({ children }: { children: ReactNode }) {
         title={railOpen ? undefined : item.label}
         className={`nv-rail-link group relative flex h-10 items-center gap-3 rounded-lg px-1.5 text-[13px] font-semibold transition-colors duration-200 ${active ? "bg-white/[.08] text-white" : "text-slate-400 hover:bg-white/[.05] hover:text-white"}`}
       >
-        <i aria-hidden="true" className={`absolute -left-2 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-emerald-300 shadow-[0_0_12px_rgba(110,231,183,.8)] transition-all duration-300 ${active ? "scale-y-100 opacity-100" : "scale-y-0 opacity-0"}`} />
-        <span className={`nv-rail-icon relative grid size-7 shrink-0 place-items-center rounded-md transition-all duration-300 ${active ? `${theme?.pill ?? "bg-primary"} text-white shadow-[0_8px_20px_-8px_rgba(16,185,129,.85),inset_0_1px_0_rgba(255,255,255,.35)]` : "text-slate-400 group-hover:text-white"}`}>
+        <i
+          aria-hidden="true"
+          className={`absolute -left-2 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-emerald-300 shadow-[0_0_12px_rgba(110,231,183,.8)] transition-all duration-300 ${active ? "scale-y-100 opacity-100" : "scale-y-0 opacity-0"}`}
+        />
+        <span
+          className={`nv-rail-icon relative grid size-7 shrink-0 place-items-center rounded-md transition-all duration-300 ${active ? `${theme?.pill ?? "bg-primary"} text-white shadow-[0_8px_20px_-8px_rgba(16,185,129,.85),inset_0_1px_0_rgba(255,255,255,.35)]` : "text-slate-400 group-hover:text-white"}`}
+        >
           <Icon size={18} strokeWidth={1.9} />
         </span>
         <span className="truncate">{item.label}</span>
@@ -473,7 +626,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         {groups.map((group) => (
           <div key={group.title}>
             <p className="nv-rail-group flex h-6 items-center gap-2 px-2 pb-1 text-[11px] font-semibold tracking-wide text-slate-500">
-              <span className="nv-rail-label whitespace-nowrap">{group.title}</span><i className="h-px flex-1 bg-gradient-to-r from-white/15 to-transparent" />
+              <span className="nv-rail-label whitespace-nowrap">{group.title}</span>
+              <i className="h-px flex-1 bg-gradient-to-r from-white/15 to-transparent" />
             </p>
             <div className="grid gap-0.5">{group.items.map(sideLink)}</div>
           </div>
@@ -497,9 +651,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                 ? "Gestão"
                 : profile === "vendor"
                   ? "Lojista"
-                : profile === "client"
-                  ? "Paciente"
-                  : "Sem prontuário vinculado"}
+                  : profile === "client"
+                    ? "Paciente"
+                    : "Sem prontuário vinculado"}
             </span>
           </span>
           <button
@@ -528,20 +682,35 @@ export function AppShell({ children }: { children: ReactNode }) {
         <ProductQuickViewHost />
         <div className="care-shell flex h-dvh min-h-0 overflow-hidden bg-background text-foreground">
           {internalPage && (
-            <div className={`relative hidden shrink-0 transition-[width] duration-300 ease-out xl:block ${fullScreen ? "w-0" : sidebarPinned ? "w-60" : "w-14"}`}>
+            <div
+              className={`relative hidden shrink-0 transition-[width] duration-300 ease-out xl:block ${fullScreen ? "w-0" : sidebarPinned ? "w-60" : "w-14"}`}
+            >
               {fullScreen && (
-                <div aria-hidden="true" onMouseEnter={openRail} className="absolute inset-y-0 left-0 z-50 w-2" title="Menu" />
+                <div
+                  aria-hidden="true"
+                  onMouseEnter={openRail}
+                  className="absolute inset-y-0 left-0 z-50 w-2"
+                  title="Menu"
+                />
               )}
               <aside
                 onMouseEnter={openRail}
                 onMouseLeave={closeRail}
                 onFocusCapture={() => setSidebarExpanded(true)}
-                onBlurCapture={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setSidebarExpanded(false); }}
+                onBlurCapture={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node)) setSidebarExpanded(false);
+                }}
                 data-collapsed={railOpen ? undefined : ""}
                 className={`sidebar-shell absolute inset-y-0 left-0 z-40 flex flex-col overflow-hidden border-r border-white/[.08] bg-[#0b1219] transition-[width,box-shadow,transform] duration-300 ease-out ${railOpen || fullScreen ? "w-60" : "w-14"} ${fullScreen && !sidebarExpanded ? "-translate-x-full" : ""} ${sidebarExpanded && !sidebarPinned ? "shadow-[24px_0_48px_-20px_rgba(0,0,0,.55)]" : ""}`}
               >
-                <div aria-hidden="true" className="pointer-events-none absolute -left-16 -top-16 size-48 rounded-full bg-emerald-400/20 blur-3xl" />
-                <div aria-hidden="true" className="pointer-events-none absolute -bottom-20 -right-16 size-44 rounded-full bg-sky-500/10 blur-3xl" />
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -left-16 -top-16 size-48 rounded-full bg-emerald-400/20 blur-3xl"
+                />
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -bottom-20 -right-16 size-44 rounded-full bg-sky-500/10 blur-3xl"
+                />
                 <div className="relative flex h-14 shrink-0 items-center gap-2 border-b border-white/[.08] px-2.5">
                   <Brand onDark />
                 </div>
@@ -553,9 +722,15 @@ export function AppShell({ children }: { children: ReactNode }) {
                   title={sidebarPinned ? "Recolher menu ( [ )" : "Fixar menu aberto ( [ )"}
                   className="relative mx-2 mb-2 flex h-9 shrink-0 items-center gap-3 rounded-lg px-1.5 text-[13px] font-semibold text-slate-500 transition-colors hover:bg-white/[.06] hover:text-white"
                 >
-                  <span className="grid size-7 shrink-0 place-items-center">{sidebarPinned ? <PanelLeftClose size={17} /> : <PanelLeftOpen size={17} />}</span>
-                  <span className="nv-rail-label truncate">{sidebarPinned ? "Recolher menu" : "Fixar menu aberto"}</span>
-                  <kbd className="nv-rail-label ml-auto rounded border border-white/15 px-1.5 text-[11px] text-slate-500">[</kbd>
+                  <span className="grid size-7 shrink-0 place-items-center">
+                    {sidebarPinned ? <PanelLeftClose size={17} /> : <PanelLeftOpen size={17} />}
+                  </span>
+                  <span className="nv-rail-label truncate">
+                    {sidebarPinned ? "Recolher menu" : "Fixar menu aberto"}
+                  </span>
+                  <kbd className="nv-rail-label ml-auto rounded border border-white/15 px-1.5 text-[11px] text-slate-500">
+                    [
+                  </kbd>
                 </button>
               </aside>
             </div>
@@ -592,7 +767,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </>
               )}
               <div className="flex shrink-0 items-center gap-2">
-                {signedIn && !staff &&
+                {signedIn &&
+                  !staff &&
                   (location.pathname === "/" ? (
                     panelHome && (
                       <Link
@@ -614,9 +790,15 @@ export function AppShell({ children }: { children: ReactNode }) {
                       <span className="hidden 2xl:inline">Página inicial</span>
                     </Link>
                   ))}
-                {signedIn && !staff && !location.pathname.startsWith("/cliente") && <LiveModeLauncher iconOnlyOnMobile />}
+                {signedIn && !staff && !location.pathname.startsWith("/cliente") && (
+                  <LiveModeLauncher iconOnlyOnMobile />
+                )}
                 <InstallAppButton className="max-sm:!hidden" />
-                {!internalPage && <span className="hidden sm:contents"><HeaderCart /></span>}
+                {!internalPage && (
+                  <span className="hidden sm:contents">
+                    <HeaderCart />
+                  </span>
+                )}
                 {tools}
                 {signedIn && (
                   <button
@@ -658,32 +840,83 @@ export function AppShell({ children }: { children: ReactNode }) {
               id="care-content"
               className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-2 sm:p-3 lg:p-4"
             >
-              {staffBlocked ? <p role="status" className="py-24 text-center text-sm text-muted-foreground">Abrindo o seu painel…</p> : children}
+              {staffBlocked ? (
+                <p role="status" className="py-24 text-center text-sm text-muted-foreground">
+                  Abrindo o seu painel…
+                </p>
+              ) : (
+                children
+              )}
               {location.pathname !== "/" && (
                 <p className="nv-shell-credit mt-3 border-t border-border pt-3 text-center text-xs text-muted-foreground">
                   NextVita · Desenvolvido por{" "}
-                  <Link to="/sobre" className="font-semibold text-foreground underline-offset-2 hover:underline">Franc D&apos;nis</Link> ·
-                  Feijó, Acre
+                  <Link
+                    to="/sobre"
+                    className="font-semibold text-foreground underline-offset-2 hover:underline"
+                  >
+                    Franc D&apos;nis
+                  </Link>{" "}
+                  · Feijó, Acre
                 </p>
               )}
             </main>
           </div>
 
           {!internalPage && (
-            <nav aria-label="Navegação rápida" className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
+            <nav
+              aria-label="Navegação rápida"
+              className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+            >
               <div className="mx-auto grid max-w-md grid-cols-4">
                 {[
                   { key: "home", label: "Início", icon: Home, to: "/" },
                   { key: "menu", label: "Recursos", icon: LayoutDashboard },
                   { key: "loja", label: "Loja", icon: ShoppingBag, to: "/loja" },
-                  { key: "conta", label: signedIn ? "Painel" : "Entrar", icon: signedIn ? Settings2 : LogIn, to: panelHome ?? "/entrar" },
+                  {
+                    key: "conta",
+                    label: signedIn ? "Painel" : "Entrar",
+                    icon: signedIn ? Settings2 : LogIn,
+                    to: panelHome ?? "/entrar",
+                  },
                 ].map((it) => {
-                  const active = it.to ? (it.to === "/" ? location.pathname === "/" : location.pathname.startsWith(it.to)) : menuOpen;
+                  const active = it.to
+                    ? it.to === "/"
+                      ? location.pathname === "/"
+                      : location.pathname.startsWith(it.to)
+                    : menuOpen;
                   const cls = `nv-tab relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-semibold ${active ? "text-primary" : "text-muted-foreground"}`;
-                  const inner = (<><it.icon size={21} className={`transition-transform ${active ? "-translate-y-0.5 scale-110" : ""}`} />{it.label}{active && <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary" />}</>);
-                  return it.to
-                    ? <Link key={it.key} to={it.to} className={cls} aria-current={active ? "page" : undefined}>{inner}</Link>
-                    : <button key={it.key} type="button" onClick={() => setMenuOpen(true)} className={cls} aria-expanded={menuOpen}>{inner}</button>;
+                  const inner = (
+                    <>
+                      <it.icon
+                        size={21}
+                        className={`transition-transform ${active ? "-translate-y-0.5 scale-110" : ""}`}
+                      />
+                      {it.label}
+                      {active && (
+                        <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary" />
+                      )}
+                    </>
+                  );
+                  return it.to ? (
+                    <Link
+                      key={it.key}
+                      to={it.to}
+                      className={cls}
+                      aria-current={active ? "page" : undefined}
+                    >
+                      {inner}
+                    </Link>
+                  ) : (
+                    <button
+                      key={it.key}
+                      type="button"
+                      onClick={() => setMenuOpen(true)}
+                      className={cls}
+                      aria-expanded={menuOpen}
+                    >
+                      {inner}
+                    </button>
+                  );
                 })}
               </div>
             </nav>
@@ -702,7 +935,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                 className="absolute inset-0 cursor-default bg-slate-950/60 backdrop-blur-sm"
                 onClick={() => setMenuOpen(false)}
               />
-              <div className={`nv-drawer absolute inset-y-0 left-0 flex flex-col bg-sidebar shadow-2xl ${internalPage ? "w-[min(18rem,85vw)]" : "w-[min(22rem,90vw)]"}`}>
+              <div
+                className={`nv-drawer absolute inset-y-0 left-0 flex flex-col bg-sidebar shadow-2xl ${internalPage ? "w-[min(18rem,85vw)]" : "w-[min(22rem,90vw)]"}`}
+              >
                 <div className="flex h-14 shrink-0 items-center justify-between border-b border-white/10 px-4">
                   <Brand onDark />
                   <button
@@ -717,42 +952,92 @@ export function AppShell({ children }: { children: ReactNode }) {
                 {internalPage ? (
                   sidebarBody
                 ) : (
-                  <nav className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4 text-white" aria-label="Navegação principal">
+                  <nav
+                    className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4 text-white"
+                    aria-label="Navegação principal"
+                  >
                     <div className="grid grid-cols-2 gap-2">
-                      <a href="/entrar?mode=signup" className="inline-flex h-11 items-center justify-center rounded-xl bg-emerald-400 text-sm font-bold text-slate-950">Criar conta grátis</a>
-                      <Link to="/entrar" className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl border border-white/20 text-sm font-semibold"><LogIn size={16} /> Entrar</Link>
+                      <a
+                        href="/entrar?mode=signup"
+                        className="inline-flex h-11 items-center justify-center rounded-xl bg-emerald-400 text-sm font-bold text-slate-950"
+                      >
+                        Criar conta grátis
+                      </a>
+                      <Link
+                        to="/entrar"
+                        className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl border border-white/20 text-sm font-semibold"
+                      >
+                        <LogIn size={16} /> Entrar
+                      </Link>
                     </div>
                     <div>
                       <p className="px-1 pb-2 text-xs font-semibold text-slate-400">Navegar</p>
                       <div className="grid gap-1">
-                        {[{ to: "/", label: "Início", icon: Home }, { to: "/protocolos", label: "Como funciona", icon: HeartPulse }, { to: "/loja", label: "Loja NextVita", icon: ShoppingBag }, { to: "/lojista", label: "Seja lojista", icon: Store }, { to: "/sobre", label: "Sobre", icon: Info }].map((it) => (
-                          <Link key={it.to} to={it.to} activeOptions={{ exact: it.to === "/" }} className="flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-slate-200 hover:bg-white/10" activeProps={{ className: "!bg-white/10 !text-white" }}>
+                        {[
+                          { to: "/", label: "Início", icon: Home },
+                          { to: "/protocolos", label: "Como funciona", icon: HeartPulse },
+                          { to: "/loja", label: "Loja NextVita", icon: ShoppingBag },
+                          { to: "/lojista", label: "Seja lojista", icon: Store },
+                          { to: "/sobre", label: "Sobre", icon: Info },
+                        ].map((it) => (
+                          <Link
+                            key={it.to}
+                            to={it.to}
+                            activeOptions={{ exact: it.to === "/" }}
+                            className="flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-slate-200 hover:bg-white/10"
+                            activeProps={{ className: "!bg-white/10 !text-white" }}
+                          >
                             <it.icon size={18} className="text-emerald-300" /> {it.label}
                           </Link>
                         ))}
                       </div>
                     </div>
                     <div>
-                      <p className="px-1 pb-2 text-xs font-semibold text-slate-400">Recursos gratuitos</p>
+                      <p className="px-1 pb-2 text-xs font-semibold text-slate-400">
+                        Recursos gratuitos
+                      </p>
                       <div className="grid grid-cols-2 gap-2">
                         {resourceLinks.map((r, i) => (
-                          <Link key={r.to} to={r.to} className="nv-drawer-item flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[.04] p-2.5 text-[13px] font-semibold text-slate-100" style={{ animationDelay: `${i * 35}ms` }} activeProps={{ className: "!border-emerald-300/50 !bg-emerald-400/10" }}>
-                            <span className="grid size-8 shrink-0 place-items-center rounded-lg" style={{ background: `${resourceColors[r.to]}33`, color: resourceColors[r.to] }}><r.icon size={16} /></span>
+                          <Link
+                            key={r.to}
+                            to={r.to}
+                            className="nv-drawer-item flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[.04] p-2.5 text-[13px] font-semibold text-slate-100"
+                            style={{ animationDelay: `${i * 35}ms` }}
+                            activeProps={{ className: "!border-emerald-300/50 !bg-emerald-400/10" }}
+                          >
+                            <span
+                              className="grid size-8 shrink-0 place-items-center rounded-lg"
+                              style={{
+                                background: `${resourceColors[r.to]}33`,
+                                color: resourceColors[r.to],
+                              }}
+                            >
+                              <r.icon size={16} />
+                            </span>
                             {r.label}
                           </Link>
                         ))}
                       </div>
                     </div>
-                    <a href="https://wa.me/5568992031340" target="_blank" rel="noopener noreferrer" className="mt-auto flex items-center gap-3 rounded-xl border border-white/10 p-3 text-xs text-slate-300">
-                      <span className="grid size-9 place-items-center rounded-lg bg-[#25d366]/20 text-[#25d366]"><Sparkles size={16} /></span>
-                      <span><strong className="block text-sm text-white">Fale com a NextVita</strong>Dúvidas, parcerias e projetos pelo WhatsApp</span>
+                    <a
+                      href="https://wa.me/5568992031340"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-auto flex items-center gap-3 rounded-xl border border-white/10 p-3 text-xs text-slate-300"
+                    >
+                      <span className="grid size-9 place-items-center rounded-lg bg-[#25d366]/20 text-[#25d366]">
+                        <Sparkles size={16} />
+                      </span>
+                      <span>
+                        <strong className="block text-sm text-white">Fale com a NextVita</strong>
+                        Dúvidas, parcerias e projetos pelo WhatsApp
+                      </span>
                     </a>
                   </nav>
                 )}
               </div>
             </div>
           )}
-
         </div>
       </HydrationProvider>
     </DialogProvider>

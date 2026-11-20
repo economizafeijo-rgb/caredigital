@@ -18,31 +18,62 @@ export function useAccess(): Access {
         const { data } = await supabase.auth.getUser();
         if (!active) return;
         const user = data.user;
-        if (!user) { setAccess(guest); return; }
+        if (!user) {
+          setAccess(guest);
+          return;
+        }
         const email = (user.email ?? "").trim().toLowerCase();
-        if (email === ADMIN_EMAIL) { setAccess({ status: "admin", name: "Administrador", email }); return; }
+        if (email === ADMIN_EMAIL) {
+          setAccess({ status: "admin", name: "Administrador", email });
+          return;
+        }
         const db = supabase as any;
-        const grants = await db.from("care_patient_access").select("patient_id").eq("user_id", user.id).limit(1);
+        const grants = await db
+          .from("care_patient_access")
+          .select("patient_id")
+          .eq("user_id", user.id)
+          .limit(1);
         const patientId = grants.data?.[0]?.patient_id;
         if (!active) return;
         if (grants.error || !patientId) {
           // Sem prontuário: se a conta é dona de uma loja, ela é lojista.
-          const store = await db.from("care_store_vendors").select("name").eq("owner_id", user.id).order("name").limit(1);
+          const store = await db
+            .from("care_store_vendors")
+            .select("name")
+            .eq("owner_id", user.id)
+            .order("name")
+            .limit(1);
           if (!active) return;
-          if (store.data?.[0]) { setAccess({ status: "vendor", name: store.data[0].name as string, email }); return; }
+          if (store.data?.[0]) {
+            setAccess({ status: "vendor", name: store.data[0].name as string, email });
+            return;
+          }
           setAccess({ status: "unlinked", name: "", email });
           return;
         }
-        const person = await db.from("care_patients").select("full_name").eq("id", patientId).limit(1);
+        const person = await db
+          .from("care_patients")
+          .select("full_name")
+          .eq("id", patientId)
+          .limit(1);
         if (!active) return;
-        setAccess({ status: "client", name: person.data?.[0]?.full_name || "Meu acompanhamento", email });
+        setAccess({
+          status: "client",
+          name: person.data?.[0]?.full_name || "Meu acompanhamento",
+          email,
+        });
       } catch {
         if (active) setAccess(guest);
       }
     };
     void check();
-    const { data: listener } = supabase.auth.onAuthStateChange(() => { void check(); });
-    return () => { active = false; listener.subscription.unsubscribe(); };
+    const { data: listener } = supabase.auth.onAuthStateChange(() => {
+      void check();
+    });
+    return () => {
+      active = false;
+      listener.subscription.unsubscribe();
+    };
   }, []);
   return access;
 }

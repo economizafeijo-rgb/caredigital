@@ -3,8 +3,16 @@ import { bestPlanFor, centsToInput, parseMoney, platformRevenue, slugify } from 
 
 describe("marketplace", () => {
   it("calcula a receita da plataforma por plano", () => {
-    expect(platformRevenue(100000, "basico")).toMatchObject({ fee: 0, commission: 10000, total: 10000 });
-    expect(platformRevenue(100000, "vitrine")).toMatchObject({ fee: 4900, commission: 7000, total: 11900 });
+    expect(platformRevenue(100000, "basico")).toMatchObject({
+      fee: 0,
+      commission: 10000,
+      total: 10000,
+    });
+    expect(platformRevenue(100000, "vitrine")).toMatchObject({
+      fee: 4900,
+      commission: 7000,
+      total: 11900,
+    });
     expect(platformRevenue(100000, "destaque")).toMatchObject({ commission: 5000, total: 14900 });
   });
   it("sugere o plano mais barato para o lojista conforme o volume", () => {
@@ -18,5 +26,7 @@ describe("marketplace", () => {
     expect(parseMoney("abc")).toBeNull();
     expect(centsToInput(4990)).toBe("49,90");
   });
-  it("gera endereço (slug) da loja", () => { expect(slugify("Farmácia São João & Cia")).toBe("farmacia-sao-joao-cia"); });
+  it("gera endereço (slug) da loja", () => {
+    expect(slugify("Farmácia São João & Cia")).toBe("farmacia-sao-joao-cia");
+  });
 });

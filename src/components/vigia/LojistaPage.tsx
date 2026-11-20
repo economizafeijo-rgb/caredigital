@@ -14,36 +14,83 @@ export function LojistaPage() {
 
   const load = useCallback(async () => {
     const { data } = await supabase.auth.getUser();
-    if (!data.user) { setState("out"); return; }
+    if (!data.user) {
+      setState("out");
+      return;
+    }
     // O administrador abre o painel de qualquer loja; o lojista, só as próprias.
     const isAdmin = (data.user.email ?? "").toLowerCase() === "francdenisbr@gmail.com";
     let query = (supabase as any).from("care_store_vendors").select("*").order("name");
     if (!isAdmin) query = query.eq("owner_id", data.user.id);
     const { data: rows, error } = await query;
-    if (error) { setState("error"); return; }
-    if (rows?.length) { setVendors(rows as Vendor[]); setState("vendor"); } else { setVendors([]); setState("none"); }
+    if (error) {
+      setState("error");
+      return;
+    }
+    if (rows?.length) {
+      setVendors(rows as Vendor[]);
+      setState("vendor");
+    } else {
+      setVendors([]);
+      setState("none");
+    }
   }, []);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   function start() {
     if (state === "out") {
-      try { window.sessionStorage.setItem("nv_after_login", "/lojista"); } catch { /* ok */ }
+      try {
+        window.sessionStorage.setItem("nv_after_login", "/lojista");
+      } catch {
+        /* ok */
+      }
       window.location.assign("/entrar?mode=lojista");
       return;
     }
     form.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  if (state === "loading") return <p role="status" className="flex items-center justify-center gap-2 p-16 text-sm text-muted-foreground"><Loader2 className="animate-spin" size={18} /> Carregando…</p>;
+  if (state === "loading")
+    return (
+      <p
+        role="status"
+        className="flex items-center justify-center gap-2 p-16 text-sm text-muted-foreground"
+      >
+        <Loader2 className="animate-spin" size={18} /> Carregando…
+      </p>
+    );
   if (state === "vendor" && vendors.length) {
-    const wanted = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("loja") : null;
-    return <SellerDashboard vendors={vendors} initialId={wanted ?? undefined} onChanged={() => void load()} />;
+    const wanted =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("loja")
+        : null;
+    return (
+      <SellerDashboard
+        vendors={vendors}
+        initialId={wanted ?? undefined}
+        onChanged={() => void load()}
+      />
+    );
   }
   return (
     <div className="grid gap-6">
-      {state === "error" && <p role="alert" className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm">Não foi possível consultar a sua loja. A atualização do banco para lojistas ainda precisa ser aplicada.</p>}
+      {state === "error" && (
+        <p
+          role="alert"
+          className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm"
+        >
+          Não foi possível consultar a sua loja. A atualização do banco para lojistas ainda precisa
+          ser aplicada.
+        </p>
+      )}
       <LojistaLanding onStart={start} fit={state !== "none"} />
-      {state === "none" && <div ref={form} id="cadastro"><LojistaSignup onCreated={() => void load()} /></div>}
+      {state === "none" && (
+        <div ref={form} id="cadastro">
+          <LojistaSignup onCreated={() => void load()} />
+        </div>
+      )}
     </div>
   );
 }

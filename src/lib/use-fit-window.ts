@@ -16,7 +16,11 @@ export function useFitWindow<T extends HTMLElement>() {
     const fit = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
-        if (window.innerWidth < 1024) { el.style.zoom = ""; el.style.height = ""; return; }
+        if (window.innerWidth < 1024) {
+          el.style.zoom = "";
+          el.style.height = "";
+          return;
+        }
         if (main) main.scrollTop = 0;
         const styles = main ? getComputedStyle(main) : null;
         const pad = styles ? parseFloat(styles.paddingTop) + parseFloat(styles.paddingBottom) : 32;

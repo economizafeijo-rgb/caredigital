@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { formatBrazilPhone, isValidBirthDate, isValidBrazilPhone, isValidEmail, normalizeBrazilPhone, parseDecimal } from "@/lib/public-signup-validation";
+import {
+  formatBrazilPhone,
+  isValidBirthDate,
+  isValidBrazilPhone,
+  isValidEmail,
+  normalizeBrazilPhone,
+  parseDecimal,
+} from "@/lib/public-signup-validation";
 import { Link } from "@tanstack/react-router";
 import {
   BadgeCheck,
@@ -69,7 +76,9 @@ const plusDays = (days: number) =>
   new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
 /** A plataforma é gratuita: a validade não derruba o acesso; "teste" e "expirada" antigos contam como gratuita. */
 export const effectiveLicense = (c: Pick<Client, "license_status" | "license_expires_on">) =>
-  c.license_status === "teste" || c.license_status === "expirada" ? "gratuita" : (c.license_status ?? "ativa");
+  c.license_status === "teste" || c.license_status === "expirada"
+    ? "gratuita"
+    : (c.license_status ?? "ativa");
 
 export function AdminClientManager({ ownerId }: { ownerId: string }) {
   const [clients, setClients] = useState<Client[]>([]);
@@ -136,13 +145,20 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
     if (name.length < 3)
       return setMessage({ ok: false, text: "Informe o nome completo do cliente." });
     const email = editing.contact_email?.trim() ?? "";
-    if (email && !isValidEmail(email)) return setMessage({ ok: false, text: "E-mail inválido. Confira o endereço." });
-    if (editing.phone?.trim() && !isValidBrazilPhone(editing.phone)) return setMessage({ ok: false, text: "Telefone inválido. Use DDD + número." });
-    if (editing.birth_date && !isValidBirthDate(editing.birth_date)) return setMessage({ ok: false, text: "Data de nascimento inválida." });
-    const num = (v: unknown) => (v === "" || v === null || v === undefined ? null : parseDecimal(String(v)));
-    const w = num(editing.weight_kg), h = num(editing.height_cm);
-    if (w !== null && (w < 30 || w > 300)) return setMessage({ ok: false, text: "Peso deve ficar entre 30 e 300 kg." });
-    if (h !== null && (h < 100 || h > 230)) return setMessage({ ok: false, text: "Altura deve ficar entre 100 e 230 cm." });
+    if (email && !isValidEmail(email))
+      return setMessage({ ok: false, text: "E-mail inválido. Confira o endereço." });
+    if (editing.phone?.trim() && !isValidBrazilPhone(editing.phone))
+      return setMessage({ ok: false, text: "Telefone inválido. Use DDD + número." });
+    if (editing.birth_date && !isValidBirthDate(editing.birth_date))
+      return setMessage({ ok: false, text: "Data de nascimento inválida." });
+    const num = (v: unknown) =>
+      v === "" || v === null || v === undefined ? null : parseDecimal(String(v));
+    const w = num(editing.weight_kg),
+      h = num(editing.height_cm);
+    if (w !== null && (w < 30 || w > 300))
+      return setMessage({ ok: false, text: "Peso deve ficar entre 30 e 300 kg." });
+    if (h !== null && (h < 100 || h > 230))
+      return setMessage({ ok: false, text: "Altura deve ficar entre 100 e 230 cm." });
     const row: Record<string, unknown> = {
       full_name: name,
       birth_date: editing.birth_date || null,
@@ -647,7 +663,9 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
                 <input
                   className={input}
                   value={editing.phone ?? ""}
-                  onChange={(e) => setEditing({ ...editing, phone: formatBrazilPhone(e.target.value) })}
+                  onChange={(e) =>
+                    setEditing({ ...editing, phone: formatBrazilPhone(e.target.value) })
+                  }
                   disabled={!licenseColumns}
                 />
               </label>

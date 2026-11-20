@@ -1,10 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { bedtimeRegularity, parseHeartRate, sleepScore } from "@/components/vigia/ClientSleepPage";
-import { currentSpeedKmh, estimateKcal, kmSplits, paceLabel } from "@/components/vigia/LiveWorkoutVisual";
+import {
+  currentSpeedKmh,
+  estimateKcal,
+  kmSplits,
+  paceLabel,
+} from "@/components/vigia/LiveWorkoutVisual";
 import { goalDate, weeklyTrend } from "@/components/vigia/WeightExplorer";
 import { nextPlanSlot } from "@/components/vigia/HomeModalityTimers";
 
-const night = (h: number, quality = 4, awakenings = 0) => ({ bed_at: "2026-11-15T03:00:00Z", wake_at: new Date(Date.parse("2026-11-15T03:00:00Z") + h * 3_600_000).toISOString(), quality, awakenings });
+const night = (h: number, quality = 4, awakenings = 0) => ({
+  bed_at: "2026-11-15T03:00:00Z",
+  wake_at: new Date(Date.parse("2026-11-15T03:00:00Z") + h * 3_600_000).toISOString(),
+  quality,
+  awakenings,
+});
 describe("sono", () => {
   it("dá nota maior para noites completas e bem avaliadas", () => {
     expect(sleepScore(night(8, 5, 0))).toBe(100);
@@ -12,7 +22,13 @@ describe("sono", () => {
     expect(sleepScore(night(8, 4, 1))).toBeGreaterThan(sleepScore(night(6, 4, 1)));
   });
   it("mede a regularidade do horário de dormir", () => {
-    expect(bedtimeRegularity([{ bed_at: "2026-11-13T03:00:00Z" }, { bed_at: "2026-11-14T03:00:00Z" }, { bed_at: "2026-11-15T03:00:00Z" }])).toBe(0);
+    expect(
+      bedtimeRegularity([
+        { bed_at: "2026-11-13T03:00:00Z" },
+        { bed_at: "2026-11-14T03:00:00Z" },
+        { bed_at: "2026-11-15T03:00:00Z" },
+      ]),
+    ).toBe(0);
     expect(bedtimeRegularity([{ bed_at: "2026-11-13T03:00:00Z" }])).toBeNull();
   });
   it("lê batimentos no padrão Bluetooth de 8 e 16 bits", () => {
@@ -25,14 +41,21 @@ describe("treino ao vivo", () => {
     expect(currentSpeedKmh([{ latitude: 0, longitude: 0, speed: 2.5, t: 0 }])).toBeCloseTo(9);
     expect(paceLabel(10)).toBe("6:00");
     expect(paceLabel(0)).toBe("—");
-    const route = Array.from({ length: 13 }, (_, i) => ({ latitude: 0, longitude: i * 0.001, t: i * 30_000 })); // ~111 m a cada 30 s
+    const route = Array.from({ length: 13 }, (_, i) => ({
+      latitude: 0,
+      longitude: i * 0.001,
+      t: i * 30_000,
+    })); // ~111 m a cada 30 s
     expect(kmSplits(route)).toEqual([270]);
     expect(estimateKcal("corrida", 30, 70)).toBe(343);
   });
 });
 describe("peso e relógios", () => {
   it("calcula tendência semanal e previsão da meta", () => {
-    const pts = [0, 7, 14, 21].map((d, i) => ({ day: new Date(Date.UTC(2026, 10, 1 + d)).toISOString().slice(0, 10), weight: 80 - i * 0.5 }));
+    const pts = [0, 7, 14, 21].map((d, i) => ({
+      day: new Date(Date.UTC(2026, 10, 1 + d)).toISOString().slice(0, 10),
+      weight: 80 - i * 0.5,
+    }));
     expect(weeklyTrend(pts)).toBeCloseTo(-0.5);
     expect(goalDate(78.5, 76.5, -0.5, new Date("2026-11-22T12:00:00Z"))).toBe("2026-12-20");
     expect(goalDate(78.5, 80, -0.5)).toBeNull();

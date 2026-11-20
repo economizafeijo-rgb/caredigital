@@ -31,7 +31,12 @@ describe("public signup validation", () => {
   });
 });
 
-import { ageFromBirthDate, isValidCnpj, isValidEmail, parseDecimal } from "./public-signup-validation";
+import {
+  ageFromBirthDate,
+  isValidCnpj,
+  isValidEmail,
+  parseDecimal,
+} from "./public-signup-validation";
 import { describe as d2, expect as e2, it as i2 } from "vitest";
 d2("verificadores adicionais", () => {
   i2("valida e-mail", () => {

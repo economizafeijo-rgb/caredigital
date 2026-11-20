@@ -74,7 +74,8 @@ export function isValidCnpj(value: string): boolean {
   const c = value.replace(/\D/g, "");
   if (c.length !== 14 || /^(\d)\1{13}$/.test(c)) return false;
   const calc = (len: number) => {
-    const w = len === 12 ? [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2] : [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+    const w =
+      len === 12 ? [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2] : [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
     const s = w.reduce((a, wt, i) => a + Number(c[i]) * wt, 0) % 11;
     return s < 2 ? 0 : 11 - s;
   };
@@ -109,11 +110,36 @@ export function formatCep(value: string): string {
 }
 /** Faixas de CEP por estado (Correios), pelos 5 primeiros dígitos. */
 const cepRanges: [string, number, number][] = [
-  ["SP", 1000, 19999], ["RJ", 20000, 28999], ["ES", 29000, 29999], ["MG", 30000, 39999], ["BA", 40000, 48999], ["SE", 49000, 49999],
-  ["PE", 50000, 56999], ["AL", 57000, 57999], ["PB", 58000, 58999], ["RN", 59000, 59999], ["CE", 60000, 63999], ["PI", 64000, 64999],
-  ["MA", 65000, 65999], ["PA", 66000, 68899], ["AP", 68900, 68999], ["AM", 69000, 69299], ["RR", 69300, 69399], ["AM", 69400, 69899],
-  ["AC", 69900, 69999], ["DF", 70000, 72799], ["GO", 72800, 72999], ["DF", 73000, 73699], ["GO", 73700, 76799], ["RO", 76800, 76999],
-  ["TO", 77000, 77999], ["MT", 78000, 78899], ["MS", 79000, 79999], ["PR", 80000, 87999], ["SC", 88000, 89999], ["RS", 90000, 99999],
+  ["SP", 1000, 19999],
+  ["RJ", 20000, 28999],
+  ["ES", 29000, 29999],
+  ["MG", 30000, 39999],
+  ["BA", 40000, 48999],
+  ["SE", 49000, 49999],
+  ["PE", 50000, 56999],
+  ["AL", 57000, 57999],
+  ["PB", 58000, 58999],
+  ["RN", 59000, 59999],
+  ["CE", 60000, 63999],
+  ["PI", 64000, 64999],
+  ["MA", 65000, 65999],
+  ["PA", 66000, 68899],
+  ["AP", 68900, 68999],
+  ["AM", 69000, 69299],
+  ["RR", 69300, 69399],
+  ["AM", 69400, 69899],
+  ["AC", 69900, 69999],
+  ["DF", 70000, 72799],
+  ["GO", 72800, 72999],
+  ["DF", 73000, 73699],
+  ["GO", 73700, 76799],
+  ["RO", 76800, 76999],
+  ["TO", 77000, 77999],
+  ["MT", 78000, 78899],
+  ["MS", 79000, 79999],
+  ["PR", 80000, 87999],
+  ["SC", 88000, 89999],
+  ["RS", 90000, 99999],
 ];
 export function stateFromCep(value: string): string | null {
   const c = normalizeCep(value);
@@ -128,6 +154,13 @@ export function isValidCep(value: string): boolean {
 /** Nome próprio com iniciais maiúsculas ("RUA JOEL FERREIRA DE SOUSA" → "Rua Joel Ferreira de Sousa"). */
 export function titleCasePt(value: string): string {
   const small = new Set(["de", "da", "do", "das", "dos", "e", "d'"]);
-  return value.trim().replace(/\s+/g, " ").toLocaleLowerCase("pt-BR").split(" ")
-    .map((w, i) => (i > 0 && small.has(w) ? w : w.charAt(0).toLocaleUpperCase("pt-BR") + w.slice(1))).join(" ");
+  return value
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLocaleLowerCase("pt-BR")
+    .split(" ")
+    .map((w, i) =>
+      i > 0 && small.has(w) ? w : w.charAt(0).toLocaleUpperCase("pt-BR") + w.slice(1),
+    )
+    .join(" ");
 }

@@ -8,7 +8,11 @@ export type HrSample = { t: number; bpm: number; rr?: number[] };
 export type HrZone = { key: string; label: string; from: number; to: number; color: string };
 
 /** Lê o valor da característica 0x2A37 (spec Bluetooth SIG). */
-export function parseHeartRate(view: DataView): { bpm: number; contact: boolean | null; rr: number[] } {
+export function parseHeartRate(view: DataView): {
+  bpm: number;
+  contact: boolean | null;
+  rr: number[];
+} {
   const flags = view.getUint8(0);
   const wide = (flags & 0x01) !== 0;
   const contactSupported = (flags & 0x04) !== 0;
@@ -21,7 +25,8 @@ export function parseHeartRate(view: DataView): { bpm: number; contact: boolean 
   if (energy) offset += 2;
   const rr: number[] = [];
   if (hasRr) {
-    for (; offset + 1 < view.byteLength; offset += 2) rr.push(Math.round((view.getUint16(offset, true) / 1024) * 1000));
+    for (; offset + 1 < view.byteLength; offset += 2)
+      rr.push(Math.round((view.getUint16(offset, true) / 1024) * 1000));
   }
   return { bpm, contact, rr };
 }
@@ -42,7 +47,8 @@ export function heartZones(age?: number | null): { max: number; zones: HrZone[] 
     ],
   };
 }
-export const zoneOf = (bpm: number, zones: HrZone[]) => zones.find((zn) => bpm >= zn.from && bpm <= zn.to) ?? zones[0];
+export const zoneOf = (bpm: number, zones: HrZone[]) =>
+  zones.find((zn) => bpm >= zn.from && bpm <= zn.to) ?? zones[0];
 
 export const bluetoothSupport = (): "ok" | "ios" | "unsupported" | "insecure" => {
   if (typeof navigator === "undefined") return "unsupported";
@@ -60,13 +66,22 @@ export class HeartRateLink {
   private stopped = false;
   name = "";
   battery: number | null = null;
-  constructor(private onSample: Listener, private onState: (s: "conectando" | "conectado" | "reconectando" | "desconectado", detail?: string) => void) {}
+  constructor(
+    private onSample: Listener,
+    private onState: (
+      s: "conectando" | "conectado" | "reconectando" | "desconectado",
+      detail?: string,
+    ) => void,
+  ) {}
 
   async connect() {
     const bt = (navigator as any).bluetooth;
     this.stopped = false;
     this.onState("conectando");
-    this.device = await bt.requestDevice({ filters: [{ services: ["heart_rate"] }], optionalServices: ["battery_service"] });
+    this.device = await bt.requestDevice({
+      filters: [{ services: ["heart_rate"] }],
+      optionalServices: ["battery_service"],
+    });
     this.name = this.device.name || "Sensor cardíaco";
     this.device.addEventListener("gattserverdisconnected", this.handleDrop);
     await this.attach();
@@ -77,7 +92,12 @@ export class HeartRateLink {
     this.onState("reconectando");
     for (let i = 0; i < 4 && !this.stopped; i++) {
       await new Promise((r) => setTimeout(r, 1000 * (i + 1)));
-      try { await this.attach(); return; } catch { /* tenta de novo */ }
+      try {
+        await this.attach();
+        return;
+      } catch {
+        /* tenta de novo */
+      }
     }
     this.onState("desconectado", "O sensor saiu do alcance.");
   };
@@ -92,7 +112,9 @@ export class HeartRateLink {
       const bs = await server.getPrimaryService("battery_service");
       const level = await (await bs.getCharacteristic("battery_level")).readValue();
       this.battery = level.getUint8(0);
-    } catch { this.battery = null; }
+    } catch {
+      this.battery = null;
+    }
     this.onState("conectado");
   }
 
@@ -104,20 +126,34 @@ export class HeartRateLink {
 
   async disconnect() {
     this.stopped = true;
-    try { this.char?.removeEventListener("characteristicvaluechanged", this.handleValue); await this.char?.stopNotifications(); } catch { /* já desconectado */ }
-    try { this.device?.removeEventListener("gattserverdisconnected", this.handleDrop); this.device?.gatt?.disconnect(); } catch { /* ok */ }
+    try {
+      this.char?.removeEventListener("characteristicvaluechanged", this.handleValue);
+      await this.char?.stopNotifications();
+    } catch {
+      /* já desconectado */
+    }
+    try {
+      this.device?.removeEventListener("gattserverdisconnected", this.handleDrop);
+      this.device?.gatt?.disconnect();
+    } catch {
+      /* ok */
+    }
     this.onState("desconectado");
   }
 }
 
 /** Simulação para conhecer a tela sem sensor: varia como um treino leve. Sempre marcada como simulação. */
 export function startSimulation(onSample: Listener) {
-  let bpm = 72; let t0 = Date.now();
+  let bpm = 72;
+  let t0 = Date.now();
   const id = window.setInterval(() => {
     const s = (Date.now() - t0) / 1000;
     const target = 72 + 60 * Math.max(0, Math.sin(s / 40)) + 8 * Math.sin(s / 7);
     bpm += (target - bpm) * 0.25 + (Math.random() - 0.5) * 2;
     onSample({ t: Date.now(), bpm: Math.round(bpm), contact: true });
   }, 1000);
-  return () => { window.clearInterval(id); t0 = 0; };
+  return () => {
+    window.clearInterval(id);
+    t0 = 0;
+  };
 }

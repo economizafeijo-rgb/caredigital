@@ -17,15 +17,37 @@ const loader = async (_p: string, _o: string, from: string, to: string): Promise
       raw.waterGoals.push({ day, target: 2500, consumed: 1200, status: "nao_atingida" });
     }
   }
-  return { raw, prefs: { objective: "equilibrio", weightKg: 80, kcal: 2000, protein: 100, carbs: 250, fat: 60, targetWeightKg: null }, warnings: [] };
+  return {
+    raw,
+    prefs: {
+      objective: "equilibrio",
+      weightKg: 80,
+      kcal: 2000,
+      protein: 100,
+      carbs: 250,
+      fat: 60,
+      targetWeightKg: null,
+    },
+    warnings: [],
+  };
 };
 // O jsdom não tem ResizeObserver, que o Recharts usa para medir os gráficos.
-beforeAll(() => { (globalThis as any).ResizeObserver = class { observe() {} unobserve() {} disconnect() {} }; });
+beforeAll(() => {
+  (globalThis as any).ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+});
 afterEach(() => cleanup());
 
 describe("Histórico de evolução", () => {
   it("abre no mês atual, navega para o ano e para as 24 horas de um dia", async () => {
-    render(<GoalFxProvider><EvolutionHub patientId="p" ownerId="o" waterTarget={2500} loader={loader} /></GoalFxProvider>);
+    render(
+      <GoalFxProvider>
+        <EvolutionHub patientId="p" ownerId="o" waterTarget={2500} loader={loader} />
+      </GoalFxProvider>,
+    );
     expect(await screen.findByText("Calendário do mês")).toBeTruthy();
     expect(screen.getByText("Observações do mês")).toBeTruthy();
 
@@ -39,16 +61,29 @@ describe("Histórico de evolução", () => {
   });
 
   it("registra no histórico a hidratação não atingida de ontem e a explica no dia", async () => {
-    render(<GoalFxProvider><EvolutionHub patientId="p" ownerId="o" waterTarget={2500} loader={loader} /></GoalFxProvider>);
+    render(
+      <GoalFxProvider>
+        <EvolutionHub patientId="p" ownerId="o" waterTarget={2500} loader={loader} />
+      </GoalFxProvider>,
+    );
     fireEvent.click(screen.getByRole("button", { name: "Dia" }));
     fireEvent.click(await screen.findByLabelText("Período anterior"));
-    await waitFor(() => expect(screen.getByText(/Meta de hidratação não atingida em/)).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.getByText(/Meta de hidratação não atingida em/)).toBeTruthy(),
+    );
     expect(screen.getByText(/1\.200 de 2\.500 ml \(48%\)\. Faltaram 1\.300 ml\./)).toBeTruthy();
   });
 
   it("avisa quando uma fonte de dados ainda não existe no banco", async () => {
-    const withWarning = async (...args: Parameters<typeof loader>): Promise<PeriodData> => ({ ...(await loader(...args)), warnings: ["suplementos"] });
-    render(<GoalFxProvider><EvolutionHub patientId="p" ownerId="o" waterTarget={null} loader={withWarning} /></GoalFxProvider>);
+    const withWarning = async (...args: Parameters<typeof loader>): Promise<PeriodData> => ({
+      ...(await loader(...args)),
+      warnings: ["suplementos"],
+    });
+    render(
+      <GoalFxProvider>
+        <EvolutionHub patientId="p" ownerId="o" waterTarget={null} loader={withWarning} />
+      </GoalFxProvider>,
+    );
     expect(await screen.findByText(/Aplique as migrações pendentes/)).toBeTruthy();
   });
 });

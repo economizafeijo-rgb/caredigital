@@ -5,7 +5,17 @@ import { useEffect, useRef, type ReactNode } from "react";
  * Mede a altura natural do conteúdo e, se ela não couber, reduz a escala proporcionalmente.
  * No celular não faz nada e a página rola normalmente.
  */
-export function FitPage({ children, className = "", reserve = 49, label }: { children: ReactNode; className?: string; reserve?: number; label?: string }) {
+export function FitPage({
+  children,
+  className = "",
+  reserve = 49,
+  label,
+}: {
+  children: ReactNode;
+  className?: string;
+  reserve?: number;
+  label?: string;
+}) {
   const outer = useRef<HTMLDivElement>(null);
   const inner = useRef<HTMLDivElement>(null);
 
@@ -19,12 +29,18 @@ export function FitPage({ children, className = "", reserve = 49, label }: { chi
     const fit = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
-        if (window.innerWidth < 1024) { box.style.height = ""; content.style.zoom = ""; content.style.height = ""; return; }
+        if (window.innerWidth < 1024) {
+          box.style.height = "";
+          content.style.zoom = "";
+          content.style.height = "";
+          return;
+        }
         const styles = main ? getComputedStyle(main) : null;
         const pad = styles ? parseFloat(styles.paddingTop) + parseFloat(styles.paddingBottom) : 0;
         const available = Math.floor((main?.clientHeight ?? window.innerHeight) - pad - reserve);
         box.style.height = `${available}px`;
-        content.style.zoom = "1"; content.style.height = "auto";
+        content.style.zoom = "1";
+        content.style.height = "auto";
         const natural = content.scrollHeight;
         const scale = natural > available ? Math.max(0.5, available / natural) : 1;
         content.style.zoom = String(scale);
@@ -35,12 +51,23 @@ export function FitPage({ children, className = "", reserve = 49, label }: { chi
     const observer = new ResizeObserver(fit);
     if (main) observer.observe(main);
     window.addEventListener("resize", fit);
-    return () => { cancelAnimationFrame(frame); observer.disconnect(); window.removeEventListener("resize", fit); delete document.body.dataset.fitPage; };
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      window.removeEventListener("resize", fit);
+      delete document.body.dataset.fitPage;
+    };
   }, [reserve]);
 
   return (
     <div ref={outer} className="lg:overflow-hidden">
-      <div ref={inner} className={className} {...(label ? { role: "region", "aria-label": label } : {})}>{children}</div>
+      <div
+        ref={inner}
+        className={className}
+        {...(label ? { role: "region", "aria-label": label } : {})}
+      >
+        {children}
+      </div>
     </div>
   );
 }

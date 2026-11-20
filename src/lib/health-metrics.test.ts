@@ -3,7 +3,12 @@ import { calculateBodyMetrics } from "./health-metrics";
 
 describe("calculateBodyMetrics", () => {
   it("calculates adult BMI and uses the EFSA fluid reference for the water number", () => {
-    const result = calculateBodyMetrics({ ageYears: 34, heightCm: 170, weightKg: 72, sex: "female" });
+    const result = calculateBodyMetrics({
+      ageYears: 34,
+      heightCm: 170,
+      weightKg: 72,
+      sex: "female",
+    });
     expect(result.bmi).toBe(24.9);
     expect(result.bmiLabel).toBe("Faixa de referência");
     expect(result.waterReferenceMl).toBe(1600); // EFSA: 2,0 L de água total para mulheres × 80% de líquidos
@@ -21,7 +26,12 @@ describe("calculateBodyMetrics", () => {
   });
 
   it("does not infer a demographic hydration reference without a selected category", () => {
-    const result = calculateBodyMetrics({ ageYears: 35, heightCm: 165, weightKg: 58, sex: "unspecified" });
+    const result = calculateBodyMetrics({
+      ageYears: 35,
+      heightCm: 165,
+      weightKg: 58,
+      sex: "unspecified",
+    });
     expect(result.bmi).toBe(21.3);
     expect(result.waterReferenceMl).toBeNull();
   });

@@ -5,11 +5,38 @@ import { GoalFxProvider } from "./GoalFx";
 import { emptyRaw } from "@/lib/day-metrics";
 
 const mocks = vi.hoisted(() => ({ load: vi.fn() }));
-vi.mock("@/integrations/supabase/client", () => ({ supabase: { from: vi.fn(() => ({ select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle: vi.fn().mockResolvedValue({ data: { target_ml: 2500 } }) })) })) })) } }));
-vi.mock("@/lib/period-data", async (importActual) => ({ ...(await importActual<typeof import("@/lib/period-data")>()), loadPeriodRaw: mocks.load }));
+vi.mock("@/integrations/supabase/client", () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          maybeSingle: vi.fn().mockResolvedValue({ data: { target_ml: 2500 } }),
+        })),
+      })),
+    })),
+  },
+}));
+vi.mock("@/lib/period-data", async (importActual) => ({
+  ...(await importActual<typeof import("@/lib/period-data")>()),
+  loadPeriodRaw: mocks.load,
+}));
 
-const prefs = { objective: "equilibrio", weightKg: 80, kcal: 2000, protein: 100, carbs: 250, fat: 60, targetWeightKg: null };
-beforeAll(() => { (globalThis as any).ResizeObserver = class { observe() {} unobserve() {} disconnect() {} }; });
+const prefs = {
+  objective: "equilibrio",
+  weightKg: 80,
+  kcal: 2000,
+  protein: 100,
+  carbs: 250,
+  fat: 60,
+  targetWeightKg: null,
+};
+beforeAll(() => {
+  (globalThis as any).ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+});
 beforeEach(() => {
   mocks.load.mockImplementation(async (_p: string, _o: string, day: string) => {
     const raw = emptyRaw();
@@ -19,7 +46,12 @@ beforeEach(() => {
 });
 afterEach(() => cleanup());
 
-const mount = (day: string | null, onClose = vi.fn()) => render(<GoalFxProvider><DayDetailDialog patientId="p" ownerId="o" day={day} onClose={onClose} /></GoalFxProvider>);
+const mount = (day: string | null, onClose = vi.fn()) =>
+  render(
+    <GoalFxProvider>
+      <DayDetailDialog patientId="p" ownerId="o" day={day} onClose={onClose} />
+    </GoalFxProvider>,
+  );
 
 describe("Detalhes do dia", () => {
   it("não aparece sem um dia selecionado", () => {
@@ -42,7 +74,9 @@ describe("Detalhes do dia", () => {
     mount("2026-11-10", onClose);
     await screen.findByText("Metas do dia");
     fireEvent.click(screen.getByLabelText("Dia anterior"));
-    await waitFor(() => expect(mocks.load).toHaveBeenCalledWith("p", "o", "2026-11-09", "2026-11-09"));
+    await waitFor(() =>
+      expect(mocks.load).toHaveBeenCalledWith("p", "o", "2026-11-09", "2026-11-09"),
+    );
     expect(screen.getByText(/segunda-feira, 9 de novembro de 2026/i)).toBeTruthy();
     fireEvent.click(screen.getByLabelText("Fechar detalhes"));
     fireEvent.keyDown(window, { key: "Escape" });

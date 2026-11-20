@@ -12,6 +12,10 @@ describe("signo solar pela posição do Sol", () => {
   it("usa o horário do Acre e marca a cúspide (equinócio de 20/03/2024 03:06 UTC = 19/03 22:06 no Acre)", () => {
     expect(zodiacDetails("2024-03-19")).toEqual({ sign: "PEIXES", cusp: true, other: "ÁRIES" });
     expect(zodiacDetails("2024-03-20").sign).toBe("ÁRIES");
-    expect(zodiacDetails("2024-03-19", "23:00")).toEqual({ sign: "ÁRIES", cusp: false, other: null });
+    expect(zodiacDetails("2024-03-19", "23:00")).toEqual({
+      sign: "ÁRIES",
+      cusp: false,
+      other: null,
+    });
   });
 });

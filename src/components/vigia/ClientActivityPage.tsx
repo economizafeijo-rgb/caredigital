@@ -175,7 +175,13 @@ export function ClientActivityPage({
         if (pausedRef.current || (c.accuracy && c.accuracy > 40)) return;
         setRoute((current) => [
           ...current,
-          { latitude: c.latitude, longitude: c.longitude, accuracy: c.accuracy, speed: c.speed, t: position.timestamp },
+          {
+            latitude: c.latitude,
+            longitude: c.longitude,
+            accuracy: c.accuracy,
+            speed: c.speed,
+            t: position.timestamp,
+          },
         ]);
       },
       () => setError("Permita o acesso à localização para registrar o percurso."),
@@ -231,7 +237,15 @@ export function ClientActivityPage({
       setError("As observações podem ter até 500 caracteres.");
       return;
     }
-    if (!(await confirm("Confirmar registro?", `Registrar ${type} de ${minutes} min${km !== null ? ` (${km.toLocaleString("pt-BR")} km)` : ""} agora?`, false, "Confirmar registro"))) return;
+    if (
+      !(await confirm(
+        "Confirmar registro?",
+        `Registrar ${type} de ${minutes} min${km !== null ? ` (${km.toLocaleString("pt-BR")} km)` : ""} agora?`,
+        false,
+        "Confirmar registro",
+      ))
+    )
+      return;
     setSaving(true);
     setError("");
     setNotice("");
@@ -259,7 +273,10 @@ export function ClientActivityPage({
   }
 
   return (
-    <section className="flex h-full min-h-0 flex-col gap-3 overflow-y-auto pb-2" aria-label="Atividade física">
+    <section
+      className="flex h-full min-h-0 flex-col gap-3 overflow-y-auto pb-2"
+      aria-label="Atividade física"
+    >
       {(tracking || summary) && (
         <div
           className="fixed inset-0 z-[180] grid place-items-center bg-[#071a1d]/95 p-5 text-white backdrop-blur-xl"
@@ -372,10 +389,18 @@ export function ClientActivityPage({
           </div>
         </div>
       )}
-      <ActivityHero items={items} onStartGps={startGps} gpsLabel={type === "corrida" ? "Iniciar corrida com GPS" : "Iniciar caminhada com GPS"} />
+      <ActivityHero
+        items={items}
+        onStartGps={startGps}
+        gpsLabel={type === "corrida" ? "Iniciar corrida com GPS" : "Iniciar caminhada com GPS"}
+      />
 
       <div className="grid shrink-0 gap-3 lg:grid-cols-[minmax(300px,.85fr)_minmax(0,1.15fr)]">
-        <section id="nv-activity-form" data-register-target="Registrar atividade" className="scroll-mt-4 rounded-2xl border border-border bg-card p-3 sm:p-4">
+        <section
+          id="nv-activity-form"
+          data-register-target="Registrar atividade"
+          className="scroll-mt-4 rounded-2xl border border-border bg-card p-3 sm:p-4"
+        >
           <div className="flex items-center gap-2">
             <span className="grid size-9 place-items-center rounded-xl bg-primary/10 text-primary">
               <Plus size={18} />
@@ -516,97 +541,126 @@ export function ClientActivityPage({
         </section>
 
         <div className="flex min-h-0 min-w-0 flex-col gap-3">
-        <ActivityDaysChart items={items} />
-        <section className="flex min-h-0 flex-1 flex-col rounded-2xl border border-border bg-card p-3 sm:p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h3 className="text-sm font-bold">Histórico de atividades</h3>
-              <p className="text-[11px] text-muted-foreground">
-                Registros reais dos últimos 90 dias
-              </p>
-            </div>
-            <label className="flex items-center gap-1.5 text-xs">
-              <Search size={14} />
-              <NiceSelect
-                className="h-9 min-w-[9rem]"
-                ariaLabel="Filtrar atividades"
-                value={filter}
-                onChange={setFilter}
-                options={[{ value: "todos", label: "Todas" }, ...activityOptions.map((option) => ({ value: option.value, label: option.label }))]}
-              />
-            </label>
-          </div>
-          <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
-            {loading ? (
-              <p className="py-6 text-center text-xs text-muted-foreground">
-                Carregando atividades…
-              </p>
-            ) : filtered.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-border p-6 text-center">
-                <Activity className="mx-auto text-muted-foreground" size={22} />
-                <p className="mt-2 text-xs font-semibold">
-                  Nenhuma atividade registrada neste filtro.
-                </p>
-                <p className="mt-1 text-[11px] text-muted-foreground">
-                  Seus registros aparecerão aqui depois de salvar uma atividade.
+          <ActivityDaysChart items={items} />
+          <section className="flex min-h-0 flex-1 flex-col rounded-2xl border border-border bg-card p-3 sm:p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 className="text-sm font-bold">Histórico de atividades</h3>
+                <p className="text-[11px] text-muted-foreground">
+                  Registros reais dos últimos 90 dias
                 </p>
               </div>
-            ) : (
-              filtered.map((item) => {
-                const detail = item.details ?? {};
-                const option = activityOptions.find(
-                  (entry) => entry.value === detail.activity_type,
-                );
-                const Icon = option?.icon ?? Activity;
-                return (
-                  <article
-                    key={item.id}
-                    className="flex items-start gap-3 rounded-xl border border-border/70 bg-muted/20 p-3"
-                  >
-                    <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
-                      <Icon size={17} />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center justify-between gap-1">
-                        <strong className="text-xs">
-                          {detail.title ?? option?.label ?? "Atividade"}
-                        </strong>
-                        <span className="flex items-center gap-1.5">
-                          <time className="text-[11px] text-muted-foreground">
-                            {formatDate(item.happened_at)}
-                          </time>
-                          <RecordInfo
-                            title={detail.title ?? option?.label ?? "Atividade"}
-                            at={item.happened_at}
-                            category="Atividade física"
-                            color="#0d9488"
-                            rows={[
-                              { label: "Atividade", value: option?.label ?? detail.activity_type ?? "Atividade" },
-                              { label: "Duração", value: `${detail.duration_minutes ?? "—"} min` },
-                              ...(detail.distance_km != null ? [{ label: "Distância", value: `${Number(detail.distance_km).toLocaleString("pt-BR")} km` }] : []),
-                              ...(detail.distance_km && detail.duration_minutes ? [{ label: "Ritmo médio", value: `${(Number(detail.duration_minutes) / Number(detail.distance_km)).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} min/km` }] : []),
-                              { label: "Intensidade", value: detail.intensity ?? "não informada" },
-                            ]}
-                            description={detail.notes}
-                          />
-                        </span>
+              <label className="flex items-center gap-1.5 text-xs">
+                <Search size={14} />
+                <NiceSelect
+                  className="h-9 min-w-[9rem]"
+                  ariaLabel="Filtrar atividades"
+                  value={filter}
+                  onChange={setFilter}
+                  options={[
+                    { value: "todos", label: "Todas" },
+                    ...activityOptions.map((option) => ({
+                      value: option.value,
+                      label: option.label,
+                    })),
+                  ]}
+                />
+              </label>
+            </div>
+            <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+              {loading ? (
+                <p className="py-6 text-center text-xs text-muted-foreground">
+                  Carregando atividades…
+                </p>
+              ) : filtered.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-border p-6 text-center">
+                  <Activity className="mx-auto text-muted-foreground" size={22} />
+                  <p className="mt-2 text-xs font-semibold">
+                    Nenhuma atividade registrada neste filtro.
+                  </p>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Seus registros aparecerão aqui depois de salvar uma atividade.
+                  </p>
+                </div>
+              ) : (
+                filtered.map((item) => {
+                  const detail = item.details ?? {};
+                  const option = activityOptions.find(
+                    (entry) => entry.value === detail.activity_type,
+                  );
+                  const Icon = option?.icon ?? Activity;
+                  return (
+                    <article
+                      key={item.id}
+                      className="flex items-start gap-3 rounded-xl border border-border/70 bg-muted/20 p-3"
+                    >
+                      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+                        <Icon size={17} />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center justify-between gap-1">
+                          <strong className="text-xs">
+                            {detail.title ?? option?.label ?? "Atividade"}
+                          </strong>
+                          <span className="flex items-center gap-1.5">
+                            <time className="text-[11px] text-muted-foreground">
+                              {formatDate(item.happened_at)}
+                            </time>
+                            <RecordInfo
+                              title={detail.title ?? option?.label ?? "Atividade"}
+                              at={item.happened_at}
+                              category="Atividade física"
+                              color="#0d9488"
+                              rows={[
+                                {
+                                  label: "Atividade",
+                                  value: option?.label ?? detail.activity_type ?? "Atividade",
+                                },
+                                {
+                                  label: "Duração",
+                                  value: `${detail.duration_minutes ?? "—"} min`,
+                                },
+                                ...(detail.distance_km != null
+                                  ? [
+                                      {
+                                        label: "Distância",
+                                        value: `${Number(detail.distance_km).toLocaleString("pt-BR")} km`,
+                                      },
+                                    ]
+                                  : []),
+                                ...(detail.distance_km && detail.duration_minutes
+                                  ? [
+                                      {
+                                        label: "Ritmo médio",
+                                        value: `${(Number(detail.duration_minutes) / Number(detail.distance_km)).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} min/km`,
+                                      },
+                                    ]
+                                  : []),
+                                {
+                                  label: "Intensidade",
+                                  value: detail.intensity ?? "não informada",
+                                },
+                              ]}
+                              description={detail.notes}
+                            />
+                          </span>
+                        </div>
+                        <p className="mt-1 text-[11px] text-muted-foreground">
+                          <Clock3 className="mr-1 inline" size={12} />
+                          {detail.duration_minutes ?? "—"} min
+                          {detail.distance_km != null
+                            ? ` · ${Number(detail.distance_km).toLocaleString("pt-BR")} km`
+                            : ""}{" "}
+                          · Intensidade {detail.intensity ?? "não informada"}
+                        </p>
+                        {detail.notes && <p className="mt-1 text-xs">{detail.notes}</p>}
                       </div>
-                      <p className="mt-1 text-[11px] text-muted-foreground">
-                        <Clock3 className="mr-1 inline" size={12} />
-                        {detail.duration_minutes ?? "—"} min
-                        {detail.distance_km != null
-                          ? ` · ${Number(detail.distance_km).toLocaleString("pt-BR")} km`
-                          : ""}{" "}
-                        · Intensidade {detail.intensity ?? "não informada"}
-                      </p>
-                      {detail.notes && <p className="mt-1 text-xs">{detail.notes}</p>}
-                    </div>
-                  </article>
-                );
-              })
-            )}
-          </div>
-        </section>
+                    </article>
+                  );
+                })
+              )}
+            </div>
+          </section>
         </div>
       </div>
     </section>

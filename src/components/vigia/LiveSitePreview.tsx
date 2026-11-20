@@ -5,7 +5,15 @@ import { useEffect, useRef, useState } from "react";
  * espaço. Fica nítido em qualquer tela e sempre mostra a versão publicada. Não usar na página inicial
  * apontando para "/" (geraria miniaturas dentro de miniaturas).
  */
-export function LiveSitePreview({ src = "/", title, className = "" }: { src?: string; title: string; className?: string }) {
+export function LiveSitePreview({
+  src = "/",
+  title,
+  className = "",
+}: {
+  src?: string;
+  title: string;
+  className?: string;
+}) {
   const box = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.3);
   useEffect(() => {
@@ -16,7 +24,10 @@ export function LiveSitePreview({ src = "/", title, className = "" }: { src?: st
     return () => ro.disconnect();
   }, []);
   return (
-    <div ref={box} className={`relative aspect-[16/9] w-full overflow-hidden bg-white ${className}`}>
+    <div
+      ref={box}
+      className={`relative aspect-[16/9] w-full overflow-hidden bg-white ${className}`}
+    >
       <iframe
         src={src}
         title={title}

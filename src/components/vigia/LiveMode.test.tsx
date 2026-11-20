@@ -19,13 +19,45 @@ vi.mock("@/integrations/supabase/client", () => ({
 }));
 vi.mock("@/lib/period-data", async () => {
   const actual = await vi.importActual<typeof import("@/lib/period-data")>("@/lib/period-data");
-  return { ...actual, loadPeriodRaw: vi.fn(async () => ({ raw: emptyRaw(), prefs: { objective: null, weightKg: 80, kcal: null, protein: null, carbs: null, fat: null, targetWeightKg: null }, warnings: [] })) };
+  return {
+    ...actual,
+    loadPeriodRaw: vi.fn(async () => ({
+      raw: emptyRaw(),
+      prefs: {
+        objective: null,
+        weightKg: 80,
+        kcal: null,
+        protein: null,
+        carbs: null,
+        fat: null,
+        targetWeightKg: null,
+      },
+      warnings: [],
+    })),
+  };
 });
 
 beforeEach(() => {
-  vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
-  window.matchMedia = ((q: string) => ({ matches: false, media: q, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {}, onchange: null, dispatchEvent: () => false })) as typeof window.matchMedia;
-  mocks.rpc.mockClear(); mocks.insert.mockClear();
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
+  window.matchMedia = ((q: string) => ({
+    matches: false,
+    media: q,
+    addEventListener() {},
+    removeEventListener() {},
+    addListener() {},
+    removeListener() {},
+    onchange: null,
+    dispatchEvent: () => false,
+  })) as typeof window.matchMedia;
+  mocks.rpc.mockClear();
+  mocks.insert.mockClear();
 });
 afterEach(() => cleanup());
 
@@ -47,7 +79,12 @@ describe("modo ao vivo: nada é gravado sem confirmação", () => {
     expect(screen.queryByRole("alertdialog")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Registrar 250 ml de água" }));
     fireEvent.click(await screen.findByRole("button", { name: "Confirmar registro" }));
-    await waitFor(() => expect(mocks.rpc).toHaveBeenCalledWith("care_log_unscheduled_intake", expect.objectContaining({ p_amount_ml: 250 })));
+    await waitFor(() =>
+      expect(mocks.rpc).toHaveBeenCalledWith(
+        "care_log_unscheduled_intake",
+        expect.objectContaining({ p_amount_ml: 250 }),
+      ),
+    );
     expect(mocks.rpc).toHaveBeenCalledTimes(1);
   });
 
@@ -73,6 +110,8 @@ describe("modo ao vivo: nada é gravado sem confirmação", () => {
     expect(mocks.insert).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: /Registrar peso de hoje/ }));
     fireEvent.click(await screen.findByRole("button", { name: "Confirmar registro" }));
-    await waitFor(() => expect(mocks.insert).toHaveBeenCalledWith(expect.objectContaining({ weight_kg: 80.5 })));
+    await waitFor(() =>
+      expect(mocks.insert).toHaveBeenCalledWith(expect.objectContaining({ weight_kg: 80.5 })),
+    );
   });
 });

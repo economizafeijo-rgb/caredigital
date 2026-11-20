@@ -1,7 +1,10 @@
 import type { BeverageKind } from "./care-intake-categories";
 
 /** Valores aproximados por 100 ml, usados quando o nome digitado não tem um alimento conhecido. São estimativas por tipo. */
-export const beverageNutrientsPer100ml: Record<BeverageKind, { kcal: number; protein: number; carbs: number; fat: number }> = {
+export const beverageNutrientsPer100ml: Record<
+  BeverageKind,
+  { kcal: number; protein: number; carbs: number; fat: number }
+> = {
   agua: { kcal: 0, protein: 0, carbs: 0, fat: 0 },
   cha: { kcal: 1, protein: 0, carbs: 0.2, fat: 0 },
   suco: { kcal: 45, protein: 0.5, carbs: 11, fat: 0.1 },
@@ -20,5 +23,10 @@ export const beverageNutrientsPer100ml: Record<BeverageKind, { kcal: number; pro
 export function beverageNutrients(kind: BeverageKind, ml: number) {
   const per = beverageNutrientsPer100ml[kind] ?? beverageNutrientsPer100ml.outra;
   const f = ml / 100;
-  return { kcal: Math.round(per.kcal * f), protein: Math.round(per.protein * f * 10) / 10, carbs: Math.round(per.carbs * f * 10) / 10, fat: Math.round(per.fat * f * 10) / 10 };
+  return {
+    kcal: Math.round(per.kcal * f),
+    protein: Math.round(per.protein * f * 10) / 10,
+    carbs: Math.round(per.carbs * f * 10) / 10,
+    fat: Math.round(per.fat * f * 10) / 10,
+  };
 }

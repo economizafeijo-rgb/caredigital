@@ -3,17 +3,30 @@ import { act, cleanup, render } from "@testing-library/react";
 import { endOtherSessions, isSessionGone, MANUAL_SIGNOUT_KEY, SessionGuard } from "./SessionGuard";
 
 const mocks = vi.hoisted(() => ({
-  getSession: vi.fn(), getUser: vi.fn(), signOut: vi.fn(), unsubscribe: vi.fn(),
+  getSession: vi.fn(),
+  getUser: vi.fn(),
+  signOut: vi.fn(),
+  unsubscribe: vi.fn(),
   listener: null as null | ((event: string, session: unknown) => void),
 }));
 vi.mock("@/integrations/supabase/client", () => ({
-  supabase: { auth: {
-    getSession: mocks.getSession, getUser: mocks.getUser, signOut: mocks.signOut,
-    onAuthStateChange: (cb: (event: string, session: unknown) => void) => { mocks.listener = cb; return { data: { subscription: { unsubscribe: mocks.unsubscribe } } }; },
-  } },
+  supabase: {
+    auth: {
+      getSession: mocks.getSession,
+      getUser: mocks.getUser,
+      signOut: mocks.signOut,
+      onAuthStateChange: (cb: (event: string, session: unknown) => void) => {
+        mocks.listener = cb;
+        return { data: { subscription: { unsubscribe: mocks.unsubscribe } } };
+      },
+    },
+  },
 }));
 
-const flush = () => act(async () => { await new Promise((resolve) => setTimeout(resolve, 10)); });
+const flush = () =>
+  act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  });
 beforeEach(() => {
   vi.clearAllMocks();
   window.sessionStorage.clear();
@@ -50,7 +63,9 @@ describe("sessão única por conta", () => {
   });
 
   it("mantém a sessão quando está tudo certo ou quando só há falha de rede", async () => {
-    mocks.getUser.mockResolvedValueOnce({ error: null }).mockResolvedValueOnce({ error: { status: 0, message: "Failed to fetch" } });
+    mocks.getUser
+      .mockResolvedValueOnce({ error: null })
+      .mockResolvedValueOnce({ error: { status: 0, message: "Failed to fetch" } });
     render(<SessionGuard />);
     await flush();
     window.dispatchEvent(new Event("focus"));

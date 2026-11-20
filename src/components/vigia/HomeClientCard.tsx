@@ -810,985 +810,1094 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
   return (
     <GoalFxProvider onOpenHistory={() => openSection("indicadores")}>
       {owner && client && (
-        <GoalWatcher patientId={client.id} ownerId={client.owner_id} waterTarget={hydrationTarget || null} revision={tick} />
+        <GoalWatcher
+          patientId={client.id}
+          ownerId={client.owner_id}
+          waterTarget={hydrationTarget || null}
+          revision={tick}
+        />
       )}
-    <section
-      aria-label="Painel de acompanhamento individual"
-      className="flex min-h-full w-full flex-col gap-3"
-    >
-      {loading ? (
-        <p role="status" className="grid flex-1 place-items-center text-sm text-muted-foreground">
-          Verificando acesso seguro…
-        </p>
-      ) : !owner ? (
-        <div className={card + " mx-auto mt-10 max-w-md p-8 text-center"}>
-          <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-accent text-accent-foreground">
-            <LockKeyhole size={22} />
-          </span>
-          <h1 className="mt-4 text-lg font-bold">Acesso protegido</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Entre com sua conta para consultar seu acompanhamento e confirmar os cuidados
-            realizados.
+      <section
+        aria-label="Painel de acompanhamento individual"
+        className="flex min-h-full w-full flex-col gap-3"
+      >
+        {loading ? (
+          <p role="status" className="grid flex-1 place-items-center text-sm text-muted-foreground">
+            Verificando acesso seguro…
           </p>
-          <Link
-            to="/entrar"
-            className="mt-5 inline-flex h-10 items-center rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground"
-          >
-            Entrar
-          </Link>
-        </div>
-      ) : !client ? (
-        <p
-          className={card + " mx-auto mt-10 max-w-md p-8 text-center text-sm text-muted-foreground"}
-        >
-          Nenhum prontuário vinculado a esta conta. Confira seu acesso com o responsável.
-        </p>
-      ) : (
-        <>
-          <nav
-            className="-mx-1 flex shrink-0 items-center gap-1 overflow-x-auto rounded-xl border border-border/70 bg-surface/80 p-1 shadow-sm backdrop-blur xl:hidden"
-            aria-label="Áreas do acompanhamento"
-          >
-            {sections.map(({ key, label, icon: Icon }) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => openSection(key)}
-                aria-current={activeTab === key ? "page" : undefined}
-                className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border px-2.5 text-[11px] font-semibold transition-all ${activeTab === key ? `border-transparent text-white shadow-sm ${clientSectionTheme[key].pill}` : "border-transparent bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground"}`}
-              >
-                <span
-                  className={`grid size-5 place-items-center rounded-md ${activeTab === key ? "bg-white/20" : clientSectionTheme[key].chip}`}
-                >
-                  <Icon size={11} />
-                </span>
-                {label}
-              </button>
-            ))}
-          </nav>
-
-          <header className="relative isolate flex min-h-0 shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 overflow-hidden rounded-xl bg-slate-950 px-3 py-2 text-white shadow-card [&_p]:!text-slate-200">
-            <img
-              key={activeTab}
-              src={clientSectionTheme[activeTab].image}
-              alt=""
-              aria-hidden="true"
-              width={1400}
-              height={600}
-              decoding="async"
-              style={{ objectPosition: clientSectionTheme[activeTab].position }}
-              className="absolute inset-y-0 right-0 -z-20 h-full w-full object-cover sm:w-3/5"
-            />
-            <div
-              aria-hidden="true"
-              className={`absolute inset-0 -z-10 bg-gradient-to-r from-35% via-60% ${clientSectionTheme[activeTab].overlay}`}
-            />
-            <div className="flex min-w-0 items-center gap-3">
-              {(() => {
-                const HeaderIcon = clientSectionTheme[activeTab].icon;
-                return (
-                  <span
-                    aria-hidden="true"
-                    className={`hidden size-10 shrink-0 place-items-center rounded-xl text-white shadow-lg ring-1 ring-white/25 sm:grid ${clientSectionTheme[activeTab].pill}`}
-                  >
-                    <HeaderIcon size={20} />
-                  </span>
-                );
-              })()}
-              <div className="min-w-0">
-                <p className="sr-only">
-                  {clientSectionLabels[activeTab].tagline}
-                </p>
-                <h1 className="truncate text-lg font-bold tracking-tight sm:text-xl">
-                  {activeTab === "hoje"
-                    ? `Olá, ${(patientName || client.full_name).split(" ")[0]}`
-                    : clientSectionLabels[activeTab].title}
-                </h1>
-                <p className="truncate text-xs text-muted-foreground first-letter:uppercase">
-                  {activeTab === "hoje"
-                    ? tasks.length ? `${today} · ${completed} de ${tasks.length} cuidados concluídos` : today
-                    : clientSectionLabels[activeTab].subtitle}
-                  {activeTab !== "hoje" && sectionCount != null && ` · ${sectionCount} hoje`}
-                </p>
-                {birthSummary && activeTab === "hoje" && <BirthChips summary={birthSummary} />}
-              </div>
-            </div>
-            <ExportPlanButton patientId={client.id} ownerId={client.owner_id} label="PDF" className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-white/30 bg-white/15 px-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/25" />
-            <fieldset disabled={profileLocked} title={profileLocked ? "Complete o cadastro para registrar" : undefined} className="nv-day-actions m-0 flex min-w-0 flex-wrap items-center gap-2.5 border-0 p-0 disabled:opacity-60">
-              {/* Cada área mostra só o registro da sua área, direto no formulário certo (sem painel de escolha).
-                  Hidratação e Alimentação já têm o próprio botão dentro da página; as demais áreas têm o formulário próprio. */}
-              {activeTab === "hoje" && (
-                <ClientQuickIntake
-                  patientId={client.id}
-                  mode="water"
-                  onRecorded={() => setTick((value) => value + 1)}
-                />
-              )}
-              {(activeTab === "hoje" || activeTab === "cardapios") && (
-                <ClientQuickIntake
-                  patientId={client.id}
-                  mode="food"
-                  onRecorded={() => setTick((value) => value + 1)}
-                />
-              )}
-              {!profileLocked && <QuickRegisterFab patientId={client.id} area={activeTab} onRecorded={() => setTick((value) => value + 1)} />}
-              <LiveModeButton className="!h-10 !rounded-xl !px-4 !text-[13px]" patientId={client.id} ownerId={client.owner_id} heightCm={client.height_cm} name={patientName || client.full_name} />
-              <button
-                type="button"
-                onClick={() => setShowHealthProfile(true)}
-                aria-label="Meu perfil"
-                title="Meu perfil"
-                className="grid size-10 shrink-0 place-items-center rounded-full border border-white/30 bg-white/15 text-white backdrop-blur transition hover:bg-white/25"
-              >
-                <UserRound size={17} />
-              </button>
-            </fieldset>
-          </header>
-
-          <div className="shrink-0 empty:hidden">
-            <CareReminderBeacon
-              tasks={tasks}
-              patientId={client.id}
-              ownerId={client.owner_id}
-              refreshKey={tick}
-              onOpen={(alertTask) => {
-                const task = tasks.find((t) => t.id === alertTask.id);
-                if (task) showTaskDetails(task);
-              }}
-              onConfirm={(alertTask) => {
-                const task = tasks.find((t) => t.id === alertTask.id);
-                if (task) askConfirm(task);
-              }}
-              compact
-            />
-          </div>
-
-          <ClientOnboardingGate
-            patientId={client.id}
-            fullName={client.full_name}
-            openSignal={onboardingSignal}
-            onStatus={setProfileLocked}
-            onCompleted={() => { setProfileLocked(false); setTick((value) => value + 1); }}
-          />
-          {activeTab === "hoje" ? (
-            <div
-              id="care-client-tab-panel"
-              data-client-page="hoje"
-              className="flex flex-col gap-3 overscroll-contain lg:pr-0.5"
+        ) : !owner ? (
+          <div className={card + " mx-auto mt-10 max-w-md p-8 text-center"}>
+            <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-accent text-accent-foreground">
+              <LockKeyhole size={22} />
+            </span>
+            <h1 className="mt-4 text-lg font-bold">Acesso protegido</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Entre com sua conta para consultar seu acompanhamento e confirmar os cuidados
+              realizados.
+            </p>
+            <Link
+              to="/entrar"
+              className="mt-5 inline-flex h-10 items-center rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground"
             >
-              <OverviewInsights
+              Entrar
+            </Link>
+          </div>
+        ) : !client ? (
+          <p
+            className={
+              card + " mx-auto mt-10 max-w-md p-8 text-center text-sm text-muted-foreground"
+            }
+          >
+            Nenhum prontuário vinculado a esta conta. Confira seu acesso com o responsável.
+          </p>
+        ) : (
+          <>
+            <nav
+              className="-mx-1 flex shrink-0 items-center gap-1 overflow-x-auto rounded-xl border border-border/70 bg-surface/80 p-1 shadow-sm backdrop-blur xl:hidden"
+              aria-label="Áreas do acompanhamento"
+            >
+              {sections.map(({ key, label, icon: Icon }) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => openSection(key)}
+                  aria-current={activeTab === key ? "page" : undefined}
+                  className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border px-2.5 text-[11px] font-semibold transition-all ${activeTab === key ? `border-transparent text-white shadow-sm ${clientSectionTheme[key].pill}` : "border-transparent bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+                >
+                  <span
+                    className={`grid size-5 place-items-center rounded-md ${activeTab === key ? "bg-white/20" : clientSectionTheme[key].chip}`}
+                  >
+                    <Icon size={11} />
+                  </span>
+                  {label}
+                </button>
+              ))}
+            </nav>
+
+            <header className="relative isolate flex min-h-0 shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 overflow-hidden rounded-xl bg-slate-950 px-3 py-2 text-white shadow-card [&_p]:!text-slate-200">
+              <img
+                key={activeTab}
+                src={clientSectionTheme[activeTab].image}
+                alt=""
+                aria-hidden="true"
+                width={1400}
+                height={600}
+                decoding="async"
+                style={{ objectPosition: clientSectionTheme[activeTab].position }}
+                className="absolute inset-y-0 right-0 -z-20 h-full w-full object-cover sm:w-3/5"
+              />
+              <div
+                aria-hidden="true"
+                className={`absolute inset-0 -z-10 bg-gradient-to-r from-35% via-60% ${clientSectionTheme[activeTab].overlay}`}
+              />
+              <div className="flex min-w-0 items-center gap-3">
+                {(() => {
+                  const HeaderIcon = clientSectionTheme[activeTab].icon;
+                  return (
+                    <span
+                      aria-hidden="true"
+                      className={`hidden size-10 shrink-0 place-items-center rounded-xl text-white shadow-lg ring-1 ring-white/25 sm:grid ${clientSectionTheme[activeTab].pill}`}
+                    >
+                      <HeaderIcon size={20} />
+                    </span>
+                  );
+                })()}
+                <div className="min-w-0">
+                  <p className="sr-only">{clientSectionLabels[activeTab].tagline}</p>
+                  <h1 className="truncate text-lg font-bold tracking-tight sm:text-xl">
+                    {activeTab === "hoje"
+                      ? `Olá, ${(patientName || client.full_name).split(" ")[0]}`
+                      : clientSectionLabels[activeTab].title}
+                  </h1>
+                  <p className="truncate text-xs text-muted-foreground first-letter:uppercase">
+                    {activeTab === "hoje"
+                      ? tasks.length
+                        ? `${today} · ${completed} de ${tasks.length} cuidados concluídos`
+                        : today
+                      : clientSectionLabels[activeTab].subtitle}
+                    {activeTab !== "hoje" && sectionCount != null && ` · ${sectionCount} hoje`}
+                  </p>
+                  {birthSummary && activeTab === "hoje" && <BirthChips summary={birthSummary} />}
+                </div>
+              </div>
+              <ExportPlanButton
                 patientId={client.id}
                 ownerId={client.owner_id}
-                revision={tick}
-                waterGoal={hydrationTarget}
-                scheduled={{ hidratacao: hydrationTasks.length, alimentacao: meals.length, medicacao: medicineTasks.length }}
-                onOpen={(key) => openSection(key as Parameters<typeof openSection>[0])}
+                label="PDF"
+                className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-white/30 bg-white/15 px-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/25"
               />
-              {tasks.length > 0 && (
-                <DayTimeline tasks={tasks} nowMs={nowMs} onTask={(t) => showTaskDetails(t as Task)} />
-              )}
-
-              <div className={`grid gap-3 ${tasks.length > 0 ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
-                <div className="flex flex-col gap-3 lg:pr-0.5">
-                  {tasks.length > 0 && (
-                  <section
-                    aria-label="Próximo cuidado"
-                    className="relative shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-950 via-indigo-900 to-blue-800 p-4 text-white shadow-card"
-                  >
-                    <div className="flex items-center justify-between gap-2 text-[11px] font-semibold opacity-85">
-                      <span>Próximo cuidado</span>
-                      <span className="inline-flex items-center gap-1 normal-case tracking-normal">
-                        <Clock3 size={12} /> Horário do Acre
-                      </span>
-                    </div>
-                    {nextCare ? (
-                      <>
-                        <div className="mt-3">
-                          <CareTimer
-                            target={Date.parse(nextCare.scheduled_at)}
-                            title={nextCare.title}
-                            subtitle={categoryInfo[nextCare.category]?.label ?? "Suplemento"}
-                            tone={toneForCategory(nextCare.category)}
-                            dark
-                            size="sm"
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => askConfirm(nextCare)}
-                          className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-white text-sm font-bold text-slate-900 shadow-sm transition hover:bg-white/90"
-                        >
-                          <CheckCircle2 size={16} /> Confirmar / registrar
-                        </button>
-                      </>
-                    ) : (
-                      <p className="mt-2 text-sm opacity-90">
-                        Nenhum cuidado pendente para hoje. Consulte o histórico para conferir os
-                        registros.
-                      </p>
-                    )}
-                  </section>
-                  )}
-                  {tasks.length > 0 && (
-                  <section aria-label="Resumo do dia" className={card + " shrink-0 p-4"}>
-                    <div className="care-overview-section-heading">
-                      <div>
-                        <span className="care-overview-eyebrow">Seu dia</span>
-                        <h3>Resumo do dia</h3>
-                      </div>
-                      <span className="care-overview-heading-note tabular-nums">
-                        {dayPercent}% concluído
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                      {[
-                        ["Total", tasks.length, ""],
-                        ["Concluídos", completed, "text-success"],
-                        ["Pendentes", Math.max(0, tasks.length - completed), "text-warning"],
-                      ].map(([label, value, tone]) => (
-                        <div key={label} className="rounded-xl bg-muted px-2 py-2.5">
-                          <strong
-                            className={`block font-display text-xl font-bold tabular-nums ${tone}`}
-                          >
-                            {value}
-                          </strong>
-                          <span className="text-[11px] text-muted-foreground">{label}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <div
-                      className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted"
-                      role="progressbar"
-                      aria-label="Percentual de cuidados concluídos"
-                      aria-valuenow={dayPercent}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                    >
-                      <i
-                        className="block h-full rounded-full bg-primary transition-[width]"
-                        style={{ width: dayPercent + "%" }}
-                      />
-                    </div>
-                  </section>
-                  )}
-                  <div className={card + " flex-1 p-4"}>
-                    <ClientOverviewIndicators
-                      heightCm={client.height_cm}
-                      weightKg={healthProfile.weightKg ?? client.weight_kg}
-                      waterTarget={hydrationTarget || null}
-                      protein={healthProfile.protein}
-                      carbs={healthProfile.carbs}
-                      fat={healthProfile.fat}
-                      kcal={healthProfile.kcal}
-                      age={healthProfile.age}
-                      sex={healthProfile.sex ?? null}
-                      objective={healthProfile.objective}
-                      activityMinutes={healthProfile.activityMinutes}
-                      onCompleteProfile={() => setOnboardingSignal((v) => v + 1)}
-                    />
-                  </div>
-                </div>
-
-                {tasks.length > 0 && (
-                <section
-                  aria-label="Agenda de hoje"
-                  className={card + " flex min-h-[280px] flex-col p-4"}
+              <fieldset
+                disabled={profileLocked}
+                title={profileLocked ? "Complete o cadastro para registrar" : undefined}
+                className="nv-day-actions m-0 flex min-w-0 flex-wrap items-center gap-2.5 border-0 p-0 disabled:opacity-60"
+              >
+                {/* Cada área mostra só o registro da sua área, direto no formulário certo (sem painel de escolha).
+                  Hidratação e Alimentação já têm o próprio botão dentro da página; as demais áreas têm o formulário próprio. */}
+                {activeTab === "hoje" && (
+                  <ClientQuickIntake
+                    patientId={client.id}
+                    mode="water"
+                    onRecorded={() => setTick((value) => value + 1)}
+                  />
+                )}
+                {(activeTab === "hoje" || activeTab === "cardapios") && (
+                  <ClientQuickIntake
+                    patientId={client.id}
+                    mode="food"
+                    onRecorded={() => setTick((value) => value + 1)}
+                  />
+                )}
+                {!profileLocked && (
+                  <QuickRegisterFab
+                    patientId={client.id}
+                    area={activeTab}
+                    onRecorded={() => setTick((value) => value + 1)}
+                  />
+                )}
+                <LiveModeButton
+                  className="!h-10 !rounded-xl !px-4 !text-[13px]"
+                  patientId={client.id}
+                  ownerId={client.owner_id}
+                  heightCm={client.height_cm}
+                  name={patientName || client.full_name}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowHealthProfile(true)}
+                  aria-label="Meu perfil"
+                  title="Meu perfil"
+                  className="grid size-10 shrink-0 place-items-center rounded-full border border-white/30 bg-white/15 text-white backdrop-blur transition hover:bg-white/25"
                 >
-                  <div className="care-overview-section-heading shrink-0">
-                    <div>
-                      <span className="care-overview-eyebrow">Rotina</span>
-                      <h3>Agenda de hoje</h3>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => openSection("agenda")}
-                      className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
-                    >
-                      Ver agenda <ArrowRight size={13} />
-                    </button>
-                  </div>
-                  <ul className="-mx-1 px-1">
-                    {tasks.map((task) => {
-                      const info = supplement(task)
-                        ? { label: "Suplemento", icon: Sparkles }
-                        : (categoryInfo[task.category] ?? { label: "Cuidado", icon: Clock3 });
-                      const Icon = info.icon;
-                      const response = resolvedStates[task.id];
-                      const done = Boolean(task.completed_at);
-                      const state = getCareScheduleState(task, nowMs);
-                      const isNext = task.id === nextCare?.id;
-                      const status = done
-                        ? "Confirmado"
-                        : response === "cancelado"
-                          ? "Cancelado"
-                          : response === "nao_cumprido"
-                            ? "Não realizado"
-                            : response === "nao_bebi"
-                              ? "Não bebi"
-                              : isNext
-                                ? "Próximo"
-                                : state === "waiting"
-                                  ? "Programado"
-                                  : state === "available"
-                                    ? "Registrar"
-                                    : "Sem confirmação";
-                      const tone = done
-                        ? "text-success"
-                        : response
-                          ? "text-muted-foreground"
-                          : isNext || state === "available"
-                            ? "text-primary"
-                            : state === "missed"
-                              ? "text-warning"
-                              : "text-muted-foreground";
-                      return (
-                        <li key={task.id}>
-                          <button
-                            type="button"
-                            onClick={() => showTaskDetails(task)}
-                            aria-label={`${info.label} às ${timeInAcre(task.scheduled_at)}: ${task.title}. ${status}. Abrir detalhes.`}
-                            className={`flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors hover:bg-muted ${isNext ? "bg-accent/60" : ""}`}
-                          >
-                            <span className="w-11 shrink-0 text-[13px] font-semibold tabular-nums">
-                              {timeInAcre(task.scheduled_at)}
-                            </span>
-                            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
-                              <Icon size={15} />
-                            </span>
-                            <span className="min-w-0 flex-1">
-                              <span className="block truncate text-[13px] font-medium">
-                                {task.title}
-                              </span>
-                              <span className="block truncate text-[11px] text-muted-foreground">
-                                {info.label} ·{" "}
-                                <span className={`font-semibold ${tone}`}>{status}</span>
-                              </span>
-                            </span>
-                            {done ? (
-                              <CheckCircle2 size={16} className="shrink-0 text-success" />
-                            ) : (
-                              <ChevronRight size={15} className="shrink-0 text-muted-foreground" />
-                            )}
-                          </button>
-                        </li>
-                      );
-                    })}
-                    {!tasks.length && (
-                      <li className="grid h-full min-h-32 place-items-center rounded-xl bg-muted p-4 text-center text-sm text-muted-foreground">
-                        Nenhum cuidado programado para hoje.
-                      </li>
-                    )}
-                  </ul>
-                </section>
+                  <UserRound size={17} />
+                </button>
+              </fieldset>
+            </header>
+
+            <div className="shrink-0 empty:hidden">
+              <CareReminderBeacon
+                tasks={tasks}
+                patientId={client.id}
+                ownerId={client.owner_id}
+                refreshKey={tick}
+                onOpen={(alertTask) => {
+                  const task = tasks.find((t) => t.id === alertTask.id);
+                  if (task) showTaskDetails(task);
+                }}
+                onConfirm={(alertTask) => {
+                  const task = tasks.find((t) => t.id === alertTask.id);
+                  if (task) askConfirm(task);
+                }}
+                compact
+              />
+            </div>
+
+            <ClientOnboardingGate
+              patientId={client.id}
+              fullName={client.full_name}
+              openSignal={onboardingSignal}
+              onStatus={setProfileLocked}
+              onCompleted={() => {
+                setProfileLocked(false);
+                setTick((value) => value + 1);
+              }}
+            />
+            {activeTab === "hoje" ? (
+              <div
+                id="care-client-tab-panel"
+                data-client-page="hoje"
+                className="flex flex-col gap-3 overscroll-contain lg:pr-0.5"
+              >
+                <OverviewInsights
+                  patientId={client.id}
+                  ownerId={client.owner_id}
+                  revision={tick}
+                  waterGoal={hydrationTarget}
+                  scheduled={{
+                    hidratacao: hydrationTasks.length,
+                    alimentacao: meals.length,
+                    medicacao: medicineTasks.length,
+                  }}
+                  onOpen={(key) => openSection(key as Parameters<typeof openSection>[0])}
+                />
+                {tasks.length > 0 && (
+                  <DayTimeline
+                    tasks={tasks}
+                    nowMs={nowMs}
+                    onTask={(t) => showTaskDetails(t as Task)}
+                  />
                 )}
 
-                <div className="flex min-h-0 flex-col gap-3">
-                  <section
-                    aria-label="Histórico recente"
-                    className={card + " flex min-h-[220px] flex-1 flex-col p-4 lg:min-h-0"}
-                  >
-                    <div className="care-overview-section-heading shrink-0">
-                      <div>
-                        <span className="care-overview-eyebrow">Registros</span>
-                        <h3>Histórico recente</h3>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => openSection("historico")}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                <div
+                  className={`grid gap-3 ${tasks.length > 0 ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}
+                >
+                  <div className="flex flex-col gap-3 lg:pr-0.5">
+                    {tasks.length > 0 && (
+                      <section
+                        aria-label="Próximo cuidado"
+                        className="relative shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-950 via-indigo-900 to-blue-800 p-4 text-white shadow-card"
                       >
-                        Ver tudo <ArrowRight size={13} />
-                      </button>
-                    </div>
-                    <div
-                      className="mb-2 flex shrink-0 flex-wrap gap-1"
-                      role="group"
-                      aria-label="Filtrar histórico recente"
-                    >
-                      {(
-                        [
-                          { key: "todos", label: "Todos" },
-                          { key: "hidratacao", label: "Água" },
-                          { key: "refeicao", label: "Refeições" },
-                          { key: "medicacao", label: "Medicação" },
-                        ] as const
-                      ).map((item) => (
-                        <button
-                          key={item.key}
-                          type="button"
-                          aria-pressed={historyCategory === item.key}
-                          onClick={() => setHistoryCategory(item.key)}
-                          className={`h-7 rounded-full px-2.5 text-[11px] font-semibold transition-colors ${historyCategory === item.key ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"}`}
+                        <div className="flex items-center justify-between gap-2 text-[11px] font-semibold opacity-85">
+                          <span>Próximo cuidado</span>
+                          <span className="inline-flex items-center gap-1 normal-case tracking-normal">
+                            <Clock3 size={12} /> Horário do Acre
+                          </span>
+                        </div>
+                        {nextCare ? (
+                          <>
+                            <div className="mt-3">
+                              <CareTimer
+                                target={Date.parse(nextCare.scheduled_at)}
+                                title={nextCare.title}
+                                subtitle={categoryInfo[nextCare.category]?.label ?? "Suplemento"}
+                                tone={toneForCategory(nextCare.category)}
+                                dark
+                                size="sm"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => askConfirm(nextCare)}
+                              className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-white text-sm font-bold text-slate-900 shadow-sm transition hover:bg-white/90"
+                            >
+                              <CheckCircle2 size={16} /> Confirmar / registrar
+                            </button>
+                          </>
+                        ) : (
+                          <p className="mt-2 text-sm opacity-90">
+                            Nenhum cuidado pendente para hoje. Consulte o histórico para conferir os
+                            registros.
+                          </p>
+                        )}
+                      </section>
+                    )}
+                    {tasks.length > 0 && (
+                      <section aria-label="Resumo do dia" className={card + " shrink-0 p-4"}>
+                        <div className="care-overview-section-heading">
+                          <div>
+                            <span className="care-overview-eyebrow">Seu dia</span>
+                            <h3>Resumo do dia</h3>
+                          </div>
+                          <span className="care-overview-heading-note tabular-nums">
+                            {dayPercent}% concluído
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 text-center">
+                          {[
+                            ["Total", tasks.length, ""],
+                            ["Concluídos", completed, "text-success"],
+                            ["Pendentes", Math.max(0, tasks.length - completed), "text-warning"],
+                          ].map(([label, value, tone]) => (
+                            <div key={label} className="rounded-xl bg-muted px-2 py-2.5">
+                              <strong
+                                className={`block font-display text-xl font-bold tabular-nums ${tone}`}
+                              >
+                                {value}
+                              </strong>
+                              <span className="text-[11px] text-muted-foreground">{label}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div
+                          className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted"
+                          role="progressbar"
+                          aria-label="Percentual de cuidados concluídos"
+                          aria-valuenow={dayPercent}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
                         >
-                          {item.label}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="min-h-0">
-                      <CareRecentHistory
-                        patientId={client.id}
-                        ownerId={client.owner_id}
-                        category={historyCategory}
-                        compact
+                          <i
+                            className="block h-full rounded-full bg-primary transition-[width]"
+                            style={{ width: dayPercent + "%" }}
+                          />
+                        </div>
+                      </section>
+                    )}
+                    <div className={card + " flex-1 p-4"}>
+                      <ClientOverviewIndicators
+                        heightCm={client.height_cm}
+                        weightKg={healthProfile.weightKg ?? client.weight_kg}
+                        waterTarget={hydrationTarget || null}
+                        protein={healthProfile.protein}
+                        carbs={healthProfile.carbs}
+                        fat={healthProfile.fat}
+                        kcal={healthProfile.kcal}
+                        age={healthProfile.age}
+                        sex={healthProfile.sex ?? null}
+                        objective={healthProfile.objective}
+                        activityMinutes={healthProfile.activityMinutes}
+                        onCompleteProfile={() => setOnboardingSignal((v) => v + 1)}
                       />
                     </div>
-                  </section>
-                </div>
-              </div>
-              <section aria-label="Panorama geral das métricas" className="shrink-0">
-                <div className="care-overview-section-heading">
-                  <div>
-                    <span className="care-overview-eyebrow">Visão geral</span>
-                    <h3>Panorama das métricas</h3>
                   </div>
-                  <span className="care-overview-heading-note">Todas as áreas reunidas · cada área abre só o que é dela</span>
-                </div>
-                <EvolutionHub
-                  patientId={client.id}
-                  ownerId={client.owner_id}
-                  waterTarget={hydrationTarget || null}
-                  revision={tick}
-                  defaultView="mes"
-                />
-              </section>
-            </div>
-          ) : (
-            <section
-              id="care-client-tab-panel"
-              data-client-page={activeTab}
-              data-page={activeTab}
-              aria-label={clientSectionLabels[activeTab].title}
-              className={
-                card +
-                " min-w-0 p-3 sm:p-4"
-              }
-            >
-              {profileLocked ? <ProfileRequired area={clientSectionLabels[activeTab].title.toLowerCase()} /> : <>
-              {activeTab === "agenda" && (
-                <ClientDayPlanner
-                  patientId={client.id}
-                  ownerId={client.owner_id}
-                  waterTarget={hydrationTarget || null}
-                  tasks={tasks}
-                  resolved={resolvedStates}
-                  now={nowMs}
-                  revision={tick}
-                  onView={showTaskDetails}
-                  onConfirm={askConfirm}
-                />
-              )}
-              {activeTab === "hidratacao" && (
-                <div className="flex h-full min-h-0 flex-col gap-3">
-                  <div
-                    className="grid shrink-0 grid-cols-2 gap-0.5 rounded-lg bg-muted p-0.5 sm:max-w-xs"
-                    role="group"
-                    aria-label="Bebidas e hidratação"
-                  >
-                    {(
-                      [
-                        ["agua", "Minha meta de água"],
-                        ["bebidas", "Chás e bebidas"],
-                      ] as const
-                    ).map(([key, label]) => (
-                      <button
-                        key={key}
-                        type="button"
-                        aria-pressed={hydrationView === key}
-                        onClick={() => setHydrationView(key)}
-                        className={`h-7 rounded-md px-3 text-xs font-semibold transition-colors ${hydrationView === key ? "bg-surface text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+
+                  {tasks.length > 0 && (
+                    <section
+                      aria-label="Agenda de hoje"
+                      className={card + " flex min-h-[280px] flex-col p-4"}
+                    >
+                      <div className="care-overview-section-heading shrink-0">
+                        <div>
+                          <span className="care-overview-eyebrow">Rotina</span>
+                          <h3>Agenda de hoje</h3>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => openSection("agenda")}
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                        >
+                          Ver agenda <ArrowRight size={13} />
+                        </button>
+                      </div>
+                      <ul className="-mx-1 px-1">
+                        {tasks.map((task) => {
+                          const info = supplement(task)
+                            ? { label: "Suplemento", icon: Sparkles }
+                            : (categoryInfo[task.category] ?? { label: "Cuidado", icon: Clock3 });
+                          const Icon = info.icon;
+                          const response = resolvedStates[task.id];
+                          const done = Boolean(task.completed_at);
+                          const state = getCareScheduleState(task, nowMs);
+                          const isNext = task.id === nextCare?.id;
+                          const status = done
+                            ? "Confirmado"
+                            : response === "cancelado"
+                              ? "Cancelado"
+                              : response === "nao_cumprido"
+                                ? "Não realizado"
+                                : response === "nao_bebi"
+                                  ? "Não bebi"
+                                  : isNext
+                                    ? "Próximo"
+                                    : state === "waiting"
+                                      ? "Programado"
+                                      : state === "available"
+                                        ? "Registrar"
+                                        : "Sem confirmação";
+                          const tone = done
+                            ? "text-success"
+                            : response
+                              ? "text-muted-foreground"
+                              : isNext || state === "available"
+                                ? "text-primary"
+                                : state === "missed"
+                                  ? "text-warning"
+                                  : "text-muted-foreground";
+                          return (
+                            <li key={task.id}>
+                              <button
+                                type="button"
+                                onClick={() => showTaskDetails(task)}
+                                aria-label={`${info.label} às ${timeInAcre(task.scheduled_at)}: ${task.title}. ${status}. Abrir detalhes.`}
+                                className={`flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors hover:bg-muted ${isNext ? "bg-accent/60" : ""}`}
+                              >
+                                <span className="w-11 shrink-0 text-[13px] font-semibold tabular-nums">
+                                  {timeInAcre(task.scheduled_at)}
+                                </span>
+                                <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
+                                  <Icon size={15} />
+                                </span>
+                                <span className="min-w-0 flex-1">
+                                  <span className="block truncate text-[13px] font-medium">
+                                    {task.title}
+                                  </span>
+                                  <span className="block truncate text-[11px] text-muted-foreground">
+                                    {info.label} ·{" "}
+                                    <span className={`font-semibold ${tone}`}>{status}</span>
+                                  </span>
+                                </span>
+                                {done ? (
+                                  <CheckCircle2 size={16} className="shrink-0 text-success" />
+                                ) : (
+                                  <ChevronRight
+                                    size={15}
+                                    className="shrink-0 text-muted-foreground"
+                                  />
+                                )}
+                              </button>
+                            </li>
+                          );
+                        })}
+                        {!tasks.length && (
+                          <li className="grid h-full min-h-32 place-items-center rounded-xl bg-muted p-4 text-center text-sm text-muted-foreground">
+                            Nenhum cuidado programado para hoje.
+                          </li>
+                        )}
+                      </ul>
+                    </section>
+                  )}
+
+                  <div className="flex min-h-0 flex-col gap-3">
+                    <section
+                      aria-label="Histórico recente"
+                      className={card + " flex min-h-[220px] flex-1 flex-col p-4 lg:min-h-0"}
+                    >
+                      <div className="care-overview-section-heading shrink-0">
+                        <div>
+                          <span className="care-overview-eyebrow">Registros</span>
+                          <h3>Histórico recente</h3>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => openSection("historico")}
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                        >
+                          Ver tudo <ArrowRight size={13} />
+                        </button>
+                      </div>
+                      <div
+                        className="mb-2 flex shrink-0 flex-wrap gap-1"
+                        role="group"
+                        aria-label="Filtrar histórico recente"
                       >
-                        {label}
-                      </button>
-                    ))}
+                        {(
+                          [
+                            { key: "todos", label: "Todos" },
+                            { key: "hidratacao", label: "Água" },
+                            { key: "refeicao", label: "Refeições" },
+                            { key: "medicacao", label: "Medicação" },
+                          ] as const
+                        ).map((item) => (
+                          <button
+                            key={item.key}
+                            type="button"
+                            aria-pressed={historyCategory === item.key}
+                            onClick={() => setHistoryCategory(item.key)}
+                            className={`h-7 rounded-full px-2.5 text-[11px] font-semibold transition-colors ${historyCategory === item.key ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"}`}
+                          >
+                            {item.label}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="min-h-0">
+                        <CareRecentHistory
+                          patientId={client.id}
+                          ownerId={client.owner_id}
+                          category={historyCategory}
+                          compact
+                        />
+                      </div>
+                    </section>
                   </div>
-                  <div className="min-h-0">
-                    {hydrationView === "agua" ? (
-                      <ClientHydrationTab
+                </div>
+                <section aria-label="Panorama geral das métricas" className="shrink-0">
+                  <div className="care-overview-section-heading">
+                    <div>
+                      <span className="care-overview-eyebrow">Visão geral</span>
+                      <h3>Panorama das métricas</h3>
+                    </div>
+                    <span className="care-overview-heading-note">
+                      Todas as áreas reunidas · cada área abre só o que é dela
+                    </span>
+                  </div>
+                  <EvolutionHub
+                    patientId={client.id}
+                    ownerId={client.owner_id}
+                    waterTarget={hydrationTarget || null}
+                    revision={tick}
+                    defaultView="mes"
+                  />
+                </section>
+              </div>
+            ) : (
+              <section
+                id="care-client-tab-panel"
+                data-client-page={activeTab}
+                data-page={activeTab}
+                aria-label={clientSectionLabels[activeTab].title}
+                className={card + " min-w-0 p-3 sm:p-4"}
+              >
+                {profileLocked ? (
+                  <ProfileRequired area={clientSectionLabels[activeTab].title.toLowerCase()} />
+                ) : (
+                  <>
+                    {activeTab === "agenda" && (
+                      <ClientDayPlanner
+                        patientId={client.id}
+                        ownerId={client.owner_id}
+                        waterTarget={hydrationTarget || null}
+                        tasks={tasks}
+                        resolved={resolvedStates}
+                        now={nowMs}
+                        revision={tick}
+                        onView={showTaskDetails}
+                        onConfirm={askConfirm}
+                      />
+                    )}
+                    {activeTab === "hidratacao" && (
+                      <div className="flex h-full min-h-0 flex-col gap-3">
+                        <div
+                          className="grid shrink-0 grid-cols-2 gap-0.5 rounded-lg bg-muted p-0.5 sm:max-w-xs"
+                          role="group"
+                          aria-label="Bebidas e hidratação"
+                        >
+                          {(
+                            [
+                              ["agua", "Minha meta de água"],
+                              ["bebidas", "Chás e bebidas"],
+                            ] as const
+                          ).map(([key, label]) => (
+                            <button
+                              key={key}
+                              type="button"
+                              aria-pressed={hydrationView === key}
+                              onClick={() => setHydrationView(key)}
+                              className={`h-7 rounded-md px-3 text-xs font-semibold transition-colors ${hydrationView === key ? "bg-surface text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="min-h-0">
+                          {hydrationView === "agua" ? (
+                            <ClientHydrationTab
+                              patientId={client.id}
+                              ownerId={client.owner_id}
+                              tasks={tasks}
+                              revision={tick}
+                              onConfirm={askConfirm}
+                              onRecorded={() => setTick((value) => value + 1)}
+                            />
+                          ) : (
+                            <ClientBeverageTracker
+                              patientId={client.id}
+                              ownerId={client.owner_id}
+                              revision={tick}
+                              onRecorded={() => setTick((value) => value + 1)}
+                            />
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {activeTab === "historico" && (
+                      <PatientActivityHistory
+                        patientId={client.id}
+                        ownerId={client.owner_id}
+                        revision={tick}
+                        onRecordChanged={() => setTick((value) => value + 1)}
+                      />
+                    )}
+                    {activeTab === "alimentacao" && (
+                      <ClientMealsPage
+                        patientId={client.id}
+                        ownerId={client.owner_id}
+                        meals={meals}
+                        resolved={resolvedStates}
+                        revision={tick}
+                        now={nowMs}
+                        onView={showTaskDetails}
+                        onConfirm={askConfirm}
+                        onDelete={(meal) => {
+                          const item = tasks.find((task) => task.id === meal.id);
+                          if (item) {
+                            setPending(null);
+                            setMealToDelete(item);
+                          }
+                        }}
+                        onRecorded={() => setTick((value) => value + 1)}
+                      />
+                    )}
+                    {activeTab === "cardapios" && (
+                      <ClientNutritionStudio
+                        patientId={client.id}
+                        ownerId={client.owner_id}
+                        onLogged={() => setTick((v) => v + 1)}
+                      />
+                    )}
+                    {activeTab === "medicacao" && (
+                      <div className="w-full">
+                        <ClientMedicationManager patientId={client.id} ownerId={client.owner_id} />
+                      </div>
+                    )}
+                    {activeTab === "atividade" && (
+                      <ClientActivityPage
+                        patientId={client.id}
+                        ownerId={client.owner_id}
+                        revision={tick}
+                        onRecorded={() => setTick((value) => value + 1)}
+                      />
+                    )}
+                    {activeTab === "suplementos" && (
+                      <ClientSupplementCenter
                         patientId={client.id}
                         ownerId={client.owner_id}
                         tasks={tasks}
-                        revision={tick}
                         onConfirm={askConfirm}
-                        onRecorded={() => setTick((value) => value + 1)}
                       />
-                    ) : (
-                      <ClientBeverageTracker
+                    )}
+                    {activeTab === "sono" && (
+                      <ClientSleepPage patientId={client.id} ownerId={client.owner_id} />
+                    )}
+                    {activeTab === "peso" && (
+                      <WeightExplorer
                         patientId={client.id}
                         ownerId={client.owner_id}
                         revision={tick}
+                      />
+                    )}
+                    {activeTab === "peso" && (
+                      <ClientWeightPage
+                        patientId={client.id}
+                        ownerId={client.owner_id}
+                        heightCm={client.height_cm}
+                        currentWeight={healthProfile.weightKg ?? client.weight_kg}
+                        ageYears={healthProfile.age}
                         onRecorded={() => setTick((value) => value + 1)}
                       />
                     )}
-                  </div>
-                </div>
-              )}
-              {activeTab === "historico" && (
-                <PatientActivityHistory
-                  patientId={client.id}
-                  ownerId={client.owner_id}
-                  revision={tick}
-                  onRecordChanged={() => setTick((value) => value + 1)}
-                />
-              )}
-              {activeTab === "alimentacao" && (
-                <ClientMealsPage
-                  patientId={client.id}
-                  ownerId={client.owner_id}
-                  meals={meals}
-                  resolved={resolvedStates}
-                  revision={tick}
-                  now={nowMs}
-                  onView={showTaskDetails}
-                  onConfirm={askConfirm}
-                  onDelete={(meal) => {
-                    const item = tasks.find((task) => task.id === meal.id);
-                    if (item) {
-                      setPending(null);
-                      setMealToDelete(item);
-                    }
-                  }}
-                  onRecorded={() => setTick((value) => value + 1)}
-                />
-              )}
-              {activeTab === "cardapios" && (
-                <ClientNutritionStudio
-                  patientId={client.id}
-                  ownerId={client.owner_id}
-                  onLogged={() => setTick((v) => v + 1)}
-                />
-              )}
-              {activeTab === "medicacao" && (
-                <div className="w-full">
-                  <ClientMedicationManager patientId={client.id} ownerId={client.owner_id} />
-                </div>
-              )}
-              {activeTab === "atividade" && (
-                <ClientActivityPage
-                  patientId={client.id}
-                  ownerId={client.owner_id}
-                  revision={tick}
-                  onRecorded={() => setTick((value) => value + 1)}
-                />
-              )}
-              {activeTab === "suplementos" && (
-                <ClientSupplementCenter
-                  patientId={client.id}
-                  ownerId={client.owner_id}
-                  tasks={tasks}
-                  onConfirm={askConfirm}
-                />
-              )}
-              {activeTab === "sono" && (
-                <ClientSleepPage patientId={client.id} ownerId={client.owner_id} />
-              )}
-              {activeTab === "peso" && (
-                <WeightExplorer patientId={client.id} ownerId={client.owner_id} revision={tick} />
-              )}
-              {activeTab === "peso" && (
-                <ClientWeightPage
-                  patientId={client.id}
-                  ownerId={client.owner_id}
-                  heightCm={client.height_cm}
-                  currentWeight={healthProfile.weightKg ?? client.weight_kg}
-                  ageYears={healthProfile.age}
-                  onRecorded={() => setTick((value) => value + 1)}
-                />
-              )}
-              {activeTab === "batimentos" && (
-                <ClientHeartRate patientId={client.id} ownerId={client.owner_id} ageYears={healthProfile.age} />
-              )}
-              {activeTab === "medidas" && (
-                <ClientBodyMeasures patientId={client.id} ownerId={client.owner_id} heightCm={client.height_cm} sex={healthProfile.sex ?? null} weightKg={healthProfile.weightKg ?? client.weight_kg} />
-              )}
-              {activeTab === "indicadores" && (
-                <ClientOverviewIndicators
-                  heightCm={client.height_cm}
-                  weightKg={healthProfile.weightKg ?? client.weight_kg}
-                  waterTarget={hydrationTarget || null}
-                  protein={healthProfile.protein}
-                  carbs={healthProfile.carbs}
-                  fat={healthProfile.fat}
-                  kcal={healthProfile.kcal}
-                  patientId={client.id}
-                  ownerId={client.owner_id}
-                  revision={tick}
-                  full
-                />
-              )}
-              {isInsightSection(activeTab) && (
-                <div className="mt-3">
-                  <SectionInsights
-                    section={activeTab}
-                    patientId={client.id}
-                    ownerId={client.owner_id}
-                    revision={tick}
-                  />
-                </div>
-              )}
-              </>}
-            </section>
-          )}
-        </>
-      )}
-      {showHealthProfile && client && (
-        <ClientHealthProfile
-          patientId={client.id}
-          ownerId={client.owner_id}
-          initial={{
-            weight: healthProfile.weightKg ?? client.weight_kg,
-            height: client.height_cm,
-            age: healthProfile.age,
-            objective: healthProfile.objective,
-            protein: healthProfile.protein,
-            carbs: healthProfile.carbs,
-            fat: healthProfile.fat,
-            kcal: healthProfile.kcal,
-            activityMinutes: healthProfile.activityMinutes,
-          }}
+                    {activeTab === "batimentos" && (
+                      <ClientHeartRate
+                        patientId={client.id}
+                        ownerId={client.owner_id}
+                        ageYears={healthProfile.age}
+                      />
+                    )}
+                    {activeTab === "medidas" && (
+                      <ClientBodyMeasures
+                        patientId={client.id}
+                        ownerId={client.owner_id}
+                        heightCm={client.height_cm}
+                        sex={healthProfile.sex ?? null}
+                        weightKg={healthProfile.weightKg ?? client.weight_kg}
+                      />
+                    )}
+                    {activeTab === "indicadores" && (
+                      <ClientOverviewIndicators
+                        heightCm={client.height_cm}
+                        weightKg={healthProfile.weightKg ?? client.weight_kg}
+                        waterTarget={hydrationTarget || null}
+                        protein={healthProfile.protein}
+                        carbs={healthProfile.carbs}
+                        fat={healthProfile.fat}
+                        kcal={healthProfile.kcal}
+                        patientId={client.id}
+                        ownerId={client.owner_id}
+                        revision={tick}
+                        full
+                      />
+                    )}
+                    {isInsightSection(activeTab) && (
+                      <div className="mt-3">
+                        <SectionInsights
+                          section={activeTab}
+                          patientId={client.id}
+                          ownerId={client.owner_id}
+                          revision={tick}
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
+              </section>
+            )}
+          </>
+        )}
+        {showHealthProfile && client && (
+          <ClientHealthProfile
+            patientId={client.id}
+            ownerId={client.owner_id}
+            initial={{
+              weight: healthProfile.weightKg ?? client.weight_kg,
+              height: client.height_cm,
+              age: healthProfile.age,
+              objective: healthProfile.objective,
+              protein: healthProfile.protein,
+              carbs: healthProfile.carbs,
+              fat: healthProfile.fat,
+              kcal: healthProfile.kcal,
+              activityMinutes: healthProfile.activityMinutes,
+            }}
+            onSaved={() => setTick((value) => value + 1)}
+            onClose={() => setShowHealthProfile(false)}
+          />
+        )}
+        <CareTaskRecordModal
+          task={detailTask}
+          onClose={() => setDetailTask(null)}
           onSaved={() => setTick((value) => value + 1)}
-          onClose={() => setShowHealthProfile(false)}
+          onConfirm={(record) => {
+            const task = tasks.find((item) => item.id === record.id);
+            if (task) askConfirm(task);
+          }}
         />
-      )}
-      <CareTaskRecordModal
-        task={detailTask}
-        onClose={() => setDetailTask(null)}
-        onSaved={() => setTick((value) => value + 1)}
-        onConfirm={(record) => {
-          const task = tasks.find((item) => item.id === record.id);
-          if (task) askConfirm(task);
-        }}
-      />
-      {confirmationResult &&
-        typeof document !== "undefined" &&
-        createPortal(
-          <div
-            className="pointer-events-none fixed inset-0 z-[10010] flex items-start justify-center px-4 pt-20 sm:pt-24"
-            role={confirmationResult.success ? "status" : "alert"}
-            aria-live={confirmationResult.success ? "polite" : "assertive"}
-          >
+        {confirmationResult &&
+          typeof document !== "undefined" &&
+          createPortal(
             <div
-              className={`pointer-events-auto w-full max-w-md overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-[0_18px_55px_rgba(0,0,0,0.25)] ring-1 ring-black/5 dark:ring-white/10 ${confirmationResult.success ? "border-emerald-400/50" : "border-amber-400/60"}`}
+              className="pointer-events-none fixed inset-0 z-[10010] flex items-start justify-center px-4 pt-20 sm:pt-24"
+              role={confirmationResult.success ? "status" : "alert"}
+              aria-live={confirmationResult.success ? "polite" : "assertive"}
             >
               <div
-                className={`h-1 w-full ${confirmationResult.success ? "bg-emerald-500" : "bg-amber-500"}`}
-              />
-              <div className="flex items-start gap-3 p-4 sm:p-5">
-                <span
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${confirmationResult.success ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-amber-500/10 text-amber-600 dark:text-amber-400"}`}
-                >
-                  {confirmationResult.success ? (
-                    <CheckCircle2 size={21} />
-                  ) : (
-                    <AlertTriangle size={21} />
-                  )}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold leading-5">{confirmationResult.title}</p>
-                  <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-                    {confirmationResult.detail}
-                  </p>
+                className={`pointer-events-auto w-full max-w-md overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-[0_18px_55px_rgba(0,0,0,0.25)] ring-1 ring-black/5 dark:ring-white/10 ${confirmationResult.success ? "border-emerald-400/50" : "border-amber-400/60"}`}
+              >
+                <div
+                  className={`h-1 w-full ${confirmationResult.success ? "bg-emerald-500" : "bg-amber-500"}`}
+                />
+                <div className="flex items-start gap-3 p-4 sm:p-5">
+                  <span
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${confirmationResult.success ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-amber-500/10 text-amber-600 dark:text-amber-400"}`}
+                  >
+                    {confirmationResult.success ? (
+                      <CheckCircle2 size={21} />
+                    ) : (
+                      <AlertTriangle size={21} />
+                    )}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold leading-5">{confirmationResult.title}</p>
+                    <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                      {confirmationResult.detail}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmationResult(null)}
+                    aria-label="Fechar mensagem"
+                    className="shrink-0 rounded-lg border border-border p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+                  >
+                    <X size={17} />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setConfirmationResult(null)}
-                  aria-label="Fechar mensagem"
-                  className="shrink-0 rounded-lg border border-border p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
-                >
-                  <X size={17} />
-                </button>
               </div>
+            </div>,
+            document.body,
+          )}
+        {notice && (
+          <div
+            role="status"
+            className="pointer-events-none fixed inset-x-3 bottom-5 z-[95] mx-auto max-w-xl"
+          >
+            <p className="pointer-events-auto rounded-xl border border-primary/20 bg-card px-4 py-3 text-sm text-foreground shadow-xl">
+              {notice}
+            </p>
+          </div>
+        )}
+        {locked && (
+          <div
+            role="dialog"
+            aria-label="Acesso restrito"
+            className="mx-auto max-w-md rounded-2xl border border-border bg-card p-5 shadow-card"
+          >
+            <div className="flex items-center gap-2 font-bold">
+              <LockKeyhole size={19} className="text-primary" /> Acesso necessário
             </div>
-          </div>,
-          document.body,
+            <p className="mt-2 text-sm text-muted-foreground">
+              Para proteger as informações de saúde, faça login antes de visualizar ou confirmar
+              atividades.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Link
+                to="/entrar"
+                className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground"
+              >
+                Ir para o login
+              </Link>
+              <button
+                onClick={() => setLocked(false)}
+                className="rounded-xl border border-border px-4 py-2.5 text-sm"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
         )}
-      {notice && (
-        <div
-          role="status"
-          className="pointer-events-none fixed inset-x-3 bottom-5 z-[95] mx-auto max-w-xl"
-        >
-          <p className="pointer-events-auto rounded-xl border border-primary/20 bg-card px-4 py-3 text-sm text-foreground shadow-xl">
-            {notice}
-          </p>
-        </div>
-      )}
-      {locked && (
-        <div
-          role="dialog"
-          aria-label="Acesso restrito"
-          className="mx-auto max-w-md rounded-2xl border border-border bg-card p-5 shadow-card"
-        >
-          <div className="flex items-center gap-2 font-bold">
-            <LockKeyhole size={19} className="text-primary" /> Acesso necessário
-          </div>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Para proteger as informações de saúde, faça login antes de visualizar ou confirmar
-            atividades.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Link
-              to="/entrar"
-              className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground"
+        {pending?.category === "medicacao" &&
+          typeof document !== "undefined" &&
+          createPortal(
+            <div
+              className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/60 p-3 backdrop-blur-sm"
+              role="presentation"
+              onMouseDown={(event) => {
+                if (event.target === event.currentTarget && !busy) setPending(null);
+              }}
             >
-              Ir para o login
-            </Link>
-            <button
-              onClick={() => setLocked(false)}
-              className="rounded-xl border border-border px-4 py-2.5 text-sm"
-            >
-              Fechar
-            </button>
-          </div>
-        </div>
-      )}
-      {pending?.category === "medicacao" &&
-        typeof document !== "undefined" &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/60 p-3 backdrop-blur-sm"
-            role="presentation"
-            onMouseDown={(event) => {
-              if (event.target === event.currentTarget && !busy) setPending(null);
-            }}
-          >
-            <section
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="med-confirm-title"
-              className="flex w-full max-w-[390px] max-h-[min(88dvh,430px)] flex-col overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-2xl"
-            >
-              <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-4 py-3">
-                <h3 id="med-confirm-title" className="flex items-center gap-2 text-sm font-bold">
-                  <span className="grid size-8 place-items-center rounded-lg bg-med/10 text-med">
-                    <Pill size={17} />
-                  </span>{" "}
-                  Tomou a medicação agora?
-                </h3>
-                <button
-                  type="button"
-                  aria-label="Fechar janela"
-                  disabled={busy}
-                  onClick={() => setPending(null)}
-                  className="grid size-8 shrink-0 place-items-center rounded-lg hover:bg-muted"
-                >
-                  <X size={17} />
-                </button>
-              </div>
-              <div className="min-h-0 space-y-2 overflow-y-auto px-3 py-2.5">
-                <div className="rounded-lg bg-muted px-2.5 py-2">
-                  <p className="text-xs font-bold text-foreground">{pending.title}</p>
-                  <p className="text-[11px] text-muted-foreground">
-                    Prevista: {timeInAcre(pending.scheduled_at)} · Acre
+              <section
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="med-confirm-title"
+                className="flex w-full max-w-[390px] max-h-[min(88dvh,430px)] flex-col overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-2xl"
+              >
+                <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-4 py-3">
+                  <h3 id="med-confirm-title" className="flex items-center gap-2 text-sm font-bold">
+                    <span className="grid size-8 place-items-center rounded-lg bg-med/10 text-med">
+                      <Pill size={17} />
+                    </span>{" "}
+                    Tomou a medicação agora?
+                  </h3>
+                  <button
+                    type="button"
+                    aria-label="Fechar janela"
+                    disabled={busy}
+                    onClick={() => setPending(null)}
+                    className="grid size-8 shrink-0 place-items-center rounded-lg hover:bg-muted"
+                  >
+                    <X size={17} />
+                  </button>
+                </div>
+                <div className="min-h-0 space-y-2 overflow-y-auto px-3 py-2.5">
+                  <div className="rounded-lg bg-muted px-2.5 py-2">
+                    <p className="text-xs font-bold text-foreground">{pending.title}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Prevista: {timeInAcre(pending.scheduled_at)} · Acre
+                    </p>
+                  </div>
+                  <p className="text-[11px] leading-snug text-muted-foreground">
+                    Se tomou esta dose agora, confirme para registrar a hora real do servidor, mesmo
+                    com atraso. Se ainda não tomou, procure orientação profissional antes de
+                    decidir; não dobre a dose.
                   </p>
                 </div>
-                <p className="text-[11px] leading-snug text-muted-foreground">
-                  Se tomou esta dose agora, confirme para registrar a hora real do servidor, mesmo
-                  com atraso. Se ainda não tomou, procure orientação profissional antes de decidir;
-                  não dobre a dose.
+                <div className="grid shrink-0 grid-cols-2 gap-2 border-t border-border bg-card px-3 py-2.5">
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => setPending(null)}
+                    className="h-9 rounded-lg border border-border text-xs font-semibold text-foreground"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    disabled={
+                      busy ||
+                      (!canConfirmCare(pending, clock?.getTime() ?? Date.now()) &&
+                        (clock?.getTime() ?? Date.now()) < Date.parse(pending.scheduled_at))
+                    }
+                    onClick={() => void confirm()}
+                    className="h-9 rounded-lg bg-primary px-2 text-xs font-bold text-primary-foreground disabled:opacity-60"
+                  >
+                    {busy ? "Registrando…" : "Confirmo que tomei agora"}
+                  </button>
+                </div>
+              </section>
+            </div>,
+            document.body,
+          )}
+        {pending &&
+          pending.category !== "medicacao" &&
+          typeof document !== "undefined" &&
+          createPortal(
+            <div
+              className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/70 p-3 backdrop-blur-sm"
+              role="presentation"
+              onMouseDown={(e) => {
+                if (e.target === e.currentTarget && !busy) setPending(null);
+              }}
+            >
+              <section
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="care-confirm-title"
+                className="w-full max-w-[390px] overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-2xl"
+              >
+                <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+                  <h3
+                    id="care-confirm-title"
+                    className="flex items-center gap-2 text-sm font-extrabold text-foreground"
+                  >
+                    <CheckCircle2 size={20} className="text-primary" /> Confirmar cuidado realizado
+                  </h3>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => setPending(null)}
+                    aria-label="Fechar confirmação"
+                    className="grid size-8 place-items-center rounded-lg hover:bg-muted"
+                  >
+                    <X size={17} />
+                  </button>
+                </div>
+                <div className="space-y-3 px-4 py-3">
+                  <div className="rounded-xl border border-border bg-muted/45 p-3">
+                    <p className="text-sm font-bold">{pending.title}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Horário programado: {timeInAcre(pending.scheduled_at)} (Acre)
+                    </p>
+                  </div>
+                  {pending.category === "refeicao" && (
+                    <label className="block text-xs font-semibold text-foreground">
+                      O que você comeu nesta refeição?
+                      <textarea
+                        rows={3}
+                        maxLength={1000}
+                        value={mealDescription}
+                        onChange={(e) => setMealDescription(e.target.value)}
+                        placeholder="Ex.: pão, ovos, fruta; informe quantidades se desejar."
+                        className="mt-1.5 w-full rounded-lg border border-border bg-background p-2.5 text-sm text-foreground"
+                      />
+                      <span className="mt-1 block text-[11px] font-normal text-muted-foreground">
+                        Descreva os alimentos realmente consumidos. Confirmação disponível apenas
+                        durante os 15 minutos após o horário previsto.
+                      </span>
+                    </label>
+                  )}
+                  {pending.category === "hidratacao" && (
+                    <label className="block text-xs font-bold text-foreground">
+                      Volume de água realmente consumido (ml)
+                      <input
+                        className="field mt-1.5 w-full"
+                        type="number"
+                        min={10}
+                        max={1500}
+                        step={10}
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                      />
+                      <span className="mt-1 block text-[11px] font-normal text-muted-foreground">
+                        Confirme apenas a quantidade que você bebeu agora.
+                      </span>
+                    </label>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-2 border-t border-border px-4 py-3">
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => setPending(null)}
+                    className="h-10 rounded-xl border border-border text-xs font-bold text-foreground"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    disabled={
+                      busy ||
+                      !canConfirmCare(pending, clock?.getTime() ?? Date.now()) ||
+                      (pending.category === "refeicao" && mealDescription.trim().length < 3)
+                    }
+                    onClick={() => void confirm()}
+                    className="h-10 rounded-xl bg-primary px-2 text-xs font-extrabold text-primary-foreground disabled:opacity-60"
+                  >
+                    {busy ? "Registrando…" : "Confirmar agora"}
+                  </button>
+                </div>
+              </section>
+            </div>,
+            document.body,
+          )}
+        {mealToDelete &&
+          typeof document !== "undefined" &&
+          createPortal(
+            <div
+              className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/75 p-3 backdrop-blur-sm"
+              role="presentation"
+              onMouseDown={(event) => {
+                if (event.target === event.currentTarget && !busy) setMealToDelete(null);
+              }}
+            >
+              <section
+                role="alertdialog"
+                aria-modal="true"
+                aria-labelledby="delete-meal-title"
+                aria-describedby="delete-meal-description"
+                className="w-full max-w-[410px] rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-2xl"
+              >
+                <div className="flex items-center gap-2">
+                  <Trash2 size={22} className="text-destructive" />
+                  <h3 id="delete-meal-title" className="text-base font-extrabold">
+                    Confirmar exclusão de refeição
+                  </h3>
+                </div>
+                <p id="delete-meal-description" className="mt-3 text-sm leading-relaxed">
+                  Deseja realmente excluir <strong>{mealToDelete.title}</strong>, programada para{" "}
+                  {timeInAcre(mealToDelete.scheduled_at)} (Acre)? A refeição será retirada da
+                  agenda, mas a data, a hora e o responsável pela exclusão permanecerão registrados
+                  no histórico de auditoria.
                 </p>
-              </div>
-              <div className="grid shrink-0 grid-cols-2 gap-2 border-t border-border bg-card px-3 py-2.5">
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => setPending(null)}
-                  className="h-9 rounded-lg border border-border text-xs font-semibold text-foreground"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  disabled={
-                    busy ||
-                    (!canConfirmCare(pending, clock?.getTime() ?? Date.now()) &&
-                      (clock?.getTime() ?? Date.now()) < Date.parse(pending.scheduled_at))
-                  }
-                  onClick={() => void confirm()}
-                  className="h-9 rounded-lg bg-primary px-2 text-xs font-bold text-primary-foreground disabled:opacity-60"
-                >
-                  {busy ? "Registrando…" : "Confirmo que tomei agora"}
-                </button>
-              </div>
-            </section>
-          </div>,
-          document.body,
-        )}
-      {pending &&
-        pending.category !== "medicacao" &&
-        typeof document !== "undefined" &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/70 p-3 backdrop-blur-sm"
-            role="presentation"
-            onMouseDown={(e) => {
-              if (e.target === e.currentTarget && !busy) setPending(null);
-            }}
-          >
-            <section
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="care-confirm-title"
-              className="w-full max-w-[390px] overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-2xl"
-            >
-              <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
-                <h3
-                  id="care-confirm-title"
-                  className="flex items-center gap-2 text-sm font-extrabold text-foreground"
-                >
-                  <CheckCircle2 size={20} className="text-primary" /> Confirmar cuidado realizado
-                </h3>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => setPending(null)}
-                  aria-label="Fechar confirmação"
-                  className="grid size-8 place-items-center rounded-lg hover:bg-muted"
-                >
-                  <X size={17} />
-                </button>
-              </div>
-              <div className="space-y-3 px-4 py-3">
-                <div className="rounded-xl border border-border bg-muted/45 p-3">
-                  <p className="text-sm font-bold">{pending.title}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Horário programado: {timeInAcre(pending.scheduled_at)} (Acre)
-                  </p>
+                <div className="mt-5 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => setMealToDelete(null)}
+                    className="rounded-xl border border-border px-3 py-2 text-xs font-bold"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void deleteMeal()}
+                    className="rounded-xl bg-destructive px-3 py-2 text-xs font-bold text-destructive-foreground disabled:opacity-60"
+                  >
+                    {busy ? "Excluindo…" : "Sim, excluir refeição"}
+                  </button>
                 </div>
-                {pending.category === "refeicao" && (
-                  <label className="block text-xs font-semibold text-foreground">
-                    O que você comeu nesta refeição?
-                    <textarea
-                      rows={3}
-                      maxLength={1000}
-                      value={mealDescription}
-                      onChange={(e) => setMealDescription(e.target.value)}
-                      placeholder="Ex.: pão, ovos, fruta; informe quantidades se desejar."
-                      className="mt-1.5 w-full rounded-lg border border-border bg-background p-2.5 text-sm text-foreground"
-                    />
-                    <span className="mt-1 block text-[11px] font-normal text-muted-foreground">
-                      Descreva os alimentos realmente consumidos. Confirmação disponível apenas
-                      durante os 15 minutos após o horário previsto.
-                    </span>
-                  </label>
-                )}
-                {pending.category === "hidratacao" && (
-                  <label className="block text-xs font-bold text-foreground">
-                    Volume de água realmente consumido (ml)
-                    <input
-                      className="field mt-1.5 w-full"
-                      type="number"
-                      min={10}
-                      max={1500}
-                      step={10}
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                    />
-                    <span className="mt-1 block text-[11px] font-normal text-muted-foreground">
-                      Confirme apenas a quantidade que você bebeu agora.
-                    </span>
-                  </label>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-2 border-t border-border px-4 py-3">
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => setPending(null)}
-                  className="h-10 rounded-xl border border-border text-xs font-bold text-foreground"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  disabled={
-                    busy ||
-                    !canConfirmCare(pending, clock?.getTime() ?? Date.now()) ||
-                    (pending.category === "refeicao" && mealDescription.trim().length < 3)
-                  }
-                  onClick={() => void confirm()}
-                  className="h-10 rounded-xl bg-primary px-2 text-xs font-extrabold text-primary-foreground disabled:opacity-60"
-                >
-                  {busy ? "Registrando…" : "Confirmar agora"}
-                </button>
-              </div>
-            </section>
-          </div>,
-          document.body,
-        )}
-      {mealToDelete &&
-        typeof document !== "undefined" &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/75 p-3 backdrop-blur-sm"
-            role="presentation"
-            onMouseDown={(event) => {
-              if (event.target === event.currentTarget && !busy) setMealToDelete(null);
-            }}
-          >
-            <section
-              role="alertdialog"
-              aria-modal="true"
-              aria-labelledby="delete-meal-title"
-              aria-describedby="delete-meal-description"
-              className="w-full max-w-[410px] rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-2xl"
-            >
-              <div className="flex items-center gap-2">
-                <Trash2 size={22} className="text-destructive" />
-                <h3 id="delete-meal-title" className="text-base font-extrabold">
-                  Confirmar exclusão de refeição
-                </h3>
-              </div>
-              <p id="delete-meal-description" className="mt-3 text-sm leading-relaxed">
-                Deseja realmente excluir <strong>{mealToDelete.title}</strong>, programada para{" "}
-                {timeInAcre(mealToDelete.scheduled_at)} (Acre)? A refeição será retirada da agenda,
-                mas a data, a hora e o responsável pela exclusão permanecerão registrados no
-                histórico de auditoria.
-              </p>
-              <div className="mt-5 grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => setMealToDelete(null)}
-                  className="rounded-xl border border-border px-3 py-2 text-xs font-bold"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => void deleteMeal()}
-                  className="rounded-xl bg-destructive px-3 py-2 text-xs font-bold text-destructive-foreground disabled:opacity-60"
-                >
-                  {busy ? "Excluindo…" : "Sim, excluir refeição"}
-                </button>
-              </div>
-            </section>
-          </div>,
-          document.body,
-        )}
-    </section>
+              </section>
+            </div>,
+            document.body,
+          )}
+      </section>
     </GoalFxProvider>
   );
 }
 
-const zodiacGlyph: Record<string, string> = { "ÁRIES": "♈", "TOURO": "♉", "GÊMEOS": "♊", "CÂNCER": "♋", "LEÃO": "♌", "VIRGEM": "♍", "LIBRA": "♎", "ESCORPIÃO": "♏", "SAGITÁRIO": "♐", "CAPRICÓRNIO": "♑", "AQUÁRIO": "♒", "PEIXES": "♓" };
-const titleCase = (v: string) => v.toLocaleLowerCase("pt-BR").replace(/(^|\s)\S/g, (c) => c.toLocaleUpperCase("pt-BR"));
+const zodiacGlyph: Record<string, string> = {
+  ÁRIES: "♈",
+  TOURO: "♉",
+  GÊMEOS: "♊",
+  CÂNCER: "♋",
+  LEÃO: "♌",
+  VIRGEM: "♍",
+  LIBRA: "♎",
+  ESCORPIÃO: "♏",
+  SAGITÁRIO: "♐",
+  CAPRICÓRNIO: "♑",
+  AQUÁRIO: "♒",
+  PEIXES: "♓",
+};
+const titleCase = (v: string) =>
+  v.toLocaleLowerCase("pt-BR").replace(/(^|\s)\S/g, (c) => c.toLocaleUpperCase("pt-BR"));
 
 /** Dados de nascimento em fichas legíveis: idade, nascimento, aniversário (com contagem) e signo. */
 function BirthChips({ summary }: { summary: ReturnType<typeof patientDateSummary> }) {
   const d = summary.daysToBirthday;
   const chips = [
-    { k: "idade", icon: "🎂", label: "Idade", value: `${summary.age} anos`, more: `Nascido(a) em ${summary.date}` },
-    { k: "nasc", icon: "📅", label: "Nasceu", value: `${titleCase(summary.weekday)}, ${summary.date}`, more: `Dia da semana em que nasceu` },
-    { k: "aniv", icon: "🎉", label: "Aniversário", value: d === 0 ? "É hoje! 🎉" : `em ${d} ${d === 1 ? "dia" : "dias"}`, more: `Próximo aniversário: ${titleCase(summary.nextBirthday)}`, hot: d <= 7 },
-    { k: "signo", icon: zodiacGlyph[summary.sign] ?? "✦", label: "Signo", value: titleCase(summary.sign), more: summary.signCusp ? `Nasceu na cúspide com ${titleCase(summary.signCusp)}: depende da hora de nascimento` : "Calculado pela posição do Sol no nascimento" },
+    {
+      k: "idade",
+      icon: "🎂",
+      label: "Idade",
+      value: `${summary.age} anos`,
+      more: `Nascido(a) em ${summary.date}`,
+    },
+    {
+      k: "nasc",
+      icon: "📅",
+      label: "Nasceu",
+      value: `${titleCase(summary.weekday)}, ${summary.date}`,
+      more: `Dia da semana em que nasceu`,
+    },
+    {
+      k: "aniv",
+      icon: "🎉",
+      label: "Aniversário",
+      value: d === 0 ? "É hoje! 🎉" : `em ${d} ${d === 1 ? "dia" : "dias"}`,
+      more: `Próximo aniversário: ${titleCase(summary.nextBirthday)}`,
+      hot: d <= 7,
+    },
+    {
+      k: "signo",
+      icon: zodiacGlyph[summary.sign] ?? "✦",
+      label: "Signo",
+      value: titleCase(summary.sign),
+      more: summary.signCusp
+        ? `Nasceu na cúspide com ${titleCase(summary.signCusp)}: depende da hora de nascimento`
+        : "Calculado pela posição do Sol no nascimento",
+    },
   ];
   return (
-    <ul className="-mx-1 mt-2 flex gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] sm:flex-wrap [&::-webkit-scrollbar]:hidden" aria-label="Dados de nascimento">
+    <ul
+      className="-mx-1 mt-2 flex gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] sm:flex-wrap [&::-webkit-scrollbar]:hidden"
+      aria-label="Dados de nascimento"
+    >
       {chips.map((c) => (
         <li key={c.k} className="relative shrink-0">
-          <span title={c.more}
-            className={`group inline-flex h-8 items-center gap-1.5 rounded-full border px-2.5 text-xs backdrop-blur ${c.hot ? "border-amber-300/60 bg-amber-300/20" : "border-white/20 bg-white/10 hover:bg-white/20"}`}>
-            <span aria-hidden="true" className="text-sm">{c.icon}</span>
+          <span
+            title={c.more}
+            className={`group inline-flex h-8 items-center gap-1.5 rounded-full border px-2.5 text-xs backdrop-blur ${c.hot ? "border-amber-300/60 bg-amber-300/20" : "border-white/20 bg-white/10 hover:bg-white/20"}`}
+          >
+            <span aria-hidden="true" className="text-sm">
+              {c.icon}
+            </span>
             <span className="text-white/65">{c.label}</span>
             <strong className="font-bold text-white">{c.value}</strong>
           </span>

@@ -15,45 +15,68 @@ const format = (amount: number) => Math.max(0, amount).toLocaleString("pt-BR");
 export const acreCalendarDay = (value: string | number | Date) => {
   const dt = new Date(value);
   const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Rio_Branco", year: "numeric", month: "2-digit", day: "2-digit",
+    timeZone: "America/Rio_Branco",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
   }).formatToParts(dt);
-  const get = (type: string) => parts.find(part => part.type === type)?.value ?? "";
-  return [get("year"),get("month"),get("day")].join("-");
+  const get = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
+  return [get("year"), get("month"), get("day")].join("-");
 };
 export function acreHour(value: string | number | Date): number {
   const parts = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "America/Rio_Branco",hour:"2-digit",hourCycle:"h23",
+    timeZone: "America/Rio_Branco",
+    hour: "2-digit",
+    hourCycle: "h23",
   }).formatToParts(new Date(value));
-  return Number(parts.find(part => part.type === "hour")?.value ?? "0");
+  return Number(parts.find((part) => part.type === "hour")?.value ?? "0");
 }
 
-export function hydrationGoalNotice(goal: HydrationGoalSnapshot | null, now: number): {
+export function hydrationGoalNotice(
+  goal: HydrationGoalSnapshot | null,
+  now: number,
+): {
   kind: "met" | "missed" | "pending" | "unconfigured";
   title: string;
   message: string;
 } {
   const target = goal?.target_ml ?? 0;
   const consumed = goal?.consumed_ml ?? 0;
-  const remaining = Math.max(0, target-consumed);
+  const remaining = Math.max(0, target - consumed);
   if (!goal || goal.status === "sem_meta" || target <= 0) {
-    return {kind:"unconfigured",title:"Meta ainda não definida",
-      message:"Defina uma meta individual para receber o resumo do dia ao final do dia."};
+    return {
+      kind: "unconfigured",
+      title: "Meta ainda não definida",
+      message: "Defina uma meta individual para receber o resumo do dia ao final do dia.",
+    };
   }
-  if (goal.status === "atingida") return {
-    kind:"met",title:"Meta diária atingida",
-    message:goal.closed_at
-      ? `${format(consumed)} de ${format(target)} ml no dia. Resultado salvo no histórico de ${goal.goal_date.split("-").reverse().join("/")}.`
-      : `${format(consumed)} de ${format(target)} ml registrados. O resultado aparecerá no histórico do dia.`
+  if (goal.status === "atingida")
+    return {
+      kind: "met",
+      title: "Meta diária atingida",
+      message: goal.closed_at
+        ? `${format(consumed)} de ${format(target)} ml no dia. Resultado salvo no histórico de ${goal.goal_date.split("-").reverse().join("/")}.`
+        : `${format(consumed)} de ${format(target)} ml registrados. O resultado aparecerá no histórico do dia.`,
+    };
+  if (goal.status === "nao_atingida")
+    return {
+      kind: "missed",
+      title: "Dia encerrado",
+      message: `${format(consumed)} de ${format(target)} ml registrados; ${format(remaining)} ml abaixo da meta estimada. Resultado salvo no histórico de ${goal.goal_date.split("-").reverse().join("/")}.`,
+    };
+  const reachedDeadline = acreCalendarDay(now) > goal.goal_date;
+  if (reachedDeadline)
+    return {
+      kind: "pending",
+      title: "Fechamento do dia",
+      message:
+        "Atualizando o resultado diário. Todos os registros do dia, em qualquer horário, contam para a meta.",
+    };
+  return {
+    kind: "pending",
+    title: "Meta aberta",
+    message: `${format(consumed)} de ${format(target)} ml · ${format(remaining)} ml restantes. Pode registrar a qualquer hora; o ideal é concluir até as ${WATER_LAST_RECOMMENDED_HOUR}h para não atrapalhar o sono. Meta estimada: respeite suas necessidades e a orientação profissional.`,
   };
-  if (goal.status === "nao_atingida") return {
-    kind:"missed",title:"Dia encerrado",
-    message:`${format(consumed)} de ${format(target)} ml registrados; ${format(remaining)} ml abaixo da meta estimada. Resultado salvo no histórico de ${goal.goal_date.split("-").reverse().join("/")}.`
-  };
-  const reachedDeadline = acreCalendarDay(now)>goal.goal_date;
-  if (reachedDeadline) return {kind:"pending",title:"Fechamento do dia",
-    message:"Atualizando o resultado diário. Todos os registros do dia, em qualquer horário, contam para a meta."};
-  return {kind:"pending",title:"Meta aberta",
-    message:`${format(consumed)} de ${format(target)} ml · ${format(remaining)} ml restantes. Pode registrar a qualquer hora; o ideal é concluir até as ${WATER_LAST_RECOMMENDED_HOUR}h para não atrapalhar o sono. Meta estimada: respeite suas necessidades e a orientação profissional.`};
 }
 
 /**
@@ -71,7 +94,14 @@ export function estimateNextHydration(input: {
   lastAmountMl: number;
   now: number;
   cutoff: number;
-}): { at: number; suggestedMl: number; intervalMin: number; portions: number; reachable: boolean; safeRemainingMl: number } | null {
+}): {
+  at: number;
+  suggestedMl: number;
+  intervalMin: number;
+  portions: number;
+  reachable: boolean;
+  safeRemainingMl: number;
+} | null {
   const { remainingMl, lastIntakeAt, lastAmountMl, now, cutoff } = input;
   if (remainingMl < 10 || now >= cutoff) return null;
   const from = lastIntakeAt ?? now;
@@ -84,6 +114,16 @@ export function estimateNextHydration(input: {
   if (at < now) at = now;
   if (at > cutoff) at = cutoff;
   const suggestedMl = Math.min(350, Math.max(10, Math.round(remainingMl / portions / 10) * 10));
-  const safeRemainingMl = Math.round(((Math.max(0, cutoff - Math.max(now, from)) / 3_600_000) * COMFORT_ML_PER_HOUR) / 10) * 10;
-  return { at, suggestedMl, intervalMin, portions, reachable: remainingMl <= safeRemainingMl, safeRemainingMl };
+  const safeRemainingMl =
+    Math.round(
+      ((Math.max(0, cutoff - Math.max(now, from)) / 3_600_000) * COMFORT_ML_PER_HOUR) / 10,
+    ) * 10;
+  return {
+    at,
+    suggestedMl,
+    intervalMin,
+    portions,
+    reachable: remainingMl <= safeRemainingMl,
+    safeRemainingMl,
+  };
 }

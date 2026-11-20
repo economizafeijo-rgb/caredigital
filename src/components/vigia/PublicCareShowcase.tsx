@@ -234,9 +234,21 @@ export const copy: Record<ShowcaseKind, Showcase> = {
     cta: "Ver minhas métricas",
     preview: ["Calorias e macronutrientes", "Hidratação do dia", "Atividade da semana"],
     benefits: [
-      { icon: TrendingUp, title: "Evolução visual", text: "Gráficos de tendência mostram o que mudou nos últimos dias e meses." },
-      { icon: Target, title: "Metas por objetivo", text: "Emagrecer, manter, ganhar peso ou hipertrofia: cada meta se ajusta ao seu objetivo." },
-      { icon: BarChart3, title: "Tudo em um painel", text: "Nutrição, água, peso e treinos reunidos na mesma tela." },
+      {
+        icon: TrendingUp,
+        title: "Evolução visual",
+        text: "Gráficos de tendência mostram o que mudou nos últimos dias e meses.",
+      },
+      {
+        icon: Target,
+        title: "Metas por objetivo",
+        text: "Emagrecer, manter, ganhar peso ou hipertrofia: cada meta se ajusta ao seu objetivo.",
+      },
+      {
+        icon: BarChart3,
+        title: "Tudo em um painel",
+        text: "Nutrição, água, peso e treinos reunidos na mesma tela.",
+      },
     ],
     steps: [
       { name: "Registrar", detail: "Refeições, água e peso" },
@@ -244,7 +256,8 @@ export const copy: Record<ShowcaseKind, Showcase> = {
       { name: "Comparar", detail: "Com a sua meta" },
       { name: "Evoluir", detail: "Ajustes semanais" },
     ],
-    privacy: "Os gráficos mostram apenas os seus registros, na sua área protegida. Valores são estimativas educativas.",
+    privacy:
+      "Os gráficos mostram apenas os seus registros, na sua área protegida. Valores são estimativas educativas.",
   },
   weight: {
     icon: Scale,
@@ -256,9 +269,21 @@ export const copy: Record<ShowcaseKind, Showcase> = {
     cta: "Registrar meu peso",
     preview: ["Peso e variação", "IMC e classificação", "Distância da meta"],
     benefits: [
-      { icon: TrendingUp, title: "Gráfico de evolução", text: "Linha do peso, média móvel e faixa de peso adequado em um só gráfico." },
-      { icon: Scale, title: "IMC automático", text: "Cálculo e classificação a cada registro, com a sua altura." },
-      { icon: Target, title: "Meta de peso", text: "Veja quanto falta para chegar ao objetivo definido." },
+      {
+        icon: TrendingUp,
+        title: "Gráfico de evolução",
+        text: "Linha do peso, média móvel e faixa de peso adequado em um só gráfico.",
+      },
+      {
+        icon: Scale,
+        title: "IMC automático",
+        text: "Cálculo e classificação a cada registro, com a sua altura.",
+      },
+      {
+        icon: Target,
+        title: "Meta de peso",
+        text: "Veja quanto falta para chegar ao objetivo definido.",
+      },
     ],
     steps: [
       { name: "Pesar", detail: "Informe peso e data" },
@@ -266,7 +291,8 @@ export const copy: Record<ShowcaseKind, Showcase> = {
       { name: "Gráfico", detail: "Evolução atualizada" },
       { name: "Meta", detail: "Acompanhe o objetivo" },
     ],
-    privacy: "Peso e medidas são dados pessoais e ficam apenas na sua área protegida. Não substitui avaliação profissional.",
+    privacy:
+      "Peso e medidas são dados pessoais e ficam apenas na sua área protegida. Não substitui avaliação profissional.",
   },
   supplements: {
     icon: Sparkles,
@@ -278,9 +304,21 @@ export const copy: Record<ShowcaseKind, Showcase> = {
     cta: "Programar meus suplementos",
     preview: ["Programação do dia", "Timer da próxima dose", "Biblioteca com dicas"],
     benefits: [
-      { icon: Timer, title: "Timer da próxima dose", text: "Contagem regressiva até o horário de cada suplemento." },
-      { icon: ClipboardCheck, title: "Registro de doses", text: "Marque o que tomou e acompanhe sua constância no dia." },
-      { icon: Sparkles, title: "Biblioteca de referência", text: "Doses usuais, melhor horário, dicas e cuidados de cada suplemento." },
+      {
+        icon: Timer,
+        title: "Timer da próxima dose",
+        text: "Contagem regressiva até o horário de cada suplemento.",
+      },
+      {
+        icon: ClipboardCheck,
+        title: "Registro de doses",
+        text: "Marque o que tomou e acompanhe sua constância no dia.",
+      },
+      {
+        icon: Sparkles,
+        title: "Biblioteca de referência",
+        text: "Doses usuais, melhor horário, dicas e cuidados de cada suplemento.",
+      },
     ],
     steps: [
       { name: "Escolher", detail: "Na biblioteca" },
@@ -288,7 +326,8 @@ export const copy: Record<ShowcaseKind, Showcase> = {
       { name: "Tomar", detail: "Com timer" },
       { name: "Registrar", detail: "Constância diária" },
     ],
-    privacy: "Suplementos não substituem alimentação nem orientação profissional. Doses reais devem ser definidas por quem acompanha você.",
+    privacy:
+      "Suplementos não substituem alimentação nem orientação profissional. Doses reais devem ser definidas por quem acompanha você.",
   },
   training: {
     icon: Activity,
@@ -300,9 +339,21 @@ export const copy: Record<ShowcaseKind, Showcase> = {
     cta: "Registrar um treino",
     preview: ["Distância e ritmo ao vivo", "Resumo da sessão", "Histórico de treinos"],
     benefits: [
-      { icon: MapPin, title: "Rastreio por GPS", text: "Métricas ao vivo de caminhadas e corridas, também em tela cheia." },
-      { icon: Activity, title: "Vários esportes", text: "Corrida, caminhada, ciclismo, musculação, natação e mais." },
-      { icon: TrendingUp, title: "Evolução semanal", text: "Minutos de atividade somados na semana, com a meta de referência da OMS." },
+      {
+        icon: MapPin,
+        title: "Rastreio por GPS",
+        text: "Métricas ao vivo de caminhadas e corridas, também em tela cheia.",
+      },
+      {
+        icon: Activity,
+        title: "Vários esportes",
+        text: "Corrida, caminhada, ciclismo, musculação, natação e mais.",
+      },
+      {
+        icon: TrendingUp,
+        title: "Evolução semanal",
+        text: "Minutos de atividade somados na semana, com a meta de referência da OMS.",
+      },
     ],
     steps: [
       { name: "Escolher", detail: "O tipo de treino" },
@@ -310,7 +361,8 @@ export const copy: Record<ShowcaseKind, Showcase> = {
       { name: "Acompanhar", detail: "Métricas ao vivo" },
       { name: "Resumo", detail: "Salvo no histórico" },
     ],
-    privacy: "A localização só é usada durante o treino, com a sua permissão, e o percurso fica na sua área privada.",
+    privacy:
+      "A localização só é usada durante o treino, com a sua permissão, e o percurso fica na sua área privada.",
   },
   sleep: {
     icon: BedDouble,
@@ -322,9 +374,21 @@ export const copy: Record<ShowcaseKind, Showcase> = {
     cta: "Monitorar meu sono",
     preview: ["Nota do sono de 0 a 100", "Batimentos ao vivo", "Evolução de 30 dias"],
     benefits: [
-      { icon: Moon, title: "Nota do sono", text: "Duração, qualidade e despertares resumidos em um número fácil de acompanhar." },
-      { icon: Bluetooth, title: "Sensor em tempo real", text: "Compatível com aparelhos que transmitem frequência cardíaca por Bluetooth." },
-      { icon: TrendingUp, title: "Evolução e regularidade", text: "Gráficos interativos mostram suas horas, seus horários e o débito de sono." },
+      {
+        icon: Moon,
+        title: "Nota do sono",
+        text: "Duração, qualidade e despertares resumidos em um número fácil de acompanhar.",
+      },
+      {
+        icon: Bluetooth,
+        title: "Sensor em tempo real",
+        text: "Compatível com aparelhos que transmitem frequência cardíaca por Bluetooth.",
+      },
+      {
+        icon: TrendingUp,
+        title: "Evolução e regularidade",
+        text: "Gráficos interativos mostram suas horas, seus horários e o débito de sono.",
+      },
     ],
     steps: [
       { name: "Conectar", detail: "Sensor opcional" },
@@ -332,7 +396,8 @@ export const copy: Record<ShowcaseKind, Showcase> = {
       { name: "Acordar", detail: "Encerrar e avaliar" },
       { name: "Evoluir", detail: "Nota e orientações" },
     ],
-    privacy: "Os registros de sono ficam na sua área privada. A nota é educativa e não substitui avaliação médica nem exame do sono.",
+    privacy:
+      "Os registros de sono ficam na sua área privada. A nota é educativa e não substitui avaliação médica nem exame do sono.",
   },
 };
 

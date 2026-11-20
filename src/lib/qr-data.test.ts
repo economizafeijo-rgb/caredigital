@@ -12,6 +12,8 @@ describe("QR Codes do NextVita", () => {
       expect(rows[0].endsWith("1111111")).toBe(true); // canto superior direito
       expect(rows[n - 1].startsWith("1111111")).toBe(true); // canto inferior esquerdo
     });
-    it(`${variant}: aponta para o site do NextVita`, () => { expect(QR_URLS[variant]).toMatch(/^https:\/\/www\.nextvita\.life\//); });
+    it(`${variant}: aponta para o site do NextVita`, () => {
+      expect(QR_URLS[variant]).toMatch(/^https:\/\/www\.nextvita\.life\//);
+    });
   }
 });

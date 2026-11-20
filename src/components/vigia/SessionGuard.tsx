@@ -7,17 +7,39 @@ export const OTHER_DEVICE_PATH = "/entrar?reason=other-device";
 const CHECK_EVERY_MS = 30_000;
 
 const storage = {
-  get(key: string) { try { return window.sessionStorage.getItem(key); } catch { return null; } },
-  set(key: string, value: string) { try { window.sessionStorage.setItem(key, value); } catch { /* sem armazenamento */ } },
-  remove(key: string) { try { window.sessionStorage.removeItem(key); } catch { /* sem armazenamento */ } },
+  get(key: string) {
+    try {
+      return window.sessionStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  },
+  set(key: string, value: string) {
+    try {
+      window.sessionStorage.setItem(key, value);
+    } catch {
+      /* sem armazenamento */
+    }
+  },
+  remove(key: string) {
+    try {
+      window.sessionStorage.removeItem(key);
+    } catch {
+      /* sem armazenamento */
+    }
+  },
 };
 
 /** Erro que significa "esta sessão não existe mais" (e não uma falha de rede). */
-export function isSessionGone(error: { status?: number; code?: string; message?: string } | null | undefined): boolean {
+export function isSessionGone(
+  error: { status?: number; code?: string; message?: string } | null | undefined,
+): boolean {
   if (!error) return false;
   if (error.status === 401 || error.status === 403) return true;
   const text = `${error.code ?? ""} ${error.message ?? ""}`.toLowerCase();
-  return /session_not_found|session not found|bad_jwt|invalid jwt|refresh_token_not_found|refresh token not found|invalid refresh token/.test(text);
+  return /session_not_found|session not found|bad_jwt|invalid jwt|refresh_token_not_found|refresh token not found|invalid refresh token/.test(
+    text,
+  );
 }
 
 /**
@@ -33,7 +55,11 @@ export function SessionGuard() {
     const kicked = async () => {
       if (stopped) return;
       stopped = true;
-      try { await supabase.auth.signOut({ scope: "local" }); } catch { /* já encerrada */ }
+      try {
+        await supabase.auth.signOut({ scope: "local" });
+      } catch {
+        /* já encerrada */
+      }
       if (window.location.pathname !== "/entrar") window.location.assign(OTHER_DEVICE_PATH);
     };
     const check = async () => {
@@ -44,12 +70,18 @@ export function SessionGuard() {
         hadSession.current = true;
         const { error } = await supabase.auth.getUser();
         if (isSessionGone(error)) await kicked();
-      } catch { /* sem rede: tenta de novo no próximo ciclo */ }
+      } catch {
+        /* sem rede: tenta de novo no próximo ciclo */
+      }
     };
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) hadSession.current = true;
       if (event === "SIGNED_OUT" && hadSession.current) {
-        if (storage.get(MANUAL_SIGNOUT_KEY)) { storage.remove(MANUAL_SIGNOUT_KEY); hadSession.current = false; return; }
+        if (storage.get(MANUAL_SIGNOUT_KEY)) {
+          storage.remove(MANUAL_SIGNOUT_KEY);
+          hadSession.current = false;
+          return;
+        }
         void kicked();
       }
     });
@@ -74,5 +106,9 @@ export function SessionGuard() {
 
 /** Chamado logo após um login válido: encerra a conta em todos os outros dispositivos. */
 export async function endOtherSessions(): Promise<void> {
-  try { await supabase.auth.signOut({ scope: "others" }); } catch { /* o login continua válido */ }
+  try {
+    await supabase.auth.signOut({ scope: "others" });
+  } catch {
+    /* o login continua válido */
+  }
 }
