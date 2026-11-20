@@ -1,5 +1,5 @@
 import { DailyNutritionPanel, useDailyNutrition } from "./DailyNutritionPanel";
-import { NutritionDayChart, NutritionHero } from "./NutritionHero";
+import { MealMacroBars, NutritionDayChart, NutritionHero } from "./NutritionHero";
 import { useEffect, useMemo, useState } from "react";
 import {
   CalendarDays,
@@ -208,7 +208,10 @@ export function ClientMealsPage({
         }
       />
       <div className="grid shrink-0 gap-3 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
-        <NutritionDayChart data={nutrition} />
+        <div className="grid min-w-0 content-start gap-3">
+          <NutritionDayChart data={nutrition} />
+          <MealMacroBars data={nutrition} />
+        </div>
         <DailyNutritionPanel data={nutrition} hideSummary />
       </div>
       {/* Refeições programadas pela equipe: só aparece quando existem (os registros avulsos já estão no painel acima). */}

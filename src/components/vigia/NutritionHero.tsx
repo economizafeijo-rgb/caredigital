@@ -1,5 +1,5 @@
 import { EvoChart, EvoLegend } from "./EvoChart";
-import { useMemo, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { Beef, Droplet, Target, Wheat } from "lucide-react";
 import { sumNutrients, type Nutrients } from "@/lib/food-parser";
 import { objectiveLabel } from "@/lib/objective-nutrition";
@@ -80,7 +80,7 @@ export function NutritionHero({
   const mTotal = total.protein * 4 + total.carbs * 4 + total.fat * 9 || 1;
   let acc = 0;
   return (
-    <header className="nv-dark relative isolate overflow-hidden rounded-2xl bg-gradient-to-br from-[#052e1f] via-[#0a4a33] to-[#2f6b1f] p-3.5 text-white shadow-card sm:p-4">
+    <header className="nv-dark nv-scan relative isolate overflow-hidden border border-emerald-400/25 bg-gradient-to-br from-[#052e1f] via-[#0a4a33] to-[#1f5a2a] p-3 text-white shadow-card">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -right-24 -top-24 -z-10 size-80 rounded-full bg-lime-300/15 blur-3xl"
@@ -89,9 +89,9 @@ export function NutritionHero({
         aria-hidden="true"
         className="pointer-events-none absolute -bottom-10 left-1/3 -z-10 size-56 rounded-full bg-emerald-300/10 blur-3xl"
       />
-      <div className="grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_16rem]">
+      <div className="grid items-center gap-3.5 lg:grid-cols-[auto_minmax(0,1fr)_22rem]">
         <div
-          className="relative mx-auto size-28 shrink-0 lg:mx-0"
+          className="relative mx-auto size-24 shrink-0 lg:mx-0"
           role="img"
           aria-label={`${n0(total.kcal)} de ${n0(target.kcal)} kcal hoje`}
         >
@@ -130,7 +130,7 @@ export function NutritionHero({
               return el;
             })}
           </svg>
-          <div className="absolute inset-[26px] grid place-items-center rounded-full bg-white/[.06] text-center shadow-inner">
+          <div className="absolute inset-[22px] grid place-items-center rounded-full bg-black/20 text-center shadow-inner">
             <span className="leading-none">
               <strong className="block text-lg font-extrabold tabular-nums">{pct}%</strong>
               <span className="text-[10px] font-semibold text-white/70">da meta</span>
@@ -146,7 +146,7 @@ export function NutritionHero({
                 de {n0(target.kcal)} kcal
               </span>
             </p>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-lime-100">
+            <span className="inline-flex items-center gap-1.5 border border-white/15 bg-white/10 px-2 py-0.5 text-[11px] font-semibold text-lime-100">
               <Target size={12} /> {objectiveLabel(objective)}
             </span>
           </div>
@@ -157,7 +157,7 @@ export function NutritionHero({
                 ? `Faltam ${n0(left)} kcal para a referência de hoje.`
                 : "Referência de calorias de hoje alcançada."}
           </p>
-          <ul className="mt-3 grid gap-2 sm:grid-cols-3">
+          <ul className="mt-2 grid gap-2 sm:grid-cols-3">
             {macros.map((m, i) => {
               const v = total[m.key],
                 t = target[m.key] || 1;
@@ -165,7 +165,8 @@ export function NutritionHero({
               return (
                 <li
                   key={m.key}
-                  className="rounded-xl border border-white/12 bg-white/[.07] px-3 py-2 backdrop-blur transition-colors hover:bg-white/[.12]"
+                  className="border border-white/12 bg-white/[.07] px-2.5 py-1.5 backdrop-blur transition-colors hover:bg-white/[.12]"
+                  style={{ boxShadow: `inset 2px 0 0 ${m.color}` }}
                 >
                   <div className="flex items-center justify-between gap-2 text-[11px] font-semibold text-white/75">
                     <span className="flex items-center gap-1.5">
@@ -176,9 +177,9 @@ export function NutritionHero({
                       <span className="text-white/55">/{n0(t)} g</span>
                     </span>
                   </div>
-                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/15">
+                  <div className="mt-1 h-1 overflow-hidden bg-white/15">
                     <i
-                      className="block h-full rounded-full transition-[width] duration-700 ease-out"
+                      className="block h-full transition-[width] duration-700 ease-out"
                       style={{
                         width: `${p}%`,
                         background: m.color,
@@ -242,7 +243,7 @@ export function NutritionDayChart({ data }: { data: DailyNutrition }) {
   const hm = (h: number) =>
     `${String(Math.floor(h)).padStart(2, "0")}:${String(Math.round((h % 1) * 60) % 60).padStart(2, "0")}`;
   return (
-    <figure className="min-w-0 rounded-2xl border border-border bg-card p-3 sm:p-4">
+    <figure className="nv-scan min-w-0 border border-border bg-card p-3">
       <figcaption className="mb-1 flex flex-wrap items-start justify-between gap-2">
         <span>
           <strong className="block text-sm font-bold">Evolução das calorias</strong>
@@ -328,6 +329,107 @@ export function NutritionDayChart({ data }: { data: DailyNutrition }) {
           ) : null;
         }}
       />
+    </figure>
+  );
+}
+
+const MACRO = { protein: "#f43f5e", carbs: "#f59e0b", fat: "#8b5cf6" } as const;
+
+/** Calorias de cada registro do dia, divididas por macronutriente. Clique para ver o detalhe. */
+export function MealMacroBars({ data }: { data: DailyNutrition }) {
+  const [open, setOpen] = useState<string | null>(null);
+  const rows = useMemo(
+    () =>
+      data.entries
+        .map((e, i) => ({
+          id: e.entryId ?? String(i),
+          at: e.at,
+          text: e.text || e.source,
+          bev: e.entryType === "beverage",
+          n: entryNutrients(e),
+        }))
+        .filter((r) => r.n.kcal > 0)
+        .sort((a, b) => Date.parse(a.at) - Date.parse(b.at)),
+    [data.entries],
+  );
+  if (!rows.length) return null;
+  const max = Math.max(...rows.map((r) => r.n.kcal));
+  const time = (iso: string) =>
+    new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: tz });
+  return (
+    <figure className="nv-scan min-w-0 border border-border bg-card p-3">
+      <figcaption className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <span>
+          <strong className="block text-sm font-bold">Calorias por registro</strong>
+          <span className="text-xs text-muted-foreground">
+            O que cada refeição ou bebida somou, dividido por macronutriente
+          </span>
+        </span>
+        <EvoLegend
+          items={[
+            { label: "Proteínas", color: MACRO.protein },
+            { label: "Carboidratos", color: MACRO.carbs },
+            { label: "Gorduras", color: MACRO.fat },
+          ]}
+        />
+      </figcaption>
+      <ul className="grid gap-1">
+        {rows.map((r) => {
+          const parts = [
+            { k: "protein", v: r.n.protein * 4 },
+            { k: "carbs", v: r.n.carbs * 4 },
+            { k: "fat", v: r.n.fat * 9 },
+          ] as const;
+          const sum = parts.reduce((a, b) => a + b.v, 0) || 1;
+          const isOpen = open === r.id;
+          return (
+            <li key={r.id} className={isOpen ? "bg-muted/50" : ""}>
+              <button
+                type="button"
+                aria-expanded={isOpen}
+                onClick={() => setOpen(isOpen ? null : r.id)}
+                className="grid w-full grid-cols-[2.6rem_minmax(0,1fr)_4.2rem] items-center gap-x-2 px-1.5 py-1 text-left transition-colors hover:bg-muted/50"
+              >
+                <span className="font-mono text-[11px] font-bold tabular-nums text-muted-foreground">
+                  {time(r.at)}
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-xs font-semibold">{r.text}</span>
+                  <span
+                    className="mt-0.5 flex h-2 gap-px"
+                    style={{ width: `${Math.max(8, (r.n.kcal / max) * 100)}%` }}
+                  >
+                    {parts.map((p) => (
+                      <i
+                        key={p.k}
+                        className="block h-full transition-[flex-grow] duration-500"
+                        style={{
+                          flexGrow: Math.max(p.v / sum, 0.02),
+                          flexBasis: 0,
+                          background: MACRO[p.k],
+                        }}
+                      />
+                    ))}
+                  </span>
+                </span>
+                <span className="text-right text-xs font-bold tabular-nums">
+                  {n0(r.n.kcal)} <span className="font-medium text-muted-foreground">kcal</span>
+                </span>
+              </button>
+              {isOpen && (
+                <div className="px-2 pb-2 pt-1">
+                  <MacroBreakdown
+                    protein={r.n.protein}
+                    carbs={r.n.carbs}
+                    fat={r.n.fat}
+                    decimals={1}
+                  />
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
     </figure>
   );
 }

@@ -417,7 +417,7 @@ export function DailyNutritionPanel({
   }
   return (
     <section
-      className="rounded-3xl border border-border bg-card p-5 shadow-card"
+      className="nv-scan min-w-0 border border-border bg-card p-3.5 shadow-card"
       aria-label="Nutrição de hoje"
     >
       {qtyEntry && (
@@ -538,17 +538,17 @@ export function DailyNutritionPanel({
             </div>
           )}
           <p
-            className={`${hideSummary ? "" : "mt-4 "}flex gap-2 rounded-2xl bg-emerald-500/10 p-3 text-sm font-medium text-emerald-800 dark:text-emerald-200`}
+            className={`${hideSummary ? "" : "mt-4 "}flex gap-2 border-l-2 border-emerald-500 bg-emerald-500/10 px-3 py-2 text-[13px] font-medium text-emerald-800 dark:text-emerald-200`}
           >
             <Sparkles size={18} className="mt-0.5 shrink-0" />
             {goalAdvice(objective, total, target)}
           </p>
           {!compact && (
             <>
-              <h4 className="mt-5 flex items-center gap-2 text-sm font-bold">
+              <h4 className="mt-4 flex items-center gap-2 text-sm font-bold">
                 <Leaf size={16} className="text-lime-600" /> Fibras, vitaminas e minerais
               </h4>
-              <div className="mt-2 grid gap-2 sm:grid-cols-3">
+              <div className="mt-2 grid gap-x-5 gap-y-1.5 border border-border bg-muted/30 p-2.5 sm:grid-cols-2">
                 {[
                   { label: "Fibras", unit: "g", value: total.fiber, target: target.fiber },
                   ...(Object.keys(microTargets) as (keyof typeof microTargets)[]).map((key) => ({
@@ -556,31 +556,41 @@ export function DailyNutritionPanel({
                     value: total[key],
                   })),
                 ].map((item) => {
-                  const pct = Math.min(100, Math.round((item.value / item.target) * 100));
+                  const raw = (item.value / item.target) * 100;
+                  const pct = Math.min(100, Math.round(raw));
+                  const tone =
+                    raw >= 100
+                      ? "#10b981"
+                      : raw >= 50
+                        ? "#84cc16"
+                        : raw >= 25
+                          ? "#f59e0b"
+                          : "#f43f5e";
                   return (
-                    <div key={item.label} className="rounded-xl bg-muted/50 p-3">
-                      <div className="flex justify-between text-sm">
-                        <span className="font-semibold">{item.label}</span>
-                        <span className="tabular-nums text-muted-foreground">
-                          {item.value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}{" "}
-                          {item.unit}
-                        </span>
-                      </div>
-                      <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+                    <div
+                      key={item.label}
+                      title={`${item.label}: ${pct}% da referência diária`}
+                      className="grid grid-cols-[5.6rem_minmax(0,1fr)_auto] items-center gap-x-2 text-xs"
+                    >
+                      <span className="truncate font-semibold">{item.label}</span>
+                      <span className="relative h-1.5 overflow-hidden bg-black/10 dark:bg-white/10">
                         <i
-                          className="block h-full rounded-full bg-gradient-to-r from-emerald-500 to-lime-400"
-                          style={{ width: pct + "%" }}
+                          className="absolute inset-y-0 left-0 transition-[width] duration-700"
+                          style={{ width: pct + "%", background: tone }}
                         />
-                      </div>
-                      <span className="mt-1 block text-xs text-muted-foreground">
-                        {pct}% da referência diária
+                      </span>
+                      <span className="w-[6.6rem] text-right tabular-nums">
+                        <b>{item.value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}</b>{" "}
+                        <span className="text-muted-foreground">
+                          {item.unit} · {Math.round(raw)}%
+                        </span>
                       </span>
                     </div>
                   );
                 })}
               </div>
-              <h4 className="mt-5 text-sm font-bold">O que foi calculado hoje</h4>
-              <ul className="mt-2 grid max-h-64 gap-2 overflow-y-auto">
+              <h4 className="mt-4 text-sm font-bold">O que foi calculado hoje</h4>
+              <ul className="mt-2 grid max-h-72 gap-1.5 overflow-y-auto pr-1 [scrollbar-width:thin]">
                 {entries.length === 0 && (
                   <li className="rounded-xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
                     Registre uma refeição ou bebida descrevendo os alimentos (ex.: "150 g de arroz,
@@ -590,7 +600,7 @@ export function DailyNutritionPanel({
                 {entries.map((entry, index) => (
                   <li
                     key={entry.entryId ?? index}
-                    className="rounded-xl border border-border p-3 text-sm"
+                    className="border border-border bg-card p-2.5 text-sm"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <strong className="flex min-w-0 items-center gap-1.5 truncate">
@@ -725,7 +735,7 @@ export function DailyNutritionPanel({
                         {entry.foods.map((food, i) => (
                           <span
                             key={i}
-                            className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:text-emerald-200"
+                            className="border border-emerald-500/20 bg-emerald-500/10 px-1.5 py-0.5 text-[11px] font-medium text-emerald-800 dark:text-emerald-200"
                           >
                             {food.name.split(",")[0]} {food.grams} {measureUnit(food.id)}
                             {food.estimatedPortion ? "*" : ""} · {Math.round(food.nutrients.kcal)}{" "}
