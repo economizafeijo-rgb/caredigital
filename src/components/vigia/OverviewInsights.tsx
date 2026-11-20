@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useGoalFx } from "./GoalFx";
+import { useCountUp } from "@/hooks/use-count-up";
 import {
   Activity,
   ArrowDownRight,
@@ -70,6 +71,12 @@ function useWeek(patientId: string, ownerId: string, revision: number) {
     () => Array.from({ length: 7 }, (_, i) => dayKey(new Date(Date.now() - (6 - i) * 86400000))),
     [revision],
   );
+  // Ao vivo: atualiza sozinho a cada 30 segundos, sem recarregar a página.
+  const [pulse, setPulse] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => setPulse((n) => n + 1), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
   useEffect(() => {
     let active = true;
     const from = new Date(keys[0] + "T00:00:00-05:00").toISOString();
@@ -175,7 +182,7 @@ function useWeek(patientId: string, ownerId: string, revision: number) {
     return () => {
       active = false;
     };
-  }, [patientId, ownerId, keys]);
+  }, [patientId, ownerId, keys, pulse]);
   return { series, keys };
 }
 
@@ -275,12 +282,13 @@ function DayBoard({
         : score >= 25
           ? "Em andamento"
           : "Comece o seu dia";
+  const shownScore = Math.round(useCountUp(score));
   const SEG = 20;
   const lit = Math.round((score / 100) * SEG);
   return (
     <section
       aria-label="Painel do dia"
-      className="nv-dark nv-rise grid overflow-hidden border border-white/10 bg-[#0a1118] text-white lg:grid-cols-[14.5rem_minmax(0,1fr)]"
+      className="nv-dark nv-scan grid overflow-hidden border border-white/10 bg-[#0a1118] text-white lg:grid-cols-[14.5rem_minmax(0,1fr)]"
     >
       <div className="relative flex flex-col justify-between gap-3 border-b border-white/10 p-4 lg:border-b-0 lg:border-r">
         <div className="flex items-center justify-between gap-2 text-[11px] font-semibold text-slate-400">
@@ -291,7 +299,7 @@ function DayBoard({
         </div>
         <div role="img" aria-label={`Pontuação ${score} de 100. ${status}.`}>
           <p className="font-display text-6xl font-extrabold leading-none tabular-nums tracking-tight">
-            {score}
+            {shownScore}
             <span className="ml-1 text-base font-semibold text-slate-500">/100</span>
           </p>
           <p className="mt-1 text-sm font-semibold text-cyan-200">{status}</p>
@@ -300,8 +308,9 @@ function DayBoard({
           {Array.from({ length: SEG }, (_, i) => (
             <i
               key={i}
-              className="h-2.5 flex-1 transition-colors duration-500"
+              className="nv-seg h-2.5 flex-1 transition-colors duration-500"
               style={{
+                animationDelay: `${i * 35}ms`,
                 background:
                   i < lit
                     ? `color-mix(in srgb, #34d399 ${100 - (i / SEG) * 45}%, #22d3ee)`
@@ -366,7 +375,7 @@ function DayBoard({
                     <span className="flex items-center gap-2">
                       <span className="h-1 flex-1 bg-white/10">
                         <i
-                          className="block h-full transition-[width] duration-700"
+                          className="nv-sheen block h-full transition-[width] duration-700"
                           style={{ width: `${c.pct}%`, background: m.color }}
                         />
                       </span>
@@ -384,13 +393,12 @@ function DayBoard({
                       <i
                         key={keys[i] ?? i}
                         title={`${weekday(keys[i] ?? "")}: ${m.unit(v)}`}
-                        className="nv-m-bar flex-1"
+                        className={`flex-1 ${i === 6 ? "nv-grow-live" : "nv-grow"}`}
                         style={{
                           height: `${Math.max(8, (v / peak) * 100)}%`,
                           background:
                             i === 6 ? m.color : `color-mix(in srgb, ${m.color} 32%, transparent)`,
-                          animationDelay: `${i * 40}ms`,
-                          animationIterationCount: 1,
+                          animationDelay: `${i * 70}ms`,
                         }}
                       />
                     ))}

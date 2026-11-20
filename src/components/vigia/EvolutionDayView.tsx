@@ -296,7 +296,9 @@ export function EvolutionDayView({
                         stroke="#0369a1"
                         strokeWidth={2.5}
                         fill="url(#evWater)"
-                        isAnimationActive={false}
+                        isAnimationActive
+                        animationDuration={800}
+                        animationEasing="ease-out"
                       />
                       <Bar yAxisId="left" dataKey="ml" radius={[5, 5, 0, 0]} maxBarSize={18}>
                         {waterHours.map((row, i) => (
@@ -447,7 +449,9 @@ export function EvolutionDayView({
                           stroke="#c2410c"
                           strokeWidth={2.5}
                           fill="url(#evFood)"
-                          isAnimationActive={false}
+                          isAnimationActive
+                          animationDuration={800}
+                          animationEasing="ease-out"
                         />
                         <Bar
                           yAxisId="left"
@@ -472,7 +476,9 @@ export function EvolutionDayView({
                             innerRadius={26}
                             outerRadius={44}
                             paddingAngle={2}
-                            isAnimationActive={false}
+                            isAnimationActive
+                            animationDuration={800}
+                            animationEasing="ease-out"
                           >
                             {macros.map((item) => (
                               <Cell key={item.name} fill={item.color} />

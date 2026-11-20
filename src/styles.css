@@ -1016,3 +1016,17 @@ html, #care-content { scrollbar-gutter: stable; }
 #care-content button:active { transform: none !important; }
 @keyframes nv-soft { from { opacity: .45; } to { opacity: 1; } }
 #care-content :is(.nv-rise, .nv-fade-in, .nv-pop) { animation-name: nv-soft; animation-duration: .25s; }
+
+/* ---------- Movimento ao vivo: barras que crescem, brilho no "hoje", varredura e brilho nas barras de progresso ---------- */
+@keyframes nv-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes nv-glow { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.55) saturate(1.2); } }
+@keyframes nv-sweep { from { transform: translateX(-100%); } to { transform: translateX(400%); } }
+@keyframes nv-seg { from { opacity: 0; transform: scaleY(.3); } to { opacity: 1; transform: scaleY(1); } }
+.nv-grow { transform-origin: bottom; animation: nv-grow .75s cubic-bezier(.2,.8,.2,1) both; }
+.nv-grow-live { transform-origin: bottom; animation: nv-grow .75s cubic-bezier(.2,.8,.2,1) both, nv-glow 2.2s 1s ease-in-out infinite; }
+.nv-seg { transform-origin: bottom; animation: nv-seg .35s ease-out both; }
+.nv-sheen { position: relative; overflow: hidden; }
+.nv-sheen::after { content: ""; position: absolute; inset: 0 auto 0 0; width: 25%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent); animation: nv-sweep 2.6s 1s ease-in-out infinite; }
+.nv-scan { position: relative; overflow: hidden; }
+.nv-scan::before { content: ""; position: absolute; inset: 0 auto auto 0; z-index: 1; height: 2px; width: 22%; background: linear-gradient(90deg, transparent, #22d3ee, transparent); animation: nv-sweep 4.5s linear infinite; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .nv-grow, .nv-grow-live, .nv-seg, .nv-sheen::after, .nv-scan::before { animation: none; } }

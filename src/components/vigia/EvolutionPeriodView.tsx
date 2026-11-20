@@ -311,7 +311,9 @@ function PeriodChart({
               strokeWidth={2}
               strokeDasharray="6 4"
               dot={false}
-              isAnimationActive={false}
+              isAnimationActive
+              animationDuration={800}
+              animationEasing="ease-out"
               connectNulls
             />
           )}
@@ -325,7 +327,9 @@ function PeriodChart({
               dot={{ r: 3.5, fill: "#fff", stroke: series.color, strokeWidth: 2 }}
               activeDot={{ r: 6 }}
               connectNulls
-              isAnimationActive={false}
+              isAnimationActive
+              animationDuration={800}
+              animationEasing="ease-out"
             />
           ) : (
             <Bar yAxisId="left" dataKey="value" radius={[0, 0, 0, 0]} maxBarSize={yearly ? 40 : 22}>
@@ -343,7 +347,9 @@ function PeriodChart({
               strokeWidth={2.5}
               dot={{ r: 2.5 }}
               connectNulls
-              isAnimationActive={false}
+              isAnimationActive
+              animationDuration={800}
+              animationEasing="ease-out"
             />
           )}
         </ComposedChart>
