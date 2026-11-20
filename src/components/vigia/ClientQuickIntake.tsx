@@ -4,6 +4,7 @@ import { CheckCircle2, Droplets, Plus, Save, UtensilsCrossed, X } from "lucide-r
 import { CareCategoryReport } from "./CareCategoryReport";
 import { BarChart3 } from "lucide-react";
 import { CareIntakePicker, CareIntakeIcon } from "./CareIntakePicker";
+import { DrinkChoices } from "./DrinkChoices";
 import { MealSuggestions } from "./MealSuggestions";
 import { foodCategory,beverageCategory,isFoodKind,typicalFoods,typicalDrinks,mealCombos,type IntakeKind,type FoodKind,type BeverageKind } from "@/lib/care-intake-categories";
 import { parseFoodText, sumNutrients, measureUnit } from "@/lib/food-parser";
@@ -249,6 +250,8 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
                       </optgroup>)}
                     </select>
                   </label>
+                  <DrinkChoices kind={kind} description={description} kindLabel={beverageCategory(kind)?.label ?? "bebida"}
+                    onPick={preset => { setKind(preset.kind); setDescription(preset.text); setAmount(String(preset.ml)); setError(""); }}/>
                   <label className="text-xs font-semibold">Nome da bebida
                     <input type="text" className="field mt-1 w-full" maxLength={100}
                       value={description} required onChange={event => setDescription(event.target.value)}

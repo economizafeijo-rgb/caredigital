@@ -6,10 +6,22 @@ import { DialogProvider } from "@/lib/dialog";
 vi.mock("@/integrations/supabase/client", () => ({ supabase: { rpc: vi.fn() } }));
 afterEach(() => cleanup());
 
-const kinds = () => Array.from(document.querySelectorAll("[data-intake-kind]")).map((el) => el.getAttribute("data-intake-kind"));
-const groups = () => new Set(Array.from(document.querySelectorAll("[data-intake-group]")).map((el) => el.getAttribute("data-intake-group")));
+const kinds = () =>
+  Array.from(document.querySelectorAll("[data-intake-kind]")).map((el) =>
+    el.getAttribute("data-intake-kind"),
+  );
+const groups = () =>
+  new Set(
+    Array.from(document.querySelectorAll("[data-intake-group]")).map((el) =>
+      el.getAttribute("data-intake-group"),
+    ),
+  );
 const open = (mode: "water" | "food" | "drink") => {
-  render(<DialogProvider><ClientQuickIntake patientId="p1" mode={mode} /></DialogProvider>);
+  render(
+    <DialogProvider>
+      <ClientQuickIntake patientId="p1" mode={mode} />
+    </DialogProvider>,
+  );
   fireEvent.click(screen.getByRole("button", { name: /Registrar (água|refeição|bebida)/ }));
 };
 
@@ -40,5 +52,26 @@ describe("registro de consumo por área", () => {
     expect(kinds()).toContain("cha");
     expect(kinds()).not.toContain("almoco");
     expect(screen.getByText("Nome da bebida")).toBeTruthy();
+  });
+
+  it("Bebidas: toca numa opção, vê outras com 'Ver todas' e abre as informações (i)", () => {
+    open("drink");
+    fireEvent.click(document.querySelector('[data-intake-kind="cafe"]') as HTMLElement);
+    fireEvent.click(screen.getByRole("button", { name: "Café com leite em pó" }));
+    expect((screen.getByLabelText("Nome da bebida") as HTMLInputElement).value).toBe(
+      "Café com leite em pó",
+    );
+    expect(screen.queryByRole("button", { name: "Suco de graviola" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Ver todas as bebidas" }));
+    fireEvent.click(screen.getByRole("button", { name: "Suco de graviola" }));
+    expect((screen.getByLabelText("Nome da bebida") as HTMLInputElement).value).toBe(
+      "Suco de graviola",
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Informações nutricionais: Suco de graviola" }),
+    );
+    expect(
+      screen.getByRole("region", { name: /Informações nutricionais: Suco de graviola/ }),
+    ).toBeTruthy();
   });
 });
