@@ -74,4 +74,25 @@ describe("registro de consumo por área", () => {
       screen.getByRole("region", { name: /Informações nutricionais: Suco de graviola/ }),
     ).toBeTruthy();
   });
+
+  it("Relógio da refeição: abre pelo sinal e pede confirmação com Cancelar", async () => {
+    const ui = (n: number) => (
+      <DialogProvider>
+        <ClientQuickIntake patientId="p1" mode="food" openSignal={n} />
+      </DialogProvider>
+    );
+    const view = render(ui(0));
+    view.rerender(ui(1));
+    expect(screen.getByRole("heading", { name: "Registrar refeição" })).toBeTruthy();
+    fireEvent.change(screen.getByLabelText(/O que você comeu/), {
+      target: { value: "Arroz com feijão e frango" },
+    });
+    const actions = document.querySelector("[data-intake-actions]") as HTMLElement;
+    expect(actions.className).toContain("sticky");
+    expect(actions.textContent).toContain("Cancelar");
+    fireEvent.click(screen.getByRole("button", { name: /Registrar agora/ }));
+    expect(await screen.findByText("Confirmar registro?")).toBeTruthy();
+    expect(screen.getAllByRole("button", { name: "Cancelar" }).length).toBeGreaterThan(1);
+    expect(screen.getByRole("button", { name: "Confirmar registro" })).toBeTruthy();
+  });
 });

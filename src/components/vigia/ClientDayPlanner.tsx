@@ -1267,6 +1267,24 @@ function Row({
   const done = item.status === "done";
   const skipped = item.status === "skipped";
   const open = () => (item.task ? onView(item.task) : go(k.area));
+  const [showInfo, setShowInfo] = useState(false);
+  const statusText =
+    item.status === "done"
+      ? "Registrado"
+      : item.status === "skipped"
+        ? "Marcado como não feito"
+        : item.status === "late"
+          ? "Atrasado"
+          : item.status === "now"
+            ? "Na hora"
+            : "Programado";
+  const whenText =
+    item.status === "done" && item.doneAt
+      ? `Registrado às ${hm(item.doneAt)}`
+      : `Horário ${item.status === "planned" || item.status === "now" || item.status === "late" ? "previsto" : ""} ${hm(item.at)}`
+          .replace(/\s+/g, " ")
+          .trim();
+  const summary = `${item.title} — ${statusText}. ${whenText}. Clique para ver detalhes.`;
   const hot = item.status === "now" || item.status === "late";
   const hasMenu = Boolean(canSkip || item.edit || item.remove || item.undo);
   const chip =
@@ -1297,7 +1315,13 @@ function Row({
       >
         {done ? <Check size={15} className="nv-check" /> : <Icon size={15} />}
       </span>
-      <button type="button" onClick={open} title={`Abrir ${k.label}`} className="min-w-0 text-left">
+      <button
+        type="button"
+        onClick={() => setShowInfo((v) => !v)}
+        aria-expanded={showInfo}
+        title={summary}
+        className="min-w-0 text-left"
+      >
         <span className="flex min-w-0 items-center gap-1.5">
           <strong
             className={`truncate text-[13px] leading-tight ${done ? "text-muted-foreground line-through decoration-muted-foreground/40" : ""}`}
@@ -1384,6 +1408,52 @@ function Row({
           <ChevronRight size={14} className="text-muted-foreground/50" />
         )}
       </span>
+      {showInfo && (
+        <div className="nv-fade-in col-span-full mt-1.5 grid gap-1.5 border border-border bg-muted/40 p-2.5 text-[12px]">
+          <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1">
+            <dt className="text-muted-foreground">Situação</dt>
+            <dd className="font-semibold">{statusText}</dd>
+            <dt className="text-muted-foreground">Área</dt>
+            <dd className="font-semibold">{k.label}</dd>
+            <dt className="text-muted-foreground">
+              {item.status === "done" ? "Registro" : "Horário"}
+            </dt>
+            <dd className="font-semibold tabular-nums">
+              {item.status === "done" && item.doneAt
+                ? `${hm(item.doneAt)}${Math.abs(item.doneAt - item.at) > 60_000 ? ` (previsto ${hm(item.at)})` : ""}`
+                : hm(item.at)}
+            </dd>
+            {item.detail && (
+              <>
+                <dt className="text-muted-foreground">Detalhes</dt>
+                <dd className="break-words">{item.detail}</dd>
+              </>
+            )}
+            {item.task && (
+              <>
+                <dt className="text-muted-foreground">Origem</dt>
+                <dd>Programado pela equipe</dd>
+              </>
+            )}
+          </dl>
+          <div className="flex justify-end gap-2 pt-0.5">
+            <button
+              type="button"
+              onClick={() => setShowInfo(false)}
+              className="h-7 border border-border bg-card px-2.5 text-[11px] font-semibold hover:bg-muted"
+            >
+              Fechar
+            </button>
+            <button
+              type="button"
+              onClick={open}
+              className="inline-flex h-7 items-center gap-1 bg-primary px-2.5 text-[11px] font-bold text-primary-foreground"
+            >
+              Abrir {k.label.toLowerCase()} <ChevronRight size={12} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

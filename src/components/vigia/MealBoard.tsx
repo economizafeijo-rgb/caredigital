@@ -528,7 +528,10 @@ export function MealBoard({
               </p>
             )}
 
-            <div className="mt-auto grid grid-cols-[auto_1fr] gap-2 pt-1">
+            <div
+              data-intake-actions
+              className="sticky bottom-0 z-10 -mx-1 mt-auto grid grid-cols-[auto_1fr] gap-2 border-t border-border bg-card px-1 pb-1 pt-2.5"
+            >
               <button
                 type="button"
                 disabled={saving}

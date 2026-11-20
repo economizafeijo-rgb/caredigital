@@ -81,7 +81,7 @@ export function HomeModalityTimers() {
       const cutoff = Date.parse(
         day + `T${String(WATER_LAST_RECOMMENDED_HOUR).padStart(2, "0")}:00:00-05:00`,
       );
-      const [goal, water, tasks, meds, medTaken, sups, supTaken, bev, acts, mlogs] =
+      const [goal, water, tasks, meds, medTaken, sups, supTaken, bev, acts, mlogs, foods] =
         await Promise.all([
           db.rpc("care_sync_hydration_goal", { p_patient_id: patientId }),
           db
@@ -140,6 +140,12 @@ export function HomeModalityTimers() {
             .eq("patient_id", patientId)
             .gte("recorded_at", start.toISOString())
             .limit(100),
+          db
+            .from("care_food_consumptions")
+            .select("recorded_at,meal_group_id,request_id,id")
+            .eq("patient_id", patientId)
+            .gte("recorded_at", start.toISOString())
+            .limit(200),
         ]);
       if (!active) return;
       const list: ModalityTimer[] = [];
@@ -232,6 +238,16 @@ export function HomeModalityTimers() {
         logged.push({ t, kind: mealKindOf(r.meal_name) || mealKindOf(items) });
       }
       // Só o que foi programado vira horário; o resto mostra as refeições realmente registradas hoje.
+      // Refeições montadas na biblioteca alimentar (várias porções do mesmo pedido = uma refeição).
+      const seenFood = new Set<string>();
+      for (const r of foods?.data ?? []) {
+        const key = String(r.meal_group_id ?? r.request_id ?? r.id);
+        if (seenFood.has(key)) continue;
+        seenFood.add(key);
+        const t = Date.parse(r.recorded_at);
+        if (logged.some((m) => Math.abs(m.t - t) < 3 * 60_000)) continue;
+        logged.push({ t, kind: "" });
+      }
       const mealTask = first("refeicao");
       const lastMeal = [...logged].sort((a, b) => a.t - b.t).at(-1) ?? null;
       list.push({

@@ -781,7 +781,10 @@ export function ClientQuickIntake({
                           {error}
                         </p>
                       )}
-                      <div className="grid grid-cols-2 gap-2">
+                      <div
+                        data-intake-actions
+                        className="sticky bottom-0 z-10 -mx-1 grid grid-cols-2 gap-2 border-t border-border bg-card px-1 pb-1 pt-2.5 lg:col-span-full"
+                      >
                         <button
                           type="button"
                           disabled={saving}

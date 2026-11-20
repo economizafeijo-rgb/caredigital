@@ -77,4 +77,46 @@ describe("estimateNextHydration", () => {
       }),
     ).toBeNull();
   });
+
+  it("qualquer gole, a qualquer hora, recalcula o próximo a partir dele", () => {
+    const now = cutoff - 8 * H;
+    const base = { remainingMl: 1500, cutoff, now };
+    const before = estimateNextHydration({
+      ...base,
+      lastIntakeAt: now - 3 * H,
+      lastAmountMl: 250,
+    })!;
+    const after = estimateNextHydration({
+      ...base,
+      remainingMl: 1300,
+      lastIntakeAt: now,
+      lastAmountMl: 200,
+      recent: [{ at: now, ml: 200 }],
+    })!;
+    expect(before.at).toBe(now);
+    expect(after.at).toBeGreaterThanOrEqual(now + 45 * 60_000);
+  });
+
+  it("não avisa com menos de 45 min de intervalo e usa porções de 100 a 300 ml", () => {
+    const now = cutoff - 8 * H;
+    const r = estimateNextHydration({
+      remainingMl: 2000,
+      lastIntakeAt: now,
+      lastAmountMl: 100,
+      now,
+      cutoff,
+      recent: [{ at: now, ml: 100 }],
+    })!;
+    expect(r.intervalMin).toBeGreaterThanOrEqual(45);
+    expect(r.suggestedMl).toBeGreaterThanOrEqual(100);
+    expect(r.suggestedMl).toBeLessThanOrEqual(300);
+    const small = estimateNextHydration({
+      remainingMl: 60,
+      lastIntakeAt: now,
+      lastAmountMl: 200,
+      now,
+      cutoff,
+    })!;
+    expect(small.suggestedMl).toBe(60);
+  });
 });

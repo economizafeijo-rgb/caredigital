@@ -79,11 +79,23 @@ export function hydrationGoalNotice(
   };
 }
 
+/** Intervalo mínimo entre avisos de água: evita sobrecarregar a pessoa com lembretes. */
+const MIN_GAP_MIN = 45;
+/** Porção sugerida: um copo (100 a 300 ml), ou o que falta quando for menos que isso. */
+const sipSize = (remainingMl: number, portions: number) =>
+  Math.min(
+    Math.max(10, Math.round(remainingMl)),
+    Math.min(300, Math.max(100, Math.round(remainingMl / portions / 10) * 10)),
+  );
+
 /**
  * Estima o horário e o volume da próxima hidratação a partir do último líquido
  * registrado, do volume restante da meta e do tempo disponível até o horário ideal para concluir a água (padrão 20h).
- * - Porções confortáveis de ~250 ml (máx. 350 ml);
- * - intervalo mínimo que mantém o ritmo em até ~500 ml/h, com folga em relação ao que os rins eliminam (0,8 a 1 L/h);
+ * Base científica: os rins eliminam cerca de 0,8 a 1 L de água por hora e acima de ~0,75 L/h
+ * de forma contínua há risco de hiponatremia; por isso o ritmo fica em até 500 ml/h, com folga.
+ * - Porções confortáveis de 100 a 300 ml (cerca de um copo);
+ * - intervalo mínimo de 45 min e o necessário para o ritmo não passar de 500 ml/h;
+ * - qualquer líquido registrado, a qualquer hora, recalcula o próximo horário a partir dele;
  * - intervalo máximo de 2h para manter a regularidade;
  * - `safeRemainingMl`: o máximo que cabe até o horário-limite sem passar de 500 ml/h. Se o restante for maior,
  *   `reachable` é falso: não se deve compensar bebendo de uma vez.
@@ -109,12 +121,12 @@ export function estimateNextHydration(input: {
   const from = lastIntakeAt ?? now;
   const portions = Math.max(1, Math.ceil(remainingMl / 250));
   const windowMin = Math.max(0, (cutoff - from) / 60_000);
-  const minGap = Math.max(30, Math.round((lastAmountMl / COMFORT_ML_PER_HOUR) * 60));
+  const minGap = Math.max(MIN_GAP_MIN, Math.round((lastAmountMl / COMFORT_ML_PER_HOUR) * 60));
   const spread = windowMin / portions;
   const intervalMin = lastIntakeAt ? Math.round(Math.min(120, Math.max(minGap, spread))) : 0;
   let at = from + intervalMin * 60_000;
   if (at < now) at = now;
-  const suggested = Math.min(350, Math.max(10, Math.round(remainingMl / portions / 10) * 10));
+  const suggested = sipSize(remainingMl, portions);
   // Janela móvel de 1 h: o próximo copo só vem quando o que já foi bebido na última hora,
   // somado à porção sugerida, cabe no ritmo confortável (protege os rins após beber atrasado ou muito de uma vez).
   const inLastHour = (t: number) =>
@@ -126,7 +138,7 @@ export function estimateNextHydration(input: {
     at = Math.max(at + 60_000, next.at + 3_600_000 + 1000);
   }
   if (at > cutoff) at = cutoff;
-  const suggestedMl = Math.min(350, Math.max(10, Math.round(remainingMl / portions / 10) * 10));
+  const suggestedMl = suggested;
   const safeRemainingMl =
     Math.round(
       ((Math.max(0, cutoff - Math.max(now, from)) / 3_600_000) * COMFORT_ML_PER_HOUR) / 10,
