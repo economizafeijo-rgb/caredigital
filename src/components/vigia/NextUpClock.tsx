@@ -330,7 +330,9 @@ export function NextUpClock({
         </div>
         <div className="min-w-0 flex-1">
           <p className="flex items-center justify-between gap-2 text-[11px] font-semibold text-white/70">
-            <span className="truncate">{title}</span>
+            <span className="line-clamp-2 leading-tight" title={title}>
+              {title}
+            </span>
             <button
               type="button"
               onClick={sound.toggle}
@@ -368,7 +370,10 @@ export function NextUpClock({
             </p>
           )}
           {when !== null && (
-            <p className="mt-1 truncate text-[11px] text-white/70">
+            <p
+              className="mt-1 line-clamp-2 text-[10.5px] leading-snug text-white/60"
+              title={detail ?? undefined}
+            >
               às {clockTime(when)}
               {detail ? ` · ${detail}` : ""}
             </p>
