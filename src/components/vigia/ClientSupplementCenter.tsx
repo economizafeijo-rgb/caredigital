@@ -750,7 +750,7 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
   const info = libraryByKey[selected] as LibraryItem;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2.5">
       {!remote && loaded && (
         <p
           role="status"
@@ -762,7 +762,7 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
       )}
 
       <header
-        className="nv-dark relative isolate overflow-hidden rounded-2xl bg-gradient-to-br from-[#1e0b3a] via-[#3b1170] to-[#6d28d9] p-3.5 text-white shadow-card sm:p-4"
+        className="nv-dark nv-scan relative isolate overflow-hidden border border-violet-400/30 p-2.5 text-white shadow-card sm:px-3"
         aria-label="Próxima dose"
       >
         <div
@@ -773,9 +773,9 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
           aria-hidden="true"
           className="pointer-events-none absolute -bottom-16 left-1/4 -z-10 size-56 rounded-full bg-fuchsia-400/15 blur-3xl"
         />
-        <div className="grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_16rem]">
+        <div className="grid items-center gap-3 lg:grid-cols-[auto_minmax(0,1fr)_17rem]">
           <div
-            className="relative mx-auto size-28 shrink-0 lg:mx-0"
+            className="relative mx-auto size-[68px] shrink-0 lg:mx-0"
             role="img"
             aria-label={`${takenCount} de ${doses.length} doses tomadas hoje`}
           >
@@ -801,21 +801,21 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
                 </linearGradient>
               </defs>
             </svg>
-            <div className="absolute inset-[24px] grid place-items-center rounded-full bg-white/[.07] text-center shadow-inner">
+            <div className="absolute inset-[13px] grid place-items-center rounded-full bg-white/[.07] text-center shadow-inner">
               <span className="leading-none">
-                <strong className="block text-lg font-extrabold tabular-nums">{percent}%</strong>
-                <span className="text-[10px] font-semibold text-white/70">das doses</span>
+                <strong className="block text-sm font-extrabold tabular-nums">{percent}%</strong>
+                <span className="text-[8px] font-semibold text-white/70">doses</span>
               </span>
             </div>
           </div>
           <div className="min-w-0">
-            <p className="text-2xl font-extrabold tabular-nums sm:text-3xl">
+            <p className="text-xl font-extrabold tabular-nums">
               {takenCount}{" "}
-              <span className="text-base font-semibold text-white/65">
+              <span className="text-sm font-semibold text-white/65">
                 de {doses.length} doses hoje
               </span>
             </p>
-            <p className="mt-0.5 text-sm text-white/80">
+            <p className="mt-0.5 text-xs text-white/80">
               {!doses.length
                 ? "Escolha um suplemento na biblioteca para montar sua programação com horários e lembretes."
                 : takenCount === doses.length
@@ -824,13 +824,13 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
                     ? `Próxima: ${next.plan.name} às ${next.slot}.`
                     : "Restam doses atrasadas para registrar."}
             </p>
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-2 flex flex-wrap gap-1.5">
               {next && (
                 <button
                   type="button"
                   data-register-target="Registrar dose"
                   onClick={() => void toggleDose(next.plan, next.slot, false)}
-                  className="inline-flex h-9 items-center gap-2 rounded-xl bg-white px-3.5 text-[13px] font-bold text-violet-900 shadow-sm transition hover:bg-white/90 active:scale-[.97]"
+                  className="inline-flex h-8 items-center gap-2 bg-white px-3 text-xs font-bold text-violet-900 shadow-sm transition hover:bg-white/90 active:scale-[.97]"
                 >
                   <CheckCircle2 size={16} /> Registrar dose agora
                 </button>
@@ -838,19 +838,20 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
               <button
                 type="button"
                 onClick={() => setEditing({ times: ["08:00"], unit: "g", dose: 1 })}
-                className={`inline-flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-[13px] font-bold transition active:scale-[.97] ${next ? "border border-white/25 bg-white/10 text-white backdrop-blur hover:bg-white/20" : "bg-white text-violet-900 shadow-sm hover:bg-white/90"}`}
+                className={`inline-flex h-8 items-center gap-1.5 px-3 text-xs font-bold transition active:scale-[.97] ${next ? "border border-white/25 bg-white/10 text-white backdrop-blur hover:bg-white/20" : "bg-white text-violet-900 shadow-sm hover:bg-white/90"}`}
               >
                 <Plus size={16} /> Adicionar suplemento
               </button>
               <a
                 href="#nv-sup-library"
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-3.5 text-[13px] font-bold text-white backdrop-blur transition hover:bg-white/20"
+                className="inline-flex h-8 items-center gap-1.5 border border-white/25 bg-white/10 px-3 text-xs font-bold text-white backdrop-blur transition hover:bg-white/20"
               >
                 <BookOpen size={15} /> Biblioteca
               </a>
             </div>
           </div>
           <NextUpClock
+            compact
             alertKey="suplemento"
             title="Próxima dose"
             color="#fbbf24"
@@ -874,9 +875,9 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
       </header>
 
       {doses.length > 0 || scheduledTasks.length > 0 || message ? (
-        <div className="grid gap-4">
+        <div className="grid gap-2.5">
           <section
-            className="rounded-2xl border border-border bg-card p-4 shadow-card"
+            className="border border-border bg-card p-3 shadow-card"
             aria-label="Doses de hoje"
           >
             <div className="flex items-center justify-between gap-2">
@@ -1041,15 +1042,15 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
 
       <section
         id="nv-sup-library"
-        className="scroll-mt-4 rounded-2xl border border-border bg-card p-4 shadow-card sm:p-5"
+        className="scroll-mt-4 border border-border bg-card p-3 shadow-card"
         aria-label="Biblioteca de suplementos"
       >
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h3 className="flex items-center gap-2 text-lg font-bold">
-              <BookOpen size={20} className="text-amber-500" /> Biblioteca de suplementos
+            <h3 className="flex items-center gap-2 text-sm font-bold">
+              <BookOpen size={16} className="text-amber-500" /> Biblioteca de suplementos
             </h3>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground">
               {supplementLibrary.length} suplementos com dose de referência, melhor horário e
               cuidados.
             </p>
@@ -1061,15 +1062,15 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
                 type="button"
                 aria-pressed={libCat === c}
                 onClick={() => setLibCat(c)}
-                className={`h-8 rounded-full px-3 text-xs font-semibold transition ${libCat === c ? "bg-foreground text-background" : "bg-muted text-muted-foreground hover:text-foreground"}`}
+                className={`h-7 px-2.5 text-[11px] font-semibold transition ${libCat === c ? "bg-violet-500 text-white" : "bg-muted text-muted-foreground hover:text-foreground"}`}
               >
                 {c}
               </button>
             ))}
           </div>
         </div>
-        <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)]">
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-4">
+        <div className="mt-2.5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
+          <div className="grid max-h-[min(54dvh,430px)] grid-cols-3 content-start gap-2 overflow-y-auto pr-1 sm:grid-cols-4 xl:grid-cols-5">
             {supplementLibrary
               .filter((item) => libCat === "Todos" || item.category === libCat)
               .map((item, i) => {
@@ -1080,7 +1081,7 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
                     type="button"
                     onClick={() => setSelected(item.key)}
                     aria-pressed={on}
-                    className={`nv-rise group relative flex flex-col items-center overflow-hidden rounded-2xl border p-3 text-center transition duration-300 ${on ? "border-transparent shadow-lg" : "border-border hover:-translate-y-0.5 hover:shadow-md"}`}
+                    className={`nv-rise group relative flex flex-col items-center overflow-hidden border p-2 text-center transition duration-300 ${on ? "border-transparent shadow-lg" : "border-border hover:-translate-y-0.5 hover:shadow-md"}`}
                     style={{
                       animationDelay: `${Math.min(i, 12) * 35}ms`,
                       boxShadow: on
@@ -1092,20 +1093,20 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
                     <SupplementPack
                       {...item.pack}
                       title={item.name}
-                      className="h-28 w-auto transition-transform duration-500 group-hover:scale-105 group-hover:-rotate-2"
+                      className="h-16 w-auto transition-transform duration-500 group-hover:scale-105 group-hover:-rotate-2"
                     />
-                    <strong className="mt-1 line-clamp-1 text-sm">{item.name}</strong>
-                    <span className="text-[11px] text-muted-foreground">{item.category}</span>
+                    <strong className="mt-1 line-clamp-1 text-xs">{item.name}</strong>
+                    <span className="text-[10px] text-muted-foreground">{item.category}</span>
                   </button>
                 );
               })}
           </div>
           <article
             key={info.key}
-            className="nv-fade-in self-start overflow-hidden rounded-2xl border border-border lg:sticky lg:top-2"
+            className="nv-fade-in self-start overflow-hidden border border-border lg:sticky lg:top-2"
           >
             <div
-              className="relative grid place-items-center py-5"
+              className="relative grid place-items-center py-2.5"
               style={{
                 background: `radial-gradient(circle at 50% 40%, ${info.pack.color}33, transparent 70%), linear-gradient(180deg, ${info.pack.color}14, transparent)`,
               }}
@@ -1113,28 +1114,28 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
               <SupplementPack
                 {...info.pack}
                 title={info.name}
-                className="nv-float h-44 w-auto drop-shadow-xl"
+                className="nv-float h-24 w-auto drop-shadow-xl"
               />
               <span
-                className="absolute left-3 top-3 rounded-full bg-card/80 px-2.5 py-1 text-[11px] font-bold backdrop-blur"
+                className="absolute left-2 top-2 bg-card/80 px-2 py-0.5 text-[10px] font-bold backdrop-blur"
                 style={{ color: info.pack.color }}
               >
                 {info.category}
               </span>
             </div>
-            <div className="p-4">
-              <h4 className="text-xl font-bold">{info.name}</h4>
-              <p className="mt-1 text-sm">{info.benefit}</p>
-              <dl className="mt-3 grid gap-2 text-sm">
-                <div className="flex justify-between gap-3 rounded-xl bg-muted/50 px-3 py-2">
+            <div className="p-3">
+              <h4 className="text-base font-bold">{info.name}</h4>
+              <p className="mt-0.5 text-xs">{info.benefit}</p>
+              <dl className="mt-2 grid gap-1 text-xs">
+                <div className="flex justify-between gap-3 bg-muted/50 px-2.5 py-1.5">
                   <dt className="text-muted-foreground">Dose de referência</dt>
                   <dd className="text-right font-bold">{info.range}</dd>
                 </div>
-                <div className="flex justify-between gap-3 rounded-xl bg-muted/50 px-3 py-2">
+                <div className="flex justify-between gap-3 bg-muted/50 px-2.5 py-1.5">
                   <dt className="text-muted-foreground">Melhor momento</dt>
                   <dd className="text-right font-bold">{info.timing}</dd>
                 </div>
-                <div className="flex justify-between gap-3 rounded-xl bg-muted/50 px-3 py-2">
+                <div className="flex justify-between gap-3 bg-muted/50 px-2.5 py-1.5">
                   <dt className="text-muted-foreground">Com refeição?</dt>
                   <dd className="flex items-center gap-1 font-bold">
                     {info.withFood ? (
@@ -1147,22 +1148,22 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
                   </dd>
                 </div>
               </dl>
-              <ul className="mt-3 grid gap-1.5 text-sm">
+              <ul className="mt-2 grid gap-1 text-xs">
                 {info.tips.map((tip) => (
                   <li key={tip} className="flex gap-2">
-                    <Lightbulb size={16} className="mt-0.5 shrink-0 text-amber-500" />
+                    <Lightbulb size={14} className="mt-0.5 shrink-0 text-amber-500" />
                     {tip}
                   </li>
                 ))}
               </ul>
-              <p className="mt-2 text-xs text-muted-foreground">
+              <p className="mt-1.5 text-[11px] text-muted-foreground">
                 <strong>Atenção:</strong> {info.caution} Converse com seu médico ou nutricionista
                 antes de iniciar.
               </p>
               <button
                 type="button"
                 onClick={() => startFromLibrary(info)}
-                className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl px-5 text-sm font-bold text-white shadow-sm transition hover:brightness-110 active:scale-[.98]"
+                className="mt-2 inline-flex h-9 w-full items-center justify-center gap-2 px-5 text-xs font-bold text-white shadow-sm transition hover:brightness-110 active:scale-[.98]"
                 style={{ background: info.pack.color }}
               >
                 <Plus size={17} /> Adicionar à minha programação

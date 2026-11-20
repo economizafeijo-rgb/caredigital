@@ -281,21 +281,29 @@ export function CareRecentHistory({
                   return {
                     info: [
                       { label: "Consumido", value: what || d.title || "Refeição" },
-                      ...(portion ? [{ label: "Porção", value: portion }] : []),
+                      ...(portion
+                        ? [{ label: /\d/.test(portion) ? "Porção" : "Refeição", value: portion }]
+                        : []),
                       ...(() => {
                         const pf = parseFoodText(what || "");
                         if (pf.length > 0) {
                           const kcal = pf.reduce((a, x) => a + x.nutrients.kcal, 0);
+                          // Se a descrição já traz as quantidades (ex.: "Arroz 450 g"), não repete a linha.
+                          const hasQty = /\d\s*(g|ml)\b/i.test(what || "");
                           return [
-                            {
-                              label: "Quantidade",
-                              value: pf
-                                .map(
-                                  (x) =>
-                                    `${x.name.split(",")[0]} ${n0(x.grams)} ${measureUnit(x.id)}`,
-                                )
-                                .join(" · "),
-                            },
+                            ...(hasQty
+                              ? []
+                              : [
+                                  {
+                                    label: "Quantidade",
+                                    value: pf
+                                      .map(
+                                        (x) =>
+                                          `${x.name.split(",")[0]} ${n0(x.grams)} ${measureUnit(x.id)}`,
+                                      )
+                                      .join(" · "),
+                                  },
+                                ]),
                             ...(!(f && f.kcal > 0) && kcal > 0
                               ? [{ label: "Energia", value: `${n0(kcal)} kcal` }]
                               : []),

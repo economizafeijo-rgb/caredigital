@@ -108,7 +108,7 @@ function ScoreRing({ score }: { score: number }) {
     c = 2 * Math.PI * r,
     color = scoreColor(score);
   return (
-    <div className="relative mx-auto size-[108px] shrink-0 sm:size-[124px]">
+    <div className="relative size-[84px] shrink-0">
       <svg viewBox="0 0 176 176" className="size-full -rotate-90">
         <circle cx="88" cy="88" r={r} fill="none" strokeWidth="10" className="stroke-white/15" />
         <circle
@@ -129,10 +129,10 @@ function ScoreRing({ score }: { score: number }) {
       </svg>
       <div className="absolute inset-0 grid place-items-center text-center">
         <div>
-          <strong className="block text-4xl font-extrabold tabular-nums leading-none">
+          <strong className="block text-2xl font-extrabold tabular-nums leading-none">
             {score}
           </strong>
-          <span className="text-[10px] font-semibold text-white/70">{scoreLabel(score)}</span>
+          <span className="text-[9px] font-semibold text-white/70">{scoreLabel(score)}</span>
         </div>
       </div>
     </div>
@@ -152,8 +152,8 @@ function NightBar({ log }: { log: SleepLog }) {
   const a = pos(minutesFrom18(log.bed_at)),
     b = pos(minutesFrom18(log.wake_at));
   return (
-    <div className="mt-3" aria-label={`Dormiu ${clock(log.bed_at)}, acordou ${clock(log.wake_at)}`}>
-      <div className="group relative h-7 bg-white/10 transition-colors hover:bg-white/15">
+    <div className="mt-1" aria-label={`Dormiu ${clock(log.bed_at)}, acordou ${clock(log.wake_at)}`}>
+      <div className="group relative h-5 bg-white/10 transition-colors hover:bg-white/15">
         <span
           aria-hidden="true"
           className="absolute inset-y-0 rounded-xl border border-dashed border-white/25"
@@ -164,7 +164,7 @@ function NightBar({ log }: { log: SleepLog }) {
           style={{ left: `${a}%`, width: `${Math.max(2, b - a)}%` }}
         />
         <span
-          className="absolute top-1/2 grid size-7 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-indigo-950 text-indigo-200 ring-2 ring-indigo-300"
+          className="absolute top-1/2 grid size-5 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-indigo-950 text-indigo-200 ring-2 ring-indigo-300"
           style={{ left: `${a}%` }}
         >
           <Moon size={13} />
@@ -457,10 +457,10 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
     if (Date.now() > at + 3 * 3_600_000) at += 86_400_000;
     return at;
   })();
-  const field = "mt-1 block h-11 w-full rounded-xl border border-border bg-surface px-3 text-sm";
+  const field = "mt-1 block h-9 w-full border border-border bg-surface px-2.5 text-xs";
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2.5">
       {!remote && loaded && (
         <p
           role="status"
@@ -471,7 +471,7 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
         </p>
       )}
 
-      <div className="grid gap-3 xl:grid-cols-[1.25fr_1fr]">
+      <div className="grid items-stretch gap-2.5 xl:grid-cols-[19.5rem_minmax(0,1fr)_17rem]">
         <section
           className="nv-dark relative overflow-hidden border border-white/10 bg-gradient-to-br from-[#120d3a] via-[#1e1b4b] to-[#3b1d6e] p-3.5 text-white shadow-card"
           aria-label="Resumo do sono"
@@ -488,17 +488,21 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
                 "radial-gradient(1.5px 1.5px at 12% 22%, #fff, transparent), radial-gradient(1px 1px at 38% 12%, #fff, transparent), radial-gradient(1.5px 1.5px at 64% 30%, #fff, transparent), radial-gradient(1px 1px at 84% 16%, #fff, transparent), radial-gradient(1px 1px at 74% 62%, #fff, transparent), radial-gradient(1.5px 1.5px at 22% 70%, #fff, transparent)",
             }}
           />
-          <div className="relative flex flex-wrap items-center gap-4">
-            <ScoreRing score={focus ? sleepScore(focus) : 0} />
-            <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-semibold text-white/70">
-                {selected ? "Noite selecionada" : "Última noite"}
-                {focus ? ` · ${short(focus.sleep_date)}` : ""}
-              </p>
-              <p className="text-3xl font-extrabold leading-tight tabular-nums">
-                {focus ? hm(hours(focus)) : "—"}
-                <span className="ml-2 text-base font-semibold text-white/70">de sono</span>
-              </p>
+          <div className="relative flex flex-col gap-2.5">
+            <div className="flex items-center gap-3">
+              <ScoreRing score={focus ? sleepScore(focus) : 0} />
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-semibold text-white/70">
+                  {selected ? "Noite selecionada" : "Última noite"}
+                  {focus ? ` · ${short(focus.sleep_date)}` : ""}
+                </p>
+                <p className="text-2xl font-extrabold leading-tight tabular-nums">
+                  {focus ? hm(hours(focus)) : "—"}
+                  <span className="ml-1.5 text-sm font-semibold text-white/70">de sono</span>
+                </p>
+              </div>
+            </div>
+            <div className="min-w-0">
               {focus && <NightBar log={focus} />}
               {focus && (
                 <div className="mt-2 grid grid-cols-2 gap-px bg-white/10 text-xs sm:grid-cols-4">
@@ -519,12 +523,13 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
                   ))}
                 </div>
               )}
-              <p className="mt-2 flex gap-2 border-l-2 border-amber-300 bg-white/[.07] p-2.5 text-[13px] leading-snug">
+              <p className="mt-2 flex gap-2 border-l-2 border-amber-300 bg-white/[.07] p-2 text-xs leading-snug">
                 <Lightbulb size={15} className="mt-0.5 shrink-0 text-amber-300" />
                 {tip}
               </p>
               <NextUpClock
-                className="mt-3"
+                compact
+                className="mt-2"
                 alertKey="sono"
                 title="Hora de desacelerar"
                 color="#c4b5fd"
@@ -541,6 +546,209 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
                 <BedDouble size={15} /> Registrar noite
               </a>
             </div>
+          </div>
+        </section>
+
+        <section
+          className="border border-border bg-card p-3.5 shadow-card"
+          aria-label="Evolução do sono"
+        >
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="mr-auto">
+              <h3 className="text-sm font-bold">Evolução do sono</h3>
+              <p className="text-[11px] text-muted-foreground">
+                Horas e nota de cada noite. Toque numa barra para ver o dia.
+              </p>
+            </div>
+            <div role="group" aria-label="Período" className="flex gap-px bg-border p-px">
+              {([7, 14, 30] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  aria-pressed={range === v}
+                  onClick={() => setRange(v)}
+                  className={`h-8 px-3 text-xs font-semibold transition-colors ${range === v ? "bg-foreground text-background" : "bg-card text-muted-foreground hover:text-foreground"}`}
+                >
+                  {v} dias
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-px bg-border">
+            {[
+              ["Média por noite", avgHours ? hm(avgHours) : "—", `meta ${GOAL_HOURS}h`],
+              [
+                "Nota média",
+                avgScore ? String(avgScore) : "—",
+                avgScore ? scoreLabel(avgScore) : "sem registros",
+              ],
+              [
+                "Regularidade",
+                regularity === null ? "—" : `±${regularity} min`,
+                "variação do horário de dormir",
+              ],
+              ["Débito de sono", debt ? hm(debt) : "0h00", `em ${range} dias`],
+            ].map(([label, value, note]) => (
+              <div
+                key={label}
+                className="bg-card px-2.5 py-1.5 transition-colors hover:bg-muted/60"
+              >
+                <p className="truncate text-[11px] font-semibold text-muted-foreground">{label}</p>
+                <p className="text-base font-extrabold leading-tight tabular-nums">{value}</p>
+                <p className="truncate text-[10px] text-muted-foreground">{note}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-2 h-[200px]">
+            {!loaded ? (
+              <div className="h-full animate-pulse rounded-2xl bg-muted/60" />
+            ) : windowLogs.length === 0 ? (
+              <div className="grid h-full place-items-center rounded-2xl border border-dashed border-border text-center text-sm text-muted-foreground">
+                <span>
+                  <BedDouble className="mx-auto mb-2 text-indigo-500" size={28} />
+                  Nenhuma noite registrada neste período.
+                </span>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart
+                  data={chart}
+                  margin={{ top: 10, right: 0, left: -18, bottom: 0 }}
+                  onClick={(state: any) => {
+                    const row = chart.find((c) => c.day === state?.activeLabel);
+                    if (row?.log) setSelected(row.day);
+                  }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="4 6"
+                    vertical={false}
+                    stroke="currentColor"
+                    className="text-border"
+                  />
+                  <XAxis
+                    dataKey="day"
+                    tickFormatter={short}
+                    tick={{ fontSize: 12, fill: "currentColor" }}
+                    className="text-muted-foreground"
+                    tickLine={false}
+                    axisLine={false}
+                    minTickGap={14}
+                  />
+                  <YAxis
+                    yAxisId="h"
+                    domain={[0, 10]}
+                    unit="h"
+                    tick={{ fontSize: 12, fill: "currentColor" }}
+                    className="text-muted-foreground"
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    yAxisId="s"
+                    orientation="right"
+                    domain={[0, 100]}
+                    tick={{ fontSize: 12, fill: "currentColor" }}
+                    className="text-muted-foreground"
+                    tickLine={false}
+                    axisLine={false}
+                    width={34}
+                  />
+                  <Tooltip
+                    cursor={{ fill: "#6366f1", fillOpacity: 0.08 }}
+                    content={({ active, payload, label }) => {
+                      const row = payload?.[0]?.payload;
+                      if (!active || !row?.log) return null;
+                      return (
+                        <div className="rounded-2xl border border-border bg-card/95 px-3.5 py-2.5 text-sm shadow-pop backdrop-blur">
+                          <p className="font-bold">{short(String(label))}</p>
+                          <p>
+                            Sono: <strong>{hm(row.hours)}</strong>
+                          </p>
+                          <p>
+                            Nota: <strong>{row.score}</strong> · {scoreLabel(row.score)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {clock(row.log.bed_at)} → {clock(row.log.wake_at)}
+                          </p>
+                        </div>
+                      );
+                    }}
+                  />
+                  <ReferenceLine
+                    yAxisId="h"
+                    y={GOAL_HOURS}
+                    stroke="#6366f1"
+                    strokeDasharray="6 5"
+                    label={{
+                      value: `Meta ${GOAL_HOURS}h`,
+                      position: "insideTopLeft",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      fill: "#6366f1",
+                    }}
+                  />
+                  <Bar
+                    yAxisId="h"
+                    dataKey="hours"
+                    radius={[2, 2, 0, 0]}
+                    maxBarSize={34}
+                    cursor="pointer"
+                  >
+                    {chart.map((row) => (
+                      <Cell
+                        key={row.day}
+                        fill={row.score === null ? "transparent" : scoreColor(row.score)}
+                        fillOpacity={selected && selected !== row.day ? 0.45 : 0.95}
+                      />
+                    ))}
+                  </Bar>
+                  <Line
+                    yAxisId="s"
+                    dataKey="score"
+                    type="monotone"
+                    stroke="#a78bfa"
+                    strokeWidth={3}
+                    connectNulls
+                    dot={{ r: 3, fill: "#fff", stroke: "#a78bfa", strokeWidth: 2 }}
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+            {[
+              ["#10b981", "Excelente"],
+              ["#6366f1", "Bom"],
+              ["#f59e0b", "Regular"],
+              ["#ef4444", "Atenção"],
+            ].map(([c, l]) => (
+              <span key={l} className="inline-flex items-center gap-1.5">
+                <i className="size-3 rounded" style={{ background: c }} />
+                {l}
+              </span>
+            ))}
+            <span className="inline-flex items-center gap-1.5">
+              <i className="h-0.5 w-4 rounded bg-violet-400" />
+              Nota
+            </span>
+            {selected && (
+              <button
+                type="button"
+                onClick={() => setDetail(selected)}
+                className="inline-flex h-8 items-center gap-1 rounded-lg bg-indigo-600 px-2.5 font-semibold text-white hover:brightness-110"
+              >
+                Ver dia completo
+              </button>
+            )}
+            {selected && focus && (
+              <button
+                type="button"
+                onClick={() => void remove(focus)}
+                className="ml-auto inline-flex h-8 items-center gap-1 rounded-lg border border-border px-2.5 font-semibold text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 size={13} /> Excluir noite de {short(focus.sleep_date)}
+              </button>
+            )}
           </div>
         </section>
 
@@ -577,7 +785,7 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
               no computador. No iPhone, registre a noite manualmente.
             </p>
           ) : !deviceName ? (
-            <p className="mt-3 text-sm text-muted-foreground">
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
               Conecte uma cinta, pulseira ou relógio que transmita frequência cardíaca por Bluetooth
               (padrão "Heart Rate"). Os batimentos aparecem aqui ao vivo e entram no registro da
               noite.
@@ -657,214 +865,14 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
 
       <section
         className="border border-border bg-card p-3.5 shadow-card"
-        aria-label="Evolução do sono"
-      >
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="mr-auto">
-            <h3 className="text-sm font-bold">Evolução do sono</h3>
-            <p className="text-sm text-muted-foreground">
-              Horas dormidas e nota de cada noite. Toque em uma barra para ver os detalhes.
-            </p>
-          </div>
-          <div role="group" aria-label="Período" className="flex gap-px bg-border p-px">
-            {([7, 14, 30] as const).map((v) => (
-              <button
-                key={v}
-                type="button"
-                aria-pressed={range === v}
-                onClick={() => setRange(v)}
-                className={`h-8 px-3 text-xs font-semibold transition-colors ${range === v ? "bg-foreground text-background" : "bg-card text-muted-foreground hover:text-foreground"}`}
-              >
-                {v} dias
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="mt-2 grid grid-cols-2 gap-px bg-border sm:grid-cols-4">
-          {[
-            ["Média por noite", avgHours ? hm(avgHours) : "—", `meta ${GOAL_HOURS}h`],
-            [
-              "Nota média",
-              avgScore ? String(avgScore) : "—",
-              avgScore ? scoreLabel(avgScore) : "sem registros",
-            ],
-            [
-              "Regularidade",
-              regularity === null ? "—" : `±${regularity} min`,
-              "variação do horário de dormir",
-            ],
-            ["Débito de sono", debt ? hm(debt) : "0h00", `em ${range} dias`],
-          ].map(([label, value, note]) => (
-            <div key={label} className="bg-card px-3 py-2 transition-colors hover:bg-muted/60">
-              <p className="text-xs font-semibold text-muted-foreground">{label}</p>
-              <p className="text-lg font-extrabold tabular-nums">{value}</p>
-              <p className="truncate text-xs text-muted-foreground">{note}</p>
-            </div>
-          ))}
-        </div>
-        <div className="mt-2 h-[220px]">
-          {!loaded ? (
-            <div className="h-full animate-pulse rounded-2xl bg-muted/60" />
-          ) : windowLogs.length === 0 ? (
-            <div className="grid h-full place-items-center rounded-2xl border border-dashed border-border text-center text-sm text-muted-foreground">
-              <span>
-                <BedDouble className="mx-auto mb-2 text-indigo-500" size={28} />
-                Nenhuma noite registrada neste período.
-              </span>
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart
-                data={chart}
-                margin={{ top: 10, right: 0, left: -18, bottom: 0 }}
-                onClick={(state: any) => {
-                  const row = chart.find((c) => c.day === state?.activeLabel);
-                  if (row?.log) setSelected(row.day);
-                }}
-              >
-                <CartesianGrid
-                  strokeDasharray="4 6"
-                  vertical={false}
-                  stroke="currentColor"
-                  className="text-border"
-                />
-                <XAxis
-                  dataKey="day"
-                  tickFormatter={short}
-                  tick={{ fontSize: 12, fill: "currentColor" }}
-                  className="text-muted-foreground"
-                  tickLine={false}
-                  axisLine={false}
-                  minTickGap={14}
-                />
-                <YAxis
-                  yAxisId="h"
-                  domain={[0, 10]}
-                  unit="h"
-                  tick={{ fontSize: 12, fill: "currentColor" }}
-                  className="text-muted-foreground"
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  yAxisId="s"
-                  orientation="right"
-                  domain={[0, 100]}
-                  tick={{ fontSize: 12, fill: "currentColor" }}
-                  className="text-muted-foreground"
-                  tickLine={false}
-                  axisLine={false}
-                  width={34}
-                />
-                <Tooltip
-                  cursor={{ fill: "#6366f1", fillOpacity: 0.08 }}
-                  content={({ active, payload, label }) => {
-                    const row = payload?.[0]?.payload;
-                    if (!active || !row?.log) return null;
-                    return (
-                      <div className="rounded-2xl border border-border bg-card/95 px-3.5 py-2.5 text-sm shadow-pop backdrop-blur">
-                        <p className="font-bold">{short(String(label))}</p>
-                        <p>
-                          Sono: <strong>{hm(row.hours)}</strong>
-                        </p>
-                        <p>
-                          Nota: <strong>{row.score}</strong> · {scoreLabel(row.score)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {clock(row.log.bed_at)} → {clock(row.log.wake_at)}
-                        </p>
-                      </div>
-                    );
-                  }}
-                />
-                <ReferenceLine
-                  yAxisId="h"
-                  y={GOAL_HOURS}
-                  stroke="#6366f1"
-                  strokeDasharray="6 5"
-                  label={{
-                    value: `Meta ${GOAL_HOURS}h`,
-                    position: "insideTopLeft",
-                    fontSize: 11,
-                    fontWeight: 700,
-                    fill: "#6366f1",
-                  }}
-                />
-                <Bar
-                  yAxisId="h"
-                  dataKey="hours"
-                  radius={[8, 8, 8, 8]}
-                  maxBarSize={34}
-                  cursor="pointer"
-                >
-                  {chart.map((row) => (
-                    <Cell
-                      key={row.day}
-                      fill={row.score === null ? "transparent" : scoreColor(row.score)}
-                      fillOpacity={selected && selected !== row.day ? 0.45 : 0.95}
-                    />
-                  ))}
-                </Bar>
-                <Line
-                  yAxisId="s"
-                  dataKey="score"
-                  type="monotone"
-                  stroke="#a78bfa"
-                  strokeWidth={3}
-                  connectNulls
-                  dot={{ r: 3, fill: "#fff", stroke: "#a78bfa", strokeWidth: 2 }}
-                />
-              </ComposedChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-          {[
-            ["#10b981", "Excelente"],
-            ["#6366f1", "Bom"],
-            ["#f59e0b", "Regular"],
-            ["#ef4444", "Atenção"],
-          ].map(([c, l]) => (
-            <span key={l} className="inline-flex items-center gap-1.5">
-              <i className="size-3 rounded" style={{ background: c }} />
-              {l}
-            </span>
-          ))}
-          <span className="inline-flex items-center gap-1.5">
-            <i className="h-0.5 w-4 rounded bg-violet-400" />
-            Nota
-          </span>
-          {selected && (
-            <button
-              type="button"
-              onClick={() => setDetail(selected)}
-              className="inline-flex h-8 items-center gap-1 rounded-lg bg-indigo-600 px-2.5 font-semibold text-white hover:brightness-110"
-            >
-              Ver dia completo
-            </button>
-          )}
-          {selected && focus && (
-            <button
-              type="button"
-              onClick={() => void remove(focus)}
-              className="ml-auto inline-flex h-8 items-center gap-1 rounded-lg border border-border px-2.5 font-semibold text-destructive hover:bg-destructive/10"
-            >
-              <Trash2 size={13} /> Excluir noite de {short(focus.sleep_date)}
-            </button>
-          )}
-        </div>
-      </section>
-
-      <section
-        className="border border-border bg-card p-3.5 shadow-card"
         id="nv-sleep-form"
         aria-label="Registrar noite"
         data-register-target="Registrar noite"
       >
-        <h3 className="flex items-center gap-2 text-lg font-bold">
-          <Sparkles size={20} className="text-indigo-500" /> Registrar noite de sono
+        <h3 className="flex items-center gap-2 text-sm font-bold">
+          <Sparkles size={16} className="text-indigo-500" /> Registrar noite de sono
         </h3>
-        <div className="mt-3 grid gap-3 text-sm font-semibold sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-2 grid items-end gap-2 text-xs font-semibold sm:grid-cols-2 lg:grid-cols-[1.2fr_1.2fr_5rem_auto_2fr_auto]">
           <label>
             Fui dormir
             <input
@@ -897,7 +905,7 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
           <div>
             Qualidade percebida
             <div
-              className="mt-1 flex h-11 items-center gap-1"
+              className="mt-1 flex h-9 items-center"
               role="group"
               aria-label="Qualidade de 1 a 5"
             >
@@ -908,10 +916,10 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
                   aria-pressed={quality >= n}
                   aria-label={`${n} de 5`}
                   onClick={() => setQuality(n)}
-                  className="grid size-10 place-items-center rounded-lg hover:bg-muted"
+                  className="grid size-8 place-items-center hover:bg-muted"
                 >
                   <Star
-                    size={24}
+                    size={19}
                     className={
                       quality >= n ? "fill-amber-400 text-amber-400" : "text-muted-foreground"
                     }
@@ -920,7 +928,7 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
               ))}
             </div>
           </div>
-          <label className="sm:col-span-2 lg:col-span-3">
+          <label>
             Observações
             <input
               className={field}
@@ -933,9 +941,9 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
           <button
             type="button"
             onClick={() => void save()}
-            className="inline-flex h-11 items-center justify-center gap-2 self-end rounded-xl bg-gradient-to-r from-indigo-600 to-violet-500 text-sm font-bold text-white shadow-sm hover:brightness-110"
+            className="inline-flex h-9 items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-500 px-4 text-xs font-bold text-white shadow-sm hover:brightness-110 active:scale-[.97]"
           >
-            <Save size={17} /> Salvar noite
+            <Save size={15} /> Salvar noite
           </button>
         </div>
         {sensorHr && (
@@ -952,7 +960,7 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
             {message.text}
           </p>
         )}
-        <p className="mt-3 text-xs text-muted-foreground">
+        <p className="mt-2 text-[11px] text-muted-foreground">
           A nota do sono é uma estimativa educativa (duração, qualidade percebida e despertares).
           Não substitui avaliação médica nem exame do sono.
         </p>
