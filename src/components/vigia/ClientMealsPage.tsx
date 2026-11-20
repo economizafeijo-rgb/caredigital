@@ -1,8 +1,10 @@
 import { DailyNutritionPanel, useDailyNutrition } from "./DailyNutritionPanel";
 import { NutritionGuardPanel } from "./NutritionGuard";
+import { Fold } from "./Fold";
 import { MealMacroBars, NutritionDayChart, NutritionHero } from "./NutritionHero";
 import { useEffect, useMemo, useState } from "react";
 import {
+  BarChart3,
   CalendarDays,
   CheckCircle2,
   ChevronLeft,
@@ -195,7 +197,7 @@ export function ClientMealsPage({
   }
 
   return (
-    <div className="care-page-meals care-premium-meals care-meals-responsive flex h-full min-h-0 min-w-0 flex-col gap-3 overflow-y-auto pb-2">
+    <div className="care-page-meals care-premium-meals care-meals-responsive flex min-w-0 flex-col gap-3 pb-2">
       <NutritionHero
         data={nutrition}
         onRegister={() => setIntakeSignal((v) => v + 1)}
@@ -209,12 +211,28 @@ export function ClientMealsPage({
         }
       />
       <NutritionGuardPanel data={nutrition} />
-      <div className="grid shrink-0 gap-3 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
-        <div className="grid min-w-0 content-start gap-3">
-          <NutritionDayChart data={nutrition} />
-          <MealMacroBars data={nutrition} />
-        </div>
-        <DailyNutritionPanel data={nutrition} hideSummary />
+      <div className="grid shrink-0 gap-3 xl:grid-cols-2 xl:items-start">
+        <Fold
+          title="Evolução do dia"
+          icon={BarChart3}
+          color="#0d9488"
+          info="Mostra como as calorias e os nutrientes foram se somando ao longo do dia, e quanto cada refeição contribuiu."
+        >
+          <div className="grid min-w-0 content-start gap-3 p-3 pt-1">
+            <NutritionDayChart data={nutrition} />
+            <MealMacroBars data={nutrition} />
+          </div>
+        </Fold>
+        <Fold
+          title="O que você comeu hoje"
+          icon={UtensilsCrossed}
+          color="#d97706"
+          info="Todos os alimentos registrados hoje, por refeição, com as quantidades e os nutrientes de cada um."
+        >
+          <div className="p-3 pt-1">
+            <DailyNutritionPanel data={nutrition} hideSummary />
+          </div>
+        </Fold>
       </div>
       {/* Refeições programadas pela equipe: só aparece quando existem (os registros avulsos já estão no painel acima). */}
       {meals.length > 0 && (
@@ -229,7 +247,7 @@ export function ClientMealsPage({
             </span>
           </div>
           <div className="care-page-meals-filters flex shrink-0 flex-wrap items-center gap-2">
-            <div className="flex min-w-0 flex-1 items-center gap-1 rounded-xl border border-border bg-muted/35 p-1">
+            <div className="flex min-w-0 flex-1 items-center gap-1  border border-border bg-muted/35 p-1">
               {(
                 [
                   { key: "todos", label: "Todas" },
@@ -243,7 +261,7 @@ export function ClientMealsPage({
                   aria-pressed={filter === option.key}
                   onClick={() => setStatus(option.key)}
                   className={
-                    "min-w-0 flex-1 rounded-lg px-2 py-2 text-[11px] font-bold transition-colors sm:text-xs " +
+                    "min-w-0 flex-1  px-2 py-2 text-[11px] font-bold transition-colors sm:text-xs " +
                     (filter === option.key
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:bg-card")
@@ -261,7 +279,7 @@ export function ClientMealsPage({
               <input
                 type="search"
                 aria-label="Buscar refeição ou alimento"
-                className="h-10 w-full rounded-xl border border-border bg-card pl-8 pr-3 text-xs text-foreground"
+                className="h-10 w-full  border border-border bg-card pl-8 pr-3 text-xs text-foreground"
                 value={query}
                 onChange={(e) => {
                   setQuery(e.target.value);
@@ -274,13 +292,13 @@ export function ClientMealsPage({
           {detailsError && (
             <div
               role="status"
-              className="shrink-0 rounded-lg border border-amber-500/30 bg-amber-500/[.065] px-3 py-2 text-[11px] text-foreground"
+              className="shrink-0  border border-amber-500/30 bg-amber-500/[.065] px-3 py-2 text-[11px] text-foreground"
             >
               A agenda foi carregada, mas as descrições das refeições não estão disponíveis no
               momento.
             </div>
           )}
-          <div className="care-page-meals-list min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
+          <div className="care-page-meals-list">
             {false && filteredExtras.length > 0 && (
               <section
                 className="mb-3"
@@ -288,7 +306,7 @@ export function ClientMealsPage({
               >
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                   <h4 className="text-xs font-bold text-foreground">Consumos registrados hoje</h4>
-                  <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+                  <span className=" bg-emerald-500/10 px-2 py-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
                     {filteredExtras.length} registros avulsos
                   </span>
                 </div>
@@ -298,9 +316,9 @@ export function ClientMealsPage({
                     return (
                       <article
                         key={entry.id}
-                        className="flex min-w-0 items-start gap-3 rounded-2xl border border-emerald-500/25 bg-emerald-500/[.055] p-3"
+                        className="flex min-w-0 items-start gap-3  border border-emerald-500/25 bg-emerald-500/[.055] p-3"
                       >
-                        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                        <span className="grid size-10 shrink-0 place-items-center  bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
                           <Icon size={20} />
                         </span>
                         <div className="min-w-0 flex-1">
@@ -324,7 +342,7 @@ export function ClientMealsPage({
             {extraError && (
               <p
                 role="status"
-                className="mb-2 rounded-lg border border-amber-500/25 p-2 text-xs text-muted-foreground"
+                className="mb-2  border border-amber-500/25 p-2 text-xs text-muted-foreground"
               >
                 Não foi possível carregar os consumos avulsos. Consulte o histórico completo.
               </p>
@@ -341,14 +359,14 @@ export function ClientMealsPage({
                     key={meal.id}
                     data-food-category={mealKind(meal.title)}
                     className={
-                      "care-meal-record care-premium-meal-card flex min-w-0 flex-col gap-2 rounded-2xl border p-3 " +
+                      "care-meal-record care-premium-meal-card flex min-w-0 flex-col gap-2  border p-3 " +
                       (confirmedMeal
                         ? "border-emerald-500/25 bg-emerald-500/[.05]"
                         : "border-border bg-card/90")
                     }
                   >
                     <div className="flex min-w-0 items-start gap-2">
-                      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                      <span className="grid size-10 shrink-0 place-items-center  bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
                         <Icon size={20} />
                       </span>
                       <div className="min-w-0 flex-1">
@@ -367,7 +385,7 @@ export function ClientMealsPage({
                         />
                       )}
                     </div>
-                    <div className="min-h-[40px] rounded-xl border border-border/50 bg-background/50 px-3 py-2">
+                    <div className="min-h-[40px]  border border-border/50 bg-background/50 px-3 py-2">
                       {confirmedMeal && detail?.description ? (
                         <p className="line-clamp-3 break-words text-[11px] leading-snug text-foreground">
                           {detail.description}
@@ -409,7 +427,7 @@ export function ClientMealsPage({
                         <button
                           type="button"
                           onClick={() => onView(meal)}
-                          className="rounded-lg border border-border bg-background px-2.5 py-1.5 text-[11px] font-bold text-foreground"
+                          className=" border border-border bg-background px-2.5 py-1.5 text-[11px] font-bold text-foreground"
                         >
                           Ver detalhes
                         </button>
@@ -417,7 +435,7 @@ export function ClientMealsPage({
                           <button
                             type="button"
                             onClick={() => onConfirm(meal)}
-                            className="rounded-lg bg-primary px-2.5 py-1.5 text-[11px] font-bold text-primary-foreground"
+                            className=" bg-primary px-2.5 py-1.5 text-[11px] font-bold text-primary-foreground"
                           >
                             Registrar
                           </button>
@@ -427,7 +445,7 @@ export function ClientMealsPage({
                           onClick={() => onDelete(meal)}
                           title="Excluir com confirmação e registro de auditoria"
                           aria-label={"Excluir " + meal.title}
-                          className="rounded-lg border border-destructive/25 px-2 py-1.5 text-destructive hover:bg-destructive/5"
+                          className=" border border-destructive/25 px-2 py-1.5 text-destructive hover:bg-destructive/5"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -438,7 +456,7 @@ export function ClientMealsPage({
               })}
             </div>
             {!visible.length && (
-              <div className="rounded-xl border border-dashed border-border p-5 text-center">
+              <div className=" border border-dashed border-border p-5 text-center">
                 <CalendarDays size={18} className="mx-auto text-muted-foreground" />
                 <p className="mt-1 text-xs text-muted-foreground">
                   Nenhuma refeição registrada ainda. Use “Registrar refeição” quando fizer sua
@@ -455,7 +473,7 @@ export function ClientMealsPage({
               type="button"
               disabled={current === 0}
               onClick={() => setPage((n) => Math.max(0, n - 1))}
-              className="inline-flex h-8 items-center gap-1 rounded-lg border border-border px-2 text-[11px] font-bold text-foreground disabled:opacity-40"
+              className="inline-flex h-8 items-center gap-1  border border-border px-2 text-[11px] font-bold text-foreground disabled:opacity-40"
             >
               <ChevronLeft size={14} />
               Anterior
@@ -467,7 +485,7 @@ export function ClientMealsPage({
               type="button"
               disabled={current === count - 1}
               onClick={() => setPage((n) => Math.min(count - 1, n + 1))}
-              className="inline-flex h-8 items-center gap-1 rounded-lg border border-border px-2 text-[11px] font-bold text-foreground disabled:opacity-40"
+              className="inline-flex h-8 items-center gap-1  border border-border px-2 text-[11px] font-bold text-foreground disabled:opacity-40"
             >
               Próxima
               <ChevronRight size={14} />
