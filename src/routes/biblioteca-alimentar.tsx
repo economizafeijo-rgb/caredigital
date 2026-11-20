@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
+import { FoodPhoto } from "@/components/vigia/FoodPhoto";
 import { HealthDot, HealthHint } from "@/components/vigia/FoodHealthHint";
 import {
   acreAddDays,
@@ -537,6 +538,7 @@ function BibliotecaAlimentar() {
                 </h2>
                 {food ? (
                   <>
+                    <FoodPhoto name={food.name} className="mb-3" />
                     <h3 className="text-lg font-bold">{food.name}</h3>
                     <p className="mb-3 text-xs text-muted-foreground">
                       Valores proporcionais aos dados cadastrados por 100 g.

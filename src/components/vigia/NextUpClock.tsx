@@ -349,7 +349,7 @@ export function NextUpClock({
         {/* A linha de ações tem altura fixa: aparece/some sem mudar o tamanho do cartão. */}
         {!compact && when !== null && (
           <div
-            className={`mt-2 relative flex h-8 flex-wrap items-center gap-1.5 transition-opacity duration-300 ${due || onPostpone || when - now < 15 * 60_000 ? "opacity-100" : "pointer-events-none opacity-0"}`}
+            className={`mt-2 relative flex h-8 items-center gap-1.5 transition-opacity duration-300 ${due || onPostpone || when - now < 15 * 60_000 ? "opacity-100" : "pointer-events-none opacity-0"}`}
             aria-hidden={!(due || onPostpone || when - now < 15 * 60_000)}
           >
             {onAction && (
@@ -367,9 +367,9 @@ export function NextUpClock({
                 onClick={onEdit}
                 title="Alterar a quantidade"
                 aria-label="Alterar a quantidade antes de registrar"
-                className="inline-flex h-8 items-center gap-1 rounded-lg border border-white/25 px-2.5 text-xs font-semibold text-white/85 transition hover:bg-white/10 active:scale-95"
+                className="grid size-8 shrink-0 place-items-center border border-white/25 text-white/85 transition hover:bg-white/10 active:scale-95"
               >
-                <Pencil size={12} /> Alterar
+                <Pencil size={13} />
               </button>
             )}
             {onPostpone && (

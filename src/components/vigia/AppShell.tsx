@@ -669,7 +669,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <HydrationProvider>
         <ProductQuickViewHost />
         <div className="care-shell flex h-dvh min-h-0 overflow-hidden bg-background text-foreground">
-          {internalPage && (
+          {internalPage && !fullScreen && (
             <div
               className={`relative hidden shrink-0 transition-[width] duration-300 ease-out xl:block ${fullScreen ? "w-0" : sidebarPinned ? "w-60" : "w-14"}`}
             >

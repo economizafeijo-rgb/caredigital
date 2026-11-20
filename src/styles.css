@@ -1106,3 +1106,8 @@ html, #care-content { scrollbar-gutter: stable; }
 @keyframes nv-grow-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .nv-grow-x { transform-origin: left; animation: nv-grow-x .8s cubic-bezier(.2,.8,.2,1) both; }
 @media (prefers-reduced-motion: reduce) { .nv-grow-x { animation: none; } }
+
+@keyframes nv-shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+.nv-shimmer { overflow: hidden; background: color-mix(in srgb, currentColor 6%, transparent); }
+.nv-shimmer::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent); animation: nv-shimmer 1.3s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .nv-shimmer::after { animation: none; } }
