@@ -16,6 +16,7 @@ import {
 import { useCookTimers } from "@/hooks/use-cook-timers";
 import { playChime, useAlertSound } from "./NextUpClock";
 import { CookingDial, GlyphIcon } from "./CookingScene";
+import { cookInfo } from "@/lib/cooking-info";
 import {
   cookFoodById,
   cookFoods,
@@ -162,10 +163,15 @@ export function CookingTimer({ patientId }: { patientId: string }) {
   return (
     <section
       aria-label="Tempo de preparo"
-      className="grid gap-3 lg:grid-cols-[minmax(0,19rem)_minmax(0,1fr)]"
+      className={"grid gap-3 " + (focused ? "" : "lg:grid-cols-[minmax(0,19rem)_minmax(0,1fr)]")}
     >
       {/* Escolha do alimento */}
-      <div className="rounded-2xl border border-border bg-card p-3 lg:sticky lg:top-2 lg:self-start">
+      <div
+        className={
+          (focused ? "hidden " : "") +
+          "rounded-2xl border border-border bg-card p-3 lg:sticky lg:top-2 lg:self-start"
+        }
+      >
         <h3 className="px-1 text-base font-bold">Tempo de preparo</h3>
         <p className="px-1 text-xs text-muted-foreground">
           Escolha o alimento, ajuste a quantidade e inicie o timer.
@@ -297,33 +303,64 @@ export function CookingTimer({ patientId }: { patientId: string }) {
             <h3 className="font-display text-2xl font-extrabold leading-tight">{food.name}</h3>
             <p className="text-sm text-white/70">{preset.label}</p>
           </div>
-          <button
-            type="button"
-            onClick={sound.toggle}
-            aria-pressed={sound.on}
-            className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-3 text-sm font-semibold hover:bg-white/20"
-          >
-            {sound.on ? <Bell size={16} /> : <BellOff size={16} />}{" "}
-            {sound.on ? "Som ligado" : "Som desligado"}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            {focused && (
+              <button
+                type="button"
+                onClick={() => setFocusId(null)}
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-3 text-sm font-semibold hover:bg-white/20"
+              >
+                <Plus size={16} /> Novo preparo
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={sound.toggle}
+              aria-pressed={sound.on}
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-3 text-sm font-semibold hover:bg-white/20"
+            >
+              {sound.on ? <Bell size={16} /> : <BellOff size={16} />}{" "}
+              {sound.on ? "Som ligado" : "Som desligado"}
+            </button>
+          </div>
         </div>
 
-        <div className="mt-4 grid items-start gap-5 md:grid-cols-[minmax(0,19rem)_minmax(0,1fr)]">
+        <div
+          className={
+            "mt-4 grid items-start gap-5 " +
+            (focused ? "justify-items-center" : "md:grid-cols-[minmax(0,19rem)_minmax(0,1fr)]")
+          }
+        >
           {/* Mostrador */}
-          <div className="mx-auto w-full max-w-[19rem]">
-            <CookingDial
-              glyph={food.glyph}
-              color={food.color}
-              vessel={food.vessel}
-              qty={shownQty}
-              progress={progress}
-              status={status}
-              label={dialLabel}
-            />
+          <div className={"mx-auto w-full " + (focused ? "max-w-[24rem]" : "max-w-[19rem]")}>
+            <div className="relative">
+              {status === "running" && (
+                <>
+                  <span aria-hidden="true" className="cook-ripple" />
+                  <span
+                    aria-hidden="true"
+                    className="cook-ripple"
+                    style={{ animationDelay: "1.4s" }}
+                  />
+                </>
+              )}
+              <CookingDial
+                glyph={food.glyph}
+                color={food.color}
+                vessel={food.vessel}
+                qty={shownQty}
+                progress={progress}
+                status={status}
+                label={dialLabel}
+              />
+            </div>
             <p
               role="timer"
               aria-label={dialLabel}
-              className="mt-1 text-center font-display text-5xl font-extrabold tabular-nums tracking-tight"
+              className={
+                "mt-1 text-center font-display font-extrabold tabular-nums tracking-tight " +
+                (focused ? "text-7xl" : "text-5xl")
+              }
             >
               {clock}
             </p>
@@ -395,7 +432,7 @@ export function CookingTimer({ patientId }: { patientId: string }) {
           </div>
 
           {/* Opções e instruções */}
-          <div className="grid gap-4">
+          <div className={focused ? "hidden" : "grid gap-4"}>
             <div>
               <p className="text-sm font-semibold text-white/80">Ponto ou método</p>
               <div
@@ -505,7 +542,29 @@ export function CookingTimer({ patientId }: { patientId: string }) {
           </div>
         </div>
 
-        <div className="mt-5 grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,16rem)]">
+        {!focused && cookInfo[food.id] && (
+          <div className="mt-5 grid gap-px border border-white/10 bg-white/10 text-sm sm:grid-cols-3">
+            {(
+              [
+                ["Tipo de alimento", cookInfo[food.id].kind],
+                ["Benefício", cookInfo[food.id].benefit],
+                ["Como preparar", cookInfo[food.id].prep],
+              ] as const
+            ).map(([t, v]) => (
+              <div key={t} className="bg-[#0b1d19] p-3">
+                <p className="text-[11px] font-bold text-emerald-200">{t}</p>
+                <p className="mt-1 text-xs leading-relaxed text-white/85">{v}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div
+          className={
+            (focused ? "hidden " : "") +
+            "mt-5 grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,16rem)]"
+          }
+        >
           <div>
             <h4 className="flex items-center gap-1.5 text-sm font-bold">
               <Flame size={15} className="text-amber-300" /> Como fazer

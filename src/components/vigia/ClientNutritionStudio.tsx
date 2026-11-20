@@ -581,7 +581,7 @@ export function ClientNutritionStudio({ patientId, ownerId, onLogged }: Props) {
       )}
 
       <nav
-        className="flex gap-0 overflow-x-auto border-b border-border"
+        className="flex snap-x gap-1 overflow-x-auto overflow-y-hidden border-b border-border [scrollbar-width:thin]"
         aria-label="Seções de nutrição"
       >
         {viewOptions.map((o) => {
@@ -593,15 +593,22 @@ export function ClientNutritionStudio({ patientId, ownerId, onLogged }: Props) {
               type="button"
               aria-current={on ? "page" : undefined}
               onClick={() => chooseView(o.key)}
+              style={{
+                borderBottomColor: on ? o.color : "transparent",
+                background: on ? `${o.color}14` : undefined,
+              }}
               className={
-                "-mb-px inline-flex h-9 min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap border-b-2 px-3 text-sm font-semibold transition " +
-                (on
-                  ? "border-foreground text-foreground"
-                  : "border-transparent text-muted-foreground hover:text-foreground")
+                "-mb-px inline-flex h-11 shrink-0 snap-start items-center justify-center gap-2 whitespace-nowrap border-b-2 px-3.5 text-sm font-semibold transition hover:bg-muted/50 " +
+                (on ? "text-foreground" : "text-muted-foreground hover:text-foreground")
               }
             >
-              <Icon size={15} />
-              <span className="truncate">{o.label}</span>
+              <span
+                className="grid size-6 shrink-0 place-items-center text-white"
+                style={{ background: o.color, opacity: on ? 1 : 0.85 }}
+              >
+                <Icon size={14} />
+              </span>
+              {o.label}
             </button>
           );
         })}
