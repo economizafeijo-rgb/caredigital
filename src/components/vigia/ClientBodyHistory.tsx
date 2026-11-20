@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { acreDateKey } from "@/lib/acre-time";
+import { useDialog } from "@/lib/dialog";
 
 type Point = { id: string; recorded_on: string; weight_kg: number; height_cm: number };
 type Props = {
@@ -10,6 +11,7 @@ type Props = {
   height: number | null;
 };
 export function ClientBodyHistory({ patientId, ownerId, currentWeight, height }: Props) {
+  const dialog = useDialog();
   const [points, setPoints] = useState<Point[]>([]);
   const [date, setDate] = useState(() => acreDateKey());
   const [weight, setWeight] = useState(currentWeight?.toString() ?? "");
@@ -39,6 +41,20 @@ export function ClientBodyHistory({ patientId, ownerId, currentWeight, height }:
   useEffect(() => {
     void reload();
   }, [patientId, ownerId]);
+  // Controle em tempo real: o botão só habilita quando os dados estão corretos.
+  const kgNow = Number(weight.replace(",", "."));
+  const brDate = (d: string) => d.split("-").reverse().join("/");
+  const problem = !weight.trim()
+    ? "Informe o peso."
+    : !Number.isFinite(kgNow) || kgNow < 20 || kgNow > 350
+      ? "Peso fora do esperado (entre 20 e 350 kg)."
+      : height === null || height < 100 || height > 230
+        ? "Cadastre a altura no prontuário para registrar."
+        : !/^\d{4}-\d{2}-\d{2}$/.test(date) || date > acreDateKey()
+          ? "A data não pode estar no futuro."
+          : points.some((p) => p.recorded_on === date)
+            ? `Já existe registro em ${brDate(date)}. Para corrigir, use a página Peso e libere a edição.`
+            : "";
   const save = async () => {
     const kg = Number(weight.replace(",", "."));
     if (
@@ -62,6 +78,16 @@ export function ClientBodyHistory({ patientId, ownerId, currentWeight, height }:
       );
       return;
     }
+    const prev = [...points].reverse().find((p) => p.recorded_on < date);
+    if (prev && Math.abs(kg - Number(prev.weight_kg)) > 5) {
+      const ok = await dialog.confirm(
+        "Confirmar peso?",
+        `${kg.toLocaleString("pt-BR")} kg difere mais de 5 kg do último registro (${Number(prev.weight_kg).toLocaleString("pt-BR")} kg em ${brDate(prev.recorded_on)}). Está correto?`,
+        false,
+        "Sim, registrar",
+      );
+      if (!ok) return;
+    }
     setSaving(true);
     setMessage("");
     const auth = await supabase.auth.getUser();
@@ -83,7 +109,10 @@ export function ClientBodyHistory({ patientId, ownerId, currentWeight, height }:
         "Não foi possível registrar a medição. Verifique as permissões ou a configuração do histórico.",
       );
     else {
-      setMessage("Medição registrada com sucesso.");
+      const imc = (kg / (height! / 100) ** 2).toFixed(1).replace(".", ",");
+      const text = `Peso de ${kg.toLocaleString("pt-BR")} kg registrado em ${brDate(date)} · IMC ${imc}.`;
+      setMessage(text);
+      dialog.notify?.(text);
       await reload();
     }
     setSaving(false);
@@ -221,13 +250,19 @@ export function ClientBodyHistory({ patientId, ownerId, currentWeight, height }:
             </label>
             <button
               type="button"
-              disabled={saving}
+              disabled={saving || Boolean(problem)}
+              title={problem || undefined}
               onClick={() => void save()}
               className="self-end rounded-lg bg-primary px-3 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
             >
               {saving ? "Salvando…" : "Registrar"}
             </button>
           </div>
+          {problem && weight.trim() && (
+            <p className="mt-2 text-xs text-warning" role="note">
+              {problem}
+            </p>
+          )}
           {message && (
             <p className="mt-2 text-xs" role="status">
               {message}
