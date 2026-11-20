@@ -2,6 +2,7 @@ import { useEffect,useMemo,useRef,useState } from "react";
 import { AlertTriangle,Calculator,CheckCircle2,ChevronLeft,ChevronRight,ClipboardCheck,Droplets,RefreshCw,Search,Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useDialog } from "@/lib/dialog";
+import { HealthDot, HealthHint } from "./FoodHealthHint";
 import { foodMacroLabels,gramsForMacro,ingredients,portionNutrition,proteinRange,
   type FoodMacro,type Goal,type Ingredient } from "@/lib/nutrition-catalog";
 
@@ -78,7 +79,7 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
        protein:numeric(r.protein_g),carbs:numeric(r.carbs_g),
        fat:numeric(r.fat_g),fiber:numeric(r.fiber_g),kcal:numeric(r.kcal),
        note:r.note||undefined,flags:Array.isArray(r.flags)?r.flags:[],
-       provenance:String(r.provenance).startsWith("TACO")?"TACO":String(r.provenance).startsWith("Rótulo")?"rotulo":"estimativa",
+       provenance:String(r.provenance).startsWith("TACO")?"TACO":String(r.provenance).startsWith("IBGE")?"IBGE":String(r.provenance).startsWith("Rótulo")?"rotulo":"estimativa",
      }));
      setFoods(rows.length?rows:ingredients);
      if(!rows.length)setSourceError("Catálogo online vazio. Exibindo referências locais; o registro depende do catálogo do servidor.");
@@ -262,7 +263,7 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
      return <button type="button" key={f.id} onClick={()=>{setSelected(f.id);requestId.current=null;setNotice("");}}
        aria-pressed={chosen}
        className={"w-full rounded-lg border p-2.5 text-left transition "+(chosen?"border-emerald-500/70 bg-emerald-500/[.09]":"border-border bg-background/45 hover:border-primary/35")}>
-        <span className="block text-xs font-bold">{f.name}</span>
+        <span className="flex items-center gap-1.5 text-xs font-bold">{f.name}<HealthDot food={f} /></span>
         <span className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
          <span>P {f.protein===null?"—":format(f.protein)+" g"}</span>
          <span>C {f.carbs===null?"—":format(f.carbs)+" g"}</span>
@@ -283,7 +284,8 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
     <p className="mt-1 text-[11px] text-muted-foreground">Selecione um alimento na biblioteca e descubra quantos gramas forneceriam a quantidade desejada de um nutriente.</p>
     {food&&<>
      <h5 className="mt-3 text-xs font-bold">{food.name}</h5>
-     <p className="text-[11px] text-muted-foreground">{food.provenance==="TACO"?"Referência TACO/UNICAMP":food.provenance==="rotulo"?"Rótulo obrigatório":"Estimativa editorial"} · por 100 g</p>
+     <p className="text-[11px] text-muted-foreground">{food.provenance==="TACO"?"Referência TACO/UNICAMP":food.provenance==="IBGE"?"Referência IBGE (POF)":food.provenance==="rotulo"?"Rótulo obrigatório":"Estimativa editorial"} · por 100 g</p>
+     <div className="mt-1.5"><HealthHint food={food} onPick={id=>{if(foods.some(x=>x.id===id)){setSelected(id);requestId.current=null;setNotice("");}}}/></div>
      <div className="mt-2 grid grid-cols-4 gap-1 rounded-xl border border-border bg-muted/35 p-2">
       {MACROS.map(key=><div key={key} className="min-w-0 text-center">
        <small className="block truncate text-[11px] text-muted-foreground">{foodMacroLabels[key]}</small>

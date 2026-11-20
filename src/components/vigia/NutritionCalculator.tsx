@@ -8,6 +8,7 @@ import { isLiquid, microTargets, nutrientsFor, typicalPortion, type Nutrients } 
 import { useDialog } from "@/lib/dialog";
 import { parseDecimal } from "@/lib/public-signup-validation";
 import type { DailyNutrition } from "./DailyNutritionPanel";
+import { HealthDot, HealthHint } from "./FoodHealthHint";
 
 type Group = "todos" | "regionais" | "meus" | Ingredient["group"];
 const groups: { key: Group; label: string; icon: LucideIcon; color: string }[] = [
@@ -234,7 +235,7 @@ export function NutritionCalculator({ patientId, nutrition, onLogged }: { patien
                   className={`group flex w-full items-center gap-2.5 rounded-xl px-2 py-1.5 text-left transition ${on ? "bg-primary/10 ring-1 ring-primary/40" : "hover:bg-muted/60"}`}>
                   <FoodBadge food={f} size={32} />
                   <span className="min-w-0 flex-1">
-                    <strong className="block truncate text-[13px] leading-tight">{f.name}</strong>
+                    <strong className="flex items-center gap-1.5 text-[13px] leading-tight"><span className="truncate">{f.name}</span><HealthDot food={f} /></strong>
                     <span className="flex gap-1.5 text-[10.5px] font-semibold tabular-nums"><span style={{ color: macroColors.protein }}>P {n(f.protein ?? 0, 1)}</span><span style={{ color: macroColors.carbs }}>C {n(f.carbs ?? 0, 1)}</span><span style={{ color: macroColors.fat }}>G {n(f.fat ?? 0, 1)}</span></span>
                   </span>
                   <span className="shrink-0 rounded-lg bg-muted px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-muted-foreground">{n(f.kcal ?? 0)}</span>
@@ -283,9 +284,10 @@ export function NutritionCalculator({ patientId, nutrition, onLogged }: { patien
               <p className="mt-1 flex flex-wrap gap-1.5 text-[11px] font-semibold">
                 <span className="rounded-full bg-white/12 px-2 py-0.5">{gm.label}</span>
                 {regionalFoodIds.has(food.id) && <span className="rounded-full bg-emerald-400/20 px-2 py-0.5 text-emerald-200">Típico do Acre</span>}
-                <span className="rounded-full bg-white/12 px-2 py-0.5 text-white/75">{customIds.has(food.id) ? "Criado por você" : food.provenance === "TACO" ? "Tabela TACO" : "Estimativa"}</span>
+                <span className="rounded-full bg-white/12 px-2 py-0.5 text-white/75">{customIds.has(food.id) ? "Criado por você" : food.provenance === "TACO" ? "Tabela TACO" : food.provenance === "IBGE" ? "Tabela IBGE" : "Estimativa"}</span>
                 {customIds.has(food.id) && <button type="button" onClick={() => void removeFood()} className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-rose-200 hover:bg-rose-500/20"><Trash2 size={11} /> Remover</button>}
               </p>
+              <div className="mt-2"><HealthHint food={food} tone="dark" onPick={(id) => setFoodId(id)} /></div>
             </div>
             <div className="text-right">
               <p className="font-display text-4xl font-extrabold leading-none tabular-nums">{n(nut.kcal)}<span className="ml-1 text-base font-semibold text-white/60">kcal</span></p>
