@@ -1069,7 +1069,7 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
           </div>
         </div>
         <div className="mt-2.5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
-          <div className="grid max-h-[min(54dvh,430px)] grid-cols-3 content-start gap-2 overflow-y-auto pr-1 sm:grid-cols-4 xl:grid-cols-5">
+          <div className="grid max-h-[min(54dvh,430px)] auto-rows-max grid-cols-3 content-start gap-2 overflow-y-auto pr-1 sm:grid-cols-4 xl:grid-cols-5">
             {supplementLibrary
               .filter((item) => libCat === "Todos" || item.category === libCat)
               .map((item, i) => {
@@ -1080,7 +1080,7 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
                     type="button"
                     onClick={() => setSelected(item.key)}
                     aria-pressed={on}
-                    className={`nv-rise group relative flex flex-col items-center overflow-hidden border p-2 text-center transition duration-300 ${on ? "border-transparent shadow-lg" : "border-border hover:-translate-y-0.5 hover:shadow-md"}`}
+                    className={`nv-rise group relative flex min-h-[7.5rem] shrink-0 flex-col items-center justify-start overflow-hidden border px-2 pb-2 pt-2.5 text-center transition duration-300 ${on ? "border-transparent shadow-lg" : "border-border hover:-translate-y-0.5 hover:shadow-md"}`}
                     style={{
                       animationDelay: `${Math.min(i, 12) * 35}ms`,
                       boxShadow: on
@@ -1092,10 +1092,14 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
                     <SupplementPack
                       {...item.pack}
                       title={item.name}
-                      className="h-16 w-auto transition-transform duration-500 group-hover:scale-105 group-hover:-rotate-2"
+                      className="h-[4.25rem] w-auto shrink-0 drop-shadow-[0_6px_8px_rgba(0,0,0,.35)] transition-transform duration-500 group-hover:scale-105"
                     />
-                    <strong className="mt-1 line-clamp-1 text-xs">{item.name}</strong>
-                    <span className="text-[10px] text-muted-foreground">{item.category}</span>
+                    <strong className="mt-1.5 line-clamp-2 min-h-[2rem] w-full text-[11px] font-semibold leading-4">
+                      {item.name}
+                    </strong>
+                    <span className="mt-0.5 text-[10px] leading-3 text-muted-foreground">
+                      {item.category}
+                    </span>
                   </button>
                 );
               })}
