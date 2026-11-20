@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CheckCircle2, Clock3, History, Trash2, X } from "lucide-react";
+import { CheckCircle2, Clock3, History, Pencil, Trash2, X } from "lucide-react";
 import { useDialog } from "@/lib/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { RecordInfo, type RecordInfoRow } from "./RecordInfo";
@@ -14,6 +14,8 @@ type RecordRow = {
   kind: "task" | "water" | "beverage" | "meal" | "reconstructed";
   /** id real da linha (sem prefixo) — habilita a exclusão quando o tipo permite. */
   rawId?: string;
+  /** Valores atuais para o formulário de edição (somente água, bebida e refeição avulsa). */
+  edit?: { name?: string; amount?: number; description?: string };
   info?: RecordInfoRow[];
   note?: string;
 };
@@ -219,6 +221,7 @@ export function CareRecentHistory({
               .map((r: any) => ({
                 id: "water:" + r.id,
                 rawId: String(r.id),
+                edit: { amount: Number(r.amount_ml) },
                 title: `Água · ${Number(r.amount_ml).toLocaleString("pt-BR")} ml`,
                 category: "hidratacao" as const,
                 at: r.recorded_at,
@@ -233,6 +236,7 @@ export function CareRecentHistory({
             ...(beverageResult.data ?? []).map((r: any) => ({
               id: "beverage:" + r.id,
               rawId: String(r.id),
+              edit: { name: String(r.name || r.kind || "Bebida"), amount: Number(r.amount_ml) },
               title: `${r.name || r.kind || "Bebida"} · ${Number(r.amount_ml).toLocaleString("pt-BR")} ml`,
               category: "hidratacao" as const,
               at: r.consumed_at,
@@ -249,6 +253,7 @@ export function CareRecentHistory({
               .map((r: any) => ({
                 id: "meal:" + r.id,
                 rawId: String(r.id),
+                edit: { description: String(r.details?.description ?? r.details?.title ?? "") },
                 title: r.details?.title || r.details?.description || "Refeição registrada",
                 category: "refeicao" as const,
                 at: r.recorded_at,
@@ -428,6 +433,85 @@ export function CareRecentHistory({
       active = false;
     };
   }, [patientId, ownerId, category, reload]);
+  const [editing, setEditing] = useState<RecordRow | null>(null);
+  const [fName, setFName] = useState("");
+  const [fAmount, setFAmount] = useState("");
+  const [fDesc, setFDesc] = useState("");
+  const [fWhen, setFWhen] = useState("");
+  const [saving, setSaving] = useState(false);
+  const acreLocal = (iso: string) => {
+    const p = Object.fromEntries(
+      new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Rio_Branco",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hourCycle: "h23",
+      })
+        .formatToParts(new Date(iso))
+        .map((x) => [x.type, x.value]),
+    );
+    return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`;
+  };
+  function openEdit(row: RecordRow) {
+    setEditing(row);
+    setFName(row.edit?.name ?? "");
+    setFAmount(row.edit?.amount ? String(row.edit.amount) : "");
+    setFDesc(row.edit?.description ?? "");
+    setFWhen(acreLocal(row.at));
+  }
+  async function saveEdit() {
+    const row = editing;
+    if (!row?.rawId) return;
+    const when = Date.parse(`${fWhen}:00-05:00`);
+    if (!Number.isFinite(when) || when > Date.now() + 120_000) {
+      dialog.notify?.("Informe um horário válido que não esteja no futuro.", "danger");
+      return;
+    }
+    const amount = Math.round(Number(fAmount.replace(",", ".")));
+    if (row.kind !== "meal" && (!Number.isFinite(amount) || amount < 10 || amount > 1500)) {
+      dialog.notify?.("Informe a quantidade entre 10 e 1.500 ml.", "danger");
+      return;
+    }
+    if (row.kind === "beverage" && fName.trim().length < 2) {
+      dialog.notify?.("Informe o nome da bebida.", "danger");
+      return;
+    }
+    if (row.kind === "meal" && fDesc.trim().length < 3) {
+      dialog.notify?.("Descreva a refeição com pelo menos 3 letras.", "danger");
+      return;
+    }
+    if (
+      !(await dialog.confirm(
+        "Salvar alterações?",
+        `${row.title} será atualizado para ${new Date(when).toLocaleString("pt-BR", { timeZone: "America/Rio_Branco", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })} e as métricas serão recalculadas.`,
+        false,
+        "Salvar",
+      ))
+    )
+      return;
+    setSaving(true);
+    const { error: err } = await (supabase as any).rpc("care_update_intake_entry", {
+      p_patient_id: patientId,
+      p_entry_type: row.kind,
+      p_entry_id: row.rawId,
+      p_description:
+        row.kind === "meal" ? fDesc.trim() : row.kind === "beverage" ? fName.trim() : null,
+      p_amount_ml: row.kind === "meal" ? null : amount,
+      p_consumed_at: new Date(when).toISOString(),
+    });
+    setSaving(false);
+    if (err) {
+      dialog.notify?.(err.message || "Não foi possível salvar a alteração.", "danger");
+      return;
+    }
+    dialog.notify?.("Registro atualizado. Métricas recalculadas.");
+    setEditing(null);
+    setReload((n) => n + 1);
+    onChanged?.();
+  }
   async function remove(row: RecordRow) {
     if (!row.rawId || (row.kind !== "water" && row.kind !== "beverage" && row.kind !== "meal"))
       return;
@@ -521,6 +605,17 @@ export function CareRecentHistory({
                   <Clock3 size={12} />
                   {dateTime(row.at)}
                 </time>
+                {row.rawId && row.edit && (
+                  <button
+                    type="button"
+                    className="care-history-del"
+                    onClick={() => openEdit(row)}
+                    title="Editar registro"
+                    aria-label={`Editar ${row.title}`}
+                  >
+                    <Pencil size={14} />
+                  </button>
+                )}
                 {row.rawId && ["water", "beverage", "meal"].includes(row.kind) && (
                   <button
                     type="button"
@@ -560,6 +655,91 @@ export function CareRecentHistory({
           Registros provenientes da agenda, hidratação, bebidas e refeições avulsas. Consulte o
           prontuário completo para detalhes adicionais.
         </p>
+      )}
+      {editing && (
+        <div
+          className="fixed inset-0 z-[150] grid place-items-center bg-slate-950/60 p-3 backdrop-blur-sm"
+          onMouseDown={(e) => e.target === e.currentTarget && setEditing(null)}
+        >
+          <form
+            role="dialog"
+            aria-modal="true"
+            aria-label="Editar registro"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void saveEdit();
+            }}
+            className="w-full max-w-sm border border-border bg-card p-4 text-foreground shadow-xl"
+          >
+            <p className="font-display text-base font-bold">Editar registro</p>
+            <p className="mb-3 text-xs text-muted-foreground">{editing.title}</p>
+            <div className="grid gap-2.5 text-xs font-semibold">
+              {editing.kind === "beverage" && (
+                <label>
+                  Bebida
+                  <input
+                    value={fName}
+                    onChange={(e) => setFName(e.target.value)}
+                    maxLength={100}
+                    className="mt-1 h-9 w-full border border-border bg-background px-2 text-sm"
+                  />
+                </label>
+              )}
+              {editing.kind === "meal" ? (
+                <label>
+                  Descrição
+                  <textarea
+                    value={fDesc}
+                    onChange={(e) => setFDesc(e.target.value)}
+                    maxLength={1000}
+                    rows={3}
+                    className="mt-1 w-full border border-border bg-background p-2 text-sm"
+                  />
+                  <span className="mt-1 block font-normal text-muted-foreground">
+                    Mudar a descrição não recalcula calorias. Para trocar alimentos, exclua e
+                    registre de novo.
+                  </span>
+                </label>
+              ) : (
+                <label>
+                  Quantidade (ml)
+                  <input
+                    inputMode="numeric"
+                    value={fAmount}
+                    onChange={(e) => setFAmount(e.target.value)}
+                    className="mt-1 h-9 w-full border border-border bg-background px-2 text-sm"
+                  />
+                </label>
+              )}
+              <label>
+                Horário (Acre)
+                <input
+                  type="datetime-local"
+                  value={fWhen}
+                  max={acreLocal(new Date().toISOString())}
+                  onChange={(e) => setFWhen(e.target.value)}
+                  className="mt-1 h-9 w-full border border-border bg-background px-2 text-sm"
+                />
+              </label>
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setEditing(null)}
+                className="h-9 border border-border px-3 text-xs font-semibold hover:bg-muted"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="h-9 bg-primary px-4 text-xs font-bold text-primary-foreground disabled:opacity-60"
+              >
+                {saving ? "Salvando…" : "Salvar"}
+              </button>
+            </div>
+          </form>
+        </div>
       )}
     </section>
   );
