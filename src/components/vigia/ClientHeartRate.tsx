@@ -57,7 +57,7 @@ export function ClientHeartRate({
   ownerId: string;
   ageYears?: number | null;
 }) {
-  const { confirm } = useDialog();
+  const { confirm, notify } = useDialog();
   const { max, zones } = useMemo(() => heartZones(ageYears), [ageYears]);
   const [state, setState] = useState<LinkState>("parado");
   const [detail, setDetail] = useState("");
@@ -171,24 +171,83 @@ export function ClientHeartRate({
       return;
     }
     setSaving(true);
-    const step = Math.max(1, Math.ceil(samples.length / 1800));
+    // Guarda só os pontos que importam: início, menor, maior e fim (sem milhares de leituras no prontuário).
+    const t0 = samples[0].t;
+    const lowest = samples.reduce((m, x) => (x.bpm < m.bpm ? x : m), samples[0]);
+    const highest = samples.reduce((m, x) => (x.bpm > m.bpm ? x : m), samples[0]);
+    const key = [samples[0], lowest, highest, samples.at(-1)!]
+      .filter((x, i, arr) => arr.findIndex((y) => y.t === x.t) === i)
+      .sort((x, y) => x.t - y.t)
+      .map((x) => [Math.round((x.t - t0) / 1000), x.bpm]);
+    // Esforço físico: tempo em zona aeróbica ou acima (a partir de 70% da frequência máxima).
+    const effortSamples = samples.filter((x) => zoneOf(x.bpm, zones).from >= zones[3].from).length;
+    const effortMin = Math.round(effortSamples / 60);
+    const effort = effortMin >= 10 && effortSamples / samples.length >= 0.25;
+    const startIso = new Date(t0).toISOString();
+    const endIso = new Date(samples.at(-1)!.t).toISOString();
+    let linked = false;
+    try {
+      const { data: acts } = await (supabase as any)
+        .from("care_activity_log")
+        .select("id")
+        .eq("patient_id", patientId)
+        .eq("category", "atividade")
+        .in("event_type", ["confirmed", "logged"])
+        .gte("recorded_at", new Date(t0 - 60 * 60_000).toISOString())
+        .lte("recorded_at", new Date(samples.at(-1)!.t + 60 * 60_000).toISOString())
+        .limit(1);
+      linked = Boolean(acts?.length);
+    } catch {
+      /* sem vínculo */
+    }
     const { error } = await (supabase as any).from("care_heart_rate_sessions").insert({
       patient_id: patientId,
       owner_id: ownerId,
       device_name: device?.name ?? null,
-      started_at: new Date(samples[0].t).toISOString(),
-      ended_at: new Date(samples.at(-1)!.t).toISOString(),
+      started_at: startIso,
+      ended_at: endIso,
       avg_bpm: stats.avg,
       min_bpm: stats.min,
       max_bpm: stats.max,
-      samples: samples
-        .filter((_, i) => i % step === 0)
-        .map((s) => [Math.round((s.t - samples[0].t) / 1000), s.bpm]),
+      samples: key,
       zones: stats.inZone,
     });
     setSaving(false);
-    setDetail(error ? "Não foi possível salvar a sessão." : "Sessão salva no seu histórico.");
-    if (!error) void loadHistory();
+    setDetail(
+      error
+        ? "Não foi possível salvar a sessão."
+        : `Sessão salva: pico ${stats.max} bpm e mínima ${stats.min} bpm.`,
+    );
+    if (error) return;
+    void loadHistory();
+    // Sincroniza com a atividade física: esforço detectado e nenhum treino registrado no período.
+    if (effort && !linked) {
+      const ok = await confirm(
+        "Registrar como atividade física?",
+        `Seu coração ficou ${effortMin} min em zona de esforço (pico ${stats.max} bpm). Quer registrar esse período como atividade para somar às suas metas?`,
+        false,
+        "Registrar atividade",
+      );
+      if (ok) {
+        const share = effortSamples / samples.length;
+        const { error: actErr } = await (supabase as any).rpc("care_log_client_activity", {
+          p_patient_id: patientId,
+          p_activity_type: "outro",
+          p_duration_minutes: Math.max(1, Math.min(1440, Math.round(samples.length / 60))),
+          p_distance_km: null,
+          p_intensity: share > 0.6 ? "intensa" : "moderada",
+          p_notes: `Detectado pelo monitor cardíaco: pico ${stats.max} bpm.`,
+        });
+        notify?.(
+          actErr
+            ? "Não foi possível registrar a atividade."
+            : "Atividade registrada a partir do monitor.",
+          actErr ? "danger" : "success",
+        );
+      }
+    } else if (effort && linked) {
+      notify?.("Sessão ligada ao treino registrado neste horário.", "info");
+    }
   }
   async function remove(s: Session) {
     if (
