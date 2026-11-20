@@ -867,7 +867,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
             ))}
           </nav>
 
-          <header className="relative isolate flex min-h-[88px] shrink-0 flex-wrap items-end justify-between gap-x-3 gap-y-1 overflow-hidden rounded-2xl bg-slate-950 px-4 py-2.5 text-white shadow-card [&_p]:!text-slate-200">
+          <header className="relative isolate flex min-h-0 shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 overflow-hidden rounded-xl bg-slate-950 px-3 py-2 text-white shadow-card [&_p]:!text-slate-200">
             <img
               key={activeTab}
               src={clientSectionTheme[activeTab].image}
@@ -910,7 +910,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                     : clientSectionLabels[activeTab].subtitle}
                   {activeTab !== "hoje" && sectionCount != null && ` · ${sectionCount} hoje`}
                 </p>
-                {birthSummary && <BirthChips summary={birthSummary} />}
+                {birthSummary && activeTab === "hoje" && <BirthChips summary={birthSummary} />}
               </div>
             </div>
             <ExportPlanButton patientId={client.id} ownerId={client.owner_id} label="PDF" className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-white/30 bg-white/15 px-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/25" />
@@ -1280,7 +1280,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
               {activeTab === "hidratacao" && (
                 <div className="flex h-full min-h-0 flex-col gap-3">
                   <div
-                    className="grid shrink-0 grid-cols-2 gap-1 rounded-xl bg-muted p-1 sm:max-w-sm"
+                    className="grid shrink-0 grid-cols-2 gap-0.5 rounded-lg bg-muted p-0.5 sm:max-w-xs"
                     role="group"
                     aria-label="Bebidas e hidratação"
                   >
@@ -1295,7 +1295,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                         type="button"
                         aria-pressed={hydrationView === key}
                         onClick={() => setHydrationView(key)}
-                        className={`h-9 rounded-lg px-3 text-xs font-semibold transition-colors ${hydrationView === key ? "bg-surface text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                        className={`h-7 rounded-md px-3 text-xs font-semibold transition-colors ${hydrationView === key ? "bg-surface text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
                       >
                         {label}
                       </button>
@@ -1775,7 +1775,6 @@ const titleCase = (v: string) => v.toLocaleLowerCase("pt-BR").replace(/(^|\s)\S/
 
 /** Dados de nascimento em fichas legíveis: idade, nascimento, aniversário (com contagem) e signo. */
 function BirthChips({ summary }: { summary: ReturnType<typeof patientDateSummary> }) {
-  const [open, setOpen] = useState<string | null>(null);
   const d = summary.daysToBirthday;
   const chips = [
     { k: "idade", icon: "🎂", label: "Idade", value: `${summary.age} anos`, more: `Nascido(a) em ${summary.date}` },
@@ -1787,15 +1786,14 @@ function BirthChips({ summary }: { summary: ReturnType<typeof patientDateSummary
     <ul className="-mx-1 mt-2 flex gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] sm:flex-wrap [&::-webkit-scrollbar]:hidden" aria-label="Dados de nascimento">
       {chips.map((c) => (
         <li key={c.k} className="relative shrink-0">
-          <button type="button" onClick={() => setOpen((o) => (o === c.k ? null : c.k))} onMouseEnter={() => setOpen(c.k)} onMouseLeave={() => setOpen(null)} aria-expanded={open === c.k}
-            className={`group inline-flex h-8 items-center gap-1.5 rounded-full border px-2.5 text-xs backdrop-blur transition hover:-translate-y-px ${c.hot ? "border-amber-300/60 bg-amber-300/20" : "border-white/20 bg-white/10 hover:bg-white/20"}`}>
-            <span aria-hidden="true" className="text-sm transition-transform group-hover:scale-125">{c.icon}</span>
+          <span title={c.more}
+            className={`group inline-flex h-8 items-center gap-1.5 rounded-full border px-2.5 text-xs backdrop-blur ${c.hot ? "border-amber-300/60 bg-amber-300/20" : "border-white/20 bg-white/10 hover:bg-white/20"}`}>
+            <span aria-hidden="true" className="text-sm">{c.icon}</span>
             <span className="text-white/65">{c.label}</span>
             <strong className="font-bold text-white">{c.value}</strong>
-          </button>
+          </span>
         </li>
       ))}
-      <li className={`w-full truncate text-[11px] text-white/80 ${open ? "h-4" : "h-0"}`} aria-live="polite">{open ? chips.find((c) => c.k === open)?.more : ""}</li>
     </ul>
   );
 }

@@ -521,27 +521,26 @@ export function ClientHydrationTab({
       className="care-premium-hydration care-hydration-responsive flex min-h-0 w-full min-w-0 flex-col gap-2"
       aria-label="Programa personalizado de hidratação"
     >
-      <header className="nv-dark relative isolate overflow-hidden rounded-2xl bg-gradient-to-br from-[#04263a] via-[#06374f] to-[#0b5f7a] p-3.5 text-white shadow-card sm:p-4">
+      <header className="nv-dark relative isolate overflow-hidden rounded-xl bg-gradient-to-br from-[#04263a] via-[#06374f] to-[#0b5f7a] p-2.5 text-white shadow-card sm:px-3.5 sm:py-3">
         <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-24 -z-10 size-72 rounded-full bg-cyan-300/15 blur-3xl" />
         <svg aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-16 w-full opacity-30" viewBox="0 0 400 40" preserveAspectRatio="none">
           <path className="nv-hydro-wave" d="M0 20 Q 50 5 100 20 T 200 20 T 300 20 T 400 20 T 500 20 T 600 20 V40 H0Z" fill="#38bdf8" />
         </svg>
-        <div className="grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_auto]">
-          <div className="flex items-center gap-4">
-            <div className="relative size-24 shrink-0 sm:size-[6.5rem]" role="img" aria-label={`Meta de água ${percent}% concluída`}>
+        <div className="grid items-center gap-3 lg:grid-cols-[auto_minmax(0,1fr)_auto]">
+          <div className="flex items-center gap-3">
+            <div className="relative size-16 shrink-0 sm:size-[4.5rem]" role="img" aria-label={`Meta de água ${percent}% concluída`}>
               <svg viewBox="0 0 120 120" className="absolute inset-0 -rotate-90">
                 <circle cx="60" cy="60" r="54" fill="none" stroke="#ffffff1f" strokeWidth="8" />
                 <circle cx="60" cy="60" r="54" fill="none" stroke="url(#nv-hydro-ring)" strokeWidth="8" strokeLinecap="round" pathLength={100} strokeDasharray={`${percent} 100`} className="nv-ring-draw" />
                 <defs><linearGradient id="nv-hydro-ring" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#7dd3fc" /><stop offset="1" stopColor="#22d3ee" /></linearGradient></defs>
               </svg>
-              <div className="absolute inset-[14px] overflow-hidden rounded-full bg-white/5">
+              <div className="absolute inset-[9px] overflow-hidden rounded-full bg-white/5">
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-sky-500 to-cyan-300 transition-[height] duration-1000 ease-out" style={{ height: `${percent}%` }}>
                   <div className="absolute -top-1.5 left-0 h-3 w-[200%] animate-[care-wave_3s_linear_infinite] rounded-[50%] bg-cyan-200/70" />
                 </div>
                 <span className="absolute inset-0 grid place-items-center">
                   <span className="text-center leading-none">
-                    <strong className="block text-xl font-extrabold tabular-nums drop-shadow">{percent}%</strong>
-                    <span className="text-[10px] font-semibold text-white/80">da meta</span>
+                    <strong className="block text-sm font-extrabold tabular-nums drop-shadow">{percent}%</strong>
                   </span>
                 </span>
               </div>
@@ -553,30 +552,30 @@ export function ClientHydrationTab({
           </div>
 
           <div className="min-w-0">
-            <p className="hidden text-3xl font-extrabold tabular-nums lg:block">
+            <p className="hidden text-2xl font-extrabold tabular-nums lg:block">
               {(intake / 1000).toFixed(2).replace(".", ",")} L
-              <span className="ml-2 text-lg font-semibold text-white/65">{goal ? `de ${(goal / 1000).toFixed(1).replace(".", ",")} L` : "meta a definir"}</span>
+              <span className="ml-2 text-base font-semibold text-white/65">{goal ? `de ${(goal / 1000).toFixed(1).replace(".", ",")} L` : "meta a definir"}</span>
             </p>
-            <p className="mt-1 text-sm text-white/80">
+            <p className="text-[13px] text-white/80">
               {remaining === 0 && goal ? "Meta de hoje atingida. Ótimo trabalho!" : goal ? `Faltam ${remaining.toLocaleString("pt-BR")} ml para a meta de hoje.` : "Defina sua meta para receber sugestões de horário."}
             </p>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
               {[150, 250, 500].map((ml) => (
                 <button
                   key={ml}
                   type="button"
                   disabled={Boolean(action)}
                   onClick={() => void quickDrink(ml)}
-                  className="nv-water-chip group relative inline-flex h-9 items-center gap-1.5 overflow-hidden rounded-xl bg-white px-3 text-[13px] font-bold text-sky-900 shadow-lg shadow-sky-950/30 transition active:scale-95 disabled:opacity-60"
+                  className="nv-water-chip group relative inline-flex h-8 items-center gap-1.5 overflow-hidden rounded-lg bg-white px-2.5 text-xs font-bold text-sky-900 shadow-lg shadow-sky-950/30 transition active:scale-95 disabled:opacity-60"
                 >
                   <span className="grid size-5 place-items-center rounded-full bg-sky-100 text-sky-600 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-110"><Droplets size={14} /></span>
                   +{ml} ml
                 </button>
               ))}
-              <span className="[&_button]:!h-9 [&_button]:!rounded-xl [&_button]:!border [&_button]:!border-white/25 [&_button]:!bg-white/10 [&_button]:!px-3 [&_button]:!text-[13px] [&_button]:!text-white [&_button]:!shadow-none [&_button]:backdrop-blur hover:[&_button]:!bg-white/20">
+              <span className="[&_button]:!h-8 [&_button]:!rounded-lg [&_button]:!border [&_button]:!border-white/25 [&_button]:!bg-white/10 [&_button]:!px-2.5 [&_button]:!text-xs [&_button]:!text-white [&_button]:!shadow-none [&_button]:backdrop-blur hover:[&_button]:!bg-white/20">
                 <ClientQuickIntake patientId={patientId} mode="water" onRecorded={() => { setReload((n) => n + 1); onRecorded(); }} />
               </span>
-              <span className="[&_button]:!h-9 [&_button]:!rounded-xl [&_button]:!border [&_button]:!border-white/25 [&_button]:!bg-white/10 [&_button]:!px-3 [&_button]:!text-[13px] [&_button]:!text-white [&_button]:!shadow-none [&_button]:backdrop-blur hover:[&_button]:!bg-white/20">
+              <span className="[&_button]:!h-8 [&_button]:!rounded-lg [&_button]:!border [&_button]:!border-white/25 [&_button]:!bg-white/10 [&_button]:!px-2.5 [&_button]:!text-xs [&_button]:!text-white [&_button]:!shadow-none [&_button]:backdrop-blur hover:[&_button]:!bg-white/20">
                 <ClientQuickIntake patientId={patientId} mode="drink" onRecorded={() => { setReload((n) => n + 1); onRecorded(); }} />
               </span>
               <button
@@ -585,15 +584,16 @@ export function ClientHydrationTab({
                 aria-label={editing ? "Fechar ajuste da meta" : "Ajustar meta"}
                 title={editing ? "Fechar ajuste da meta" : "Ajustar meta"}
                 onClick={() => setEditing((value) => !value)}
-                className={`grid size-9 place-items-center rounded-xl border border-white/25 backdrop-blur transition hover:bg-white/20 ${editing ? "bg-white text-sky-900" : "bg-white/10 text-white"}`}
+                className={`grid size-8 place-items-center rounded-lg border border-white/25 backdrop-blur transition hover:bg-white/20 ${editing ? "bg-white text-sky-900" : "bg-white/10 text-white"}`}
               >
                 <SlidersHorizontal size={17} />
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-1.5 lg:w-64 lg:grid-cols-1">
+          <div className="grid grid-cols-2 gap-1.5 lg:w-60 lg:grid-cols-1">
             <NextUpClock
+              compact
               className="col-span-2 lg:col-span-1"
               alertKey="agua"
               title="Próximo copo"
@@ -605,7 +605,7 @@ export function ClientHydrationTab({
               actionLabel={nextPlan ? `Bebi ${nextPlan.suggestedMl} ml` : "Registrar"}
               onAction={nextPlan ? () => void quickDrink(nextPlan.suggestedMl) : undefined}
             />
-            <p className="col-span-2 flex items-center justify-between rounded-xl border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] text-white/75 backdrop-blur lg:col-span-1">
+            <p className="col-span-2 flex items-center justify-between rounded-lg border border-white/15 bg-white/10 px-2.5 py-1 text-[11px] text-white/75 backdrop-blur lg:col-span-1">
               <span>Último registro</span>
               <strong className="tabular-nums text-white">{lastWater ? `${Number(lastWater.amount_ml)} ml · ${time(lastWater.recorded_at)}` : "Nenhum hoje"}</strong>
             </p>

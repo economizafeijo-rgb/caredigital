@@ -454,11 +454,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         activeOptions={{ exact: true, includeHash: true }}
         aria-current={active ? "page" : undefined}
         title={railOpen ? undefined : item.label}
-        className={`nv-rail-link group relative flex h-12 items-center gap-3 rounded-2xl px-2 text-[13px] font-semibold transition-colors duration-200 ${active ? "bg-white/[.07] text-white" : "text-slate-400 hover:bg-white/[.05] hover:text-white"}`}
+        className={`nv-rail-link group relative flex h-10 items-center gap-3 rounded-lg px-1.5 text-[13px] font-semibold transition-colors duration-200 ${active ? "bg-white/[.08] text-white" : "text-slate-400 hover:bg-white/[.05] hover:text-white"}`}
       >
-        <i aria-hidden="true" className={`absolute -left-2 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-emerald-300 shadow-[0_0_12px_rgba(110,231,183,.8)] transition-all duration-300 ${active ? "scale-y-100 opacity-100" : "scale-y-0 opacity-0"}`} />
-        <span className={`nv-rail-icon relative grid size-10 shrink-0 place-items-center rounded-xl transition-all duration-300 ${active ? `${theme?.pill ?? "bg-primary"} text-white shadow-[0_8px_20px_-8px_rgba(16,185,129,.85),inset_0_1px_0_rgba(255,255,255,.35)]` : "bg-white/[.035] text-slate-400 ring-1 ring-inset ring-white/[.06] group-hover:bg-white/[.09] group-hover:text-white group-hover:ring-white/15"}`}>
-          <Icon size={19} strokeWidth={1.9} />
+        <i aria-hidden="true" className={`absolute -left-2 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-emerald-300 shadow-[0_0_12px_rgba(110,231,183,.8)] transition-all duration-300 ${active ? "scale-y-100 opacity-100" : "scale-y-0 opacity-0"}`} />
+        <span className={`nv-rail-icon relative grid size-7 shrink-0 place-items-center rounded-md transition-all duration-300 ${active ? `${theme?.pill ?? "bg-primary"} text-white shadow-[0_8px_20px_-8px_rgba(16,185,129,.85),inset_0_1px_0_rgba(255,255,255,.35)]` : "text-slate-400 group-hover:text-white"}`}>
+          <Icon size={18} strokeWidth={1.9} />
         </span>
         <span className="truncate">{item.label}</span>
       </Link>
@@ -467,7 +467,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const sidebarBody = (
     <>
       <nav
-        className="nv-rail-nav min-h-0 flex-1 space-y-3 overflow-y-auto overflow-x-hidden px-2 py-2 [scrollbar-width:none]"
+        className="nv-rail-nav min-h-0 flex-1 space-y-2 overflow-y-auto overflow-x-hidden px-2 py-2 [scrollbar-width:none]"
         aria-label="Navegação principal"
       >
         {groups.map((group) => (
@@ -475,14 +475,14 @@ export function AppShell({ children }: { children: ReactNode }) {
             <p className="nv-rail-group flex h-6 items-center gap-2 px-2 pb-1 text-[11px] font-semibold tracking-wide text-slate-500">
               <span className="nv-rail-label whitespace-nowrap">{group.title}</span><i className="h-px flex-1 bg-gradient-to-r from-white/15 to-transparent" />
             </p>
-            <div className="grid gap-1">{group.items.map(sideLink)}</div>
+            <div className="grid gap-0.5">{group.items.map(sideLink)}</div>
           </div>
         ))}
       </nav>
       <div className="shrink-0 border-t border-white/[.07] p-2">
-        <div className="nv-rail-account flex items-center gap-2.5 rounded-2xl bg-white/[.04] p-2 ring-1 ring-inset ring-white/[.07]">
+        <div className="nv-rail-account flex items-center gap-2.5 rounded-lg p-1">
           <span
-            className="relative grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 text-sm font-extrabold text-white shadow-[inset_0_1px_0_rgba(255,255,255,.35)]"
+            className="relative grid size-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 text-xs font-extrabold text-white shadow-[inset_0_1px_0_rgba(255,255,255,.35)]"
             aria-hidden="true"
           >
             {(access.name || access.email || "C").slice(0, 1).toUpperCase()}
@@ -528,7 +528,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <ProductQuickViewHost />
         <div className="care-shell flex h-dvh min-h-0 overflow-hidden bg-background text-foreground">
           {internalPage && (
-            <div className={`relative hidden shrink-0 transition-[width] duration-300 ease-out xl:block ${fullScreen ? "w-0" : sidebarPinned ? "w-[17.5rem]" : "w-[5.5rem]"}`}>
+            <div className={`relative hidden shrink-0 transition-[width] duration-300 ease-out xl:block ${fullScreen ? "w-0" : sidebarPinned ? "w-60" : "w-14"}`}>
               {fullScreen && (
                 <div aria-hidden="true" onMouseEnter={openRail} className="absolute inset-y-0 left-0 z-50 w-2" title="Menu" />
               )}
@@ -538,23 +538,22 @@ export function AppShell({ children }: { children: ReactNode }) {
                 onFocusCapture={() => setSidebarExpanded(true)}
                 onBlurCapture={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setSidebarExpanded(false); }}
                 data-collapsed={railOpen ? undefined : ""}
-                className={`sidebar-shell absolute inset-y-3 left-3 z-40 flex flex-col overflow-hidden rounded-[26px] border border-white/[.09] bg-[linear-gradient(180deg,#101d27_0%,#0b1219_50%,#090f15_100%)] shadow-[0_24px_60px_-24px_rgba(0,0,0,.75),inset_0_1px_0_rgba(255,255,255,.06)] transition-[width,box-shadow,transform] duration-300 ease-out ${railOpen || fullScreen ? "w-64" : "w-[4.5rem]"} ${fullScreen && !sidebarExpanded ? "-translate-x-[calc(100%+1.5rem)]" : ""} ${sidebarExpanded && !sidebarPinned ? "shadow-[24px_0_48px_-20px_rgba(0,0,0,.55)]" : ""}`}
+                className={`sidebar-shell absolute inset-y-0 left-0 z-40 flex flex-col overflow-hidden border-r border-white/[.08] bg-[#0b1219] transition-[width,box-shadow,transform] duration-300 ease-out ${railOpen || fullScreen ? "w-60" : "w-14"} ${fullScreen && !sidebarExpanded ? "-translate-x-full" : ""} ${sidebarExpanded && !sidebarPinned ? "shadow-[24px_0_48px_-20px_rgba(0,0,0,.55)]" : ""}`}
               >
                 <div aria-hidden="true" className="pointer-events-none absolute -left-16 -top-16 size-48 rounded-full bg-emerald-400/20 blur-3xl" />
                 <div aria-hidden="true" className="pointer-events-none absolute -bottom-20 -right-16 size-44 rounded-full bg-sky-500/10 blur-3xl" />
-                <div className="relative flex h-[4.5rem] shrink-0 items-center gap-2 px-[15px]">
+                <div className="relative flex h-14 shrink-0 items-center gap-2 border-b border-white/[.08] px-2.5">
                   <Brand onDark />
                 </div>
-                <i aria-hidden="true" className="mx-4 block h-px shrink-0 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
                 {sidebarBody}
                 <button
                   type="button"
                   onClick={togglePin}
                   aria-pressed={sidebarPinned}
                   title={sidebarPinned ? "Recolher menu ( [ )" : "Fixar menu aberto ( [ )"}
-                  className="relative mx-2 mb-2 flex h-11 shrink-0 items-center gap-3 rounded-2xl px-2 text-[13px] font-semibold text-slate-500 transition-colors hover:bg-white/[.06] hover:text-white"
+                  className="relative mx-2 mb-2 flex h-9 shrink-0 items-center gap-3 rounded-lg px-1.5 text-[13px] font-semibold text-slate-500 transition-colors hover:bg-white/[.06] hover:text-white"
                 >
-                  <span className="grid size-10 shrink-0 place-items-center">{sidebarPinned ? <PanelLeftClose size={17} /> : <PanelLeftOpen size={17} />}</span>
+                  <span className="grid size-7 shrink-0 place-items-center">{sidebarPinned ? <PanelLeftClose size={17} /> : <PanelLeftOpen size={17} />}</span>
                   <span className="nv-rail-label truncate">{sidebarPinned ? "Recolher menu" : "Fixar menu aberto"}</span>
                   <kbd className="nv-rail-label ml-auto rounded border border-white/15 px-1.5 text-[11px] text-slate-500">[</kbd>
                 </button>
