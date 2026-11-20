@@ -579,7 +579,7 @@ export function ClientNutritionStudio({ patientId, ownerId, onLogged }: Props) {
       )}
 
       <nav
-        className="grid grid-cols-2 gap-1 border border-border bg-card p-1 sm:grid-cols-4"
+        className="flex gap-0 overflow-x-auto border-b border-border"
         aria-label="Seções de nutrição"
       >
         {viewOptions.map((o) => {
@@ -592,19 +592,13 @@ export function ClientNutritionStudio({ patientId, ownerId, onLogged }: Props) {
               aria-current={on ? "page" : undefined}
               onClick={() => chooseView(o.key)}
               className={
-                "group inline-flex h-11 min-w-0 items-center justify-center gap-2 whitespace-nowrap border-b-2 px-3 text-sm font-semibold transition " +
+                "-mb-px inline-flex h-9 min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap border-b-2 px-3 text-sm font-semibold transition " +
                 (on
-                  ? "bg-muted/70 text-foreground"
-                  : "border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground")
+                  ? "border-foreground text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground")
               }
-              style={on ? { borderBottomColor: o.color } : undefined}
             >
-              <span
-                className="grid size-7 shrink-0 place-items-center text-white"
-                style={{ background: o.color, opacity: on ? 1 : 0.75 }}
-              >
-                <Icon size={15} />
-              </span>
+              <Icon size={15} />
               <span className="truncate">{o.label}</span>
             </button>
           );
@@ -618,196 +612,206 @@ export function ClientNutritionStudio({ patientId, ownerId, onLogged }: Props) {
         </p>
       )}
 
-      {view === "preparo" && <CookingTimer patientId={patientId} />}
+      <div
+        className={
+          "flex min-h-0 min-w-0 flex-1 flex-col gap-3 " +
+          (view === "calculadora" ? "xl:overflow-hidden" : "xl:overflow-y-auto")
+        }
+      >
+        {view === "preparo" && <CookingTimer patientId={patientId} />}
 
-      {view === "calculadora" && (
-        <NutritionCalculator patientId={patientId} nutrition={nutrition} onLogged={onLogged} />
-      )}
+        {view === "calculadora" && (
+          <NutritionCalculator patientId={patientId} nutrition={nutrition} onLogged={onLogged} />
+        )}
 
-      {view === "cardapio" && (
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
-          <div className="rounded-2xl border border-border bg-card p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <h3 className="text-base font-bold">Sugestões para 7 dias</h3>
-                <p className="text-xs text-muted-foreground">{selectedGoal.description}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setRotation((n) => n + 1);
-                  setSelectedId(null);
-                }}
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-border px-3 text-xs font-semibold transition hover:bg-muted active:scale-95"
-              >
-                <RotateCcw size={14} /> Gerar outras opções
-              </button>
-            </div>
-            <div className="mt-3 grid grid-cols-7 gap-1.5">
-              {week.map((label, i) => (
+        {view === "cardapio" && (
+          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
+            <div className="rounded-2xl border border-border bg-card p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h3 className="text-base font-bold">Sugestões para 7 dias</h3>
+                  <p className="text-xs text-muted-foreground">{selectedGoal.description}</p>
+                </div>
                 <button
                   type="button"
-                  key={label}
                   onClick={() => {
-                    setDay(i);
+                    setRotation((n) => n + 1);
                     setSelectedId(null);
                   }}
-                  aria-pressed={day === i}
-                  className={
-                    "h-10 rounded-xl text-xs font-bold transition active:scale-95 " +
-                    (day === i
-                      ? "bg-foreground text-background"
-                      : "bg-muted/60 text-muted-foreground hover:text-foreground")
-                  }
+                  className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-border px-3 text-xs font-semibold transition hover:bg-muted active:scale-95"
                 >
-                  {label}
+                  <RotateCcw size={14} /> Gerar outras opções
                 </button>
-              ))}
-            </div>
-            {selectableRecipes.length === 0 ? (
-              <p className="mt-3 rounded-xl border border-dashed border-border p-4 text-sm">
-                Nenhuma receita combina com todas as restrições. Revise as preferências.
-              </p>
-            ) : (
-              <div key={day + "-" + rotation} className="nv-fade-in mt-3 grid gap-3 sm:grid-cols-2">
-                {plan.map(({ slot, recipe }) =>
-                  recipe ? (
-                    <RecipeCard
-                      key={slot.id}
-                      r={recipe}
-                      label={slot.label}
-                      active={chosen?.id === recipe.id}
-                      onClick={() => openRecipe(recipe)}
-                    />
-                  ) : (
-                    <div
-                      key={slot.id}
-                      className="grid place-items-center rounded-2xl border border-dashed border-border p-4 text-xs text-muted-foreground"
-                    >
-                      {slot.label}: sem opção com os filtros.
-                    </div>
-                  ),
-                )}
               </div>
-            )}
-            <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl bg-muted/50 p-3 text-sm">
-              <span>
-                Total do dia
-                <strong className="block text-lg tabular-nums">
-                  {safeNumber(Math.round(planNutrition.kcal))} kcal
-                </strong>
-                <span className="text-[11px] text-muted-foreground">
-                  meta {safeNumber(Math.round(t.kcal))} kcal
-                </span>
-              </span>
-              <span>
-                Proteína do dia
-                <strong className="block text-lg tabular-nums">
-                  {safeNumber(planNutrition.protein)} g
-                </strong>
-                <span className="text-[11px] text-muted-foreground">
-                  meta {safeNumber(Math.round(t.protein))} g
-                </span>
-              </span>
-            </div>
-          </div>
-          {chosen ? (
-            <RecipeDetail r={chosen} />
-          ) : (
-            <aside className="self-start rounded-2xl border border-dashed border-border p-5 text-center text-sm text-muted-foreground">
-              <ChefHat size={28} className="mx-auto mb-2 text-primary" />
-              Toque em uma refeição para ver ingredientes, preparo e valores.
-            </aside>
-          )}
-        </div>
-      )}
-
-      {view === "receitas" && (
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
-          <div className="rounded-2xl border border-border bg-card p-4">
-            <div className="flex flex-wrap gap-2">
-              <label className="relative min-w-[12rem] flex-1">
-                <Search
-                  size={15}
-                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                />
-                <input
-                  type="search"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Buscar: banana, frango, macaxeira…"
-                  aria-label="Buscar receitas"
-                  className="h-10 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm outline-none focus:border-primary"
-                />
-              </label>
-              <div className="flex flex-wrap gap-1" role="group" aria-label="Refeição">
-                {(
-                  [["todos", "Todas"], ...mealSlots.map((s) => [s.id, s.label])] as [
-                    string,
-                    string,
-                  ][]
-                ).map(([k, l]) => (
+              <div className="mt-3 grid grid-cols-7 gap-1.5">
+                {week.map((label, i) => (
                   <button
-                    key={k}
                     type="button"
-                    aria-pressed={mealFilter === k}
-                    onClick={() => setMealFilter(k as typeof mealFilter)}
+                    key={label}
+                    onClick={() => {
+                      setDay(i);
+                      setSelectedId(null);
+                    }}
+                    aria-pressed={day === i}
                     className={
-                      "h-10 rounded-xl px-3 text-xs font-semibold transition " +
-                      (mealFilter === k
+                      "h-10 rounded-xl text-xs font-bold transition active:scale-95 " +
+                      (day === i
                         ? "bg-foreground text-background"
                         : "bg-muted/60 text-muted-foreground hover:text-foreground")
                     }
                   >
-                    {l}
+                    {label}
                   </button>
                 ))}
               </div>
+              {selectableRecipes.length === 0 ? (
+                <p className="mt-3 rounded-xl border border-dashed border-border p-4 text-sm">
+                  Nenhuma receita combina com todas as restrições. Revise as preferências.
+                </p>
+              ) : (
+                <div
+                  key={day + "-" + rotation}
+                  className="nv-fade-in mt-3 grid gap-3 sm:grid-cols-2"
+                >
+                  {plan.map(({ slot, recipe }) =>
+                    recipe ? (
+                      <RecipeCard
+                        key={slot.id}
+                        r={recipe}
+                        label={slot.label}
+                        active={chosen?.id === recipe.id}
+                        onClick={() => openRecipe(recipe)}
+                      />
+                    ) : (
+                      <div
+                        key={slot.id}
+                        className="grid place-items-center rounded-2xl border border-dashed border-border p-4 text-xs text-muted-foreground"
+                      >
+                        {slot.label}: sem opção com os filtros.
+                      </div>
+                    ),
+                  )}
+                </div>
+              )}
+              <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl bg-muted/50 p-3 text-sm">
+                <span>
+                  Total do dia
+                  <strong className="block text-lg tabular-nums">
+                    {safeNumber(Math.round(planNutrition.kcal))} kcal
+                  </strong>
+                  <span className="text-[11px] text-muted-foreground">
+                    meta {safeNumber(Math.round(t.kcal))} kcal
+                  </span>
+                </span>
+                <span>
+                  Proteína do dia
+                  <strong className="block text-lg tabular-nums">
+                    {safeNumber(planNutrition.protein)} g
+                  </strong>
+                  <span className="text-[11px] text-muted-foreground">
+                    meta {safeNumber(Math.round(t.protein))} g
+                  </span>
+                </span>
+              </div>
             </div>
-            <p className="mt-2 text-xs text-muted-foreground">
-              {filteredRecipes.length} receitas para o seu objetivo e preferências.
-            </p>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {filteredRecipes.map((r) => (
-                <RecipeCard
-                  key={r.id}
-                  r={r}
-                  active={chosen?.id === r.id}
-                  onClick={() => openRecipe(r)}
-                />
-              ))}
-            </div>
-            {!filteredRecipes.length && (
-              <p className="mt-3 rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
-                Nenhuma receita com esses filtros.
-              </p>
+            {chosen ? (
+              <RecipeDetail r={chosen} />
+            ) : (
+              <aside className="self-start rounded-2xl border border-dashed border-border p-5 text-center text-sm text-muted-foreground">
+                <ChefHat size={28} className="mx-auto mb-2 text-primary" />
+                Toque em uma refeição para ver ingredientes, preparo e valores.
+              </aside>
             )}
           </div>
-          {chosen ? (
-            <RecipeDetail r={chosen} />
-          ) : (
-            <aside className="self-start rounded-2xl border border-dashed border-border p-5 text-center text-sm text-muted-foreground">
-              <ChefHat size={28} className="mx-auto mb-2 text-primary" />
-              Escolha uma receita para ver o passo a passo.
-            </aside>
-          )}
-        </div>
-      )}
+        )}
 
-      <details className="rounded-2xl border border-border bg-card px-4 py-3 text-xs">
-        <summary className="flex cursor-pointer items-center gap-1.5 font-semibold">
-          <BookOpen size={14} className="text-primary" /> Fontes e metodologia
-        </summary>
-        <div className="mt-2 space-y-1.5">
-          {nutritionSources.map((item) => (
-            <p key={item.url}>{sourceLink(item.url, item.title)}</p>
-          ))}
-        </div>
-        <p className="mt-2 text-muted-foreground">
-          Valores educativos (TACO/UNICAMP e estimativas editoriais). Não substituem orientação de
-          nutricionista.
-        </p>
-      </details>
+        {view === "receitas" && (
+          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
+            <div className="rounded-2xl border border-border bg-card p-4">
+              <div className="flex flex-wrap gap-2">
+                <label className="relative min-w-[12rem] flex-1">
+                  <Search
+                    size={15}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  />
+                  <input
+                    type="search"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Buscar: banana, frango, macaxeira…"
+                    aria-label="Buscar receitas"
+                    className="h-10 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm outline-none focus:border-primary"
+                  />
+                </label>
+                <div className="flex flex-wrap gap-1" role="group" aria-label="Refeição">
+                  {(
+                    [["todos", "Todas"], ...mealSlots.map((s) => [s.id, s.label])] as [
+                      string,
+                      string,
+                    ][]
+                  ).map(([k, l]) => (
+                    <button
+                      key={k}
+                      type="button"
+                      aria-pressed={mealFilter === k}
+                      onClick={() => setMealFilter(k as typeof mealFilter)}
+                      className={
+                        "h-10 rounded-xl px-3 text-xs font-semibold transition " +
+                        (mealFilter === k
+                          ? "bg-foreground text-background"
+                          : "bg-muted/60 text-muted-foreground hover:text-foreground")
+                      }
+                    >
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {filteredRecipes.length} receitas para o seu objetivo e preferências.
+              </p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {filteredRecipes.map((r) => (
+                  <RecipeCard
+                    key={r.id}
+                    r={r}
+                    active={chosen?.id === r.id}
+                    onClick={() => openRecipe(r)}
+                  />
+                ))}
+              </div>
+              {!filteredRecipes.length && (
+                <p className="mt-3 rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
+                  Nenhuma receita com esses filtros.
+                </p>
+              )}
+            </div>
+            {chosen ? (
+              <RecipeDetail r={chosen} />
+            ) : (
+              <aside className="self-start rounded-2xl border border-dashed border-border p-5 text-center text-sm text-muted-foreground">
+                <ChefHat size={28} className="mx-auto mb-2 text-primary" />
+                Escolha uma receita para ver o passo a passo.
+              </aside>
+            )}
+          </div>
+        )}
+
+        <details className="rounded-2xl border border-border bg-card px-4 py-3 text-xs">
+          <summary className="flex cursor-pointer items-center gap-1.5 font-semibold">
+            <BookOpen size={14} className="text-primary" /> Fontes e metodologia
+          </summary>
+          <div className="mt-2 space-y-1.5">
+            {nutritionSources.map((item) => (
+              <p key={item.url}>{sourceLink(item.url, item.title)}</p>
+            ))}
+          </div>
+          <p className="mt-2 text-muted-foreground">
+            Valores educativos (TACO/UNICAMP e estimativas editoriais). Não substituem orientação de
+            nutricionista.
+          </p>
+        </details>
+      </div>
     </section>
   );
 }

@@ -26,8 +26,8 @@ export function Fold({
   const [showInfo, setShowInfo] = useState(false);
   const id = useId();
   return (
-    <section className="border border-border bg-card" style={{ borderTop: `2px solid ${color}` }}>
-      <div className="flex items-center gap-2 px-3 py-2">
+    <section className="border border-border bg-card" data-accent={color}>
+      <div className="flex items-center gap-2 px-3 py-1.5">
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
@@ -35,12 +35,7 @@ export function Fold({
           aria-controls={id}
           className="flex min-w-0 flex-1 items-center gap-2 text-left"
         >
-          <span
-            className="grid size-7 shrink-0 place-items-center text-white"
-            style={{ background: color }}
-          >
-            <Icon size={15} />
-          </span>
+          <Icon size={15} className="shrink-0 text-muted-foreground" />
           <h4 className="min-w-0 truncate text-sm font-bold">{title}</h4>
         </button>
         {aside && (
@@ -52,8 +47,10 @@ export function Fold({
             onClick={() => setShowInfo((v) => !v)}
             aria-expanded={showInfo}
             aria-label={`Mais informações: ${title}`}
-            className="grid size-7 shrink-0 place-items-center border border-border text-muted-foreground hover:bg-muted hover:text-foreground"
-            style={showInfo ? { color, borderColor: color } : undefined}
+            className={
+              "grid size-6 shrink-0 place-items-center text-muted-foreground hover:bg-muted hover:text-foreground " +
+              (showInfo ? "bg-muted text-foreground" : "")
+            }
           >
             <Info size={14} />
           </button>
@@ -62,21 +59,18 @@ export function Fold({
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? `Recolher ${title}` : `Expandir ${title}`}
-          className="grid size-7 shrink-0 place-items-center text-muted-foreground hover:bg-muted"
+          className="grid size-6 shrink-0 place-items-center text-muted-foreground hover:bg-muted"
         >
           <ChevronDown size={16} className={"transition-transform " + (open ? "rotate-180" : "")} />
         </button>
       </div>
       {showInfo && info && (
-        <p
-          className="nv-fade-in mx-3 mb-2 border-l-2 bg-muted/40 px-2.5 py-2 text-xs leading-relaxed text-muted-foreground"
-          style={{ borderColor: color }}
-        >
+        <p className="nv-fade-in mx-3 mb-2 border-l-2 border-border bg-muted/40 px-2.5 py-1.5 text-xs leading-relaxed text-muted-foreground">
           {info}
         </p>
       )}
       {open && (
-        <div id={id} className="px-3 pb-3">
+        <div id={id} className="px-3 pb-2.5">
           {children}
         </div>
       )}

@@ -172,42 +172,23 @@ export function NutritionStudioHero({
   const active = info ? by[info] : null;
   const ActiveIcon = info ? chipIcon[info] : null;
   return (
-    <header className="nv-dark relative isolate overflow-hidden border border-white/10 bg-[#071512] p-3 text-white shadow-card sm:p-4">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 opacity-60"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px)",
-          backgroundSize: "22px 22px",
-        }}
-      />
-      <img
-        src="/images/hero-alimentacao.webp"
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-y-0 right-0 -z-10 hidden h-full w-1/3 object-cover opacity-30 lg:block"
-        style={{
-          maskImage: "linear-gradient(90deg, transparent, #000 70%)",
-          WebkitMaskImage: "linear-gradient(90deg, transparent, #000 70%)",
-        }}
-      />
+    <header className="nv-dark border border-white/10 bg-[#0d1626] p-2.5 text-white">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="min-w-0">
-          <p className="flex items-center gap-1.5 text-xs font-semibold text-emerald-200">
+          <p className="flex items-center gap-1.5 text-xs font-semibold text-white/70">
             Seu objetivo
             <button
               type="button"
               onClick={() => setGoalInfo((v) => !v)}
               aria-expanded={goalInfo}
               aria-label="O que cada objetivo muda"
-              className="grid size-5 place-items-center border border-emerald-200/40 text-emerald-200 hover:bg-white/10"
+              className="grid size-5 place-items-center border border-white/25 text-white/70 hover:bg-white/10"
             >
               <Info size={12} />
             </button>
           </p>
           <div
-            className="mt-1.5 flex flex-wrap gap-1"
+            className="mt-1 flex flex-wrap gap-1"
             role="radiogroup"
             aria-label="Objetivo alimentar"
           >
@@ -222,10 +203,10 @@ export function NutritionStudioHero({
                   aria-checked={on}
                   onClick={() => onGoal(o.value)}
                   className={
-                    "inline-flex h-9 items-center gap-1.5 border px-3 text-xs font-bold transition active:scale-95 " +
+                    "inline-flex h-8 items-center gap-1.5 border px-2.5 text-xs font-semibold transition active:scale-95 " +
                     (on
-                      ? "border-emerald-300 bg-emerald-400 text-emerald-950"
-                      : "border-white/15 bg-white/[.07] text-white/80 hover:bg-white/15")
+                      ? "border-white bg-white text-slate-900"
+                      : "border-white/15 bg-transparent text-white/75 hover:bg-white/10")
                   }
                 >
                   <Icon size={14} />
@@ -242,15 +223,15 @@ export function NutritionStudioHero({
             onClick={onToggleSettings}
             aria-expanded={settingsOpen}
             className={
-              "inline-flex h-9 items-center gap-1.5 border px-3 text-xs font-bold transition " +
+              "inline-flex h-8 items-center gap-1.5 border px-2.5 text-xs font-semibold transition " +
               (settingsOpen
-                ? "border-white bg-white text-[#062019]"
+                ? "border-white bg-white text-slate-900"
                 : "border-white/20 bg-white/10 text-white hover:bg-white/20")
             }
           >
             <Settings2 size={15} /> Preferências
             {settingsBadge ? (
-              <span className="grid size-5 place-items-center bg-emerald-400 text-[11px] font-bold text-emerald-950">
+              <span className="grid size-5 place-items-center bg-white/20 text-[11px] font-bold">
                 {settingsBadge}
               </span>
             ) : null}
@@ -264,7 +245,7 @@ export function NutritionStudioHero({
       {goalInfo && (
         <dl className="nv-fade-in mt-2 grid gap-1 border border-white/10 bg-white/[.05] p-2.5 text-xs sm:grid-cols-2">
           {goals.map((o) => (
-            <div key={o.value} className={o.value === selected.value ? "text-emerald-200" : ""}>
+            <div key={o.value} className={o.value === selected.value ? "text-white" : ""}>
               <dt className="font-bold">{o.label}</dt>
               <dd className="text-white/70">{o.description}</dd>
             </div>
@@ -272,35 +253,35 @@ export function NutritionStudioHero({
         </dl>
       )}
 
-      <div className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
+      <div className="mt-2 grid grid-cols-2 gap-1.5 lg:grid-cols-4">
         {chips.map((c) => {
           const pct = c.goal ? (c.v / c.goal) * 100 : 0;
-          const Icon = chipIcon[c.k];
           return (
             <button
               key={c.k}
               type="button"
               onClick={() => setInfo(c.k)}
               aria-label={`${c.label} hoje: ${fmt(c.v)} de ${fmt(c.goal)} ${c.unit}. Ver detalhes`}
-              className="group relative grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2.5 border border-white/10 bg-white/[.06] p-2.5 text-left transition hover:bg-white/[.12]"
-              style={{ borderLeft: `3px solid ${c.color}` }}
+              className="group border border-white/10 bg-white/[.04] px-2.5 py-1.5 text-left transition hover:bg-white/[.09]"
             >
-              <span className="relative grid place-items-center">
-                <Ring pct={pct} color={c.color} />
-                <Icon size={15} className="absolute" style={{ color: c.color }} />
-              </span>
-              <span className="min-w-0">
+              <span className="flex items-baseline justify-between gap-2">
                 <span className="flex items-center gap-1 text-[11px] text-white/65">
-                  {c.label} hoje
-                  <Info size={11} className="opacity-60 group-hover:opacity-100" />
+                  {c.label}
+                  <Info size={10} className="opacity-50 group-hover:opacity-100" />
                 </span>
-                <span className="block truncate text-lg font-extrabold leading-tight tabular-nums">
+                <span className="text-sm font-bold tabular-nums">
                   {fmt(c.v)}
-                  <span className="text-[11px] font-semibold text-white/50">
+                  <span className="text-[11px] font-medium text-white/50">
                     {" "}
                     / {fmt(c.goal)} {c.unit}
                   </span>
                 </span>
+              </span>
+              <span className="mt-1 block h-[3px] bg-white/10">
+                <i
+                  className="block h-full transition-[width] duration-700"
+                  style={{ width: Math.min(100, pct) + "%", background: c.color }}
+                />
               </span>
             </button>
           );
@@ -326,7 +307,7 @@ export function NutritionStudioHero({
               />
             ))}
           </div>
-          <p className="mt-1 flex flex-wrap gap-x-3 text-[10.5px] text-white/60">
+          <p className="mt-1 flex flex-wrap gap-x-3 text-[10px] text-white/55">
             <span>De onde vêm as calorias de hoje:</span>
             {shares.map((s) => (
               <span key={s.k} className="inline-flex items-center gap-1">

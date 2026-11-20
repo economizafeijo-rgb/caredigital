@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
+import { RecordInfo } from "./RecordInfo";
 import {
   Activity,
   Check,
@@ -1278,13 +1279,6 @@ function Row({
           : item.status === "now"
             ? "Na hora"
             : "Programado";
-  const whenText =
-    item.status === "done" && item.doneAt
-      ? `Registrado às ${hm(item.doneAt)}`
-      : `Horário ${item.status === "planned" || item.status === "now" || item.status === "late" ? "previsto" : ""} ${hm(item.at)}`
-          .replace(/\s+/g, " ")
-          .trim();
-  const summary = `${item.title} — ${statusText}. ${whenText}. Clique para ver detalhes.`;
   const hot = item.status === "now" || item.status === "late";
   const hasMenu = Boolean(canSkip || item.edit || item.remove || item.undo);
   const chip =
@@ -1319,7 +1313,6 @@ function Row({
         type="button"
         onClick={() => setShowInfo((v) => !v)}
         aria-expanded={showInfo}
-        title={summary}
         className="min-w-0 text-left"
       >
         <span className="flex min-w-0 items-center gap-1.5">
@@ -1342,6 +1335,21 @@ function Row({
         </span>
       </button>
       <span className="flex items-center gap-1">
+        <RecordInfo
+          title={item.title}
+          at={new Date(item.doneAt ?? item.at).toISOString()}
+          category={k.label}
+          color={k.color}
+          description={item.detail || undefined}
+          className="!size-6 !rounded-none"
+          rows={[
+            { label: "Situação", value: statusText },
+            ...(done && item.doneAt && Math.abs(item.doneAt - item.at) > 60_000
+              ? [{ label: "Previsto para", value: hm(item.at) }]
+              : []),
+            ...(item.task ? [{ label: "Origem", value: "Programado pela equipe" }] : []),
+          ]}
+        />
         {(done || skipped) && (
           <AnimatedLock size={14} label={done ? "Registrado" : "Respondido: não fiz"} />
         )}
