@@ -854,28 +854,6 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
           </p>
         ) : (
           <>
-            <nav
-              className="flex shrink-0 snap-x items-stretch gap-px overflow-x-auto overflow-y-hidden border border-border bg-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden xl:hidden"
-              aria-label="Áreas do acompanhamento"
-            >
-              {sections.map(({ key, label, icon: Icon }) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => openSection(key)}
-                  aria-current={activeTab === key ? "page" : undefined}
-                  className={`inline-flex h-10 shrink-0 snap-start items-center gap-2 border-b-2 px-3 text-xs font-semibold transition-colors ${activeTab === key ? `border-b-foreground bg-card text-foreground` : "border-b-transparent bg-card/70 text-muted-foreground hover:bg-card hover:text-foreground"}`}
-                >
-                  <span
-                    className={`grid size-5 place-items-center text-white ${clientSectionTheme[key].pill}`}
-                  >
-                    <Icon size={11} />
-                  </span>
-                  {label}
-                </button>
-              ))}
-            </nav>
-
             <header className="relative isolate flex min-h-0 shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 overflow-hidden rounded-xl bg-slate-950 px-3 py-2 text-white shadow-card [&_p]:!text-slate-200">
               <img
                 key={activeTab}
