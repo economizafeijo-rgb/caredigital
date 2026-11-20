@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { estimateNextHydration } from "@/lib/hydration-goal";
+import { mealKindOf, nextMealSuggestion, nextWaterPlan, type LoggedMeal } from "@/lib/day-plan";
 
 export type NextUp = { at: number; from: number | null; detail: string } | null;
 export type NextUps = {
@@ -65,7 +65,7 @@ export function useNextUps(
           .eq("taken_on", day),
         db
           .from("care_activity_log")
-          .select("category,happened_at,recorded_at")
+          .select("category,happened_at,recorded_at,details,request_id")
           .eq("patient_id", patientId)
           .in("category", ["refeicao", "atividade"])
           .in("event_type", ["confirmed", "logged"])
@@ -76,6 +76,11 @@ export function useNextUps(
           .eq("patient_id", patientId)
           .order("sleep_date", { ascending: false })
           .limit(7),
+        db
+          .from("care_nutrition_meal_logs")
+          .select("recorded_at,meal_name,items")
+          .eq("patient_id", patientId)
+          .gte("recorded_at", from),
       ];
     } catch {
       return () => {
@@ -83,7 +88,7 @@ export function useNextUps(
       };
     } // cliente de dados indisponível (ex.: testes)
     void Promise.all(queries).then(
-      ([water, bev, meds, medIn, sup, supIn, acts, sleep]: any[]) => {
+      ([water, bev, meds, medIn, sup, supIn, acts, sleep, mlogs]: any[]) => {
         if (!active) return;
         const now = Date.now();
         // Água
@@ -97,18 +102,8 @@ export function useNextUps(
             ml: Number(r.amount_ml),
           })),
         ].sort((a, b) => a.t - b.t);
-        const drank = drinks.reduce((s, d) => s + d.ml, 0);
         const last = drinks.at(-1) ?? null;
-        const w =
-          waterTarget > 0
-            ? estimateNextHydration({
-                remainingMl: Math.max(0, waterTarget - drank),
-                lastIntakeAt: last?.t ?? null,
-                lastAmountMl: last?.ml ?? 0,
-                now,
-                cutoff: at(day, "19:00"),
-              })
-            : null;
+        const w = nextWaterPlan({ targetMl: waterTarget, drinks, now, day });
         // Medicação e suplementos: próximo horário ainda não registrado
         const nextDose = (
           plans: any[],
@@ -136,16 +131,28 @@ export function useNextUps(
         );
         const medPlans = meds.data ?? [];
         // Refeições e atividade
-        const mealTimes = (acts.data ?? [])
-          .filter((r: any) => r.category === "refeicao")
-          .map((r: any) => Date.parse(r.happened_at ?? r.recorded_at))
-          .sort((a: number, b: number) => a - b);
-        const lastMeal = mealTimes.at(-1) ?? null;
-        const slots = ["07:00", "10:00", "12:30", "15:30", "19:00"].map((t) => at(day, t));
-        let meal = lastMeal
-          ? lastMeal + 3 * 3_600_000
-          : (slots.find((t) => t > now - 45 * 60_000) ?? null);
-        if (meal && meal > at(day, "21:30")) meal = null;
+        const seen = new Set<string>();
+        const logged: LoggedMeal[] = (acts.data ?? [])
+          .filter(
+            (r: any) =>
+              r.category === "refeicao" &&
+              (!r.request_id || (!seen.has(r.request_id) && seen.add(r.request_id))),
+          )
+          .map((r: any) => ({
+            t: Date.parse(r.happened_at ?? r.recorded_at),
+            kind:
+              mealKindOf(r.details?.kind) ||
+              mealKindOf(r.details?.title, r.details?.description, r.details?.meal_name),
+          }));
+        for (const r of mlogs?.data ?? []) {
+          const t = Date.parse(r.recorded_at);
+          if (logged.some((m) => Math.abs(m.t - t) < 3 * 60_000)) continue;
+          const list = Array.isArray(r.items) ? r.items.join(", ") : "";
+          logged.push({ t, kind: mealKindOf(r.meal_name) || mealKindOf(list) });
+        }
+        const { next: nextMeal, last: lastMealRec } = nextMealSuggestion(logged, day, now);
+        const lastMeal = lastMealRec?.t ?? null;
+        const meal = nextMeal ? nextMeal.at : null;
         const moved = (acts.data ?? []).some((r: any) => r.category === "atividade");
         const moveAt = at(day, "17:30");
         // Sono: média das últimas noites ou 22h30; aviso 30 min antes
@@ -162,7 +169,7 @@ export function useNextUps(
         if (now > bed + 3 * 3_600_000) bed += 86_400_000;
         setState({
           agua: w ? { at: w.at, from: last?.t ?? null, detail: `~${w.suggestedMl} ml` } : null,
-          refeicao: meal ? { at: meal, from: lastMeal, detail: "próxima refeição" } : null,
+          refeicao: meal && nextMeal ? { at: meal, from: lastMeal, detail: nextMeal.label } : null,
           med: nextDose(medPlans, medTaken, "id", (p) => `${p.name} · ${p.dose}`),
           supl: nextDose(sup.data ?? [], supTaken, "id", (p) => `${p.name} · ${p.dose} ${p.unit}`),
           sono: { at: bed - 30 * 60_000, from: bed - 4 * 3_600_000, detail: "hora de desacelerar" },

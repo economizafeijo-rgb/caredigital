@@ -11,7 +11,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { acreDateKey } from "@/lib/acre-time";
 import { WATER_LAST_RECOMMENDED_HOUR } from "@/lib/nutrition-science";
-import { estimateNextHydration } from "@/lib/hydration-goal";
+import { mealKindOf, nextMealSuggestion, nextWaterPlan, type LoggedMeal } from "@/lib/day-plan";
 import { clientSectionHashes, type ClientSection } from "@/lib/client-pages";
 import { CareTimer, useTicker } from "./CareTimer";
 
@@ -81,60 +81,83 @@ export function HomeModalityTimers() {
       const cutoff = Date.parse(
         day + `T${String(WATER_LAST_RECOMMENDED_HOUR).padStart(2, "0")}:00:00-05:00`,
       );
-      const [goal, water, tasks, meds, medTaken, sups, supTaken] = await Promise.all([
-        db.rpc("care_sync_hydration_goal", { p_patient_id: patientId }),
-        db
-          .from("care_hydration")
-          .select("amount_ml,recorded_at")
-          .eq("patient_id", patientId)
-          .gte("recorded_at", start.toISOString())
-          .order("recorded_at", { ascending: false })
-          .limit(1),
-        db
-          .from("care_daily_checklist")
-          .select("title,category,scheduled_at")
-          .eq("patient_id", patientId)
-          .is("completed_at", null)
-          .gte("scheduled_at", new Date(now - 30 * 60_000).toISOString())
-          .lt("scheduled_at", end.toISOString())
-          .order("scheduled_at")
-          .limit(60),
-        db
-          .from("care_client_medications")
-          .select("id,name,dose,times")
-          .eq("patient_id", patientId)
-          .eq("active", true),
-        db
-          .from("care_client_medication_intakes")
-          .select("medication_id,slot")
-          .eq("patient_id", patientId)
-          .eq("taken_on", day),
-        db
-          .from("care_supplement_plans")
-          .select("id,name,dose,unit,times")
-          .eq("patient_id", patientId)
-          .eq("active", true),
-        db
-          .from("care_supplement_intakes")
-          .select("plan_id,slot")
-          .eq("patient_id", patientId)
-          .eq("taken_on", day),
-      ]);
+      const [goal, water, tasks, meds, medTaken, sups, supTaken, bev, acts, mlogs] =
+        await Promise.all([
+          db.rpc("care_sync_hydration_goal", { p_patient_id: patientId }),
+          db
+            .from("care_hydration")
+            .select("amount_ml,recorded_at")
+            .eq("patient_id", patientId)
+            .gte("recorded_at", start.toISOString())
+            .order("recorded_at", { ascending: false })
+            .limit(300),
+          db
+            .from("care_daily_checklist")
+            .select("title,category,scheduled_at")
+            .eq("patient_id", patientId)
+            .is("completed_at", null)
+            .gte("scheduled_at", new Date(now - 30 * 60_000).toISOString())
+            .lt("scheduled_at", end.toISOString())
+            .order("scheduled_at")
+            .limit(60),
+          db
+            .from("care_client_medications")
+            .select("id,name,dose,times")
+            .eq("patient_id", patientId)
+            .eq("active", true),
+          db
+            .from("care_client_medication_intakes")
+            .select("medication_id,slot")
+            .eq("patient_id", patientId)
+            .eq("taken_on", day),
+          db
+            .from("care_supplement_plans")
+            .select("id,name,dose,unit,times")
+            .eq("patient_id", patientId)
+            .eq("active", true),
+          db
+            .from("care_supplement_intakes")
+            .select("plan_id,slot")
+            .eq("patient_id", patientId)
+            .eq("taken_on", day),
+          db
+            .from("care_client_beverages")
+            .select("amount_ml,consumed_at")
+            .eq("patient_id", patientId)
+            .gte("consumed_at", start.toISOString())
+            .limit(300),
+          db
+            .from("care_activity_log")
+            .select("happened_at,recorded_at,details,request_id")
+            .eq("patient_id", patientId)
+            .eq("category", "refeicao")
+            .in("event_type", ["confirmed", "logged"])
+            .gte("recorded_at", start.toISOString())
+            .limit(100),
+          db
+            .from("care_nutrition_meal_logs")
+            .select("recorded_at,meal_name,items")
+            .eq("patient_id", patientId)
+            .gte("recorded_at", start.toISOString())
+            .limit(100),
+        ]);
       if (!active) return;
       const list: ModalityTimer[] = [];
       const target = Number(goal.data?.target_ml ?? 0),
         consumed = Number(goal.data?.consumed_ml ?? 0);
-      const lastWater = water.data?.[0];
-      const plan =
-        target > 0
-          ? estimateNextHydration({
-              remainingMl: Math.max(0, target - consumed),
-              lastIntakeAt: lastWater ? Date.parse(lastWater.recorded_at) : null,
-              lastAmountMl: lastWater ? Number(lastWater.amount_ml) : 0,
-              now,
-              cutoff,
-            })
-          : null;
+      const drinks = [
+        ...(water.data ?? []).map((r: any) => ({
+          t: Date.parse(r.recorded_at),
+          ml: Number(r.amount_ml),
+        })),
+        ...(bev?.data ?? []).map((r: any) => ({
+          t: Date.parse(r.consumed_at),
+          ml: Number(r.amount_ml),
+        })),
+      ];
+      const drank = drinks.reduce((sum, d) => sum + d.ml, 0);
+      // Mesma regra da Hidratação e do Meu dia: todos os líquidos e o mesmo horário-limite.
+      const plan = nextWaterPlan({ targetMl: target, drinks, now, day });
       list.push({
         key: "water",
         section: "hidratacao",
@@ -150,7 +173,7 @@ export function HomeModalityTimers() {
             : "Defina sua meta de água",
         note:
           target > 0
-            ? `${consumed.toLocaleString("pt-BR")} de ${target.toLocaleString("pt-BR")} ml hoje`
+            ? `${Math.max(consumed, drank).toLocaleString("pt-BR")} de ${target.toLocaleString("pt-BR")} ml hoje`
             : "Abra a hidratação para calcular a meta",
       });
       const first = (category: string) =>
@@ -192,15 +215,35 @@ export function HomeModalityTimers() {
         title: sup ? `${sup.plan.name} · ${sup.plan.dose}` : "Nenhuma dose pendente hoje",
         note: sup ? "Registre ao tomar" : "Programe seus suplementos",
       });
-      const meal = first("refeicao");
+      // Refeições: as realmente registradas (agenda e Alimentação) definem qual horário falta.
+      const seen = new Set<string>();
+      const logged: LoggedMeal[] = (acts?.data ?? [])
+        .filter((r: any) => !r.request_id || (!seen.has(r.request_id) && seen.add(r.request_id)))
+        .map((r: any) => ({
+          t: Date.parse(r.happened_at ?? r.recorded_at),
+          kind:
+            mealKindOf(r.details?.kind) ||
+            mealKindOf(r.details?.title, r.details?.description, r.details?.meal_name),
+        }));
+      for (const r of mlogs?.data ?? []) {
+        const t = Date.parse(r.recorded_at);
+        if (logged.some((m) => Math.abs(m.t - t) < 3 * 60_000)) continue;
+        const items = Array.isArray(r.items) ? r.items.join(", ") : "";
+        logged.push({ t, kind: mealKindOf(r.meal_name) || mealKindOf(items) });
+      }
+      const { next: nextMeal, last: lastMeal } = nextMealSuggestion(logged, day, now);
       list.push({
         key: "meal",
         section: "alimentacao",
         label: "Próxima refeição",
         icon: UtensilsCrossed,
-        at: meal ? Date.parse(meal.scheduled_at) : null,
-        title: meal?.title ?? "Sem refeição programada",
-        note: meal ? "Registre o que comeu" : "Registre suas refeições quando quiser",
+        at: nextMeal && nextMeal.at < Date.parse(day + "T22:00:00-05:00") ? nextMeal.at : null,
+        title:
+          nextMeal?.label ??
+          (logged.length ? "Refeições de hoje registradas" : "Sem refeição prevista"),
+        note: lastMeal
+          ? `${logged.length} ${logged.length === 1 ? "refeição registrada" : "refeições registradas"} hoje`
+          : "Sugestão de horário · registre o que comeu",
       });
       setTimers(list);
     })();

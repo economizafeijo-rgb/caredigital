@@ -136,15 +136,29 @@ function useWeek(patientId: string, ownerId: string, revision: number) {
     ]).then(
       ([water, logs, foods, meds, acts, mealActs, bevs]) => {
         if (!active) return;
-        const foodGroups = new Map<string, string>();
+        // Uma refeição só conta uma vez, mesmo registrada por mais de um caminho (agenda, Alimentação, calculadora):
+        // mesma regra do "Meu dia" (registros a menos de 3 min um do outro são a mesma refeição).
+        const mealTimes: number[] = [];
+        const addMeal = (iso: string) => {
+          const t = Date.parse(iso);
+          if (mealTimes.some((m) => Math.abs(m - t) < 3 * 60_000)) return;
+          mealTimes.push(t);
+        };
+        const seenReq = new Set<string>();
         for (const m of mealActs?.data ?? []) {
           if (m.details?.superseded) continue;
           const g = m.details?.request_id ?? `act:${m.id}`;
-          if (!foodGroups.has(g)) foodGroups.set(g, m.happened_at ?? m.recorded_at);
+          if (seenReq.has(g)) continue;
+          seenReq.add(g);
+          addMeal(m.happened_at ?? m.recorded_at);
         }
+        for (const r of logs.data ?? []) addMeal(r.recorded_at);
+        const seenGroup = new Set<string>();
         for (const f of foods.data ?? []) {
           const g = f.meal_group_id ?? f.request_id;
-          if (g && !foodGroups.has(g)) foodGroups.set(g, f.recorded_at);
+          if (!g || seenGroup.has(g)) continue;
+          seenGroup.add(g);
+          addMeal(f.recorded_at);
         }
         setSeries([
           // Água + outras bebidas (suco, chá, café, leite…): todos contam como líquidos do dia.
@@ -163,10 +177,7 @@ function useWeek(patientId: string, ownerId: string, revision: number) {
           },
           {
             key: "alimentacao",
-            days: bucket([
-              ...(logs.data ?? []).map((r: any) => ({ at: r.recorded_at, v: 1 })),
-              ...[...foodGroups.values()].map((at) => ({ at, v: 1 })),
-            ]),
+            days: bucket(mealTimes.map((t) => ({ at: new Date(t).toISOString(), v: 1 }))),
           },
           {
             key: "medicacao",

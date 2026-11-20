@@ -31,6 +31,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useDialog } from "@/lib/dialog";
 import { estimateNextHydration } from "@/lib/hydration-goal";
+import { mealKindOf, waterCutoff } from "@/lib/day-plan";
 import { careReminderState, type ReminderTask } from "@/lib/care-reminders";
 import { clientSectionHashes, type ClientSection } from "@/lib/client-pages";
 import { AnimatedLock } from "./AnimatedLock";
@@ -177,22 +178,6 @@ const PERIODS = [
   },
   { id: "noite", label: "Noite", icon: Sunset, color: "#818cf8", test: (h: number) => h >= 18 },
 ] as const;
-/** Descobre o tipo da refeição pelo que foi gravado: o campo "tipo" e, se faltar, o título ou a descrição. */
-const mealKindOf = (...parts: unknown[]): string => {
-  const n = parts
-    .map((x) => String(x ?? ""))
-    .join(" ")
-    .toLowerCase();
-  return /caf[eé]\s*(da)?\s*manh|desjejum/.test(n)
-    ? "cafe_manha"
-    : /almo/.test(n)
-      ? "almoco"
-      : /jant/.test(n)
-        ? "jantar"
-        : /lanch|colaç|colac|ceia/.test(n)
-          ? "lanche"
-          : "";
-};
 const go = (area: ClientSection) => {
   window.location.hash = clientSectionHashes[area];
 };
@@ -677,13 +662,16 @@ export function ClientDayPlanner({
       let remaining = Math.max(0, target - drinks.reduce((s, d) => s + d.ml, 0));
       let last = drinks.at(-1) ?? null;
       let cursor = now;
+      const cutoff = waterCutoff(day);
+      const recent = drinks.map((d) => ({ at: d.t, ml: d.ml }));
       for (let i = 0; i < 10 && remaining >= 10; i++) {
         const next = estimateNextHydration({
           remainingMl: remaining,
           lastIntakeAt: last?.t ?? null,
           lastAmountMl: last?.ml ?? 0,
           now: cursor,
-          cutoff: at(day, "19:00"),
+          cutoff,
+          recent,
         });
         if (!next) break;
         const id = `agua-plan-${i}`;
@@ -746,9 +734,10 @@ export function ClientDayPlanner({
               : undefined,
         });
         remaining -= ml;
+        recent.push({ at: next.at, ml });
         last = { t: next.at, ml } as any;
         cursor = next.at + 1;
-        if (next.at >= at(day, "19:00")) break;
+        if (next.at >= cutoff) break;
       }
     }
 
