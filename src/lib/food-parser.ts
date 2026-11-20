@@ -77,6 +77,19 @@ export const foodMicros: Record<string, [number, number, number, number, number]
   feijao_preto: [0, 0, 29, 1.5, 256],
   frango: [0, 6, 8, 0.4, 250],
   frango_molho: [8, 8, 11, 0.9, 260],
+  bolo_milho: [0, 30, 60, 0.8, 90],
+  bolo_cenoura: [1, 300, 60, 0.9, 120],
+  bolo_leite: [0, 40, 70, 0.7, 80],
+  sorvete: [0.5, 70, 110, 0.1, 160],
+  iogurte_grego: [0.5, 25, 115, 0.1, 150],
+  queijo_regional: [0, 150, 480, 0.3, 60],
+  pao_queijo: [0, 100, 90, 0.5, 70],
+  pastel: [0, 20, 30, 1.4, 140],
+  leite_condensado: [2, 60, 250, 0.2, 380],
+  creme_leite: [0.5, 200, 80, 0.1, 100],
+  goiabada: [10, 10, 15, 0.4, 100],
+  doce_leite: [1, 50, 200, 0.1, 300],
+  pe_moleque: [0, 0, 40, 1.2, 300],
   carne: [0, 0, 5, 2.4, 290],
   peixe: [0, 10, 20, 0.3, 300],
   tilapia: [0, 0, 10, 0.6, 350],
@@ -228,6 +241,22 @@ export const foodMicros: Record<string, [number, number, number, number, number]
 
 /** Palavras-chave → alimento do catálogo. Ordem importa: termos mais específicos primeiro. */
 const aliases: Array<[RegExp, string]> = [
+  [/p(ão|ao|ães|aes) de queijo/, "pao_queijo"],
+  [/bolo de milho|bolo de fub[aá]/, "bolo_milho"],
+  [/bolo de cenoura/, "bolo_cenoura"],
+  [/bolo de leite/, "bolo_leite"],
+  [/sorvete|picol[eé] de creme|sundae/, "sorvete"],
+  [/iogurte grego|yogurte grego/, "iogurte_grego"],
+  [
+    /queijo (da|de|na) regi[aã]o|queijo (colonial|artesanal|caseiro)|queijo da terra/,
+    "queijo_regional",
+  ],
+  [/pastel|past[eé]is/, "pastel"],
+  [/leite condensado/, "leite_condensado"],
+  [/creme de leite/, "creme_leite"],
+  [/goiabada|doce de goiaba/, "goiabada"],
+  [/doce de leite/, "doce_leite"],
+  [/p[eé]\s*-?de\s*-?moleque/, "pe_moleque"],
   [/miojo|macarr[aã]o instant[aâ]neo|lámen|lamen|nissin/, "macarrao_instantaneo"],
   [/catchup|ketchup/, "ketchup"],
   [/maionese/, "maionese"],
@@ -342,7 +371,10 @@ const aliases: Array<[RegExp, string]> = [
   [/batata (inglesa )?frita|batatas fritas/, "batata_frita"],
   [/(macaxeira|mandioca|aipim) (assad|grelhad)[ao]/, "macaxeira_assada"],
   [/inhame (assado|grelhado)/, "inhame_assado"],
-  [/frango (ao|com|de|no) molho|frango ensopado|frango (a )?cabidela|molho de frango/, "frango_molho"],
+  [
+    /frango (ao|com|de|no) molho|frango ensopado|frango (a )?cabidela|molho de frango/,
+    "frango_molho",
+  ],
   [/frango grelhado|fil[eé] de frango|peito de frango( grelhado)?/, "frango_grelhado"],
   [/\bbife|contra.?fil[eé]|carne grelhada|alcatra grelhada/, "contrafile_grelhado"],
   [/bisteca|costeleta de porco|lombo de porco/, "bisteca_grelhada"],
@@ -398,7 +430,10 @@ const aliases: Array<[RegExp, string]> = [
   [/gramix[oó]|a[cç][uú]car (macaco|mascavo|preto)|rapadura/, "acucar_gramixo"],
   [/pizza/, "pizza"],
   [/feijoada (enlatada|em lata|de lata|latada|em latada)|lata de feijoada/, "feijoada_lata"],
-  [/feij(oada|[aã]o) (de|com|c\/) (jab[aá]|charque|carne[- ]seca|carne de sol)|jab[aá] com feij[aã]o/, "feijoada_jaba"],
+  [
+    /feij(oada|[aã]o) (de|com|c\/) (jab[aá]|charque|carne[- ]seca|carne de sol)|jab[aá] com feij[aã]o/,
+    "feijoada_jaba",
+  ],
   [/feijoada/, "feijoada"],
   [/macarronada|macarr[aã]o (ao|à|a) bolonhesa|espaguete (ao|à|a) bolonhesa/, "macarronada"],
   [/crepioca/, "crepioca"],
@@ -567,6 +602,19 @@ const defaultPortion: Record<string, number> = {
   feijao_preto: 100,
   frango: 120,
   frango_molho: 150,
+  bolo_milho: 60,
+  bolo_cenoura: 80,
+  bolo_leite: 60,
+  sorvete: 60,
+  iogurte_grego: 170,
+  queijo_regional: 40,
+  pao_queijo: 25,
+  pastel: 80,
+  leite_condensado: 20,
+  creme_leite: 30,
+  goiabada: 30,
+  doce_leite: 20,
+  pe_moleque: 25,
   carne: 120,
   peixe: 120,
   tilapia: 120,
@@ -746,6 +794,7 @@ const unitGrams: Array<[RegExp, number]> = [
   [/colher(es)? de sopa/, 25],
   [/colher(es)?/, 15],
   [/concha(s)?/, 100],
+  [/bola(s)?/, 60],
   [/fatia(s)?/, 30],
   [/x[ií]cara(s)?/, 160],
   [/copo(s)?/, 200],
@@ -849,7 +898,7 @@ export function parseFoodText(text: string, liquidMl?: number | null): ParsedFoo
         ? 110
         : sugarSpoon
           ? sugarSpoon
-          : unit && unit[1] > 0
+          : unit && unit[1] > 0 && !(/fatia/.test(segment) && /^bolo/.test(item.id))
             ? unit[1]
             : (defaultPortion[item.id] ?? 100);
       grams = count * base;

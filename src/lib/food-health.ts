@@ -53,7 +53,10 @@ const overrides: Record<string, [HealthLevel, string]> = {
   cafe: ["frequente", "Sem açúcar, até 3 a 4 xícaras por dia."],
   manteiga: ["moderacao", "Gordura saturada: pouca quantidade."],
   feijoada: ["moderacao", "Leva carnes gordas e embutidos; prefira a versão com mais feijão."],
-  feijoada_jaba: ["moderacao", "Carne-seca e toucinho deixam o prato salgado e gorduroso; porção moderada."],
+  feijoada_jaba: [
+    "moderacao",
+    "Carne-seca e toucinho deixam o prato salgado e gorduroso; porção moderada.",
+  ],
   panelada: ["moderacao", "Gordura e sódio altos; porção pequena."],
   churrasco: ["moderacao", "Cortes gordos; prefira os magros e evite a parte queimada."],
   pizza: ["ocasional", "Massa refinada, queijo e embutidos: muito sódio e gordura."],
@@ -65,7 +68,38 @@ const overrides: Record<string, [HealthLevel, string]> = {
   mungunza: ["moderacao", "Adoçado e com leite de coco: porção pequena."],
   mingau_maisena: ["moderacao", "Amido refinado e açúcar: o de aveia sacia mais."],
   macarronada: ["moderacao", "Massa refinada: capriche no molho de tomate e na salada."],
-  frango_molho: ["moderacao", "Prefira sem pele e com pouco óleo no molho; o frango cozido simples é mais leve."],
+  bolo_milho: [
+    "moderacao",
+    "Doce de dia de festa: uma fatia pequena e, de preferência, com fruta ou café sem açúcar.",
+  ],
+  bolo_cenoura: [
+    "moderacao",
+    "A cobertura de chocolate dobra o açúcar: prefira sem cobertura e fatia pequena.",
+  ],
+  bolo_leite: ["moderacao", "Açúcar e farinha refinada: fatia pequena e acompanhada de fruta."],
+  sorvete: ["ocasional", "Açúcar e gordura saturada: reserve para ocasiões e porção pequena."],
+  iogurte_grego: ["frequente", "Rico em proteína e sacia bem; prefira o natural, sem açúcar."],
+  queijo_regional: [
+    "moderacao",
+    "Boa proteína e cálcio, mas sal e gordura altos: porção de 1 fatia.",
+  ],
+  pao_queijo: [
+    "moderacao",
+    "Gordura e sódio: poucas unidades; combina melhor com fruta ou café sem açúcar.",
+  ],
+  pastel: ["ocasional", "Frito e com massa refinada: reserve para ocasiões e prefira o assado."],
+  leite_condensado: ["ocasional", "Açúcar concentrado: use em pequena quantidade."],
+  creme_leite: ["moderacao", "Muita gordura saturada: use em pouca quantidade no preparo."],
+  goiabada: [
+    "moderacao",
+    "Açúcar concentrado, mas com fibra e vitamina C; fatia fina com queijo é um bom par.",
+  ],
+  doce_leite: ["ocasional", "Açúcar concentrado: 1 colher de sopa já é uma boa porção."],
+  pe_moleque: ["ocasional", "Açúcar e gordura do amendoim: 1 unidade pequena por vez."],
+  frango_molho: [
+    "moderacao",
+    "Prefira sem pele e com pouco óleo no molho; o frango cozido simples é mais leve.",
+  ],
   frango_assado: ["moderacao", "A pele concentra a gordura: retire antes de comer."],
   hamburguer_grelhado: [
     "moderacao",

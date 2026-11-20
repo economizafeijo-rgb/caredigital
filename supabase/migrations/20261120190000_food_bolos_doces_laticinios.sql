@@ -1,0 +1,18 @@
+-- Novos alimentos: bolos, sorvete, iogurte grego, queijo da região, pão de queijo, pastel, doces e laticínios (valores por 100 g).
+-- Fontes: TACO (UNICAMP) e IBGE (POF 2008-2009); itens 'estimativa' são médias editoriais.
+insert into public.care_food_catalog (id,name,food_group,kcal,protein_g,carbs_g,fat_g,fiber_g,provenance,note,flags)
+values
+($q$bolo_milho$q$,$q$Bolo de milho (pronto)$q$,$q$cereais$q$,311,4.8,45.1,12.4,0.7,$q$TACO$q$,$q$TACO (UNICAMP), bolo pronto de milho. 1 fatia ≈ 60 g.$q$,array[$q$industrializado$q$]::text[]),
+($q$bolo_cenoura$q$,$q$Bolo de cenoura (com ou sem cobertura)$q$,$q$cereais$q$,345,4.2,44.3,17.3,1.2,$q$IBGE$q$,$q$IBGE (POF 2008-2009). Fibra estimada. A cobertura de chocolate aumenta açúcar e gordura. 1 fatia ≈ 80 g.$q$,array[$q$industrializado$q$]::text[]),
+($q$bolo_leite$q$,$q$Bolo de leite (bolo de trigo com leite)$q$,$q$cereais$q$,330,6,50,11.5,0.8,$q$estimativa$q$,$q$Estimativa editorial para bolo caseiro de farinha de trigo, ovos, açúcar, leite e óleo; varia com a receita. 1 fatia ≈ 60 g.$q$,array[$q$industrializado$q$,$q$laticinio$q$]::text[]),
+($q$sorvete$q$,$q$Sorvete de massa (creme e outros sabores)$q$,$q$cereais$q$,206,3.6,25.1,11,0.4,$q$IBGE$q$,$q$IBGE (POF), sorvete industrializado de qualquer sabor. Fibra estimada. 1 bola ≈ 60 g.$q$,array[$q$industrializado$q$,$q$laticinio$q$]::text[]),
+($q$iogurte_grego$q$,$q$Iogurte grego natural$q$,$q$proteinas$q$,95,9,4,5,0,$q$estimativa$q$,$q$Estimativa editorial para iogurte grego natural integral (rótulos brasileiros e USDA). Versões desnatadas têm menos gordura e saborizadas, mais açúcar. 1 pote ≈ 170 g.$q$,array[$q$laticinio$q$]::text[]),
+($q$queijo_regional$q$,$q$Queijo artesanal da região (tipo colonial/coalho fresco)$q$,$q$proteinas$q$,280,19,2,22,0,$q$estimativa$q$,$q$Estimativa editorial entre o queijo coalho e o minas frescal: queijo artesanal de leite de vaca. Varia muito entre produtores; sal e gordura costumam ser altos. 1 fatia ≈ 40 g.$q$,array[$q$gorduroso$q$,$q$laticinio$q$]::text[]),
+($q$pao_queijo$q$,$q$Pão de queijo (assado)$q$,$q$cereais$q$,363,5.1,34.2,24.6,0.4,$q$IBGE$q$,$q$IBGE (POF). Fibra estimada. 1 unidade média ≈ 25 g.$q$,array[$q$gorduroso$q$,$q$laticinio$q$]::text[]),
+($q$pastel$q$,$q$Pastel de carne frito$q$,$q$cereais$q$,388,10.1,43.8,20.1,1.5,$q$TACO$q$,$q$TACO (UNICAMP), pastel de carne frito. Fibra estimada. 1 unidade média ≈ 80 g.$q$,array[$q$frito$q$,$q$gorduroso$q$]::text[]),
+($q$leite_condensado$q$,$q$Leite condensado$q$,$q$proteinas$q$,313,7.7,57,6.7,0,$q$TACO$q$,$q$TACO (UNICAMP). Muito açúcar: 1 colher de sopa ≈ 20 g.$q$,array[$q$laticinio$q$,$q$industrializado$q$]::text[]),
+($q$creme_leite$q$,$q$Creme de leite$q$,$q$proteinas$q$,221,1.5,4.5,22.5,0,$q$TACO$q$,$q$TACO (UNICAMP). 1 colher de sopa ≈ 15 g.$q$,array[$q$gorduroso$q$,$q$laticinio$q$]::text[]),
+($q$goiabada$q$,$q$Goiabada$q$,$q$frutas$q$,291,0.8,74.3,0.3,2.5,$q$IBGE$q$,$q$IBGE (POF). Fibra estimada. Açúcar concentrado: 1 fatia fina ≈ 30 g.$q$,array[$q$industrializado$q$]::text[]),
+($q$doce_leite$q$,$q$Doce de leite cremoso$q$,$q$proteinas$q$,306,5.5,59.5,6,0,$q$TACO$q$,$q$TACO (UNICAMP). 1 colher de sopa ≈ 20 g.$q$,array[$q$laticinio$q$,$q$industrializado$q$]::text[]),
+($q$pe_moleque$q$,$q$Pé de moleque$q$,$q$cereais$q$,474,9.1,69.2,17.9,3,$q$IBGE$q$,$q$IBGE (POF). Fibra estimada. 1 unidade ≈ 25 g.$q$,array[$q$gorduroso$q$,$q$industrializado$q$]::text[])
+on conflict (id) do update set name=excluded.name, kcal=excluded.kcal, protein_g=excluded.protein_g, carbs_g=excluded.carbs_g, fat_g=excluded.fat_g, fiber_g=excluded.fiber_g, provenance=excluded.provenance, note=excluded.note, flags=excluded.flags;
