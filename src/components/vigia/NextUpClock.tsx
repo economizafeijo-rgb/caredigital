@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Bell, BellOff, Check, Clock3, Pencil, TimerReset, X } from "lucide-react";
+import { useEffect, useId, useRef, useState } from "react";
+import { Bell, Check, Pencil, TimerReset, Volume2, VolumeX, X } from "lucide-react";
 
 const SOUND_KEY = "nv-alert-sound";
 let audioCtx: AudioContext | null = null;
@@ -128,6 +128,7 @@ export function NextUpClock({
   const [now, setNow] = useState(() => Date.now());
   const [snooze, setSnooze] = useState<number | null>(null);
   const sound = useAlertSound();
+  const gid = useId().replace(/:/g, "");
   const [menu, setMenu] = useState(false);
   const fired = useRef<string | null>(null);
   useEffect(() => {
@@ -208,259 +209,265 @@ export function NextUpClock({
   const lateMin = due && when !== null ? Math.max(0, Math.floor((now - when) / 60_000)) : 0;
 
   return (
-    <div
-      className={`${compact ? "flex items-center gap-2.5 rounded-xl p-2" : "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2.5 p-2 pb-2.5"} relative overflow-hidden border backdrop-blur transition-colors duration-500 ${due ? "nv-due border-white/15 border-l-[3px] !border-l-amber-300 bg-amber-400/[.10]" : "border-white/15 bg-white/10"} ${className}`}
-      style={{ ["--due" as string]: PEND }}
-    >
-      {!compact && when !== null && (
-        <>
-          {/* Régua de progresso e cantos técnicos: dão cara de instrumento sem ocupar altura. */}
+    <div className="@container min-w-0">
+      <div
+        className={`${compact ? "flex items-center gap-2.5 rounded-xl p-2" : "grid grid-cols-1 gap-x-3 gap-y-2 bg-gradient-to-br from-white/[.10] to-white/[.03] p-2 pb-2.5 @[22rem]:grid-cols-[minmax(0,1fr)_auto] @[22rem]:items-center"} relative overflow-hidden border backdrop-blur transition-colors duration-500 ${due ? "nv-due border-white/15 border-l-[3px] !border-l-amber-300" : "border-white/15"} ${className}`}
+        style={{ ["--due" as string]: PEND }}
+      >
+        {!compact && when !== null && (
           <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[3px] bg-white/10">
             <span
               className="block h-full transition-[width] duration-1000 ease-linear"
               style={{
                 width: `${(due ? 1 : progress) * 100}%`,
-                background: ink,
-                boxShadow: `0 0 8px ${ink}`,
+                background: `linear-gradient(90deg, transparent, ${ink})`,
+                boxShadow: `0 0 10px ${ink}`,
               }}
             />
           </span>
-          <span
+        )}
+        <div className={`flex min-w-0 items-center gap-3 ${compact ? "" : "flex-1"}`}>
+          <div
+            className={`relative shrink-0 ${compact ? "size-[54px]" : "size-[58px]"}`}
             aria-hidden="true"
-            className="pointer-events-none absolute right-0 top-0 size-2 border-r border-t"
-            style={{ borderColor: ink }}
-          />
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute bottom-[3px] right-0 size-2 border-b border-r"
-            style={{ borderColor: ink }}
-          />
-        </>
-      )}
-      <div className={`flex min-w-0 items-center gap-2.5 ${compact ? "" : "flex-1"}`}>
-        <div
-          className={`relative shrink-0 ${compact ? "size-[54px]" : "size-[46px]"}`}
-          aria-hidden="true"
-        >
-          <svg viewBox="0 0 100 100" className="size-full">
-            {Array.from({ length: 60 }, (_, i) => {
-              const a = (i / 60) * Math.PI * 2,
-                big = i % 5 === 0;
-              const r1 = big ? 44 : 46,
-                r2 = 48.5;
-              return (
-                <line
-                  key={i}
-                  x1={50 + r1 * Math.sin(a)}
-                  y1={50 - r1 * Math.cos(a)}
-                  x2={50 + r2 * Math.sin(a)}
-                  y2={50 - r2 * Math.cos(a)}
-                  stroke="#fff"
-                  strokeOpacity={i === sec ? 0.95 : big ? 0.45 : 0.15}
-                  strokeWidth={big ? 1.6 : 1}
-                />
-              );
-            })}
-            <circle cx="50" cy="50" r={R} fill="none" stroke="#ffffff14" strokeWidth="6" />
-            <circle
-              cx="50"
-              cy="50"
-              r={R}
-              fill="none"
-              stroke={ink}
-              strokeWidth="6"
-              strokeLinecap="round"
-              transform="rotate(-90 50 50)"
-              className={due ? "nv-breathe" : ""}
-              strokeDasharray={C}
-              strokeDashoffset={C * (1 - (due ? 1 : progress))}
-              style={{
-                transition: "stroke-dashoffset 1s linear, stroke .5s",
-                filter: due ? "none" : `drop-shadow(0 0 3px ${ink})`,
-              }}
-            />
-            {!due && (
-              <line
-                x1="50"
-                y1="50"
-                x2={50 + 30 * Math.sin((sec / 60) * Math.PI * 2)}
-                y2={50 - 30 * Math.cos((sec / 60) * Math.PI * 2)}
-                stroke={color}
-                strokeWidth="1.6"
+          >
+            <svg viewBox="0 0 100 100" className="size-full">
+              {Array.from({ length: 60 }, (_, i) => {
+                const a = (i / 60) * Math.PI * 2,
+                  big = i % 5 === 0;
+                const r1 = big ? 44 : 46,
+                  r2 = 48.5;
+                return (
+                  <line
+                    key={i}
+                    x1={50 + r1 * Math.sin(a)}
+                    y1={50 - r1 * Math.cos(a)}
+                    x2={50 + r2 * Math.sin(a)}
+                    y2={50 - r2 * Math.cos(a)}
+                    stroke="#fff"
+                    strokeOpacity={i === sec ? 0.95 : big ? 0.45 : 0.15}
+                    strokeWidth={big ? 1.6 : 1}
+                  />
+                );
+              })}
+              <defs>
+                <linearGradient id={`${gid}-g`} x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stopColor={ink} stopOpacity=".35" />
+                  <stop offset="1" stopColor={ink} />
+                </linearGradient>
+              </defs>
+              <circle cx="50" cy="50" r={R} fill="#00000026" stroke="#ffffff14" strokeWidth="6" />
+              <circle
+                cx="50"
+                cy="50"
+                r={R}
+                fill="none"
+                stroke={compact ? ink : `url(#${gid}-g)`}
+                strokeWidth={compact ? 6 : 7}
                 strokeLinecap="round"
-                style={{ transition: sec === 0 ? "none" : "all .25s cubic-bezier(.4,2.2,.6,1)" }}
+                transform="rotate(-90 50 50)"
+                className={due ? "nv-breathe" : ""}
+                strokeDasharray={C}
+                strokeDashoffset={C * (1 - (due ? 1 : progress))}
+                style={{
+                  transition: "stroke-dashoffset 1s linear, stroke .5s",
+                  filter: due ? "none" : `drop-shadow(0 0 3px ${ink})`,
+                }}
               />
-            )}
-            {!due && <circle cx="50" cy="50" r="2.6" fill={color} />}
-          </svg>
-          <span className="absolute inset-0 grid place-items-center">
-            {due ? (
-              <span className={`relative grid place-items-center ${compact ? "size-8" : "size-7"}`}>
-                <svg viewBox="0 0 48 48" className="absolute inset-0 size-full">
-                  <circle cx="24" cy="24" r="20" fill="#fbbf24" fillOpacity=".14" />
-                  <circle
-                    cx="24"
-                    cy="24"
-                    r="20"
-                    fill="none"
-                    stroke="#fbbf24"
-                    strokeOpacity=".7"
-                    strokeWidth="1.2"
-                  />
-                  <circle
-                    cx="24"
-                    cy="24"
-                    r="20"
-                    fill="none"
-                    stroke="#fbbf24"
-                    strokeWidth="1.2"
-                    className="nv-ping-ring"
-                  />
-                </svg>
-                <Bell
-                  size={compact ? 14 : 15}
-                  className="nv-bell-swing relative"
-                  style={{ color: PEND }}
+              {!due && (
+                <line
+                  x1="50"
+                  y1="50"
+                  x2={50 + 30 * Math.sin((sec / 60) * Math.PI * 2)}
+                  y2={50 - 30 * Math.cos((sec / 60) * Math.PI * 2)}
+                  stroke={color}
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  style={{ transition: sec === 0 ? "none" : "all .25s cubic-bezier(.4,2.2,.6,1)" }}
                 />
-              </span>
-            ) : (
-              !compact && <Clock3 size={11} className="mt-5 text-white/50" />
-            )}
-          </span>
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="flex items-center justify-between gap-2 text-[11px] font-semibold text-white/70">
-            <span className="line-clamp-2 leading-tight" title={title}>
-              {title}
-            </span>
-            <button
-              type="button"
-              onClick={sound.toggle}
-              aria-pressed={sound.on}
-              aria-label={sound.on ? "Desativar alerta sonoro" : "Ativar alerta sonoro"}
-              title={sound.on ? "Som ativado" : "Som desativado"}
-              className="grid size-7 shrink-0 place-items-center rounded-full bg-white/10 text-white/80 transition hover:bg-white/20 active:scale-90"
-            >
-              {sound.on ? <Bell size={13} /> : <BellOff size={13} />}
-            </button>
-          </p>
-          {when === null ? (
-            <p className="mt-0.5 truncate text-sm font-bold">{emptyText}</p>
-          ) : due ? (
-            <p
-              className={`mt-0.5 flex items-baseline gap-2 whitespace-nowrap text-lg font-extrabold leading-none`}
-              style={{ color: PEND }}
-            >
-              {lateMin < 1 ? "É hora!" : "Pendente"}
-              {lateMin >= 1 && (
-                <span className="rounded-full bg-amber-400/20 px-2 py-0.5 text-[11px] font-bold text-amber-200">
-                  há{" "}
-                  {lateMin < 60
-                    ? `${lateMin} min`
-                    : `${Math.floor(lateMin / 60)} h ${String(lateMin % 60).padStart(2, "0")}`}
-                </span>
               )}
-            </p>
-          ) : (
-            <p
-              className={`mt-0.5 font-mono text-xl font-bold leading-none tabular-nums`}
-              style={compact ? undefined : { textShadow: `0 0 10px ${ink}66` }}
-            >
-              {countdown(when - now)}
-            </p>
-          )}
-          {when !== null && (
-            <p
-              className="mt-1 line-clamp-2 text-[10.5px] leading-snug text-white/60"
-              title={detail ?? undefined}
-            >
-              às {clockTime(when)}
-              {detail ? ` · ${detail}` : ""}
-            </p>
-          )}
-        </div>
-      </div>
-      {!compact && when !== null && (
-        <div
-          className={`flex h-8 shrink-0 items-stretch gap-1 transition-opacity duration-300 ${due || onPostpone || when - now < 15 * 60_000 ? "opacity-100" : "pointer-events-none opacity-0"}`}
-          aria-hidden={!(due || onPostpone || when - now < 15 * 60_000)}
-        >
-          {onAction && (
-            <button
-              type="button"
-              onClick={onAction}
-              className="inline-flex min-w-0 flex-1 items-center justify-center gap-1.5 whitespace-nowrap bg-white px-3 text-sm font-bold text-slate-900 transition hover:bg-white/90 active:scale-[.98]"
-            >
-              <Check size={15} className="shrink-0" />
-              <span className="max-w-[8rem] truncate">{actionLabel ?? "Registrar"}</span>
-            </button>
-          )}
-          {onAction && onEdit && (
-            <button
-              type="button"
-              onClick={onEdit}
-              title="Alterar a quantidade"
-              aria-label="Alterar a quantidade antes de registrar"
-              className="grid w-9 shrink-0 place-items-center border border-white/25 text-white/85 transition hover:bg-white/10 active:scale-95"
-            >
-              <Pencil size={14} />
-            </button>
-          )}
-          {onPostpone && (
-            <span className="relative flex">
+              {!due && <circle cx="50" cy="50" r="2.6" fill={color} />}
+            </svg>
+            <span className="absolute inset-0 grid place-items-center">
+              {due ? (
+                <span
+                  className={`relative grid place-items-center ${compact ? "size-8" : "size-8"}`}
+                >
+                  <svg viewBox="0 0 48 48" className="absolute inset-0 size-full">
+                    <circle cx="24" cy="24" r="20" fill="#fbbf24" fillOpacity=".14" />
+                    <circle
+                      cx="24"
+                      cy="24"
+                      r="20"
+                      fill="none"
+                      stroke="#fbbf24"
+                      strokeOpacity=".7"
+                      strokeWidth="1.2"
+                    />
+                    <circle
+                      cx="24"
+                      cy="24"
+                      r="20"
+                      fill="none"
+                      stroke="#fbbf24"
+                      strokeWidth="1.2"
+                      className="nv-ping-ring"
+                    />
+                  </svg>
+                  <Bell
+                    size={compact ? 14 : 15}
+                    className="nv-bell-swing relative"
+                    style={{ color: PEND }}
+                  />
+                </span>
+              ) : (
+                !compact && (
+                  <span className="mt-[26px] font-mono text-[8px] font-bold tabular-nums text-white/55">
+                    {Math.round(progress * 100)}%
+                  </span>
+                )
+              )}
+            </span>
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="flex items-center justify-between gap-2 text-[10.5px] font-semibold text-white/65">
+              <span className="min-w-0 truncate" title={title}>
+                {title}
+              </span>
               <button
                 type="button"
-                onClick={() => setMenu((m) => !m)}
-                aria-expanded={menu}
-                aria-label="Adiar"
-                title="Adiar"
+                onClick={sound.toggle}
+                aria-pressed={sound.on}
+                aria-label={sound.on ? "Desativar alerta sonoro" : "Ativar alerta sonoro"}
+                title={sound.on ? "Som ativado" : "Som desativado"}
+                className="grid size-5 shrink-0 place-items-center text-white/60 transition hover:text-white active:scale-90"
+              >
+                {sound.on ? <Volume2 size={13} /> : <VolumeX size={13} />}
+              </button>
+            </p>
+            {when === null ? (
+              <p className="mt-0.5 truncate text-sm font-bold">{emptyText}</p>
+            ) : due ? (
+              <p
+                className={`mt-0.5 flex items-baseline gap-2 whitespace-nowrap text-lg font-extrabold leading-none`}
+                style={{ color: PEND }}
+              >
+                {lateMin < 1 ? "É hora!" : "Pendente"}
+                {lateMin >= 1 && (
+                  <span className="rounded-full bg-amber-400/20 px-2 py-0.5 text-[11px] font-bold text-amber-200">
+                    há{" "}
+                    {lateMin < 60
+                      ? `${lateMin} min`
+                      : `${Math.floor(lateMin / 60)} h ${String(lateMin % 60).padStart(2, "0")}`}
+                  </span>
+                )}
+              </p>
+            ) : (
+              <p
+                className={`mt-0.5 whitespace-nowrap font-mono text-2xl font-bold leading-none tabular-nums tracking-tight`}
+                style={compact ? undefined : { textShadow: `0 0 10px ${ink}66` }}
+              >
+                {countdown(when - now)}
+              </p>
+            )}
+            {when !== null && (
+              <p
+                className="mt-1 truncate text-[10.5px] leading-snug text-white/60"
+                title={detail ?? undefined}
+              >
+                às {clockTime(when)}
+                {detail ? ` · ${detail}` : ""}
+              </p>
+            )}
+          </div>
+        </div>
+        {!compact && when !== null && (
+          <div
+            className={`flex h-8 w-full shrink-0 items-stretch gap-1 @[22rem]:w-auto transition-opacity duration-300 ${due || onPostpone || when - now < 15 * 60_000 ? "opacity-100" : "pointer-events-none opacity-0"}`}
+            aria-hidden={!(due || onPostpone || when - now < 15 * 60_000)}
+          >
+            {onAction && (
+              <button
+                type="button"
+                onClick={onAction}
+                style={{
+                  background: due ? PEND : `${ink}33`,
+                  borderColor: ink,
+                  color: due ? "#1c1300" : "#fff",
+                }}
+                className="inline-flex min-w-0 flex-1 items-center justify-center gap-1.5 whitespace-nowrap border px-3 text-[13px] font-bold transition hover:brightness-110 active:scale-[.98]"
+              >
+                <Check size={15} className="shrink-0" />
+                <span className="max-w-[8rem] truncate">{actionLabel ?? "Registrar"}</span>
+              </button>
+            )}
+            {onAction && onEdit && (
+              <button
+                type="button"
+                onClick={onEdit}
+                title="Alterar a quantidade"
+                aria-label="Alterar a quantidade antes de registrar"
+                className="grid w-9 shrink-0 place-items-center border border-white/25 text-white/85 transition hover:bg-white/10 active:scale-95"
+              >
+                <Pencil size={14} />
+              </button>
+            )}
+            {onPostpone && (
+              <span className="relative flex">
+                <button
+                  type="button"
+                  onClick={() => setMenu((m) => !m)}
+                  aria-expanded={menu}
+                  aria-label="Adiar"
+                  title="Adiar"
+                  className="grid w-9 shrink-0 place-items-center border border-white/25 text-white/85 transition hover:bg-white/10 active:scale-95"
+                >
+                  <TimerReset size={14} />
+                </button>
+                {menu && (
+                  <span className="absolute bottom-11 right-0 z-20 flex flex-col border border-white/20 bg-slate-950/95 p-1 text-[12px] shadow-xl">
+                    {[30, 60, 120, 180].map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => {
+                          setMenu(false);
+                          onPostpone(m);
+                        }}
+                        className="whitespace-nowrap px-4 py-1.5 text-left font-semibold text-white/90 hover:bg-white/10"
+                      >
+                        {m >= 60 ? `${m / 60} h` : `${m} min`}
+                      </button>
+                    ))}
+                  </span>
+                )}
+              </span>
+            )}
+            {onCancel && (
+              <button
+                type="button"
+                onClick={onCancel}
+                title="Sem apetite"
+                aria-label="Sem apetite"
+                className="grid w-9 shrink-0 place-items-center border border-white/25 text-white/75 transition hover:bg-white/10 hover:text-white active:scale-95"
+              >
+                <X size={14} />
+              </button>
+            )}
+            {due && !onPostpone && (
+              <button
+                type="button"
+                onClick={() => setSnooze(Date.now() + 10 * 60_000)}
+                title="Adiar 10 minutos"
+                aria-label="Adiar 10 minutos"
                 className="grid w-9 shrink-0 place-items-center border border-white/25 text-white/85 transition hover:bg-white/10 active:scale-95"
               >
                 <TimerReset size={14} />
               </button>
-              {menu && (
-                <span className="absolute bottom-11 right-0 z-20 flex flex-col border border-white/20 bg-slate-950/95 p-1 text-[12px] shadow-xl">
-                  {[30, 60, 120, 180].map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => {
-                        setMenu(false);
-                        onPostpone(m);
-                      }}
-                      className="whitespace-nowrap px-4 py-1.5 text-left font-semibold text-white/90 hover:bg-white/10"
-                    >
-                      {m >= 60 ? `${m / 60} h` : `${m} min`}
-                    </button>
-                  ))}
-                </span>
-              )}
-            </span>
-          )}
-          {onCancel && (
-            <button
-              type="button"
-              onClick={onCancel}
-              title="Sem apetite"
-              aria-label="Sem apetite"
-              className="grid w-9 shrink-0 place-items-center border border-white/25 text-white/75 transition hover:bg-white/10 hover:text-white active:scale-95"
-            >
-              <X size={14} />
-            </button>
-          )}
-          {due && !onPostpone && (
-            <button
-              type="button"
-              onClick={() => setSnooze(Date.now() + 10 * 60_000)}
-              title="Adiar 10 minutos"
-              aria-label="Adiar 10 minutos"
-              className="grid w-9 shrink-0 place-items-center border border-white/25 text-white/85 transition hover:bg-white/10 active:scale-95"
-            >
-              <TimerReset size={14} />
-            </button>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
