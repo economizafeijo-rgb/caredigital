@@ -1,5 +1,18 @@
 import { useEffect, useState } from "react";
-import { CheckCircle2, Clock3, History, Pencil, Trash2, X } from "lucide-react";
+import {
+  CheckCircle2,
+  Clock3,
+  Droplets,
+  History,
+  Minus,
+  Pencil,
+  Plus,
+  Trash2,
+  Utensils,
+  X,
+} from "lucide-react";
+import { ingredientById } from "@/lib/nutrition-catalog";
+import { measureUnit, nutrientsFor, parseFoodText } from "@/lib/food-parser";
 import { useDialog } from "@/lib/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { AnimatedLock } from "./AnimatedLock";
@@ -269,7 +282,27 @@ export function CareRecentHistory({
                     info: [
                       { label: "Consumido", value: what || d.title || "Refeição" },
                       ...(portion ? [{ label: "Porção", value: portion }] : []),
-                      ...(f && f.g > 0 ? [{ label: "Quantidade", value: `${n0(f.g)} g` }] : []),
+                      ...(() => {
+                        const pf = parseFoodText(what || "");
+                        if (pf.length > 0) {
+                          const kcal = pf.reduce((a, x) => a + x.nutrients.kcal, 0);
+                          return [
+                            {
+                              label: "Quantidade",
+                              value: pf
+                                .map(
+                                  (x) =>
+                                    `${x.name.split(",")[0]} ${n0(x.grams)} ${measureUnit(x.id)}`,
+                                )
+                                .join(" · "),
+                            },
+                            ...(!(f && f.kcal > 0) && kcal > 0
+                              ? [{ label: "Energia", value: `${n0(kcal)} kcal` }]
+                              : []),
+                          ];
+                        }
+                        return f && f.g > 0 ? [{ label: "Quantidade", value: `${n0(f.g)} g` }] : [];
+                      })(),
                       ...(f && f.kcal > 0
                         ? [
                             { label: "Energia", value: `${n0(f.kcal)} kcal` },
@@ -434,12 +467,24 @@ export function CareRecentHistory({
       active = false;
     };
   }, [patientId, ownerId, category, reload]);
+  useEffect(() => {
+    const on = () => setReload((n) => n + 1);
+    window.addEventListener("nv-intake-changed", on);
+    return () => window.removeEventListener("nv-intake-changed", on);
+  }, []);
   const [editing, setEditing] = useState<RecordRow | null>(null);
   const [fName, setFName] = useState("");
   const [fAmount, setFAmount] = useState("");
   const [fDesc, setFDesc] = useState("");
   const [fWhen, setFWhen] = useState("");
+  const [fItems, setFItems] = useState<{ id: string; name: string }[]>([]);
+  const [fQty, setFQty] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const itemKcal = (id: string, q: string) => {
+    const it = ingredientById.get(id);
+    const g = Number(q.replace(",", ".")) || 0;
+    return it && g > 0 ? nutrientsFor(it, g).kcal : 0;
+  };
   const acreLocal = (iso: string) => {
     const p = Object.fromEntries(
       new Intl.DateTimeFormat("en-CA", {
@@ -462,6 +507,9 @@ export function CareRecentHistory({
     setFAmount(row.edit?.amount ? String(row.edit.amount) : "");
     setFDesc(row.edit?.description ?? "");
     setFWhen(acreLocal(row.at));
+    const parsed = row.kind === "meal" ? parseFoodText(row.edit?.description ?? "") : [];
+    setFItems(parsed.map((x) => ({ id: x.id, name: x.name.split(",")[0] })));
+    setFQty(parsed.map((x) => String(Math.round(x.grams))));
   }
   async function saveEdit() {
     const row = editing;
@@ -480,7 +528,15 @@ export function CareRecentHistory({
       dialog.notify?.("Informe o nome da bebida.", "danger");
       return;
     }
-    if (row.kind === "meal" && fDesc.trim().length < 3) {
+    if (
+      row.kind === "meal" &&
+      fItems.length > 0 &&
+      fQty.some((q) => !(Number(q.replace(",", ".")) >= 1 && Number(q.replace(",", ".")) <= 5000))
+    ) {
+      dialog.notify?.("Informe quantidades entre 1 e 5.000.", "danger");
+      return;
+    }
+    if (row.kind === "meal" && fItems.length === 0 && fDesc.trim().length < 3) {
       dialog.notify?.("Descreva a refeição com pelo menos 3 letras.", "danger");
       return;
     }
@@ -499,7 +555,18 @@ export function CareRecentHistory({
       p_entry_type: row.kind,
       p_entry_id: row.rawId,
       p_description:
-        row.kind === "meal" ? fDesc.trim() : row.kind === "beverage" ? fName.trim() : null,
+        row.kind === "meal"
+          ? fItems.length > 0
+            ? fItems
+                .map(
+                  (it, i) =>
+                    `${it.name} ${Number(fQty[i].replace(",", "."))} ${measureUnit(it.id)}`,
+                )
+                .join(", ")
+            : fDesc.trim()
+          : row.kind === "beverage"
+            ? fName.trim()
+            : null,
       p_amount_ml: row.kind === "meal" ? null : amount,
       p_consumed_at: new Date(when).toISOString(),
     });
@@ -662,7 +729,7 @@ export function CareRecentHistory({
       )}
       {editing && (
         <div
-          className="fixed inset-0 z-[150] grid place-items-center bg-slate-950/60 p-3 backdrop-blur-sm"
+          className="fixed inset-0 z-[150] grid place-items-center bg-slate-950/70 p-3 backdrop-blur-sm"
           onMouseDown={(e) => e.target === e.currentTarget && setEditing(null)}
         >
           <form
@@ -673,11 +740,34 @@ export function CareRecentHistory({
               e.preventDefault();
               void saveEdit();
             }}
-            className="w-full max-w-sm border border-border bg-card p-4 text-foreground shadow-xl"
+            className="w-full max-w-md overflow-hidden border border-border bg-card text-foreground shadow-2xl"
           >
-            <p className="font-display text-base font-bold">Editar registro</p>
-            <p className="mb-3 text-xs text-muted-foreground">{editing.title}</p>
-            <div className="grid gap-2.5 text-xs font-semibold">
+            <div className="h-1" style={{ background: catColor[editing.category] }} />
+            <header className="flex items-start gap-3 px-5 pt-4">
+              <span
+                className="grid size-11 shrink-0 place-items-center border"
+                style={{
+                  color: catColor[editing.category],
+                  borderColor: `${catColor[editing.category]}66`,
+                  background: `${catColor[editing.category]}1a`,
+                }}
+              >
+                {editing.kind === "meal" ? <Utensils size={20} /> : <Droplets size={20} />}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="font-display text-lg font-bold leading-tight">Editar registro</p>
+                <p className="mt-0.5 truncate text-xs text-muted-foreground">{editing.title}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditing(null)}
+                aria-label="Fechar"
+                className="grid size-8 place-items-center text-muted-foreground hover:bg-muted"
+              >
+                <X size={16} />
+              </button>
+            </header>
+            <div className="grid gap-4 px-5 py-4 text-xs font-semibold">
               {editing.kind === "beverage" && (
                 <label>
                   Bebida
@@ -685,35 +775,145 @@ export function CareRecentHistory({
                     value={fName}
                     onChange={(e) => setFName(e.target.value)}
                     maxLength={100}
-                    className="mt-1 h-9 w-full border border-border bg-background px-2 text-sm"
+                    className="field mt-1 h-10 w-full"
                   />
                 </label>
               )}
               {editing.kind === "meal" ? (
-                <label>
-                  Descrição
-                  <textarea
-                    value={fDesc}
-                    onChange={(e) => setFDesc(e.target.value)}
-                    maxLength={1000}
-                    rows={3}
-                    className="mt-1 w-full border border-border bg-background p-2 text-sm"
-                  />
-                  <span className="mt-1 block font-normal text-muted-foreground">
-                    Mudar a descrição não recalcula calorias. Para trocar alimentos, exclua e
-                    registre de novo.
-                  </span>
-                </label>
+                fItems.length > 0 ? (
+                  <div>
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <span>Alimentos e quantidades</span>
+                      <span className="tabular-nums text-primary">
+                        {n0(fItems.reduce((a, it, i) => a + itemKcal(it.id, fQty[i] ?? ""), 0))}{" "}
+                        kcal
+                      </span>
+                    </div>
+                    <ul className="divide-y divide-border border border-border">
+                      {fItems.map((it, i) => (
+                        <li key={it.id + i} className="flex items-center gap-2 p-2">
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-sm font-bold">{it.name}</span>
+                            <span className="text-[11px] font-normal tabular-nums text-muted-foreground">
+                              {n0(itemKcal(it.id, fQty[i] ?? ""))} kcal
+                            </span>
+                          </span>
+                          <button
+                            type="button"
+                            aria-label="Diminuir"
+                            onClick={() =>
+                              setFQty((q) =>
+                                q.map((v, j) =>
+                                  j === i
+                                    ? String(Math.max(1, (Number(v.replace(",", ".")) || 0) - 10))
+                                    : v,
+                                ),
+                              )
+                            }
+                            className="grid size-8 place-items-center border border-border hover:bg-muted"
+                          >
+                            <Minus size={13} />
+                          </button>
+                          <input
+                            inputMode="decimal"
+                            value={fQty[i] ?? ""}
+                            onChange={(e) =>
+                              setFQty((q) => q.map((v, j) => (j === i ? e.target.value : v)))
+                            }
+                            onFocus={(e) => e.currentTarget.select()}
+                            aria-label={`Quantidade de ${it.name}`}
+                            className="field h-8 w-16 text-center tabular-nums"
+                          />
+                          <button
+                            type="button"
+                            aria-label="Aumentar"
+                            onClick={() =>
+                              setFQty((q) =>
+                                q.map((v, j) =>
+                                  j === i ? String((Number(v.replace(",", ".")) || 0) + 10) : v,
+                                ),
+                              )
+                            }
+                            className="grid size-8 place-items-center border border-border hover:bg-muted"
+                          >
+                            <Plus size={13} />
+                          </button>
+                          <span className="w-6 text-[11px] font-normal text-muted-foreground">
+                            {measureUnit(it.id)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="mt-1.5 font-normal text-muted-foreground">
+                      As calorias e os nutrientes são recalculados com a nova quantidade.
+                    </p>
+                  </div>
+                ) : (
+                  <label>
+                    Descrição
+                    <textarea
+                      value={fDesc}
+                      onChange={(e) => setFDesc(e.target.value)}
+                      maxLength={1000}
+                      rows={3}
+                      className="field mt-1 w-full p-2"
+                    />
+                    <span className="mt-1 block font-normal text-muted-foreground">
+                      Dica: escreva a quantidade, como “Tapioca 80 g”, para o sistema calcular as
+                      calorias.
+                    </span>
+                  </label>
+                )
               ) : (
-                <label>
-                  Quantidade (ml)
-                  <input
-                    inputMode="numeric"
-                    value={fAmount}
-                    onChange={(e) => setFAmount(e.target.value)}
-                    className="mt-1 h-9 w-full border border-border bg-background px-2 text-sm"
-                  />
-                </label>
+                <div>
+                  <label htmlFor="edit-ml">Quantidade (ml)</label>
+                  <div className="mt-1 flex">
+                    <button
+                      type="button"
+                      aria-label="Diminuir"
+                      onClick={() =>
+                        setFAmount(
+                          String(Math.max(10, (Number(fAmount.replace(",", ".")) || 0) - 50)),
+                        )
+                      }
+                      className="grid h-10 w-10 place-items-center border border-border hover:bg-muted"
+                    >
+                      <Minus size={14} />
+                    </button>
+                    <input
+                      id="edit-ml"
+                      inputMode="numeric"
+                      value={fAmount}
+                      onChange={(e) => setFAmount(e.target.value)}
+                      onFocus={(e) => e.currentTarget.select()}
+                      className="field h-10 flex-1 text-center text-base tabular-nums"
+                    />
+                    <button
+                      type="button"
+                      aria-label="Aumentar"
+                      onClick={() =>
+                        setFAmount(
+                          String(Math.min(1500, (Number(fAmount.replace(",", ".")) || 0) + 50)),
+                        )
+                      }
+                      className="grid h-10 w-10 place-items-center border border-border hover:bg-muted"
+                    >
+                      <Plus size={14} />
+                    </button>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {[100, 200, 250, 300, 500].map((v) => (
+                      <button
+                        key={v}
+                        type="button"
+                        onClick={() => setFAmount(String(v))}
+                        className={`border px-2.5 py-1 text-[11px] hover:bg-muted ${Number(fAmount) === v ? "border-primary text-primary" : "border-border"}`}
+                      >
+                        {v} ml
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
               <label>
                 Horário (Acre)
@@ -722,26 +922,26 @@ export function CareRecentHistory({
                   value={fWhen}
                   max={acreLocal(new Date().toISOString())}
                   onChange={(e) => setFWhen(e.target.value)}
-                  className="mt-1 h-9 w-full border border-border bg-background px-2 text-sm"
+                  className="field mt-1 h-10 w-full"
                 />
               </label>
             </div>
-            <div className="mt-4 flex justify-end gap-2">
+            <footer className="flex justify-end gap-2 border-t border-border bg-muted/30 px-5 py-3">
               <button
                 type="button"
                 onClick={() => setEditing(null)}
-                className="h-9 border border-border px-3 text-xs font-semibold hover:bg-muted"
+                className="h-10 px-4 text-xs font-semibold text-muted-foreground hover:bg-muted"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="h-9 bg-primary px-4 text-xs font-bold text-primary-foreground disabled:opacity-60"
+                className="h-10 bg-primary px-6 text-xs font-bold text-primary-foreground transition hover:brightness-110 active:scale-[.97] disabled:opacity-60"
               >
-                {saving ? "Salvando…" : "Salvar"}
+                {saving ? "Salvando…" : "Salvar alterações"}
               </button>
-            </div>
+            </footer>
           </form>
         </div>
       )}

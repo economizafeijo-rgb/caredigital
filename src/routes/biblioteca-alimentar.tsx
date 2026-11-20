@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
+import { PortionPanel } from "@/components/vigia/PortionPanel";
 import { HealthDot, HealthHint } from "@/components/vigia/FoodHealthHint";
 import {
   acreAddDays,
@@ -516,126 +517,25 @@ function BibliotecaAlimentar() {
               </div>
             </article>
 
-            <div className="grid content-start gap-3">
-              {" "}
-              <article className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-                <h2 className="mb-2 flex items-center gap-2 font-bold">
-                  <Utensils size={18} className="text-primary" /> Composição da porção
-                </h2>
-                {food ? (
-                  <>
-                    <h3 className="text-lg font-bold">{food.name}</h3>
-                    <p className="mb-3 text-xs text-muted-foreground">
-                      Valores proporcionais aos dados cadastrados por 100 g.
-                    </p>
-                    <div className="mb-3">
-                      <HealthHint
-                        food={asHealth(food)}
-                        onPick={(id) => {
-                          if (foods.some((x) => x.id === id)) {
-                            setSelected(id);
-                            setGrams(100);
-                          }
-                        }}
-                      />
-                    </div>
-                    <label className="mb-3 block text-xs font-bold">
-                      Quantidade consumida (gramas)
-                      <input
-                        type="number"
-                        min="1"
-                        max="2000"
-                        value={grams}
-                        onChange={(e) => setGrams(Math.max(0, Number(e.target.value)))}
-                        className="field mt-1 w-full"
-                      />
-                    </label>
-                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                      {nutrients.map((v) => (
-                        <div key={v.key} className="rounded-xl bg-muted/50 p-3">
-                          <p className="text-[11px] text-muted-foreground">{v.label}</p>
-                          <strong className="text-lg">
-                            {fmt(n(food[v.key]) * factor)} <span className="text-xs">{v.unit}</span>
-                          </strong>
-                        </div>
-                      ))}
-                    </div>
-                    {patientId && (
-                      <button
-                        type="button"
-                        onClick={() => void registerPortion()}
-                        disabled={saving || grams <= 0 || grams > 2000}
-                        className="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground disabled:opacity-50"
-                      >
-                        {saving ? "Registrando..." : "Registrar porção no histórico"}
-                      </button>
-                    )}
-                    {feedback && (
-                      <p role="status" className="mt-2 text-xs">
-                        {feedback}
-                      </p>
-                    )}
-                    <p className="mt-3 text-[11px] text-muted-foreground">
-                      Fonte informada: {food.provenance || "não especificada"}. {food.note || ""}
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Selecione um alimento no catálogo.
-                  </p>
-                )}
-              </article>
-              <article className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-                <h2 className="mb-3 flex items-center gap-2 font-bold">
-                  <Calculator size={18} className="text-primary" /> Calculadora de quantidade
-                  necessária
-                </h2>
-                <div className="grid grid-cols-2 gap-2">
-                  <label className="text-xs font-bold">
-                    Nutriente
-                    <select
-                      className="field mt-1 w-full"
-                      value={nutrient}
-                      onChange={(e) => setNutrient(e.target.value as typeof nutrient)}
-                    >
-                      <option value="protein_g">Proteínas</option>
-                      <option value="carbs_g">Carboidratos</option>
-                      <option value="fat_g">Gorduras</option>
-                      <option value="kcal">Calorias</option>
-                    </select>
-                  </label>
-                  <label className="text-xs font-bold">
-                    Meta nesta porção ({unit})
-                    <input
-                      type="number"
-                      min="0"
-                      value={target}
-                      onChange={(e) => setTarget(Math.max(0, Number(e.target.value)))}
-                      className="field mt-1 w-full"
-                    />
-                  </label>
-                </div>
-                <div className="mt-3 rounded-xl bg-primary/10 p-4">
-                  <p className="text-xs font-semibold">
-                    Quantidade estimada de {food?.name || "alimento"}
-                  </p>
-                  <strong className="text-2xl font-bold text-primary">
-                    {required === null ? "Não calculável" : fmt(required) + " g"}
-                  </strong>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Para fornecer {fmt(target)} {unit} de{" "}
-                    {nutrient === "kcal"
-                      ? "energia"
-                      : nutrient === "protein_g"
-                        ? "proteínas"
-                        : nutrient === "carbs_g"
-                          ? "carboidratos"
-                          : "gorduras"}
-                    .
-                  </p>
-                </div>
-              </article>
-            </div>
+            {food ? (
+              <PortionPanel
+                key={food.id}
+                food={food}
+                foods={foods}
+                amount={grams}
+                setAmount={setGrams}
+                onPick={(id) => {
+                  setSelected(id);
+                  setGrams(100);
+                }}
+                canRegister={Boolean(patientId)}
+                saving={saving}
+                feedback={feedback}
+                onRegister={() => void registerPortion()}
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground">Selecione um alimento no catálogo.</p>
+            )}
           </div>
         }
       </main>

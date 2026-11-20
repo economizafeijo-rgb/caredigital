@@ -209,219 +209,227 @@ export function NextUpClock({
 
   return (
     <div
-      className={`flex items-center ${compact ? "gap-2.5 rounded-xl p-2" : "gap-3 rounded-2xl p-3"} border backdrop-blur transition-colors duration-500 ${due ? "nv-due border-white/15 border-l-[3px] !border-l-amber-300 bg-amber-400/[.10]" : "border-white/15 bg-white/10"} ${className}`}
+      className={`${compact ? "flex items-center gap-2.5 rounded-xl p-2" : "flex flex-col gap-3 p-3.5"} border backdrop-blur transition-colors duration-500 ${due ? "nv-due border-white/15 border-l-[3px] !border-l-amber-300 bg-amber-400/[.10]" : "border-white/15 bg-white/10"} ${className}`}
       style={{ ["--due" as string]: PEND }}
     >
-      <div
-        className={`relative shrink-0 ${compact ? "size-[54px]" : "size-[88px]"}`}
-        aria-hidden="true"
-      >
-        <svg viewBox="0 0 100 100" className="size-full">
-          {Array.from({ length: 60 }, (_, i) => {
-            const a = (i / 60) * Math.PI * 2,
-              big = i % 5 === 0;
-            const r1 = big ? 44 : 46,
-              r2 = 48.5;
-            return (
-              <line
-                key={i}
-                x1={50 + r1 * Math.sin(a)}
-                y1={50 - r1 * Math.cos(a)}
-                x2={50 + r2 * Math.sin(a)}
-                y2={50 - r2 * Math.cos(a)}
-                stroke="#fff"
-                strokeOpacity={i === sec ? 0.95 : big ? 0.45 : 0.15}
-                strokeWidth={big ? 1.6 : 1}
-              />
-            );
-          })}
-          <circle cx="50" cy="50" r={R} fill="none" stroke="#ffffff14" strokeWidth="6" />
-          <circle
-            cx="50"
-            cy="50"
-            r={R}
-            fill="none"
-            stroke={ink}
-            strokeWidth="6"
-            strokeLinecap="round"
-            transform="rotate(-90 50 50)"
-            className={due ? "nv-breathe" : ""}
-            strokeDasharray={C}
-            strokeDashoffset={C * (1 - (due ? 1 : progress))}
-            style={{
-              transition: "stroke-dashoffset 1s linear, stroke .5s",
-              filter: due ? "none" : `drop-shadow(0 0 3px ${ink})`,
-            }}
-          />
-          {!due && (
-            <line
-              x1="50"
-              y1="50"
-              x2={50 + 30 * Math.sin((sec / 60) * Math.PI * 2)}
-              y2={50 - 30 * Math.cos((sec / 60) * Math.PI * 2)}
-              stroke={color}
-              strokeWidth="1.6"
+      <div className={`flex items-center ${compact ? "gap-2.5" : "gap-4"}`}>
+        <div
+          className={`relative shrink-0 ${compact ? "size-[54px]" : "size-[88px]"}`}
+          aria-hidden="true"
+        >
+          <svg viewBox="0 0 100 100" className="size-full">
+            {Array.from({ length: 60 }, (_, i) => {
+              const a = (i / 60) * Math.PI * 2,
+                big = i % 5 === 0;
+              const r1 = big ? 44 : 46,
+                r2 = 48.5;
+              return (
+                <line
+                  key={i}
+                  x1={50 + r1 * Math.sin(a)}
+                  y1={50 - r1 * Math.cos(a)}
+                  x2={50 + r2 * Math.sin(a)}
+                  y2={50 - r2 * Math.cos(a)}
+                  stroke="#fff"
+                  strokeOpacity={i === sec ? 0.95 : big ? 0.45 : 0.15}
+                  strokeWidth={big ? 1.6 : 1}
+                />
+              );
+            })}
+            <circle cx="50" cy="50" r={R} fill="none" stroke="#ffffff14" strokeWidth="6" />
+            <circle
+              cx="50"
+              cy="50"
+              r={R}
+              fill="none"
+              stroke={ink}
+              strokeWidth="6"
               strokeLinecap="round"
-              style={{ transition: sec === 0 ? "none" : "all .25s cubic-bezier(.4,2.2,.6,1)" }}
+              transform="rotate(-90 50 50)"
+              className={due ? "nv-breathe" : ""}
+              strokeDasharray={C}
+              strokeDashoffset={C * (1 - (due ? 1 : progress))}
+              style={{
+                transition: "stroke-dashoffset 1s linear, stroke .5s",
+                filter: due ? "none" : `drop-shadow(0 0 3px ${ink})`,
+              }}
             />
-          )}
-          {!due && <circle cx="50" cy="50" r="2.6" fill={color} />}
-        </svg>
-        <span className="absolute inset-0 grid place-items-center">
-          {due ? (
-            <span className={`relative grid place-items-center ${compact ? "size-8" : "size-12"}`}>
-              <svg viewBox="0 0 48 48" className="absolute inset-0 size-full">
-                <circle cx="24" cy="24" r="20" fill="#fbbf24" fillOpacity=".14" />
-                <circle
-                  cx="24"
-                  cy="24"
-                  r="20"
-                  fill="none"
-                  stroke="#fbbf24"
-                  strokeOpacity=".7"
-                  strokeWidth="1.2"
-                />
-                <circle
-                  cx="24"
-                  cy="24"
-                  r="20"
-                  fill="none"
-                  stroke="#fbbf24"
-                  strokeWidth="1.2"
-                  className="nv-ping-ring"
-                />
-              </svg>
-              <Bell
-                size={compact ? 14 : 20}
-                className="nv-bell-swing relative"
-                style={{ color: PEND }}
+            {!due && (
+              <line
+                x1="50"
+                y1="50"
+                x2={50 + 30 * Math.sin((sec / 60) * Math.PI * 2)}
+                y2={50 - 30 * Math.cos((sec / 60) * Math.PI * 2)}
+                stroke={color}
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                style={{ transition: sec === 0 ? "none" : "all .25s cubic-bezier(.4,2.2,.6,1)" }}
               />
-            </span>
+            )}
+            {!due && <circle cx="50" cy="50" r="2.6" fill={color} />}
+          </svg>
+          <span className="absolute inset-0 grid place-items-center">
+            {due ? (
+              <span
+                className={`relative grid place-items-center ${compact ? "size-8" : "size-12"}`}
+              >
+                <svg viewBox="0 0 48 48" className="absolute inset-0 size-full">
+                  <circle cx="24" cy="24" r="20" fill="#fbbf24" fillOpacity=".14" />
+                  <circle
+                    cx="24"
+                    cy="24"
+                    r="20"
+                    fill="none"
+                    stroke="#fbbf24"
+                    strokeOpacity=".7"
+                    strokeWidth="1.2"
+                  />
+                  <circle
+                    cx="24"
+                    cy="24"
+                    r="20"
+                    fill="none"
+                    stroke="#fbbf24"
+                    strokeWidth="1.2"
+                    className="nv-ping-ring"
+                  />
+                </svg>
+                <Bell
+                  size={compact ? 14 : 20}
+                  className="nv-bell-swing relative"
+                  style={{ color: PEND }}
+                />
+              </span>
+            ) : (
+              !compact && <Clock3 size={14} className="mt-7 text-white/50" />
+            )}
+          </span>
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="flex items-center justify-between gap-2 text-[11px] font-semibold text-white/70">
+            <span className="truncate">{title}</span>
+            <button
+              type="button"
+              onClick={sound.toggle}
+              aria-pressed={sound.on}
+              aria-label={sound.on ? "Desativar alerta sonoro" : "Ativar alerta sonoro"}
+              title={sound.on ? "Som ativado" : "Som desativado"}
+              className="grid size-7 shrink-0 place-items-center rounded-full bg-white/10 text-white/80 transition hover:bg-white/20 active:scale-90"
+            >
+              {sound.on ? <Bell size={13} /> : <BellOff size={13} />}
+            </button>
+          </p>
+          {when === null ? (
+            <p className="mt-0.5 truncate text-sm font-bold">{emptyText}</p>
+          ) : due ? (
+            <p
+              className={`mt-0.5 flex items-baseline gap-2 font-extrabold leading-none ${compact ? "text-lg" : "text-2xl"}`}
+              style={{ color: PEND }}
+            >
+              {lateMin < 1 ? "É hora!" : "Pendente"}
+              {lateMin >= 1 && (
+                <span className="rounded-full bg-amber-400/20 px-2 py-0.5 text-[11px] font-bold text-amber-200">
+                  há{" "}
+                  {lateMin < 60
+                    ? `${lateMin} min`
+                    : `${Math.floor(lateMin / 60)} h ${String(lateMin % 60).padStart(2, "0")}`}
+                </span>
+              )}
+            </p>
           ) : (
-            !compact && <Clock3 size={14} className="mt-7 text-white/50" />
+            <p
+              className={`mt-0.5 font-mono font-bold tabular-nums leading-none ${compact ? "text-lg" : "text-2xl"}`}
+            >
+              {countdown(when - now)}
+            </p>
           )}
-        </span>
+          {when !== null && (
+            <p className="mt-1 truncate text-[11px] text-white/70">
+              às {clockTime(when)}
+              {detail ? ` · ${detail}` : ""}
+            </p>
+          )}
+        </div>
       </div>
-      <div className="min-w-0 flex-1">
-        <p className="flex items-center justify-between gap-2 text-[11px] font-semibold text-white/70">
-          <span className="truncate">{title}</span>
-          <button
-            type="button"
-            onClick={sound.toggle}
-            aria-pressed={sound.on}
-            aria-label={sound.on ? "Desativar alerta sonoro" : "Ativar alerta sonoro"}
-            title={sound.on ? "Som ativado" : "Som desativado"}
-            className="grid size-7 shrink-0 place-items-center rounded-full bg-white/10 text-white/80 transition hover:bg-white/20 active:scale-90"
-          >
-            {sound.on ? <Bell size={13} /> : <BellOff size={13} />}
-          </button>
-        </p>
-        {when === null ? (
-          <p className="mt-0.5 truncate text-sm font-bold">{emptyText}</p>
-        ) : due ? (
-          <p
-            className={`mt-0.5 flex items-baseline gap-2 font-extrabold leading-none ${compact ? "text-lg" : "text-2xl"}`}
-            style={{ color: PEND }}
-          >
-            {lateMin < 1 ? "É hora!" : "Pendente"}
-            {lateMin >= 1 && (
-              <span className="rounded-full bg-amber-400/20 px-2 py-0.5 text-[11px] font-bold text-amber-200">
-                há{" "}
-                {lateMin < 60
-                  ? `${lateMin} min`
-                  : `${Math.floor(lateMin / 60)} h ${String(lateMin % 60).padStart(2, "0")}`}
-              </span>
-            )}
-          </p>
-        ) : (
-          <p
-            className={`mt-0.5 font-mono font-bold tabular-nums leading-none ${compact ? "text-lg" : "text-2xl"}`}
-          >
-            {countdown(when - now)}
-          </p>
-        )}
-        {when !== null && (
-          <p className="mt-1 truncate text-[11px] text-white/70">
-            às {clockTime(when)}
-            {detail ? ` · ${detail}` : ""}
-          </p>
-        )}
-        {/* A linha de ações tem altura fixa: aparece/some sem mudar o tamanho do cartão. */}
-        {!compact && when !== null && (
-          <div
-            className={`mt-2 relative flex h-8 items-center gap-1.5 transition-opacity duration-300 ${due || onPostpone || when - now < 15 * 60_000 ? "opacity-100" : "pointer-events-none opacity-0"}`}
-            aria-hidden={!(due || onPostpone || when - now < 15 * 60_000)}
-          >
-            {onAction && (
+      {!compact && when !== null && (
+        <div
+          className={`flex h-10 items-stretch gap-1.5 transition-opacity duration-300 ${due || onPostpone || when - now < 15 * 60_000 ? "opacity-100" : "pointer-events-none opacity-0"}`}
+          aria-hidden={!(due || onPostpone || when - now < 15 * 60_000)}
+        >
+          {onAction && (
+            <button
+              type="button"
+              onClick={onAction}
+              className="inline-flex min-w-0 flex-1 items-center justify-center gap-1.5 whitespace-nowrap bg-white px-3 text-sm font-bold text-slate-900 transition hover:bg-white/90 active:scale-[.98]"
+            >
+              <Check size={15} className="shrink-0" />
+              <span className="truncate">{actionLabel ?? "Registrar"}</span>
+            </button>
+          )}
+          {onAction && onEdit && (
+            <button
+              type="button"
+              onClick={onEdit}
+              title="Alterar a quantidade"
+              aria-label="Alterar a quantidade antes de registrar"
+              className="grid w-10 shrink-0 place-items-center border border-white/25 text-white/85 transition hover:bg-white/10 active:scale-95"
+            >
+              <Pencil size={14} />
+            </button>
+          )}
+          {onPostpone && (
+            <span className="relative flex">
               <button
                 type="button"
-                onClick={onAction}
-                className="inline-flex h-8 items-center gap-1 rounded-lg bg-white px-2.5 text-xs font-bold text-slate-900 transition hover:bg-white/90 active:scale-95"
+                onClick={() => setMenu((m) => !m)}
+                aria-expanded={menu}
+                aria-label="Adiar"
+                title="Adiar"
+                className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap border border-white/25 px-3 text-xs font-semibold text-white/85 transition hover:bg-white/10 active:scale-95"
               >
-                <Check size={13} /> {actionLabel ?? "Registrar"}
+                <TimerReset size={14} /> Adiar
               </button>
-            )}
-            {onAction && onEdit && (
-              <button
-                type="button"
-                onClick={onEdit}
-                title="Alterar a quantidade"
-                aria-label="Alterar a quantidade antes de registrar"
-                className="grid size-8 shrink-0 place-items-center border border-white/25 text-white/85 transition hover:bg-white/10 active:scale-95"
-              >
-                <Pencil size={13} />
-              </button>
-            )}
-            {onPostpone && (
-              <span className="relative">
-                <button
-                  type="button"
-                  onClick={() => setMenu((m) => !m)}
-                  aria-expanded={menu}
-                  className="inline-flex h-8 items-center gap-1 px-1.5 text-[11px] font-semibold text-white/75 underline-offset-2 transition hover:text-white hover:underline"
-                >
-                  <TimerReset size={12} /> Adiar
-                </button>
-                {menu && (
-                  <span className="absolute bottom-9 left-0 z-20 flex flex-col border border-white/20 bg-slate-950/95 p-1 text-[12px] shadow-xl">
-                    {[30, 60, 120, 180].map((m) => (
-                      <button
-                        key={m}
-                        type="button"
-                        onClick={() => {
-                          setMenu(false);
-                          onPostpone(m);
-                        }}
-                        className="whitespace-nowrap px-3 py-1.5 text-left font-semibold text-white/90 hover:bg-white/10"
-                      >
-                        {m >= 60 ? `${m / 60} h` : `${m} min`}
-                      </button>
-                    ))}
-                  </span>
-                )}
-              </span>
-            )}
-            {onCancel && (
-              <button
-                type="button"
-                onClick={onCancel}
-                className="inline-flex h-8 items-center gap-1 px-1.5 text-[11px] font-semibold text-white/75 underline-offset-2 transition hover:text-white hover:underline"
-              >
-                <X size={12} /> Sem apetite
-              </button>
-            )}
-            {due && !onPostpone && (
-              <button
-                type="button"
-                onClick={() => setSnooze(Date.now() + 10 * 60_000)}
-                className="inline-flex h-8 items-center gap-1 rounded-lg border border-white/25 px-2.5 text-xs font-semibold text-white/85 transition hover:bg-white/10 active:scale-95"
-              >
-                <TimerReset size={13} /> Adiar 10 min
-              </button>
-            )}
-          </div>
-        )}
-      </div>
+              {menu && (
+                <span className="absolute bottom-11 right-0 z-20 flex flex-col border border-white/20 bg-slate-950/95 p-1 text-[12px] shadow-xl">
+                  {[30, 60, 120, 180].map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => {
+                        setMenu(false);
+                        onPostpone(m);
+                      }}
+                      className="whitespace-nowrap px-4 py-1.5 text-left font-semibold text-white/90 hover:bg-white/10"
+                    >
+                      {m >= 60 ? `${m / 60} h` : `${m} min`}
+                    </button>
+                  ))}
+                </span>
+              )}
+            </span>
+          )}
+          {onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              title="Sem apetite"
+              aria-label="Sem apetite"
+              className="grid w-10 shrink-0 place-items-center border border-white/25 text-white/75 transition hover:bg-white/10 hover:text-white active:scale-95"
+            >
+              <X size={14} />
+            </button>
+          )}
+          {due && !onPostpone && (
+            <button
+              type="button"
+              onClick={() => setSnooze(Date.now() + 10 * 60_000)}
+              className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap border border-white/25 px-3 text-xs font-semibold text-white/85 transition hover:bg-white/10 active:scale-95"
+            >
+              <TimerReset size={14} /> Adiar 10 min
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
