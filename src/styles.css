@@ -4432,12 +4432,18 @@ body {
 /* Painel de áreas (menu das áreas do acompanhamento) */
 #care-content nav[aria-label="Áreas do acompanhamento"] {
   border-radius: 0;
+  scrollbar-width: none;
+  overflow-y: hidden;
   background: var(--surface);
   border-color: var(--border);
 }
 #care-content nav[aria-label="Áreas do acompanhamento"] button {
   border-radius: 0;
   height: 2rem;
+}
+
+#care-content nav[aria-label="Áreas do acompanhamento"]::-webkit-scrollbar {
+  display: none;
 }
 
 /* Metas por categoria / calendário / métricas do mês: faixas finas, sem blocos altos */
