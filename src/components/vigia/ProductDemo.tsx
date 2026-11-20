@@ -58,224 +58,44 @@ const SCENES: Scene[] = [
     cursor: ["74%", "70%"],
     render: () => (
       <div className="grid h-full grid-cols-[auto_1fr] items-center gap-5 px-6">
-        {/* Garrafa de água: a gota cai no clique, o nível sobe com ondas */}
-        <div className="relative h-40 w-[5.25rem] shrink-0">
+        {/* Anel de meta: o arco avança no clique e o número sobe */}
+        <div className="relative size-32 shrink-0">
           <span
             aria-hidden
-            className="nv-demo-plus absolute -right-3 top-[38%] z-10 rounded-full bg-cyan-300 px-1.5 py-0.5 text-[10px] font-extrabold text-sky-950 shadow-lg"
+            className="nv-demo-plus absolute -right-2 top-1 z-10 rounded-full bg-cyan-300 px-1.5 py-0.5 text-[10px] font-extrabold text-sky-950 shadow-lg"
           >
             +250
           </span>
-          <svg
-            viewBox="0 0 84 168"
-            aria-hidden
-            className="absolute inset-0 size-full overflow-visible"
-          >
-            <defs>
-              <clipPath id="nv-glass-clip">
-                <path d="M15.2 25 H68.8 L62.4 144 Q62 152 53 152 H31 Q22 152 21.6 144 Z" />
-              </clipPath>
-              <linearGradient id="nv-glass-water" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0" stopColor="#67e8f9" stopOpacity=".85" />
-                <stop offset=".5" stopColor="#0ea5e9" stopOpacity=".9" />
-                <stop offset="1" stopColor="#075985" />
-              </linearGradient>
-              <linearGradient id="nv-glass-side" x1="0" x2="1" y1="0" y2="0">
-                <stop offset="0" stopColor="#000" stopOpacity=".28" />
-                <stop offset=".18" stopColor="#000" stopOpacity="0" />
-                <stop offset=".8" stopColor="#000" stopOpacity="0" />
-                <stop offset="1" stopColor="#000" stopOpacity=".3" />
-              </linearGradient>
-              <linearGradient id="nv-glass-body" x1="0" x2="1" y1="0" y2="0">
-                <stop offset="0" stopColor="#fff" stopOpacity=".24" />
-                <stop offset=".2" stopColor="#fff" stopOpacity=".05" />
-                <stop offset=".82" stopColor="#fff" stopOpacity=".04" />
-                <stop offset="1" stopColor="#fff" stopOpacity=".22" />
-              </linearGradient>
-              <linearGradient id="nv-glass-base" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0" stopColor="#fff" stopOpacity=".34" />
-                <stop offset="1" stopColor="#fff" stopOpacity=".08" />
-              </linearGradient>
-              <radialGradient id="nv-glass-glow" cx=".5" cy=".5" r=".5">
-                <stop offset="0" stopColor="#22d3ee" stopOpacity=".4" />
-                <stop offset="1" stopColor="#22d3ee" stopOpacity="0" />
-              </radialGradient>
-              <linearGradient id="nv-glass-cube" x1="0" x2="1" y1="0" y2="1">
-                <stop offset="0" stopColor="#fff" stopOpacity=".7" />
-                <stop offset="1" stopColor="#bae6fd" stopOpacity=".25" />
-              </linearGradient>
-            </defs>
-            <ellipse cx="42" cy="161" rx="36" ry="5.5" fill="url(#nv-glass-glow)" />
-            <ellipse cx="42" cy="159" rx="22" ry="2.4" fill="#000" opacity=".35" />
-            <path
-              d="M12 24 L72 24 L65 148 Q64.5 158 54 158 H30 Q19.5 158 19 148 Z"
-              fill="url(#nv-glass-body)"
-            />
-            <g clipPath="url(#nv-glass-clip)">
-              <g
-                className="nv-demo-level"
-                style={
-                  { ["--from" as string]: "0px", ["--to" as string]: "-16px" } as CSSProperties
-                }
-              >
-                <rect x="0" y="88" width="84" height="90" fill="url(#nv-glass-water)" />
-                <g
-                  className="nv-bottle-wave"
-                  style={{ animationDuration: "5s", animationDirection: "reverse" }}
-                >
-                  <ellipse cx="42" cy="88" rx="34" ry="4.6" fill="#a5f3fc" opacity=".55" />
-                </g>
-                <ellipse
-                  cx="42"
-                  cy="88"
-                  rx="26"
-                  ry="3.4"
+          {[
+            { C: Before, off: 150.8, c: "#22d3ee" },
+            { C: After, off: 126.7, c: "#67e8f9" },
+          ].map(({ C, off, c }) => (
+            <C key={off} className="absolute inset-0">
+              <svg viewBox="0 0 120 120" className="size-full -rotate-90">
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="48"
                   fill="none"
-                  stroke="#fff"
-                  strokeOpacity=".7"
-                  strokeWidth=".9"
+                  stroke="rgba(255,255,255,.09)"
+                  strokeWidth="9"
                 />
-                <rect
-                  x="24"
-                  y="92"
-                  width="14"
-                  height="14"
-                  rx="2.5"
-                  fill="url(#nv-glass-cube)"
-                  stroke="#fff"
-                  strokeOpacity=".6"
-                  strokeWidth=".8"
-                  transform="rotate(-14 31 99)"
-                  className="nv-demo-bubble"
-                  style={{ animationDuration: "6s" }}
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="48"
+                  fill="none"
+                  stroke={c}
+                  strokeWidth="9"
+                  strokeDasharray="301.6"
+                  strokeDashoffset={off}
                 />
-                <rect
-                  x="45"
-                  y="86"
-                  width="13"
-                  height="13"
-                  rx="2.5"
-                  fill="url(#nv-glass-cube)"
-                  stroke="#fff"
-                  strokeOpacity=".6"
-                  strokeWidth=".8"
-                  transform="rotate(18 51 92)"
-                />
-                {[
-                  [30, 148, 0],
-                  [46, 144, 0.9],
-                  [38, 150, 1.7],
-                  [52, 146, 0.4],
-                  [34, 130, 2.2],
-                ].map(([x, y, d]) => (
-                  <circle
-                    key={`${x}-${y}`}
-                    className="nv-demo-bubble"
-                    cx={x}
-                    cy={y}
-                    r="1.3"
-                    fill="#fff"
-                    opacity=".6"
-                    style={{ animationDelay: `${d}s` }}
-                  />
-                ))}
-              </g>
-              <rect x="0" y="0" width="84" height="170" fill="url(#nv-glass-side)" />
-              <path
-                d="M17 34 L22.5 138"
-                stroke="#fff"
-                strokeOpacity=".55"
-                strokeWidth="3.2"
-                strokeLinecap="round"
-              />
-              <path
-                d="M24 38 L27 100"
-                stroke="#fff"
-                strokeOpacity=".22"
-                strokeWidth="1.4"
-                strokeLinecap="round"
-              />
-              <path
-                d="M64 40 L61.6 96"
-                stroke="#fff"
-                strokeOpacity=".28"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-              <path d="M21 144 H63 V153 H21Z" fill="url(#nv-glass-base)" />
-              <path
-                d="M22 144 Q42 149 62 144"
-                stroke="#fff"
-                strokeOpacity=".4"
-                strokeWidth="1"
-                fill="none"
-              />
-              {[
-                [28, 70],
-                [55, 112],
-                [24, 118],
-              ].map(([x, y]) => (
-                <g key={`${x}${y}`}>
-                  <ellipse cx={x} cy={y} rx="1.1" ry="1.7" fill="#fff" opacity=".4" />
-                  <ellipse cx={x - 0.3} cy={y - 0.5} rx=".4" ry=".6" fill="#fff" opacity=".9" />
-                </g>
-              ))}
-            </g>
-            <path
-              d="M12 24 L72 24 L65 148 Q64.5 158 54 158 H30 Q19.5 158 19 148 Z"
-              fill="none"
-              stroke="rgba(255,255,255,.5)"
-              strokeWidth="1.4"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M15.2 25 H68.8 L62.4 144 Q62 152 53 152 H31 Q22 152 21.6 144 Z"
-              fill="none"
-              stroke="rgba(255,255,255,.18)"
-              strokeWidth=".8"
-            />
-            <ellipse
-              cx="42"
-              cy="24"
-              rx="30"
-              ry="4.6"
-              fill="rgba(255,255,255,.07)"
-              stroke="rgba(255,255,255,.7)"
-              strokeWidth="1.5"
-            />
-            <ellipse
-              cx="42"
-              cy="24.8"
-              rx="27.6"
-              ry="3.6"
-              fill="none"
-              stroke="rgba(255,255,255,.22)"
-              strokeWidth=".8"
-            />
-            {[62, 88, 114].map((y, i) => (
-              <g key={y}>
-                <line
-                  x1="58"
-                  x2="63"
-                  y1={y}
-                  y2={y}
-                  stroke="#fff"
-                  strokeOpacity=".5"
-                  strokeWidth="1"
-                />
-                <text
-                  x="56"
-                  y={y + 2.2}
-                  textAnchor="end"
-                  fontSize="5.5"
-                  fill="#fff"
-                  fillOpacity=".55"
-                >
-                  {["2L", "1L", "0,5"][i]}
-                </text>
-              </g>
-            ))}
-          </svg>
+              </svg>
+            </C>
+          ))}
+          <div className="absolute inset-0 grid place-items-center">
+            <Droplets size={30} className="text-cyan-300" />
+          </div>
         </div>
         <div className="min-w-0">
           <p className="text-[11px] text-white/55">Hoje · meta de 3,0 L</p>
