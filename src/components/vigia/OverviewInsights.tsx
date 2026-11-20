@@ -152,7 +152,7 @@ function ScoreCard({ series, waterGoal, scheduled, onOpen }: { series: Series[];
       });
     }
   }, [series, waterGoal, scheduled, fx]);
-  const rows = order.map((k) => {
+  const rows = order.filter((k) => (series.find((s) => s.key === k)?.days ?? []).some((v) => v > 0)).map((k) => {
     const today = series.find((s) => s.key === k)?.days[6] ?? 0;
     const target = targetFor(k, waterGoal, scheduled[k] ?? 0);
     return { k, today, target, pct: target ? Math.min(100, Math.round((today / target) * 100)) : null };
@@ -206,8 +206,9 @@ function ScoreCard({ series, waterGoal, scheduled, onOpen }: { series: Series[];
 }
 
 /**
- * Painel da Visão geral: pontuação do dia + as quatro métricas sempre visíveis em grade,
- * para não deixar espaços vazios. Métricas sem registro mostram um convite para começar.
+ * Painel da Visão geral: só aparecem as áreas que têm registros nos últimos 7 dias.
+ * Quando o usuário registra algo numa área nova, o cartão surge e a grade se reorganiza
+ * para ocupar toda a largura; áreas sem dados ficam num atalho discreto, sem ocupar espaço.
  */
 export function OverviewInsights({ patientId, ownerId, revision, waterGoal, scheduled, onOpen }: {
   patientId: string; ownerId: string; revision: number; waterGoal: number;
@@ -215,16 +216,35 @@ export function OverviewInsights({ patientId, ownerId, revision, waterGoal, sche
 }) {
   const { series, keys } = useWeek(patientId, ownerId, revision);
   if (series === null)
-    return <div className="grid gap-3 xl:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]"><div className="h-80 animate-pulse rounded-2xl bg-muted/60" /><div className="grid gap-3 sm:grid-cols-2">{[0, 1, 2, 3].map((i) => <div key={i} className="h-40 animate-pulse rounded-2xl bg-muted/60" />)}</div></div>;
+    return <div className="grid gap-3 xl:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]"><div className="h-60 animate-pulse rounded-2xl bg-muted/60" /><div className="grid gap-3 sm:grid-cols-2">{[0, 1].map((i) => <div key={i} className="h-40 animate-pulse rounded-2xl bg-muted/60" />)}</div></div>;
   const list = order.map((k) => series.find((s) => s.key === k) ?? { key: k, days: [0, 0, 0, 0, 0, 0, 0] });
+  const active = list.filter((s) => s.days.some((v) => v > 0));
+  const idle = list.filter((s) => !s.days.some((v) => v > 0));
+  const starters = idle.length > 0 && (
+    <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground" aria-label="Áreas ainda sem registros">
+      <span className="font-semibold">{active.length ? "Acompanhar também:" : "Comece registrando:"}</span>
+      {idle.map((s) => {
+        const m = meta[s.key];
+        return (
+          <button key={s.key} type="button" onClick={() => onOpen(s.key)} className="inline-flex h-7 items-center gap-1.5 rounded-full border border-border bg-card px-2.5 font-semibold text-foreground transition hover:bg-muted active:scale-95">
+            <m.icon size={12} style={{ color: m.color }} /> {m.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+  if (!active.length) return <div className="rounded-2xl border border-dashed border-border bg-card/50 p-4">{starters}</div>;
   return (
-    <div className="grid gap-3 xl:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
-      <ScoreCard series={list} waterGoal={waterGoal} scheduled={scheduled} onOpen={onOpen} />
-      <div className="grid gap-3 sm:grid-cols-2">
-        {list.map((s, i) => (
-          <MetricCard key={s.key} k={s.key} days={s.days} keys={keys} index={i + 1} goal={s.key === "hidratacao" ? waterGoal : 0} scheduled={s.key === "atividade" ? 1 : s.key === "alimentacao" ? Math.max(3, scheduled.alimentacao ?? 0) : scheduled[s.key] ?? 0} onOpen={() => onOpen(s.key)} />
-        ))}
+    <div className="grid gap-3">
+      <div className="grid gap-3 xl:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
+        <ScoreCard series={list} waterGoal={waterGoal} scheduled={scheduled} onOpen={onOpen} />
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,17rem),1fr))] content-start gap-3">
+          {active.map((s, i) => (
+            <MetricCard key={s.key} k={s.key} days={s.days} keys={keys} index={i + 1} goal={s.key === "hidratacao" ? waterGoal : 0} scheduled={s.key === "atividade" ? 1 : s.key === "alimentacao" ? Math.max(3, scheduled.alimentacao ?? 0) : scheduled[s.key] ?? 0} onOpen={() => onOpen(s.key)} />
+          ))}
+        </div>
       </div>
+      {starters}
     </div>
   );
 }
