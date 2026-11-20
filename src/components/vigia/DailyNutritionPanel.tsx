@@ -281,8 +281,53 @@ export function DailyNutritionPanel({
   const { confirm, prompt, notify } = useDialog();
   const [busyEntry, setBusyEntry] = useState<string | null>(null);
   const recognized = entries.filter((entry) => entry.direct || entry.foods.length);
+  const [qtyEntry, setQtyEntry] = useState<Entry | null>(null);
+  const [qty, setQty] = useState<string[]>([]);
+  async function saveQuantities() {
+    const entry = qtyEntry;
+    if (!entry?.entryId || !entry.entryType) return;
+    const values = qty.map((v) => Number(String(v).replace(",", ".")));
+    if (values.some((v) => !Number.isFinite(v) || v < 1 || v > 5000)) {
+      notify?.("Informe quantidades entre 1 e 5.000.", "danger");
+      return;
+    }
+    setBusyEntry(entry.entryId);
+    try {
+      const description =
+        entry.entryType === "beverage"
+          ? entry.text
+          : entry.foods
+              .map((food, i) => `${food.name.split(",")[0]} ${values[i]} ${measureUnit(food.id)}`)
+              .join(", ");
+      const result = await (supabase as any).rpc("care_update_intake_entry", {
+        p_patient_id: patientId,
+        p_entry_type: entry.entryType,
+        p_entry_id: entry.entryId,
+        p_description: description,
+        p_amount_ml: entry.entryType === "beverage" ? Math.round(values[0]) : null,
+        p_consumed_at: entry.at,
+      });
+      if (result.error) throw result.error;
+      notify?.("Quantidade alterada. Métricas recalculadas.");
+      setQtyEntry(null);
+      refresh();
+    } catch (error) {
+      notify?.(error instanceof Error ? error.message : "Não foi possível alterar.", "danger");
+    } finally {
+      setBusyEntry(null);
+    }
+  }
   async function editEntry(entry: Entry) {
     if (!entry.entryId || !entry.entryType || busyEntry) return;
+    if (entry.entryType === "beverage" || (entry.entryType === "meal" && entry.foods.length > 0)) {
+      setQty(
+        entry.entryType === "beverage"
+          ? [String(entry.amountMl ?? entry.foods[0]?.grams ?? 200)]
+          : entry.foods.map((food) => String(Math.round(food.grams))),
+      );
+      setQtyEntry(entry);
+      return;
+    }
     const value = await prompt(
       entry.entryType === "food"
         ? "Editar porção"
@@ -318,7 +363,7 @@ export function DailyNutritionPanel({
           p_entry_type: entry.entryType,
           p_entry_id: entry.entryId,
           p_description: description,
-          p_amount_ml: entry.entryType === "beverage" ? (entry.amountMl ?? 200) : null,
+          p_amount_ml: null,
           p_consumed_at: entry.at,
         });
         if (result.error) throw result.error;
@@ -374,6 +419,68 @@ export function DailyNutritionPanel({
       className="rounded-3xl border border-border bg-card p-5 shadow-card"
       aria-label="Nutrição de hoje"
     >
+      {qtyEntry && (
+        <div
+          className="fixed inset-0 z-[12000] grid place-items-center bg-slate-950/70 p-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Alterar quantidade"
+        >
+          <div className="nv-pop w-full max-w-sm border border-border bg-card shadow-2xl">
+            <header className="border-b border-border px-4 py-3">
+              <h3 className="text-base font-extrabold">Alterar quantidade</h3>
+              <p className="text-xs text-muted-foreground">
+                Ajuste quanto você consumiu. As calorias e os nutrientes são recalculados.
+              </p>
+            </header>
+            <div className="grid gap-2.5 px-4 py-3">
+              {(qtyEntry.entryType === "beverage"
+                ? [{ id: "bebida", name: qtyEntry.text, grams: 0 }]
+                : qtyEntry.foods
+              ).map((food, i) => (
+                <label key={i} className="grid grid-cols-[1fr_6.5rem] items-center gap-3 text-sm">
+                  <span className="min-w-0 truncate font-semibold">{food.name.split(",")[0]}</span>
+                  <span className="flex items-center gap-1">
+                    <input
+                      autoFocus={i === 0}
+                      type="number"
+                      inputMode="decimal"
+                      min={1}
+                      value={qty[i] ?? ""}
+                      onChange={(e) =>
+                        setQty((list) => list.map((v, k) => (k === i ? e.target.value : v)))
+                      }
+                      onFocus={(e) => e.currentTarget.select()}
+                      onKeyDown={(e) => e.key === "Enter" && void saveQuantities()}
+                      className="field h-9 w-full text-right tabular-nums"
+                    />
+                    <span className="w-6 text-xs text-muted-foreground">
+                      {qtyEntry.entryType === "beverage" ? "ml" : measureUnit(food.id)}
+                    </span>
+                  </span>
+                </label>
+              ))}
+            </div>
+            <footer className="flex justify-end gap-2 border-t border-border bg-muted/30 px-4 py-3">
+              <button
+                type="button"
+                onClick={() => setQtyEntry(null)}
+                className="h-9 px-4 text-[13px] font-semibold text-muted-foreground hover:bg-muted"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={busyEntry === qtyEntry.entryId}
+                onClick={() => void saveQuantities()}
+                className="h-9 bg-primary px-5 text-[13px] font-bold text-primary-foreground transition hover:brightness-110 active:scale-[.97] disabled:opacity-50"
+              >
+                Salvar quantidade
+              </button>
+            </footer>
+          </div>
+        </div>
+      )}
       {!hideSummary && (
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
