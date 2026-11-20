@@ -9,7 +9,8 @@ export type Nutrients = { kcal: number; protein: number; carbs: number; fat: num
 export type ParsedFood = { id: string; name: string; grams: number; nutrients: Nutrients; estimatedPortion: boolean };
 
 /** Micronutrientes aproximados por 100 g (vit. C mg, vit. A mcg RAE, cálcio mg, ferro mg, potássio mg). */
-const micros: Record<string, [number, number, number, number, number]> = {
+export const foodMicros: Record<string, [number, number, number, number, number]> = {
+  baiao_dois: [1, 5, 25, 1.2, 180], sopa_legumes: [5, 150, 15, .3, 150], quibe_macaxeira: [8, 2, 20, .8, 180], cafe_soluvel: [0, 0, 3, 0, 70], leite_integral: [1, 30, 123, .1, 133], leite_po_integral: [8, 250, 890, .5, 1100], leite_po_desnatado: [5, 0, 1360, .9, 1700], cereal_com_leite: [3, 100, 95, 1.5, 130], pasta_amendoim: [0, 0, 45, 1.9, 560], queijo_mussarela: [0, 180, 875, .3, 62], queijo_prato: [0, 250, 940, .3, 80], pao_massa_fina: [0, 10, 40, 1.5, 110], suco_acerola: [300, 15, 6, .1, 80], suco_graviola: [10, 0, 7, .3, 140], salada_frutas: [30, 30, 12, .3, 200], mangaba: [140, 30, 41, 2.8, 160], pitaia: [3, 0, 8, .7, 120], couve_crua: [96, 400, 131, .5, 403], cheiro_verde: [52, 400, 179, 3.2, 710], cebolinha: [30, 150, 80, .6, 250], coentro: [27, 340, 67, 1.8, 520], mostarda_folha: [39, 200, 68, 1, 300], acelga: [22, 0, 43, .3, 240], pimentao_vermelho: [158, 150, 6, .3, 210], pimentao_amarelo: [201, 10, 10, .4, 220], brocolis_cru: [34, 50, 86, .6, 320], feijao_corda: [1, 1, 17, 1.1, 310], grao_bico: [1, 1, 49, 2.9, 291],
   arroz: [0, 0, 4, .1, 15], arroz_integral: [0, 0, 5, .3, 75], feijao: [0, 0, 27, 1.3, 255], feijao_preto: [0, 0, 29, 1.5, 256],
   frango: [0, 6, 8, .4, 250], carne: [0, 0, 5, 2.4, 290], peixe: [0, 10, 20, .3, 300], tilapia: [0, 0, 10, .6, 350], sardinha: [0, 30, 438, 2, 400],
   ovo: [0, 140, 50, 1.2, 130], leite: [1, 50, 120, .1, 150], iogurte: [1, 20, 140, .1, 180],
@@ -28,6 +29,15 @@ const micros: Record<string, [number, number, number, number, number]> = {
 
 /** Palavras-chave → alimento do catálogo. Ordem importa: termos mais específicos primeiro. */
 const aliases: Array<[RegExp, string]> = [
+  [/caf[eé][ _]com[ _]leite em p[oó]/, "cafe_leite_po"], [/leite em p[oó] desnatado/, "leite_po_desnatado"], [/leite em p[oó]|leite ninho/, "leite_po_integral"],
+  [/cereal_com_leite/, "cereal_com_leite"], [/leite integral|leite de (vaca|gado)/, "leite_integral"], [/nescaf[eé]|caf[eé] sol[uú]vel/, "cafe_soluvel"],
+  [/bai[aã]o de dois/, "baiao_dois"], [/sopa de (legumes|verduras)/, "sopa_legumes"], [/quibe de (macaxeira|mandioca)/, "quibe_macaxeira"],
+  [/pasta de amendoim|manteiga de amendoim/, "pasta_amendoim"], [/mu[sç]{1,2}arela|mozarela|mozzarella/, "queijo_mussarela"], [/queijo prato/, "queijo_prato"],
+  [/p[aã]o (de )?massa fina|massa fina/, "pao_massa_fina"], [/suco( natural)? de acerola/, "suco_acerola"], [/suco( natural)? de graviola/, "suco_graviola"],
+  [/salada de frutas?/, "salada_frutas"], [/mangaba/, "mangaba"], [/pitai?a|pitaya/, "pitaia"], [/couve crua/, "couve_crua"], [/cheiro.verde|salsinha|\bsalsa\b/, "cheiro_verde"],
+  [/cebolinha/, "cebolinha"], [/coentro/, "coentro"], [/mostarda/, "mostarda_folha"], [/acelga/, "acelga"], [/piment[aã]o vermelho/, "pimentao_vermelho"],
+  [/piment[aã]o amarelo/, "pimentao_amarelo"], [/br[oó]colis cru/, "brocolis_cru"], [/feij[aã]o.(de.corda|verde|fradinho|caupi)/, "feijao_corda"], [/gr[aã]o.de.bico/, "grao_bico"],
+  [/sans?u[ií]che|sanduba/, "sanduiche_natural"],
   [/abiu/, "abiu"], [/ameixa/, "ameixa"], [/atem[oó]i?a/, "atemoia"], [/banana ouro|banana-ouro/, "banana_ouro"], [/caj[aá].?manga/, "cajamanga"], [/caju\b/, "caju"], [/caqui/, "caqui"], [/carambola/, "carambola"], [/figo/, "figo"], [/jabuticaba/, "jabuticaba"], [/\bjaca\b/, "jaca"], [/jambo/, "jambo"], [/kiwi/, "kiwi"], [/lim[aã]o/, "limao"], [/mexerica|bergamota/, "mexerica"], [/tangerina|ponc[aã]|pocan/, "tangerina"], [/morango/, "morango"], [/n[eê]spera/, "nespera"], [/pequi/, "pequi"], [/p[eê]ssego/, "pessego"], [/pinha|fruta.do.conde/, "pinha"], [/pitanga/, "pitanga"], [/rom[aã]( |$)/, "roma"], [/tamarindo/, "tamarindo"], [/umbu|imbu/, "umbu"], [/laranja.?lima/, "laranja_lima"], [/camu.?camu/, "camu_camu"], [/ara[cç][aá].?boi/, "araca_boi"], [/birib[aá]/, "biriba"], [/\bing[aá]( |$)/, "inga"], [/sapoti/, "sapoti"], [/agri[aã]o/, "agriao"], [/almeir[aã]o/, "almeirao"], [/chic[oó]ria|escarola/, "chicoria"], [/r[uú]cula/, "rucula"], [/taioba/, "taioba"], [/repolho/, "repolho"], [/couve.?flor/, "couve_flor"], [/cenoura (crua|ralada)|salada de cenoura/, "cenoura_crua"], [/cebola/, "cebola"], [/piment[aã]o/, "pimentao"], [/berinjela/, "berinjela"], [/quiabo/, "quiabo"], [/maxixe/, "maxixe"], [/jil[oó]/, "jilo"], [/\bnabo/, "nabo"], [/rabanete/, "rabanete"], [/palmito/, "palmito"], [/mandioquinha|batata.?baroa|batata.?salsa/, "mandioquinha"], [/^car[aá]( |$)|car[aá] cozido/, "cara"], [/legumes (grelhados|assados|na brasa)|(abobrinha|berinjela|piment[aã]o) (grelhad|assad)[oa]/, "legumes_grelhados"], [/batata.?doce (assada|grelhada|na brasa|no forno|na airfryer)/, "batata_doce_assada"], [/batata.?doce frita/, "batata_doce_frita"], [/batata (inglesa )?(assada|grelhada|r[uú]stica|no forno|na airfryer)/, "batata_assada"], [/batata (inglesa )?frita|batatas fritas/, "batata_frita"], [/(macaxeira|mandioca|aipim) (assad|grelhad)[ao]/, "macaxeira_assada"], [/inhame (assado|grelhado)/, "inhame_assado"], [/frango grelhado|fil[eé] de frango|peito de frango( grelhado)?/, "frango_grelhado"], [/\bbife|contra.?fil[eé]|carne grelhada|alcatra grelhada/, "contrafile_grelhado"], [/bisteca|costeleta de porco|lombo de porco/, "bisteca_grelhada"], [/hamb[uú]rguer (grelhado|caseiro|na chapa)|carne de hamb[uú]rguer/, "hamburguer_grelhado"], [/ovos? fritos?/, "ovo_frito"], [/omelete|ovos? mexidos?/, "omelete"], [/sandu[ií]che natural|sanduba natural|sandu[ií]che de frango|sandu[ií]che|sanduba/, "sanduiche_natural"], [/misto( quente| frio)?\b|queijo quente/, "misto_quente"], [/p[aã]o_com_ovo/, "pao_com_ovo"], [/x.?tudo/, "x_tudo"], [/x.?(burguer|burger|salada|bacon|egg)|cheese.?burg/, "cheeseburger"], [/hamb[uú]rguer/, "hamburguer_sanduiche"], [/cachorro.quente|hot.?dog/, "cachorro_quente"],
   [/(macaxeira|mandioca|aipim) frita/, "mandioca_frita"], [/farofa/, "farofa"], [/cuscuz/, "cuscuz"], [/quibe/, "quibe_arroz"], [/feij[aã]o[- ]preto/, "feijao_preto"],
   [/suco( natural)? de goiaba/, "suco_goiaba"], [/carne( bovina)? assada/, "carne_assada"], [/banana[- ]ma[cç][aã]/, "banana_maca"], [/banana[- ]nanica/, "banana_nanica"], [/banana[- ]pacov[aã]/, "banana_pacova"],
@@ -60,6 +70,7 @@ const aliases: Array<[RegExp, string]> = [
 
 /** Porção padrão em gramas/ml quando o usuário não informa a quantidade. */
 const defaultPortion: Record<string, number> = {
+  baiao_dois: 200, sopa_legumes: 300, quibe_macaxeira: 80, cafe_soluvel: 150, leite_integral: 200, leite_po_integral: 26, leite_po_desnatado: 26, cereal_com_leite: 230, pasta_amendoim: 15, queijo_mussarela: 30, queijo_prato: 30, pao_massa_fina: 50, suco_acerola: 250, suco_graviola: 250, salada_frutas: 150, mangaba: 80, pitaia: 150, couve_crua: 40, cheiro_verde: 5, cebolinha: 5, coentro: 5, mostarda_folha: 40, acelga: 40, pimentao_vermelho: 30, pimentao_amarelo: 30, brocolis_cru: 60, feijao_corda: 100, grao_bico: 100,
   arroz: 120, arroz_integral: 120, feijao: 100, feijao_preto: 100, frango: 120, carne: 120, peixe: 120, tilapia: 120, sardinha: 80,
   ovo: 50, iogurte: 170, leite: 200, cafe: 100, suco_maracuja: 250, banana_prata: 80, banana_nanica: 100, banana_maca: 70, banana_comprida: 150,
   laranja: 150, acerola: 100, goiaba: 150, manga: 150, mamão: 150, maca: 130, melancia: 200, abacaxi: 100, uva: 100, abacate: 100, acai: 200,
@@ -81,7 +92,7 @@ const numberWords: Record<string, number> = { um: 1, uma: 1, dois: 2, duas: 2, t
 const emptyNutrients = (): Nutrients => ({ kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, vitC: 0, vitA: 0, calcium: 0, iron: 0, potassium: 0 });
 export function nutrientsFor(item: Ingredient, grams: number): Nutrients {
   const macros = portionNutrition(item, grams);
-  const m = micros[item.id] ?? [0, 0, 0, 0, 0];
+  const m = foodMicros[item.id] ?? [0, 0, 0, 0, 0];
   const f = grams / 100;
   return { kcal: macros.kcal ?? 0, protein: macros.protein ?? 0, carbs: macros.carbs ?? 0, fat: macros.fat ?? 0, fiber: macros.fiber ?? 0,
     vitC: m[0] * f, vitA: m[1] * f, calcium: m[2] * f, iron: m[3] * f, potassium: m[4] * f };
@@ -91,7 +102,7 @@ export function nutrientsFor(item: Ingredient, grams: number): Nutrients {
 export function parseFoodText(text: string, liquidMl?: number | null): ParsedFood[] {
   // Preparos que levam "com" no nome não devem ser separados em dois alimentos.
   const source = text.toLowerCase().normalize("NFC").replace(/caf[eé] com leite/g, "café_com_leite")
-    .replace(/(mingau de [a-zà-ú]+) com leite/g, "$1").replace(/tapioca com ovos?/g, "crepioca").replace(/p[aã]o com ovos?/g, "pão_com_ovo")
+    .replace(/(mingau de [a-zà-ú]+) com leite/g, "$1").replace(/(cereal|sucrilhos|flocos de milho|corn ?flakes)( de milho)? com leite/g, "cereal_com_leite").replace(/tapioca com ovos?/g, "crepioca").replace(/p[aã]o com ovos?/g, "pão_com_ovo")
     .replace(/sopa de carne com legumes/g, "sopa de carne").replace(/macarr[aã]o com (molho e )?carne mo[ií]da/g, "macarronada");
   const segments = source.split(/,|;|\+|\be\b|\bcom\b/).map(part => part.trim()).filter(Boolean);
   const found: ParsedFood[] = [];

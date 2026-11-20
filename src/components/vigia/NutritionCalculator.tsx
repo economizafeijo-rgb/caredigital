@@ -1,3 +1,4 @@
+import { FoodVitamins } from "./FoodVitamins";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Apple, Beef, Carrot, Check, CupSoda, Leaf, Loader2, MapPin, Minus, Plus, Search, Sparkles, Target, Trash2, UserRound, Wheat, X, type LucideIcon,
@@ -288,6 +289,7 @@ export function NutritionCalculator({ patientId, nutrition, onLogged }: { patien
                 {customIds.has(food.id) && <button type="button" onClick={() => void removeFood()} className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-rose-200 hover:bg-rose-500/20"><Trash2 size={11} /> Remover</button>}
               </p>
               <div className="mt-2"><HealthHint food={food} tone="dark" onPick={(id) => setFoodId(id)} /></div>
+              <div className="mt-2"><FoodVitamins foodId={food.id} tone="dark" /></div>
             </div>
             <div className="text-right">
               <p className="font-display text-4xl font-extrabold leading-none tabular-nums">{n(nut.kcal)}<span className="ml-1 text-base font-semibold text-white/60">kcal</span></p>

@@ -1,3 +1,4 @@
+import { FoodVitamins } from "./FoodVitamins";
 import { useEffect,useMemo,useRef,useState } from "react";
 import { AlertTriangle,Calculator,CheckCircle2,ChevronLeft,ChevronRight,ClipboardCheck,Droplets,RefreshCw,Search,Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -286,6 +287,7 @@ export function ClientFoodMacroLibrary({patientId,ownerId,goal,weight,sensitive,
      <h5 className="mt-3 text-xs font-bold">{food.name}</h5>
      <p className="text-[11px] text-muted-foreground">{food.provenance==="TACO"?"Referência TACO/UNICAMP":food.provenance==="IBGE"?"Referência IBGE (POF)":food.provenance==="rotulo"?"Rótulo obrigatório":"Estimativa editorial"} · por 100 g</p>
      <div className="mt-1.5"><HealthHint food={food} onPick={id=>{if(foods.some(x=>x.id===id)){setSelected(id);requestId.current=null;setNotice("");}}}/></div>
+     <div className="mt-2"><FoodVitamins foodId={food.id}/></div>
      <div className="mt-2 grid grid-cols-4 gap-1 rounded-xl border border-border bg-muted/35 p-2">
       {MACROS.map(key=><div key={key} className="min-w-0 text-center">
        <small className="block truncate text-[11px] text-muted-foreground">{foodMacroLabels[key]}</small>

@@ -37,8 +37,8 @@ describe("NextVita nutrition safety and planning",()=>{
   expect(chicken.fat).toBe(3.2);
   expect(chicken.kcal).toBe(163);
   expect(chicken.provenance).toBe("TACO");
-  expect(ingredients).toHaveLength(203);
-  expect(ingredients.filter(x=>x.protein!==null&&x.carbs!==null&&x.fat!==null).length).toBe(200);
+  expect(ingredients).toHaveLength(231);
+  expect(ingredients.filter(x=>x.protein!==null&&x.carbs!==null&&x.fat!==null).length).toBe(228);
  });
  it("converts 100g and calculated portions without pretending labels are verified",()=>{
   const chicken=ingredients.find(x=>x.id==="frango")!;
@@ -57,4 +57,29 @@ describe("NextVita nutrition safety and planning",()=>{
   expect(gramsForMacro(waterLike,"carbs",-1)).toBeNull();
  });
 
+});
+
+import { parseFoodText } from "./food-parser";
+import { nutrientsInFood } from "./food-vitamins";
+describe("Alimentos regionais adicionados e vitaminas", () => {
+  it("reconhece os novos alimentos no texto livre", () => {
+    const ids = (t: string) => parseFoodText(t).map(f => f.id);
+    expect(ids("baião de dois")).toEqual(["baiao_dois"]);
+    expect(ids("café com leite em pó")).toEqual(["cafe_leite_po"]);
+    expect(ids("2 colheres de leite em pó integral")).toEqual(["leite_po_integral"]);
+    expect(ids("cereal com leite")).toEqual(["cereal_com_leite"]);
+    expect(ids("pão massa fina e queijo mussarela")).toEqual(["pao_massa_fina", "queijo_mussarela"]);
+    expect(ids("nescafé")).toEqual(["cafe_soluvel"]);
+    expect(ids("quibe de macaxeira")).toEqual(["quibe_macaxeira"]);
+    expect(ids("sopa de legumes")).toEqual(["sopa_legumes"]);
+    expect(ids("suco de acerola")).toEqual(["suco_acerola"]);
+    expect(ids("pasta de amendoim")).toEqual(["pasta_amendoim"]);
+    expect(ids("hot dog")).toEqual(["cachorro_quente"]);
+  });
+  it("mostra vitaminas com tipo e benefício", () => {
+    const acerola = nutrientsInFood("acerola").map(n => n.key);
+    expect(acerola).toContain("C");
+    expect(nutrientsInFood("castanha_para").map(n => n.key)).toContain("selenio");
+    expect(nutrientsInFood("leite_integral").every(n => n.benefit && n.kind)).toBe(true);
+  });
 });
