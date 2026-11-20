@@ -512,6 +512,7 @@ export function CareRecentHistory({
     setEditing(null);
     setReload((n) => n + 1);
     onChanged?.();
+    window.dispatchEvent(new Event("nv-intake-changed"));
   }
   async function remove(row: RecordRow) {
     if (!row.rawId || (row.kind !== "water" && row.kind !== "beverage" && row.kind !== "meal"))
@@ -539,6 +540,7 @@ export function CareRecentHistory({
     dialog.notify?.("Registro excluído. Métricas recalculadas.");
     setReload((n) => n + 1);
     onChanged?.();
+    window.dispatchEvent(new Event("nv-intake-changed"));
   }
   const initial = compact ? 7 : 5;
   const displayed = showAll ? rows : rows.slice(0, initial);

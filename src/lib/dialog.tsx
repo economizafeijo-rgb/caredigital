@@ -8,6 +8,7 @@ type DialogRequest = {
   danger?: boolean;
   confirmLabel?: string;
   placeholder?: string;
+  initial?: string;
   resolve: (value: boolean | string | null) => void;
 };
 const DialogContext = createContext<{
@@ -17,7 +18,12 @@ const DialogContext = createContext<{
     danger?: boolean,
     confirmLabel?: string,
   ) => Promise<boolean>;
-  prompt: (title: string, message: string, placeholder?: string) => Promise<string | null>;
+  prompt: (
+    title: string,
+    message: string,
+    placeholder?: string,
+    initial?: string,
+  ) => Promise<string | null>;
   /** Aviso rápido de confirmação (registro salvo, alterado, excluído…). */
   notify: (message: string, tone?: NoticeTone) => void;
 } | null>(null);
@@ -46,13 +52,14 @@ export function DialogProvider({ children }: { children: ReactNode }) {
         resolve: (value) => resolve(Boolean(value)),
       }),
     );
-  const prompt = (title: string, message: string, placeholder = "") =>
+  const prompt = (title: string, message: string, placeholder = "", initial = "") =>
     new Promise<string | null>((resolve) =>
       setRequest({
         kind: "prompt",
         title,
         message,
         placeholder,
+        initial,
         resolve: (value) => resolve(typeof value === "string" ? value : null),
       }),
     );
@@ -123,7 +130,7 @@ function DialogOverlay({
   request: DialogRequest;
   close: (value: boolean | string | null) => void;
 }) {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(request.initial ?? "");
   const label = request.confirmLabel ?? "";
   const postpone = /adiar/i.test(label) || /adiar/i.test(request.title);
   const tone = request.danger ? "#f43f5e" : postpone ? "#fbbf24" : "var(--color-primary)";
@@ -176,6 +183,7 @@ function DialogOverlay({
           {request.kind === "prompt" && (
             <input
               autoFocus
+              onFocus={(e) => e.currentTarget.select()}
               value={value}
               onChange={(e) => setValue(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && close(value)}

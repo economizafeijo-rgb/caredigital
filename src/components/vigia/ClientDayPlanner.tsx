@@ -384,6 +384,14 @@ export function ClientDayPlanner({
       dialog.notify?.(`${item.title} adiada para ${hm(to)}.`, "info");
     })();
   }
+  useEffect(() => {
+    const bump = () => {
+      setReload((n) => n + 1);
+      onRecorded?.();
+    };
+    window.addEventListener("nv-intake-changed", bump);
+    return () => window.removeEventListener("nv-intake-changed", bump);
+  }, [onRecorded]);
   const refresh = () => {
     setReload((n) => n + 1);
     onRecorded?.();

@@ -67,6 +67,11 @@ export function useDailyNutrition(
   const [loaded, setLoaded] = useState(false);
   const [reload, setReload] = useState(0);
   useEffect(() => {
+    const bump = () => setReload((value) => value + 1);
+    window.addEventListener("nv-intake-changed", bump);
+    return () => window.removeEventListener("nv-intake-changed", bump);
+  }, []);
+  useEffect(() => {
     let active = true;
     const db = supabase as any;
     const from = new Date(acreDateKey() + "T00:00:00-05:00").toISOString();
@@ -204,7 +209,7 @@ export function useDailyNutrition(
       objective: prefs.objective,
       loaded,
       patientId,
-      refresh: () => setReload((value) => value + 1),
+      refresh: () => window.dispatchEvent(new Event("nv-intake-changed")),
     };
   }, [entries, prefs, loaded]);
 }
@@ -286,7 +291,11 @@ export function DailyNutritionPanel({
           : "Editar bebida",
       entry.entryType === "food"
         ? "Informe a nova quantidade em gramas"
-        : "Descreva o registro atualizado",
+        : entry.entryType === "meal"
+          ? "Ajuste o alimento e a quantidade, por exemplo: Tambaqui assado 200 g"
+          : "Descreva o registro atualizado",
+      "",
+      entry.entryType === "food" ? String(entry.foods[0]?.grams ?? "") : entry.text,
     );
     if (value === null) return;
     setBusyEntry(entry.entryId);
