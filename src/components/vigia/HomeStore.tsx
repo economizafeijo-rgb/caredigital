@@ -1,4 +1,5 @@
 import { openProduct } from "./StoreViews";
+import { LiveProductRail } from "./LiveStores";
 import { useMemo, useRef, useState, type CSSProperties } from "react";
 import { Link } from "@tanstack/react-router";
 import {
@@ -247,6 +248,10 @@ export function HomeStore({ className = "" }: { className?: string }) {
           Produtos, preços e lojas são ilustrativos. As vendas ainda não estão abertas.
         </span>
       </p>
+
+      <div className="mt-3">
+        <LiveProductRail title="Lojas parceiras e Bela Vista" />
+      </div>
 
       <Link
         to="/loja"

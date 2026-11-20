@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { openProduct, VendorStorePage } from "./StoreViews";
+import { LiveProductRail } from "./LiveStores";
 import { PublicStoreGate } from "./store/PublicStore";
 import { MyOrders, OrderTracking } from "./store/OrderTracking";
 import {
@@ -914,6 +915,8 @@ export function StorePage() {
           ))}
         </ul>
       </div>
+
+      <LiveProductRail title="Produtos das lojas parceiras" />
 
       <section
         id="ofertas"
