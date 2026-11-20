@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Sparkles,
   Utensils,
+  ArrowUpRight,
 } from "lucide-react";
 import { useAccess } from "@/lib/use-access";
 import { LiveModeLauncher } from "@/components/vigia/LiveMode";
@@ -271,40 +272,43 @@ function Homepage() {
           }}
         />
 
-        <nav aria-label="Áreas da plataforma" className="grid grid-cols-3 gap-2 lg:grid-cols-9">
-          {areas.map((a, i) => (
+        <nav
+          aria-label="Áreas da plataforma"
+          className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-9"
+        >
+          {areas.map((a) => (
             <a
               key={a.to}
               href={client ? a.client : a.to}
-              style={{ "--tile": a.color, animationDelay: `${i * 45}ms` } as React.CSSProperties}
-              className="nv-area nv-rise group relative flex min-w-0 flex-col items-center gap-2 overflow-hidden rounded-2xl border border-border bg-card px-1.5 pb-2.5 pt-3 text-center transition-[border-color,background-color] duration-300 active:scale-[.97] sm:flex-row sm:gap-3 sm:px-3 sm:py-2.5 sm:text-left lg:flex-col lg:gap-2 lg:px-2 lg:pb-3.5 lg:pt-3.5 lg:text-center"
+              style={{ "--tile": a.color } as React.CSSProperties}
+              className="nv-area group relative flex min-w-0 items-center gap-2.5 overflow-hidden border border-border bg-card py-2.5 pl-3.5 pr-2.5 transition-[border-color,background-color,transform] duration-200 active:translate-y-px xl:flex-col xl:items-start xl:gap-3 xl:pb-3 xl:pt-3.5"
             >
               <span
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-x-0 -top-10 h-20 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-60"
+                className="nv-area-bar absolute inset-y-0 left-0 w-[3px]"
                 style={{ background: a.color }}
               />
               <span
-                className="nv-area-icon relative grid size-12 shrink-0 place-items-center rounded-2xl text-white shadow-lg ring-1 ring-white/20 transition-transform duration-300 group-hover:scale-110 group-active:scale-95 sm:size-11"
+                className="nv-area-icon grid size-9 shrink-0 place-items-center border transition-colors duration-200"
                 style={{
-                  background: `linear-gradient(140deg, color-mix(in srgb, ${a.color} 70%, #fff) 0%, ${a.color} 55%, color-mix(in srgb, ${a.color} 70%, #000) 100%)`,
-                  boxShadow: `0 10px 22px -10px ${a.color}`,
+                  color: a.color,
+                  borderColor: `color-mix(in srgb, ${a.color} 35%, transparent)`,
+                  background: `color-mix(in srgb, ${a.color} 10%, transparent)`,
                 }}
               >
-                <a.icon size={22} strokeWidth={2.1} aria-hidden="true" />
-                <span
-                  aria-hidden="true"
-                  className="absolute inset-x-1.5 top-1 h-1/2 rounded-t-xl bg-gradient-to-b from-white/35 to-transparent"
-                />
+                <a.icon size={18} strokeWidth={2} aria-hidden="true" />
               </span>
-              <span className="relative flex min-w-0 flex-col leading-tight">
-                <span className="truncate text-[12.5px] font-bold sm:text-[13.5px] lg:text-[13px]">
-                  {a.label}
-                </span>
-                <span className="nv-tile-hint mt-0.5 hidden truncate text-[11px] font-medium text-muted-foreground sm:block">
+              <span className="flex min-w-0 flex-1 flex-col leading-tight">
+                <span className="truncate text-[13px] font-bold">{a.label}</span>
+                <span className="mt-0.5 truncate text-[11px] font-medium text-muted-foreground">
                   {a.hint}
                 </span>
               </span>
+              <ArrowUpRight
+                size={14}
+                aria-hidden="true"
+                className="nv-area-go shrink-0 text-muted-foreground xl:absolute xl:right-2 xl:top-2"
+              />
             </a>
           ))}
         </nav>

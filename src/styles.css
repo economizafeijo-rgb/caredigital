@@ -3072,8 +3072,42 @@ html,
   }
 }
 /* Atalhos das áreas na página inicial */
+.nv-area {
+  border-radius: 0;
+}
+.nv-area .nv-area-bar {
+  transform: scaleY(0.35);
+  transition: transform 0.25s ease;
+}
+.nv-area:hover .nv-area-bar,
+.nv-area:focus-visible .nv-area-bar {
+  transform: scaleY(1);
+}
 .nv-area:hover {
-  border-color: color-mix(in srgb, var(--tile) 45%, var(--color-border));
+  border-color: color-mix(in srgb, var(--tile) 55%, var(--color-border));
+  background: color-mix(in srgb, var(--tile) 6%, var(--color-card));
+}
+.nv-area:hover .nv-area-icon,
+.nv-area:focus-visible .nv-area-icon {
+  background: var(--tile) !important;
+  color: #fff !important;
+}
+.nv-area .nv-area-go {
+  opacity: 0;
+  transform: translate(-3px, 3px);
+  transition: opacity 0.2s, transform 0.2s;
+}
+.nv-area:hover .nv-area-go,
+.nv-area:focus-visible .nv-area-go {
+  opacity: 1;
+  transform: none;
+  color: var(--tile);
+}
+@media (prefers-reduced-motion: reduce) {
+  .nv-area .nv-area-bar,
+  .nv-area .nv-area-go {
+    transition: none;
+  }
 }
 .nv-area:focus-visible {
   outline: 2px solid var(--tile);
