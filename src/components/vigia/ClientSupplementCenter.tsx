@@ -887,7 +887,7 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
                 {takenCount}/{doses.length} tomadas
               </span>
             </div>
-            <ul className="mt-3 grid max-h-[300px] gap-2 overflow-y-auto pr-1 md:grid-cols-2">
+            <ul className="mt-3 grid gap-2 md:grid-cols-2">
               {!loaded ? (
                 <li className="h-16 animate-pulse rounded-xl bg-muted" />
               ) : doses.length === 0 ? (
@@ -1069,7 +1069,7 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
           </div>
         </div>
         <div className="mt-2.5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
-          <div className="grid max-h-[min(54dvh,430px)] auto-rows-max grid-cols-3 content-start gap-2 overflow-y-auto pr-1 sm:grid-cols-4 xl:grid-cols-5">
+          <div className="grid auto-rows-max grid-cols-3 content-start gap-2 sm:grid-cols-4 xl:grid-cols-5">
             {supplementLibrary
               .filter((item) => libCat === "Todos" || item.category === libCat)
               .map((item, i) => {
