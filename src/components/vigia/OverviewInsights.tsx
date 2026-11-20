@@ -209,7 +209,7 @@ function MetricCard({
   const empty = days.every((v) => v === 0);
   return (
     <article
-      className="nv-insight nv-rise group relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-card p-4"
+      className="nv-insight nv-rise group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-card p-4"
       style={{ ["--c" as string]: m.color, animationDelay: `${index * 80}ms` }}
     >
       <span
@@ -301,7 +301,7 @@ function MetricCard({
         )}
       </div>
       <div
-        className="mt-auto flex h-14 items-end gap-1.5 pt-3"
+        className="mt-auto flex min-h-14 flex-1 items-end gap-1.5 pt-3"
         onPointerLeave={() => setHover(null)}
         role="img"
         aria-label={`${m.label} nos últimos 7 dias`}
@@ -631,7 +631,7 @@ export function OverviewInsights({
     <div className="grid gap-3">
       <div className="grid gap-3 xl:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
         <ScoreCard series={list} waterGoal={waterGoal} scheduled={scheduled} onOpen={onOpen} />
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,17rem),1fr))] content-start gap-3">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,17rem),1fr))] auto-rows-fr gap-3">
           {active.map((s, i) => (
             <MetricCard
               key={s.key}
@@ -650,9 +650,42 @@ export function OverviewInsights({
               onOpen={() => onOpen(s.key)}
             />
           ))}
+          {idle.map((s) => {
+            const m = meta[s.key];
+            return (
+              <button
+                key={s.key}
+                type="button"
+                onClick={() => onOpen(s.key)}
+                aria-label={`${m.label}: ${m.empty}`}
+                className="group relative flex min-h-24 min-w-0 flex-col justify-between overflow-hidden border border-dashed border-border bg-card/40 p-3 text-left transition hover:border-solid hover:bg-card"
+                style={{ ["--c" as string]: m.color }}
+              >
+                <span className="flex items-center gap-2 text-sm font-semibold">
+                  <span
+                    className="grid size-8 place-items-center text-white"
+                    style={{ background: m.color }}
+                  >
+                    <m.icon size={15} />
+                  </span>
+                  {m.label}
+                </span>
+                <span className="mt-2 flex items-end justify-between gap-2">
+                  <span className="text-xs text-muted-foreground">
+                    Sem registros nos últimos 7 dias
+                  </span>
+                  <span
+                    className="inline-flex h-7 shrink-0 items-center gap-1 px-2.5 text-[11px] font-bold text-white transition group-hover:brightness-110"
+                    style={{ background: m.color }}
+                  >
+                    <Plus size={12} /> {m.empty}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
-      {starters}
     </div>
   );
 }

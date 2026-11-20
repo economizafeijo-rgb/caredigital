@@ -425,25 +425,29 @@ export function SectionInsights({
 
   return (
     <section
-      className="mb-4 overflow-hidden rounded-2xl border border-border bg-card shadow-card"
+      className="mb-3 overflow-hidden border border-border bg-card"
       aria-label={config.title}
       style={{ ["--ins" as string]: config.a.color }}
     >
       <div
         aria-hidden
-        className="h-1 w-full"
+        className="h-0.5 w-full"
         style={{ background: `linear-gradient(90deg, ${config.a.color}, ${config.a.to})` }}
       />
-      <header className="flex flex-wrap items-center gap-3 px-4 pb-2 pt-3 sm:px-5">
+      <header className="flex flex-wrap items-center gap-2.5 px-3 py-2 sm:px-4">
         <span
-          className="grid size-9 shrink-0 place-items-center rounded-xl text-white shadow-sm"
+          className="grid size-8 shrink-0 place-items-center text-white"
           style={{ background: `linear-gradient(135deg, ${config.a.color}, ${config.a.to})` }}
         >
           <LineIcon size={18} />
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-base font-bold leading-tight">{config.title}</h3>
-          <p className="truncate text-xs text-muted-foreground">{config.subtitle}</p>
+          <h3 className="truncate text-sm font-bold leading-tight">{config.title}</h3>
+          <p className="truncate text-xs text-muted-foreground">
+            {data && empty
+              ? `Sem registros nos últimos ${days} dias — o gráfico aparece assim que você registrar.`
+              : config.subtitle}
+          </p>
         </div>
         <div role="group" aria-label="Período" className="flex gap-0.5 rounded-lg bg-muted p-0.5">
           {ranges.map(([value, label]) => (
@@ -472,19 +476,19 @@ export function SectionInsights({
         </button>
       </header>
 
-      {open && (
-        <div className="px-4 pb-4 sm:px-5">
-          <dl className="grid grid-cols-2 overflow-hidden rounded-xl border border-border sm:grid-cols-4">
+      {open && !(data && empty) && (
+        <div className="px-3 pb-3 sm:px-4">
+          <dl className="grid grid-cols-2 overflow-hidden border border-border sm:grid-cols-4">
             {stats.map(({ label, value, icon: Icon, note, tone }, i) => (
               <div
                 key={label}
-                className={`min-w-0 px-3 py-2 ${i % 2 ? "border-l" : ""} ${i > 1 ? "border-t sm:border-t-0" : ""} ${i === 2 ? "sm:border-l" : ""} border-border`}
+                className={`min-w-0 px-3 py-1.5 ${i % 2 ? "border-l" : ""} ${i > 1 ? "border-t sm:border-t-0" : ""} ${i === 2 ? "sm:border-l" : ""} border-border`}
               >
                 <dt className="flex items-center gap-1.5 truncate text-[11px] font-semibold text-muted-foreground">
                   <Icon size={13} style={{ color: config.a.color }} />
                   {label}
                 </dt>
-                <dd className="mt-0.5 truncate text-lg font-extrabold tabular-nums leading-tight">
+                <dd className="truncate text-base font-extrabold tabular-nums leading-tight">
                   {value}
                 </dd>
                 <dd className={`truncate text-[11px] text-muted-foreground ${tone}`}>{note}</dd>
@@ -523,7 +527,7 @@ export function SectionInsights({
                 </span>
               </div>
               {!data ? (
-                <div className="h-[230px] animate-pulse rounded-xl bg-muted/60" />
+                <div className="h-[170px] animate-pulse bg-muted/60" />
               ) : empty ? (
                 <div className="grid h-[230px] place-items-center rounded-xl border border-dashed border-border px-4 text-center text-sm text-muted-foreground">
                   Ainda não há registros neste período.
@@ -532,7 +536,7 @@ export function SectionInsights({
                 </div>
               ) : (
                 <EvoChart
-                  height={230}
+                  height={170}
                   ariaLabel={`${config.title} nos últimos ${days} dias`}
                   xMin={toX(rows[0].day) - DAY * 0.6}
                   xMax={toX(rows[rows.length - 1].day) + DAY * 0.6}

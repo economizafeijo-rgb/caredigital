@@ -455,7 +455,8 @@ export function CareRecentHistory({
     setReload((n) => n + 1);
     onChanged?.();
   }
-  const displayed = showAll ? rows : rows.slice(0, 5);
+  const initial = compact ? 7 : 5;
+  const displayed = showAll ? rows : rows.slice(0, initial);
   return (
     <section
       className={compact ? "care-history-panel care-history-compact" : "care-history-panel"}
@@ -543,13 +544,13 @@ export function CareRecentHistory({
               </div>
             ))}
           </div>
-          {rows.length > 5 && (
+          {rows.length > initial && (
             <button
               type="button"
               className="care-history-more"
               onClick={() => setShowAll((v) => !v)}
             >
-              {showAll ? "Mostrar menos" : `Ver mais ${rows.length - 5} registros`}
+              {showAll ? "Mostrar menos" : `Ver mais ${rows.length - initial} registros`}
             </button>
           )}
         </>

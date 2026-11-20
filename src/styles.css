@@ -999,3 +999,10 @@ html, #care-content { scrollbar-gutter: stable; }
 .care-history-entry:hover .care-history-del, .care-history-del:focus-visible { opacity: 1; }
 .care-history-del:hover { color: var(--destructive); background: color-mix(in srgb, var(--destructive) 12%, transparent); }
 .care-history-del:disabled { opacity: .3; pointer-events: none; }
+
+/* Tela inicial: visual reto e técnico — cantos vivos, bordas finas, números tabulares. */
+#care-client-tab-panel[data-client-page="hoje"] *,
+#care-client-tab-panel[data-client-page="hoje"] *::before,
+#care-client-tab-panel[data-client-page="hoje"] *::after { border-radius: 0 !important; }
+#care-client-tab-panel[data-client-page="hoje"] { font-variant-numeric: tabular-nums; }
+#care-client-tab-panel[data-client-page="hoje"] section { box-shadow: none; }

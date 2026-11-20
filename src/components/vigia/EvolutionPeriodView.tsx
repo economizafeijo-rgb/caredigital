@@ -328,7 +328,7 @@ function PeriodChart({
               isAnimationActive={false}
             />
           ) : (
-            <Bar yAxisId="left" dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={yearly ? 40 : 22}>
+            <Bar yAxisId="left" dataKey="value" radius={[0, 0, 0, 0]} maxBarSize={yearly ? 40 : 22}>
               {rows.map((row) => (
                 <Cell key={row.day} fill={row.color} />
               ))}
@@ -366,7 +366,7 @@ function TabBar({ tab, onChange }: { tab: Tab; onChange: (tab: Tab) => void }) {
           role="tab"
           aria-selected={tab === item.key}
           onClick={() => onChange(item.key)}
-          className={`h-8 shrink-0 rounded-full px-3 text-xs font-bold transition ${tab === item.key ? "bg-primary text-primary-foreground shadow-sm" : "bg-muted text-muted-foreground hover:text-foreground"}`}
+          className={`h-7 shrink-0 px-2.5 text-xs font-bold transition ${tab === item.key ? "bg-primary text-primary-foreground shadow-sm" : "bg-muted text-muted-foreground hover:text-foreground"}`}
         >
           {item.label}
         </button>
@@ -382,7 +382,7 @@ function Kpis({ days }: { days: DayMetrics[] }) {
       ? s.weightLast - s.weightFirst
       : null;
   return (
-    <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
+    <div className="grid grid-cols-2 gap-2 md:grid-cols-4 2xl:grid-cols-8">
       <Kpi
         icon={Target}
         label="Metas atingidas"
@@ -463,7 +463,7 @@ function Kpis({ days }: { days: DayMetrics[] }) {
 
 function MetricStats({ days }: { days: DayMetrics[] }) {
   return (
-    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
       {GOAL_METRICS.map((metric) => {
         const goals = days
           .flatMap((d) => d.goals)
@@ -475,7 +475,7 @@ function MetricStats({ days }: { days: DayMetrics[] }) {
         const style = METRIC_STYLE[metric];
         const Icon = style.icon;
         return (
-          <div key={metric} className="rounded-xl bg-muted/50 p-2.5">
+          <div key={metric} className="border border-border bg-muted/40 px-2.5 py-1.5">
             <div className="flex items-center justify-between text-xs font-bold">
               <span className="inline-flex items-center gap-1.5">
                 <Icon size={14} className={style.text} />
@@ -483,9 +483,9 @@ function MetricStats({ days }: { days: DayMetrics[] }) {
               </span>
               <span className="tabular-nums">{goals.length ? `${met}/${goals.length}` : "—"}</span>
             </div>
-            <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted">
+            <div className="mt-1 h-1.5 overflow-hidden bg-muted">
               <i
-                className="block h-full rounded-full transition-all duration-700"
+                className="block h-full transition-all duration-700"
                 style={{ width: `${pct}%`, background: style.hex }}
               />
             </div>
@@ -531,7 +531,7 @@ export function EvolutionMonthView({
           title="Calendário do mês"
           note="Cada dia mostra o resultado das metas. Toque para abrir as 24 horas."
         >
-          <div className="grid grid-cols-7 gap-1.5 text-center">
+          <div className="grid grid-cols-7 gap-1 text-center">
             {["D", "S", "T", "Q", "Q", "S", "S"].map((d, i) => (
               <span key={i} className="pb-1 text-[11px] font-bold text-muted-foreground">
                 {d}
@@ -554,7 +554,7 @@ export function EvolutionMonthView({
                     onClick={() => onOpenDay(day)}
                     title={`${longDay(day)} · ${tone.label}${evaluated.length ? ` · ${evaluated.filter((g) => g.status === "atingida").length}/${evaluated.length} metas` : ""}`}
                     aria-label={`${longDay(day)}: ${tone.label}`}
-                    className={`flex min-h-[3.4rem] flex-col items-center justify-between rounded-xl p-1.5 text-xs font-bold ring-1 transition hover:-translate-y-0.5 hover:shadow-card disabled:cursor-default disabled:hover:translate-y-0 ${tone.cell} ${day === todayKey ? "outline outline-2 outline-offset-1 outline-primary" : ""}`}
+                    className={`flex min-h-[2.7rem] flex-col items-center justify-between p-1 text-xs font-bold ring-1 transition hover:brightness-125 disabled:cursor-default disabled:hover:translate-y-0 ${tone.cell} ${day === todayKey ? "outline outline-2 outline-offset-1 outline-primary" : ""}`}
                   >
                     <span className="tabular-nums">{Number(day.slice(8))}</span>
                     <span className="flex min-h-2 flex-wrap justify-center gap-0.5">
@@ -599,55 +599,70 @@ export function EvolutionMonthView({
       <Panel title="Metas por categoria" note="Quantas vezes cada meta foi atingida neste mês">
         <MetricStats days={days} />
       </Panel>
-      <Panel
-        title="Observações do mês"
-        note="Registradas pelo sistema quando uma meta não foi atingida"
-      >
-        {misses.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
-            Nenhuma meta deixou de ser atingida neste mês.
-          </p>
-        ) : (
-          <ul className="grid max-h-80 gap-2 overflow-y-auto pr-1">
-            {Object.entries(
-              misses.slice(0, 60).reduce<Record<string, typeof misses>>((acc, m) => {
-                (acc[m.day] ??= []).push(m);
-                return acc;
-              }, {}),
-            ).map(([day, list]) => (
-              <li key={day}>
-                <div className="grid gap-1.5 rounded-xl border border-border bg-card p-3 text-xs transition hover:border-amber-500/40">
-                  <button
-                    type="button"
-                    onClick={() => onOpenDay(day)}
-                    className="group flex w-full items-center gap-2 text-left"
-                  >
-                    <ClipboardList size={15} className="shrink-0 text-amber-500" />
-                    <strong className="text-[13px] first-letter:uppercase">{longDay(day)}</strong>
-                    <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-300">
-                      {list.length}{" "}
-                      {list.length === 1 ? "meta não atingida" : "metas não atingidas"}
-                    </span>
-                    <span className="ml-auto text-[11px] font-semibold text-muted-foreground transition-colors group-hover:text-foreground">
-                      Abrir o dia
-                    </span>
-                  </button>
-                  <ul className="grid gap-1 pl-6 text-muted-foreground">
-                    {list.map(({ goal, saved }) => (
-                      <li key={goal.metric} className="leading-snug">
-                        <span className="text-foreground">{goalObservation(goal, day)}</span>
-                        {!saved && (
-                          <span className="text-[11px]"> · será registrada no histórico</span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Panel>
+      <details className="group border border-border border-t-2 border-t-primary/50 bg-card p-3">
+        <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-bold [&::-webkit-details-marker]:hidden">
+          <ClipboardList size={14} className="text-amber-500" />
+          Observações do mês
+          <span className="bg-muted px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-muted-foreground">
+            {misses.length}
+          </span>
+          <span className="ml-auto text-[11px] font-medium text-muted-foreground group-open:hidden">
+            Mostrar
+          </span>
+          <span className="ml-auto hidden text-[11px] font-medium text-muted-foreground group-open:inline">
+            Ocultar
+          </span>
+        </summary>
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          Registradas pelo sistema quando uma meta não foi atingida
+        </p>
+        <div className="mt-2">
+          {misses.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+              Nenhuma meta deixou de ser atingida neste mês.
+            </p>
+          ) : (
+            <ul className="grid max-h-60 gap-1 overflow-y-auto pr-1">
+              {Object.entries(
+                misses.slice(0, 60).reduce<Record<string, typeof misses>>((acc, m) => {
+                  (acc[m.day] ??= []).push(m);
+                  return acc;
+                }, {}),
+              ).map(([day, list]) => (
+                <li key={day}>
+                  <div className="grid gap-0.5 border-l-2 border-l-amber-500/60 bg-muted/30 px-2.5 py-1.5 text-xs transition hover:bg-muted/60">
+                    <button
+                      type="button"
+                      onClick={() => onOpenDay(day)}
+                      className="group flex w-full items-center gap-2 text-left"
+                    >
+                      <ClipboardList size={15} className="shrink-0 text-amber-500" />
+                      <strong className="text-[13px] first-letter:uppercase">{longDay(day)}</strong>
+                      <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-300">
+                        {list.length}{" "}
+                        {list.length === 1 ? "meta não atingida" : "metas não atingidas"}
+                      </span>
+                      <span className="ml-auto text-[11px] font-semibold text-muted-foreground transition-colors group-hover:text-foreground">
+                        Abrir o dia
+                      </span>
+                    </button>
+                    <ul className="grid gap-0.5 pl-5 text-[11px] text-muted-foreground">
+                      {list.map(({ goal, saved }) => (
+                        <li key={goal.metric} className="leading-snug">
+                          <span className="text-foreground">{goalObservation(goal, day)}</span>
+                          {!saved && (
+                            <span className="text-[11px]"> · será registrada no histórico</span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </details>
     </div>
   );
 }

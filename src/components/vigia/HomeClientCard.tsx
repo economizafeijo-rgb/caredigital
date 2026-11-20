@@ -1070,48 +1070,6 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                         )}
                       </section>
                     )}
-                    {tasks.length > 0 && (
-                      <section aria-label="Resumo do dia" className={card + " shrink-0 p-4"}>
-                        <div className="care-overview-section-heading">
-                          <div>
-                            <span className="care-overview-eyebrow">Seu dia</span>
-                            <h3>Resumo do dia</h3>
-                          </div>
-                          <span className="care-overview-heading-note tabular-nums">
-                            {dayPercent}% concluído
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-3 gap-2 text-center">
-                          {[
-                            ["Total", tasks.length, ""],
-                            ["Concluídos", completed, "text-success"],
-                            ["Pendentes", Math.max(0, tasks.length - completed), "text-warning"],
-                          ].map(([label, value, tone]) => (
-                            <div key={label} className="rounded-xl bg-muted px-2 py-2.5">
-                              <strong
-                                className={`block font-display text-xl font-bold tabular-nums ${tone}`}
-                              >
-                                {value}
-                              </strong>
-                              <span className="text-[11px] text-muted-foreground">{label}</span>
-                            </div>
-                          ))}
-                        </div>
-                        <div
-                          className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted"
-                          role="progressbar"
-                          aria-label="Percentual de cuidados concluídos"
-                          aria-valuenow={dayPercent}
-                          aria-valuemin={0}
-                          aria-valuemax={100}
-                        >
-                          <i
-                            className="block h-full rounded-full bg-primary transition-[width]"
-                            style={{ width: dayPercent + "%" }}
-                          />
-                        </div>
-                      </section>
-                    )}
                     <div className={card + " flex-1 p-4"}>
                       <ClientOverviewIndicators
                         heightCm={client.height_cm}

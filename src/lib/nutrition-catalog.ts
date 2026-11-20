@@ -1792,7 +1792,7 @@ const baseIngredients: Omit<Ingredient, "carbs" | "fat" | "fiber">[] = [
     group: "cereais",
     protein: 3,
     kcal: 130,
-    flags: ["industrializado", "sodio"],
+    flags: ["industrializado"],
     note: "Estimativa: 1 pacote de 85 g seco, preparado com o tempero, rende cerca de 270 g. Muito sódio: o tempero sozinho traz mais da metade do limite diário.",
   },
   {
@@ -1801,7 +1801,7 @@ const baseIngredients: Omit<Ingredient, "carbs" | "fat" | "fiber">[] = [
     group: "legumes",
     protein: 1,
     kcal: 101,
-    flags: ["industrializado", "sodio"],
+    flags: ["industrializado"],
     note: "Estimativa baseada na tabela do USDA. 1 colher de sopa ≈ 15 g.",
   },
   {
