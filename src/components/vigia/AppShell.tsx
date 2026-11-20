@@ -40,6 +40,8 @@ import {
   Megaphone,
   Wallet,
   TrendingUp,
+  Lock,
+  LockOpen,
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react";
@@ -117,25 +119,35 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
       ],
     },
     {
-      title: "Cuidados",
+      title: "Rotina diária",
       items: [
         section("medicacao", "Medicação", Pill),
+        section("suplementos", "Suplementos", Sparkles),
         section("hidratacao", "Hidratação", Droplets),
         section("alimentacao", "Alimentação", Utensils),
         section("atividade", "Atividade", Activity),
+        section("sono", "Sono", BedDouble),
       ],
     },
     {
-      title: "Saúde",
+      title: "Corpo e evolução",
       items: [
         section("peso", "Peso e evolução", Scale),
         section("medidas", "Medidas do corpo", Ruler),
         section("batimentos", "Batimentos cardíacos", HeartPulse),
-        section("sono", "Sono", BedDouble),
-        section("suplementos", "Suplementos", Sparkles),
         section("indicadores", "Indicadores", Target),
+      ],
+    },
+    {
+      title: "Nutrição",
+      items: [
         section("cardapios", "Cardápios e dietas", BookOpen),
         { to: "/biblioteca-alimentar", label: "Biblioteca alimentar", icon: Apple },
+      ],
+    },
+    {
+      title: "Loja",
+      items: [
         { to: "/loja", label: "Loja", icon: ShoppingBag },
         { to: "/lojista", label: "Seja lojista", icon: Store },
       ],
@@ -407,10 +419,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [sidebarPinned, setSidebarPinned] = useState(false);
+  const [sidebarLocked, setSidebarLocked] = useState(false);
   const hoverTimer = useRef<number | undefined>(undefined);
   useEffect(() => {
     try {
       setSidebarPinned(localStorage.getItem("nv-sidebar-pinned") === "1");
+      setSidebarLocked(localStorage.getItem("nv-sidebar-locked") === "1");
     } catch {
       /* sem armazenamento */
     }
@@ -424,6 +438,22 @@ export function AppShell({ children }: { children: ReactNode }) {
       }
       return !v;
     });
+  // Trava o estado atual (aberto ou recolhido): o menu deixa de expandir ao passar o mouse.
+  const toggleLock = () => {
+    const next = !sidebarLocked;
+    setSidebarLocked(next);
+    if (next) {
+      setSidebarPinned(sidebarPinned || sidebarExpanded);
+      setSidebarExpanded(false);
+    }
+    try {
+      localStorage.setItem("nv-sidebar-locked", next ? "1" : "0");
+      if (next)
+        localStorage.setItem("nv-sidebar-pinned", sidebarPinned || sidebarExpanded ? "1" : "0");
+    } catch {
+      /* sem armazenamento */
+    }
+  };
   // Atalho de teclado: [ fixa ou solta o menu lateral.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -443,6 +473,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
   const openRail = () => {
+    if (sidebarLocked) return;
     window.clearTimeout(hoverTimer.current);
     hoverTimer.current = window.setTimeout(() => setSidebarExpanded(true), 120);
   };
@@ -450,7 +481,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     window.clearTimeout(hoverTimer.current);
     setSidebarExpanded(false);
   };
-  const railOpen = sidebarExpanded || sidebarPinned;
+  const railOpen = sidebarLocked ? sidebarPinned : sidebarExpanded || sidebarPinned;
   const [darkMode, setDarkMode] = useState(false);
   const [fullScreen, setFullScreen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -684,7 +715,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <aside
                 onMouseEnter={openRail}
                 onMouseLeave={closeRail}
-                onFocusCapture={() => setSidebarExpanded(true)}
+                onFocusCapture={() => !sidebarLocked && setSidebarExpanded(true)}
                 onBlurCapture={(e) => {
                   if (!e.currentTarget.contains(e.relatedTarget as Node)) setSidebarExpanded(false);
                 }}
@@ -707,6 +738,20 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <p className="nv-rail-label nv-rail-credit min-w-0 flex-1 truncate text-[10px] text-slate-600">
                     Franc D&apos;nis · Feijó, Acre
                   </p>
+                  <button
+                    type="button"
+                    onClick={toggleLock}
+                    aria-pressed={sidebarLocked}
+                    aria-label={sidebarLocked ? "Destravar menu" : "Travar menu neste estado"}
+                    title={
+                      sidebarLocked
+                        ? "Menu travado: não expande nem recolhe sozinho. Clique para destravar"
+                        : "Travar o menu neste estado (aberto ou recolhido)"
+                    }
+                    className={`mx-auto grid size-6 shrink-0 place-items-center transition-colors hover:bg-white/[.08] hover:text-white ${sidebarLocked ? "bg-emerald-400/15 text-emerald-300" : "text-slate-500"}`}
+                  >
+                    {sidebarLocked ? <Lock size={13} /> : <LockOpen size={13} />}
+                  </button>
                   <button
                     type="button"
                     onClick={togglePin}

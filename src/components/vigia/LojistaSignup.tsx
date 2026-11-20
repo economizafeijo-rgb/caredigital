@@ -1,10 +1,12 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Loader2, Store } from "lucide-react";
+import { Bike, Check, Loader2, Store } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { centsToInput, parseMoney, SEGMENTS, slugify, type Segment } from "@/lib/marketplace";
 import { NiceSelect } from "./NiceSelect";
 
-const field = "mt-1 block h-11 w-full rounded-xl border border-border bg-surface px-3 text-sm";
+const field =
+  "mt-1 block h-9 w-full rounded-none border border-border bg-surface px-2.5 text-sm outline-none transition-colors focus:border-[#0a7f78] focus:ring-1 focus:ring-[#0a7f78]/40";
+const lab = "block text-[11px] font-semibold text-muted-foreground";
 
 /** Cadastro da loja: fica "pendente" até o administrador aprovar. Plano, comissão e selo são definidos só pela plataforma. */
 export function LojistaSignup({ onCreated }: { onCreated: () => void }) {
@@ -83,25 +85,33 @@ export function LojistaSignup({ onCreated }: { onCreated: () => void }) {
     setError("Já existe uma loja com esse nome. Acrescente o bairro ou a cidade ao nome.");
   }
 
+  const chip = (on: boolean) =>
+    `flex h-9 cursor-pointer items-center gap-2 border px-2.5 text-xs font-semibold transition-colors ${
+      on
+        ? "border-[#0a7f78] bg-[#0a7f78]/10 text-foreground"
+        : "border-border bg-surface text-muted-foreground"
+    }`;
+
   return (
     <form
       onSubmit={(e) => void submit(e)}
       aria-label="Cadastro da loja"
-      className="grid gap-4 rounded-3xl border border-border bg-card p-5 shadow-card sm:p-7"
+      className="nv-scan mx-auto grid w-full max-w-3xl gap-3 border border-border bg-card p-3.5 shadow-card"
+      style={{ ["--ca" as string]: "#0a7f78" }}
     >
-      <header className="flex items-center gap-3">
-        <span className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white">
-          <Store size={24} />
+      <header className="flex items-center gap-2.5">
+        <span className="grid size-9 place-items-center bg-gradient-to-br from-emerald-500 to-teal-500 text-white">
+          <Store size={18} />
         </span>
-        <div>
-          <h2 className="font-display text-2xl font-extrabold">Cadastre sua loja</h2>
-          <p className="text-sm text-muted-foreground">
+        <div className="min-w-0">
+          <h2 className="font-display text-base font-extrabold leading-tight">Cadastre sua loja</h2>
+          <p className="text-xs text-muted-foreground">
             Leva poucos minutos. A equipe NextVita aprova e libera a sua vitrine.
           </p>
         </div>
       </header>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="text-sm font-semibold">
+      <div className="grid gap-2.5 sm:grid-cols-6">
+        <label className={`${lab} sm:col-span-3`}>
           Nome da loja
           <input
             className={field}
@@ -111,17 +121,17 @@ export function LojistaSignup({ onCreated }: { onCreated: () => void }) {
             placeholder="Ex.: Academia Fit Moda"
           />
         </label>
-        <div className="text-sm font-semibold">
+        <div className={`${lab} sm:col-span-3`}>
           Segmento
           <NiceSelect
-            className="mt-1 h-11"
+            className="mt-1 h-9"
             ariaLabel="Segmento"
             value={segment}
             onChange={(v) => setSegment(v as Segment)}
             options={SEGMENTS.map((s) => ({ value: s.key, label: s.label, hint: s.hint }))}
           />
         </div>
-        <label className="text-sm font-semibold">
+        <label className={`${lab} sm:col-span-2`}>
           WhatsApp da loja
           <input
             className={field}
@@ -131,7 +141,7 @@ export function LojistaSignup({ onCreated }: { onCreated: () => void }) {
             placeholder="(68) 90000-0000"
           />
         </label>
-        <label className="text-sm font-semibold">
+        <label className={`${lab} sm:col-span-2`}>
           Cidade
           <input
             className={field}
@@ -140,8 +150,8 @@ export function LojistaSignup({ onCreated }: { onCreated: () => void }) {
             maxLength={80}
           />
         </label>
-        <label className="text-sm font-semibold sm:col-span-2">
-          Endereço da loja (opcional)
+        <label className={`${lab} sm:col-span-2`}>
+          Endereço (opcional)
           <input
             className={field}
             value={address}
@@ -150,10 +160,10 @@ export function LojistaSignup({ onCreated }: { onCreated: () => void }) {
             placeholder="Rua, número, bairro"
           />
         </label>
-        <label className="text-sm font-semibold sm:col-span-2">
+        <label className={`${lab} sm:col-span-6`}>
           Sobre a loja (opcional)
           <textarea
-            className={`${field} h-24 py-2`}
+            className={`${field} h-14 resize-none py-1.5`}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             maxLength={500}
@@ -161,29 +171,41 @@ export function LojistaSignup({ onCreated }: { onCreated: () => void }) {
           />
         </label>
       </div>
-      <fieldset className="grid gap-3 rounded-2xl bg-muted/50 p-4">
-        <legend className="px-1 text-sm font-bold">Como o cliente recebe</legend>
-        <label className="flex items-center gap-2 text-sm font-semibold">
-          <input
-            type="checkbox"
-            checked={pickup}
-            onChange={(e) => setPickup(e.target.checked)}
-            className="size-5 accent-emerald-600"
-          />{" "}
-          Retirada na loja
-        </label>
-        <label className="flex items-center gap-2 text-sm font-semibold">
-          <input
-            type="checkbox"
-            checked={delivery}
-            onChange={(e) => setDelivery(e.target.checked)}
-            className="size-5 accent-emerald-600"
-          />{" "}
-          Entrega (delivery)
-        </label>
+      <fieldset className="grid gap-2 border border-border bg-muted/40 p-2.5">
+        <legend className="px-1 text-xs font-bold">Como o cliente recebe</legend>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <label className={chip(pickup)}>
+            <input
+              type="checkbox"
+              checked={pickup}
+              onChange={(e) => setPickup(e.target.checked)}
+              className="sr-only"
+            />
+            <span
+              className={`grid size-4 place-items-center border ${pickup ? "border-[#0a7f78] bg-[#0a7f78] text-white" : "border-border"}`}
+            >
+              {pickup && <Check size={11} />}
+            </span>
+            <Store size={14} /> Retirada na loja
+          </label>
+          <label className={chip(delivery)}>
+            <input
+              type="checkbox"
+              checked={delivery}
+              onChange={(e) => setDelivery(e.target.checked)}
+              className="sr-only"
+            />
+            <span
+              className={`grid size-4 place-items-center border ${delivery ? "border-[#0a7f78] bg-[#0a7f78] text-white" : "border-border"}`}
+            >
+              {delivery && <Check size={11} />}
+            </span>
+            <Bike size={14} /> Entrega (delivery)
+          </label>
+        </div>
         {delivery && (
-          <div className="grid gap-3 sm:grid-cols-3">
-            <label className="text-xs font-semibold">
+          <div className="grid gap-2.5 sm:grid-cols-3">
+            <label className={lab}>
               Taxa de entrega (R$)
               <input
                 className={field}
@@ -193,7 +215,7 @@ export function LojistaSignup({ onCreated }: { onCreated: () => void }) {
                 placeholder={centsToInput(800)}
               />
             </label>
-            <label className="text-xs font-semibold">
+            <label className={lab}>
               Frete grátis a partir de (R$)
               <input
                 className={field}
@@ -203,14 +225,14 @@ export function LojistaSignup({ onCreated }: { onCreated: () => void }) {
                 placeholder="opcional"
               />
             </label>
-            <label className="text-xs font-semibold">
+            <label className={lab}>
               Área atendida
               <input
                 className={field}
                 value={area}
                 onChange={(e) => setArea(e.target.value)}
                 maxLength={200}
-                placeholder="Ex.: Centro e bairros próximos"
+                placeholder="Ex.: Centro e bairros"
               />
             </label>
           </div>
@@ -219,28 +241,30 @@ export function LojistaSignup({ onCreated }: { onCreated: () => void }) {
       {error && (
         <p
           role="alert"
-          className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive"
+          className="border border-destructive/30 bg-destructive/10 px-2.5 py-1.5 text-xs text-destructive"
         >
           {error}
         </p>
       )}
-      <button
-        type="submit"
-        disabled={busy}
-        className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 text-lg font-extrabold text-white shadow-lg disabled:opacity-60"
-      >
-        {busy ? (
-          <>
-            <Loader2 className="animate-spin" size={20} /> Enviando…
-          </>
-        ) : (
-          "Enviar minha loja para aprovação"
-        )}
-      </button>
-      <p className="text-center text-xs text-muted-foreground">
-        Ao cadastrar, você concorda com a cobrança de mensalidade do plano e comissão sobre as
-        vendas, conforme os planos exibidos.
-      </p>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-[11px] text-muted-foreground sm:max-w-[26rem]">
+          Ao cadastrar, você concorda com a mensalidade do plano e a comissão sobre as vendas,
+          conforme os planos exibidos.
+        </p>
+        <button
+          type="submit"
+          disabled={busy}
+          className="inline-flex h-10 shrink-0 items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-500 px-5 text-sm font-bold text-white disabled:opacity-60"
+        >
+          {busy ? (
+            <>
+              <Loader2 className="animate-spin" size={16} /> Enviando…
+            </>
+          ) : (
+            "Enviar para aprovação"
+          )}
+        </button>
+      </div>
     </form>
   );
 }
