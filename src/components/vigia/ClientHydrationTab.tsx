@@ -357,6 +357,10 @@ export function ClientHydrationTab({
           lastAmountMl: lastWater ? Number(lastWater.amount_ml) : 0,
           now: clock,
           cutoff: cutoffUtc,
+          recent: [...drinks, ...otherDrinks].map((d) => ({
+            at: Date.parse(d.recorded_at),
+            ml: Number(d.amount_ml) || 0,
+          })),
         })
       : null;
   const nextHydrationAt = nextPlan?.at ?? null;

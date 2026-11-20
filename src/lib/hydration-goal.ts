@@ -94,6 +94,8 @@ export function estimateNextHydration(input: {
   lastAmountMl: number;
   now: number;
   cutoff: number;
+  /** Líquidos registrados recentemente (qualquer horário, mesmo fora do programado). */
+  recent?: { at: number; ml: number }[];
 }): {
   at: number;
   suggestedMl: number;
@@ -102,7 +104,7 @@ export function estimateNextHydration(input: {
   reachable: boolean;
   safeRemainingMl: number;
 } | null {
-  const { remainingMl, lastIntakeAt, lastAmountMl, now, cutoff } = input;
+  const { remainingMl, lastIntakeAt, lastAmountMl, now, cutoff, recent = [] } = input;
   if (remainingMl < 10 || now >= cutoff) return null;
   const from = lastIntakeAt ?? now;
   const portions = Math.max(1, Math.ceil(remainingMl / 250));
@@ -112,6 +114,17 @@ export function estimateNextHydration(input: {
   const intervalMin = lastIntakeAt ? Math.round(Math.min(120, Math.max(minGap, spread))) : 0;
   let at = from + intervalMin * 60_000;
   if (at < now) at = now;
+  const suggested = Math.min(350, Math.max(10, Math.round(remainingMl / portions / 10) * 10));
+  // Janela móvel de 1 h: o próximo copo só vem quando o que já foi bebido na última hora,
+  // somado à porção sugerida, cabe no ritmo confortável (protege os rins após beber atrasado ou muito de uma vez).
+  const inLastHour = (t: number) =>
+    recent.filter((r) => r.at > t - 3_600_000 && r.at <= t).reduce((sum, r) => sum + r.ml, 0);
+  const sorted = [...recent].sort((a, b) => a.at - b.at);
+  while (at < cutoff && inLastHour(at) + suggested > COMFORT_ML_PER_HOUR) {
+    const next = sorted.find((r) => r.at + 3_600_000 > at);
+    if (!next) break;
+    at = Math.max(at + 60_000, next.at + 3_600_000 + 1000);
+  }
   if (at > cutoff) at = cutoff;
   const suggestedMl = Math.min(350, Math.max(10, Math.round(remainingMl / portions / 10) * 10));
   const safeRemainingMl =

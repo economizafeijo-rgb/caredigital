@@ -1,3 +1,4 @@
+import { estimateNextHydration } from "./hydration-goal";
 import { describe, expect, it } from "vitest";
 import {
   acreCalendarDay,
@@ -65,5 +66,38 @@ describe("Fechamento diário da hidratação à meia-noite no Acre (janela de 24
       Date.parse("2026-11-03T04:05:00Z"),
     );
     expect(note.kind).toBe("unconfigured");
+  });
+});
+
+describe("estimateNextHydration após consumo atrasado", () => {
+  const H = 3_600_000;
+  const base = Date.UTC(2026, 10, 20, 15, 0);
+  it("conta do último líquido, não do horário programado", () => {
+    const r = estimateNextHydration({
+      remainingMl: 1500,
+      lastIntakeAt: base,
+      lastAmountMl: 250,
+      now: base + 60_000,
+      cutoff: base + 6 * H,
+      recent: [{ at: base, ml: 250 }],
+    })!;
+    expect(r.at).toBeGreaterThanOrEqual(base + 30 * 60_000);
+  });
+  it("espaça mais quando bebeu muito na última hora", () => {
+    const now = base + 20 * 60_000;
+    const r = estimateNextHydration({
+      remainingMl: 1500,
+      lastIntakeAt: base + 15 * 60_000,
+      lastAmountMl: 300,
+      now,
+      cutoff: base + 6 * H,
+      recent: [
+        { at: base, ml: 300 },
+        { at: base + 15 * 60_000, ml: 300 },
+      ],
+    })!;
+    const sum = 600;
+    expect(sum).toBeGreaterThan(500);
+    expect(r.at).toBeGreaterThanOrEqual(base + H);
   });
 });
