@@ -53,68 +53,68 @@
   color-scheme: light;
   --radius: 0.75rem;
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
-  --background: #f4f6f7;
-  --foreground: #0f1f29;
-  --surface: #ffffff;
+  --background: #e9eef9;
+  --foreground: #0e1732;
+  --surface: #f5f8fe;
   --card: #ffffff;
-  --card-foreground: #0f1f29;
+  --card-foreground: #0e1732;
   --popover: #ffffff;
   --popover-foreground: #0f1f29;
-  --primary: #0c8063;
+  --primary: #0a7f78;
   --primary-foreground: #ffffff;
-  --secondary: #eaeff1;
+  --secondary: #e3e9f7;
   --secondary-foreground: #0f1f29;
-  --muted: #eef2f4;
-  --muted-foreground: #56666f;
-  --accent: #dff3ee;
+  --muted: #e7ecf8;
+  --muted-foreground: #56627f;
+  --accent: #dbf1f0;
   --accent-foreground: #0a6d58;
   --destructive: #d43c3c;
   --destructive-foreground: #ffffff;
   --success: #0e8a6a;
   --warning: #a76516;
-  --sky: #168fa8;
-  --water: #168fa8;
-  --meal: #0e8a6a;
-  --med: #7961c9;
-  --activity: #c96c28;
-  --sidebar: #0b2528;
-  --border: #dde4e8;
-  --input: #c3ced4;
-  --ring: #0c8063;
+  --sky: #0f8fd1;
+  --water: #0f8fd1;
+  --meal: #0e9a6f;
+  --med: #6d4fd8;
+  --activity: #d9620f;
+  --sidebar: #0b1330;
+  --border: #d2dbf0;
+  --input: #bcc8e4;
+  --ring: #0a7f78;
   --shadow-card: 0 1px 2px rgb(16 43 49 / 0.04), 0 8px 24px -16px rgb(16 43 49 / 0.18);
   --shadow-pop: 0 24px 60px -24px rgb(16 43 49 / 0.32);
 }
 
 :root.dark {
   color-scheme: dark;
-  --background: #0d1317;
-  --foreground: #e8eef1;
-  --surface: #11181d;
-  --card: #141b21;
-  --card-foreground: #e8eef1;
-  --popover: #182129;
+  --background: #070b1a;
+  --foreground: #e9eefc;
+  --surface: #0c1226;
+  --card: #101932;
+  --card-foreground: #e9eefc;
+  --popover: #141d3b;
   --popover-foreground: #e8eef1;
-  --primary: #5ed8c3;
+  --primary: #3fe0c8;
   --primary-foreground: #06201e;
-  --secondary: #1b252c;
+  --secondary: #17214a;
   --secondary-foreground: #e8eef1;
-  --muted: #1a2329;
-  --muted-foreground: #9aa8b1;
-  --accent: #133b34;
+  --muted: #151e40;
+  --muted-foreground: #98a6cc;
+  --accent: #0f3550;
   --accent-foreground: #b9f0e3;
   --destructive: #ff9292;
   --destructive-foreground: #2a0c0c;
   --success: #62dec0;
   --warning: #f2c779;
-  --sky: #68cee0;
-  --water: #68cee0;
-  --meal: #62dec0;
-  --med: #b9a9f2;
-  --activity: #ffad78;
-  --sidebar: #0a1014;
-  --border: #253039;
-  --input: #36444e;
-  --ring: #8ae8d5;
+  --sky: #4cc3f5;
+  --water: #4cc3f5;
+  --meal: #4ee0a9;
+  --med: #b4a0ff;
+  --activity: #ffa05a;
+  --sidebar: #060916;
+  --border: #222d59;
+  --input: #33427a;
+  --ring: #7df0dc;
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 28px -18px rgb(0 0 0 / 0.7);
   --shadow-pop: 0 24px 60px -20px rgb(0 0 0 / 0.75);
 }
@@ -1117,3 +1117,73 @@ html, #care-content { scrollbar-gutter: stable; }
 @keyframes nv-bar-in { from { transform: scaleY(0); } to { transform: scaleY(1); } }
 .nv-bar-in { transform-box: fill-box; transform-origin: bottom; animation: nv-bar-in .6s cubic-bezier(.2,.8,.2,1) both; }
 @media (prefers-reduced-motion: reduce) { .nv-draw-line, .nv-bar-in { animation: none; } }
+
+/* ===== NextVita · identidade visual v3: fundo índigo, cores por categoria, barras compactas ===== */
+:root { --nv-glow-a: rgba(99,102,241,.10); --nv-glow-b: rgba(20,184,166,.09); }
+:root.dark { --nv-glow-a: rgba(99,102,241,.20); --nv-glow-b: rgba(20,184,166,.13); }
+body {
+  background-image:
+    radial-gradient(900px 520px at 100% -8%, var(--nv-glow-a), transparent 65%),
+    radial-gradient(800px 480px at -6% 105%, var(--nv-glow-b), transparent 65%);
+  background-attachment: fixed;
+}
+
+/* Barra superior: mais baixa, em vidro, com fio de cor na base e botões quadrados */
+.nv-topbar { position: relative; height: 3rem !important; background: color-mix(in srgb, var(--surface) 78%, transparent) !important; backdrop-filter: blur(14px) saturate(1.3); }
+.nv-topbar::after { content: ""; position: absolute; inset: auto 0 -1px 0; height: 2px; background: linear-gradient(90deg, #6366f1, #14b8a6 38%, #38bdf8 62%, #f59e0b); opacity: .75; pointer-events: none; }
+.nv-topbar :is(a, button) { border-radius: 0 !important; height: 2rem !important; font-size: 12px !important; }
+.nv-topbar .font-display { letter-spacing: -.01em; }
+
+/* Cartões do painel: faixa de cor no topo e leve gradiente tingido pela categoria */
+#care-content .shadow-card.bg-card.border {
+  --ca: var(--primary);
+  border-radius: 0.25rem;
+  background-image: linear-gradient(180deg, color-mix(in srgb, var(--ca) 8%, transparent), transparent 140px);
+  box-shadow: inset 0 2px 0 0 color-mix(in srgb, var(--ca) 70%, transparent), var(--shadow-card);
+}
+#care-content section[aria-label="Histórico recente"] { --ca: #818cf8; }
+#care-content section[aria-label="Próximo cuidado"] { border-radius: .25rem; }
+
+/* Cartões do dia (pontuação, água, refeições, coração, atividade) */
+.nv-scan { background-image: linear-gradient(135deg, #0d1538 0%, #0a1a33 55%, #0b2a35 100%) !important; border-color: rgba(129,140,248,.28) !important; }
+.nv-scan :is(button, div)[style*="--c"] {
+  background-image: linear-gradient(165deg, color-mix(in srgb, var(--c, #6366f1) 17%, transparent), transparent 70%);
+  box-shadow: inset 0 2px 0 0 var(--c, #6366f1);
+}
+
+/* Indicadores: compactos (sem áreas gigantes), cada um com a sua cor */
+.care-overview-indicators { height: auto; }
+.care-overview-indicator-grid { grid-auto-rows: auto; flex: none; gap: .5rem; }
+.care-overview-indicator { --ic: #818cf8; position: relative; justify-content: flex-start; border-radius: .2rem; border-color: color-mix(in srgb, var(--ic) 30%, var(--border)); background: linear-gradient(160deg, color-mix(in srgb, var(--ic) 14%, var(--card)), var(--card) 75%); box-shadow: inset 3px 0 0 0 var(--ic); }
+.care-overview-indicator:nth-child(1) { --ic: #a78bfa; }
+.care-overview-indicator:nth-child(2) { --ic: #38bdf8; }
+.care-overview-indicator:nth-child(3) { --ic: #fb7185; }
+.care-overview-indicator:nth-child(4) { --ic: #fbbf24; }
+.care-overview-indicator:nth-child(5) { --ic: #2dd4bf; }
+.care-overview-indicator:nth-child(6) { --ic: #fb923c; }
+.care-overview-indicator[open], .care-overview-indicator:hover { border-color: var(--ic); }
+.care-overview-indicator summary { padding: .5rem .65rem; }
+.care-overview-indicator-icon { background: color-mix(in srgb, var(--ic) 22%, transparent) !important; color: var(--ic) !important; border-radius: 0 !important; }
+.care-overview-indicator-copy strong { color: var(--foreground); }
+
+/* Títulos de seção: fio colorido em vez de rótulo solto */
+.care-overview-section-heading { padding-bottom: .4rem; margin-bottom: .55rem; border-bottom: 1px solid var(--border); position: relative; }
+.care-overview-section-heading::after { content: ""; position: absolute; left: 0; bottom: -1px; width: 2.5rem; height: 2px; background: var(--primary); }
+.care-overview-eyebrow, .care-history-eyebrow { color: var(--primary); }
+
+/* Abas e seletores (Todas/Água/Refeições, Dia/Mês/Ano, meses): quadrados e coloridos */
+#care-content [role="group"] > button[aria-pressed] { border-radius: 0 !important; }
+#care-content [role="group"] > button[aria-pressed="true"] { background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 55%, #6366f1)) !important; color: var(--primary-foreground) !important; box-shadow: 0 6px 16px -8px var(--primary) !important; }
+#care-content [role="group"][aria-label="Período"] { background: var(--muted); padding: 2px; }
+#care-content [role="group"][aria-label="Período"] > button { height: 2rem !important; padding-inline: .9rem !important; }
+#care-content [role="group"][aria-label="Filtrar histórico recente"] > button:nth-child(2)[aria-pressed="true"] { background: #0ea5e9 !important; color: #fff !important; }
+#care-content [role="group"][aria-label="Filtrar histórico recente"] > button:nth-child(3)[aria-pressed="true"] { background: #10b981 !important; color: #052e22 !important; }
+#care-content [role="group"][aria-label="Filtrar histórico recente"] > button:nth-child(4)[aria-pressed="true"] { background: #8b5cf6 !important; color: #fff !important; }
+
+/* Painel de áreas (menu das áreas do acompanhamento) */
+#care-content nav[aria-label="Áreas do acompanhamento"] { border-radius: 0; background: var(--surface); border-color: var(--border); }
+#care-content nav[aria-label="Áreas do acompanhamento"] button { border-radius: 0; height: 2rem; }
+
+/* Metas por categoria / calendário / métricas do mês: faixas finas, sem blocos altos */
+#care-content [aria-label="Evolução e histórico das métricas"] .rounded-2xl.border { border-radius: .25rem; }
+#care-content [aria-label="Evolução e histórico das métricas"] h3.font-display { font-size: 1.05rem; }

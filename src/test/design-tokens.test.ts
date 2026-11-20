@@ -7,13 +7,13 @@ const componentDir = resolve(process.cwd(), "src/components/vigia");
 
 describe("NextVita semantic design tokens", () => {
   it("defines the light theme from semantic variables", () => {
-    expect(styles).toMatch(/:root\s*\{[^}]*--background:\s*#f4f6f7/s);
-    expect(styles).toMatch(/:root\s*\{[^}]*--primary:\s*#0c8063/s);
+    expect(styles).toMatch(/:root\s*\{[^}]*--background:\s*#e9eef9/s);
+    expect(styles).toMatch(/:root\s*\{[^}]*--primary:\s*#0a7f78/s);
   });
 
   it("defines a matching dark semantic theme", () => {
-    expect(styles).toMatch(/:root\.dark\s*\{[^}]*--background:\s*#0d1317/s);
-    expect(styles).toMatch(/:root\.dark\s*\{[^}]*--primary:\s*#5ed8c3/s);
+    expect(styles).toMatch(/:root\.dark\s*\{[^}]*--background:\s*#070b1a/s);
+    expect(styles).toMatch(/:root\.dark\s*\{[^}]*--primary:\s*#3fe0c8/s);
   });
 
   it("keeps a single source of theme tokens", () => {

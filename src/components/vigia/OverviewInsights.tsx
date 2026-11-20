@@ -293,7 +293,7 @@ function DayBoard({
   return (
     <section
       aria-label="Painel do dia"
-      className="nv-dark nv-scan grid overflow-hidden border border-white/10 bg-[#0a1118] text-white lg:grid-cols-[14.5rem_minmax(0,1fr)]"
+      className="nv-dark nv-scan grid overflow-hidden border border-white/10 bg-[#0b1230] text-white lg:grid-cols-[14.5rem_minmax(0,1fr)]"
     >
       <div className="relative flex flex-col justify-between gap-3 border-b border-white/10 p-4 lg:border-b-0 lg:border-r">
         <div className="flex items-center justify-between gap-2 text-[11px] font-semibold text-slate-400">
@@ -332,6 +332,7 @@ function DayBoard({
             return (
               <div
                 key="coracao"
+                style={{ ["--c" as string]: "#fb7185" }}
                 className={`${idx % 2 === 0 ? "max-xl:border-r max-xl:border-white/10" : ""} ${idx > 1 ? "max-xl:border-t max-xl:border-white/10" : ""} flex min-w-0 flex-col hover:bg-white/[.035]`}
               >
                 <HeartCell

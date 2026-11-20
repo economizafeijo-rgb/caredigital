@@ -1047,7 +1047,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                 )}
 
                 <div
-                  className={`grid gap-3 ${tasks.length > 0 ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}
+                  className={`grid items-start gap-3 ${tasks.length > 0 ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}
                 >
                   <div className="flex flex-col gap-3 lg:pr-0.5">
                     {tasks.length > 0 && (
@@ -1206,7 +1206,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                   <div className="flex min-h-0 flex-col gap-3">
                     <section
                       aria-label="Histórico recente"
-                      className={card + " flex min-h-[220px] flex-1 flex-col p-4 lg:min-h-0"}
+                      className={card + " flex min-h-[220px] flex-1 flex-col p-3.5 lg:min-h-0"}
                     >
                       <div className="care-overview-section-heading shrink-0">
                         <div>
