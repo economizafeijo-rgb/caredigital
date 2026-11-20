@@ -1063,3 +1063,8 @@ html, #care-content { scrollbar-gutter: stable; }
 /* Aba ativa do menu superior: barra fina com brilho suave e leve realce de fundo */
 .nv-tab-on { background: linear-gradient(to top, color-mix(in srgb, var(--color-primary) 10%, transparent), transparent 70%); }
 .nv-tab-on::after { height: 3px; box-shadow: 0 0 10px color-mix(in srgb, var(--color-primary) 70%, transparent); }
+
+/* Alerta "É hora": sem caixa pulsante; onda circular suave a partir do sino */
+@keyframes nv-ping-ring { 0% { transform: scale(1); opacity: .7; } 100% { transform: scale(1.35); opacity: 0; } }
+.nv-ping-ring { transform-box: fill-box; transform-origin: center; animation: nv-ping-ring 2.6s ease-out infinite; }
+@media (prefers-reduced-motion: reduce) { .nv-ping-ring { animation: none; opacity: 0; } }

@@ -209,7 +209,7 @@ export function NextUpClock({
 
   return (
     <div
-      className={`flex items-center ${compact ? "gap-2.5 rounded-xl p-2" : "gap-3 rounded-2xl p-3"} border backdrop-blur transition-colors duration-500 ${due ? "nv-due border-amber-300/50 bg-amber-400/[.12]" : "border-white/15 bg-white/10"} ${className}`}
+      className={`flex items-center ${compact ? "gap-2.5 rounded-xl p-2" : "gap-3 rounded-2xl p-3"} border backdrop-blur transition-colors duration-500 ${due ? "nv-due border-white/15 border-l-[3px] !border-l-amber-300 bg-amber-400/[.10]" : "border-white/15 bg-white/10"} ${className}`}
       style={{ ["--due" as string]: PEND }}
     >
       <div
@@ -269,12 +269,30 @@ export function NextUpClock({
         </svg>
         <span className="absolute inset-0 grid place-items-center">
           {due ? (
-            <span
-              className={`relative grid place-items-center rounded-full bg-amber-400/20 ${compact ? "size-7" : "size-10"}`}
-            >
-              <span className="nv-ping absolute inset-0 rounded-full bg-amber-300/30" />
+            <span className={`relative grid place-items-center ${compact ? "size-8" : "size-12"}`}>
+              <svg viewBox="0 0 48 48" className="absolute inset-0 size-full">
+                <circle cx="24" cy="24" r="20" fill="#fbbf24" fillOpacity=".14" />
+                <circle
+                  cx="24"
+                  cy="24"
+                  r="20"
+                  fill="none"
+                  stroke="#fbbf24"
+                  strokeOpacity=".7"
+                  strokeWidth="1.2"
+                />
+                <circle
+                  cx="24"
+                  cy="24"
+                  r="20"
+                  fill="none"
+                  stroke="#fbbf24"
+                  strokeWidth="1.2"
+                  className="nv-ping-ring"
+                />
+              </svg>
               <Bell
-                size={compact ? 14 : 18}
+                size={compact ? 14 : 20}
                 className="nv-bell-swing relative"
                 style={{ color: PEND }}
               />
@@ -287,50 +305,6 @@ export function NextUpClock({
       <div className="min-w-0 flex-1">
         <p className="flex items-center justify-between gap-2 text-[11px] font-semibold text-white/70">
           <span className="truncate">{title}</span>
-          {(onPostpone || onCancel) && when !== null && (
-            <span className="relative ml-auto flex items-center gap-1">
-              {onPostpone && (
-                <button
-                  type="button"
-                  onClick={() => setMenu((m) => !m)}
-                  aria-expanded={menu}
-                  aria-label="Adiar"
-                  title="Adiar"
-                  className="grid size-7 place-items-center rounded-full bg-white/10 text-white/80 transition hover:bg-white/20 active:scale-90"
-                >
-                  <TimerReset size={13} />
-                </button>
-              )}
-              {onCancel && (
-                <button
-                  type="button"
-                  onClick={onCancel}
-                  aria-label="Cancelar hoje"
-                  title="Cancelar hoje (sem apetite)"
-                  className="grid size-7 place-items-center rounded-full bg-white/10 text-white/80 transition hover:bg-white/20 active:scale-90"
-                >
-                  <X size={13} />
-                </button>
-              )}
-              {menu && onPostpone && (
-                <span className="absolute right-0 top-8 z-20 flex flex-col border border-white/20 bg-slate-950/95 p-1 text-[12px] shadow-xl">
-                  {[30, 60, 120, 180].map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => {
-                        setMenu(false);
-                        onPostpone(m);
-                      }}
-                      className="whitespace-nowrap px-3 py-1.5 text-left font-semibold text-white/90 hover:bg-white/10"
-                    >
-                      Adiar {m >= 60 ? `${m / 60} h` : `${m} min`}
-                    </button>
-                  ))}
-                </span>
-              )}
-            </span>
-          )}
           <button
             type="button"
             onClick={sound.toggle}
@@ -375,8 +349,8 @@ export function NextUpClock({
         {/* A linha de ações tem altura fixa: aparece/some sem mudar o tamanho do cartão. */}
         {!compact && when !== null && (
           <div
-            className={`mt-2 flex h-8 flex-wrap gap-1.5 overflow-hidden transition-opacity duration-300 ${due || when - now < 15 * 60_000 ? "opacity-100" : "pointer-events-none opacity-0"}`}
-            aria-hidden={!(due || when - now < 15 * 60_000)}
+            className={`mt-2 relative flex h-8 flex-wrap items-center gap-1.5 transition-opacity duration-300 ${due || onPostpone || when - now < 15 * 60_000 ? "opacity-100" : "pointer-events-none opacity-0"}`}
+            aria-hidden={!(due || onPostpone || when - now < 15 * 60_000)}
           >
             {onAction && (
               <button
@@ -398,7 +372,45 @@ export function NextUpClock({
                 <Pencil size={12} /> Alterar
               </button>
             )}
-            {due && (
+            {onPostpone && (
+              <span className="relative">
+                <button
+                  type="button"
+                  onClick={() => setMenu((m) => !m)}
+                  aria-expanded={menu}
+                  className="inline-flex h-8 items-center gap-1 px-1.5 text-[11px] font-semibold text-white/75 underline-offset-2 transition hover:text-white hover:underline"
+                >
+                  <TimerReset size={12} /> Adiar
+                </button>
+                {menu && (
+                  <span className="absolute bottom-9 left-0 z-20 flex flex-col border border-white/20 bg-slate-950/95 p-1 text-[12px] shadow-xl">
+                    {[30, 60, 120, 180].map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => {
+                          setMenu(false);
+                          onPostpone(m);
+                        }}
+                        className="whitespace-nowrap px-3 py-1.5 text-left font-semibold text-white/90 hover:bg-white/10"
+                      >
+                        {m >= 60 ? `${m / 60} h` : `${m} min`}
+                      </button>
+                    ))}
+                  </span>
+                )}
+              </span>
+            )}
+            {onCancel && (
+              <button
+                type="button"
+                onClick={onCancel}
+                className="inline-flex h-8 items-center gap-1 px-1.5 text-[11px] font-semibold text-white/75 underline-offset-2 transition hover:text-white hover:underline"
+              >
+                <X size={12} /> Sem apetite
+              </button>
+            )}
+            {due && !onPostpone && (
               <button
                 type="button"
                 onClick={() => setSnooze(Date.now() + 10 * 60_000)}
