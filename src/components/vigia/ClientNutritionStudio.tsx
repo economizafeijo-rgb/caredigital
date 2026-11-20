@@ -21,6 +21,7 @@ import {
 import { NutritionCalculator } from "./NutritionCalculator";
 import { NutritionStudioHero, type HeroChip } from "./NutritionStudioHero";
 import { CookingTimer } from "./CookingTimer";
+import { NutrientGuide } from "./NutrientGuide";
 import { ExportPlanButton } from "./ExportPlanButton";
 import { useDailyNutrition } from "./DailyNutritionPanel";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,7 +45,7 @@ import {
 type MacroTargets = { protein: string; carbs: string; fat: string; kcal: string };
 
 type Props = { patientId: string; ownerId: string; onLogged?: () => void };
-type View = "calculadora" | "cardapio" | "receitas" | "preparo";
+type View = "calculadora" | "cardapio" | "receitas" | "preparo" | "guia";
 const goalOptions: { value: Goal; label: string; description: string }[] = [
   {
     value: "equilibrio",
@@ -78,6 +79,7 @@ const viewOptions: { key: View; label: string; icon: LucideIcon; color: string }
   { color: "#d97706", key: "cardapio", label: "Cardápio da semana", icon: UtensilsCrossed },
   { color: "#e11d48", key: "receitas", label: "Receitas", icon: ChefHat },
   { color: "#4f46e5", key: "preparo", label: "Tempo de preparo", icon: Timer },
+  { color: "#0d9488", key: "guia", label: "Guia de nutrientes", icon: BookOpen },
 ];
 const slotStyle: Record<MealTime, { icon: LucideIcon; color: string }> = {
   cafe: { icon: Coffee, color: "#d97706" },
@@ -604,7 +606,7 @@ export function ClientNutritionStudio({ patientId, ownerId, onLogged }: Props) {
           );
         })}
       </nav>
-      {sensitive && view !== "calculadora" && view !== "preparo" && (
+      {sensitive && view !== "calculadora" && view !== "preparo" && view !== "guia" && (
         <p className="flex gap-2 rounded-xl border border-amber-500/25 bg-amber-500/[.06] px-3 py-2 text-xs">
           <ShieldAlert size={15} className="shrink-0 text-amber-600" /> Modo estômago sensível
           ativo: receitas com gatilhos frequentes foram ocultadas. Nenhum cardápio garante ausência
@@ -619,6 +621,7 @@ export function ClientNutritionStudio({ patientId, ownerId, onLogged }: Props) {
         }
       >
         {view === "preparo" && <CookingTimer patientId={patientId} />}
+        {view === "guia" && <NutrientGuide />}
 
         {view === "calculadora" && (
           <NutritionCalculator patientId={patientId} nutrition={nutrition} onLogged={onLogged} />
