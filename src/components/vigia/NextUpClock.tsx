@@ -243,7 +243,7 @@ export function NextUpClock({
             strokeDashoffset={C * (1 - (due ? 1 : progress))}
             style={{
               transition: "stroke-dashoffset 1s linear, stroke .5s",
-              filter: `drop-shadow(0 0 5px ${ink})`,
+              filter: due ? "none" : `drop-shadow(0 0 3px ${ink})`,
             }}
           />
           {!due && (
@@ -263,9 +263,14 @@ export function NextUpClock({
         <span className="absolute inset-0 grid place-items-center">
           {due ? (
             <span
-              className={`grid place-items-center rounded-full bg-amber-400/20 ${compact ? "size-7" : "size-10"}`}
+              className={`relative grid place-items-center rounded-full bg-amber-400/20 ${compact ? "size-7" : "size-10"}`}
             >
-              <Bell size={compact ? 14 : 18} style={{ color: PEND }} />
+              <span className="nv-ping absolute inset-0 rounded-full bg-amber-300/30" />
+              <Bell
+                size={compact ? 14 : 18}
+                className="nv-bell-swing relative"
+                style={{ color: PEND }}
+              />
             </span>
           ) : (
             !compact && <Clock3 size={14} className="mt-7 text-white/50" />

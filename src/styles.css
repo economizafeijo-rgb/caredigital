@@ -1030,3 +1030,17 @@ html, #care-content { scrollbar-gutter: stable; }
 .nv-scan { position: relative; overflow: hidden; }
 .nv-scan::before { content: ""; position: absolute; inset: 0 auto auto 0; z-index: 1; height: 2px; width: 22%; background: linear-gradient(90deg, transparent, #22d3ee, transparent); animation: nv-sweep 4.5s linear infinite; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .nv-grow, .nv-grow-live, .nv-seg, .nv-sheen::after, .nv-scan::before { animation: none; } }
+
+/* Medidor de água: ondas em camadas */
+@keyframes nv-wave-x { from { transform: translateX(0); } to { transform: translateX(-50px); } }
+.nv-wave-a { animation: nv-wave-x 3.2s linear infinite; }
+.nv-wave-b { animation: nv-wave-x 5.4s linear infinite reverse; }
+
+/* Lembrete vencido: sem brilho pulsante; sino balança de leve e ponto discreto */
+.nv-due { animation: none !important; box-shadow: none !important; border-color: color-mix(in srgb, var(--due, #fbbf24) 45%, transparent) !important; }
+.nv-breathe { animation: none !important; }
+@keyframes nv-bell-swing { 0%, 70%, 100% { transform: rotate(0); } 75% { transform: rotate(14deg); } 80% { transform: rotate(-12deg); } 85% { transform: rotate(8deg); } 90% { transform: rotate(-5deg); } }
+.nv-bell-swing { transform-origin: 50% 10%; animation: nv-bell-swing 4s ease-in-out infinite; }
+@keyframes nv-ping-dot { 0% { transform: scale(1); opacity: .6; } 100% { transform: scale(2.4); opacity: 0; } }
+.nv-ping { animation: nv-ping-dot 2.4s ease-out infinite; }
+@media (prefers-reduced-motion: reduce) { .nv-wave-a, .nv-wave-b, .nv-bell-swing, .nv-ping { animation: none; } }

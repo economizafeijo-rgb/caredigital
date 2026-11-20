@@ -1,3 +1,4 @@
+import { WaterGauge } from "./WaterGauge";
 import { HowItWorks, hydrationHowTo } from "./HowItWorks";
 import { hydrationNeed } from "@/lib/hydration-need";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -559,48 +560,7 @@ export function ClientHydrationTab({
         </svg>
         <div className="grid items-center gap-3 lg:grid-cols-[auto_minmax(0,1fr)_auto]">
           <div className="flex items-center gap-3">
-            <div
-              className="relative size-16 shrink-0 sm:size-[4.5rem]"
-              role="img"
-              aria-label={`Meta de água ${percent}% concluída`}
-            >
-              <svg viewBox="0 0 120 120" className="absolute inset-0 -rotate-90">
-                <circle cx="60" cy="60" r="54" fill="none" stroke="#ffffff1f" strokeWidth="8" />
-                <circle
-                  cx="60"
-                  cy="60"
-                  r="54"
-                  fill="none"
-                  stroke="url(#nv-hydro-ring)"
-                  strokeWidth="8"
-                  strokeLinecap="round"
-                  pathLength={100}
-                  strokeDasharray={`${percent} 100`}
-                  className="nv-ring-draw"
-                />
-                <defs>
-                  <linearGradient id="nv-hydro-ring" x1="0" y1="0" x2="1" y2="1">
-                    <stop stopColor="#7dd3fc" />
-                    <stop offset="1" stopColor="#22d3ee" />
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div className="absolute inset-[9px] overflow-hidden rounded-full bg-white/5">
-                <div
-                  className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-sky-500 to-cyan-300 transition-[height] duration-1000 ease-out"
-                  style={{ height: `${percent}%` }}
-                >
-                  <div className="absolute -top-1.5 left-0 h-3 w-[200%] animate-[care-wave_3s_linear_infinite] rounded-[50%] bg-cyan-200/70" />
-                </div>
-                <span className="absolute inset-0 grid place-items-center">
-                  <span className="text-center leading-none">
-                    <strong className="block text-sm font-extrabold tabular-nums drop-shadow">
-                      {percent}%
-                    </strong>
-                  </span>
-                </span>
-              </div>
-            </div>
+            <WaterGauge percent={percent} className="size-[4.5rem] shrink-0 sm:size-20" />
             <div className="min-w-0 lg:hidden">
               <p className="text-2xl font-extrabold tabular-nums">
                 {(intake / 1000).toFixed(2).replace(".", ",")} L
