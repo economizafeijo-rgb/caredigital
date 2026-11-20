@@ -1012,6 +1012,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                   ownerId={client.owner_id}
                   revision={tick}
                   waterGoal={hydrationTarget}
+                  ageYears={healthProfile.age}
                   scheduled={{
                     hidratacao: hydrationTasks.length,
                     alimentacao: meals.length,

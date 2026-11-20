@@ -1,3 +1,4 @@
+import { HeartCell } from "./HeartCell";
 import { useEffect, useMemo, useState } from "react";
 import { useGoalFx } from "./GoalFx";
 import { useCountUp } from "@/hooks/use-count-up";
@@ -246,7 +247,11 @@ function DayBoard({
   waterGoal,
   scheduled,
   onOpen,
+  patientId,
+  ageYears,
 }: {
+  patientId: string;
+  ageYears?: number | null;
   series: Series[];
   keys: string[];
   waterGoal: number;
@@ -323,6 +328,19 @@ function DayBoard({
       <div className="grid grid-cols-2 divide-white/10 max-lg:divide-y xl:grid-cols-4 xl:divide-x">
         {cells.map((c, idx) => {
           const m = meta[c.k];
+          if (c.k === "medicacao")
+            return (
+              <div
+                key="coracao"
+                className={`${idx % 2 === 0 ? "max-xl:border-r max-xl:border-white/10" : ""} ${idx > 1 ? "max-xl:border-t max-xl:border-white/10" : ""} flex min-w-0 flex-col hover:bg-white/[.035]`}
+              >
+                <HeartCell
+                  patientId={patientId}
+                  ageYears={ageYears}
+                  onOpen={() => onOpen("batimentos" as MetricKey)}
+                />
+              </div>
+            );
           const peak = Math.max(...c.days, c.target || 0, 1);
           return (
             <button
@@ -420,7 +438,9 @@ export function OverviewInsights({
   waterGoal,
   scheduled,
   onOpen,
+  ageYears,
 }: {
+  ageYears?: number | null;
   patientId: string;
   ownerId: string;
   revision: number;
@@ -452,6 +472,8 @@ export function OverviewInsights({
         waterGoal={waterGoal}
         scheduled={scheduled}
         onOpen={onOpen}
+        patientId={patientId}
+        ageYears={ageYears}
       />
     );
   return (
@@ -461,6 +483,8 @@ export function OverviewInsights({
       waterGoal={waterGoal}
       scheduled={scheduled}
       onOpen={onOpen}
+      patientId={patientId}
+      ageYears={ageYears}
     />
   );
 }
