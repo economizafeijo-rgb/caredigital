@@ -1,15 +1,18 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
   BadgeCheck,
+  BookUser,
   Boxes,
   ChevronDown,
   ExternalLink,
+  FileBarChart,
   LayoutDashboard,
   Loader2,
   MessageCircle,
   ReceiptText,
   ShoppingBag,
   Store,
+  Users,
   Wallet,
 } from "lucide-react";
 import { PLANS, money, segmentLabel, type Vendor } from "@/lib/marketplace";
@@ -20,9 +23,21 @@ import { SellerOrders } from "./SellerOrders";
 import { SellerProducts } from "./SellerProducts";
 import { SellerCash } from "./SellerCash";
 import { SellerChat } from "./SellerChat";
+import { SellerReports } from "./SellerReports";
+import { SellerRegistry } from "./SellerRegistry";
+import { SellerStaff } from "./SellerStaff";
 import { SellerStore } from "./SellerStore";
 
-export type SellerTab = "visao" | "pedidos" | "produtos" | "caixa" | "mensagens" | "loja";
+export type SellerTab =
+  | "visao"
+  | "pedidos"
+  | "produtos"
+  | "caixa"
+  | "relatorios"
+  | "cadastros"
+  | "equipe"
+  | "mensagens"
+  | "loja";
 const STATUS = {
   pendente: ["Em análise", "bg-amber-400"],
   ativo: ["Loja aberta", "bg-emerald-400"],
@@ -34,7 +49,9 @@ export function SellerDashboard({
   vendors,
   onChanged,
   initialId,
+  staffVendorIds = [],
 }: {
+  staffVendorIds?: string[];
   vendors: Vendor[];
   onChanged: () => void;
   initialId?: string;
@@ -43,11 +60,16 @@ export function SellerDashboard({
     vendors.find((v) => v.id === initialId)?.id ?? vendors[0].id,
   );
   const vendor = vendors.find((v) => v.id === vendorId) ?? vendors[0];
-  const [tab, setTab] = useState<SellerTab>("visao");
+  const [tab, setTab] = useState<SellerTab>(
+    staffVendorIds.includes(vendors.find((v) => v.id === initialId)?.id ?? vendors[0].id)
+      ? "pedidos"
+      : "visao",
+  );
   const [chatWith, setChatWith] = useState<string | null>(null);
   const [switcher, setSwitcher] = useState(false);
   const { data, loaded, error, reload } = useSellerData(vendor.id);
   const accent = vendor.accent_hex ?? "#0e7a5f";
+  const isStaff = staffVendorIds.includes(vendor.id);
 
   // Avisos em tempo real: som e pop-up para mensagem nova do cliente e pedido novo.
   const seen = useRef<{ vendor: string; ids: Set<string> } | null>(null);
@@ -99,14 +121,18 @@ export function SellerDashboard({
     }),
     [data],
   );
-  const nav: { key: SellerTab; label: string; icon: typeof Store; badge?: number }[] = [
+  const allNav: { key: SellerTab; label: string; icon: typeof Store; badge?: number }[] = [
     { key: "visao", label: "Visão geral", icon: LayoutDashboard },
     { key: "pedidos", label: "Pedidos", icon: ShoppingBag, badge: badges.pedidos },
     { key: "produtos", label: "Estoque", icon: Boxes, badge: badges.produtos },
     { key: "caixa", label: "Caixa", icon: Wallet },
+    { key: "relatorios", label: "Relatórios", icon: FileBarChart },
+    { key: "cadastros", label: "Cadastros", icon: BookUser },
     { key: "mensagens", label: "Mensagens", icon: MessageCircle, badge: badges.mensagens },
+    { key: "equipe", label: "Equipe", icon: Users },
     { key: "loja", label: "Minha loja", icon: Store },
   ];
+  const nav = allNav.filter((n) => !isStaff || ["pedidos", "mensagens"].includes(n.key));
   const refresh = () => {
     void reload();
     onChanged();
@@ -299,6 +325,9 @@ export function SellerDashboard({
                   onChanged={refresh}
                 />
               )}
+              {tab === "relatorios" && !isStaff && <SellerReports vendor={vendor} />}
+              {tab === "cadastros" && !isStaff && <SellerRegistry vendor={vendor} />}
+              {tab === "equipe" && !isStaff && <SellerStaff vendor={vendor} />}
               {tab === "caixa" && (
                 <SellerCash vendor={vendor} cash={data.cash} onChanged={refresh} />
               )}
@@ -308,6 +337,7 @@ export function SellerDashboard({
                   messages={data.messages}
                   onChanged={refresh}
                   initial={chatWith}
+                  staff={isStaff}
                 />
               )}
               {tab === "loja" && (

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useDialog } from "@/lib/dialog";
 import {
+  CHAT_RETENTION_NOTE,
   CHAT_RULE_NOTE,
   QUICK_GROUPS,
   computeQueue,
@@ -38,7 +39,9 @@ export function SellerChat({
   messages,
   onChanged,
   initial,
+  staff = false,
 }: {
+  staff?: boolean;
   vendor: Vendor;
   messages: ChatMessage[];
   onChanged: () => void;
@@ -174,7 +177,7 @@ export function SellerChat({
           <p className="text-sm font-bold">
             Conversas <span className="font-normal text-muted-foreground">· {threads.length}</span>
           </p>
-          {threads.length > 0 && (
+          {threads.length > 0 && !staff && (
             <button
               type="button"
               onClick={() => {
@@ -328,13 +331,15 @@ export function SellerChat({
                 <p className="text-sm font-bold">{name}</p>
                 <p className="text-[11px] text-muted-foreground">Cliente cadastrado na NextVita</p>
               </div>
-              <button
-                type="button"
-                onClick={() => void deleteThreads([active])}
-                className="inline-flex items-center gap-1.5 border border-border px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-500/10 dark:text-rose-300"
-              >
-                <Trash2 size={13} /> Limpar conversa
-              </button>
+              {!staff && (
+                <button
+                  type="button"
+                  onClick={() => void deleteThreads([active])}
+                  className="inline-flex items-center gap-1.5 border border-border px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-500/10 dark:text-rose-300"
+                >
+                  <Trash2 size={13} /> Limpar conversa
+                </button>
+              )}
             </header>
             <div className="min-h-0 flex-1 space-y-2 overflow-y-auto bg-[radial-gradient(circle_at_1px_1px,color-mix(in_srgb,currentColor_6%,transparent)_1px,transparent_0)] [background-size:18px_18px] px-4 py-4">
               {convo.map((m) => (
@@ -342,7 +347,7 @@ export function SellerChat({
                   key={m.id}
                   className={`group flex items-center gap-1 ${m.from_vendor ? "justify-end" : "justify-start"}`}
                 >
-                  {m.from_vendor && !m.deleted_at && (
+                  {m.from_vendor && !m.deleted_at && !staff && (
                     <button
                       type="button"
                       onClick={() => void remove(m.id)}
@@ -427,7 +432,9 @@ export function SellerChat({
                 <Send size={16} />
               </button>
             </form>
-            <p className="px-4 pb-2 text-[11px] text-muted-foreground">{CHAT_RULE_NOTE}</p>
+            <p className="px-4 pb-2 text-[11px] text-muted-foreground">
+              {CHAT_RULE_NOTE} {CHAT_RETENTION_NOTE}
+            </p>
             {err && (
               <p role="alert" className="px-4 pb-3 text-xs text-rose-600">
                 {err}

@@ -4529,3 +4529,26 @@ body {
     animation: none;
   }
 }
+
+/* Impressão / PDF de relatórios: só a área do relatório, em fundo branco */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  .nv-print-area,
+  .nv-print-area * {
+    visibility: visible !important;
+    color: #111 !important;
+    background: #fff !important;
+    border-color: #ccc !important;
+  }
+  .nv-print-area {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    padding: 12mm;
+  }
+  .nv-no-print {
+    display: none !important;
+  }
+}

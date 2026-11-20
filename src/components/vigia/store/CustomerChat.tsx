@@ -2,7 +2,13 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
 import { LogIn, Send, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { ChatMessage } from "@/lib/marketplace";
-import { AVG_SERVICE_SECONDS, CHAT_RULE_NOTE, fmtWait, validateChatText } from "@/lib/chat-rules";
+import {
+  AVG_SERVICE_SECONDS,
+  CHAT_RETENTION_NOTE,
+  CHAT_RULE_NOTE,
+  fmtWait,
+  validateChatText,
+} from "@/lib/chat-rules";
 import { playSound } from "@/lib/chat-sound";
 import { ChatToastHost, SoundToggle, pushChatToast } from "../chat/ChatToasts";
 
@@ -290,7 +296,9 @@ export function CustomerChat({
                 <Send size={16} />
               </button>
             </form>
-            <p className="px-4 pb-2 text-[11px] text-muted-foreground">{CHAT_RULE_NOTE}</p>
+            <p className="px-4 pb-2 text-[11px] text-muted-foreground">
+              {CHAT_RULE_NOTE} {CHAT_RETENTION_NOTE}
+            </p>
             {err && (
               <p role="alert" className="px-4 pb-2 text-xs text-rose-600">
                 {err}

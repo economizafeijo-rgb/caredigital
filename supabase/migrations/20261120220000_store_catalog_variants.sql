@@ -198,3 +198,149 @@ end;
 $$;
 revoke all on function public.care_store_chat_queue(uuid) from public, anon;
 grant execute on function public.care_store_chat_queue(uuid) to authenticated;
+
+-- Histórico do chat: guardado por até 12 meses e apagado na virada do ano -------------------------
+create or replace function public.care_store_purge_chat()
+returns integer language plpgsql security definer set search_path = public, pg_temp
+as $$
+declare v_n integer;
+begin
+  delete from public.care_store_messages
+   where created_at < date_trunc('year', now() at time zone 'America/Rio_Branco') at time zone 'America/Rio_Branco'
+      or created_at < now() - interval '12 months';
+  get diagnostics v_n = row_count;
+  return v_n;
+end;
+$$;
+revoke all on function public.care_store_purge_chat() from public, anon, authenticated;
+-- Agenda a limpeza diária (00:10 de Rio Branco = 05:10 UTC) quando o pg_cron estiver disponível.
+do $$
+begin
+  create extension if not exists pg_cron;
+  perform cron.unschedule(jobid) from cron.job where jobname = 'care-store-purge-chat';
+  perform cron.schedule('care-store-purge-chat', '10 5 * * *', 'select public.care_store_purge_chat()');
+exception when others then
+  raise notice 'pg_cron indisponível: agende public.care_store_purge_chat() manualmente.';
+end $$;
+
+-- Funcionários da loja (acesso restrito a vendas e chat) ------------------------------------------
+create table if not exists public.care_store_staff (
+  id uuid primary key default gen_random_uuid(),
+  vendor_id uuid not null references public.care_store_vendors(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  email text not null,
+  name text not null check (char_length(btrim(name)) between 2 and 80),
+  active boolean not null default true,
+  created_at timestamptz not null default now(),
+  unique (vendor_id, user_id)
+);
+alter table public.care_store_staff enable row level security;
+revoke all on public.care_store_staff from anon, authenticated;
+grant select, delete on public.care_store_staff to authenticated;
+grant update (active, name) on public.care_store_staff to authenticated;
+create or replace function public.care_store_is_staff(p_vendor uuid)
+returns boolean language sql stable security definer set search_path = public, pg_temp
+as $$ select exists (select 1 from public.care_store_staff s where s.vendor_id = p_vendor and s.user_id = auth.uid() and s.active) $$;
+revoke all on function public.care_store_is_staff(uuid) from public, anon;
+grant execute on function public.care_store_is_staff(uuid) to authenticated;
+drop policy if exists staff_select on public.care_store_staff;
+create policy staff_select on public.care_store_staff for select to authenticated
+  using (user_id = auth.uid() or public.is_nextvita_platform_admin()
+    or exists (select 1 from public.care_store_vendors v where v.id = vendor_id and v.owner_id = auth.uid()));
+drop policy if exists staff_owner_write on public.care_store_staff;
+create policy staff_owner_write on public.care_store_staff for update to authenticated
+  using (exists (select 1 from public.care_store_vendors v where v.id = vendor_id and v.owner_id = auth.uid()))
+  with check (exists (select 1 from public.care_store_vendors v where v.id = vendor_id and v.owner_id = auth.uid()));
+drop policy if exists staff_owner_delete on public.care_store_staff;
+create policy staff_owner_delete on public.care_store_staff for delete to authenticated
+  using (exists (select 1 from public.care_store_vendors v where v.id = vendor_id and v.owner_id = auth.uid()));
+-- Só o dono cadastra: a pessoa precisa já ter conta NextVita com esse e-mail.
+create or replace function public.care_store_add_staff(p_vendor uuid, p_email text, p_name text)
+returns uuid language plpgsql security definer set search_path = public, pg_temp
+as $$
+declare v_user uuid; v_id uuid;
+begin
+  if not exists (select 1 from public.care_store_vendors v where v.id = p_vendor and v.owner_id = auth.uid()) then
+    raise exception 'Not your store';
+  end if;
+  select id into v_user from auth.users where lower(email) = lower(btrim(p_email));
+  if v_user is null then raise exception 'User not found'; end if;
+  if v_user = auth.uid() then raise exception 'Owner cannot be staff'; end if;
+  insert into public.care_store_staff(vendor_id, user_id, email, name)
+  values (p_vendor, v_user, lower(btrim(p_email)), btrim(p_name))
+  on conflict (vendor_id, user_id) do update set active = true, name = excluded.name
+  returning id into v_id;
+  return v_id;
+end;
+$$;
+revoke all on function public.care_store_add_staff(uuid, text, text) from public, anon;
+grant execute on function public.care_store_add_staff(uuid, text, text) to authenticated;
+
+-- Funcionário: lê a loja, vê e avança pedidos, conversa com clientes. Nunca apaga, edita cadastros nem mexe em senhas.
+drop policy if exists vendors_select_staff on public.care_store_vendors;
+create policy vendors_select_staff on public.care_store_vendors for select to authenticated using (public.care_store_is_staff(id));
+drop policy if exists products_select_staff on public.care_store_products;
+create policy products_select_staff on public.care_store_products for select to authenticated using (public.care_store_is_staff(vendor_id));
+drop policy if exists store_orders_staff_select on public.care_store_orders;
+create policy store_orders_staff_select on public.care_store_orders for select to authenticated using (vendor_id is not null and public.care_store_is_staff(vendor_id));
+drop policy if exists store_orders_staff_update on public.care_store_orders;
+create policy store_orders_staff_update on public.care_store_orders for update to authenticated
+  using (vendor_id is not null and public.care_store_is_staff(vendor_id)) with check (vendor_id is not null and public.care_store_is_staff(vendor_id));
+drop policy if exists messages_staff_select on public.care_store_messages;
+create policy messages_staff_select on public.care_store_messages for select to authenticated using (public.care_store_is_staff(vendor_id));
+drop policy if exists messages_staff_insert on public.care_store_messages;
+create policy messages_staff_insert on public.care_store_messages for insert to authenticated with check (from_vendor and public.care_store_is_staff(vendor_id));
+drop policy if exists messages_staff_read on public.care_store_messages;
+create policy messages_staff_read on public.care_store_messages for update to authenticated using (public.care_store_is_staff(vendor_id)) with check (public.care_store_is_staff(vendor_id));
+
+-- Cadastros do dono: clientes, fornecedores e materiais ------------------------------------------
+create table if not exists public.care_store_contacts (
+  id uuid primary key default gen_random_uuid(),
+  vendor_id uuid not null references public.care_store_vendors(id) on delete cascade,
+  kind text not null check (kind in ('cliente','fornecedor','material')),
+  name text not null check (char_length(btrim(name)) between 2 and 120),
+  phone text check (phone is null or char_length(phone) <= 30),
+  email text check (email is null or char_length(email) <= 120),
+  document text check (document is null or char_length(document) <= 30),
+  address text check (address is null or char_length(address) <= 200),
+  quantity numeric check (quantity is null or quantity >= 0),
+  unit text check (unit is null or char_length(unit) <= 10),
+  unit_cost_cents integer check (unit_cost_cents is null or unit_cost_cents >= 0),
+  supplier_id uuid references public.care_store_contacts(id) on delete set null,
+  notes text check (notes is null or char_length(notes) <= 500),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists care_store_contacts_idx on public.care_store_contacts(vendor_id, kind, name);
+alter table public.care_store_contacts enable row level security;
+revoke all on public.care_store_contacts from anon, authenticated;
+grant select, insert, update, delete on public.care_store_contacts to authenticated;
+drop policy if exists contacts_owner on public.care_store_contacts;
+create policy contacts_owner on public.care_store_contacts for all to authenticated
+  using (public.is_nextvita_platform_admin() or exists (select 1 from public.care_store_vendors v where v.id = vendor_id and v.owner_id = auth.uid()))
+  with check (public.is_nextvita_platform_admin() or exists (select 1 from public.care_store_vendors v where v.id = vendor_id and v.owner_id = auth.uid()));
+
+-- Fechamento de caixa do dia ----------------------------------------------------------------------
+create table if not exists public.care_store_cash_closings (
+  id uuid primary key default gen_random_uuid(),
+  vendor_id uuid not null references public.care_store_vendors(id) on delete cascade,
+  day date not null,
+  entradas_cents integer not null default 0,
+  saidas_cents integer not null default 0,
+  expected_cents integer not null,
+  counted_cents integer not null check (counted_cents >= 0),
+  diff_cents integer generated always as (counted_cents - expected_cents) stored,
+  notes text check (notes is null or char_length(notes) <= 300),
+  closed_by uuid default auth.uid(),
+  created_at timestamptz not null default now(),
+  unique (vendor_id, day)
+);
+alter table public.care_store_cash_closings enable row level security;
+revoke all on public.care_store_cash_closings from anon, authenticated;
+grant select, insert on public.care_store_cash_closings to authenticated;
+drop policy if exists closings_owner_select on public.care_store_cash_closings;
+create policy closings_owner_select on public.care_store_cash_closings for select to authenticated
+  using (public.is_nextvita_platform_admin() or exists (select 1 from public.care_store_vendors v where v.id = vendor_id and v.owner_id = auth.uid()));
+drop policy if exists closings_owner_insert on public.care_store_cash_closings;
+create policy closings_owner_insert on public.care_store_cash_closings for insert to authenticated
+  with check (exists (select 1 from public.care_store_vendors v where v.id = vendor_id and v.owner_id = auth.uid()));

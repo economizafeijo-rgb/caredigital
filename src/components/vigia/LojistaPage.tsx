@@ -10,6 +10,7 @@ import { LojistaSignup } from "./LojistaSignup";
 export function LojistaPage() {
   const [state, setState] = useState<"loading" | "out" | "none" | "vendor" | "error">("loading");
   const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [staffIds, setStaffIds] = useState<string[]>([]);
   const form = useRef<HTMLDivElement>(null);
 
   const load = useCallback(async () => {
@@ -22,7 +23,25 @@ export function LojistaPage() {
     const isAdmin = (data.user.email ?? "").toLowerCase() === "francdenisbr@gmail.com";
     let query = (supabase as any).from("care_store_vendors").select("*").order("name");
     if (!isAdmin) query = query.eq("owner_id", data.user.id);
-    const { data: rows, error } = await query;
+    let { data: rows, error } = await query;
+    // Funcionário: entra nas lojas em que foi cadastrado, com acesso restrito.
+    if (!isAdmin && !error && !rows?.length) {
+      const st = await (supabase as any)
+        .from("care_store_staff")
+        .select("vendor_id")
+        .eq("user_id", data.user.id)
+        .eq("active", true);
+      const ids = (st.data ?? []).map((r: { vendor_id: string }) => r.vendor_id);
+      if (ids.length) {
+        const sv = await (supabase as any)
+          .from("care_store_vendors")
+          .select("*")
+          .in("id", ids)
+          .order("name");
+        rows = sv.data ?? [];
+        setStaffIds(ids);
+      }
+    }
     if (error) {
       setState("error");
       return;
@@ -70,6 +89,7 @@ export function LojistaPage() {
       <SellerDashboard
         vendors={vendors}
         initialId={wanted ?? undefined}
+        staffVendorIds={staffIds}
         onChanged={() => void load()}
       />
     );
