@@ -798,15 +798,13 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
   const today = dateInAcre(clock ?? new Date());
   const dayPercent = tasks.length ? Math.round((completed / tasks.length) * 100) : 0;
   const sectionCount =
-    activeTab === "agenda"
-      ? tasks.length
-      : activeTab === "hidratacao"
-        ? hydrationTasks.length
-        : activeTab === "alimentacao"
-          ? meals.length
-          : activeTab === "atividade"
-            ? activityCount
-            : null;
+    activeTab === "hidratacao"
+      ? hydrationTasks.length
+      : activeTab === "alimentacao"
+        ? meals.length
+        : activeTab === "atividade"
+          ? activityCount
+          : null;
   const card = "rounded-2xl border border-border bg-card shadow-card";
   const supplement = (task: Task) => task.category === "outro";
 

@@ -1102,21 +1102,18 @@ export function ClientDayPlanner({
                 </span>
               </span>
             </div>
-            <div className="min-w-0 lg:hidden">
-              <p className="text-base font-extrabold">Meu dia</p>
-              <p className="text-xs text-white/75">
-                {doneCount} de {actionable.length} feitos até agora
-              </p>
-            </div>
           </div>
           <div className="min-w-0">
-            <p className="hidden text-lg font-extrabold leading-tight lg:block">Meu dia</p>
-            <p className="text-xs text-white/80">
+            <p className="text-sm font-bold leading-tight">
               {actionable.length
-                ? `${doneCount} de ${actionable.length} itens previstos até agora já foram feitos.`
-                : "Seu dia começa com o primeiro item da linha do tempo."}{" "}
-              {left > 0 && `${left} ainda pela frente.`}
+                ? `${doneCount} de ${actionable.length} itens previstos até agora já foram feitos`
+                : "Seu dia começa com o primeiro item da linha do tempo"}
             </p>
+            {left > 0 && (
+              <p className="text-xs text-white/70">
+                {left} {left === 1 ? "item ainda pela frente" : "itens ainda pela frente"} hoje
+              </p>
+            )}
             <div className="mt-1.5 flex flex-wrap gap-1.5 text-[11px] font-semibold">
               <span className="inline-flex items-center gap-1.5 bg-emerald-400/20 px-2 py-0.5 text-emerald-200">
                 <Check size={13} /> {doneCount} feitos
@@ -1456,13 +1453,13 @@ function Row({
           >
             {item.title}
           </strong>
+        </span>
+        <span className="line-clamp-2 text-[11px] leading-snug text-muted-foreground">
           {chip && (
-            <span className={`shrink-0 px-1.5 py-px text-[10px] font-bold ${chip.c}`}>
+            <span className={`mr-1.5 inline-block px-1.5 py-px text-[10px] font-bold ${chip.c}`}>
               {chip.t}
             </span>
           )}
-        </span>
-        <span className="line-clamp-2 text-[11px] leading-snug text-muted-foreground">
           {done && item.doneAt && Math.abs(item.doneAt - item.at) > 60_000
             ? `feito às ${hm(item.doneAt)} · `
             : ""}
