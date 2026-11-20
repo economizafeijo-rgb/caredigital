@@ -17,6 +17,7 @@ import { useDialog } from "@/lib/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { AnimatedLock } from "./AnimatedLock";
 import { RecordInfo, type RecordInfoRow } from "./RecordInfo";
+import { MacroBreakdown } from "./MacroBreakdown";
 
 type Category = "hidratacao" | "refeicao" | "medicacao" | "resumo";
 type RecordRow = {
@@ -315,8 +316,9 @@ export function CareRecentHistory({
                         ? [
                             { label: "Energia", value: `${n0(f.kcal)} kcal` },
                             {
-                              label: "Macros",
-                              value: `P ${n0(f.p)} g · C ${n0(f.c)} g · G ${n0(f.f)} g`,
+                              label: "Macronutrientes",
+                              wide: true,
+                              value: <MacroBreakdown protein={f.p} carbs={f.c} fat={f.f} />,
                             },
                           ]
                         : []),

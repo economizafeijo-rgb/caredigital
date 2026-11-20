@@ -28,6 +28,7 @@ import {
 } from "@/lib/food-parser";
 import { objectiveLabel } from "@/lib/objective-nutrition";
 import { useDialog } from "@/lib/dialog";
+import { MacroBreakdown } from "./MacroBreakdown";
 
 type Entry = {
   at: string;
@@ -668,8 +669,16 @@ export function DailyNutritionPanel({
                                 ? [
                                     { label: "Energia", value: `${fmt(n.kcal)} kcal` },
                                     {
-                                      label: "Macros",
-                                      value: `P ${fmt(n.protein, 1)} g · C ${fmt(n.carbs, 1)} g · G ${fmt(n.fat, 1)} g`,
+                                      label: "Macronutrientes",
+                                      wide: true,
+                                      value: (
+                                        <MacroBreakdown
+                                          protein={n.protein}
+                                          carbs={n.carbs}
+                                          fat={n.fat}
+                                          decimals={1}
+                                        />
+                                      ),
                                     },
                                   ]
                                 : []),

@@ -5,6 +5,7 @@ import { sumNutrients, type Nutrients } from "@/lib/food-parser";
 import { objectiveLabel } from "@/lib/objective-nutrition";
 import type { DailyNutrition } from "./DailyNutritionPanel";
 import { NextUpClock } from "./NextUpClock";
+import { MacroBreakdown } from "./MacroBreakdown";
 
 const tz = "America/Rio_Branco";
 const hourOf = (iso: string) => {
@@ -314,9 +315,13 @@ export function NutritionDayChart({ data }: { data: DailyNutrition }) {
                       +{n0(p.n.kcal)} kcal
                     </strong>
                   </p>
-                  <p className="text-muted-foreground">
-                    P {n0(p.n.protein)} g · C {n0(p.n.carbs)} g · G {n0(p.n.fat)} g
-                  </p>
+                  <MacroBreakdown
+                    variant="inline"
+                    className="mt-1"
+                    protein={p.n.protein}
+                    carbs={p.n.carbs}
+                    fat={p.n.fat}
+                  />
                 </div>
               ))}
             </div>

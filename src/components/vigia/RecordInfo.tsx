@@ -2,7 +2,11 @@ import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } f
 import { createPortal } from "react-dom";
 import { CalendarDays, Clock3, Info } from "lucide-react";
 
-export type RecordInfoRow = { label: string; value: ReactNode };
+export type RecordInfoRow = {
+  label: string;
+  value: ReactNode;
+  /** Ocupa a largura toda, com o rótulo acima. */ wide?: boolean;
+};
 type Props = {
   title: string;
   /** Data e hora do registro (ISO). */
@@ -160,7 +164,10 @@ export function RecordInfo({
               {rows.length > 0 && (
                 <dl className="mt-2.5 grid gap-1.5 border-t border-border pt-2.5 text-xs">
                   {rows.map((r) => (
-                    <div key={r.label} className="grid grid-cols-[6.5rem_1fr] gap-2">
+                    <div
+                      key={r.label}
+                      className={r.wide ? "grid gap-1" : "grid grid-cols-[6.5rem_1fr] gap-2"}
+                    >
                       <dt className="text-muted-foreground">{r.label}</dt>
                       <dd className="min-w-0 break-words font-semibold">{r.value}</dd>
                     </div>
