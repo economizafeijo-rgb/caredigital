@@ -279,7 +279,9 @@ export function ClientQuickIntake({
             ? "inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-sky-300/40 bg-sky-300/15 px-2.5 text-[11px] font-bold text-primary-foreground transition hover:bg-sky-300/25 dark:text-sky-100 disabled:opacity-50"
             : mode === "water"
               ? "inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-sky-500 px-4 text-[13px] font-bold text-white shadow-lg shadow-sky-900/30 transition hover:bg-sky-400 active:scale-[.97] disabled:opacity-50"
-              : "inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-emerald-500 px-4 text-[13px] font-bold text-white shadow-lg shadow-emerald-900/30 transition hover:bg-emerald-400 active:scale-[.97] disabled:opacity-50"
+              : mode === "drink"
+                ? "inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-violet-500 px-4 text-[13px] font-bold text-white shadow-lg shadow-violet-900/30 transition hover:bg-violet-400 active:scale-[.97] disabled:opacity-50"
+                : "inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-emerald-500 px-4 text-[13px] font-bold text-white shadow-lg shadow-emerald-900/30 transition hover:bg-emerald-400 active:scale-[.97] disabled:opacity-50"
         }
       >
         {mode === "water" || mode === "drink" ? (

@@ -947,6 +947,13 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                     onRecorded={() => setTick((value) => value + 1)}
                   />
                 )}
+                {activeTab === "hoje" && (
+                  <ClientQuickIntake
+                    patientId={client.id}
+                    mode="drink"
+                    onRecorded={() => setTick((value) => value + 1)}
+                  />
+                )}
                 {!profileLocked && (
                   <QuickRegisterFab
                     patientId={client.id}

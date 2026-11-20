@@ -21,7 +21,8 @@ export function QuickRegisterFab({ patientId, area, onRecorded }: Props) {
         : ["peso", "sono", "atividade", "medicacao", "suplementos"].includes(area)
           ? "jump"
           : null;
-  if (!both && !kind) return null;
+  // Visão geral e Hidratação já têm botões próprios (água, refeição e bebida): o botão genérico seria redundante.
+  if (both || !kind) return null;
   const jumpLabel =
     area === "peso"
       ? "Inserir peso"

@@ -1049,3 +1049,8 @@ html, #care-content { scrollbar-gutter: stable; }
 .nv-tab::after { content: ""; position: absolute; left: .875rem; right: .875rem; bottom: 0; height: 2px; background: var(--color-primary); transform: scaleX(0); transform-origin: left; transition: transform .28s cubic-bezier(.2,.8,.2,1); }
 .nv-tab:hover::after { transform: scaleX(.45); }
 .nv-tab-on::after { transform: scaleX(1) !important; }
+
+/* Faixa do dia: botões de ação alinhados, mesma altura e espaçamento regular */
+.nv-day-actions { gap: .5rem !important; }
+.nv-day-actions > button, .nv-day-actions > span > button, .nv-day-actions > a { height: 2.25rem !important; min-height: 2.25rem !important; padding-inline: .75rem !important; font-size: 12.5px !important; border-radius: 0 !important; box-shadow: none !important; }
+.nv-day-actions > button[aria-label="Meu perfil"] { width: 2.25rem; padding-inline: 0 !important; }
