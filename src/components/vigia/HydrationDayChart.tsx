@@ -84,13 +84,14 @@ export function HydrationDayChart({ entries, goal, nowMs, lastHour = 20, height 
           ...(ideal.length ? [{ id: "ideal", label: "Ritmo ideal", color: IDEAL, points: ideal, dashed: true, linear: true }] : []),
         ]}
         tip={(h) => {
-          const hit = h % 1 === 0.5 ? [] : sorted.filter((e) => Math.abs(hourOf(e.recorded_at) - h) < 1 / 120);
+          const hit = h % 1 === 0.5 ? sorted.filter((e) => Math.floor(hourOf(e.recorded_at)) === Math.floor(h)) : sorted.filter((e) => Math.abs(hourOf(e.recorded_at) - h) < 1 / 120);
           if (!hit.length) return Math.abs(h - nowH) < 1 / 60 ? <p className="mt-1.5 border-t border-border pt-1.5 text-muted-foreground">Agora</p> : null;
           return (
             <div className="mt-1.5 grid gap-0.5 border-t border-border pt-1.5">
               {hit.map((e, i) => (
                 <p key={i} className="flex items-center gap-1.5">
                   <i className="size-2 rounded-full" style={{ background: e.source === "beverage" ? DRINK : WATER }} />
+                  <span className="tabular-nums text-muted-foreground">{hm(hourOf(e.recorded_at))}</span>
                   <span className="truncate">{e.source === "beverage" ? e.name || "Bebida" : "Água"}</span>
                   <strong className="ml-auto tabular-nums">+{fmt(Number(e.amount_ml))}</strong>
                 </p>

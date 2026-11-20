@@ -202,6 +202,7 @@ export function SectionInsights({ section, patientId, ownerId, revision = 0 }: {
                 xTicks={xTicks} formatX={x => `${weekday(fromX(x))}, ${short(fromX(x))}`} formatY={v => compact(v)}
                 goal={data.goal && !hidden.a ? { y: data.goal, label: `${config.goalLabel ?? "Referência"} ${compact(data.goal)}${unit}`, color: "#10b981" } : undefined}
                 bars={bars} series={series} selectedX={selected ? toX(selected) : null} onPick={x => setSelected(fromX(x))}
+                detailAction={x => ({ label: "Ver registros do dia", onClick: () => setDetailDay(fromX(x)) })}
                 tip={x => { const r = byX.get(x); if (!r) return null; return <>
                   {config.b && !bOnAxis && <p className="mt-1 flex justify-between gap-3"><span className="text-muted-foreground">{config.b.label}</span><strong className="tabular-nums">{fmt(r.b)}</strong></p>}
                   {data.goal ? <p className={`mt-1.5 border-t border-border pt-1.5 font-semibold ${r.a >= data.goal ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>{Math.round(r.a / data.goal * 100)}% da meta</p> : null}
