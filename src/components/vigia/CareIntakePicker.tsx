@@ -108,7 +108,7 @@ export function CareIntakePicker(props: Props) {
                 else props.onChange(item.value as BeverageKind);
               }}
               className={
-                "care-intake-option flex min-h-[59px] min-w-0 flex-col items-center justify-center gap-1 rounded-xl border px-1 py-1.5 text-center transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary " +
+                "care-intake-option flex min-h-[59px] min-w-0 flex-col items-center justify-center gap-1 border px-1 py-1.5 text-center transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary " +
                 (chosen
                   ? "border-primary bg-primary/10 text-primary shadow-[inset_0_0_0_1px_hsl(var(--primary)/.18)]"
                   : "border-border bg-muted/25 text-foreground hover:border-primary/45 hover:bg-muted/50")

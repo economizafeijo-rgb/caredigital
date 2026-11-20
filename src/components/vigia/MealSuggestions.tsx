@@ -296,7 +296,7 @@ export function MealSuggestions({
           return (
             <span
               key={item.label}
-              className={`inline-flex h-8 items-stretch overflow-hidden rounded-full border text-[11px] font-semibold transition ${on ? colors.on : colors.off}`}
+              className={`inline-flex h-8 items-stretch overflow-hidden border text-[11px] font-semibold transition ${on ? colors.on : colors.off}`}
             >
               <button
                 type="button"

@@ -197,7 +197,6 @@ export function MealBoard({
     { label: "Gorduras", value: total.fat, color: "#8b5cf6" },
     { label: "Fibras", value: total.fiber, color: "#22c55e" },
   ];
-  const macroMax = Math.max(1, ...macros.map((m) => m.value));
 
   const card = (item: Item, index: number, prefix: string) => {
     const on = isOn(item.text),
@@ -212,12 +211,12 @@ export function MealBoard({
       >
         <div
           className={
-            "group relative flex h-full items-center rounded-xl border transition duration-150 hover:bg-muted/50 " +
-            (on ? "" : "border-border/70 bg-card/60")
+            "group relative flex h-full items-center border border-l-[3px] transition duration-150 hover:bg-muted/50 " +
+            (on ? "border-border" : "border-border bg-card")
           }
           style={
             on
-              ? { borderColor: tone, background: `color-mix(in srgb, ${tone} 12%, var(--card))` }
+              ? { borderLeftColor: tone, background: `color-mix(in srgb, ${tone} 8%, var(--card))` }
               : undefined
           }
         >
@@ -245,7 +244,7 @@ export function MealBoard({
             title="Informações nutricionais"
             onClick={() => setInfo(shown ? null : item)}
             className={
-              "mr-1 grid size-6 shrink-0 place-items-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground " +
+              "mr-1 grid size-6 shrink-0 place-items-center text-muted-foreground transition hover:bg-muted hover:text-foreground " +
               (shown ? "!bg-primary !text-primary-foreground" : "")
             }
           >
@@ -254,7 +253,7 @@ export function MealBoard({
           <span
             aria-hidden="true"
             className={
-              "mr-2 grid size-5 shrink-0 place-items-center rounded-full border transition-all duration-200 " +
+              "mr-2 grid size-5 shrink-0 place-items-center border transition-all duration-200 " +
               (on ? "nv-pop text-white" : "border-border text-transparent")
             }
             style={on ? { background: tone, borderColor: tone } : undefined}
@@ -298,25 +297,13 @@ export function MealBoard({
                   title={c.hint}
                   onClick={() => onKind(c.value)}
                   className={
-                    "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition duration-150 active:scale-95 " +
+                    "inline-flex h-8 shrink-0 items-center gap-1.5 border px-3 text-xs font-semibold transition duration-150 active:scale-95 " +
                     (on
-                      ? "text-white shadow-md"
-                      : "border-border/70 bg-card/60 text-muted-foreground hover:text-foreground")
-                  }
-                  style={
-                    on
-                      ? {
-                          background: color,
-                          borderColor: color,
-                          boxShadow: `0 6px 16px -8px ${color}`,
-                        }
-                      : undefined
+                      ? "border-foreground bg-foreground text-background"
+                      : "border-border text-muted-foreground hover:bg-muted hover:text-foreground")
                   }
                 >
-                  <span
-                    className="size-2 rounded-full"
-                    style={{ background: on ? "#fff" : color }}
-                  />
+                  <span className="size-2" style={{ background: color }} />
                   {c.label}
                 </button>
               );
@@ -330,7 +317,7 @@ export function MealBoard({
           <div className="sticky top-0 z-10 -mt-px bg-card/95 pb-2 backdrop-blur">
             <div className="flex items-center gap-2.5">
               <span
-                className="grid size-8 shrink-0 place-items-center rounded-lg text-white"
+                className="grid size-8 shrink-0 place-items-center text-white"
                 style={{ background: tone }}
               >
                 <CareIntakeIcon kind={kind} size={16} />
@@ -352,7 +339,7 @@ export function MealBoard({
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Buscar alimento…"
-                  className="h-9 w-full rounded-lg border border-border bg-background/60 pl-8 pr-2 text-xs outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  className="h-9 w-full border border-border bg-background/60 pl-8 pr-2 text-xs outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
               </label>
             </div>
@@ -374,7 +361,7 @@ export function MealBoard({
                   "busca",
                 )
               ) : (
-                <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
+                <p className=" border border-dashed border-border p-4 text-sm text-muted-foreground">
                   Nenhum alimento com esse nome. Descreva no campo “O que você comeu?”. Para
                   bebidas, use a aba Bebidas.
                 </p>
@@ -394,7 +381,7 @@ export function MealBoard({
         </div>
 
         <aside aria-label="Seu prato" className="min-w-0 lg:min-h-0 lg:overflow-y-auto">
-          <div className="flex min-h-full flex-col gap-3 rounded-2xl border border-border/80 bg-muted/20 p-3">
+          <div className="flex min-h-full flex-col gap-3 border border-border bg-card p-3">
             <div className="flex items-center justify-between gap-2">
               <h3 className="text-sm font-bold">Seu prato</h3>
               {description.trim() && (
@@ -405,7 +392,7 @@ export function MealBoard({
                     onPortion("");
                     setInfo(null);
                   }}
-                  className="inline-flex h-7 items-center gap-1 rounded-md px-2 text-[11px] font-semibold text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
+                  className="inline-flex h-7 items-center gap-1 px-2 text-[11px] font-semibold text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
                 >
                   <Eraser size={12} /> Limpar
                 </button>
@@ -428,10 +415,7 @@ export function MealBoard({
             </label>
 
             {foods.length > 0 ? (
-              <div
-                aria-live="polite"
-                className="rounded-xl border border-border/70 bg-card/70 p-2.5"
-              >
+              <div aria-live="polite" className=" border border-border/70 bg-card/70 p-2.5">
                 <PlateRows
                   description={description}
                   onDescription={onDescription}
@@ -459,26 +443,14 @@ export function MealBoard({
                     kcal no prato
                   </span>
                 </p>
-                <ul className="mt-1.5 grid gap-1">
+                <ul className="mt-2 grid grid-cols-4 gap-px bg-border text-center">
                   {macros.map((m) => (
-                    <li
-                      key={m.label}
-                      className="grid grid-cols-[4.6rem_1fr_auto] items-center gap-2 text-[11px]"
-                    >
-                      <span className="text-muted-foreground">{m.label}</span>
-                      <span
-                        className="h-1.5 overflow-hidden rounded-full bg-muted"
-                        aria-hidden="true"
-                      >
-                        <span
-                          className="block h-full rounded-full transition-[width] duration-700"
-                          style={{
-                            width: `${Math.round((m.value / macroMax) * 100)}%`,
-                            background: m.color,
-                          }}
-                        />
-                      </span>
-                      <span className="tabular-nums">{nf(m.value, 1)} g</span>
+                    <li key={m.label} className="bg-card py-1.5">
+                      <strong className="block text-sm tabular-nums" style={{ color: m.color }}>
+                        {nf(m.value, 1)}
+                        <span className="text-[10px] font-semibold text-muted-foreground"> g</span>
+                      </strong>
+                      <span className="block text-[10px] text-muted-foreground">{m.label}</span>
                     </li>
                   ))}
                 </ul>
@@ -487,7 +459,7 @@ export function MealBoard({
                 </p>
               </div>
             ) : (
-              <p className="rounded-xl border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
+              <p className=" border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
                 O prato está vazio. Escolha alimentos ao lado ou escreva acima: o cálculo aparece
                 aqui.
               </p>
@@ -522,7 +494,7 @@ export function MealBoard({
             {error && (
               <p
                 role="alert"
-                className="rounded-lg border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive"
+                className=" border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive"
               >
                 {error}
               </p>

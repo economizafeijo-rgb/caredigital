@@ -12,9 +12,7 @@ export function HowItWorks({
   className?: string;
 }) {
   return (
-    <details
-      className={`group/how rounded-lg border border-border/60 bg-muted/20 text-xs ${className}`}
-    >
+    <details className={`group/how border border-border/60 bg-muted/20 text-xs ${className}`}>
       <summary className="flex cursor-pointer list-none items-center gap-1.5 px-2.5 py-1.5 font-semibold text-muted-foreground transition hover:text-foreground [&::-webkit-details-marker]:hidden">
         <Info size={13} aria-hidden="true" className="shrink-0" />
         {title}

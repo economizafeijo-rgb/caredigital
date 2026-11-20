@@ -217,7 +217,7 @@ export function ClientQuickIntake({
         aria-label={
           mode === "all" ? "Selecionar tipo de consumo" : "Alternar entre alimentos e bebidas"
         }
-        className="inline-grid shrink-0 grid-cols-2 gap-0.5 rounded-lg border border-border bg-muted/40 p-0.5"
+        className="inline-grid shrink-0 grid-cols-2 gap-0.5 border border-border bg-muted/40 p-0.5"
       >
         <button
           type="button"
@@ -230,7 +230,7 @@ export function ClientQuickIntake({
             setError("");
           }}
           className={
-            "flex h-8 items-center justify-center gap-1.5 rounded-md px-3 text-xs font-semibold transition " +
+            "flex h-8 items-center justify-center gap-1.5 px-3 text-xs font-semibold transition " +
             (group === "food"
               ? "bg-primary text-primary-foreground shadow"
               : "text-muted-foreground hover:text-foreground")
@@ -249,7 +249,7 @@ export function ClientQuickIntake({
             setError("");
           }}
           className={
-            "flex h-8 items-center justify-center gap-1.5 rounded-md px-3 text-xs font-semibold transition " +
+            "flex h-8 items-center justify-center gap-1.5 px-3 text-xs font-semibold transition " +
             (group === "beverage"
               ? "bg-primary text-primary-foreground shadow"
               : "text-muted-foreground hover:text-foreground")
@@ -276,12 +276,12 @@ export function ClientQuickIntake({
         disabled={!patientId}
         className={
           variant === "home"
-            ? "inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-sky-300/40 bg-sky-300/15 px-2.5 text-[11px] font-bold text-primary-foreground transition hover:bg-sky-300/25 dark:text-sky-100 disabled:opacity-50"
+            ? "inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 border border-sky-300/40 bg-sky-300/15 px-2.5 text-[11px] font-bold text-primary-foreground transition hover:bg-sky-300/25 dark:text-sky-100 disabled:opacity-50"
             : mode === "water"
-              ? "inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-sky-500 px-4 text-[13px] font-bold text-white shadow-lg shadow-sky-900/30 transition hover:bg-sky-400 active:scale-[.97] disabled:opacity-50"
+              ? "inline-flex h-10 shrink-0 items-center justify-center gap-1.5 bg-sky-500 px-4 text-[13px] font-bold text-white shadow-lg shadow-sky-900/30 transition hover:bg-sky-400 active:scale-[.97] disabled:opacity-50"
               : mode === "drink"
-                ? "inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-violet-500 px-4 text-[13px] font-bold text-white shadow-lg shadow-violet-900/30 transition hover:bg-violet-400 active:scale-[.97] disabled:opacity-50"
-                : "inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-emerald-500 px-4 text-[13px] font-bold text-white shadow-lg shadow-emerald-900/30 transition hover:bg-emerald-400 active:scale-[.97] disabled:opacity-50"
+                ? "inline-flex h-10 shrink-0 items-center justify-center gap-1.5 bg-violet-500 px-4 text-[13px] font-bold text-white shadow-lg shadow-violet-900/30 transition hover:bg-violet-400 active:scale-[.97] disabled:opacity-50"
+                : "inline-flex h-10 shrink-0 items-center justify-center gap-1.5 bg-emerald-500 px-4 text-[13px] font-bold text-white shadow-lg shadow-emerald-900/30 transition hover:bg-emerald-400 active:scale-[.97] disabled:opacity-50"
         }
       >
         {mode === "water" || mode === "drink" ? (
@@ -304,7 +304,7 @@ export function ClientQuickIntake({
         createPortal(
           <div
             role="status"
-            className="fixed right-3 top-16 z-[151] flex max-w-sm items-start gap-2 rounded-xl border border-success/30 bg-card p-3 text-xs font-semibold text-foreground shadow-xl"
+            className="fixed right-3 top-16 z-[151] flex max-w-sm items-start gap-2 border border-success/30 bg-card p-3 text-xs font-semibold text-foreground shadow-xl"
           >
             <CheckCircle2 size={17} className="shrink-0 text-success" />
             <span className="flex-1">{notice}</span>
@@ -337,12 +337,12 @@ export function ClientQuickIntake({
                   : isFood
                     ? "h-full max-h-full max-w-[min(1400px,100%)]"
                     : "h-[min(94dvh,860px)] max-w-[min(1200px,96vw)]") +
-                " flex-col overflow-hidden rounded-[24px] border border-border bg-card p-4 text-card-foreground shadow-2xl sm:p-5"
+                " flex-col overflow-hidden border border-border bg-card p-4 text-card-foreground shadow-2xl sm:p-5"
               }
             >
               <div className="care-premium-intake-header flex shrink-0 items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <span className="grid size-9 place-items-center rounded-xl bg-primary/10 text-primary">
+                  <span className="grid size-9 place-items-center bg-primary/10 text-primary">
                     <CareIntakeIcon kind={kind} size={20} />
                   </span>
                   <div>
@@ -375,7 +375,7 @@ export function ClientQuickIntake({
                     aria-label="Fechar"
                     disabled={saving}
                     onClick={closeForm}
-                    className="grid size-8 place-items-center rounded-lg border border-border"
+                    className="grid size-8 place-items-center border border-border"
                   >
                     <X size={18} />
                   </button>
@@ -385,7 +385,7 @@ export function ClientQuickIntake({
                 <button
                   type="button"
                   onClick={() => setReportOpen(true)}
-                  className="mt-3 inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-primary/30 bg-accent px-3 py-2.5 text-xs font-bold text-primary hover:bg-accent"
+                  className="mt-3 inline-flex shrink-0 items-center justify-center gap-2 border border-primary/30 bg-accent px-3 py-2.5 text-xs font-bold text-primary hover:bg-accent"
                 >
                   <BarChart3 size={17} /> Relatório diário, mensal e anual
                 </button>
@@ -429,7 +429,7 @@ export function ClientQuickIntake({
                     <div className="grid min-w-0 content-start gap-2 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
                       {groupToggle}
                       {mode !== "water" && (
-                        <div className="care-intake-picker-scroll care-intake-picker-visible min-w-0 rounded-xl border border-border/60 bg-muted/[.13] p-2">
+                        <div className="care-intake-picker-scroll care-intake-picker-visible min-w-0 border border-border/60 bg-muted/[.13] p-2">
                           {group === "food" ? (
                             <CareIntakePicker
                               group="food"
@@ -458,7 +458,7 @@ export function ClientQuickIntake({
                           )}
                         </div>
                       )}
-                      <p className="flex min-w-0 items-center gap-1.5 rounded-lg bg-primary/[.06] px-2.5 py-2 text-[11px] font-semibold text-foreground">
+                      <p className="flex min-w-0 items-center gap-1.5 bg-primary/[.06] px-2.5 py-2 text-[11px] font-semibold text-foreground">
                         <CareIntakeIcon kind={kind} size={16} className="shrink-0 text-primary" />
                         <span className="min-w-0 flex-1">
                           {label}{" "}
@@ -542,7 +542,7 @@ export function ClientQuickIntake({
                           const t = sumNutrients(foods.map((f) => f.nutrients));
                           return (
                             <div
-                              className="rounded-xl border border-emerald-500/30 bg-emerald-500/[.07] p-3 text-xs"
+                              className=" border border-emerald-500/30 bg-emerald-500/[.07] p-3 text-xs"
                               aria-live="polite"
                             >
                               <p className="font-bold text-emerald-800 dark:text-emerald-200">
@@ -563,10 +563,7 @@ export function ClientQuickIntake({
                                   ["Carb.", t.carbs, "text-amber-600"],
                                   ["Gord.", t.fat, "text-violet-600"],
                                 ].map(([l, v, c]) => (
-                                  <span
-                                    key={l as string}
-                                    className="rounded-lg bg-card px-1 py-1.5"
-                                  >
+                                  <span key={l as string} className=" bg-card px-1 py-1.5">
                                     <strong className={`block text-sm ${c}`}>
                                       {Math.round(v as number)}
                                       {l === "kcal" ? "" : "g"}
@@ -604,7 +601,7 @@ export function ClientQuickIntake({
                                       aria-checked={on}
                                       onClick={() => setAmount(String(v))}
                                       className={
-                                        "group flex flex-col items-center gap-1 rounded-2xl border p-2 pt-3 transition active:scale-95 " +
+                                        "group flex flex-col items-center gap-1 border p-2 pt-3 transition active:scale-95 " +
                                         (on
                                           ? "border-sky-500 bg-sky-500/10 shadow-[0_8px_24px_-12px_rgba(14,165,233,.8)]"
                                           : "border-border hover:border-sky-500/40 hover:bg-sky-500/[.05]")
@@ -657,12 +654,12 @@ export function ClientQuickIntake({
                                   );
                                 })}
                               </div>
-                              <div className="flex items-center justify-center gap-3 rounded-2xl bg-sky-500/[.07] p-3">
+                              <div className="flex items-center justify-center gap-3 bg-sky-500/[.07] p-3">
                                 <button
                                   type="button"
                                   aria-label="Menos 50 ml"
                                   onClick={() => setAmount(String(Math.max(10, ml - 50)))}
-                                  className="grid size-11 place-items-center rounded-full border border-border bg-card text-lg font-bold transition hover:bg-muted active:scale-90"
+                                  className="grid size-11 place-items-center border border-border bg-card text-lg font-bold transition hover:bg-muted active:scale-90"
                                 >
                                   −
                                 </button>
@@ -686,7 +683,7 @@ export function ClientQuickIntake({
                                   type="button"
                                   aria-label="Mais 50 ml"
                                   onClick={() => setAmount(String(Math.min(1500, ml + 50)))}
-                                  className="grid size-11 place-items-center rounded-full border border-border bg-card text-lg font-bold transition hover:bg-muted active:scale-90"
+                                  className="grid size-11 place-items-center border border-border bg-card text-lg font-bold transition hover:bg-muted active:scale-90"
                                 >
                                   +
                                 </button>
@@ -703,7 +700,7 @@ export function ClientQuickIntake({
                               onClick={() => setAmount(String(value))}
                               aria-pressed={amount === String(value)}
                               className={
-                                "rounded-lg border px-2 py-2 text-xs font-bold transition " +
+                                " border px-2 py-2 text-xs font-bold transition " +
                                 (amount === String(value)
                                   ? "border-primary bg-primary/10 text-primary"
                                   : "border-border hover:bg-muted")
@@ -737,7 +734,7 @@ export function ClientQuickIntake({
                             <p
                               role="status"
                               className={
-                                "rounded-lg border p-2 text-xs " +
+                                " border p-2 text-xs " +
                                 (check.level === "excess"
                                   ? "border-destructive/40 bg-destructive/5 text-destructive"
                                   : "border-amber-500/30 bg-amber-500/[.07]")
@@ -747,7 +744,7 @@ export function ClientQuickIntake({
                             </p>
                           ) : null;
                         })()}
-                      <div className="min-w-0 max-w-full overflow-hidden rounded-xl border border-border/70 bg-card/80 p-3 space-y-2 text-foreground">
+                      <div className="min-w-0 max-w-full overflow-hidden border border-border/70 bg-card/80 p-3 space-y-2 text-foreground">
                         <label className="block min-w-0 max-w-full text-xs font-semibold">
                           Data e hora do consumo · horário do Acre (UTC−5)
                           <input
@@ -776,7 +773,7 @@ export function ClientQuickIntake({
                       {error && (
                         <p
                           role="alert"
-                          className="rounded-lg border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive"
+                          className=" border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive"
                         >
                           {error}
                         </p>
@@ -789,14 +786,14 @@ export function ClientQuickIntake({
                           type="button"
                           disabled={saving}
                           onClick={closeForm}
-                          className="rounded-lg border border-primary/30 bg-slate-950/75 px-3 py-2.5 text-xs font-semibold text-foreground disabled:opacity-50"
+                          className=" border border-primary/30 bg-slate-950/75 px-3 py-2.5 text-xs font-semibold text-foreground disabled:opacity-50"
                         >
                           Cancelar
                         </button>
                         <button
                           type="submit"
                           disabled={saving}
-                          className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2.5 text-xs font-bold text-primary-foreground transition hover:bg-primary disabled:opacity-50"
+                          className="inline-flex items-center justify-center gap-1.5 bg-primary px-3 py-2.5 text-xs font-bold text-primary-foreground transition hover:bg-primary disabled:opacity-50"
                         >
                           <Save size={15} />
                           {saving ? "Salvando..." : "Registrar agora"}
