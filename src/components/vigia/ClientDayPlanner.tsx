@@ -155,9 +155,15 @@ const MEALS: [string, string][] = [
   ["19:00", "Jantar"],
 ];
 const PERIODS = [
-  { id: "manha", label: "Manhã", icon: Sunrise, test: (h: number) => h < 12 },
-  { id: "tarde", label: "Tarde", icon: Sun, test: (h: number) => h >= 12 && h < 18 },
-  { id: "noite", label: "Noite", icon: Sunset, test: (h: number) => h >= 18 },
+  { id: "manha", label: "Manhã", icon: Sunrise, color: "#f59e0b", test: (h: number) => h < 12 },
+  {
+    id: "tarde",
+    label: "Tarde",
+    icon: Sun,
+    color: "#38bdf8",
+    test: (h: number) => h >= 12 && h < 18,
+  },
+  { id: "noite", label: "Noite", icon: Sunset, color: "#818cf8", test: (h: number) => h >= 18 },
 ] as const;
 const go = (area: ClientSection) => {
   window.location.hash = clientSectionHashes[area];
@@ -989,27 +995,23 @@ export function ClientDayPlanner({
 
   return (
     <section className="flex min-w-0 flex-col gap-3" aria-label="Meu dia">
-      <header className="nv-dark relative isolate overflow-hidden rounded-2xl bg-gradient-to-br from-[#2e1065] via-[#4c1d95] to-[#86198f] p-3.5 text-white shadow-card sm:p-4">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-16 -top-20 -z-10 size-64 rounded-full bg-fuchsia-400/20 blur-3xl"
-        />
-        <div className="grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_17rem]">
-          <div className="flex items-center gap-4">
+      <header className="nv-dark nv-scan relative isolate overflow-hidden border border-indigo-400/30 p-2.5 text-white shadow-card sm:px-3">
+        <div className="grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_18rem]">
+          <div className="flex items-center gap-3">
             <div
-              className="relative size-24 shrink-0"
+              className="relative size-16 shrink-0"
               role="img"
               aria-label={`${pct}% do que estava previsto até agora foi feito`}
             >
               <svg viewBox="0 0 120 120" className="absolute inset-0 -rotate-90">
-                <circle cx="60" cy="60" r="52" fill="none" stroke="#ffffff22" strokeWidth="10" />
+                <circle cx="60" cy="60" r="52" fill="none" stroke="#ffffff22" strokeWidth="11" />
                 <circle
                   cx="60"
                   cy="60"
                   r="52"
                   fill="none"
                   stroke="url(#nv-day-ring)"
-                  strokeWidth="10"
+                  strokeWidth="11"
                   strokeLinecap="round"
                   pathLength={100}
                   strokeDasharray={`${pct} 100`}
@@ -1025,38 +1027,38 @@ export function ClientDayPlanner({
               </svg>
               <span className="absolute inset-0 grid place-items-center text-center leading-none">
                 <span>
-                  <strong className="block text-2xl font-extrabold tabular-nums">{pct}%</strong>
-                  <span className="text-[11px] text-white/75">em dia</span>
+                  <strong className="block text-base font-extrabold tabular-nums">{pct}%</strong>
+                  <span className="text-[9px] text-white/70">em dia</span>
                 </span>
               </span>
             </div>
             <div className="min-w-0 lg:hidden">
-              <p className="text-xl font-extrabold">Meu dia</p>
+              <p className="text-base font-extrabold">Meu dia</p>
               <p className="text-xs text-white/75">
                 {doneCount} de {actionable.length} feitos até agora
               </p>
             </div>
           </div>
           <div className="min-w-0">
-            <p className="hidden text-2xl font-extrabold lg:block">Meu dia</p>
-            <p className="text-sm text-white/80">
+            <p className="hidden text-lg font-extrabold leading-tight lg:block">Meu dia</p>
+            <p className="text-xs text-white/80">
               {actionable.length
                 ? `${doneCount} de ${actionable.length} itens previstos até agora já foram feitos.`
                 : "Seu dia começa com o primeiro item da linha do tempo."}{" "}
               {left > 0 && `${left} ainda pela frente.`}
             </p>
-            <div className="mt-2.5 flex flex-wrap gap-1.5 text-[12px] font-semibold">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/12 px-2.5 py-1">
+            <div className="mt-1.5 flex flex-wrap gap-1.5 text-[11px] font-semibold">
+              <span className="inline-flex items-center gap-1.5 bg-emerald-400/20 px-2 py-0.5 text-emerald-200">
                 <Check size={13} /> {doneCount} feitos
               </span>
               <span
-                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 ${nowCount ? "bg-amber-300 text-amber-950" : "bg-white/12"}`}
+                className={`inline-flex items-center gap-1.5 px-2 py-0.5 ${nowCount ? "bg-amber-300 text-amber-950" : "bg-amber-400/15 text-amber-200"}`}
               >
                 {nowCount ? <i className="size-1.5 rounded-full bg-amber-950 nv-live" /> : null}
                 {nowCount} na hora
               </span>
               <span
-                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 ${late ? "bg-rose-500 text-white" : "bg-white/12"}`}
+                className={`inline-flex items-center gap-1.5 px-2 py-0.5 ${late ? "bg-rose-500 text-white" : "bg-rose-400/15 text-rose-200"}`}
               >
                 {late} atrasados
               </span>
@@ -1117,7 +1119,7 @@ export function ClientDayPlanner({
       {!raw ? (
         <div className="grid gap-3 md:grid-cols-3">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="h-64 animate-pulse rounded-2xl bg-muted/60" />
+            <div key={i} className="h-64 animate-pulse bg-muted/60" />
           ))}
         </div>
       ) : (
@@ -1130,17 +1132,21 @@ export function ClientDayPlanner({
             return (
               <section
                 key={p.id}
-                className={`flex min-w-0 flex-col rounded-2xl border p-2.5 ${isNow ? "border-violet-500/35 bg-violet-500/[.04]" : "border-border bg-card"}`}
+                className={`flex min-w-0 flex-col border border-border bg-card p-2.5 shadow-card ${isNow ? "ring-1 ring-inset" : ""}`}
+                style={{
+                  ["--ca" as string]: p.color,
+                  ...(isNow ? { ["--tw-ring-color" as string]: `${p.color}88` } : {}),
+                }}
                 aria-label={p.label}
               >
                 <header className="mb-1.5 flex items-center gap-2 px-1">
-                  <p.icon
-                    size={15}
-                    className={isNow ? "text-violet-500" : "text-muted-foreground"}
-                  />
+                  <p.icon size={15} style={{ color: p.color }} />
                   <strong className="text-sm">{p.label}</strong>
                   {isNow && (
-                    <span className="rounded-full bg-violet-500 px-1.5 py-0.5 text-[11px] font-bold text-white">
+                    <span
+                      className="px-1.5 py-0.5 text-[11px] font-bold text-slate-950"
+                      style={{ background: p.color }}
+                    >
                       agora
                     </span>
                   )}
@@ -1148,10 +1154,13 @@ export function ClientDayPlanner({
                     {done}/{list.length}
                   </span>
                 </header>
-                <div className="mb-2 h-1 overflow-hidden rounded-full bg-muted">
+                <div className="mb-2 h-1 overflow-hidden bg-muted">
                   <i
-                    className="block h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-400 transition-[width] duration-700"
-                    style={{ width: `${list.length ? (done / list.length) * 100 : 0}%` }}
+                    className="block h-full transition-[width] duration-700"
+                    style={{
+                      background: p.color,
+                      width: `${list.length ? (done / list.length) * 100 : 0}%`,
+                    }}
                   />
                 </div>
                 {list.length === 0 ? (
@@ -1214,7 +1223,7 @@ function FilterChip({
       type="button"
       aria-pressed={on}
       onClick={onClick}
-      className={`inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition active:scale-95 ${on ? "border-transparent text-white shadow-sm" : "border-border bg-card text-foreground hover:bg-muted"}`}
+      className={`inline-flex h-8 items-center gap-1.5 border px-3 text-xs font-semibold transition active:scale-95 ${on ? "border-transparent text-white shadow-sm" : "border-border bg-card text-foreground hover:bg-muted"}`}
       style={on ? { background: color } : undefined}
     >
       {Icon ? (
@@ -1222,7 +1231,7 @@ function FilterChip({
           <Icon size={13} />
         </span>
       ) : (
-        <i className="size-2 rounded-full" style={{ background: on ? "#fff" : color }} />
+        <i className="size-2" style={{ background: on ? "#fff" : color }} />
       )}
       {label}
       <span
