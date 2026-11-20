@@ -294,6 +294,16 @@ export function EvoChart({
                     <stop offset="1" stopColor={s.color} stopOpacity="0" />
                   </linearGradient>
                 ))}
+              <linearGradient id={`${uid}-sheen`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#fff" stopOpacity=".28" />
+                <stop offset=".55" stopColor="#fff" stopOpacity="0" />
+                <stop offset="1" stopColor="#000" stopOpacity=".12" />
+              </linearGradient>
+              <linearGradient id={`${uid}-col`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="currentColor" stopOpacity=".0" />
+                <stop offset=".5" stopColor="currentColor" stopOpacity=".07" />
+                <stop offset="1" stopColor="currentColor" stopOpacity=".0" />
+              </linearGradient>
               <clipPath id={`${uid}-clip`}>
                 <rect x={PAD.l} y={0} width={iw} height={height} />
               </clipPath>
@@ -307,7 +317,7 @@ export function EvoChart({
                   y1={sy(v)}
                   y2={sy(v)}
                   stroke="currentColor"
-                  className={v === yBase ? "text-border" : "text-border/60"}
+                  className={v === yBase ? "text-border" : "text-border/40"}
                   strokeDasharray={v === yBase ? undefined : "3 5"}
                 />
                 <text
@@ -401,6 +411,21 @@ export function EvoChart({
               </g>
             )}
 
+            {activeX !== null && (
+              <rect
+                x={-14}
+                y={PAD.t}
+                width={28}
+                height={ih}
+                fill={`url(#${uid}-col)`}
+                className="text-foreground"
+                pointerEvents="none"
+                style={{
+                  transform: `translateX(${sx(activeX)}px)`,
+                  transition: reduced ? undefined : "transform .14s cubic-bezier(.2,.8,.2,1)",
+                }}
+              />
+            )}
             <g>
               {bars.map((b) => {
                 const bw = Math.max(3, Math.min(34, (b.w / Math.max(1e-9, xMax - xMin)) * iw - 3));
@@ -423,26 +448,38 @@ export function EvoChart({
                         const top = i === arr.length - 1;
                         const h = Math.max(0, y0 - y1 - (top ? 0 : 1.5));
                         const r = top ? Math.min(4, bw / 2, h) : 0;
+                        const dBar = `M${x0},${y0}V${y0 - h + r}${r ? `Q${x0},${y0 - h} ${x0 + r},${y0 - h}H${x0 + bw - r}Q${x0 + bw},${y0 - h} ${x0 + bw},${y0 - h + r}` : `H${x0 + bw}`}V${y0}Z`;
                         return (
-                          <path
-                            key={i}
-                            className={reduced ? "" : "nv-bar"}
-                            style={{
-                              transformOrigin: `0 ${sy(0)}px`,
-                              transformBox: "view-box" as never,
-                            }}
-                            d={`M${x0},${y0}V${y0 - h + r}${r ? `Q${x0},${y0 - h} ${x0 + r},${y0 - h}H${x0 + bw - r}Q${x0 + bw},${y0 - h} ${x0 + bw},${y0 - h + r}` : `H${x0 + bw}`}V${y0}Z`}
-                            fill={p.color}
-                            fillOpacity={
-                              pin && pin.x === b.x && pin.part
-                                ? pin.part === p.label
-                                  ? 1
-                                  : 0.3
-                                : on
-                                  ? 1
-                                  : 0.78
-                            }
-                          />
+                          <g key={i}>
+                            <path
+                              className={reduced ? "" : "nv-bar"}
+                              style={{
+                                transformOrigin: `0 ${sy(0)}px`,
+                                transformBox: "view-box" as never,
+                              }}
+                              d={`M${x0},${y0}V${y0 - h + r}${r ? `Q${x0},${y0 - h} ${x0 + r},${y0 - h}H${x0 + bw - r}Q${x0 + bw},${y0 - h} ${x0 + bw},${y0 - h + r}` : `H${x0 + bw}`}V${y0}Z`}
+                              fill={p.color}
+                              fillOpacity={
+                                pin && pin.x === b.x && pin.part
+                                  ? pin.part === p.label
+                                    ? 1
+                                    : 0.3
+                                  : on
+                                    ? 1
+                                    : 0.82
+                              }
+                            />
+                            <path
+                              d={dBar}
+                              fill={`url(#${uid}-sheen)`}
+                              pointerEvents="none"
+                              className={reduced ? "" : "nv-bar"}
+                              style={{
+                                transformOrigin: `0 ${sy(0)}px`,
+                                transformBox: "view-box" as never,
+                              }}
+                            />
+                          </g>
                         );
                       })}
                     {on && total > 0 && (
@@ -513,6 +550,65 @@ export function EvoChart({
                   />
                 )),
               )}
+            {primary &&
+              !primary.dashed &&
+              primary.points.length >= 3 &&
+              (() => {
+                const hi = primary.points.reduce((m, p) => (p.y > m.y ? p : m), primary.points[0]);
+                const lo = primary.points.reduce((m, p) => (p.y < m.y ? p : m), primary.points[0]);
+                if (hi.y === lo.y) return null;
+                const tag = (p: EvoPoint, up: boolean) => {
+                  const text = formatY(p.y);
+                  const wTag = text.length * 6.2 + 14;
+                  const cx = Math.min(PAD.l + iw - wTag / 2, Math.max(PAD.l + wTag / 2, sx(p.x)));
+                  const cy = sy(p.y) + (up ? -17 : 17);
+                  return (
+                    <g
+                      key={up ? "hi" : "lo"}
+                      pointerEvents="none"
+                      opacity={activeX === null ? 1 : 0.55}
+                    >
+                      <circle cx={sx(p.x)} cy={sy(p.y)} r="3.5" fill={primary.color} />
+                      <circle
+                        cx={sx(p.x)}
+                        cy={sy(p.y)}
+                        r="7"
+                        fill="none"
+                        stroke={primary.color}
+                        strokeOpacity=".35"
+                      />
+                      <rect
+                        x={cx - wTag / 2}
+                        y={cy - 8}
+                        width={wTag}
+                        height="16"
+                        rx="8"
+                        fill="var(--color-card, #fff)"
+                        stroke={primary.color}
+                        strokeOpacity=".6"
+                      />
+                      <text
+                        x={cx}
+                        y={cy + 3.5}
+                        textAnchor="middle"
+                        fontSize="10"
+                        fontWeight="700"
+                        fill={primary.color}
+                        className="tabular-nums"
+                      >
+                        {up ? "▲ " : "▼ "}
+                        {text}
+                      </text>
+                    </g>
+                  );
+                };
+                return (
+                  <g>
+                    {tag(hi, true)}
+                    {tag(lo, false)}
+                  </g>
+                );
+              })()}
             {series
               .filter((s) => s.live && s.points.length)
               .map((s) => {
@@ -616,15 +712,23 @@ export function EvoChart({
                   .map((s) => {
                     const v = valueAt(s.points, activeX);
                     return v === null ? null : (
-                      <circle
-                        key={s.id}
-                        cx={sx(activeX)}
-                        cy={sy(v)}
-                        r="5.5"
-                        fill={s.color}
-                        stroke="var(--color-card, #fff)"
-                        strokeWidth="2.5"
-                      />
+                      <g key={s.id}>
+                        <circle
+                          cx={sx(activeX)}
+                          cy={sy(v)}
+                          r="11"
+                          fill={s.color}
+                          fillOpacity=".16"
+                        />
+                        <circle
+                          cx={sx(activeX)}
+                          cy={sy(v)}
+                          r="5.5"
+                          fill={s.color}
+                          stroke="var(--color-card, #fff)"
+                          strokeWidth="2.5"
+                        />
+                      </g>
                     );
                   })}
                 <rect
@@ -654,15 +758,16 @@ export function EvoChart({
         {hoverX !== null && w > 0 && (
           <div
             role="status"
-            className="pointer-events-none absolute z-10 w-max min-w-44 max-w-[17rem] rounded-xl border border-border bg-popover/95 px-3 py-2 text-xs text-popover-foreground shadow-lg backdrop-blur"
+            className="nv-pop pointer-events-none absolute z-10 w-max min-w-48 max-w-[18rem] rounded-xl border border-border border-l-[3px] bg-popover/90 px-3.5 py-2.5 text-xs text-popover-foreground shadow-2xl backdrop-blur-xl"
             style={{
               top: PAD.t,
+              borderLeftColor: primary?.color,
               ...(sx(hoverX) > w * 0.6
                 ? { right: w - sx(hoverX) + 12 }
                 : { left: sx(hoverX) + 12 }),
             }}
           >
-            <p className="mb-1 whitespace-nowrap border-b border-border pb-1 font-bold capitalize">
+            <p className="mb-1.5 whitespace-nowrap border-b border-border pb-1.5 text-[13px] font-extrabold capitalize tracking-tight">
               {formatX(hoverX)}
             </p>
             {series.map((s) => {
