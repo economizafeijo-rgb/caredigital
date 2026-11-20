@@ -252,7 +252,7 @@ export function CareRecentHistory({
                 title: r.details?.title || r.details?.description || "Refeição registrada",
                 category: "refeicao" as const,
                 at: r.recorded_at,
-                detail: "Consumo avulso",
+                detail: "Registrado por você",
                 kind: "meal" as const,
                 ...(() => {
                   const d = r.details ?? {};

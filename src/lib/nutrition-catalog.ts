@@ -1787,6 +1787,33 @@ const baseIngredients: Omit<Ingredient, "carbs" | "fat" | "fiber">[] = [
     note: "Estimativa a partir de rótulos de cebola frita crocante; varia por marca. Usada como cobertura (cerca de 10 g).",
   },
   {
+    id: "feijoada_lata",
+    name: "Feijoada enlatada",
+    group: "proteinas",
+    protein: 5.5,
+    kcal: 120,
+    flags: ["industrializado", "gorduroso"],
+    note: "Estimativa para feijoada pronta de lata. Costuma ter bastante sal e gordura.",
+  },
+  {
+    id: "sardinha_lata",
+    name: "Sardinha em lata (escorrida)",
+    group: "proteinas",
+    protein: 24.6,
+    kcal: 208,
+    flags: ["industrializado"],
+    note: "Estimativa para sardinha em óleo, escorrida. 1 lata escorrida ≈ 90 g.",
+  },
+  {
+    id: "peixe_frito",
+    name: "Peixe frito",
+    group: "proteinas",
+    protein: 23,
+    kcal: 230,
+    flags: ["frito", "gorduroso"],
+    note: "Estimativa para filé empanado ou passado na farinha e frito.",
+  },
+  {
     id: "macarrao_instantaneo",
     name: "Macarrão instantâneo (miojo) preparado com tempero",
     group: "cereais",
@@ -2136,6 +2163,9 @@ const macroMap: Record<
   macarrao_instantaneo: [18, 5, 1],
   ketchup: [25.8, 0.1, 0.3],
   maionese: [6.3, 30, 0],
+  feijoada_lata: [11, 5.5, 3.5],
+  sardinha_lata: [0, 11.5, 0],
+  peixe_frito: [4, 13, 0.2],
 };
 export const ingredients: Ingredient[] = baseIngredients.map((food) => {
   const n = macroMap[food.id];
