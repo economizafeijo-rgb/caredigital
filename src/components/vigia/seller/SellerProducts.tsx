@@ -5,6 +5,8 @@ import { useDialog } from "@/lib/dialog";
 import {
   categoryName,
   centsToInput,
+  productStatus,
+  type ProductColor,
   money,
   parseMoney,
   PRODUCT_CATEGORIES,
@@ -50,6 +52,10 @@ type Draft = {
   unit: string;
   image: string;
   active: boolean;
+  colors: ProductColor[];
+  limit: string;
+  availability: "auto" | "indisponivel" | "esgotado";
+  featured: boolean;
 };
 const blank: Draft = {
   name: "",
@@ -64,6 +70,10 @@ const blank: Draft = {
   unit: "un",
   image: "",
   active: true,
+  colors: [],
+  limit: "",
+  availability: "auto",
+  featured: false,
 };
 
 export function SellerProducts({
@@ -114,6 +124,10 @@ export function SellerProducts({
       unit: p.unit ?? "un",
       image: p.image_url ?? "",
       active: p.active,
+      colors: p.colors ?? [],
+      limit: p.display_limit ? String(p.display_limit) : "",
+      availability: p.availability ?? "auto",
+      featured: !!p.featured,
     });
 
   async function save(e: FormEvent) {
@@ -130,6 +144,8 @@ export function SellerProducts({
       return setErr("O preço antigo precisa ser maior que o preço atual.");
     if (!Number.isInteger(stock) || stock < 0)
       return setErr("O estoque precisa ser um número inteiro a partir de 0.");
+    if (draft.limit.trim() && (!Number.isInteger(Number(draft.limit)) || Number(draft.limit) < 1))
+      return setErr("O limite de exibição precisa ser um número a partir de 1.");
     if (draft.image && !/^https:\/\//.test(draft.image))
       return setErr("A imagem precisa ser um link https ou um arquivo enviado.");
     setErr("");
@@ -147,6 +163,16 @@ export function SellerProducts({
       unit: draft.unit,
       image_url: draft.image || null,
       active: draft.active,
+      colors: draft.colors
+        .filter((c) => c.name.trim())
+        .map((c) => ({
+          name: c.name.trim(),
+          hex: c.hex,
+          stock: Math.max(0, Math.floor(c.stock) || 0),
+        })),
+      display_limit: draft.limit.trim() ? Number(draft.limit) : null,
+      availability: draft.availability,
+      featured: draft.featured,
       updated_at: new Date().toISOString(),
     };
     const db = (supabase as any).from("care_store_products");
@@ -208,11 +234,18 @@ export function SellerProducts({
 
   return (
     <div className="grid gap-4">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
         {[
           ["Produtos", String(products.length)],
           ["Ativos na loja", String(products.filter((p) => p.active).length)],
-          ["Estoque baixo", String(products.filter((p) => p.stock <= (p.min_stock ?? 3)).length)],
+          [
+            "Estoque baixo",
+            String(products.filter((p) => p.stock > 0 && p.stock <= (p.min_stock ?? 3)).length),
+          ],
+          [
+            "Esgotados / indisponíveis",
+            String(products.filter((p) => !productStatus(p).buyable).length),
+          ],
           ["Valor em estoque", money(stockValue)],
         ].map(([l, v]) => (
           <div key={l} className="rounded-2xl border border-border bg-card px-4 py-3">
@@ -399,11 +432,42 @@ export function SellerProducts({
                       </button>
                     </td>
                     <td className="px-2">
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${p.active ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : "bg-muted text-muted-foreground"}`}
-                      >
-                        {p.active ? "Visível" : "Oculto"}
-                      </span>
+                      {(() => {
+                        const st = productStatus(p);
+                        const tone = !p.active
+                          ? "bg-muted text-muted-foreground"
+                          : st.key === "ok"
+                            ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                            : st.key === "indisponivel"
+                              ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                              : "bg-rose-500/15 text-rose-700 dark:text-rose-300";
+                        return (
+                          <>
+                            <span
+                              className={`inline-block px-2 py-0.5 text-[11px] font-semibold ${tone}`}
+                            >
+                              {p.active ? st.label : "Oculto"}
+                            </span>
+                            {p.active && st.key === "ok" && p.display_limit && (
+                              <span className="mt-0.5 block text-[10.5px] text-muted-foreground">
+                                limite {p.display_limit} no site
+                              </span>
+                            )}
+                            {!!p.colors?.length && (
+                              <span className="mt-1 flex gap-0.5">
+                                {p.colors.slice(0, 6).map((c) => (
+                                  <span
+                                    key={c.name}
+                                    title={`${c.name} · ${c.stock}`}
+                                    className={`size-3 border border-border ${c.stock <= 0 ? "opacity-30" : ""}`}
+                                    style={{ background: c.hex }}
+                                  />
+                                ))}
+                              </span>
+                            )}
+                          </>
+                        );
+                      })()}
                     </td>
                     <td className="px-4 text-right">
                       <button
@@ -584,6 +648,107 @@ export function SellerProducts({
                   onChange={(e) => setDraft({ ...draft, min: e.target.value.replace(/\D/g, "") })}
                 />
               </label>
+              <label className="text-[13px] font-semibold">
+                Limite no site (por pedido)
+                <input
+                  className={inputCls}
+                  inputMode="numeric"
+                  value={draft.limit}
+                  onChange={(e) => setDraft({ ...draft, limit: e.target.value.replace(/\D/g, "") })}
+                  placeholder="Sem limite"
+                />
+              </label>
+              <label className="text-[13px] font-semibold">
+                Disponibilidade
+                <select
+                  className={inputCls}
+                  value={draft.availability}
+                  onChange={(e) =>
+                    setDraft({ ...draft, availability: e.target.value as Draft["availability"] })
+                  }
+                >
+                  <option value="auto">Automática (pelo estoque)</option>
+                  <option value="indisponivel">Indisponível no momento</option>
+                  <option value="esgotado">Esgotado</option>
+                </select>
+              </label>
+              <fieldset className="grid gap-2 sm:col-span-2">
+                <legend className="text-[13px] font-semibold">Cores</legend>
+                {draft.colors.map((c, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      aria-label="Cor"
+                      value={c.hex}
+                      onChange={(e) =>
+                        setDraft({
+                          ...draft,
+                          colors: draft.colors.map((x, j) =>
+                            j === i ? { ...x, hex: e.target.value } : x,
+                          ),
+                        })
+                      }
+                      className="h-9 w-10 shrink-0 border border-border bg-transparent"
+                    />
+                    <input
+                      className={inputCls}
+                      aria-label="Nome da cor"
+                      placeholder="Nome (ex.: Preto)"
+                      maxLength={24}
+                      value={c.name}
+                      onChange={(e) =>
+                        setDraft({
+                          ...draft,
+                          colors: draft.colors.map((x, j) =>
+                            j === i ? { ...x, name: e.target.value } : x,
+                          ),
+                        })
+                      }
+                    />
+                    <input
+                      className={`${inputCls} !w-20 shrink-0`}
+                      aria-label="Quantidade desta cor"
+                      inputMode="numeric"
+                      placeholder="Qtd"
+                      value={c.stock}
+                      onChange={(e) =>
+                        setDraft({
+                          ...draft,
+                          colors: draft.colors.map((x, j) =>
+                            j === i
+                              ? { ...x, stock: Number(e.target.value.replace(/\D/g, "")) || 0 }
+                              : x,
+                          ),
+                        })
+                      }
+                    />
+                    <button
+                      type="button"
+                      aria-label="Remover cor"
+                      onClick={() =>
+                        setDraft({ ...draft, colors: draft.colors.filter((_, j) => j !== i) })
+                      }
+                      className={btn.icon}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+                {draft.colors.length < 12 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setDraft({
+                        ...draft,
+                        colors: [...draft.colors, { name: "", hex: "#111827", stock: 0 }],
+                      })
+                    }
+                    className={`${btn.ghost} w-fit`}
+                  >
+                    <Plus size={14} /> Adicionar cor
+                  </button>
+                )}
+              </fieldset>
               <label className="text-[13px] font-semibold sm:col-span-2">
                 Descrição
                 <textarea
@@ -601,6 +766,15 @@ export function SellerProducts({
                   className="size-4 accent-[var(--accent-store)]"
                 />{" "}
                 Mostrar na loja pública
+              </label>
+              <label className="flex items-center gap-2 text-[13px] font-semibold sm:col-span-2">
+                <input
+                  type="checkbox"
+                  checked={draft.featured}
+                  onChange={(e) => setDraft({ ...draft, featured: e.target.checked })}
+                  className="size-4 accent-[var(--accent-store)]"
+                />{" "}
+                Destacar na vitrine
               </label>
               {err && (
                 <p

@@ -25,7 +25,13 @@ import {
   X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { categoryName, money, type Vendor, type VendorProduct } from "@/lib/marketplace";
+import {
+  categoryName,
+  money,
+  productStatus,
+  type Vendor,
+  type VendorProduct,
+} from "@/lib/marketplace";
 import {
   downloadStoreCard,
   initialsOf as ini,
@@ -332,7 +338,8 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
       >
         {shown.map((p) => {
           const off = offOf(p);
-          const out = p.stock <= 0;
+          const st = productStatus(p);
+          const out = !st.buyable;
           const inCart = lines.find((l) => l.product_id === p.id)?.qty ?? 0;
           return (
             <article
@@ -355,13 +362,15 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
                     </span>
                   )}
                   {out ? (
-                    <span className="rounded-md bg-slate-900 px-1.5 py-0.5 text-[10.5px] font-bold text-white">
-                      Esgotado
+                    <span
+                      className={`rounded-md px-1.5 py-0.5 text-[10.5px] font-bold ${st.key === "indisponivel" ? "bg-amber-400 text-slate-900" : "bg-slate-900 text-white"}`}
+                    >
+                      {st.label}
                     </span>
                   ) : (
                     p.stock <= 3 && (
                       <span className="rounded-md bg-amber-400 px-1.5 py-0.5 text-[10.5px] font-bold text-slate-900">
-                        Últimas {p.stock}
+                        Últimas {st.max}
                       </span>
                     )
                   )}
@@ -384,14 +393,40 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
                     </span>
                   )}
                 </p>
+                {!!p.colors?.length && (
+                  <span
+                    className="mt-1.5 flex flex-wrap items-center gap-1"
+                    aria-label="Cores disponíveis"
+                  >
+                    {p.colors.map((c) => (
+                      <span
+                        key={c.name}
+                        title={c.stock > 0 ? c.name : `${c.name} · esgotada`}
+                        className={`relative size-4 border border-border ${c.stock <= 0 ? "opacity-35" : ""}`}
+                        style={{ background: c.hex }}
+                      >
+                        {c.stock <= 0 && (
+                          <span className="absolute inset-0 grid place-items-center text-[10px] font-bold leading-none text-slate-900">
+                            /
+                          </span>
+                        )}
+                      </span>
+                    ))}
+                  </span>
+                )}
+                {p.display_limit && !out && (
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Até {p.display_limit} por pedido
+                  </p>
+                )}
                 {!STORE_LIVE && (
                   <p className="text-[11px] text-muted-foreground">Vendas em breve</p>
                 )}
                 <button
                   type="button"
-                  disabled={out || inCart >= p.stock}
+                  disabled={out || inCart >= st.max}
                   onClick={() => {
-                    vcart.add(vendor.id, p.id, Math.min(20, p.stock));
+                    vcart.add(vendor.id, p.id, st.max);
                     setAdded(p.id);
                   }}
                   className="mt-2.5 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg text-[13px] font-bold text-white transition hover:brightness-110 active:scale-[.97] disabled:opacity-45"
@@ -402,7 +437,7 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
                       <CheckCircle2 size={15} /> Adicionado
                     </>
                   ) : out ? (
-                    "Esgotado"
+                    st.label
                   ) : (
                     <>
                       <ShoppingCart size={15} /> Adicionar{inCart ? ` (${inCart})` : ""}
@@ -690,7 +725,7 @@ function VendorCheckout({
                     <span className="w-7 text-center text-sm font-bold tabular-nums">{qty}</span>
                     <button
                       type="button"
-                      disabled={qty >= p.stock}
+                      disabled={qty >= productStatus(p).max}
                       onClick={() => vcart.setQty(vendor.id, p.id, qty + 1)}
                       aria-label={`Aumentar ${p.name}`}
                       className="grid size-8 place-items-center hover:bg-muted disabled:opacity-40"

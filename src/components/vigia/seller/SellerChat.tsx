@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { ArrowLeft, MessageCircle, Send, Trash2 } from "lucide-react";
+import { ArrowLeft, CheckSquare, MessageCircle, Send, Square, Trash2 } from "lucide-react";
 import { useDialog } from "@/lib/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import type { ChatMessage, Vendor } from "@/lib/marketplace";
@@ -61,6 +61,38 @@ export function SellerChat({
   const [text, setText] = useState("");
   const [err, setErr] = useState("");
   const end = useRef<HTMLDivElement>(null);
+  const [selecting, setSelecting] = useState(false);
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  async function deleteThreads(ids: string[]) {
+    if (!ids.length) return;
+    if (
+      !(await confirm(
+        ids.length === 1 ? "Apagar esta conversa?" : `Apagar ${ids.length} conversas?`,
+        "Todas as mensagens somem para você e para o cliente. Não dá para desfazer.",
+        true,
+        "Apagar tudo",
+      ))
+    )
+      return;
+    const { error } = await (supabase as any).rpc("care_store_delete_threads", {
+      p_vendor: vendor.id,
+      p_customers: ids,
+    });
+    if (error)
+      return setErr("Não foi possível apagar. Aplique a migração mais recente e tente de novo.");
+    setErr("");
+    setPicked(new Set());
+    setSelecting(false);
+    if (active && ids.includes(active)) setSel(null);
+    onChanged();
+  }
+  const toggle = (id: string) =>
+    setPicked((cur) => {
+      const n = new Set(cur);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
   const { confirm } = useDialog();
   async function remove(id: string) {
     if (
@@ -112,18 +144,61 @@ export function SellerChat({
       <aside
         className={`min-h-0 flex-col border-r border-border ${active ? "hidden lg:flex" : "flex"}`}
       >
-        <p className="border-b border-border px-4 py-3 text-sm font-bold">
-          Conversas <span className="font-normal text-muted-foreground">· {threads.length}</span>
-        </p>
+        <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-2.5">
+          <p className="text-sm font-bold">
+            Conversas <span className="font-normal text-muted-foreground">· {threads.length}</span>
+          </p>
+          {threads.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                setSelecting((v) => !v);
+                setPicked(new Set());
+              }}
+              className="text-xs font-semibold text-primary hover:underline"
+            >
+              {selecting ? "Cancelar" : "Selecionar"}
+            </button>
+          )}
+        </div>
+        {selecting && (
+          <div className="flex flex-wrap items-center gap-2 border-b border-border bg-muted/40 px-4 py-2 text-xs">
+            <button
+              type="button"
+              onClick={() =>
+                setPicked(
+                  picked.size === threads.length ? new Set() : new Set(threads.map((t) => t.id)),
+                )
+              }
+              className="inline-flex items-center gap-1.5 font-semibold"
+            >
+              {picked.size === threads.length ? <CheckSquare size={14} /> : <Square size={14} />}
+              {picked.size === threads.length ? "Desmarcar todas" : "Marcar todas"}
+            </button>
+            <button
+              type="button"
+              disabled={!picked.size}
+              onClick={() => void deleteThreads([...picked])}
+              className="ml-auto inline-flex items-center gap-1.5 bg-rose-600 px-2.5 py-1.5 font-bold text-white disabled:opacity-40"
+            >
+              <Trash2 size={13} /> Apagar{picked.size ? ` (${picked.size})` : ""}
+            </button>
+          </div>
+        )}
         <ul className="min-h-0 flex-1 overflow-y-auto">
           {threads.map((t) => (
             <li key={t.id}>
               <button
                 type="button"
-                onClick={() => setSel(t.id)}
+                onClick={() => (selecting ? toggle(t.id) : setSel(t.id))}
                 aria-current={t.id === active ? "true" : undefined}
                 className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors ${t.id === active ? "bg-[color-mix(in_srgb,var(--accent-store)_10%,transparent)]" : "hover:bg-muted/50"}`}
               >
+                {selecting && (
+                  <span aria-hidden="true" className="shrink-0 text-primary">
+                    {picked.has(t.id) ? <CheckSquare size={17} /> : <Square size={17} />}
+                  </span>
+                )}
                 <span
                   className="grid size-9 shrink-0 place-items-center rounded-full text-sm font-bold text-white"
                   style={{ background: "var(--accent-store)" }}
@@ -180,10 +255,17 @@ export function SellerChat({
               >
                 {name.slice(0, 1)}
               </span>
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-bold">{name}</p>
                 <p className="text-[11px] text-muted-foreground">Cliente cadastrado na NextVita</p>
               </div>
+              <button
+                type="button"
+                onClick={() => void deleteThreads([active])}
+                className="inline-flex items-center gap-1.5 border border-border px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-500/10 dark:text-rose-300"
+              >
+                <Trash2 size={13} /> Limpar conversa
+              </button>
             </header>
             <div className="min-h-0 flex-1 space-y-2 overflow-y-auto bg-[radial-gradient(circle_at_1px_1px,color-mix(in_srgb,currentColor_6%,transparent)_1px,transparent_0)] [background-size:18px_18px] px-4 py-4">
               {convo.map((m) => (

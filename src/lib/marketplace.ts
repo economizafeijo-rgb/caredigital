@@ -208,8 +208,22 @@ export type VendorProduct = {
   min_stock?: number;
   unit?: string;
   ref?: string | null;
+  colors?: ProductColor[];
+  display_limit?: number | null;
+  availability?: "auto" | "indisponivel" | "esgotado";
+  featured?: boolean;
   created_at?: string;
 };
+export type ProductColor = { name: string; hex: string; stock: number };
+/** Situação do produto na vitrine: leva em conta estoque, limite de exibição e a escolha manual do lojista. */
+export function productStatus(p: Pick<VendorProduct, "stock" | "availability" | "display_limit">) {
+  if (p.availability === "esgotado" || p.stock <= 0)
+    return { key: "esgotado" as const, label: "Esgotado", buyable: false, max: 0 };
+  if (p.availability === "indisponivel")
+    return { key: "indisponivel" as const, label: "Indisponível", buyable: false, max: 0 };
+  const max = Math.min(20, p.stock, p.display_limit ?? 20);
+  return { key: "ok" as const, label: "Disponível", buyable: true, max };
+}
 export type VendorOrder = {
   id: string;
   vendor_id: string | null;
