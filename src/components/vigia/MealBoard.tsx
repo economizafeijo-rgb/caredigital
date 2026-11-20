@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Check, Eraser, Info, Save, Search, X } from "lucide-react";
+import { HowItWorks, foodHowTo } from "./HowItWorks";
 import { CareIntakeIcon } from "./CareIntakePicker";
 import { FoodThumb, foodVisual } from "./FoodArt";
 import { NutritionInfoCard } from "./MealSuggestions";
@@ -482,6 +483,8 @@ export function MealBoard({
                 aqui.
               </p>
             )}
+
+            <HowItWorks>{foodHowTo}</HowItWorks>
 
             <label className="block text-xs font-semibold">
               <span className="block">Quantidade ou porção (opcional)</span>

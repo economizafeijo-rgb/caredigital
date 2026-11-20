@@ -1,3 +1,4 @@
+import { HowItWorks, weightHowTo } from "./HowItWorks";
 import { useEffect, useMemo, useState } from "react";
 import {
   Area, Bar, BarChart, CartesianGrid, Cell, ComposedChart, Line, ReferenceArea, ReferenceLine,
@@ -252,6 +253,7 @@ export function ClientWeightPage({ patientId, ownerId, heightCm, currentWeight, 
   </p>;
 
   return <div className="flex flex-col gap-3" aria-label="Registro e evolução do peso">
+    <HowItWorks>{weightHowTo}</HowItWorks>
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       <StatCard icon={Scale} label="Peso atual" gradient="bg-gradient-to-br from-fuchsia-500 to-pink-500"
         value={last ? `${nf(last.weight_kg)} kg` : "—"} note={last ? `Registrado em ${longDate(last.recorded_on)}` : "Faça o primeiro registro"}/>

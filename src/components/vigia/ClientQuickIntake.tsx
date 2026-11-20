@@ -7,6 +7,7 @@ import { CareIntakePicker, CareIntakeIcon } from "./CareIntakePicker";
 import { checkIntake } from "@/lib/hydration-need";
 import { DrinkChoices } from "./DrinkChoices";
 import { MealBoard } from "./MealBoard";
+import { HowItWorks, drinkHowTo } from "./HowItWorks";
 import { foodCategory,beverageCategory,isFoodKind,type IntakeKind,type FoodKind,type BeverageKind } from "@/lib/care-intake-categories";
 import { parseFoodText, sumNutrients, measureUnit } from "@/lib/food-parser";
 import { drinkGroups, drinkPresetFor, drinkPresets } from "@/lib/drink-presets";
@@ -283,6 +284,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
                   className="field mt-1 w-full" value={amount}
                   onChange={event => setAmount(event.target.value)}/>
               </label>}
+            {!isFood && <HowItWorks>{drinkHowTo}</HowItWorks>}
             {!isFood && (()=>{const check=checkIntake(Number(amount)||0);return check.message?<p role="status" className={"rounded-lg border p-2 text-xs "+(check.level==="excess"?"border-destructive/40 bg-destructive/5 text-destructive":"border-amber-500/30 bg-amber-500/[.07]")}>{check.message}</p>:null;})()}
             <div className="min-w-0 max-w-full overflow-hidden rounded-xl border border-border/70 bg-card/80 p-3 space-y-2 text-foreground">
               <label className="block min-w-0 max-w-full text-xs font-semibold">Data e hora do consumo · horário do Acre (UTC−5)

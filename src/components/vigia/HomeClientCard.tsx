@@ -931,6 +931,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                   onRecorded={() => setTick((value) => value + 1)}
                 />
               )}
+              {!profileLocked && <QuickRegisterFab patientId={client.id} area={activeTab} onRecorded={() => setTick((value) => value + 1)} />}
               <LiveModeButton className="!h-10 !rounded-xl !px-4 !text-[13px]" patientId={client.id} ownerId={client.owner_id} heightCm={client.height_cm} name={patientName || client.full_name} />
               <button
                 type="button"
@@ -944,7 +945,6 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
             </fieldset>
           </header>
 
-          {!profileLocked && <QuickRegisterFab patientId={client.id} area={activeTab} onRecorded={() => setTick((value) => value + 1)} />}
           <div className="shrink-0 empty:hidden">
             <CareReminderBeacon
               tasks={tasks}

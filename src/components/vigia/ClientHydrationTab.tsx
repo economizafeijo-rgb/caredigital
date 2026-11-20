@@ -1,3 +1,4 @@
+import { HowItWorks, hydrationHowTo } from "./HowItWorks";
 import { hydrationNeed } from "@/lib/hydration-need";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { NiceSelect } from "./NiceSelect";
@@ -611,6 +612,7 @@ export function ClientHydrationTab({
           </div>
         </div>
       </header>
+      <HowItWorks>{hydrationHowTo}</HowItWorks>
       {editing && (
         <div className="rounded-xl border border-border bg-muted/30 p-2.5">
           <p className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs font-bold">Perfil para estimar a meta diária

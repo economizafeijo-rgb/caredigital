@@ -582,7 +582,7 @@ body:has(.care-shell #care-client-tab-panel) {
 }
 
 /* ===== Ajuste global de telas: largura total, sem molduras internas, textos legíveis ===== */
-#care-content { width: 100%; padding-bottom: calc(6rem + env(safe-area-inset-bottom)); }
+#care-content { width: 100%; padding-bottom: calc(.75rem + env(safe-area-inset-bottom)); }
 #care-content :where(*) { min-width: 0; }
 #care-content :where(p, h1, h2, h3, h4, span) { overflow-wrap: anywhere; }
 /* Web: usa toda a largura da janela */
@@ -991,3 +991,5 @@ html, #care-content { scrollbar-gutter: stable; }
 @keyframes nv-pop { 0% { transform: scale(.4); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
 .nv-pop { animation: nv-pop .32s cubic-bezier(.3, 1.6, .5, 1); }
 @media (prefers-reduced-motion: reduce) { .nv-pop { animation: none !important; } .nv-btn { transition: none; } }
+
+.nv-btn-glass { color: #fff; text-shadow: none; background: linear-gradient(180deg, rgb(255 255 255 / .26), rgb(255 255 255 / .12)); box-shadow: inset 0 1px 0 rgb(255 255 255 / .35), 0 0 0 1px rgb(255 255 255 / .28), 0 6px 12px -8px rgb(0 0 0 / .5); backdrop-filter: blur(6px); }
