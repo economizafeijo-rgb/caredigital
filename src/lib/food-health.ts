@@ -53,6 +53,7 @@ const overrides: Record<string, [HealthLevel, string]> = {
   cafe: ["frequente", "Sem açúcar, até 3 a 4 xícaras por dia."],
   manteiga: ["moderacao", "Gordura saturada: pouca quantidade."],
   feijoada: ["moderacao", "Leva carnes gordas e embutidos; prefira a versão com mais feijão."],
+  feijoada_jaba: ["moderacao", "Carne-seca e toucinho deixam o prato salgado e gorduroso; porção moderada."],
   panelada: ["moderacao", "Gordura e sódio altos; porção pequena."],
   churrasco: ["moderacao", "Cortes gordos; prefira os magros e evite a parte queimada."],
   pizza: ["ocasional", "Massa refinada, queijo e embutidos: muito sódio e gordura."],
@@ -162,6 +163,7 @@ const swaps: Record<string, string[]> = {
   arroz: ["arroz_integral"],
   farofa: ["macaxeira"],
   feijoada: ["feijao", "feijao_preto"],
+  feijoada_jaba: ["feijao", "feijao_corda"],
   panelada: ["carne_assada", "galinha_caipira"],
 };
 const groupFallback: Partial<Record<Ingredient["group"], string[]>> = {

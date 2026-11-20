@@ -4,6 +4,7 @@ import { HowItWorks, foodHowTo } from "./HowItWorks";
 import { CareIntakeIcon } from "./CareIntakePicker";
 import { FoodThumb, foodVisual } from "./FoodArt";
 import { NutritionInfoCard } from "./MealSuggestions";
+import { PlateBuilder, PlateRows } from "./PlateBuilder";
 import { foodKinds, mealCombos, typicalFoods, type FoodKind } from "@/lib/care-intake-categories";
 import { measureUnit, parseFoodText, sumNutrients } from "@/lib/food-parser";
 import { ingredients } from "@/lib/nutrition-catalog";
@@ -411,6 +412,8 @@ export function MealBoard({
               )}
             </div>
 
+            <PlateBuilder description={description} onDescription={onDescription} tone={tone} />
+
             <label className="block text-xs font-semibold">
               <span className="block">O que você comeu?</span>
               <textarea
@@ -429,19 +432,25 @@ export function MealBoard({
                 aria-live="polite"
                 className="rounded-xl border border-border/70 bg-card/70 p-2.5"
               >
-                <ul className="grid gap-1">
-                  {foods.map((f, i) => (
-                    <li key={`${f.id}-${i}`} className="nv-rise flex items-center gap-2 text-xs">
-                      <FoodThumb text={f.name} className="size-7" />
-                      <span className="min-w-0 flex-1 truncate font-medium">
-                        {f.name.split(",")[0]}
-                      </span>
-                      <span className="shrink-0 tabular-nums text-muted-foreground">
-                        {nf(f.grams)} {measureUnit(f.id)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+                <PlateRows
+                  description={description}
+                  onDescription={onDescription}
+                  fallback={
+                    <ul className="grid gap-1">
+                      {foods.map((f, i) => (
+                        <li key={`${f.id}-${i}`} className="flex items-center gap-2 text-xs">
+                          <FoodThumb text={f.name} className="size-7" />
+                          <span className="min-w-0 flex-1 truncate font-medium">
+                            {f.name.split(",")[0]}
+                          </span>
+                          <span className="shrink-0 tabular-nums text-muted-foreground">
+                            {nf(f.grams)} {measureUnit(f.id)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  }
+                />
                 <p className="mt-2.5 flex items-baseline gap-1.5 border-t border-border/60 pt-2">
                   <strong className="text-2xl font-extrabold tabular-nums" style={{ color: tone }}>
                     {nf(kcal)}

@@ -209,6 +209,7 @@ export const typicalFoods: Record<FoodKind, { label: string; text: string }[]> =
     { label: "Farofa", text: "2 colheres de sopa de farofa" },
     { label: "Macarrão", text: "1 porção de macarrão" },
     { label: "Feijoada", text: "1 prato de feijoada" },
+    { label: "Feijoada de jabá", text: "1 prato de feijoada de jabá" },
     { label: "Feijoada enlatada", text: "1 prato de feijoada enlatada" },
     { label: "Sardinha em lata", text: "1 lata de sardinha em lata" },
     { label: "Peixe cozido", text: "1 filé de peixe cozido" },

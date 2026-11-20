@@ -170,7 +170,7 @@ const extra = new Map<string, NutrientKey[]>([
     "leite leite_integral leite_po_integral leite_po_desnatado iogurte queijo_minas queijo_coalho queijo_mussarela queijo_prato requeijao cafe_leite_gado cafe_leite_po cafe_com_leite mingau_aveia_leite mingau_maisena cereal_com_leite achocolatado abacatada",
     ["B2", "B12", "calcio"],
   ),
-  ...G("feijao feijao_preto feijao_corda lentilha ervilha grao_bico baiao_dois feijoada", [
+  ...G("feijao feijao_preto feijao_corda lentilha ervilha grao_bico baiao_dois feijoada feijoada_jaba", [
     "B9",
     "ferro",
     "magnesio",
