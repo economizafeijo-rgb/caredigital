@@ -1009,3 +1009,10 @@ html, #care-content { scrollbar-gutter: stable; }
 #care-content { font-variant-numeric: tabular-nums; }
 #care-content :is(section, article, details, .shadow-card, .shadow-md, .shadow-lg, .shadow-xl) { box-shadow: none !important; }
 #care-content :is(section, article)[class*="border"] { border-color: color-mix(in srgb, var(--border) 85%, var(--foreground) 6%); }
+
+/* Estabilidade de layout: trocar de aba/período não faz a página saltar nem reposicionar a rolagem. */
+#care-content, html { overflow-anchor: none; }
+#care-content :is([role="tablist"], [role="group"]) { contain: layout; }
+#care-content button:active { transform: none !important; }
+@keyframes nv-soft { from { opacity: .45; } to { opacity: 1; } }
+#care-content :is(.nv-rise, .nv-fade-in, .nv-pop) { animation-name: nv-soft; animation-duration: .25s; }

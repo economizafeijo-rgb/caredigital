@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, CalendarDays, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { acreAddDays, acreDateAtTime, ACRE_TIME_ZONE } from "@/lib/acre-time";
 import {
@@ -134,6 +134,13 @@ export function EvolutionHub({
       : view === "mes"
         ? monthLabel(year, month)
         : String(year);
+  // Guarda a altura do conteúdo: ao trocar Dia/Mês/Ano ou de período, o espaço é mantido enquanto
+  // carrega, e a página não encolhe nem salta.
+  const body = useRef<HTMLDivElement>(null);
+  const lastHeight = useRef(0);
+  useLayoutEffect(() => {
+    if (body.current && days.length) lastHeight.current = body.current.offsetHeight;
+  });
   const warnings = data?.result.warnings ?? [];
   const current = days[0];
 
@@ -262,12 +269,14 @@ export function EvolutionHub({
       {loading && !days.length ? (
         <p
           role="status"
-          className="flex items-center justify-center gap-2 rounded-2xl border border-border bg-card p-10 text-sm text-muted-foreground"
+          style={{ minHeight: lastHeight.current || undefined }}
+          className="flex items-center justify-center gap-2 border border-border bg-card p-10 text-sm text-muted-foreground"
         >
           <Loader2 size={16} className="animate-spin" /> Carregando seu histórico…
         </p>
       ) : raw && targets && days.length > 0 ? (
         <div
+          ref={body}
           className={loading ? "opacity-60 transition-opacity" : "transition-opacity"}
           aria-busy={loading}
         >
