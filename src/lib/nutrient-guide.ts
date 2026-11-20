@@ -70,17 +70,17 @@ export const guideGoals: GuideGoal[] = [
         "Dietas com pouca energia deixam passar ferro, cálcio e vitaminas do complexo B: mantenha variedade.",
     },
     focus: ["ferro", "calcio", "magnesio"],
-    care: "Evite cortes extremos. Perdas rápidas demais cobram massa muscular e energia. Acompanhamento profissional é o ideal.",
+    care: "Evite cortes extremos. A faixa de proteína no déficit é uma referência prática; o mínimo do RDA é 0,8 g/kg. Acompanhamento profissional é o ideal.",
   },
   {
     key: "hipertrofia",
     label: "Ganhar massa muscular",
     split: [22, 53, 25],
-    proteinKg: [1.6, 2.0],
+    proteinKg: [1.4, 2.0],
     summary: "Pequeno excedente de energia, proteína bem distribuída e treino de força regular.",
     actions: {
       protein:
-        "Divida a proteína em 3 a 5 refeições ao longo do dia, com cerca de 0,3 g/kg em cada uma.",
+        "Distribua a proteína ao longo do dia, a cada 3 a 4 horas, com cerca de 0,25 g/kg (20 a 40 g) por refeição. A ISSN considera 1,4 a 2,0 g/kg por dia suficiente para a maioria de quem treina.",
       carbs: "É o combustível do treino. Inclua uma fonte antes e depois do exercício.",
       fat: "Não corte: a gordura ajuda nos hormônios e na energia. Prefira as insaturadas.",
       micro: "Magnésio, zinco e vitamina D participam da função muscular e da recuperação.",
@@ -110,13 +110,14 @@ export const guideGoals: GuideGoal[] = [
     key: "condicionamento",
     label: "Condicionamento e resistência",
     split: [17, 58, 25],
-    proteinKg: [1.2, 1.6],
+    proteinKg: [1.2, 2.0],
     summary:
       "Carboidrato em primeiro plano para sustentar o treino, com hidratação e sais minerais em dia.",
     actions: {
-      protein: "Em torno de 1,2 a 1,6 g/kg ajuda na recuperação, distribuída nas refeições.",
+      protein:
+        "De 1,2 a 2,0 g/kg por dia é a faixa citada pela ACSM para quem treina, distribuída nas refeições.",
       carbs:
-        "Para treinos longos ou diários, a ACSM cita faixas de 5 a 8 g/kg por dia. Treinos leves pedem menos.",
+        "A necessidade varia de 3 a 12 g/kg por dia conforme o treino: em geral 5 a 7 g/kg para cerca de 1 hora por dia e 6 a 10 g/kg para 1 a 3 horas.",
       fat: "Moderada. Evite gordura em excesso logo antes do treino: digere devagar.",
       micro:
         "Ferro, sódio, potássio e magnésio se perdem com suor e esforço. Reponha com comida e água.",
@@ -128,12 +129,12 @@ export const guideGoals: GuideGoal[] = [
     key: "gestacao",
     label: "Gestação",
     split: [18, 52, 30],
-    proteinKg: [1.1, 1.3],
+    proteinKg: [1.1, 1.1],
     summary:
       "Mais nutrientes, não só mais calorias. A necessidade de ferro, folato e iodo cresce bastante.",
     actions: {
       protein:
-        "Cerca de 1,1 g/kg por dia na referência das DRIs, com acréscimo a partir do 2º trimestre.",
+        "O RDA das DRIs é 1,1 g/kg por dia (cerca de 25 g a mais que fora da gestação). OMS e EFSA preveem aumento gradual, maior no 2º e 3º trimestres.",
       carbs:
         "Pelo menos 175 g por dia como referência. Prefira integrais e frutas; evite pular refeições.",
       fat: "Inclua peixes de baixo teor de mercúrio, como sardinha, para ômega 3 (DHA).",
@@ -147,12 +148,11 @@ export const guideGoals: GuideGoal[] = [
     key: "amamentacao",
     label: "Amamentação",
     split: [18, 52, 30],
-    proteinKg: [1.1, 1.3],
+    proteinKg: [1.3, 1.3],
     summary:
       "A produção de leite aumenta a necessidade de energia, proteína, líquidos e alguns micronutrientes.",
     actions: {
-      protein:
-        "A referência adiciona cerca de 25 g por dia à de adultas (total em torno de 71 g/dia).",
+      protein: "O RDA das DRIs é 1,3 g/kg por dia (cerca de 71 g/dia para a mulher de referência).",
       carbs: "Referência de 210 g por dia. Refeições regulares e lanches evitam longos jejuns.",
       fat: "Peixes e oleaginosas contribuem com ômega 3 para o leite.",
       micro:

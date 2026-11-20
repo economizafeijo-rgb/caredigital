@@ -453,6 +453,7 @@ export function ClientNutritionStudio({ patientId, ownerId, onLogged }: Props) {
   };
   return (
     <section
+      data-view={view}
       className="nutrition-studio flex min-h-0 min-w-0 flex-col gap-3 text-foreground"
       aria-label="Cardápios e dietas"
     >

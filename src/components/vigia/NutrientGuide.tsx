@@ -168,7 +168,10 @@ export function NutrientGuide() {
   const grams = useMemo(() => {
     const out: Partial<Record<MacroKey, string>> = {};
     if (kg > 0) {
-      out.protein = `${num(kg * goal.proteinKg[0])}–${num(kg * goal.proteinKg[1])} g/dia`;
+      out.protein =
+        goal.proteinKg[0] === goal.proteinKg[1]
+          ? `≈ ${num(kg * goal.proteinKg[0])} g/dia`
+          : `${num(kg * goal.proteinKg[0])}–${num(kg * goal.proteinKg[1])} g/dia`;
     }
     if (energy > 0) {
       out.carbs = `≈ ${num((energy * split[1]) / 100 / 4)} g/dia`;
@@ -264,9 +267,11 @@ export function NutrientGuide() {
           </div>
           <p className="mt-3 flex gap-1.5 text-[11px] text-muted-foreground">
             <Info size={13} className="mt-px shrink-0" />
-            Proteína sugerida: {goal.proteinKg[0].toString().replace(".", ",")}–
-            {goal.proteinKg[1].toString().replace(".", ",")} g por kg de peso. Informe o peso ou as
-            calorias para ver em gramas.
+            Proteína sugerida:{" "}
+            {goal.proteinKg[0] === goal.proteinKg[1]
+              ? num(goal.proteinKg[0], 2)
+              : `${num(goal.proteinKg[0], 2)}–${num(goal.proteinKg[1], 2)}`}{" "}
+            g por kg de peso. Informe o peso ou as calorias para ver em gramas.
           </p>
         </div>
 
@@ -339,6 +344,36 @@ export function NutrientGuide() {
         <Info size={14} className="mt-px shrink-0" />
         {goal.care} Conteúdo educativo com base em DRIs, OMS, ACSM e ISSN; não substitui
         acompanhamento com nutricionista ou médico.
+      </p>
+      <p className="text-[11px] text-muted-foreground">
+        Fontes:{" "}
+        {[
+          ["DRIs: proteína", "https://nap.edu/read/11537/chapter/14"],
+          ["DRIs: carboidratos", "https://pmc.ncbi.nlm.nih.gov/articles/PMC9314892/table/tbl1"],
+          [
+            "OMS: alimentação saudável",
+            "https://www.who.int/news-room/fact-sheets/detail/healthy-diet",
+          ],
+          ["ISSN: proteína e exercício", "https://pubmed.ncbi.nlm.nih.gov/28642676/"],
+          [
+            "ACSM: nutrição e desempenho",
+            "https://journals.lww.com/acsm-msse/Fulltext/2016/03000/Nutrition_and_Athletic_Performance.25.aspx",
+          ],
+          ["NIH ODS: gestação", "https://ods.od.nih.gov/factsheets/Pregnancy/"],
+        ].map(([t, u], i) => (
+          <span key={u}>
+            {i > 0 && " · "}
+            <a
+              href={u}
+              target="_blank"
+              rel="noreferrer"
+              className="underline hover:text-foreground"
+            >
+              {t}
+            </a>
+          </span>
+        ))}
+        .
       </p>
     </section>
   );

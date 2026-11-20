@@ -4448,12 +4448,16 @@ body {
   font-size: 1.05rem;
 }
 
-/* Cardápios e dietas (telas largas): a página cabe na janela e rola só dentro das colunas, sem barra no canto. */
+/* Cardápios e dietas (telas largas): só a Calculadora cabe na janela; as demais abas rolam pela página. */
 @media (min-width: 1280px) {
-  #care-content:has(#care-client-tab-panel[data-client-page="cardapios"]) {
+  #care-content:has(
+    #care-client-tab-panel[data-client-page="cardapios"] .nutrition-studio[data-view="calculadora"]
+  ) {
     overflow: hidden;
   }
-  #care-client-tab-panel[data-client-page="cardapios"] {
+  #care-client-tab-panel[data-client-page="cardapios"]:has(
+      .nutrition-studio[data-view="calculadora"]
+    ) {
     height: 100%;
     display: flex;
     flex-direction: column;
