@@ -68,6 +68,8 @@ type Item = {
   task?: PatientCare;
   /** Pode ser respondido como "não fiz" (com motivo). */
   skippable?: boolean;
+  /** Sugestão do sistema (horário típico, copo, sono): nunca fica "atrasada" nem pesa no percentual. */
+  suggested?: boolean;
 };
 const REASONS: [string, string][] = [
   ["nao_consegui", "Não consegui"],
@@ -1016,6 +1018,19 @@ export function ClientDayPlanner({
             : undefined,
       });
     }
+    // Só o que foi programado (remédios, suplementos, cuidados da equipe) vira obrigação.
+    // Refeições em horário típico, copos de água, movimento e sono são sugestões do sistema.
+    for (const i of out)
+      if (
+        i.status !== "done" &&
+        (i.id.startsWith("meal-") ||
+          i.id.startsWith("agua-plan-") ||
+          i.id === "act-plan" ||
+          i.id.startsWith("sleep-"))
+      ) {
+        i.suggested = true;
+        if (i.status === "late") i.status = "planned";
+      }
     // Respostas "não fiz": o item sai das pendências e mostra o motivo
     for (const r of raw.resp) {
       const it = out.find((i) => i.id === r.item_key);
@@ -1058,6 +1073,7 @@ export function ClientDayPlanner({
   const actionable = items.filter(
     (i) =>
       i.kind !== "sono" &&
+      !(i.suggested && i.status !== "done") &&
       i.status !== "skipped" &&
       (i.status === "done" || i.status === "late" || i.at <= now),
   );
@@ -1458,7 +1474,9 @@ function Row({
         ? { t: "Na hora", c: "bg-amber-400/20 text-amber-700 dark:text-amber-300" }
         : skipped
           ? { t: "Não fiz", c: "bg-slate-500/15 text-slate-600 dark:text-slate-300" }
-          : null;
+          : item.suggested && !done
+            ? { t: "Sugestão", c: "bg-slate-500/10 text-slate-500 dark:text-slate-400" }
+            : null;
   const primary = item.action
     ? item.status === "late" && item.skippable
       ? { label: "Resolver", run: () => onResolve(item) }

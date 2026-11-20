@@ -24,7 +24,7 @@ export const clientSectionLabels: Record<
   },
   agenda: {
     title: "Meu dia",
-    subtitle: "Remédios, água, refeições, suplementos, movimento e sono numa linha do tempo",
+    subtitle: "O que foi programado e as sugestões do dia, hora a hora",
     tagline: "Organização diária",
   },
   hidratacao: {
