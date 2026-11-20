@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Bell, BellOff, Check, Clock3, Pencil, TimerReset } from "lucide-react";
+import { Bell, BellOff, Check, Clock3, Pencil, TimerReset, X } from "lucide-react";
 
 const SOUND_KEY = "nv-alert-sound";
 let audioCtx: AudioContext | null = null;
@@ -94,6 +94,10 @@ type Props = {
   onAction?: () => void;
   /** Alterar a quantidade antes de registrar. */
   onEdit?: () => void;
+  /** Adiar o horário (minutos); mostra um menu discreto. A confirmação é feita por quem recebe. */
+  onPostpone?: (minutes: number) => void;
+  /** Cancelar o item de hoje; a confirmação é feita por quem recebe. */
+  onCancel?: () => void;
   /** Identifica o tipo de lembrete para não repetir o alerta do mesmo horário. */
   alertKey: string;
   className?: string;
@@ -115,6 +119,8 @@ export function NextUpClock({
   actionLabel,
   onAction,
   onEdit,
+  onPostpone,
+  onCancel,
   alertKey,
   className = "",
   compact = false,
@@ -122,6 +128,7 @@ export function NextUpClock({
   const [now, setNow] = useState(() => Date.now());
   const [snooze, setSnooze] = useState<number | null>(null);
   const sound = useAlertSound();
+  const [menu, setMenu] = useState(false);
   const fired = useRef<string | null>(null);
   useEffect(() => {
     const t = window.setInterval(() => setNow(Date.now()), 1000);
@@ -280,6 +287,50 @@ export function NextUpClock({
       <div className="min-w-0 flex-1">
         <p className="flex items-center justify-between gap-2 text-[11px] font-semibold text-white/70">
           <span className="truncate">{title}</span>
+          {(onPostpone || onCancel) && when !== null && (
+            <span className="relative ml-auto flex items-center gap-1">
+              {onPostpone && (
+                <button
+                  type="button"
+                  onClick={() => setMenu((m) => !m)}
+                  aria-expanded={menu}
+                  aria-label="Adiar"
+                  title="Adiar"
+                  className="grid size-7 place-items-center rounded-full bg-white/10 text-white/80 transition hover:bg-white/20 active:scale-90"
+                >
+                  <TimerReset size={13} />
+                </button>
+              )}
+              {onCancel && (
+                <button
+                  type="button"
+                  onClick={onCancel}
+                  aria-label="Cancelar hoje"
+                  title="Cancelar hoje (sem apetite)"
+                  className="grid size-7 place-items-center rounded-full bg-white/10 text-white/80 transition hover:bg-white/20 active:scale-90"
+                >
+                  <X size={13} />
+                </button>
+              )}
+              {menu && onPostpone && (
+                <span className="absolute right-0 top-8 z-20 flex flex-col border border-white/20 bg-slate-950/95 p-1 text-[12px] shadow-xl">
+                  {[30, 60, 120, 180].map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => {
+                        setMenu(false);
+                        onPostpone(m);
+                      }}
+                      className="whitespace-nowrap px-3 py-1.5 text-left font-semibold text-white/90 hover:bg-white/10"
+                    >
+                      Adiar {m >= 60 ? `${m / 60} h` : `${m} min`}
+                    </button>
+                  ))}
+                </span>
+              )}
+            </span>
+          )}
           <button
             type="button"
             onClick={sound.toggle}

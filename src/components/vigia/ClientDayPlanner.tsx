@@ -45,6 +45,10 @@ type Item = {
   /** Alterar a quantidade consumida (antes de registrar ou depois de registrada). */
   edit?: () => void;
   undo?: () => void;
+  /** Adiar o horário (a refeição é reprogramada para mais tarde no mesmo dia). */
+  postpone?: (minutes: number) => void;
+  /** Cancelar a refeição de hoje (sem apetite), com confirmação. */
+  cancel?: () => void;
   task?: PatientCare;
   /** Pode ser respondido como "não fiz" (com motivo). */
   skippable?: boolean;
@@ -321,6 +325,50 @@ export function ClientDayPlanner({
     };
   }, [patientId, ownerId, day, reload, revision]);
 
+  async function saveSkipConfirmed(item: Item) {
+    if (
+      !(await dialog.confirm(
+        "Cancelar refeição de hoje?",
+        `${item.title} sai das pendências e fica registrada como "sem apetite". Você pode desfazer depois.`,
+        false,
+        "Cancelar refeição",
+      ))
+    )
+      return;
+    await saveSkip(item, "dispensado", "Sem apetite");
+    dialog.notify?.(`${item.title} cancelada para hoje.`, "info");
+  }
+  const postKey = `nv-postpone-${patientId}-${day}`;
+  const [post, setPost] = useState<Record<string, number>>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(postKey) ?? "{}");
+    } catch {
+      return {};
+    }
+  });
+  function postponeMeal(item: Item, minutes: number) {
+    void (async () => {
+      const to = Math.max(Date.now(), item.at) + minutes * 60_000;
+      const label = minutes >= 60 ? `${minutes / 60} h` : `${minutes} min`;
+      if (
+        !(await dialog.confirm(
+          "Adiar refeição?",
+          `${item.title} será reprogramada para ${hm(to)} (daqui a ${label}). O lembrete volta nesse horário.`,
+          false,
+          "Adiar",
+        ))
+      )
+        return;
+      const next = { ...post, [item.id]: to };
+      setPost(next);
+      try {
+        localStorage.setItem(postKey, JSON.stringify(next));
+      } catch {
+        /* sem armazenamento */
+      }
+      dialog.notify?.(`${item.title} adiada para ${hm(to)}.`, "info");
+    })();
+  }
   const refresh = () => {
     setReload((n) => n + 1);
     onRecorded?.();
@@ -629,17 +677,24 @@ export function ClientDayPlanner({
             Math.abs(m.t - ms) <= 90 * 60_000,
         );
       if (hit) used.add(hit.id);
-      out.push({
+      const moved = !hit && post[`meal-${t}`] && post[`meal-${t}`] > ms ? post[`meal-${t}`] : null;
+      const when = moved ?? ms;
+      const mealItem: Item = {
         id: `meal-${t}`,
         kind: "refeicao",
-        at: ms,
+        at: when,
         title: label,
-        detail: hit ? hit.text : "registre o que comer",
-        status: stateOf(ms, Boolean(hit), 90),
+        detail: hit ? hit.text : moved ? `adiada para ${hm(moved)}` : "registre o que comer",
+        status: stateOf(when, Boolean(hit), 90),
         doneAt: hit?.t,
         skippable: !hit,
         action: hit ? undefined : { label: "Registrar", run: () => go("alimentacao") },
-      });
+      };
+      if (!hit) {
+        mealItem.postpone = (min) => postponeMeal(mealItem, min);
+        mealItem.cancel = () => void saveSkipConfirmed(mealItem);
+      }
+      out.push(mealItem);
     }
     for (const m of meals.filter((m) => !used.has(m.id)))
       out.push({
@@ -754,7 +809,7 @@ export function ClientDayPlanner({
         );
     }
     return out.sort((a, b) => a.at - b.at);
-  }, [raw, now, day, waterTarget, tasks, resolved, patientId, ownerId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [raw, now, day, waterTarget, tasks, resolved, patientId, ownerId, post]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const counts = useMemo(() => {
     const c = Object.fromEntries(Object.keys(KINDS).map((k) => [k, 0])) as Record<Kind, number>;
@@ -864,6 +919,8 @@ export function ClientDayPlanner({
             actionLabel={next?.action?.label}
             onAction={next?.action?.run}
             onEdit={next?.edit}
+            onPostpone={next?.postpone}
+            onCancel={next?.cancel}
           />
         </div>
       </header>
