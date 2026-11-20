@@ -34,6 +34,8 @@ export type HistoryEntry = {
   occurredAt: string;
   amountMl?: number;
   automatic?: boolean;
+  /** Registro de consumo que pode ser alterado ou excluído de forma definitiva. */
+  record?: { kind: "water" | "beverage" | "meal"; id: string; value?: string };
 };
 export type ChecklistRow = {
   id: string;
@@ -183,6 +185,7 @@ export function assembleCareHistory(sources: HistorySources, now = Date.now()): 
         id: "task-" + task.id,
         taskId: task.id,
         waterEntryId: water?.id,
+        record: water ? { kind: "water", id: water.id } : undefined,
         group,
         subtype: isWater
           ? "agua"
@@ -260,6 +263,7 @@ export function assembleCareHistory(sources: HistorySources, now = Date.now()): 
       id: "water-" + water.id,
       taskId: water.task_id ?? undefined,
       waterEntryId: water.id,
+      record: { kind: "water", id: water.id },
       group: "liquidos",
       subtype: "agua",
       status: "registrado",
@@ -276,6 +280,7 @@ export function assembleCareHistory(sources: HistorySources, now = Date.now()): 
     const label = beverageCategory(kind)?.label ?? "Bebida";
     events.push({
       id: "drink-" + drink.id,
+      record: { kind: "beverage", id: drink.id, value: text(drink.name, label) },
       group: "liquidos",
       subtype: kind,
       status: "registrado",
@@ -321,11 +326,14 @@ export function assembleCareHistory(sources: HistorySources, now = Date.now()): 
     const details = item.details ?? {};
     const kind = text(details.kind);
     if (item.event_type === "confirmed") continue; // Already represented by checklist.
+    // Alterar um registro o atualiza no lugar e excluir o apaga: nenhum dos dois vira um registro novo.
+    if (item.event_type === "intake_edited" || item.event_type === "intake_deleted") continue;
     if (item.event_type === "care_not_completed" || item.event_type === "care_cancelled") continue; // Current decision is represented by resolution row.
     if (item.source === "client_unscheduled_intake") {
       if (!isFoodKind(kind)) continue; // Water and drinks come from their source tables.
       events.push({
         id: "manual-meal-" + item.id,
+        record: { kind: "meal", id: item.id, value: text(details.description) },
         group: "refeicoes",
         subtype: kind,
         status: "registrado",

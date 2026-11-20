@@ -15,9 +15,11 @@ import {
   RotateCcw,
   Search,
   SlidersHorizontal,
+  Trash2,
   UtensilsCrossed,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useDialog } from "@/lib/dialog";
 import { foodKinds, beverageKinds } from "@/lib/care-intake-categories";
 import { getCareIntakeIcon } from "./CareIntakePicker";
 import { acreCalendarDay } from "@/lib/hydration-goal";
@@ -159,6 +161,7 @@ export function PatientActivityHistory({
   revision: number;
   onRecordChanged?: () => void;
 }) {
+  const dialog = useDialog();
   const [items, setItems] = useState<HistoryEntry[]>([]);
   const [filters, setFilters] = useState<HistoryFilter>(defaultFilters);
   const [page, setPage] = useState(0);
@@ -396,13 +399,12 @@ export function PatientActivityHistory({
   const selected = shown.find((entry) => entry.id === selectedId) ?? shown[0] ?? null;
   const selectedIcon = selected ? typeIcon(selected) : History;
   const SelectedIcon = selectedIcon;
-  const editableWater = Boolean(
-    selected &&
-    selected.group === "liquidos" &&
-    selected.subtype === "agua" &&
-    (selected.status === "confirmado" || selected.status === "registrado") &&
-    selected.waterEntryId,
+  const record = selected?.record;
+  const editableRecord = Boolean(
+    selected && record && (selected.status === "confirmado" || selected.status === "registrado"),
   );
+  // Água e bebidas mudam só o volume; refeições mudam a descrição.
+  const editableWater = editableRecord && record?.kind !== "meal";
   function showAllHistory() {
     setFilters({ ...defaultFilters, period: "30d" });
     setPage(0);
@@ -424,9 +426,36 @@ export function PatientActivityHistory({
     setEditingWater(false);
   }
 
+  const kindLabel = (kind: string) =>
+    kind === "meal" ? "refeição" : kind === "beverage" ? "bebida" : "água";
+  async function runRecord(
+    rpc: "care_update_intake_entry" | "care_delete_intake_entry",
+    args: Record<string, unknown>,
+    done: string,
+  ) {
+    setEditSaving(true);
+    setEditError("");
+    setEditNotice("");
+    try {
+      const response = await (supabase as any).rpc(rpc, args);
+      if (response.error) throw response.error;
+      setEditingWater(false);
+      setEditNotice(done);
+      dialog.notify?.(done, "success");
+      setReload((value) => value + 1);
+      window.dispatchEvent(new Event("nv-intake-changed"));
+      onRecordChanged?.();
+    } catch (error) {
+      setEditError(
+        error instanceof Error ? error.message : "Não foi possível concluir. Tente novamente.",
+      );
+    } finally {
+      setEditSaving(false);
+    }
+  }
   async function saveWaterCorrection(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (editSaving || !selected?.waterEntryId || !editableWater) return;
+    if (editSaving || !selected || !record || !editableWater) return;
     const quantity = Number(editAmount);
     if (!Number.isInteger(quantity) || quantity < 10 || quantity > 1500) {
       setEditError("Informe um volume entre 10 e 1.500 ml.");
@@ -436,38 +465,83 @@ export function PatientActivityHistory({
       setEditingWater(false);
       return;
     }
-    setEditSaving(true);
+    const ok = await dialog.confirm(
+      "Salvar alteração?",
+      `Alterar ${kindLabel(record.kind)} de ${selected.amountMl ?? "—"} ml para ${quantity} ml? O registro é atualizado em todas as áreas.`,
+      false,
+      "Salvar alteração",
+    );
+    if (!ok) return;
+    await runRecord(
+      "care_update_intake_entry",
+      {
+        p_patient_id: patientId,
+        p_entry_type: record.kind,
+        p_entry_id: record.id,
+        p_description: record.kind === "beverage" ? record.value || "Bebida" : null,
+        p_amount_ml: quantity,
+        p_consumed_at: selected.occurredAt,
+      },
+      "Registro alterado em todas as áreas.",
+    );
+  }
+  async function startEdit() {
+    if (!selected || !record) return;
     setEditError("");
     setEditNotice("");
-    try {
-      const response = await (supabase as any).rpc("care_correct_water_entry", {
-        p_water_id: selected.waterEntryId,
-        p_new_amount_ml: quantity,
-      });
-      if (response.error) throw response.error;
-      if (
-        response.data?.water_id !== selected.waterEntryId ||
-        response.data?.amount_ml !== quantity
-      ) {
-        throw new Error(
-          "O servidor não confirmou a correção. Consulte o registro antes de tentar novamente.",
-        );
-      }
-      setEditingWater(false);
-      setEditNotice(
-        "Quantidade corrigida de " +
-          response.data.previous_ml +
-          " para " +
-          quantity +
-          " ml. Horário original preservado.",
-      );
-      setReload((value) => value + 1);
-      onRecordChanged?.();
-    } catch (error) {
-      setEditError(error instanceof Error ? error.message : "Não foi possível salvar a correção.");
-    } finally {
-      setEditSaving(false);
+    if (record.kind !== "meal") {
+      setEditAmount(String(selected.amountMl ?? ""));
+      setEditingWater(true);
+      return;
     }
+    const text = await dialog.prompt(
+      "O que foi consumido?",
+      "Ajuste a descrição da refeição. O horário continua o mesmo.",
+      "",
+      record.value ?? "",
+    );
+    if (text === null) return;
+    if (text.trim().length < 3) {
+      setEditError("Descreva a refeição com pelo menos 3 letras.");
+      return;
+    }
+    if (text.trim() === (record.value ?? "").trim()) return;
+    const ok = await dialog.confirm(
+      "Salvar alteração?",
+      `Trocar a descrição da refeição para "${text.trim()}"? O registro é atualizado em todas as áreas, sem criar outra refeição.`,
+      false,
+      "Salvar alteração",
+    );
+    if (!ok) return;
+    await runRecord(
+      "care_update_intake_entry",
+      {
+        p_patient_id: patientId,
+        p_entry_type: "meal",
+        p_entry_id: record.id,
+        p_description: text.trim(),
+        p_amount_ml: null,
+        p_consumed_at: selected.occurredAt,
+      },
+      "Refeição alterada em todas as áreas.",
+    );
+  }
+  async function deleteRecord() {
+    if (!selected || !record || editSaving) return;
+    const ok = await dialog.confirm(
+      "Excluir definitivamente?",
+      `${selected.title} (${acreStamp(selected.occurredAt)}) será apagado de forma definitiva e desvinculado de todas as áreas da plataforma: agenda, Meu dia, Hidratação, Alimentação, metas e gráficos. Não dá para desfazer.`,
+      true,
+      "Excluir definitivamente",
+    );
+    if (!ok) return;
+    await runRecord(
+      "care_delete_intake_entry",
+      { p_patient_id: patientId, p_entry_type: record.kind, p_entry_id: record.id },
+      "Registro excluído e desvinculado de todas as áreas.",
+    );
+    setSelectedId(null);
+    setShowMobileDetail(false);
   }
 
   return (
@@ -981,8 +1055,8 @@ export function PatientActivityHistory({
                         />
                       </label>
                       <p className="text-[11px] text-muted-foreground">
-                        Somente o volume muda. O horário original permanece e a correção é
-                        registrada no prontuário.
+                        Somente o volume muda. O horário original permanece e o registro é
+                        atualizado em todas as áreas.
                       </p>
                       {editError && (
                         <p role="alert" className="text-[11px] text-destructive">
@@ -1036,20 +1110,27 @@ export function PatientActivityHistory({
                     <History size={15} />
                     Ver histórico completo
                   </button>
-                  {editableWater ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditAmount(String(selected.amountMl ?? ""));
-                        setEditingWater(true);
-                        setEditError("");
-                        setEditNotice("");
-                      }}
-                      className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 text-[11px] font-bold text-primary-foreground hover:opacity-90"
-                    >
-                      <Pencil size={15} />
-                      Editar registro
-                    </button>
+                  {editableRecord ? (
+                    <>
+                      <button
+                        type="button"
+                        disabled={editSaving}
+                        onClick={() => void deleteRecord()}
+                        className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-destructive/50 px-3 text-[11px] font-bold text-destructive hover:bg-destructive/10 disabled:opacity-50"
+                      >
+                        <Trash2 size={15} />
+                        Excluir registro
+                      </button>
+                      <button
+                        type="button"
+                        disabled={editSaving}
+                        onClick={() => void startEdit()}
+                        className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 text-[11px] font-bold text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                      >
+                        <Pencil size={15} />
+                        Editar registro
+                      </button>
+                    </>
                   ) : (
                     <span className="text-[11px] text-muted-foreground">
                       Registro disponível para consulta

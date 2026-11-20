@@ -797,14 +797,6 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
   const nowMs = clock?.getTime() ?? Date.now();
   const today = dateInAcre(clock ?? new Date());
   const dayPercent = tasks.length ? Math.round((completed / tasks.length) * 100) : 0;
-  const sectionCount =
-    activeTab === "hidratacao"
-      ? hydrationTasks.length
-      : activeTab === "alimentacao"
-        ? meals.length
-        : activeTab === "atividade"
-          ? activityCount
-          : null;
   const card = "rounded-2xl border border-border bg-card shadow-card";
   const supplement = (task: Task) => task.category === "outro";
 
@@ -924,7 +916,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                         ? `${today} · ${completed} de ${tasks.length} cuidados concluídos`
                         : today
                       : clientSectionLabels[activeTab].subtitle}
-                    {activeTab !== "hoje" && sectionCount != null && ` · ${sectionCount} hoje`}
+
                     {birthSummary && activeTab === "hoje" && <BirthChips summary={birthSummary} />}
                   </p>
                 </div>

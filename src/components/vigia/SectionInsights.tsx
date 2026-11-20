@@ -170,7 +170,10 @@ async function load(
       own("care_hydration", "recorded_at", (q) => q.gte("recorded_at", since)),
       own("care_client_beverages", "consumed_at", (q) => q.gte("consumed_at", since)),
       own("care_activity_log", "happened_at,category", (q) =>
-        q.in("category", ["refeicao", "atividade"]).gte("happened_at", since),
+        q
+          .in("category", ["refeicao", "atividade"])
+          .in("event_type", ["confirmed", "logged"])
+          .gte("happened_at", since),
       ),
       own("care_nutrition_meal_logs", "recorded_at", (q) => q.gte("recorded_at", since)),
       own("care_sleep_logs", "bed_at", (q) => q.gte("bed_at", since)),
