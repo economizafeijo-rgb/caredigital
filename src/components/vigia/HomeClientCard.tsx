@@ -854,7 +854,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
         ) : (
           <>
             <nav
-              className="-mx-1 flex shrink-0 items-center gap-1 overflow-x-auto rounded-xl border border-border/70 bg-surface/80 p-1 shadow-sm backdrop-blur xl:hidden"
+              className="flex shrink-0 snap-x items-stretch gap-px overflow-x-auto overflow-y-hidden border border-border bg-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden xl:hidden"
               aria-label="Áreas do acompanhamento"
             >
               {sections.map(({ key, label, icon: Icon }) => (
@@ -863,10 +863,10 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                   type="button"
                   onClick={() => openSection(key)}
                   aria-current={activeTab === key ? "page" : undefined}
-                  className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border px-2.5 text-[11px] font-semibold transition-all ${activeTab === key ? `border-transparent text-white shadow-sm ${clientSectionTheme[key].pill}` : "border-transparent bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+                  className={`inline-flex h-10 shrink-0 snap-start items-center gap-2 border-b-2 px-3 text-xs font-semibold transition-colors ${activeTab === key ? `border-b-foreground bg-card text-foreground` : "border-b-transparent bg-card/70 text-muted-foreground hover:bg-card hover:text-foreground"}`}
                 >
                   <span
-                    className={`grid size-5 place-items-center rounded-md ${activeTab === key ? "bg-white/20" : clientSectionTheme[key].chip}`}
+                    className={`grid size-5 place-items-center text-white ${clientSectionTheme[key].pill}`}
                   >
                     <Icon size={11} />
                   </span>
