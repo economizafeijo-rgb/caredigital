@@ -1081,3 +1081,24 @@ html, #care-content { scrollbar-gutter: stable; }
 .nv-lock-shackle { animation: nv-lock-close .6s cubic-bezier(.5,0,.3,1) both; }
 .nv-lock-glint { clip-path: inset(0); animation: nv-lock-glint 4.5s ease-in-out 1s infinite; }
 @media (prefers-reduced-motion: reduce) { .nv-lock, .nv-lock-shackle, .nv-lock-glint { animation: none; } .nv-lock-glint { opacity: 0; } }
+
+@keyframes nv-donut-in { from { stroke-dasharray: 0 400; } }
+.nv-donut-in { animation: nv-donut-in .9s cubic-bezier(.2,.8,.2,1) both; }
+@media (prefers-reduced-motion: reduce) { .nv-donut-in { animation: none; } }
+
+@keyframes nv-hero-spin { to { transform: rotate(360deg); } }
+@keyframes nv-hero-pulse { 0% { transform: scale(.75); opacity: .6; } 100% { transform: scale(1.5); opacity: 0; } }
+@keyframes nv-hero-hand { to { transform: rotate(360deg); } }
+@keyframes nv-hero-float { 0%,100% { transform: translateY(-2px); } 50% { transform: translateY(3px); } }
+@keyframes nv-hero-shake { 0%,80%,100% { transform: rotate(0); } 85% { transform: rotate(-6deg); } 92% { transform: rotate(6deg); } }
+@keyframes nv-hero-dot { 0%,100% { opacity: .15; transform: translateY(0); } 50% { opacity: .9; transform: translateY(-6px); } }
+@keyframes nv-hero-check { to { stroke-dashoffset: 0; } }
+.nv-hero-spin { animation: nv-hero-spin 24s linear infinite; }
+.nv-hero-pulse { animation: nv-hero-pulse 2.4s ease-out infinite; transform-origin: center; transform-box: fill-box; }
+.nv-hero-hand { animation: nv-hero-hand 4s linear infinite; }
+.nv-hero-hand-slow { animation: nv-hero-hand 48s linear infinite; }
+.nv-hero-float { animation: nv-hero-float 3s ease-in-out infinite; }
+.nv-hero-shake { animation: nv-hero-shake 3s ease-in-out infinite; }
+.nv-hero-dot { animation: nv-hero-dot 3.2s ease-in-out infinite; }
+.nv-hero-check { animation: nv-hero-check .6s ease .5s forwards; }
+@media (prefers-reduced-motion: reduce) { .nv-hero-spin,.nv-hero-pulse,.nv-hero-hand,.nv-hero-hand-slow,.nv-hero-float,.nv-hero-shake,.nv-hero-dot { animation: none; } .nv-hero-check { animation: none; stroke-dashoffset: 0; } }

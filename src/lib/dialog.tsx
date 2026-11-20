@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { AlertTriangle, CheckCircle2, Clock3, PencilLine, ShieldQuestion, X } from "lucide-react";
+import { AlertTriangle, CheckCircle2, X } from "lucide-react";
 
 type DialogRequest = {
   kind: "confirm" | "prompt";
@@ -127,13 +127,6 @@ function DialogOverlay({
   const label = request.confirmLabel ?? "";
   const postpone = /adiar/i.test(label) || /adiar/i.test(request.title);
   const tone = request.danger ? "#f43f5e" : postpone ? "#fbbf24" : "var(--color-primary)";
-  const Icon = request.danger
-    ? AlertTriangle
-    : postpone
-      ? Clock3
-      : request.kind === "prompt"
-        ? PencilLine
-        : ShieldQuestion;
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") close(null);
@@ -150,59 +143,36 @@ function DialogOverlay({
       aria-labelledby="nextvita-dialog-title"
       onMouseDown={(e) => e.target === e.currentTarget && close(null)}
     >
-      <div className="nv-pop relative w-full max-w-[26rem] overflow-hidden border border-white/10 bg-card shadow-[0_30px_80px_-20px_rgba(0,0,0,.7)]">
-        <i
-          aria-hidden
-          className="absolute inset-x-0 top-0 h-[2px]"
-          style={{ background: `linear-gradient(90deg, ${tone}, transparent 80%)` }}
+      <div className="nv-pop relative w-full max-w-[28rem] overflow-hidden border border-white/10 bg-card shadow-[0_30px_80px_-20px_rgba(0,0,0,.7)]">
+        <DialogHero
+          kind={
+            postpone
+              ? "clock"
+              : request.danger
+                ? "alert"
+                : request.kind === "prompt"
+                  ? "edit"
+                  : "shield"
+          }
+          tone={tone}
         />
-        <i
-          aria-hidden
-          className="pointer-events-none absolute -right-16 -top-16 size-44 opacity-25 blur-3xl"
-          style={{ background: tone }}
-        />
-        <div className="relative p-5 pb-4">
-          <div className="flex items-start gap-3.5">
-            <span
-              className="relative grid size-11 shrink-0 place-items-center"
-              style={{ color: tone }}
-            >
-              <svg viewBox="0 0 44 44" className="absolute inset-0 size-full">
-                <circle cx="22" cy="22" r="20" fill="currentColor" fillOpacity=".1" />
-                <circle
-                  cx="22"
-                  cy="22"
-                  r="20"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeOpacity=".55"
-                  strokeWidth="1.2"
-                  strokeDasharray="126"
-                  strokeDashoffset="126"
-                  className="nv-dialog-ring"
-                />
-              </svg>
-              <Icon size={19} className="relative" />
-            </span>
-            <div className="min-w-0 flex-1 pt-0.5">
-              <h2
-                id="nextvita-dialog-title"
-                className="font-display text-[17px] font-extrabold leading-tight tracking-tight"
-              >
-                {request.title}
-              </h2>
-              <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
-                {request.message}
-              </p>
-            </div>
-            <button
-              onClick={() => close(null)}
-              aria-label="Fechar"
-              className="-mr-1.5 -mt-1.5 shrink-0 p-1.5 text-muted-foreground/70 transition hover:bg-muted hover:text-foreground"
-            >
-              <X size={16} />
-            </button>
-          </div>
+        <button
+          onClick={() => close(null)}
+          aria-label="Fechar"
+          className="absolute right-2 top-2 z-10 p-1.5 text-white/70 transition hover:bg-white/10 hover:text-white"
+        >
+          <X size={16} />
+        </button>
+        <div className="relative px-6 pb-5 pt-5 text-center">
+          <h2
+            id="nextvita-dialog-title"
+            className="font-display text-xl font-extrabold leading-tight tracking-tight"
+          >
+            {request.title}
+          </h2>
+          <p className="mx-auto mt-2 max-w-[22rem] text-[13px] leading-relaxed text-muted-foreground">
+            {request.message}
+          </p>
           {request.kind === "prompt" && (
             <input
               autoFocus
@@ -210,7 +180,7 @@ function DialogOverlay({
               onChange={(e) => setValue(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && close(value)}
               placeholder={request.placeholder}
-              className="field mt-4"
+              className="field mt-4 text-left"
             />
           )}
         </div>
@@ -234,6 +204,129 @@ function DialogOverlay({
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Faixa de destaque animada (hero) da janela de confirmação. */
+function DialogHero({ kind, tone }: { kind: "clock" | "alert" | "edit" | "shield"; tone: string }) {
+  return (
+    <div
+      className="nv-dark relative h-36 overflow-hidden bg-[#070e17]"
+      style={{ color: tone }}
+      aria-hidden
+    >
+      <i
+        className="absolute inset-0 opacity-40"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px)",
+          backgroundSize: "22px 22px",
+          maskImage: "radial-gradient(ellipse at center, black 30%, transparent 75%)",
+        }}
+      />
+      <i
+        className="absolute left-1/2 top-1/2 size-56 -translate-x-1/2 -translate-y-1/2 opacity-30 blur-3xl"
+        style={{ background: "currentColor" }}
+      />
+      <svg viewBox="0 0 320 144" className="relative size-full">
+        <g transform="translate(160 72)">
+          <circle
+            r="54"
+            fill="none"
+            stroke="currentColor"
+            strokeOpacity=".18"
+            strokeDasharray="2 6"
+            className="nv-hero-spin"
+          />
+          <circle r="42" fill="none" stroke="currentColor" strokeOpacity=".3" />
+          <circle
+            r="42"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeDasharray="264"
+            strokeDashoffset="264"
+            className="nv-dialog-ring"
+            transform="rotate(-90)"
+          />
+          <circle r="42" fill="none" stroke="currentColor" className="nv-hero-pulse" />
+          <circle r="30" fill="currentColor" fillOpacity=".12" />
+          {kind === "clock" && (
+            <g stroke="currentColor" strokeLinecap="round" fill="none" strokeWidth="2.6">
+              <path d="M0 -17v-3M17 0h3M0 17v3M-17 0h-3" strokeWidth="2" strokeOpacity=".7" />
+              <path d="M0 0V-12" className="nv-hero-hand-slow" />
+              <path d="M0 0V-17" className="nv-hero-hand" />
+              <circle r="2.4" fill="currentColor" stroke="none" />
+            </g>
+          )}
+          {kind === "alert" && (
+            <g
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="nv-hero-shake"
+            >
+              <path d="M0 -18 18 13H-18Z" />
+              <path d="M0 -6v9M0 8.5v.5" />
+            </g>
+          )}
+          {kind === "edit" && (
+            <g
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="nv-hero-float"
+            >
+              <path d="M-14 14 -11 5 8 -14l6 6L-5 11Z" />
+              <path d="M-14 14h28" strokeOpacity=".55" strokeDasharray="3 4" />
+            </g>
+          )}
+          {kind === "shield" && (
+            <g
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="nv-hero-float"
+            >
+              <path d="M0 -19 15 -13V1C15 10 8 16 0 19-8 16-15 10-15 1V-13Z" />
+              <path
+                d="M-5 0 -1 4 6 -4"
+                strokeDasharray="22"
+                strokeDashoffset="22"
+                className="nv-hero-check"
+              />
+            </g>
+          )}
+        </g>
+        {[
+          [52, 34, 0],
+          [270, 40, 0.8],
+          [86, 112, 1.6],
+          [246, 108, 0.4],
+        ].map(([x, y, d]) => (
+          <rect
+            key={`${x}-${y}`}
+            x={x}
+            y={y}
+            width="4"
+            height="4"
+            fill="currentColor"
+            className="nv-hero-dot"
+            style={{ animationDelay: `${d}s` }}
+          />
+        ))}
+      </svg>
+      <i
+        className="absolute inset-x-0 bottom-0 h-px"
+        style={{ background: "linear-gradient(90deg,transparent,currentColor,transparent)" }}
+      />
     </div>
   );
 }

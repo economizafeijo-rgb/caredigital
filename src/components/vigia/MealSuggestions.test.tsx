@@ -34,7 +34,7 @@ describe("MealSuggestions", () => {
     render(<Harness />);
     fireEvent.click(screen.getByRole("button", { name: "Informações nutricionais de Banana" }));
     const card = screen.getByRole("region", { name: /Informações nutricionais: Banana/ });
-    expect(card.textContent).toMatch(/Calorias/);
+    expect(card.textContent).toMatch(/kcal/);
     expect(card.textContent).toMatch(/Proteínas/);
     expect(card.textContent).toMatch(/Vitamina C/);
     expect(card.textContent).toMatch(/Potássio/);
