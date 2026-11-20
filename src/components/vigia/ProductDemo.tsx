@@ -73,27 +73,42 @@ const SCENES: Scene[] = [
           >
             <defs>
               <clipPath id="nv-glass-clip">
-                <path d="M14 30 H70 L64.5 146 c-.5 9 -6.5 15 -15 15 H34.5 c-8.5 0 -14.5 -6 -15 -15 Z" />
+                <path d="M15.2 25 H68.8 L62.4 144 Q62 152 53 152 H31 Q22 152 21.6 144 Z" />
               </clipPath>
               <linearGradient id="nv-glass-water" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0" stopColor="#a5f3fc" />
-                <stop offset=".35" stopColor="#22d3ee" />
-                <stop offset="1" stopColor="#0369a1" />
+                <stop offset="0" stopColor="#67e8f9" stopOpacity=".85" />
+                <stop offset=".5" stopColor="#0ea5e9" stopOpacity=".9" />
+                <stop offset="1" stopColor="#075985" />
+              </linearGradient>
+              <linearGradient id="nv-glass-side" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0" stopColor="#000" stopOpacity=".28" />
+                <stop offset=".18" stopColor="#000" stopOpacity="0" />
+                <stop offset=".8" stopColor="#000" stopOpacity="0" />
+                <stop offset="1" stopColor="#000" stopOpacity=".3" />
               </linearGradient>
               <linearGradient id="nv-glass-body" x1="0" x2="1" y1="0" y2="0">
-                <stop offset="0" stopColor="#fff" stopOpacity=".2" />
-                <stop offset=".25" stopColor="#fff" stopOpacity=".04" />
-                <stop offset=".8" stopColor="#fff" stopOpacity=".03" />
-                <stop offset="1" stopColor="#fff" stopOpacity=".16" />
+                <stop offset="0" stopColor="#fff" stopOpacity=".24" />
+                <stop offset=".2" stopColor="#fff" stopOpacity=".05" />
+                <stop offset=".82" stopColor="#fff" stopOpacity=".04" />
+                <stop offset="1" stopColor="#fff" stopOpacity=".22" />
               </linearGradient>
-              <radialGradient id="nv-glass-glow" cx=".5" cy=".6" r=".6">
-                <stop offset="0" stopColor="#22d3ee" stopOpacity=".35" />
+              <linearGradient id="nv-glass-base" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stopColor="#fff" stopOpacity=".34" />
+                <stop offset="1" stopColor="#fff" stopOpacity=".08" />
+              </linearGradient>
+              <radialGradient id="nv-glass-glow" cx=".5" cy=".5" r=".5">
+                <stop offset="0" stopColor="#22d3ee" stopOpacity=".4" />
                 <stop offset="1" stopColor="#22d3ee" stopOpacity="0" />
               </radialGradient>
+              <linearGradient id="nv-glass-cube" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0" stopColor="#fff" stopOpacity=".7" />
+                <stop offset="1" stopColor="#bae6fd" stopOpacity=".25" />
+              </linearGradient>
             </defs>
-            <ellipse cx="42" cy="160" rx="34" ry="6" fill="url(#nv-glass-glow)" />
+            <ellipse cx="42" cy="161" rx="36" ry="5.5" fill="url(#nv-glass-glow)" />
+            <ellipse cx="42" cy="159" rx="22" ry="2.4" fill="#000" opacity=".35" />
             <path
-              d="M14 30 H70 L64.5 146 c-.5 9 -6.5 15 -15 15 H34.5 c-8.5 0 -14.5 -6 -15 -15 Z"
+              d="M12 24 L72 24 L65 148 Q64.5 158 54 158 H30 Q19.5 158 19 148 Z"
               fill="url(#nv-glass-body)"
             />
             <g clipPath="url(#nv-glass-clip)">
@@ -103,96 +118,158 @@ const SCENES: Scene[] = [
                   { ["--from" as string]: "0px", ["--to" as string]: "-16px" } as CSSProperties
                 }
               >
+                <rect x="0" y="88" width="84" height="90" fill="url(#nv-glass-water)" />
                 <g
                   className="nv-bottle-wave"
-                  style={{ animationDuration: "4.8s", animationDirection: "reverse" }}
+                  style={{ animationDuration: "5s", animationDirection: "reverse" }}
                 >
-                  <path
-                    d="M-40 88 q10 -5 20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 V170 H-40Z"
-                    fill="#a5f3fc"
-                    opacity=".4"
-                  />
+                  <ellipse cx="42" cy="88" rx="34" ry="4.6" fill="#a5f3fc" opacity=".55" />
                 </g>
-                <g className="nv-bottle-wave" style={{ animationDuration: "2.8s" }}>
-                  <path
-                    d="M-40 91 q10 -4 20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 V170 H-40Z"
-                    fill="url(#nv-glass-water)"
-                  />
-                </g>
+                <ellipse
+                  cx="42"
+                  cy="88"
+                  rx="26"
+                  ry="3.4"
+                  fill="none"
+                  stroke="#fff"
+                  strokeOpacity=".7"
+                  strokeWidth=".9"
+                />
+                <rect
+                  x="24"
+                  y="92"
+                  width="14"
+                  height="14"
+                  rx="2.5"
+                  fill="url(#nv-glass-cube)"
+                  stroke="#fff"
+                  strokeOpacity=".6"
+                  strokeWidth=".8"
+                  transform="rotate(-14 31 99)"
+                  className="nv-demo-bubble"
+                  style={{ animationDuration: "6s" }}
+                />
+                <rect
+                  x="45"
+                  y="86"
+                  width="13"
+                  height="13"
+                  rx="2.5"
+                  fill="url(#nv-glass-cube)"
+                  stroke="#fff"
+                  strokeOpacity=".6"
+                  strokeWidth=".8"
+                  transform="rotate(18 51 92)"
+                />
                 {[
-                  [30, 150, 0],
-                  [46, 146, 0.9],
-                  [38, 152, 1.7],
-                  [52, 148, 0.4],
+                  [30, 148, 0],
+                  [46, 144, 0.9],
+                  [38, 150, 1.7],
+                  [52, 146, 0.4],
+                  [34, 130, 2.2],
                 ].map(([x, y, d]) => (
                   <circle
-                    key={x}
+                    key={`${x}-${y}`}
                     className="nv-demo-bubble"
                     cx={x}
                     cy={y}
-                    r="1.6"
+                    r="1.3"
                     fill="#fff"
-                    opacity=".5"
+                    opacity=".6"
                     style={{ animationDelay: `${d}s` }}
                   />
                 ))}
               </g>
+              <rect x="0" y="0" width="84" height="170" fill="url(#nv-glass-side)" />
               <path
-                d="M19 40 L23.5 140"
+                d="M17 34 L22.5 138"
                 stroke="#fff"
-                strokeOpacity=".32"
-                strokeWidth="3"
+                strokeOpacity=".55"
+                strokeWidth="3.2"
                 strokeLinecap="round"
               />
               <path
-                d="M62 46 L60.5 90"
+                d="M24 38 L27 100"
                 stroke="#fff"
-                strokeOpacity=".16"
+                strokeOpacity=".22"
+                strokeWidth="1.4"
+                strokeLinecap="round"
+              />
+              <path
+                d="M64 40 L61.6 96"
+                stroke="#fff"
+                strokeOpacity=".28"
                 strokeWidth="2"
                 strokeLinecap="round"
               />
+              <path d="M21 144 H63 V153 H21Z" fill="url(#nv-glass-base)" />
+              <path
+                d="M22 144 Q42 149 62 144"
+                stroke="#fff"
+                strokeOpacity=".4"
+                strokeWidth="1"
+                fill="none"
+              />
+              {[
+                [28, 70],
+                [55, 112],
+                [24, 118],
+              ].map(([x, y]) => (
+                <g key={`${x}${y}`}>
+                  <ellipse cx={x} cy={y} rx="1.1" ry="1.7" fill="#fff" opacity=".4" />
+                  <ellipse cx={x - 0.3} cy={y - 0.5} rx=".4" ry=".6" fill="#fff" opacity=".9" />
+                </g>
+              ))}
             </g>
             <path
-              d="M14 30 H70 L64.5 146 c-.5 9 -6.5 15 -15 15 H34.5 c-8.5 0 -14.5 -6 -15 -15 Z"
+              d="M12 24 L72 24 L65 148 Q64.5 158 54 158 H30 Q19.5 158 19 148 Z"
               fill="none"
-              stroke="rgba(255,255,255,.45)"
-              strokeWidth="1.6"
+              stroke="rgba(255,255,255,.5)"
+              strokeWidth="1.4"
               strokeLinejoin="round"
+            />
+            <path
+              d="M15.2 25 H68.8 L62.4 144 Q62 152 53 152 H31 Q22 152 21.6 144 Z"
+              fill="none"
+              stroke="rgba(255,255,255,.18)"
+              strokeWidth=".8"
             />
             <ellipse
               cx="42"
-              cy="30"
-              rx="28"
-              ry="4"
-              fill="rgba(255,255,255,.08)"
-              stroke="rgba(255,255,255,.55)"
-              strokeWidth="1.4"
+              cy="24"
+              rx="30"
+              ry="4.6"
+              fill="rgba(255,255,255,.07)"
+              stroke="rgba(255,255,255,.7)"
+              strokeWidth="1.5"
             />
-            <path
-              d="M24 146 q18 6 36 0"
-              stroke="#fff"
-              strokeOpacity=".25"
-              strokeWidth="1.2"
+            <ellipse
+              cx="42"
+              cy="24.8"
+              rx="27.6"
+              ry="3.6"
               fill="none"
+              stroke="rgba(255,255,255,.22)"
+              strokeWidth=".8"
             />
             {[62, 88, 114].map((y, i) => (
               <g key={y}>
                 <line
-                  x1="62"
-                  x2="68"
+                  x1="58"
+                  x2="63"
                   y1={y}
                   y2={y}
                   stroke="#fff"
-                  strokeOpacity=".4"
-                  strokeWidth="1.2"
+                  strokeOpacity=".5"
+                  strokeWidth="1"
                 />
                 <text
-                  x="60"
-                  y={y + 2.5}
+                  x="56"
+                  y={y + 2.2}
                   textAnchor="end"
-                  fontSize="6"
+                  fontSize="5.5"
                   fill="#fff"
-                  fillOpacity=".45"
+                  fillOpacity=".55"
                 >
                   {["2L", "1L", "0,5"][i]}
                 </text>
