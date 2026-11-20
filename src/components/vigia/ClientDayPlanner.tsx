@@ -1,4 +1,13 @@
-import { useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentType,
+  type ReactNode,
+} from "react";
+import { createPortal } from "react-dom";
 import {
   Activity,
   Check,
@@ -1324,23 +1333,45 @@ function NowLine({ now }: { now: number }) {
 
 function RowMenu({ children, label }: { children: ReactNode; label: string }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLSpanElement>(null);
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const btn = useRef<HTMLButtonElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
+  const place = () => {
+    const r = btn.current?.getBoundingClientRect();
+    if (!r) return;
+    const w = menu.current?.offsetWidth ?? 200;
+    const h = menu.current?.offsetHeight ?? 120;
+    const left = Math.max(8, Math.min(r.right - w, window.innerWidth - w - 8));
+    const below = r.bottom + 4;
+    const top = below + h > window.innerHeight - 8 ? Math.max(8, r.top - h - 4) : below;
+    setPos({ top, left });
+  };
+  useLayoutEffect(() => {
+    if (open) place();
+  }, [open]);
   useEffect(() => {
     if (!open) return;
     const down = (e: PointerEvent) => {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      if (!btn.current?.contains(t) && !menu.current?.contains(t)) setOpen(false);
     };
     const key = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    const close = () => setOpen(false);
     document.addEventListener("pointerdown", down);
     document.addEventListener("keydown", key);
+    window.addEventListener("resize", close);
+    window.addEventListener("scroll", close, true);
     return () => {
       document.removeEventListener("pointerdown", down);
       document.removeEventListener("keydown", key);
+      window.removeEventListener("resize", close);
+      window.removeEventListener("scroll", close, true);
     };
   }, [open]);
   return (
-    <span ref={ref} className="relative shrink-0">
+    <span className="relative shrink-0">
       <button
+        ref={btn}
         type="button"
         aria-haspopup="menu"
         aria-expanded={open}
@@ -1351,15 +1382,20 @@ function RowMenu({ children, label }: { children: ReactNode; label: string }) {
       >
         <MoreHorizontal size={15} />
       </button>
-      {open && (
-        <div
-          role="menu"
-          onClick={() => setOpen(false)}
-          className="nv-fade-in absolute right-0 top-8 z-30 grid min-w-[11.5rem] border border-border bg-card p-1 text-xs shadow-pop"
-        >
-          {children}
-        </div>
-      )}
+      {open &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={menu}
+            role="menu"
+            onClick={() => setOpen(false)}
+            style={{ top: pos?.top ?? -9999, left: pos?.left ?? -9999 }}
+            className="nv-fade-in fixed z-[10002] grid w-max min-w-[12rem] max-w-[calc(100vw-1rem)] whitespace-nowrap border border-border bg-card p-1 text-xs shadow-pop"
+          >
+            {children}
+          </div>,
+          document.body,
+        )}
     </span>
   );
 }
