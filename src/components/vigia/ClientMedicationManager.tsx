@@ -293,12 +293,12 @@ function AdherenceRing({ done, total }: { done: number; total: number }) {
   const pct = total ? Math.round((done / total) * 100) : 0;
   return (
     <div
-      className="relative mx-auto size-32 shrink-0 sm:size-36 lg:mx-0"
+      className="relative size-16 shrink-0"
       role="img"
       aria-label={`${done} de ${total} doses tomadas`}
     >
       <svg viewBox="0 0 120 120" className="absolute inset-0 -rotate-90">
-        <circle cx="60" cy="60" r="52" fill="none" stroke="#ffffff1f" strokeWidth="10" />
+        <circle cx="60" cy="60" r="52" fill="none" stroke="#ffffff1f" strokeWidth="12" />
         {total > 0 &&
           Array.from({ length: total }, (_, i) => {
             const seg = 100 / total,
@@ -311,7 +311,7 @@ function AdherenceRing({ done, total }: { done: number; total: number }) {
                 r="52"
                 fill="none"
                 pathLength={100}
-                strokeWidth="10"
+                strokeWidth="12"
                 strokeLinecap="butt"
                 stroke={i < done ? "#fff" : "#ffffff30"}
                 strokeDasharray={`${seg - gap} ${100 - seg + gap}`}
@@ -322,13 +322,12 @@ function AdherenceRing({ done, total }: { done: number; total: number }) {
             );
           })}
       </svg>
-      <div className="absolute inset-[26px] grid place-items-center rounded-full bg-white/[.07] text-center shadow-inner">
-        <span className="leading-none">
-          <Pill size={16} className="mx-auto mb-1 text-pink-200" />
-          <strong className="block text-2xl font-extrabold tabular-nums">{pct}%</strong>
-          <span className="text-[11px] font-semibold text-white/70">adesão</span>
+      <span className="absolute inset-0 grid place-items-center text-center leading-none">
+        <span>
+          <strong className="block text-base font-extrabold tabular-nums">{pct}%</strong>
+          <span className="text-[9px] text-white/70">adesão</span>
         </span>
-      </div>
+      </span>
     </div>
   );
 }
@@ -630,25 +629,15 @@ export function ClientMedicationManager({
           aplicada.
         </p>
       )}
-      <header className="nv-dark relative isolate overflow-hidden rounded-2xl bg-gradient-to-br from-[#3b0a1e] via-[#7a1238] to-[#b4235a] p-4 text-white shadow-card sm:p-5">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-20 -top-24 -z-10 size-80 rounded-full bg-pink-300/20 blur-3xl"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -bottom-16 left-10 -z-10 size-56 rounded-full bg-amber-200/10 blur-3xl"
-        />
-        <div className="grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_minmax(0,18rem)]">
+      <header className="nv-dark nv-scan relative isolate overflow-hidden border border-rose-400/30 p-2.5 text-white shadow-card sm:px-3">
+        <div className="grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_26rem]">
           <AdherenceRing done={done} total={doses.length} />
-          <div className="min-w-0 text-center lg:text-left">
-            <p className="text-3xl font-extrabold tabular-nums">
-              {done}{" "}
-              <span className="text-lg font-semibold text-white/65">
-                de {doses.length} doses hoje
-              </span>
+          <div className="min-w-0">
+            <p className="text-sm font-bold leading-tight">
+              <span className="text-lg font-extrabold tabular-nums">{done}</span> de {doses.length}{" "}
+              doses hoje
             </p>
-            <p className="mt-1 text-sm text-white/80">
+            <p className="text-xs text-white/70">
               {!doses.length
                 ? "Cadastre seus medicamentos e o NextVita avisa a hora de cada dose."
                 : late
@@ -657,7 +646,7 @@ export function ClientMedicationManager({
                     ? "Todas as doses de hoje foram registradas."
                     : "Tudo em dia até agora."}
             </p>
-            <div className="mt-3 flex flex-wrap justify-center gap-2 lg:justify-start">
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
               {next && (
                 <button
                   type="button"
@@ -665,9 +654,9 @@ export function ClientMedicationManager({
                   onClick={() =>
                     setPending({ kind: "take", med: next.med, slot: next.slot, taken: false })
                   }
-                  className="nv-bump inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-rose-900 shadow-sm transition hover:bg-white/90 active:scale-[.97]"
+                  className="nv-bump inline-flex h-8 items-center gap-1.5 bg-white px-3 text-xs font-bold text-rose-900 shadow-sm transition hover:bg-white/90 active:scale-[.97]"
                 >
-                  <CheckCircle2 size={17} /> Tomei {next.med.name}
+                  <CheckCircle2 size={14} /> Tomei {next.med.name}
                 </button>
               )}
               {!doses.length && (
@@ -677,12 +666,17 @@ export function ClientMedicationManager({
                     setMessage(null);
                     setDraft({ times: ["08:00"], category: "outros" });
                   }}
-                  className="nv-bump inline-flex h-10 items-center gap-1.5 rounded-xl bg-white px-4 text-sm font-bold text-rose-900 shadow-sm transition hover:bg-white/90 active:scale-[.97]"
+                  className="nv-bump inline-flex h-8 items-center gap-1.5 bg-white px-3 text-xs font-bold text-rose-900 shadow-sm transition hover:bg-white/90 active:scale-[.97]"
                 >
-                  <Plus size={16} /> Adicionar medicamento
+                  <Plus size={14} /> Adicionar medicamento
                 </button>
               )}
-              <ExportPlanButton patientId={patientId} ownerId={ownerId} label="Exportar horários" />
+              <ExportPlanButton
+                patientId={patientId}
+                ownerId={ownerId}
+                label="Exportar horários"
+                className="inline-flex h-8 items-center gap-1.5 border border-white/25 bg-white/10 px-3 text-xs font-semibold text-white transition hover:bg-white/20 active:scale-[.97]"
+              />
             </div>
           </div>
           <NextUpClock

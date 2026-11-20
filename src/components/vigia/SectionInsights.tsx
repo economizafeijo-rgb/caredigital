@@ -30,8 +30,9 @@ export type InsightSection =
 
 const configs: Record<InsightSection, Config> = {
   agenda: {
-    title: "Cuidados concluídos por dia",
-    subtitle: "Toque em um dia para ver os detalhes",
+    title: "Registros concluídos por dia",
+    subtitle:
+      "Remédios, água, refeições, movimento e sono feitos · toque em um dia para ver os detalhes",
     unit: "",
     a: { label: "Concluídos", color: "#7c3aed", to: "#d946ef" },
     b: { label: "Pendentes", color: "#f59e0b", to: "#fbbf24" },
@@ -142,7 +143,48 @@ async function load(
     map.set(day, { a: cur.a + a, b: cur.b + b });
   };
   let goal: number | null = null;
-  if (section === "agenda" || section === "medicacao") {
+  if (section === "agenda") {
+    // Mesmas fontes do "Meu dia": tudo o que foi feito conta como concluído; cuidados da equipe sem confirmação ficam pendentes.
+    const own = (table: string, col: string, extra?: (q: any) => any) => {
+      let q = db.from(table).select(col).eq("patient_id", patientId);
+      if (extra) q = extra(q);
+      return q.limit(3000).then(
+        (r: any) => r.data ?? [],
+        () => [],
+      );
+    };
+    const [team, meds, sups, water, drinks, log, meals, sleep] = await Promise.all([
+      db
+        .from("care_daily_checklist")
+        .select("scheduled_at,completed_at")
+        .eq("patient_id", patientId)
+        .gte("scheduled_at", since)
+        .lte("scheduled_at", new Date().toISOString())
+        .limit(3000)
+        .then(
+          (r: any) => r.data ?? [],
+          () => [],
+        ),
+      own("care_client_medication_intakes", "taken_on", (q) => q.gte("taken_on", sinceDay)),
+      own("care_supplement_intakes", "taken_on", (q) => q.gte("taken_on", sinceDay)),
+      own("care_hydration", "recorded_at", (q) => q.gte("recorded_at", since)),
+      own("care_client_beverages", "consumed_at", (q) => q.gte("consumed_at", since)),
+      own("care_activity_log", "happened_at,category", (q) =>
+        q.in("category", ["refeicao", "atividade"]).gte("happened_at", since),
+      ),
+      own("care_nutrition_meal_logs", "recorded_at", (q) => q.gte("recorded_at", since)),
+      own("care_sleep_logs", "bed_at", (q) => q.gte("bed_at", since)),
+    ]);
+    for (const t of team)
+      add(dayOf(t.scheduled_at), t.completed_at ? 1 : 0, t.completed_at ? 0 : 1);
+    for (const r of meds) add(r.taken_on, 1);
+    for (const r of sups) add(r.taken_on, 1);
+    for (const r of water) add(dayOf(r.recorded_at), 1);
+    for (const r of drinks) add(dayOf(r.consumed_at), 1);
+    for (const r of log) add(dayOf(r.happened_at), 1);
+    for (const r of meals) add(dayOf(r.recorded_at), 1);
+    for (const r of sleep) add(dayOf(r.bed_at), 1);
+  } else if (section === "medicacao") {
     let query = db
       .from("care_daily_checklist")
       .select("category,scheduled_at,completed_at")
