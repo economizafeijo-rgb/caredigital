@@ -5,6 +5,7 @@ import {
   ChevronRight,
   CircleSlash,
   Pencil,
+  Trash2,
   Droplets,
   HeartPulse,
   Moon,
@@ -45,6 +46,10 @@ type Item = {
   action?: { label: string; run: () => void };
   /** Alterar a quantidade consumida (antes de registrar ou depois de registrada). */
   edit?: () => void;
+  /** Excluir o registro (com confirmação). */
+  remove?: () => void;
+  /** Texto do botão de editar (padrão: alterar a quantidade). */
+  editLabel?: string;
   undo?: () => void;
   /** Adiar o horário (a refeição é reprogramada para mais tarde no mesmo dia). */
   postpone?: (minutes: number) => void;
@@ -166,6 +171,7 @@ type Raw = {
   sup: any[];
   supIn: any[];
   acts: any[];
+  mlogs: any[];
   sleep: any[];
   resp: any[];
 };
@@ -288,6 +294,13 @@ export function ClientDayPlanner({
         ),
         safe(
           db
+            .from("care_nutrition_meal_logs")
+            .select("id,meal_name,items,recorded_at")
+            .eq("patient_id", patientId)
+            .gte("recorded_at", from),
+        ),
+        safe(
+          db
             .from("care_sleep_logs")
             .select("bed_at")
             .eq("patient_id", patientId)
@@ -311,6 +324,7 @@ export function ClientDayPlanner({
         sup: [],
         supIn: [],
         acts: [],
+        mlogs: [],
         sleep: [],
         resp: [],
       });
@@ -318,8 +332,8 @@ export function ClientDayPlanner({
         active = false;
       };
     }
-    void Promise.all(qs).then(([water, bev, meds, medIn, sup, supIn, acts, sleep, resp]) => {
-      if (active) setRaw({ water, bev, meds, medIn, sup, supIn, acts, sleep, resp });
+    void Promise.all(qs).then(([water, bev, meds, medIn, sup, supIn, acts, mlogs, sleep, resp]) => {
+      if (active) setRaw({ water, bev, meds, medIn, sup, supIn, acts, mlogs, sleep, resp });
     });
     return () => {
       active = false;
@@ -529,6 +543,22 @@ export function ClientDayPlanner({
         detail: "registrado",
         status: "done",
         doneAt: d.t,
+        remove: () =>
+          void run(
+            `agua-del-${d.id}`,
+            [
+              "Excluir registro?",
+              `${d.name} · ${d.ml} ml (${hm(d.t)}) será apagado e as métricas do dia recalculadas. Não dá para desfazer.`,
+              "Excluir",
+            ],
+            () =>
+              db.rpc("care_delete_intake_entry", {
+                p_patient_id: patientId,
+                p_entry_type: d.src,
+                p_entry_id: d.id,
+              }),
+            "Registro excluído. Métricas recalculadas.",
+          ),
         edit: () =>
           void askAmount(d.ml).then((value) => {
             if (value === null || value === d.ml) return;
@@ -641,12 +671,95 @@ export function ClientDayPlanner({
           (!r.request_id || (!seen.has(r.request_id) && seen.add(r.request_id))),
       )
       .map((r) => ({
-        id: r.id,
+        id: r.id as string,
         t: Date.parse(r.happened_at ?? r.recorded_at),
         text: String(r.details?.description || r.details?.title || "Refeição"),
         kind: String(r.details?.kind ?? ""),
-      }))
-      .sort((a, b) => a.t - b.t);
+        src: "act" as "act" | "log",
+      }));
+    // Refeições registradas pela área de alimentação também contam para o horário previsto
+    const mealKind = (name: string) => {
+      const n = name.toLowerCase();
+      return /caf[eé]/.test(n)
+        ? "cafe_manha"
+        : /almo/.test(n)
+          ? "almoco"
+          : /jant/.test(n)
+            ? "jantar"
+            : /lanch|ceia/.test(n)
+              ? "lanche"
+              : "";
+    };
+    for (const r of raw.mlogs) {
+      const t = Date.parse(r.recorded_at);
+      if (meals.some((m) => Math.abs(m.t - t) < 3 * 60_000)) continue;
+      const list = Array.isArray(r.items) ? r.items.join(", ") : "";
+      meals.push({
+        id: String(r.id),
+        t,
+        text: list || String(r.meal_name || "Refeição"),
+        kind: mealKind(String(r.meal_name ?? "")),
+        src: "log",
+      });
+    }
+    meals.sort((a, b) => a.t - b.t);
+    const editMeal = (m: (typeof meals)[number], label: string) => async () => {
+      const text = await dialog.prompt(
+        "O que foi consumido?",
+        `Ajuste a descrição de ${label}.`,
+        m.text,
+      );
+      if (text === null || text.trim().length < 3) return;
+      const when = await dialog.prompt(
+        "Horário da refeição",
+        "Informe o horário em que comeu (HH:MM).",
+        hm(m.t),
+      );
+      const mt = when?.match(/^\s*(\d{1,2})[:h](\d{2})\s*$/);
+      if (!mt || Number(mt[1]) > 23 || Number(mt[2]) > 59) {
+        if (when !== null) dialog.notify?.("Horário inválido. Use o formato HH:MM.", "danger");
+        return;
+      }
+      const iso = new Date(at(day, `${mt[1].padStart(2, "0")}:${mt[2]}`)).toISOString();
+      void run(
+        `meal-edit-${m.id}`,
+        [
+          "Salvar alteração?",
+          `${label} será atualizada para ${mt[1].padStart(2, "0")}:${mt[2]}.`,
+          "Salvar alteração",
+        ],
+        () =>
+          m.src === "act"
+            ? db.rpc("care_update_intake_entry", {
+                p_patient_id: patientId,
+                p_entry_type: "meal",
+                p_entry_id: m.id,
+                p_description: text.trim(),
+                p_amount_ml: null,
+                p_consumed_at: iso,
+              })
+            : db.from("care_nutrition_meal_logs").update({ recorded_at: iso }).eq("id", m.id),
+        "Refeição alterada. Métricas recalculadas.",
+      );
+    };
+    const removeMeal = (m: (typeof meals)[number], label: string) => () =>
+      void run(
+        `meal-del-${m.id}`,
+        [
+          "Excluir registro?",
+          `${label} (${hm(m.t)}) será apagada e as métricas do dia recalculadas. Não dá para desfazer.`,
+          "Excluir",
+        ],
+        () =>
+          m.src === "act"
+            ? db.rpc("care_delete_intake_entry", {
+                p_patient_id: patientId,
+                p_entry_type: "meal",
+                p_entry_id: m.id,
+              })
+            : db.from("care_nutrition_meal_logs").delete().eq("id", m.id),
+        "Registro excluído. Métricas recalculadas.",
+      );
     const used = new Set<string>();
     // O tipo escolhido ao registrar (café da manhã, almoço, jantar, lanche) vale mais que o horário:
     // quem registra o café às 9h40 ou o almoço atrasado também resolve o item certo do dia.
@@ -678,7 +791,7 @@ export function ClientDayPlanner({
             Math.abs(m.t - ms) <= 90 * 60_000,
         );
       if (hit) used.add(hit.id);
-      const moved = !hit && post[`meal-${t}`] && post[`meal-${t}`] > ms ? post[`meal-${t}`] : null;
+      const moved = !hit && post[`meal-${t}`] ? post[`meal-${t}`] : null;
       const when = moved ?? ms;
       const mealItem: Item = {
         id: `meal-${t}`,
@@ -691,7 +804,35 @@ export function ClientDayPlanner({
         skippable: !hit,
         action: hit ? undefined : { label: "Registrar", run: () => go("alimentacao") },
       };
+      if (hit) {
+        mealItem.edit = editMeal(hit, label);
+        mealItem.editLabel = "Alterar descrição e horário";
+        mealItem.remove = removeMeal(hit, label);
+      }
       if (!hit) {
+        mealItem.editLabel = "Alterar o horário";
+        mealItem.edit = () =>
+          void (async () => {
+            const v = await dialog.prompt(
+              "Horário previsto",
+              `Novo horário para ${label} (HH:MM).`,
+              hm(mealItem.at),
+            );
+            const mt = v?.match(/^\s*(\d{1,2})[:h](\d{2})\s*$/);
+            if (!mt || Number(mt[1]) > 23 || Number(mt[2]) > 59) {
+              if (v !== null) dialog.notify?.("Horário inválido. Use o formato HH:MM.", "danger");
+              return;
+            }
+            const to = at(day, `${mt[1].padStart(2, "0")}:${mt[2]}`);
+            const next = { ...post, [mealItem.id]: to };
+            setPost(next);
+            try {
+              localStorage.setItem(postKey, JSON.stringify(next));
+            } catch {
+              /* sem armazenamento */
+            }
+            dialog.notify?.(`${label} reprogramada para ${hm(to)}.`, "info");
+          })();
         mealItem.postpone = (min) => postponeMeal(mealItem, min);
         mealItem.cancel = () => void saveSkipConfirmed(mealItem);
       }
@@ -706,6 +847,9 @@ export function ClientDayPlanner({
         detail: m.text,
         status: "done",
         doneAt: m.t,
+        edit: editMeal(m, "Refeição extra"),
+        editLabel: "Alterar descrição e horário",
+        remove: removeMeal(m, "Refeição extra"),
       });
 
     // Movimento
@@ -795,6 +939,7 @@ export function ClientDayPlanner({
       it.detail = reasonLabel(r.reason) + (r.note ? ` · ${r.note}` : "");
       it.action = undefined;
       it.edit = undefined;
+      it.remove = undefined;
       it.skippable = false;
       it.undo = () =>
         void run(
@@ -1179,11 +1324,23 @@ function Row({
           type="button"
           disabled={busy}
           onClick={item.edit}
-          title="Alterar a quantidade"
-          aria-label={`Alterar a quantidade: ${item.title}`}
+          title={item.editLabel ?? "Alterar a quantidade"}
+          aria-label={`${item.editLabel ?? "Alterar a quantidade"}: ${item.title}`}
           className="grid size-7 shrink-0 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:bg-muted hover:text-foreground active:scale-95 disabled:opacity-50"
         >
           <Pencil size={13} />
+        </button>
+      )}
+      {item.remove && (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={item.remove}
+          title="Excluir registro"
+          aria-label={`Excluir registro: ${item.title}`}
+          className="grid size-7 shrink-0 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-rose-400/50 hover:bg-rose-500/10 hover:text-rose-600 active:scale-95 disabled:opacity-50"
+        >
+          <Trash2 size={13} />
         </button>
       )}
       {item.action ? (
