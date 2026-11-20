@@ -622,12 +622,7 @@ export function ClientNutritionStudio({ patientId, ownerId, onLogged }: Props) {
         </p>
       )}
 
-      <div
-        className={
-          "flex min-h-0 min-w-0 flex-1 flex-col gap-3 " +
-          (view === "calculadora" ? "xl:overflow-hidden" : "xl:overflow-y-auto")
-        }
-      >
+      <div className={"flex min-h-0 min-w-0 flex-1 flex-col gap-3 " + ""}>
         {view === "preparo" && <CookingTimer patientId={patientId} />}
         {view === "guia" && <NutrientGuide />}
 

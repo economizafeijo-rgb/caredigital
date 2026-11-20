@@ -521,10 +521,10 @@ export function NutritionCalculator({
   const gm = groupMeta(food.group);
   const card = "border border-border bg-card";
   return (
-    <div className="grid gap-3 xl:min-h-0 xl:flex-1 xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] xl:grid-rows-[minmax(0,1fr)]">
+    <div className="grid gap-3 xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] xl:items-start">
       {/* Catálogo */}
       <aside
-        className={`${card} flex min-h-0 flex-col overflow-hidden xl:min-h-0`}
+        className={`${card} flex min-h-0 flex-col overflow-hidden xl:sticky xl:top-2 xl:max-h-[calc(100dvh-5rem)]`}
         aria-label="Catálogo de alimentos"
       >
         <div className="border-b border-border p-3">
@@ -702,7 +702,7 @@ export function NutritionCalculator({
 
       <section
         key={food.id}
-        className="nv-fade-in grid min-w-0 content-start gap-3 xl:min-h-0 xl:overflow-y-auto xl:pr-1"
+        className="nv-fade-in grid min-w-0 content-start gap-3"
         aria-label={`Valores de ${food.name}`}
       >
         {/* Alimento escolhido + medida + ações */}
