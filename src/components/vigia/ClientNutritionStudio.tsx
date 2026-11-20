@@ -19,6 +19,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { NutritionCalculator } from "./NutritionCalculator";
+import { NutritionStudioHero, type HeroChip } from "./NutritionStudioHero";
 import { CookingTimer } from "./CookingTimer";
 import { ExportPlanButton } from "./ExportPlanButton";
 import { useDailyNutrition } from "./DailyNutritionPanel";
@@ -72,11 +73,11 @@ const timeLabels: Record<MealTime, string> = {
   jantar: "Jantar",
   lanche: "Lanche",
 };
-const viewOptions: { key: View; label: string; icon: LucideIcon }[] = [
-  { key: "calculadora", label: "Calculadora de alimentos", icon: Calculator },
-  { key: "cardapio", label: "Cardápio da semana", icon: UtensilsCrossed },
-  { key: "receitas", label: "Receitas", icon: ChefHat },
-  { key: "preparo", label: "Tempo de preparo", icon: Timer },
+const viewOptions: { key: View; label: string; icon: LucideIcon; color: string }[] = [
+  { color: "#0d9488", key: "calculadora", label: "Calculadora de alimentos", icon: Calculator },
+  { color: "#d97706", key: "cardapio", label: "Cardápio da semana", icon: UtensilsCrossed },
+  { color: "#e11d48", key: "receitas", label: "Receitas", icon: ChefHat },
+  { color: "#4f46e5", key: "preparo", label: "Tempo de preparo", icon: Timer },
 ];
 const slotStyle: Record<MealTime, { icon: LucideIcon; color: string }> = {
   cafe: { icon: Coffee, color: "#d97706" },
@@ -453,108 +454,21 @@ export function ClientNutritionStudio({ patientId, ownerId, onLogged }: Props) {
       className="nutrition-studio flex min-h-0 min-w-0 flex-col gap-3 text-foreground"
       aria-label="Cardápios e dietas"
     >
-      <header className="nv-dark relative isolate overflow-hidden rounded-2xl bg-[#071512] p-4 text-white shadow-card sm:p-5">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 opacity-60"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px)",
-            backgroundSize: "22px 22px",
-          }}
-        />
-        <img
-          src="/images/hero-alimentacao.webp"
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-y-0 right-0 -z-10 hidden h-full w-1/2 object-cover opacity-40 md:block"
-          style={{
-            maskImage: "linear-gradient(90deg, transparent, #000 70%)",
-            WebkitMaskImage: "linear-gradient(90deg, transparent, #000 70%)",
-          }}
-        />
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-emerald-200">Planejamento alimentar</p>
-            <h2 className="mt-0.5 font-display text-2xl font-extrabold">
-              Seu objetivo: {selectedGoal.label.toLowerCase()}
-            </h2>
-            <div
-              className="mt-3 flex flex-wrap gap-1.5"
-              role="radiogroup"
-              aria-label="Objetivo alimentar"
-            >
-              {goalOptions.map((o) => (
-                <button
-                  key={o.value}
-                  type="button"
-                  role="radio"
-                  aria-checked={goal === o.value}
-                  onClick={() => {
-                    setGoal(o.value);
-                    setSelectedId(null);
-                  }}
-                  className={
-                    "h-8 rounded-full px-3 text-xs font-semibold transition active:scale-95 " +
-                    (goal === o.value
-                      ? "bg-white text-[#062019]"
-                      : "bg-white/10 text-white/80 hover:bg-white/20")
-                  }
-                >
-                  {o.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <ExportPlanButton patientId={patientId} ownerId={ownerId} label="Exportar cardápio" />
-            <button
-              type="button"
-              onClick={() => setShowSettings((v) => !v)}
-              aria-expanded={showSettings}
-              className={
-                "inline-flex h-10 items-center gap-1.5 rounded-xl border px-3 text-sm font-semibold backdrop-blur transition " +
-                (showSettings
-                  ? "border-white bg-white text-[#062019]"
-                  : "border-white/20 bg-white/10 text-white hover:bg-white/20")
-              }
-            >
-              <Settings2 size={16} /> Preferências
-              {avoided.length || sensitive ? (
-                <span className="grid size-5 place-items-center rounded-full bg-emerald-400 text-[11px] font-bold text-emerald-950">
-                  {avoided.length + (sensitive ? 1 : 0)}
-                </span>
-              ) : null}
-            </button>
-          </div>
-        </div>
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {targetChips.map((c) => {
-            const pct = c.goal ? Math.min(100, (c.v / c.goal) * 100) : 0;
-            return (
-              <div
-                key={c.k}
-                className="rounded-xl border border-white/10 bg-white/[.06] p-3 backdrop-blur"
-              >
-                <p className="text-[11px] text-white/60">{c.label} hoje</p>
-                <p className="text-lg font-extrabold tabular-nums">
-                  {safeNumber(Math.round(c.v))}
-                  <span className="text-xs font-semibold text-white/50">
-                    {" "}
-                    / {safeNumber(Math.round(c.goal))} {c.unit}
-                  </span>
-                </p>
-                <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-white/10">
-                  <i
-                    className="block h-full rounded-full transition-[width] duration-700"
-                    style={{ width: pct + "%", background: c.color }}
-                  />
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </header>
+      <NutritionStudioHero
+        goal={goal}
+        goals={goalOptions}
+        onGoal={(value) => {
+          setGoal(value as Goal);
+          setSelectedId(null);
+        }}
+        chips={targetChips as HeroChip[]}
+        settingsOpen={showSettings}
+        onToggleSettings={() => setShowSettings((v) => !v)}
+        settingsBadge={avoided.length + (sensitive ? 1 : 0)}
+        exportSlot={
+          <ExportPlanButton patientId={patientId} ownerId={ownerId} label="Exportar cardápio" />
+        }
+      />
 
       {showSettings && (
         <div className="nv-rise grid gap-3 rounded-2xl border border-border bg-card p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -665,26 +579,33 @@ export function ClientNutritionStudio({ patientId, ownerId, onLogged }: Props) {
       )}
 
       <nav
-        className="flex gap-1 overflow-x-auto rounded-2xl border border-border bg-card p-1"
+        className="grid grid-cols-2 gap-1 border border-border bg-card p-1 sm:grid-cols-4"
         aria-label="Seções de nutrição"
       >
         {viewOptions.map((o) => {
           const Icon = o.icon;
+          const on = view === o.key;
           return (
             <button
               key={o.key}
               type="button"
-              aria-current={view === o.key ? "page" : undefined}
+              aria-current={on ? "page" : undefined}
               onClick={() => chooseView(o.key)}
               className={
-                "inline-flex h-10 min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-3 text-sm font-semibold transition " +
-                (view === o.key
-                  ? "bg-foreground text-background shadow-sm"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground")
+                "group inline-flex h-11 min-w-0 items-center justify-center gap-2 whitespace-nowrap border-b-2 px-3 text-sm font-semibold transition " +
+                (on
+                  ? "bg-muted/70 text-foreground"
+                  : "border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground")
               }
+              style={on ? { borderBottomColor: o.color } : undefined}
             >
-              <Icon size={16} />
-              {o.label}
+              <span
+                className="grid size-7 shrink-0 place-items-center text-white"
+                style={{ background: o.color, opacity: on ? 1 : 0.75 }}
+              >
+                <Icon size={15} />
+              </span>
+              <span className="truncate">{o.label}</span>
             </button>
           );
         })}

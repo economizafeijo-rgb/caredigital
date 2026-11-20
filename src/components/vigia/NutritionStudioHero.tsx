@@ -1,0 +1,389 @@
+import { useEffect, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+import {
+  ChevronDown,
+  Dumbbell,
+  Flame,
+  Info,
+  Leaf,
+  Scale,
+  Settings2,
+  TrendingUp,
+  Wheat,
+  Drumstick,
+  Droplet,
+  X,
+  type LucideIcon,
+} from "lucide-react";
+
+export type HeroGoal = { value: string; label: string; description: string };
+export type HeroChip = {
+  k: "kcal" | "protein" | "carbs" | "fat";
+  label: string;
+  v: number;
+  goal: number;
+  unit: string;
+  color: string;
+};
+
+const goalIcon: Record<string, LucideIcon> = {
+  equilibrio: Leaf,
+  emagrecimento: Scale,
+  ganho_peso: TrendingUp,
+  hipertrofia: Dumbbell,
+};
+const chipIcon: Record<HeroChip["k"], LucideIcon> = {
+  kcal: Flame,
+  protein: Drumstick,
+  carbs: Wheat,
+  fat: Droplet,
+};
+/** Explicações curtas e gerais (educativas): não substituem orientação de nutricionista. */
+const chipInfo: Record<HeroChip["k"], { what: string; why: string; sources: string }> = {
+  kcal: {
+    what: "Energia é a quantidade de calorias que o alimento fornece ao corpo.",
+    why: "A meta diária é uma estimativa pelo seu objetivo e peso. Comer perto dela ajuda a manter o peso, ganhar ou perder de forma gradual.",
+    sources: "Vem dos carboidratos, proteínas e gorduras de tudo o que você come e bebe.",
+  },
+  protein: {
+    what: "Proteínas ajudam a construir e manter músculos, pele e defesas do corpo.",
+    why: "Distribuir a proteína ao longo das refeições costuma ser melhor do que concentrar tudo em uma só.",
+    sources: "Ovos, peixes, carnes, leite e derivados, feijão, lentilha e soja.",
+  },
+  carbs: {
+    what: "Carboidratos são a principal fonte de energia para o cérebro e os músculos.",
+    why: "Prefira versões com fibras (grãos integrais, raízes, frutas) para saciedade e energia mais estável.",
+    sources: "Arroz, mandioca, batata, pão, frutas, feijão e aveia.",
+  },
+  fat: {
+    what: "Gorduras fornecem energia, ajudam a absorver as vitaminas A, D, E e K e participam dos hormônios.",
+    why: "Vale priorizar as insaturadas e moderar as gorduras de frituras e ultraprocessados.",
+    sources: "Azeite, castanhas, abacate, peixes, ovos e sementes.",
+  },
+};
+const fmt = (n: number) => Math.round(n).toLocaleString("pt-BR");
+
+function Ring({ pct, color, size = 46 }: { pct: number; color: string; size?: number }) {
+  const r = (size - 8) / 2;
+  const c = 2 * Math.PI * r;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={r}
+        fill="none"
+        stroke="rgba(255,255,255,.14)"
+        strokeWidth="5"
+      />
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={r}
+        fill="none"
+        stroke={color}
+        strokeWidth="5"
+        strokeDasharray={c}
+        strokeDashoffset={c * (1 - Math.min(1, pct / 100))}
+        transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        style={{ transition: "stroke-dashoffset .7s ease" }}
+      />
+    </svg>
+  );
+}
+
+function Modal({
+  title,
+  onClose,
+  children,
+  accent,
+}: {
+  title: string;
+  onClose: () => void;
+  children: ReactNode;
+  accent: string;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[12000] grid place-items-center bg-slate-950/70 p-3 backdrop-blur-sm"
+      onMouseDown={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className="nv-pop w-full max-w-md border border-border bg-card text-card-foreground shadow-2xl"
+      >
+        <header
+          className="flex items-center justify-between gap-2 border-b border-border px-4 py-3"
+          style={{ borderTop: `3px solid ${accent}` }}
+        >
+          <h3 className="text-base font-extrabold">{title}</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fechar"
+            className="grid size-8 place-items-center border border-border hover:bg-muted"
+          >
+            <X size={16} />
+          </button>
+        </header>
+        <div className="grid gap-3 p-4 text-sm">{children}</div>
+      </section>
+    </div>,
+    document.body,
+  );
+}
+
+export function NutritionStudioHero({
+  goal,
+  goals,
+  onGoal,
+  chips,
+  settingsOpen,
+  onToggleSettings,
+  settingsBadge,
+  exportSlot,
+}: {
+  goal: string;
+  goals: HeroGoal[];
+  onGoal: (value: string) => void;
+  chips: HeroChip[];
+  settingsOpen: boolean;
+  onToggleSettings: () => void;
+  settingsBadge: number;
+  exportSlot: ReactNode;
+}) {
+  const [info, setInfo] = useState<HeroChip["k"] | null>(null);
+  const [goalInfo, setGoalInfo] = useState(false);
+  const selected = goals.find((g) => g.value === goal) ?? goals[0];
+  const by = Object.fromEntries(chips.map((c) => [c.k, c])) as Record<HeroChip["k"], HeroChip>;
+  // Participação de cada nutriente nas calorias do dia (4 kcal/g de proteína e carboidrato; 9 kcal/g de gordura).
+  const shares = (["protein", "carbs", "fat"] as const).map((k) => ({
+    k,
+    kcal: (by[k]?.v ?? 0) * (k === "fat" ? 9 : 4),
+  }));
+  const shareTotal = shares.reduce((s, x) => s + x.kcal, 0);
+  const active = info ? by[info] : null;
+  const ActiveIcon = info ? chipIcon[info] : null;
+  return (
+    <header className="nv-dark relative isolate overflow-hidden border border-white/10 bg-[#071512] p-3 text-white shadow-card sm:p-4">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 opacity-60"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px)",
+          backgroundSize: "22px 22px",
+        }}
+      />
+      <img
+        src="/images/hero-alimentacao.webp"
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-y-0 right-0 -z-10 hidden h-full w-1/3 object-cover opacity-30 lg:block"
+        style={{
+          maskImage: "linear-gradient(90deg, transparent, #000 70%)",
+          WebkitMaskImage: "linear-gradient(90deg, transparent, #000 70%)",
+        }}
+      />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="min-w-0">
+          <p className="flex items-center gap-1.5 text-xs font-semibold text-emerald-200">
+            Seu objetivo
+            <button
+              type="button"
+              onClick={() => setGoalInfo((v) => !v)}
+              aria-expanded={goalInfo}
+              aria-label="O que cada objetivo muda"
+              className="grid size-5 place-items-center border border-emerald-200/40 text-emerald-200 hover:bg-white/10"
+            >
+              <Info size={12} />
+            </button>
+          </p>
+          <div
+            className="mt-1.5 flex flex-wrap gap-1"
+            role="radiogroup"
+            aria-label="Objetivo alimentar"
+          >
+            {goals.map((o) => {
+              const Icon = goalIcon[o.value] ?? Leaf;
+              const on = goal === o.value;
+              return (
+                <button
+                  key={o.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={on}
+                  onClick={() => onGoal(o.value)}
+                  className={
+                    "inline-flex h-9 items-center gap-1.5 border px-3 text-xs font-bold transition active:scale-95 " +
+                    (on
+                      ? "border-emerald-300 bg-emerald-400 text-emerald-950"
+                      : "border-white/15 bg-white/[.07] text-white/80 hover:bg-white/15")
+                  }
+                >
+                  <Icon size={14} />
+                  {o.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {exportSlot}
+          <button
+            type="button"
+            onClick={onToggleSettings}
+            aria-expanded={settingsOpen}
+            className={
+              "inline-flex h-9 items-center gap-1.5 border px-3 text-xs font-bold transition " +
+              (settingsOpen
+                ? "border-white bg-white text-[#062019]"
+                : "border-white/20 bg-white/10 text-white hover:bg-white/20")
+            }
+          >
+            <Settings2 size={15} /> Preferências
+            {settingsBadge ? (
+              <span className="grid size-5 place-items-center bg-emerald-400 text-[11px] font-bold text-emerald-950">
+                {settingsBadge}
+              </span>
+            ) : null}
+            <ChevronDown
+              size={14}
+              className={"transition-transform " + (settingsOpen ? "rotate-180" : "")}
+            />
+          </button>
+        </div>
+      </div>
+      {goalInfo && (
+        <dl className="nv-fade-in mt-2 grid gap-1 border border-white/10 bg-white/[.05] p-2.5 text-xs sm:grid-cols-2">
+          {goals.map((o) => (
+            <div key={o.value} className={o.value === selected.value ? "text-emerald-200" : ""}>
+              <dt className="font-bold">{o.label}</dt>
+              <dd className="text-white/70">{o.description}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+
+      <div className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
+        {chips.map((c) => {
+          const pct = c.goal ? (c.v / c.goal) * 100 : 0;
+          const Icon = chipIcon[c.k];
+          return (
+            <button
+              key={c.k}
+              type="button"
+              onClick={() => setInfo(c.k)}
+              aria-label={`${c.label} hoje: ${fmt(c.v)} de ${fmt(c.goal)} ${c.unit}. Ver detalhes`}
+              className="group relative grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2.5 border border-white/10 bg-white/[.06] p-2.5 text-left transition hover:bg-white/[.12]"
+              style={{ borderLeft: `3px solid ${c.color}` }}
+            >
+              <span className="relative grid place-items-center">
+                <Ring pct={pct} color={c.color} />
+                <Icon size={15} className="absolute" style={{ color: c.color }} />
+              </span>
+              <span className="min-w-0">
+                <span className="flex items-center gap-1 text-[11px] text-white/65">
+                  {c.label} hoje
+                  <Info size={11} className="opacity-60 group-hover:opacity-100" />
+                </span>
+                <span className="block truncate text-lg font-extrabold leading-tight tabular-nums">
+                  {fmt(c.v)}
+                  <span className="text-[11px] font-semibold text-white/50">
+                    {" "}
+                    / {fmt(c.goal)} {c.unit}
+                  </span>
+                </span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {shareTotal > 0 && (
+        <div className="mt-2.5">
+          <div
+            className="flex h-2.5 w-full overflow-hidden bg-white/10"
+            role="group"
+            aria-label="De onde vêm as calorias de hoje"
+          >
+            {shares.map((s) => (
+              <button
+                key={s.k}
+                type="button"
+                onClick={() => setInfo(s.k)}
+                aria-label={`${by[s.k].label}: ${Math.round((s.kcal / shareTotal) * 100)}% das calorias`}
+                title={`${by[s.k].label}: ${Math.round((s.kcal / shareTotal) * 100)}% das calorias de hoje`}
+                className="h-full transition-[filter] hover:brightness-125"
+                style={{ width: `${(s.kcal / shareTotal) * 100}%`, background: by[s.k].color }}
+              />
+            ))}
+          </div>
+          <p className="mt-1 flex flex-wrap gap-x-3 text-[10.5px] text-white/60">
+            <span>De onde vêm as calorias de hoje:</span>
+            {shares.map((s) => (
+              <span key={s.k} className="inline-flex items-center gap-1">
+                <i className="size-2" style={{ background: by[s.k].color }} />
+                {by[s.k].label} {Math.round((s.kcal / shareTotal) * 100)}%
+              </span>
+            ))}
+          </p>
+        </div>
+      )}
+
+      {active && info && ActiveIcon && (
+        <Modal title={`${active.label} hoje`} accent={active.color} onClose={() => setInfo(null)}>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="border border-border bg-muted/40 p-2">
+              <p className="text-[11px] text-muted-foreground">Consumido</p>
+              <p className="text-lg font-extrabold tabular-nums">{fmt(active.v)}</p>
+            </div>
+            <div className="border border-border bg-muted/40 p-2">
+              <p className="text-[11px] text-muted-foreground">Meta</p>
+              <p className="text-lg font-extrabold tabular-nums">{fmt(active.goal)}</p>
+            </div>
+            <div className="border border-border bg-muted/40 p-2">
+              <p className="text-[11px] text-muted-foreground">
+                {active.v > active.goal ? "Acima" : "Faltam"}
+              </p>
+              <p className="text-lg font-extrabold tabular-nums">
+                {fmt(Math.abs(active.goal - active.v))}
+              </p>
+            </div>
+          </div>
+          <div>
+            <div className="h-2.5 overflow-hidden bg-muted">
+              <i
+                className="block h-full"
+                style={{
+                  width: `${Math.min(100, active.goal ? (active.v / active.goal) * 100 : 0)}%`,
+                  background: active.color,
+                }}
+              />
+            </div>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              {active.goal ? Math.round((active.v / active.goal) * 100) : 0}% da meta ({active.unit}
+              ) · só conta o que foi registrado hoje.
+            </p>
+          </div>
+          <p>{chipInfo[info].what}</p>
+          <p className="text-muted-foreground">{chipInfo[info].why}</p>
+          <p className="border-l-2 pl-2.5 text-xs" style={{ borderColor: active.color }}>
+            <strong>Boas fontes: </strong>
+            {chipInfo[info].sources}
+          </p>
+          <p className="text-[11px] text-muted-foreground">
+            Informação educativa; não substitui a orientação de um nutricionista.
+          </p>
+        </Modal>
+      )}
+    </header>
+  );
+}

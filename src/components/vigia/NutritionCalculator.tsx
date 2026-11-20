@@ -1,4 +1,5 @@
 import { FoodVitamins } from "./FoodVitamins";
+import { Fold } from "./Fold";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Apple,
@@ -10,6 +11,7 @@ import {
   Loader2,
   MapPin,
   Minus,
+  PieChart,
   Plus,
   Search,
   Sparkles,
@@ -77,7 +79,7 @@ export function FoodBadge({ food, size = 40 }: { food: Ingredient; size?: number
   const Icon = g.icon;
   return (
     <span
-      className="relative grid shrink-0 place-items-center rounded-2xl text-white shadow-sm"
+      className="relative grid shrink-0 place-items-center text-white shadow-sm"
       style={{
         width: size,
         height: size,
@@ -517,9 +519,9 @@ export function NutritionCalculator({
   ];
 
   const gm = groupMeta(food.group);
-  const card = "rounded-2xl border border-border bg-card";
+  const card = "border border-border bg-card";
   return (
-    <div className="grid gap-3 xl:grid-cols-[minmax(0,19rem)_minmax(0,1fr)]">
+    <div className="grid gap-3 xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
       {/* Catálogo */}
       <aside
         className={`${card} flex min-h-0 flex-col overflow-hidden xl:sticky xl:top-2 xl:max-h-[calc(100dvh-7rem)]`}
@@ -569,12 +571,12 @@ export function NutritionCalculator({
                   type="button"
                   onClick={() => setFoodId(f.id)}
                   aria-pressed={on}
-                  className={`group flex w-full items-center gap-2.5 rounded-xl px-2 py-1.5 text-left transition ${on ? "bg-primary/10 ring-1 ring-primary/40" : "hover:bg-muted/60"}`}
+                  className={`group flex w-full items-center gap-2.5 border-l-2 px-2 py-1.5 text-left transition ${on ? "border-l-primary bg-primary/10" : "border-l-transparent hover:bg-muted/60"}`}
                 >
                   <FoodBadge food={f} size={32} />
                   <span className="min-w-0 flex-1">
-                    <strong className="flex items-center gap-1.5 text-[13px] leading-tight">
-                      <span className="truncate">{f.name}</span>
+                    <strong className="flex items-start gap-1.5 text-[13px] leading-tight">
+                      <span className="line-clamp-2 break-words">{f.name}</span>
                       <HealthDot food={f} />
                     </strong>
                     <span className="flex gap-1.5 text-[10.5px] font-semibold tabular-nums">
@@ -597,7 +599,7 @@ export function NutritionCalculator({
           )}
         </ul>
         <div className="border-t border-border p-2.5">
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-[11px] text-muted-foreground">
               {list.length} alimentos · kcal por 100 g
             </p>
@@ -605,7 +607,7 @@ export function NutritionCalculator({
               type="button"
               onClick={() => setCreating((v) => !v)}
               aria-expanded={creating}
-              className="inline-flex h-8 items-center gap-1 rounded-lg bg-primary/10 px-2.5 text-xs font-bold text-primary transition hover:bg-primary/15"
+              className="inline-flex h-8 shrink-0 items-center gap-1 whitespace-nowrap bg-primary/10 px-2.5 text-xs font-bold text-primary transition hover:bg-primary/15"
             >
               <Plus size={13} /> Criar alimento
             </button>
@@ -706,7 +708,7 @@ export function NutritionCalculator({
       >
         {/* Alimento escolhido + medida + ações */}
         <div
-          className="nv-dark relative isolate overflow-hidden rounded-2xl p-4 text-white shadow-card sm:p-5"
+          className="nv-dark relative isolate overflow-hidden p-4 text-white shadow-card sm:p-5"
           style={{
             background: `linear-gradient(135deg, color-mix(in srgb, ${gm.color} 55%, #020617) 0%, #0b1220 70%)`,
           }}
@@ -901,16 +903,13 @@ export function NutritionCalculator({
         </div>
 
         {/* Quanto preciso */}
-        <div className={`${card} p-4`}>
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h4 className="flex items-center gap-1.5 text-sm font-bold">
-              <Target size={15} className="text-primary" /> Quanto de {food.name.toLowerCase()} para
-              fechar a meta de hoje
-            </h4>
-            <span className="text-[11px] text-muted-foreground">
-              toque em “Usar” para aplicar a quantidade
-            </span>
-          </div>
+        <Fold
+          title={`Quanto de ${food.name.toLowerCase()} para fechar a meta de hoje`}
+          icon={Target}
+          color="#d97706"
+          aside="toque em “Usar” para aplicar a quantidade"
+          info="Calcula a quantidade deste alimento que completaria o que falta de energia, proteína, carboidrato ou gordura hoje. É só uma referência: não precisa fechar a meta com um único alimento."
+        >
           <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
             {[
               {
@@ -1018,12 +1017,16 @@ export function NutritionCalculator({
               );
             })}
           </div>
-        </div>
+        </Fold>
 
         {/* Análise */}
         <div className="grid gap-3 lg:grid-cols-3">
-          <div className={`${card} p-4`}>
-            <h4 className="text-sm font-bold">Composição da porção</h4>
+          <Fold
+            title="Composição da porção"
+            icon={PieChart}
+            color="#0d9488"
+            info="Mostra quanto da porção escolhida é proteína, carboidrato e gordura. Passe o mouse ou toque no gráfico para ver cada parte."
+          >
             <div className="mt-3 flex items-center gap-4">
               <Donut n={nut} hover={hover} setHover={setHover} />
               <ul className="grid min-w-0 flex-1 gap-2">
@@ -1045,7 +1048,7 @@ export function NutritionCalculator({
                 ))}
               </ul>
             </div>
-          </div>
+          </Fold>
 
           <div className={`${card} p-4`}>
             <div className="flex items-center justify-between gap-2">
@@ -1113,13 +1116,13 @@ export function NutritionCalculator({
             </p>
           </div>
 
-          <div className={`${card} p-4`}>
-            <div className="flex items-center justify-between gap-2">
-              <h4 className="flex items-center gap-1.5 text-sm font-bold">
-                <Leaf size={15} className="text-emerald-600" /> Vitaminas e fibras
-              </h4>
-              <span className="text-[11px] text-muted-foreground">% do dia</span>
-            </div>
+          <Fold
+            title="Vitaminas e fibras"
+            icon={Leaf}
+            color="#059669"
+            aside="% do dia"
+            info="Percentual do que você precisa por dia (referência Anvisa/IOM) que esta porção fornece. Valores aproximados."
+          >
             {rich.length > 0 && (
               <p className="mt-2 flex flex-wrap gap-1">
                 {rich.slice(0, 3).map((r) => (
@@ -1165,7 +1168,7 @@ export function NutritionCalculator({
             <p className="mt-2 text-[10.5px] text-muted-foreground">
               Referência Anvisa/IOM · valores aproximados.
             </p>
-          </div>
+          </Fold>
         </div>
 
         {/* Comparação + prato */}
@@ -1211,6 +1214,7 @@ export function NutritionCalculator({
                     <button
                       type="button"
                       onClick={() => setFoodId(f.id)}
+                      title={`${f.name}: ${n(v, compareBy === "kcal" ? 0 : 1)}${compareBy === "kcal" ? " kcal" : " g de " + compareBy.replace("protein", "proteína").replace("carbs", "carboidrato").replace("fat", "gordura")} por 100 ${U}${on ? " (alimento aberto)" : " · clique para abrir este alimento"}`}
                       className={`group grid w-full grid-cols-[8rem_1fr_3.5rem] items-center gap-2 rounded-lg px-1.5 py-1 text-left text-xs transition hover:bg-muted/60 sm:grid-cols-[11rem_1fr_3.5rem] ${on ? "bg-muted/70" : ""}`}
                     >
                       <span className={`truncate ${on ? "font-bold" : ""}`}>{f.name}</span>
@@ -1238,7 +1242,7 @@ export function NutritionCalculator({
           </div>
 
           <div
-            className={`flex flex-col rounded-2xl border p-4 ${tray.length ? "border-primary/40 bg-primary/[.04]" : "border-dashed border-border bg-card"}`}
+            className={`flex flex-col border p-4 ${tray.length ? "border-primary/40 bg-primary/[.04]" : "border-dashed border-border bg-card"}`}
           >
             <div className="flex items-center justify-between gap-2">
               <h4 className="text-sm font-bold">
