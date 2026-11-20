@@ -27,7 +27,6 @@ import { QrCode } from "@/components/vigia/QrCode";
 import { InstallAppButton } from "@/components/vigia/InstallApp";
 import { LogoMark } from "@/components/vigia/Logo";
 import { PartnerCommercial } from "@/components/vigia/PartnerCommercial";
-import { HomeSideArt } from "@/components/vigia/HomeDecor";
 import { HomeNextCareCard } from "@/components/vigia/CareTimer";
 import { HomeModalityTimers } from "@/components/vigia/HomeModalityTimers";
 import { HomeClientMetrics } from "@/components/vigia/HomeClientMetrics";
@@ -91,8 +90,7 @@ function Homepage() {
 
   return (
     <>
-    <HomeSideArt />
-    <div className="relative z-10 mx-auto flex w-full flex-col gap-4 lg:gap-5 min-[1280px]:px-[4.25rem]">
+    <div className="relative z-10 mx-auto flex w-full flex-col gap-4 lg:gap-5">
       {status === "unlinked" && (
         <p role="status" className="rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm">
           Sua conta está conectada, mas ainda não há um prontuário vinculado. Solicite o acesso ao administrador.
