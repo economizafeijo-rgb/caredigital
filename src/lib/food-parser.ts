@@ -30,6 +30,7 @@ export const foodMicros: Record<string, [number, number, number, number, number]
 
 /** Palavras-chave → alimento do catálogo. Ordem importa: termos mais específicos primeiro. */
 const aliases: Array<[RegExp, string]> = [
+  [/miojo|macarr[aã]o instant[aâ]neo|lámen|lamen|nissin/, "macarrao_instantaneo"], [/catchup|ketchup/, "ketchup"], [/maionese/, "maionese"],
   [/cebola (de |em )?palha|cebola frita( crocante)?|cebola crocante/, "cebola_palha"], [/pimentas? (da terra|de cheiro|malagueta|murupi|biquinho|dedo.de.mo[cç]a)|\bpimenta\b/, "pimenta_terra"],
   [/caf[eé][ _]com[ _]leite (de gado|de vaca|fresco|da fazenda)/, "cafe_leite_gado"],
   [/caf[eé][ _]com[ _]leite desnatado/, "cafe_leite_desnatado"], [/leite desnatado/, "leite_desnatado"], [/leite em p[oó] (dissolvido|reconstitu[ií]do)|leite de p[oó]/, "leite_po_dissolvido"],
@@ -77,7 +78,7 @@ const aliases: Array<[RegExp, string]> = [
 
 /** Porção padrão em gramas/ml quando o usuário não informa a quantidade. */
 const defaultPortion: Record<string, number> = {
-  pimenta_terra: 5, cebola_palha: 10,
+  pimenta_terra: 5, cebola_palha: 10, macarrao_instantaneo: 270, ketchup: 15, maionese: 15,
   suco_laranja: 250, suco_caju: 250, suco_abacaxi: 250, suco_manga: 250, suco_cupuacu: 250, suco_caja: 250, suco_melancia: 250, suco_maca: 250, limonada: 250, suco_caixinha: 250, cafe_leite_desnatado: 200, leite_desnatado: 200, leite_po_dissolvido: 200, vitamina_banana: 300, vitamina_mamao: 300,
   baiao_dois: 200, sopa_legumes: 300, quibe_macaxeira: 80, cafe_soluvel: 150, leite_integral: 200, leite_po_integral: 26, leite_po_desnatado: 26, cereal_com_leite: 230, pasta_amendoim: 15, queijo_mussarela: 30, queijo_prato: 30, pao_massa_fina: 50, suco_acerola: 250, suco_graviola: 250, salada_frutas: 150, mangaba: 80, pitaia: 150, couve_crua: 40, cheiro_verde: 5, cebolinha: 5, coentro: 5, mostarda_folha: 40, acelga: 40, pimentao_vermelho: 30, pimentao_amarelo: 30, brocolis_cru: 60, feijao_corda: 100, grao_bico: 100,
   arroz: 120, arroz_integral: 120, feijao: 100, feijao_preto: 100, frango: 120, carne: 120, peixe: 120, tilapia: 120, sardinha: 80,

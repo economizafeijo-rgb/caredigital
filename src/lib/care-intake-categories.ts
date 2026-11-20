@@ -51,6 +51,7 @@ export const typicalFoods: Record<FoodKind, { label: string; text: string }[]> =
     { label: "Mingau de aveia", text: "1 prato de mingau de aveia" }, { label: "Iogurte", text: "1 iogurte" }, { label: "Leite", text: "1 copo de leite" },
     { label: "Pão massa fina", text: "1 pão massa fina" }, { label: "Queijo mussarela", text: "2 fatias de queijo mussarela" }, { label: "Presunto", text: "2 fatias de presunto" },
     { label: "Cereal com leite", text: "1 tigela de cereal com leite" }, { label: "Mingau de maisena", text: "1 prato de mingau de maisena" }, { label: "Pasta de amendoim", text: "1 colher de sopa de pasta de amendoim" },
+    { label: "Cuscuz com ovos", text: "1 prato de cuscuz, 2 ovos" }, { label: "Cream cracker", text: "30 g de bolacha cream cracker" }, { label: "Manteiga", text: "10 g de manteiga" }, { label: "Maionese", text: "15 g de maionese" },
   ],
   almoco: [
     { label: "Arroz", text: "4 colheres de sopa de arroz" }, { label: "Feijão", text: "1 concha de feijão" }, { label: "Frango", text: "1 filé de frango" },
@@ -58,20 +59,24 @@ export const typicalFoods: Record<FoodKind, { label: string; text: string }[]> =
     { label: "Tambaqui", text: "1 posta de tambaqui" }, { label: "Macaxeira", text: "1 porção de macaxeira" }, { label: "Farofa", text: "2 colheres de sopa de farofa" },
     { label: "Macarrão", text: "1 porção de macarrão" }, { label: "Salada", text: "1 prato de salada" }, { label: "Legumes", text: "cenoura e abobrinha" },
     { label: "Suco", text: "1 copo de suco" },
+    { label: "Miojo", text: "1 pacote de miojo" }, { label: "Baixaria", text: "1 prato de baixaria" }, { label: "Cuscuz com ovos", text: "1 prato de cuscuz, 2 ovos" }, { label: "Maionese", text: "15 g de maionese" }, { label: "Ketchup", text: "15 g de ketchup" }, { label: "Manteiga", text: "10 g de manteiga" },
   ],
   jantar: [
     { label: "Sopa de legumes", text: "1 prato de sopa de legumes" }, { label: "Arroz", text: "3 colheres de sopa de arroz" }, { label: "Feijão", text: "1 concha de feijão" },
     { label: "Frango", text: "1 filé de frango" }, { label: "Peixe", text: "1 filé de peixe" }, { label: "Ovo", text: "2 ovos" },
     { label: "Cuscuz", text: "1 prato de cuscuz" }, { label: "Tapioca", text: "1 tapioca" }, { label: "Salada", text: "1 prato de salada" }, { label: "Café com leite", text: "1 xícara de café com leite" },
+    { label: "Miojo", text: "1 pacote de miojo" }, { label: "Baixaria", text: "1 prato de baixaria" }, { label: "Cuscuz com ovos", text: "1 prato de cuscuz, 2 ovos" }, { label: "Maionese", text: "15 g de maionese" }, { label: "Ketchup", text: "15 g de ketchup" }, { label: "Manteiga", text: "10 g de manteiga" },
   ],
   lanche: [
     { label: "Fruta", text: "1 banana" }, { label: "Pão com queijo", text: "1 pão francês com queijo" }, { label: "Iogurte", text: "1 iogurte" },
     { label: "Biscoito", text: "6 biscoitos" }, { label: "Bolo", text: "1 fatia de bolo" }, { label: "Castanha", text: "3 castanhas-do-pará" },
     { label: "Açaí", text: "1 copo de açaí" }, { label: "Tapioca", text: "1 tapioca" }, { label: "Café com leite", text: "1 xícara de café com leite" }, { label: "Achocolatado", text: "1 copo de achocolatado" },
+    { label: "Miojo", text: "1 pacote de miojo" }, { label: "Cream cracker", text: "30 g de bolacha cream cracker" }, { label: "Cuscuz com ovos", text: "1 prato de cuscuz, 2 ovos" }, { label: "Manteiga", text: "10 g de manteiga" }, { label: "Maionese", text: "15 g de maionese" }, { label: "Ketchup", text: "15 g de ketchup" },
   ],
   ceia: [
     { label: "Leite morno", text: "1 copo de leite" }, { label: "Iogurte", text: "1 iogurte" }, { label: "Fruta", text: "1 maçã" },
     { label: "Mingau de aveia", text: "1 prato de mingau de aveia" }, { label: "Chá", text: "1 xícara de chá" }, { label: "Castanha", text: "3 castanhas-do-pará" },
+    { label: "Cream cracker", text: "20 g de bolacha cream cracker" }, { label: "Manteiga", text: "5 g de manteiga" },
   ],
   fruta: [
     { label: "Banana", text: "1 banana" }, { label: "Mamão", text: "1 fatia de mamão" }, { label: "Maçã", text: "1 maçã" }, { label: "Laranja", text: "1 laranja" },
