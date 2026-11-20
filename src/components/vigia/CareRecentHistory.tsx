@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { CheckCircle2, Clock3, History, X } from "lucide-react";
+import { CheckCircle2, Clock3, History, Trash2, X } from "lucide-react";
+import { useDialog } from "@/lib/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { RecordInfo, type RecordInfoRow } from "./RecordInfo";
 
@@ -11,6 +12,8 @@ type RecordRow = {
   at: string;
   detail: string;
   kind: "task" | "water" | "beverage" | "meal" | "reconstructed";
+  /** id real da linha (sem prefixo) — habilita a exclusão quando o tipo permite. */
+  rawId?: string;
   info?: RecordInfoRow[];
   note?: string;
 };
@@ -33,6 +36,9 @@ type Props = {
   category: Category | "todos";
   onClose?: () => void;
   compact?: boolean;
+  /** Abre a área do registro para editar. */
+  onEdit?: (category: Category) => void;
+  onChanged?: () => void;
 };
 const labels: Record<Category, string> = {
   hidratacao: "Hidratação",
@@ -54,7 +60,12 @@ export function CareRecentHistory({
   category,
   onClose,
   compact = false,
+  onEdit,
+  onChanged,
 }: Props) {
+  const dialog = useDialog();
+  const [reload, setReload] = useState(0);
+  const [busyId, setBusyId] = useState<string | null>(null);
   const [rows, setRows] = useState<RecordRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -207,6 +218,7 @@ export function CareRecentHistory({
               .filter((r: any) => !r.task_id || !taskIds.has(r.task_id))
               .map((r: any) => ({
                 id: "water:" + r.id,
+                rawId: String(r.id),
                 title: `Água · ${Number(r.amount_ml).toLocaleString("pt-BR")} ml`,
                 category: "hidratacao" as const,
                 at: r.recorded_at,
@@ -220,6 +232,7 @@ export function CareRecentHistory({
               })),
             ...(beverageResult.data ?? []).map((r: any) => ({
               id: "beverage:" + r.id,
+              rawId: String(r.id),
               title: `${r.name || r.kind || "Bebida"} · ${Number(r.amount_ml).toLocaleString("pt-BR")} ml`,
               category: "hidratacao" as const,
               at: r.consumed_at,
@@ -235,6 +248,7 @@ export function CareRecentHistory({
               .filter((r: any) => !r.details?.superseded)
               .map((r: any) => ({
                 id: "meal:" + r.id,
+                rawId: String(r.id),
                 title: r.details?.title || r.details?.description || "Refeição registrada",
                 category: "refeicao" as const,
                 at: r.recorded_at,
@@ -413,7 +427,34 @@ export function CareRecentHistory({
     return () => {
       active = false;
     };
-  }, [patientId, ownerId, category]);
+  }, [patientId, ownerId, category, reload]);
+  async function remove(row: RecordRow) {
+    if (!row.rawId || (row.kind !== "water" && row.kind !== "beverage" && row.kind !== "meal"))
+      return;
+    if (
+      !(await dialog.confirm(
+        "Excluir registro?",
+        `${row.title} (${timeOnly(row.at)}) será apagado e as métricas do dia recalculadas. Não dá para desfazer.`,
+        true,
+        "Excluir",
+      ))
+    )
+      return;
+    setBusyId(row.id);
+    const { error: err } = await (supabase as any).rpc("care_delete_intake_entry", {
+      p_patient_id: patientId,
+      p_entry_type: row.kind,
+      p_entry_id: row.rawId,
+    });
+    setBusyId(null);
+    if (err) {
+      dialog.notify?.(err.message || "Não foi possível excluir o registro.", "danger");
+      return;
+    }
+    dialog.notify?.("Registro excluído. Métricas recalculadas.");
+    setReload((n) => n + 1);
+    onChanged?.();
+  }
   const displayed = showAll ? rows : rows.slice(0, 5);
   return (
     <section
@@ -479,6 +520,18 @@ export function CareRecentHistory({
                   <Clock3 size={12} />
                   {dateTime(row.at)}
                 </time>
+                {row.rawId && ["water", "beverage", "meal"].includes(row.kind) && (
+                  <button
+                    type="button"
+                    className="care-history-del"
+                    disabled={busyId === row.id}
+                    onClick={() => void remove(row)}
+                    title="Excluir registro"
+                    aria-label={`Excluir ${row.title}`}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
                 <RecordInfo
                   title={row.title}
                   at={row.at}

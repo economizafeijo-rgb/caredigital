@@ -273,7 +273,7 @@ export function DailyNutritionPanel({
   hideSummary?: boolean;
 }) {
   const { total, target, entries, objective, loaded, patientId, refresh } = data;
-  const { confirm, prompt } = useDialog();
+  const { confirm, prompt, notify } = useDialog();
   const [busyEntry, setBusyEntry] = useState<string | null>(null);
   const recognized = entries.filter((entry) => entry.direct || entry.foods.length);
   async function editEntry(entry: Entry) {
@@ -314,6 +314,7 @@ export function DailyNutritionPanel({
         });
         if (result.error) throw result.error;
       }
+      notify?.("Registro alterado com sucesso.");
       refresh();
     } catch (error) {
       await confirm(
@@ -348,6 +349,7 @@ export function DailyNutritionPanel({
               p_entry_id: entry.entryId,
             });
       if (result.error) throw result.error;
+      notify?.("Registro excluído. Métricas recalculadas.");
       refresh();
     } catch (error) {
       await confirm(

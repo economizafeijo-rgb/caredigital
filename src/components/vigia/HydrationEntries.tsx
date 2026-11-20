@@ -129,6 +129,7 @@ export function HydrationEntries({
       return;
     }
     setEditing(null);
+    dialog.notify?.("Registro alterado com sucesso.");
     onChanged();
   }
   async function remove(e: Entry) {
@@ -159,6 +160,7 @@ export function HydrationEntries({
     }
     setConfirmId(null);
     setSelected(null);
+    dialog.notify?.("Registro excluído. Total do dia recalculado.");
     onChanged();
   }
 

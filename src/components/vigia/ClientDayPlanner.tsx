@@ -521,12 +521,39 @@ export function ClientDayPlanner({
         id: r.id,
         t: Date.parse(r.happened_at ?? r.recorded_at),
         text: String(r.details?.description || r.details?.title || "Refeição"),
+        kind: String(r.details?.kind ?? ""),
       }))
       .sort((a, b) => a.t - b.t);
     const used = new Set<string>();
+    // O tipo escolhido ao registrar (café da manhã, almoço, jantar, lanche) vale mais que o horário:
+    // quem registra o café às 9h40 ou o almoço atrasado também resolve o item certo do dia.
+    const SLOT_KIND: Record<string, string[]> = {
+      "07:00": ["cafe_manha"],
+      "10:00": ["lanche"],
+      "12:30": ["almoco"],
+      "15:30": ["lanche"],
+      "19:00": ["jantar"],
+    };
+    const byKind = new Map<string, string>();
+    for (const [t] of MEALS) {
+      const kinds = SLOT_KIND[t] ?? [];
+      const nearest = meals
+        .filter((m) => !used.has(m.id) && kinds.includes(m.kind))
+        .sort((x, y) => Math.abs(x.t - at(day, t)) - Math.abs(y.t - at(day, t)))[0];
+      const taken = nearest && [...byKind.values()].includes(nearest.id);
+      if (nearest && !taken) byKind.set(t, nearest.id);
+    }
     for (const [t, label] of MEALS) {
       const ms = at(day, t);
-      const hit = meals.find((m) => !used.has(m.id) && Math.abs(m.t - ms) <= 90 * 60_000);
+      const kindHit = meals.find((m) => m.id === byKind.get(t));
+      const hit =
+        kindHit ??
+        meals.find(
+          (m) =>
+            !used.has(m.id) &&
+            ![...byKind.values()].includes(m.id) &&
+            Math.abs(m.t - ms) <= 90 * 60_000,
+        );
       if (hit) used.add(hit.id);
       out.push({
         id: `meal-${t}`,
