@@ -1054,3 +1054,12 @@ html, #care-content { scrollbar-gutter: stable; }
 .nv-day-actions { gap: .5rem !important; }
 .nv-day-actions > button, .nv-day-actions > span > button, .nv-day-actions > a { height: 2.25rem !important; min-height: 2.25rem !important; padding-inline: .75rem !important; font-size: 12.5px !important; border-radius: 0 !important; box-shadow: none !important; }
 .nv-day-actions > button[aria-label="Meu perfil"] { width: 2.25rem; padding-inline: 0 !important; }
+
+/* Pulso de luz que percorre a linha lateral de ponta a ponta */
+@keyframes nv-side-run { from { stroke-dashoffset: 100; } to { stroke-dashoffset: -100; } }
+.nv-side-run { stroke-dasharray: 8 92; animation: nv-side-run 7s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .nv-side-run { animation: none; stroke-dasharray: none; opacity: .35; } }
+
+/* Aba ativa do menu superior: barra fina com brilho suave e leve realce de fundo */
+.nv-tab-on { background: linear-gradient(to top, color-mix(in srgb, var(--color-primary) 10%, transparent), transparent 70%); }
+.nv-tab-on::after { height: 3px; box-shadow: 0 0 10px color-mix(in srgb, var(--color-primary) 70%, transparent); }

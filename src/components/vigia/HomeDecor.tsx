@@ -16,10 +16,15 @@ import {
   Utensils,
 } from "lucide-react";
 
-/** Coluna de arte gráfica para as faixas laterais vazias em telas largas: anéis, pulso, pontos e ícones flutuando. */
+/** Coluna lateral em toda a altura da página: linha de pulso contínua com pulso de luz percorrendo e ícones soltos, sem molduras. */
 function SideColumn({ side }: { side: "left" | "right" }) {
   const flip = side === "right";
-  const icons = flip ? [Dumbbell, Moon, Pill] : [Droplets, Leaf, HeartPulse];
+  const icons = flip ? [Dumbbell, Moon, Pill, Activity] : [Droplets, Leaf, HeartPulse, Timer];
+  // Um batimento a cada 200 unidades, repetido por toda a altura.
+  const beat = (y: number) =>
+    `L20 ${y + 70} L14 ${y + 82} L28 ${y + 104} L16 ${y + 128} L22 ${y + 140} L20 ${y + 152}`;
+  let d = "M20 0";
+  for (let y = 0; y < 800; y += 200) d += ` L20 ${y + 40}` + beat(y) + ` L20 ${y + 200}`;
   return (
     <div
       aria-hidden="true"
@@ -28,54 +33,58 @@ function SideColumn({ side }: { side: "left" | "right" }) {
       <svg
         className="absolute inset-0 size-full text-primary"
         preserveAspectRatio="none"
-        viewBox="0 0 100 800"
+        viewBox="0 0 40 800"
       >
         <defs>
-          <radialGradient id={`nv-side-glow-${side}`} cx={flip ? "100%" : "0%"} cy="30%" r="90%">
-            <stop offset="0" stopColor="currentColor" stopOpacity=".28" />
+          <linearGradient id={`nv-side-fade-${side}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="currentColor" stopOpacity="0" />
+            <stop offset=".15" stopColor="currentColor" stopOpacity=".5" />
+            <stop offset=".85" stopColor="currentColor" stopOpacity=".5" />
             <stop offset="1" stopColor="currentColor" stopOpacity="0" />
-          </radialGradient>
-          <pattern id={`nv-side-dots-${side}`} width="10" height="10" patternUnits="userSpaceOnUse">
-            <circle cx="2" cy="2" r="1" fill="currentColor" opacity=".22" />
-          </pattern>
+          </linearGradient>
+          <linearGradient
+            id={`nv-side-edge-${side}`}
+            x1={flip ? "1" : "0"}
+            y1="0"
+            x2={flip ? "0" : "1"}
+            y2="0"
+          >
+            <stop offset="0" stopColor="currentColor" stopOpacity=".16" />
+            <stop offset="1" stopColor="currentColor" stopOpacity="0" />
+          </linearGradient>
         </defs>
-        <rect width="100" height="800" fill={`url(#nv-side-glow-${side})`} />
-        <rect
-          x={flip ? 10 : 30}
-          y="430"
-          width="60"
-          height="220"
-          fill={`url(#nv-side-dots-${side})`}
-        />
-      </svg>
-      <svg
-        className="absolute left-1/2 top-[12%] h-[70%] w-10 -translate-x-1/2 text-primary"
-        viewBox="0 0 40 400"
-        fill="none"
-      >
+        <rect width="40" height="800" fill={`url(#nv-side-edge-${side})`} />
         <path
-          className="nv-side-pulse"
-          d="M20 0V120L8 140 32 170 14 200 26 215 20 230V400"
+          d={d}
+          fill="none"
+          stroke={`url(#nv-side-fade-${side})`}
+          strokeWidth="1.2"
+          vectorEffect="non-scaling-stroke"
+          strokeLinejoin="round"
+        />
+        <path
+          d={d}
+          fill="none"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth="2.2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          opacity=".55"
+          vectorEffect="non-scaling-stroke"
+          pathLength={100}
+          className="nv-side-run"
+          style={{
+            animationDelay: flip ? "-3.5s" : "0s",
+            filter: "drop-shadow(0 0 4px currentColor)",
+          }}
         />
       </svg>
-      <div
-        className={`absolute top-[6%] size-20 rounded-full border-2 border-primary/25 ${flip ? "-right-9" : "-left-9"}`}
-      >
-        <div className="absolute inset-4 rounded-full border border-primary/20" />
-        <div className="absolute inset-8 rounded-full bg-primary/10" />
-      </div>
       {icons.map((Icon, i) => (
         <span
           key={i}
-          className="nv-float absolute left-1/2 -ml-4 grid size-8 place-items-center rounded-lg border border-primary/25 bg-card/80 text-primary shadow-lg backdrop-blur"
-          style={{ top: `${30 + i * 22}%`, animationDelay: `${i * 1.3}s` }}
+          className="nv-float absolute left-1/2 -ml-2.5 text-primary/55"
+          style={{ top: `${12 + i * 24}%`, animationDelay: `${i * 1.3}s` }}
         >
-          <Icon size={16} />
+          <Icon size={20} strokeWidth={1.6} />
         </span>
       ))}
     </div>

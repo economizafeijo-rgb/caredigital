@@ -284,12 +284,8 @@ function PublicTopNav({ pathname }: { pathname: string }) {
           </div>
         )}
       </div>
-      <Link
-        to="/loja"
-        className="mx-1.5 inline-flex h-8 items-center gap-1.5 self-center border border-amber-400/50 bg-amber-400/10 px-3 text-[13px] font-bold text-amber-300 transition hover:bg-amber-400/20"
-        activeProps={{ className: "!bg-amber-400/25" }}
-      >
-        <ShoppingBag size={14} aria-hidden="true" /> Loja
+      <Link to="/loja" className={`${linkCls} !text-foreground`} activeProps={activeCls}>
+        <ShoppingBag size={15} aria-hidden="true" className="text-amber-400" /> Loja
       </Link>
       <Link to="/lojista" className={linkCls} activeProps={activeCls}>
         Seja lojista
