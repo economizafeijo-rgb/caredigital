@@ -209,12 +209,37 @@ export function NextUpClock({
 
   return (
     <div
-      className={`${compact ? "flex items-center gap-2.5 rounded-xl p-2" : "flex flex-wrap items-center gap-x-3 gap-y-2 p-2.5"} border backdrop-blur transition-colors duration-500 ${due ? "nv-due border-white/15 border-l-[3px] !border-l-amber-300 bg-amber-400/[.10]" : "border-white/15 bg-white/10"} ${className}`}
+      className={`${compact ? "flex items-center gap-2.5 rounded-xl p-2" : "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2.5 p-2 pb-2.5"} relative overflow-hidden border backdrop-blur transition-colors duration-500 ${due ? "nv-due border-white/15 border-l-[3px] !border-l-amber-300 bg-amber-400/[.10]" : "border-white/15 bg-white/10"} ${className}`}
       style={{ ["--due" as string]: PEND }}
     >
-      <div className={`flex items-center gap-2.5 ${compact ? "" : "min-w-[13rem] flex-1"}`}>
+      {!compact && when !== null && (
+        <>
+          {/* Régua de progresso e cantos técnicos: dão cara de instrumento sem ocupar altura. */}
+          <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[3px] bg-white/10">
+            <span
+              className="block h-full transition-[width] duration-1000 ease-linear"
+              style={{
+                width: `${(due ? 1 : progress) * 100}%`,
+                background: ink,
+                boxShadow: `0 0 8px ${ink}`,
+              }}
+            />
+          </span>
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute right-0 top-0 size-2 border-r border-t"
+            style={{ borderColor: ink }}
+          />
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute bottom-[3px] right-0 size-2 border-b border-r"
+            style={{ borderColor: ink }}
+          />
+        </>
+      )}
+      <div className={`flex min-w-0 items-center gap-2.5 ${compact ? "" : "flex-1"}`}>
         <div
-          className={`relative shrink-0 ${compact ? "size-[54px]" : "size-[56px]"}`}
+          className={`relative shrink-0 ${compact ? "size-[54px]" : "size-[46px]"}`}
           aria-hidden="true"
         >
           <svg viewBox="0 0 100 100" className="size-full">
@@ -270,7 +295,7 @@ export function NextUpClock({
           </svg>
           <span className="absolute inset-0 grid place-items-center">
             {due ? (
-              <span className={`relative grid place-items-center ${compact ? "size-8" : "size-9"}`}>
+              <span className={`relative grid place-items-center ${compact ? "size-8" : "size-7"}`}>
                 <svg viewBox="0 0 48 48" className="absolute inset-0 size-full">
                   <circle cx="24" cy="24" r="20" fill="#fbbf24" fillOpacity=".14" />
                   <circle
@@ -321,7 +346,7 @@ export function NextUpClock({
             <p className="mt-0.5 truncate text-sm font-bold">{emptyText}</p>
           ) : due ? (
             <p
-              className={`mt-0.5 flex items-baseline gap-2 font-extrabold leading-none text-lg`}
+              className={`mt-0.5 flex items-baseline gap-2 whitespace-nowrap text-lg font-extrabold leading-none`}
               style={{ color: PEND }}
             >
               {lateMin < 1 ? "É hora!" : "Pendente"}
@@ -335,7 +360,10 @@ export function NextUpClock({
               )}
             </p>
           ) : (
-            <p className={`mt-0.5 font-mono font-bold tabular-nums leading-none text-lg`}>
+            <p
+              className={`mt-0.5 font-mono text-xl font-bold leading-none tabular-nums`}
+              style={compact ? undefined : { textShadow: `0 0 10px ${ink}66` }}
+            >
               {countdown(when - now)}
             </p>
           )}
@@ -359,7 +387,7 @@ export function NextUpClock({
               className="inline-flex min-w-0 flex-1 items-center justify-center gap-1.5 whitespace-nowrap bg-white px-3 text-sm font-bold text-slate-900 transition hover:bg-white/90 active:scale-[.98]"
             >
               <Check size={15} className="shrink-0" />
-              <span className="truncate">{actionLabel ?? "Registrar"}</span>
+              <span className="max-w-[8rem] truncate">{actionLabel ?? "Registrar"}</span>
             </button>
           )}
           {onAction && onEdit && (
@@ -368,7 +396,7 @@ export function NextUpClock({
               onClick={onEdit}
               title="Alterar a quantidade"
               aria-label="Alterar a quantidade antes de registrar"
-              className="grid w-10 shrink-0 place-items-center border border-white/25 text-white/85 transition hover:bg-white/10 active:scale-95"
+              className="grid w-9 shrink-0 place-items-center border border-white/25 text-white/85 transition hover:bg-white/10 active:scale-95"
             >
               <Pencil size={14} />
             </button>
@@ -381,9 +409,9 @@ export function NextUpClock({
                 aria-expanded={menu}
                 aria-label="Adiar"
                 title="Adiar"
-                className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap border border-white/25 px-3 text-xs font-semibold text-white/85 transition hover:bg-white/10 active:scale-95"
+                className="grid w-9 shrink-0 place-items-center border border-white/25 text-white/85 transition hover:bg-white/10 active:scale-95"
               >
-                <TimerReset size={14} /> Adiar
+                <TimerReset size={14} />
               </button>
               {menu && (
                 <span className="absolute bottom-11 right-0 z-20 flex flex-col border border-white/20 bg-slate-950/95 p-1 text-[12px] shadow-xl">
@@ -410,7 +438,7 @@ export function NextUpClock({
               onClick={onCancel}
               title="Sem apetite"
               aria-label="Sem apetite"
-              className="grid w-10 shrink-0 place-items-center border border-white/25 text-white/75 transition hover:bg-white/10 hover:text-white active:scale-95"
+              className="grid w-9 shrink-0 place-items-center border border-white/25 text-white/75 transition hover:bg-white/10 hover:text-white active:scale-95"
             >
               <X size={14} />
             </button>
@@ -419,9 +447,11 @@ export function NextUpClock({
             <button
               type="button"
               onClick={() => setSnooze(Date.now() + 10 * 60_000)}
-              className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap border border-white/25 px-3 text-xs font-semibold text-white/85 transition hover:bg-white/10 active:scale-95"
+              title="Adiar 10 minutos"
+              aria-label="Adiar 10 minutos"
+              className="grid w-9 shrink-0 place-items-center border border-white/25 text-white/85 transition hover:bg-white/10 active:scale-95"
             >
-              <TimerReset size={14} /> Adiar 10 min
+              <TimerReset size={14} />
             </button>
           )}
         </div>
