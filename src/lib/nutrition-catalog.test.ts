@@ -37,8 +37,8 @@ describe("NextVita nutrition safety and planning",()=>{
   expect(chicken.fat).toBe(3.2);
   expect(chicken.kcal).toBe(163);
   expect(chicken.provenance).toBe("TACO");
-  expect(ingredients).toHaveLength(246);
-  expect(ingredients.filter(x=>x.protein!==null&&x.carbs!==null&&x.fat!==null).length).toBe(243);
+  expect(ingredients).toHaveLength(248);
+  expect(ingredients.filter(x=>x.protein!==null&&x.carbs!==null&&x.fat!==null).length).toBe(245);
  });
  it("converts 100g and calculated portions without pretending labels are verified",()=>{
   const chicken=ingredients.find(x=>x.id==="frango")!;
@@ -101,5 +101,17 @@ describe("Bebidas e sugestões por refeição", () => {
   it("sugestões e refeições prontas são reconhecidas pelo calculador", () => {
     for (const list of [...Object.values(mealCombos), ...Object.values(typicalFoods), ...Object.values(typicalDrinks)])
       for (const item of list ?? []) if (item.label !== "Suco") expect(parseFoodText(item.text).length, item.label).toBeGreaterThan(0);
+  });
+});
+
+describe("pimenta da terra e cebola de palha", () => {
+  it("reconhece os dois e não confunde a cebola de palha com cebola crua", async () => {
+    const { parseFoodText } = await import("./food-parser");
+    const ids = (t: string) => parseFoodText(t).map((f) => f.id);
+    expect(ids("peito de frango, tomates, cenoura, batata, chicória, cebola de palha, pimenta da terra")).toEqual(
+      ["frango_grelhado", "tomate", "cenoura", "batata", "chicoria", "cebola_palha", "pimenta_terra"],
+    );
+    expect(ids("cebola")).toEqual(["cebola"]);
+    expect(ids("pimentão verde")).toEqual(["pimentao"]);
   });
 });

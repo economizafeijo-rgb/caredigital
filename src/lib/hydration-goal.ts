@@ -1,4 +1,5 @@
 import { WATER_LAST_RECOMMENDED_HOUR } from "./nutrition-science";
+import { COMFORT_ML_PER_HOUR } from "./hydration-need";
 export type HydrationGoalStatus = "sem_meta" | "em_andamento" | "atingida" | "nao_atingida";
 export type HydrationGoalSnapshot = {
   goal_date: string;
@@ -59,8 +60,10 @@ export function hydrationGoalNotice(goal: HydrationGoalSnapshot | null, now: num
  * Estima o horário e o volume da próxima hidratação a partir do último líquido
  * registrado, do volume restante da meta e do tempo disponível até o horário ideal para concluir a água (padrão 20h).
  * - Porções confortáveis de ~250 ml (máx. 350 ml);
- * - intervalo mínimo proporcional ao volume ingerido (~800 ml/h de absorção);
- * - intervalo máximo de 2h para manter a regularidade.
+ * - intervalo mínimo que mantém o ritmo em até ~500 ml/h, com folga em relação ao que os rins eliminam (0,8 a 1 L/h);
+ * - intervalo máximo de 2h para manter a regularidade;
+ * - `safeRemainingMl`: o máximo que cabe até o horário-limite sem passar de 500 ml/h. Se o restante for maior,
+ *   `reachable` é falso: não se deve compensar bebendo de uma vez.
  */
 export function estimateNextHydration(input: {
   remainingMl: number;
@@ -68,18 +71,19 @@ export function estimateNextHydration(input: {
   lastAmountMl: number;
   now: number;
   cutoff: number;
-}): { at: number; suggestedMl: number; intervalMin: number; portions: number } | null {
+}): { at: number; suggestedMl: number; intervalMin: number; portions: number; reachable: boolean; safeRemainingMl: number } | null {
   const { remainingMl, lastIntakeAt, lastAmountMl, now, cutoff } = input;
   if (remainingMl < 10 || now >= cutoff) return null;
   const from = lastIntakeAt ?? now;
   const portions = Math.max(1, Math.ceil(remainingMl / 250));
   const windowMin = Math.max(0, (cutoff - from) / 60_000);
-  const minGap = Math.max(20, Math.round((lastAmountMl / 800) * 60));
+  const minGap = Math.max(30, Math.round((lastAmountMl / COMFORT_ML_PER_HOUR) * 60));
   const spread = windowMin / portions;
   const intervalMin = lastIntakeAt ? Math.round(Math.min(120, Math.max(minGap, spread))) : 0;
   let at = from + intervalMin * 60_000;
   if (at < now) at = now;
   if (at > cutoff) at = cutoff;
   const suggestedMl = Math.min(350, Math.max(10, Math.round(remainingMl / portions / 10) * 10));
-  return { at, suggestedMl, intervalMin, portions };
+  const safeRemainingMl = Math.round(((Math.max(0, cutoff - Math.max(now, from)) / 3_600_000) * COMFORT_ML_PER_HOUR) / 10) * 10;
+  return { at, suggestedMl, intervalMin, portions, reachable: remainingMl <= safeRemainingMl, safeRemainingMl };
 }

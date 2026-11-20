@@ -1,3 +1,4 @@
+import { hydrationNeed } from "@/lib/hydration-need";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { NiceSelect } from "./NiceSelect";
 import {
@@ -88,34 +89,23 @@ const dateKey = (iso: string) =>
     day: "2-digit",
   }).format(new Date(iso));
 function estimate(profile: Profile) {
-  if (
-    profile.age < 18 ||
-    profile.age > 110 ||
-    profile.weight_kg < 30 ||
-    profile.weight_kg > 250 ||
-    profile.activity_minutes < 0 ||
-    profile.activity_minutes > 240
-  )
-    return null;
-  const base = round50(profile.weight_kg * 30);
-  const activity =
-    profile.activity_minutes === 0
-      ? 0
-      : round50(
-          Math.min(
-            600,
-            (profile.activity_minutes / 60) *
-              (profile.sweat === "high" ? 500 : profile.sweat === "low" ? 250 : 350),
-          ),
-        );
-  const target = base + activity;
-  const reference = profile.sex === "male" ? 3000 : profile.sex === "female" ? 2200 : null;
+  const need = hydrationNeed({
+    sex: profile.sex,
+    age: profile.age,
+    weightKg: profile.weight_kg,
+    activityMinutes: profile.activity_minutes,
+    sweat: profile.sweat,
+    fluidRestriction: profile.fluid_restriction,
+  });
+  if (!need) return null;
   return {
-    base,
-    activity,
-    target,
-    reference,
-    requiresReview: profile.fluid_restriction || profile.age >= 75 || target > 4000,
+    base: need.base,
+    activity: need.activity,
+    target: need.target,
+    band: need.band,
+    notes: need.notes,
+    reviewReasons: need.reviewReasons,
+    requiresReview: need.requiresReview,
   };
 }
 export function ClientHydrationTab({
@@ -721,18 +711,28 @@ export function ClientHydrationTab({
           {calculation ? (
             <p className="mt-2 rounded-lg bg-card p-2 text-[11px]">
               <strong>Estimativa: {calculation.target.toLocaleString("pt-BR")} ml/dia.</strong>{" "}
-              Referência de aproximadamente 30 ml/kg com ajuste ilustrativo à atividade.
+              Base de 30 ml/kg ({calculation.base.toLocaleString("pt-BR")} ml), mantida na faixa de
+              referência por sexo ({calculation.band.min.toLocaleString("pt-BR")} a{" "}
+              {calculation.band.max.toLocaleString("pt-BR")} ml; EFSA 2010 e National Academies 2004)
+              {calculation.activity > 0
+                ? `, mais ${calculation.activity.toLocaleString("pt-BR")} ml para repor o suor do treino`
+                : ""}
+              . O objetivo não muda a quantidade de água; o que muda é o treino e o suor.
               {calculation.requiresReview && (
                 <span className="mt-1 block font-semibold text-amber-700 dark:text-amber-300">
                   <AlertCircle size={12} className="mr-1 inline" />
-                  Meta individual deve ser avaliada por profissional.
+                  Meta individual deve ser avaliada por profissional ({calculation.reviewReasons.join("; ")}).
                 </span>
               )}
-              {calculation.reference && (
-                <span className="block text-muted-foreground">
-                  Referência populacional: {calculation.reference} ml/dia.
+              {calculation.notes.map((note) => (
+                <span key={note} className="mt-1 block text-muted-foreground">
+                  {note}
                 </span>
-              )}
+              ))}
+              <span className="mt-1 block text-muted-foreground">
+                Ritmo seguro: 200 a 300 ml por vez, em média até 500 ml por hora. Os rins eliminam
+                cerca de 0,8 a 1 L por hora; passar disso acumula água no corpo.
+              </span>
             </p>
           ) : (
             <p className="mt-2 text-[11px] text-muted-foreground">

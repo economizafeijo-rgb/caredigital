@@ -15,7 +15,16 @@ describe("estimateNextHydration", () => {
   it("respeita intervalo mínimo após grande volume", () => {
     const last = cutoff - 2 * H;
     const r = estimateNextHydration({ remainingMl: 1500, lastIntakeAt: last, lastAmountMl: 800, now: last, cutoff })!;
-    expect(r.intervalMin).toBe(60);
+    expect(r.intervalMin).toBe(96); // 800 ml a 500 ml/h
+  });
+  it("não deixa o ritmo passar de 500 ml/h e avisa quando o restante não cabe com segurança", () => {
+    const now = cutoff - 1 * H;
+    const r = estimateNextHydration({ remainingMl: 2000, lastIntakeAt: now, lastAmountMl: 250, now, cutoff })!;
+    expect(r.intervalMin).toBeGreaterThanOrEqual(30); // 250 ml a cada 30 min = 500 ml/h
+    expect(r.reachable).toBe(false);
+    expect(r.safeRemainingMl).toBe(500);
+    const ok = estimateNextHydration({ remainingMl: 400, lastIntakeAt: now, lastAmountMl: 250, now, cutoff })!;
+    expect(ok.reachable).toBe(true);
   });
   it("sem registro ou atrasado sugere agora", () => {
     const now = cutoff - 5 * H;
