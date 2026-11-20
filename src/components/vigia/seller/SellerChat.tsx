@@ -1,6 +1,25 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { ArrowLeft, CheckSquare, MessageCircle, Send, Square, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  CheckSquare,
+  ChevronDown,
+  Clock3,
+  Zap,
+  MessageCircle,
+  Send,
+  Square,
+  Trash2,
+} from "lucide-react";
 import { useDialog } from "@/lib/dialog";
+import {
+  CHAT_RULE_NOTE,
+  QUICK_GROUPS,
+  computeQueue,
+  fmtWait,
+  validateChatText,
+} from "@/lib/chat-rules";
+import { playSound } from "@/lib/chat-sound";
+import { SoundToggle } from "../chat/ChatToasts";
 import { supabase } from "@/integrations/supabase/client";
 import type { ChatMessage, Vendor } from "@/lib/marketplace";
 
@@ -12,12 +31,6 @@ const time = (iso: string) =>
     hour: "2-digit",
     minute: "2-digit",
   });
-const QUICK = [
-  "Olá! Como posso ajudar?",
-  "Temos sim, pode fazer o pedido pelo app.",
-  "Seu pedido já está separado.",
-  "Pode retirar com o código no balcão.",
-];
 
 /** Conversas da loja com clientes cadastrados: lista à esquerda e a conversa à direita. */
 export function SellerChat({
@@ -61,6 +74,16 @@ export function SellerChat({
   const [text, setText] = useState("");
   const [err, setErr] = useState("");
   const end = useRef<HTMLDivElement>(null);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(t);
+  }, []);
+  const queue = useMemo(
+    () => computeQueue(messages, now, vendor.chat_capacity ?? 3),
+    [messages, now, vendor.chat_capacity],
+  );
+  const [quickOpen, setQuickOpen] = useState(false);
   const [selecting, setSelecting] = useState(false);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   async function deleteThreads(ids: string[]) {
@@ -127,6 +150,8 @@ export function SellerChat({
   async function send(e?: FormEvent, body = text) {
     e?.preventDefault();
     if (!active || !body.trim()) return;
+    const bad = validateChatText(body);
+    if (bad) return setErr(bad);
     const { error } = await (supabase as any)
       .from("care_store_messages")
       .insert({ vendor_id: vendor.id, customer_id: active, from_vendor: true, body: body.trim() });
@@ -136,6 +161,7 @@ export function SellerChat({
     }
     setErr("");
     setText("");
+    playSound("sent");
     onChanged();
   }
 
@@ -185,6 +211,48 @@ export function SellerChat({
             </button>
           </div>
         )}
+        <div className="grid gap-1.5 border-b border-border bg-muted/30 px-4 py-2.5 text-xs">
+          <p className="flex items-center justify-between font-semibold">
+            <span>Em atendimento</span>
+            <span className="tabular-nums">
+              {queue.active.length}/{queue.capacity}
+            </span>
+          </p>
+          <div className="flex h-1.5 gap-0.5" aria-hidden="true">
+            {Array.from({ length: queue.capacity }, (_, i) => (
+              <span
+                key={i}
+                className={`flex-1 ${i < queue.active.length ? "bg-emerald-500" : "bg-border"}`}
+              />
+            ))}
+          </div>
+          <p className="flex items-center justify-between text-muted-foreground">
+            <span className="inline-flex items-center gap-1">
+              <Clock3 size={12} /> Na fila de espera
+            </span>
+            <strong className={queue.waiting.length ? "text-amber-600 dark:text-amber-300" : ""}>
+              {queue.waiting.length}
+            </strong>
+          </p>
+          {queue.waiting.slice(0, 4).map((w) => (
+            <button
+              key={w.id}
+              type="button"
+              onClick={() => {
+                setSelecting(false);
+                setSel(w.id);
+              }}
+              className="flex items-center justify-between gap-2 border border-border bg-card px-2 py-1 text-left hover:bg-muted"
+            >
+              <span className="truncate">
+                {w.position}º · {w.name}
+              </span>
+              <span className="shrink-0 font-bold tabular-nums text-amber-600 dark:text-amber-300">
+                {fmtWait((now - w.since) / 1000)}
+              </span>
+            </button>
+          ))}
+        </div>
         <ul className="min-h-0 flex-1 overflow-y-auto">
           {threads.map((t) => (
             <li key={t.id}>
@@ -255,6 +323,7 @@ export function SellerChat({
               >
                 {name.slice(0, 1)}
               </span>
+              <SoundToggle />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-bold">{name}</p>
                 <p className="text-[11px] text-muted-foreground">Cliente cadastrado na NextVita</p>
@@ -304,23 +373,46 @@ export function SellerChat({
               ))}
               <div ref={end} />
             </div>
-            <div className="flex gap-1.5 overflow-x-auto border-t border-border px-3 pt-2 [scrollbar-width:none]">
-              {QUICK.map((qk) => (
-                <button
-                  key={qk}
-                  type="button"
-                  onClick={() => void send(undefined, qk)}
-                  className="shrink-0 rounded-full border border-border px-2.5 py-1 text-[11.5px] text-muted-foreground hover:text-foreground"
-                >
-                  {qk}
-                </button>
-              ))}
+            <div className="border-t border-border px-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setQuickOpen((v) => !v)}
+                aria-expanded={quickOpen}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary"
+              >
+                <Zap size={13} /> Respostas prontas
+                <ChevronDown size={13} className={quickOpen ? "rotate-180" : ""} />
+              </button>
+              {quickOpen && (
+                <div className="mt-2 grid max-h-44 gap-2 overflow-y-auto border border-border bg-card p-2">
+                  {QUICK_GROUPS.map((g) => (
+                    <div key={g.title}>
+                      <p className="mb-1 text-[11px] font-bold text-muted-foreground">{g.title}</p>
+                      <div className="flex flex-wrap gap-1">
+                        {g.items.map((qk) => (
+                          <button
+                            key={qk}
+                            type="button"
+                            onClick={() => {
+                              setText(qk);
+                              setQuickOpen(false);
+                            }}
+                            className="border border-border px-2 py-1 text-left text-[11.5px] hover:bg-muted"
+                          >
+                            {qk}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             <form onSubmit={send} className="flex gap-2 p-3">
               <input
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                maxLength={1000}
+                maxLength={500}
                 placeholder="Escreva uma resposta"
                 aria-label="Mensagem"
                 className="h-10 min-w-0 flex-1 rounded-full border border-border bg-surface px-4 text-sm"
@@ -335,6 +427,7 @@ export function SellerChat({
                 <Send size={16} />
               </button>
             </form>
+            <p className="px-4 pb-2 text-[11px] text-muted-foreground">{CHAT_RULE_NOTE}</p>
             {err && (
               <p role="alert" className="px-4 pb-3 text-xs text-rose-600">
                 {err}

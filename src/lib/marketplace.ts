@@ -191,6 +191,7 @@ export type Vendor = {
   prep_minutes?: number;
   delivery_minutes?: number;
   is_demo?: boolean;
+  chat_capacity?: number;
 };
 export type VendorProduct = {
   id: string;

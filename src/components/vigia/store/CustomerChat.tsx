@@ -2,6 +2,19 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
 import { LogIn, Send, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { ChatMessage } from "@/lib/marketplace";
+import { AVG_SERVICE_SECONDS, CHAT_RULE_NOTE, fmtWait, validateChatText } from "@/lib/chat-rules";
+import { playSound } from "@/lib/chat-sound";
+import { ChatToastHost, SoundToggle, pushChatToast } from "../chat/ChatToasts";
+
+type Queue = {
+  state: "livre" | "atendimento" | "fila" | "vez";
+  active: number;
+  capacity: number;
+  ahead: number;
+  since: string | null;
+  now: string;
+  avg_seconds?: number;
+};
 
 const time = (iso: string) =>
   new Date(iso).toLocaleTimeString("pt-BR", {
@@ -25,6 +38,15 @@ export function CustomerChat({
   const [text, setText] = useState("");
   const [err, setErr] = useState("");
   const end = useRef<HTMLDivElement>(null);
+  const [queue, setQueue] = useState<Queue | null>(null);
+  const [clock, setClock] = useState(() => Date.now());
+  const skew = useRef(0);
+  const prevState = useRef<string | null>(null);
+  const seenIds = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    const t = window.setInterval(() => setClock(Date.now()), 1000);
+    return () => window.clearInterval(t);
+  }, []);
   const accent = vendor.accent_hex ?? "#0e7a5f";
 
   useEffect(() => {
@@ -54,7 +76,27 @@ export function CustomerChat({
       .eq("customer_id", user.id)
       .order("created_at")
       .limit(300);
-    setMsgs(data ?? []);
+    const list: ChatMessage[] = data ?? [];
+    // Aviso e som quando a loja responde com a conversa aberta.
+    if (seenIds.current) {
+      for (const m of list)
+        if (m.from_vendor && !m.deleted_at && !seenIds.current.has(m.id))
+          pushChatToast({ title: vendor.name, body: m.body, tone: "message" }, "incoming");
+    }
+    seenIds.current = new Set(list.map((m) => m.id));
+    setMsgs(list);
+    const q = await (supabase as any).rpc("care_store_chat_queue", { p_vendor: vendor.id });
+    if (q.data) {
+      const qq = q.data as Queue;
+      skew.current = Date.parse(qq.now) - Date.now();
+      if (qq.state === "vez" && prevState.current !== "vez")
+        pushChatToast(
+          { title: "É a sua vez", body: `${vendor.name} já vai responder você.`, tone: "turn" },
+          "turn",
+        );
+      prevState.current = qq.state;
+      setQueue(qq);
+    }
     const unread = (data ?? [])
       .filter((m: ChatMessage) => m.from_vendor && !m.read_at)
       .map((m: ChatMessage) => m.id);
@@ -63,9 +105,11 @@ export function CustomerChat({
         .from("care_store_messages")
         .update({ read_at: new Date().toISOString() })
         .in("id", unread);
-  }, [user, vendor.id]);
+  }, [user, vendor.id, vendor.name]);
   useEffect(() => {
     void load();
+    const t = window.setInterval(() => void load(), 20000);
+    return () => window.clearInterval(t);
   }, [load]);
   useEffect(() => {
     const db = supabase as any;
@@ -99,6 +143,8 @@ export function CustomerChat({
   async function send(e: FormEvent) {
     e.preventDefault();
     if (!user || !text.trim()) return;
+    const bad = validateChatText(text);
+    if (bad) return setErr(bad);
     const { error } = await (supabase as any).from("care_store_messages").insert({
       vendor_id: vendor.id,
       customer_id: user.id,
@@ -113,6 +159,7 @@ export function CustomerChat({
     }
     setErr("");
     setText("");
+    playSound("sent");
     void load();
   }
   async function remove(id: string) {
@@ -140,6 +187,7 @@ export function CustomerChat({
       className="fixed inset-0 z-[95] flex items-end justify-end bg-black/40 backdrop-blur-[2px] sm:p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
+      <ChatToastHost />
       <div className="nv-fade-in flex h-[min(36rem,92dvh)] w-full flex-col overflow-hidden rounded-t-3xl bg-card shadow-2xl sm:w-[24rem] sm:rounded-3xl">
         <header
           className="flex items-center gap-3 px-4 py-3 text-white"
@@ -152,6 +200,7 @@ export function CustomerChat({
             <p className="truncate text-sm font-bold">{vendor.name}</p>
             <p className="text-[11px] text-white/75">Responde pelo chat da NextVita</p>
           </div>
+          <SoundToggle className="!border-white/30 text-white hover:!bg-white/15" />
           <button
             type="button"
             onClick={onClose}
@@ -178,6 +227,12 @@ export function CustomerChat({
           </div>
         ) : (
           <>
+            {queue &&
+              (queue.state === "fila" ||
+                queue.state === "vez" ||
+                queue.state === "atendimento") && (
+                <QueueBanner q={queue} clock={clock + skew.current} accent={accent} />
+              )}
             <div className="min-h-0 flex-1 space-y-2 overflow-y-auto bg-muted/40 px-3 py-3">
               {!msgs.length && (
                 <p className="mx-auto mt-6 max-w-[16rem] text-center text-xs text-muted-foreground">
@@ -219,7 +274,7 @@ export function CustomerChat({
               <input
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                maxLength={1000}
+                maxLength={500}
                 placeholder="Escreva sua mensagem"
                 aria-label="Mensagem"
                 className="h-10 min-w-0 flex-1 rounded-full border border-border bg-surface px-4 text-sm"
@@ -235,6 +290,7 @@ export function CustomerChat({
                 <Send size={16} />
               </button>
             </form>
+            <p className="px-4 pb-2 text-[11px] text-muted-foreground">{CHAT_RULE_NOTE}</p>
             {err && (
               <p role="alert" className="px-4 pb-2 text-xs text-rose-600">
                 {err}
@@ -242,6 +298,44 @@ export function CustomerChat({
             )}
           </>
         )}
+      </div>
+    </div>
+  );
+}
+
+/** Faixa de espera: posição, tempo decorrido e estimado, com linha de progresso em tempo real. */
+function QueueBanner({ q, clock, accent }: { q: Queue; clock: number; accent: string }) {
+  if (q.state === "atendimento")
+    return (
+      <p className="flex items-center gap-2 border-b border-border bg-emerald-500/10 px-4 py-2 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+        <span className="size-2 animate-pulse bg-emerald-500" /> Você está em atendimento
+      </p>
+    );
+  const elapsed = q.since ? Math.max(0, (clock - Date.parse(q.since)) / 1000) : 0;
+  const per = q.avg_seconds ?? AVG_SERVICE_SECONDS;
+  const total = (q.ahead + 1) * per;
+  const left = Math.max(0, total - elapsed);
+  const pct = Math.min(100, Math.round((elapsed / Math.max(total, 1)) * 100));
+  const turn = q.state === "vez";
+  return (
+    <div
+      className={`border-b border-border px-4 py-2.5 text-xs ${turn ? "bg-amber-400/15" : "bg-muted/50"}`}
+      role="status"
+    >
+      <p className="flex items-center justify-between gap-2 font-semibold">
+        <span>
+          {turn ? "É a sua vez! Já vamos responder." : `Você é o ${q.ahead + 1}º da fila`}
+        </span>
+        <span className="tabular-nums">{turn ? "" : `~${fmtWait(left)}`}</span>
+      </p>
+      <p className="mt-0.5 text-muted-foreground">
+        {q.active}/{q.capacity} em atendimento agora · espera {fmtWait(elapsed)}
+      </p>
+      <div className="mt-1.5 h-1.5 bg-border" aria-hidden="true">
+        <div
+          className="h-full transition-[width] duration-1000 ease-linear"
+          style={{ width: `${turn ? 100 : pct}%`, background: turn ? "#f59e0b" : accent }}
+        />
       </div>
     </div>
   );

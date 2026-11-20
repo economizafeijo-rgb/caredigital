@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
   BadgeCheck,
   Boxes,
@@ -12,7 +12,8 @@ import {
   Store,
   Wallet,
 } from "lucide-react";
-import { PLANS, segmentLabel, type Vendor } from "@/lib/marketplace";
+import { PLANS, money, segmentLabel, type Vendor } from "@/lib/marketplace";
+import { ChatToastHost, pushChatToast } from "../chat/ChatToasts";
 import { useSellerData } from "./useSellerData";
 import { SellerOverview } from "./SellerOverview";
 import { SellerOrders } from "./SellerOrders";
@@ -48,6 +49,46 @@ export function SellerDashboard({
   const { data, loaded, error, reload } = useSellerData(vendor.id);
   const accent = vendor.accent_hex ?? "#0e7a5f";
 
+  // Avisos em tempo real: som e pop-up para mensagem nova do cliente e pedido novo.
+  const seen = useRef<{ vendor: string; ids: Set<string> } | null>(null);
+  useEffect(() => {
+    if (!loaded) return;
+    const ids = new Set([...data.messages.map((m) => m.id), ...data.orders.map((o) => o.id)]);
+    if (!seen.current || seen.current.vendor !== vendor.id) {
+      seen.current = { vendor: vendor.id, ids };
+      return;
+    }
+    const known = seen.current.ids;
+    for (const m of data.messages) {
+      if (known.has(m.id) || m.from_vendor || m.deleted_at) continue;
+      pushChatToast(
+        {
+          title: `Nova mensagem de ${m.customer_name ?? "cliente"}`,
+          body: m.body,
+          tone: "message",
+          onOpen: () => {
+            setChatWith(m.customer_id);
+            setTab("mensagens");
+          },
+        },
+        "incoming",
+      );
+    }
+    for (const o of data.orders) {
+      if (known.has(o.id)) continue;
+      pushChatToast(
+        {
+          title: "Novo pedido recebido",
+          body: `${o.customer_name} · ${money(o.total_cents)}`,
+          tone: "order",
+          onOpen: () => setTab("pedidos"),
+        },
+        "order",
+      );
+    }
+    seen.current = { vendor: vendor.id, ids };
+  }, [data.messages, data.orders, loaded, vendor.id]);
+
   const badges = useMemo(
     () => ({
       pedidos: data.orders.filter((o) =>
@@ -79,6 +120,7 @@ export function SellerDashboard({
 
   return (
     <div className="grid gap-4" style={{ "--accent-store": accent } as CSSProperties}>
+      <ChatToastHost />
       <header
         className="nv-dark relative isolate overflow-hidden rounded-2xl text-white"
         style={{

@@ -113,3 +113,88 @@ end;
 $$;
 revoke all on function public.care_store_delete_threads(uuid, uuid[]) from public, anon;
 grant execute on function public.care_store_delete_threads(uuid, uuid[]) to authenticated;
+
+-- Chat só para compra, confirmação e dúvidas: sem links, telefones, redes sociais; limite de mensagens sem resposta.
+alter table public.care_store_vendors add column if not exists chat_capacity integer not null default 3 check (chat_capacity between 1 and 50);
+
+create or replace function public.care_store_messages_guard()
+returns trigger language plpgsql security definer set search_path = public, pg_temp
+as $$
+declare v_last timestamptz; v_pending integer;
+begin
+  new.body := btrim(coalesce(new.body, ''));
+  if char_length(new.body) not between 1 and 500 then raise exception 'Message length invalid'; end if;
+  if new.body ~* '(https?://|www\.|\y[a-z0-9-]{2,}\.(com|br|net|org|io|me|app|link|ly|gg|co|info|site|xyz|shop|store|online|dev|ac)\y)'
+     or new.body ~* '(^|\s)@\w{3,}|\w+@\w+'
+     or new.body ~* '\y(whats?\s?app|whats|zap|zapzap|wpp|telegram|insta(gram)?|facebook|tiktok|discord|signal|e-?mail|gmail|hotmail|outlook)\y'
+     or char_length(regexp_replace(new.body, '[^0-9]', '', 'g')) >= 9 then
+    raise exception 'Links, phones and social contacts are not allowed in chat';
+  end if;
+  if not new.from_vendor then
+    select max(created_at) into v_last from public.care_store_messages
+      where vendor_id = new.vendor_id and customer_id = new.customer_id and from_vendor;
+    select count(*) into v_pending from public.care_store_messages
+      where vendor_id = new.vendor_id and customer_id = new.customer_id and not from_vendor
+        and deleted_at is null and created_at > coalesce(v_last, '-infinity');
+    if v_pending >= 4 then raise exception 'Too many unanswered messages'; end if;
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists care_store_messages_guard on public.care_store_messages;
+create trigger care_store_messages_guard before insert on public.care_store_messages
+  for each row execute function public.care_store_messages_guard();
+
+-- Fila de espera do cliente: quantos estão em atendimento e a posição de quem espera.
+create or replace function public.care_store_chat_queue(p_vendor uuid)
+returns jsonb language plpgsql stable security definer set search_path = public, pg_temp
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_cap integer; v_active integer; v_state text := 'livre'; v_ahead integer := 0; v_since timestamptz;
+  v_me_vendor timestamptz; v_me_pending timestamptz;
+begin
+  if v_uid is null then raise exception 'Authentication required'; end if;
+  select chat_capacity into v_cap from public.care_store_vendors where id = p_vendor and status = 'ativo';
+  if v_cap is null then raise exception 'Vendor unavailable'; end if;
+  with t as (
+    select customer_id,
+           max(created_at) filter (where from_vendor) as last_vendor,
+           min(created_at) filter (where not from_vendor and deleted_at is null) as first_msg
+      from public.care_store_messages where vendor_id = p_vendor and created_at > now() - interval '6 hours' group by customer_id
+  ), s as (
+    select t.customer_id,
+           (t.last_vendor is not null and t.last_vendor > now() - interval '10 minutes') as is_active,
+           (select min(m.created_at) from public.care_store_messages m
+             where m.vendor_id = p_vendor and m.customer_id = t.customer_id and not m.from_vendor and m.deleted_at is null
+               and m.created_at > coalesce(t.last_vendor, '-infinity')) as pending_since
+      from t
+  )
+  select count(*) filter (where is_active) into v_active from s;
+  select (select max(created_at) from public.care_store_messages where vendor_id = p_vendor and customer_id = v_uid and from_vendor),
+         null into v_me_vendor, v_me_pending;
+  if v_me_vendor is not null and v_me_vendor > now() - interval '10 minutes' then
+    v_state := 'atendimento';
+  else
+    select min(created_at) into v_since from public.care_store_messages
+      where vendor_id = p_vendor and customer_id = v_uid and not from_vendor and deleted_at is null
+        and created_at > coalesce(v_me_vendor, '-infinity') and created_at > now() - interval '6 hours';
+    if v_since is not null then
+      select count(*) into v_ahead from (
+        select m.customer_id, min(m.created_at) as since
+          from public.care_store_messages m
+         where m.vendor_id = p_vendor and m.customer_id <> v_uid and not m.from_vendor and m.deleted_at is null
+           and m.created_at > now() - interval '6 hours'
+           and m.created_at > coalesce((select max(x.created_at) from public.care_store_messages x where x.vendor_id = p_vendor and x.customer_id = m.customer_id and x.from_vendor), '-infinity')
+           and not exists (select 1 from public.care_store_messages x where x.vendor_id = p_vendor and x.customer_id = m.customer_id and x.from_vendor and x.created_at > now() - interval '10 minutes')
+         group by m.customer_id having min(m.created_at) < v_since
+      ) w;
+      v_state := case when v_ahead = 0 and v_active < v_cap then 'vez' else 'fila' end;
+    end if;
+  end if;
+  return jsonb_build_object('state', v_state, 'active', v_active, 'capacity', v_cap, 'ahead', v_ahead,
+    'since', v_since, 'now', now(), 'avg_seconds', 240);
+end;
+$$;
+revoke all on function public.care_store_chat_queue(uuid) from public, anon;
+grant execute on function public.care_store_chat_queue(uuid) to authenticated;

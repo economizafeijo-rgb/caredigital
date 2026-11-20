@@ -4513,3 +4513,19 @@ body {
     opacity: 0;
   }
 }
+
+/* Pop-ups de notificação do chat: barra de tempo até fechar */
+.nv-toast-bar {
+  width: 100%;
+  animation: nv-toast-bar 7s linear forwards;
+}
+@keyframes nv-toast-bar {
+  to {
+    width: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nv-toast-bar {
+    animation: none;
+  }
+}
