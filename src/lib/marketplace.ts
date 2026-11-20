@@ -29,6 +29,8 @@ export const PRODUCT_CATEGORIES = [
   { key: "naturais", label: "Produtos naturais" },
   { key: "fitoterapicos", label: "Fitoterápicos" },
   { key: "farmacia", label: "Farmácia" },
+  { key: "beleza", label: "Beleza e cosméticos" },
+  { key: "bijuterias", label: "Bijuterias" },
   { key: "outros", label: "Outros" },
 ] as const;
 export const categoryName = (key: string) =>
