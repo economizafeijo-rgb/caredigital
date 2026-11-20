@@ -206,6 +206,7 @@ export function NutritionCalculator({
   const [unit, setUnit] = useState("porcao");
   const [qty, setQty] = useState(1);
   const [hover, setHover] = useState<string | null>(null);
+  const [tab, setTab] = useState<"nutrientes" | "meta" | "comparar">("nutrientes");
   const [compareBy, setCompareBy] = useState<"protein" | "carbs" | "fat" | "kcal">("protein");
   const [tray, setTray] = useState<TrayItem[]>([]);
   const [mealName, setMealName] = useState("Almoço");
@@ -705,18 +706,17 @@ export function NutritionCalculator({
         className="nv-fade-in grid min-w-0 content-start gap-3"
         aria-label={`Valores de ${food.name}`}
       >
-        {/* Alimento escolhido + medida + ações */}
-        <div className="nv-dark border border-white/10 bg-[#0d1626] p-3 text-white">
+        <div className="border border-border bg-card p-4">
           <div className="flex flex-wrap items-start gap-3">
             <FoodBadge food={food} size={38} />
             <div className="min-w-0 flex-1">
               <h3 className="text-lg font-extrabold leading-tight">{food.name}</h3>
               <p className="mt-1 flex flex-wrap gap-1.5 text-[11px] font-semibold">
-                <span className="bg-white/12 px-2 py-0.5">{gm.label}</span>
+                <span className="bg-muted px-2 py-0.5">{gm.label}</span>
                 {regionalFoodIds.has(food.id) && (
-                  <span className="bg-white/12 px-2 py-0.5 text-white/85">Típico do Acre</span>
+                  <span className="bg-muted px-2 py-0.5">Típico do Acre</span>
                 )}
-                <span className="bg-white/12 px-2 py-0.5 text-white/75">
+                <span className="bg-muted px-2 py-0.5 text-muted-foreground">
                   {customIds.has(food.id)
                     ? "Criado por você"
                     : food.provenance === "TACO"
@@ -729,33 +729,34 @@ export function NutritionCalculator({
                   <button
                     type="button"
                     onClick={() => void removeFood()}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 text-rose-200 hover:bg-rose-500/20"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 text-destructive hover:bg-destructive/10"
                   >
                     <Trash2 size={11} /> Remover
                   </button>
                 )}
               </p>
               <div className="mt-2">
-                <HealthHint food={food} tone="dark" onPick={(id) => setFoodId(id)} />
-              </div>
-              <div className="mt-1.5">
-                <FoodVitamins foodId={food.id} tone="dark" />
+                <HealthHint food={food} onPick={(id) => setFoodId(id)} />
               </div>
             </div>
             <div className="text-right">
               <p className="font-display text-3xl font-extrabold leading-none tabular-nums">
                 {n(nut.kcal)}
-                <span className="ml-1 text-base font-semibold text-white/60">kcal</span>
+                <span className="ml-1 text-base font-semibold text-muted-foreground">kcal</span>
               </p>
-              <p className="mt-1 text-[11px] text-white/60">
+              <p className="mt-1 text-[11px] text-muted-foreground">
                 em {n(grams)} {U} · {n(per100.kcal)} kcal/100 {U}
               </p>
             </div>
           </div>
+        </div>
 
-          <div className="mt-2.5 flex flex-wrap items-center gap-2">
+        {/* Porção */}
+        <div className="border border-border bg-card p-4">
+          <p className="mb-2 text-xs font-bold text-muted-foreground">Quanto você vai comer?</p>
+          <div className="flex flex-wrap items-center gap-2">
             <div
-              className="flex flex-wrap gap-1 bg-black/25 p-1"
+              className="flex flex-wrap gap-1 bg-muted p-1"
               role="radiogroup"
               aria-label="Medida"
             >
@@ -769,11 +770,15 @@ export function NutritionCalculator({
                     setUnit(x.key);
                     setQty(x.key === "g" ? Math.round(grams) : 1);
                   }}
-                  className={`h-8 px-2.5 text-xs font-semibold transition active:scale-95 ${unit === x.key ? "bg-white text-slate-900 shadow-sm" : "text-white/75 hover:bg-white/10 hover:text-white"}`}
+                  className={`h-8 px-2.5 text-xs font-semibold transition active:scale-95 ${unit === x.key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
                 >
                   {x.label}
                   {x.key !== "g" && (
-                    <span className={unit === x.key ? "text-slate-500" : "text-white/45"}>
+                    <span
+                      className={
+                        unit === x.key ? "text-muted-foreground" : "text-muted-foreground/70"
+                      }
+                    >
                       {" "}
                       · {n(x.grams(food))}
                     </span>
@@ -790,7 +795,7 @@ export function NutritionCalculator({
                     Math.max(unit === "g" ? 5 : 0.5, +(q - (unit === "g" ? 10 : 0.5)).toFixed(1)),
                   )
                 }
-                className="grid size-9 place-items-center bg-white/10 transition hover:bg-white/20 active:scale-90"
+                className="grid size-9 place-items-center border border-border transition hover:bg-muted active:scale-90"
               >
                 <Minus size={15} />
               </button>
@@ -805,7 +810,7 @@ export function NutritionCalculator({
                   const v = Number(e.target.value.replace(",", "."));
                   if (Number.isFinite(v) && v >= 0) setQty(Math.min(unit === "g" ? 2000 : 20, v));
                 }}
-                className="h-9 w-16 border border-white/15 bg-black/25 text-center text-base font-bold tabular-nums text-white outline-none focus:border-white/50"
+                className="h-9 w-16 border border-border bg-background text-center text-base font-bold tabular-nums outline-none focus:border-foreground/50"
               />
               <button
                 type="button"
@@ -815,11 +820,11 @@ export function NutritionCalculator({
                     Math.min(unit === "g" ? 2000 : 20, +(q + (unit === "g" ? 10 : 0.5)).toFixed(1)),
                   )
                 }
-                className="grid size-9 place-items-center bg-white/10 transition hover:bg-white/20 active:scale-90"
+                className="grid size-9 place-items-center border border-border transition hover:bg-muted active:scale-90"
               >
                 <Plus size={15} />
               </button>
-              <span className="min-w-[4.5rem] text-sm font-bold tabular-nums text-white/80">
+              <span className="min-w-[4.5rem] text-sm font-bold tabular-nums text-muted-foreground">
                 = {n(grams)} {U}
               </span>
             </div>
@@ -838,7 +843,6 @@ export function NutritionCalculator({
             className="nv-range mt-2 w-full !h-1.5"
             style={{
               ["--nv-pct" as string]: `${(Math.min(600, grams) / 600) * 100}%`,
-              ["--primary" as string]: "#cbd5e1",
             }}
           />
           <div
@@ -846,14 +850,14 @@ export function NutritionCalculator({
             role="group"
             aria-label="Quantidade rápida"
           >
-            <span className="mr-1 text-[11px] font-semibold text-white/60">Quantidade</span>
+            <span className="mr-1 text-[11px] font-semibold text-muted-foreground">Quantidade</span>
             {(unit === "g" ? [50, 100, 150, 200, 300] : [0.5, 1, 1.5, 2, 3]).map((q) => (
               <button
                 key={q}
                 type="button"
                 aria-pressed={qty === q}
                 onClick={() => setQty(q)}
-                className={`h-7 px-2.5 text-xs font-bold tabular-nums transition active:scale-95 ${qty === q ? "bg-white text-slate-900" : "bg-white/10 text-white/80 hover:bg-white/20"}`}
+                className={`h-7 px-2.5 text-xs font-bold tabular-nums transition active:scale-95 ${qty === q ? "bg-foreground text-background" : "border border-border text-muted-foreground hover:bg-muted"}`}
               >
                 {unit === "g" ? `${q} ${U}` : `${String(q).replace(".", ",")}×`}
               </button>
@@ -865,7 +869,7 @@ export function NutritionCalculator({
               type="button"
               onClick={() => void logNow()}
               disabled={busy}
-              className="inline-flex h-10 items-center gap-1.5 bg-white px-4 text-sm font-bold text-slate-900 shadow-sm transition hover:bg-white/90 active:scale-[.97] disabled:opacity-60"
+              className="inline-flex h-10 items-center gap-1.5 bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:brightness-110 active:scale-[.97] disabled:opacity-60"
             >
               {busy ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}{" "}
               Registrar {n(grams)} {U}
@@ -873,14 +877,14 @@ export function NutritionCalculator({
             <button
               type="button"
               onClick={() => setTray((t) => [...t, { id: food.id, name: food.name, grams, food }])}
-              className="inline-flex h-10 items-center gap-1.5 border border-white/20 bg-white/5 px-4 text-sm font-bold text-white transition hover:bg-white/15 active:scale-[.97]"
+              className="inline-flex h-10 items-center gap-1.5 border border-border px-4 text-sm font-bold transition hover:bg-muted active:scale-[.97]"
             >
               <Plus size={15} /> Adicionar ao prato{tray.length ? ` (${tray.length})` : ""}
             </button>
             {notice && (
               <p
                 role="status"
-                className={`px-3 py-2 text-xs font-semibold ${notice.ok ? "bg-emerald-400/15 text-emerald-200" : "bg-rose-500/20 text-rose-100"}`}
+                className={`px-3 py-2 text-xs font-semibold ${notice.ok ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-destructive/10 text-destructive"}`}
               >
                 {notice.text}
               </p>
@@ -888,341 +892,394 @@ export function NutritionCalculator({
           </div>
         </div>
 
-        {/* Quanto preciso */}
-        <Fold
-          title={`Quanto de ${food.name.toLowerCase()} para fechar a meta de hoje`}
-          icon={Target}
-          color="#d97706"
-          aside="toque em “Usar” para aplicar a quantidade"
-          info="Calcula a quantidade deste alimento que completaria o que falta de energia, proteína, carboidrato ou gordura hoje. É só uma referência: não precisa fechar a meta com um único alimento."
-        >
-          <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-            {[
-              {
-                k: "protein" as const,
-                label: "Proteína",
-                unit: "g",
-                left: left.protein,
-                per: per100.protein,
-                color: macroColors.protein,
-              },
-              {
-                k: "kcal" as const,
-                label: "Calorias",
-                unit: "kcal",
-                left: left.kcal,
-                per: per100.kcal,
-                color: "#f97316",
-              },
-              {
-                k: "carbs" as const,
-                label: "Carboidratos",
-                unit: "g",
-                left: left.carbs,
-                per: per100.carbs,
-                color: macroColors.carbs,
-              },
-              {
-                k: "fat" as const,
-                label: "Gorduras",
-                unit: "g",
-                left: left.fat,
-                per: per100.fat,
-                color: macroColors.fat,
-              },
-            ].map((r) => {
-              const need =
-                r.left > 0 && r.per > 0 ? Math.ceil(((r.left / r.per) * 100) / 5) * 5 : null;
-              const portions = need ? need / Math.max(1, typicalPortion(food.id)) : 0;
-              const tooMuch = need !== null && need > 1500;
-              const cover =
-                r.left > 0
-                  ? Math.min(100, ((r.k === "kcal" ? nut.kcal : nut[r.k]) / r.left) * 100)
-                  : 100;
-              return (
-                <div key={r.k} className="border border-border bg-muted/25 p-3">
-                  <div className="flex items-center justify-between gap-2 text-[11px] font-semibold text-muted-foreground">
-                    <span className="flex items-center gap-1.5">
-                      <i className="size-2 rounded-full" style={{ background: r.color }} />
-                      {r.label}
-                    </span>
-                    <span className="tabular-nums">
-                      {r.left > 0 ? `faltam ${n(r.left)} ${r.unit}` : "meta atingida"}
+        {/* Abas de análise */}
+        <div className="border border-border bg-card">
+          <nav
+            className="flex overflow-x-auto border-b border-border"
+            aria-label="Análise do alimento"
+          >
+            {(
+              [
+                ["nutrientes", "Nutrientes", PieChart],
+                ["meta", "Meta de hoje", Target],
+                ["comparar", "Comparar", Sparkles],
+              ] as const
+            ).map(([k, l, Icon]) => (
+              <button
+                key={k}
+                type="button"
+                aria-current={tab === k ? "page" : undefined}
+                onClick={() => setTab(k)}
+                className={
+                  "-mb-px inline-flex h-10 flex-1 items-center justify-center gap-1.5 whitespace-nowrap border-b-2 px-3 text-sm font-semibold " +
+                  (tab === k
+                    ? "border-foreground text-foreground"
+                    : "border-transparent text-muted-foreground hover:text-foreground")
+                }
+              >
+                <Icon size={15} />
+                {l}
+              </button>
+            ))}
+          </nav>
+          <div key={tab} className="nv-fade-in grid gap-3 p-3">
+            {tab === "nutrientes" && (
+              <>
+                <div className="grid gap-3 lg:grid-cols-2">
+                  <Fold
+                    title="Composição da porção"
+                    icon={PieChart}
+                    color="#0d9488"
+                    info="Mostra quanto da porção escolhida é proteína, carboidrato e gordura. Passe o mouse ou toque no gráfico para ver cada parte."
+                  >
+                    <div className="mt-3 flex items-center gap-4">
+                      <Donut n={nut} hover={hover} setHover={setHover} />
+                      <ul className="grid min-w-0 flex-1 gap-2">
+                        {macroRows.map((m) => (
+                          <li
+                            key={m.k}
+                            onPointerEnter={() => setHover(m.k)}
+                            onPointerLeave={() => setHover(null)}
+                            className={`px-2 py-1 transition ${hover === m.k ? "bg-muted" : ""}`}
+                          >
+                            <span className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
+                              <i
+                                className="size-2 rounded-full"
+                                style={{ background: macroColors[m.k] }}
+                              />
+                              {m.label}
+                            </span>
+                            <strong
+                              className="text-base tabular-nums"
+                              style={{ color: macroColors[m.k] }}
+                            >
+                              {n(m.g, 1)} g
+                            </strong>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </Fold>
+
+                  <Fold
+                    title="Vitaminas e fibras"
+                    icon={Leaf}
+                    color="#059669"
+                    aside="% do dia"
+                    info="Percentual do que você precisa por dia (referência Anvisa/IOM) que esta porção fornece. Valores aproximados."
+                  >
+                    {rich.length > 0 && (
+                      <p className="mt-2 flex flex-wrap gap-1">
+                        {rich.slice(0, 3).map((r) => (
+                          <span
+                            key={r}
+                            className="rounded-full bg-emerald-500/12 px-2 py-0.5 text-[10.5px] font-bold text-emerald-700 dark:text-emerald-300"
+                          >
+                            Fonte de {r.toLowerCase()}
+                          </span>
+                        ))}
+                      </p>
+                    )}
+                    <ul className="mt-2.5 grid gap-2">
+                      {[
+                        { k: "fiber", label: "Fibras", value: nut.fiber, unit: "g", pct: fiberPct },
+                        ...micros,
+                      ].map((m, i) => (
+                        <li
+                          key={m.k}
+                          className="grid grid-cols-[5.5rem_1fr_2.5rem] items-center gap-2 text-xs"
+                        >
+                          <span
+                            className="truncate font-semibold"
+                            title={`${n(m.value, m.value < 10 ? 1 : 0)} ${m.unit}`}
+                          >
+                            {m.label}
+                          </span>
+                          <span className="h-1.5 overflow-hidden rounded-full bg-muted">
+                            <i
+                              className="block h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-[width] duration-700 ease-out"
+                              style={{
+                                width: `${Math.max(m.pct, m.value > 0 ? 2 : 0)}%`,
+                                transitionDelay: `${i * 50}ms`,
+                              }}
+                            />
+                          </span>
+                          <span className="text-right font-semibold tabular-nums text-muted-foreground">
+                            {n(m.pct)}%
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="mt-2 text-[10.5px] text-muted-foreground">
+                      Referência Anvisa/IOM · valores aproximados.
+                    </p>
+                  </Fold>
+                </div>
+
+                <FoodVitamins foodId={food.id} />
+              </>
+            )}
+            {tab === "meta" && (
+              <>
+                <div className={`${card} p-4`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <h4 className="flex items-center gap-1.5 text-sm font-bold">
+                      <Target size={15} className="text-primary" /> Meta de hoje
+                    </h4>
+                    <span className="text-[11px] text-muted-foreground">
+                      {n(total.kcal)} / {n(target.kcal)} kcal
                     </span>
                   </div>
-                  {r.left <= 0 ? (
-                    <p className="mt-2 text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                      Você já chegou lá hoje.
-                    </p>
-                  ) : need === null ? (
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      Este alimento não tem {r.label.toLowerCase()}.
-                    </p>
-                  ) : tooMuch ? (
-                    <p className="mt-2 text-sm">
-                      <strong className="tabular-nums">
-                        {n(need)} {U}
-                      </strong>{" "}
-                      <span className="text-muted-foreground">
-                        — quantidade alta; combine com outros alimentos.
-                      </span>
-                    </p>
-                  ) : (
-                    <div className="mt-1.5 flex items-end justify-between gap-2">
-                      <p className="leading-tight">
-                        <strong
-                          className="text-xl font-extrabold tabular-nums"
-                          style={{ color: r.color }}
-                        >
-                          {n(need)} {U}
-                        </strong>
-                        <span className="block text-[11px] text-muted-foreground">
-                          ≈ {n(portions, 1)} porç{portions >= 2 ? "ões" : "ão"} · a atual cobre{" "}
-                          {n(cover)}%
-                        </span>
-                      </p>
+                  <ul className="mt-3 grid gap-3">
+                    {macroRows.map((m) => {
+                      const pct = m.goal ? Math.min(100, (m.g / m.goal) * 100) : 0;
+                      const prev = m.goal ? Math.min(100, ((m.goal - m.left) / m.goal) * 100) : 0;
+                      return (
+                        <li key={m.k}>
+                          <div className="flex items-baseline justify-between gap-2 text-xs">
+                            <span className="font-semibold">{m.label}</span>
+                            <span className="tabular-nums text-muted-foreground">
+                              {m.left > 0 ? `faltam ${n(m.left)} g` : "meta atingida"}
+                            </span>
+                          </div>
+                          <div className="relative mt-1 h-2 overflow-hidden rounded-full bg-muted">
+                            <i
+                              className="absolute inset-y-0 left-0 rounded-full"
+                              style={{
+                                width: `${prev}%`,
+                                background: `color-mix(in srgb, ${macroColors[m.k]} 35%, transparent)`,
+                              }}
+                            />
+                            <i
+                              className="absolute inset-y-0 rounded-full transition-[width,left] duration-700 ease-out"
+                              style={{
+                                left: `${prev}%`,
+                                width: `${Math.min(100 - prev, pct)}%`,
+                                background: macroColors[m.k],
+                              }}
+                            />
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  <p className="mt-3 bg-muted/60 p-2.5 text-xs leading-snug">
+                    {left.protein <= 0 ? (
+                      "Proteína de hoje alcançada. Prefira variar os alimentos."
+                    ) : toFillProtein ? (
+                      <>
+                        Esta porção cobre{" "}
+                        <strong>{n(Math.min(100, (nut.protein / left.protein) * 100))}%</strong> da
+                        proteína que falta. Só com {food.name.toLowerCase()}, seriam{" "}
+                        <strong>{n(toFillProtein)} g</strong>.
+                      </>
+                    ) : (
+                      `${food.name} tem pouca proteína. Combine com pirarucu, frango ou ovo.`
+                    )}
+                  </p>
+                  <p className="mt-1.5 flex gap-3 text-[10.5px] text-muted-foreground">
+                    <span className="inline-flex items-center gap-1">
+                      <i className="h-1.5 w-3 rounded-full bg-rose-500/35" /> já comido
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <i className="h-1.5 w-3 rounded-full bg-rose-500" /> esta porção
+                    </span>
+                  </p>
+                </div>
+
+                <Fold
+                  title={`Quanto de ${food.name.toLowerCase()} para fechar a meta de hoje`}
+                  icon={Target}
+                  color="#d97706"
+                  aside="toque em “Usar” para aplicar a quantidade"
+                  info="Calcula a quantidade deste alimento que completaria o que falta de energia, proteína, carboidrato ou gordura hoje. É só uma referência: não precisa fechar a meta com um único alimento."
+                >
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                    {[
+                      {
+                        k: "protein" as const,
+                        label: "Proteína",
+                        unit: "g",
+                        left: left.protein,
+                        per: per100.protein,
+                        color: macroColors.protein,
+                      },
+                      {
+                        k: "kcal" as const,
+                        label: "Calorias",
+                        unit: "kcal",
+                        left: left.kcal,
+                        per: per100.kcal,
+                        color: "#f97316",
+                      },
+                      {
+                        k: "carbs" as const,
+                        label: "Carboidratos",
+                        unit: "g",
+                        left: left.carbs,
+                        per: per100.carbs,
+                        color: macroColors.carbs,
+                      },
+                      {
+                        k: "fat" as const,
+                        label: "Gorduras",
+                        unit: "g",
+                        left: left.fat,
+                        per: per100.fat,
+                        color: macroColors.fat,
+                      },
+                    ].map((r) => {
+                      const need =
+                        r.left > 0 && r.per > 0
+                          ? Math.ceil(((r.left / r.per) * 100) / 5) * 5
+                          : null;
+                      const portions = need ? need / Math.max(1, typicalPortion(food.id)) : 0;
+                      const tooMuch = need !== null && need > 1500;
+                      const cover =
+                        r.left > 0
+                          ? Math.min(100, ((r.k === "kcal" ? nut.kcal : nut[r.k]) / r.left) * 100)
+                          : 100;
+                      return (
+                        <div key={r.k} className="border border-border bg-muted/25 p-3">
+                          <div className="flex items-center justify-between gap-2 text-[11px] font-semibold text-muted-foreground">
+                            <span className="flex items-center gap-1.5">
+                              <i className="size-2 rounded-full" style={{ background: r.color }} />
+                              {r.label}
+                            </span>
+                            <span className="tabular-nums">
+                              {r.left > 0 ? `faltam ${n(r.left)} ${r.unit}` : "meta atingida"}
+                            </span>
+                          </div>
+                          {r.left <= 0 ? (
+                            <p className="mt-2 text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                              Você já chegou lá hoje.
+                            </p>
+                          ) : need === null ? (
+                            <p className="mt-2 text-sm text-muted-foreground">
+                              Este alimento não tem {r.label.toLowerCase()}.
+                            </p>
+                          ) : tooMuch ? (
+                            <p className="mt-2 text-sm">
+                              <strong className="tabular-nums">
+                                {n(need)} {U}
+                              </strong>{" "}
+                              <span className="text-muted-foreground">
+                                — quantidade alta; combine com outros alimentos.
+                              </span>
+                            </p>
+                          ) : (
+                            <div className="mt-1.5 flex items-end justify-between gap-2">
+                              <p className="leading-tight">
+                                <strong
+                                  className="text-xl font-extrabold tabular-nums"
+                                  style={{ color: r.color }}
+                                >
+                                  {n(need)} {U}
+                                </strong>
+                                <span className="block text-[11px] text-muted-foreground">
+                                  ≈ {n(portions, 1)} porç{portions >= 2 ? "ões" : "ão"} · a atual
+                                  cobre {n(cover)}%
+                                </span>
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setUnit("g");
+                                  setQty(need);
+                                }}
+                                className="h-8 shrink-0 bg-primary px-2.5 text-xs font-bold text-primary-foreground transition hover:brightness-110 active:scale-95"
+                              >
+                                Usar
+                              </button>
+                            </div>
+                          )}
+                          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+                            <i
+                              className="block h-full rounded-full transition-[width] duration-700"
+                              style={{ width: `${cover}%`, background: r.color }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </Fold>
+              </>
+            )}
+            {tab === "comparar" && (
+              <div className={`${card} p-4`}>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h4 className="text-sm font-bold">
+                    Compare com {gm.label.toLowerCase()}{" "}
+                    <span className="font-normal text-muted-foreground">· por 100 {U}</span>
+                  </h4>
+                  <div
+                    className="flex gap-0.5 bg-muted p-0.5"
+                    role="group"
+                    aria-label="Comparar por"
+                  >
+                    {(
+                      [
+                        ["protein", "Proteína"],
+                        ["carbs", "Carbo"],
+                        ["fat", "Gordura"],
+                        ["kcal", "Calorias"],
+                      ] as const
+                    ).map(([k, l]) => (
                       <button
+                        key={k}
                         type="button"
-                        onClick={() => {
-                          setUnit("g");
-                          setQty(need);
-                        }}
-                        className="h-8 shrink-0 bg-primary px-2.5 text-xs font-bold text-primary-foreground transition hover:brightness-110 active:scale-95"
+                        aria-pressed={compareBy === k}
+                        onClick={() => setCompareBy(k)}
+                        className={`h-7 px-2.5 text-[11px] font-semibold transition ${compareBy === k ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
                       >
-                        Usar
+                        {l}
                       </button>
-                    </div>
-                  )}
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                    <i
-                      className="block h-full rounded-full transition-[width] duration-700"
-                      style={{ width: `${cover}%`, background: r.color }}
-                    />
+                    ))}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </Fold>
-
-        {/* Análise */}
-        <div className="grid gap-3 lg:grid-cols-3">
-          <Fold
-            title="Composição da porção"
-            icon={PieChart}
-            color="#0d9488"
-            info="Mostra quanto da porção escolhida é proteína, carboidrato e gordura. Passe o mouse ou toque no gráfico para ver cada parte."
-          >
-            <div className="mt-3 flex items-center gap-4">
-              <Donut n={nut} hover={hover} setHover={setHover} />
-              <ul className="grid min-w-0 flex-1 gap-2">
-                {macroRows.map((m) => (
-                  <li
-                    key={m.k}
-                    onPointerEnter={() => setHover(m.k)}
-                    onPointerLeave={() => setHover(null)}
-                    className={`px-2 py-1 transition ${hover === m.k ? "bg-muted" : ""}`}
-                  >
-                    <span className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
-                      <i className="size-2 rounded-full" style={{ background: macroColors[m.k] }} />
-                      {m.label}
-                    </span>
-                    <strong className="text-base tabular-nums" style={{ color: macroColors[m.k] }}>
-                      {n(m.g, 1)} g
-                    </strong>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </Fold>
-
-          <div className={`${card} p-4`}>
-            <div className="flex items-center justify-between gap-2">
-              <h4 className="flex items-center gap-1.5 text-sm font-bold">
-                <Target size={15} className="text-primary" /> Meta de hoje
-              </h4>
-              <span className="text-[11px] text-muted-foreground">
-                {n(total.kcal)} / {n(target.kcal)} kcal
-              </span>
-            </div>
-            <ul className="mt-3 grid gap-3">
-              {macroRows.map((m) => {
-                const pct = m.goal ? Math.min(100, (m.g / m.goal) * 100) : 0;
-                const prev = m.goal ? Math.min(100, ((m.goal - m.left) / m.goal) * 100) : 0;
-                return (
-                  <li key={m.k}>
-                    <div className="flex items-baseline justify-between gap-2 text-xs">
-                      <span className="font-semibold">{m.label}</span>
-                      <span className="tabular-nums text-muted-foreground">
-                        {m.left > 0 ? `faltam ${n(m.left)} g` : "meta atingida"}
-                      </span>
-                    </div>
-                    <div className="relative mt-1 h-2 overflow-hidden rounded-full bg-muted">
-                      <i
-                        className="absolute inset-y-0 left-0 rounded-full"
-                        style={{
-                          width: `${prev}%`,
-                          background: `color-mix(in srgb, ${macroColors[m.k]} 35%, transparent)`,
-                        }}
-                      />
-                      <i
-                        className="absolute inset-y-0 rounded-full transition-[width,left] duration-700 ease-out"
-                        style={{
-                          left: `${prev}%`,
-                          width: `${Math.min(100 - prev, pct)}%`,
-                          background: macroColors[m.k],
-                        }}
-                      />
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-            <p className="mt-3 bg-muted/60 p-2.5 text-xs leading-snug">
-              {left.protein <= 0 ? (
-                "Proteína de hoje alcançada. Prefira variar os alimentos."
-              ) : toFillProtein ? (
-                <>
-                  Esta porção cobre{" "}
-                  <strong>{n(Math.min(100, (nut.protein / left.protein) * 100))}%</strong> da
-                  proteína que falta. Só com {food.name.toLowerCase()}, seriam{" "}
-                  <strong>{n(toFillProtein)} g</strong>.
-                </>
-              ) : (
-                `${food.name} tem pouca proteína. Combine com pirarucu, frango ou ovo.`
-              )}
-            </p>
-            <p className="mt-1.5 flex gap-3 text-[10.5px] text-muted-foreground">
-              <span className="inline-flex items-center gap-1">
-                <i className="h-1.5 w-3 rounded-full bg-rose-500/35" /> já comido
-              </span>
-              <span className="inline-flex items-center gap-1">
-                <i className="h-1.5 w-3 rounded-full bg-rose-500" /> esta porção
-              </span>
-            </p>
-          </div>
-
-          <Fold
-            title="Vitaminas e fibras"
-            icon={Leaf}
-            color="#059669"
-            aside="% do dia"
-            info="Percentual do que você precisa por dia (referência Anvisa/IOM) que esta porção fornece. Valores aproximados."
-          >
-            {rich.length > 0 && (
-              <p className="mt-2 flex flex-wrap gap-1">
-                {rich.slice(0, 3).map((r) => (
-                  <span
-                    key={r}
-                    className="rounded-full bg-emerald-500/12 px-2 py-0.5 text-[10.5px] font-bold text-emerald-700 dark:text-emerald-300"
-                  >
-                    Fonte de {r.toLowerCase()}
-                  </span>
-                ))}
-              </p>
+                <ul className="mt-3 grid gap-1">
+                  {similar.items.map((f, i) => {
+                    const v = similar.val(f),
+                      on = f.id === food.id;
+                    const color = compareBy === "kcal" ? "#f97316" : macroColors[compareBy];
+                    return (
+                      <li key={f.id}>
+                        <button
+                          type="button"
+                          onClick={() => setFoodId(f.id)}
+                          title={`${f.name}: ${n(v, compareBy === "kcal" ? 0 : 1)}${compareBy === "kcal" ? " kcal" : " g de " + compareBy.replace("protein", "proteína").replace("carbs", "carboidrato").replace("fat", "gordura")} por 100 ${U}${on ? " (alimento aberto)" : " · clique para abrir este alimento"}`}
+                          className={`group grid w-full grid-cols-[8rem_1fr_3.5rem] items-center gap-2 px-1.5 py-1 text-left text-xs transition hover:bg-muted/60 sm:grid-cols-[11rem_1fr_3.5rem] ${on ? "bg-muted/70" : ""}`}
+                        >
+                          <span className={`truncate ${on ? "font-bold" : ""}`}>{f.name}</span>
+                          <span className="h-2.5 overflow-hidden rounded-full bg-muted">
+                            <i
+                              className="block h-full rounded-full transition-[width] duration-700 ease-out"
+                              style={{
+                                width: `${(v / similar.max) * 100}%`,
+                                background: on
+                                  ? color
+                                  : `color-mix(in srgb, ${color} 40%, transparent)`,
+                                transitionDelay: `${i * 40}ms`,
+                              }}
+                            />
+                          </span>
+                          <span className="text-right font-semibold tabular-nums">
+                            {n(v, compareBy === "kcal" ? 0 : 1)}
+                            {compareBy === "kcal" ? "" : " g"}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
             )}
-            <ul className="mt-2.5 grid gap-2">
-              {[
-                { k: "fiber", label: "Fibras", value: nut.fiber, unit: "g", pct: fiberPct },
-                ...micros,
-              ].map((m, i) => (
-                <li
-                  key={m.k}
-                  className="grid grid-cols-[5.5rem_1fr_2.5rem] items-center gap-2 text-xs"
-                >
-                  <span
-                    className="truncate font-semibold"
-                    title={`${n(m.value, m.value < 10 ? 1 : 0)} ${m.unit}`}
-                  >
-                    {m.label}
-                  </span>
-                  <span className="h-1.5 overflow-hidden rounded-full bg-muted">
-                    <i
-                      className="block h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-[width] duration-700 ease-out"
-                      style={{
-                        width: `${Math.max(m.pct, m.value > 0 ? 2 : 0)}%`,
-                        transitionDelay: `${i * 50}ms`,
-                      }}
-                    />
-                  </span>
-                  <span className="text-right font-semibold tabular-nums text-muted-foreground">
-                    {n(m.pct)}%
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-2 text-[10.5px] text-muted-foreground">
-              Referência Anvisa/IOM · valores aproximados.
-            </p>
-          </Fold>
+          </div>
         </div>
 
-        {/* Comparação + prato */}
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-          <div className={`${card} p-4`}>
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h4 className="text-sm font-bold">
-                Compare com {gm.label.toLowerCase()}{" "}
-                <span className="font-normal text-muted-foreground">· por 100 {U}</span>
-              </h4>
-              <div className="flex gap-0.5 bg-muted p-0.5" role="group" aria-label="Comparar por">
-                {(
-                  [
-                    ["protein", "Proteína"],
-                    ["carbs", "Carbo"],
-                    ["fat", "Gordura"],
-                    ["kcal", "Calorias"],
-                  ] as const
-                ).map(([k, l]) => (
-                  <button
-                    key={k}
-                    type="button"
-                    aria-pressed={compareBy === k}
-                    onClick={() => setCompareBy(k)}
-                    className={`h-7 px-2.5 text-[11px] font-semibold transition ${compareBy === k ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-                  >
-                    {l}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <ul className="mt-3 grid gap-1">
-              {similar.items.map((f, i) => {
-                const v = similar.val(f),
-                  on = f.id === food.id;
-                const color = compareBy === "kcal" ? "#f97316" : macroColors[compareBy];
-                return (
-                  <li key={f.id}>
-                    <button
-                      type="button"
-                      onClick={() => setFoodId(f.id)}
-                      title={`${f.name}: ${n(v, compareBy === "kcal" ? 0 : 1)}${compareBy === "kcal" ? " kcal" : " g de " + compareBy.replace("protein", "proteína").replace("carbs", "carboidrato").replace("fat", "gordura")} por 100 ${U}${on ? " (alimento aberto)" : " · clique para abrir este alimento"}`}
-                      className={`group grid w-full grid-cols-[8rem_1fr_3.5rem] items-center gap-2 px-1.5 py-1 text-left text-xs transition hover:bg-muted/60 sm:grid-cols-[11rem_1fr_3.5rem] ${on ? "bg-muted/70" : ""}`}
-                    >
-                      <span className={`truncate ${on ? "font-bold" : ""}`}>{f.name}</span>
-                      <span className="h-2.5 overflow-hidden rounded-full bg-muted">
-                        <i
-                          className="block h-full rounded-full transition-[width] duration-700 ease-out"
-                          style={{
-                            width: `${(v / similar.max) * 100}%`,
-                            background: on
-                              ? color
-                              : `color-mix(in srgb, ${color} 40%, transparent)`,
-                            transitionDelay: `${i * 40}ms`,
-                          }}
-                        />
-                      </span>
-                      <span className="text-right font-semibold tabular-nums">
-                        {n(v, compareBy === "kcal" ? 0 : 1)}
-                        {compareBy === "kcal" ? "" : " g"}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-
+        {/* Meu prato */}
+        {tray.length > 0 && (
           <div
             className={`flex flex-col border p-4 ${tray.length ? "border-primary/40 bg-primary/[.04]" : "border-dashed border-border bg-card"}`}
           >
@@ -1301,7 +1358,7 @@ export function NutritionCalculator({
               </>
             )}
           </div>
-        </div>
+        )}
       </section>
     </div>
   );
