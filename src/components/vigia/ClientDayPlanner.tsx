@@ -353,7 +353,7 @@ export function ClientDayPlanner({
       if (
         !(await dialog.confirm(
           "Adiar refeição?",
-          `${item.title} será reprogramada para ${hm(to)} (daqui a ${label}). O lembrete volta nesse horário.`,
+          `O horário de ${item.title} passa para ${hm(to)} (daqui a ${label}). O lembrete volta nessa hora.`,
           false,
           "Adiar",
         ))

@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { AlertTriangle, CheckCircle2, X } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock3, PencilLine, ShieldQuestion, X } from "lucide-react";
 
 type DialogRequest = {
   kind: "confirm" | "prompt";
@@ -124,35 +124,83 @@ function DialogOverlay({
   close: (value: boolean | string | null) => void;
 }) {
   const [value, setValue] = useState("");
+  const label = request.confirmLabel ?? "";
+  const postpone = /adiar/i.test(label) || /adiar/i.test(request.title);
+  const tone = request.danger ? "#f43f5e" : postpone ? "#fbbf24" : "var(--color-primary)";
+  const Icon = request.danger
+    ? AlertTriangle
+    : postpone
+      ? Clock3
+      : request.kind === "prompt"
+        ? PencilLine
+        : ShieldQuestion;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close(null);
+      else if (e.key === "Enter" && request.kind === "confirm") close(true);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [close, request.kind]);
   return (
     <div
-      className="fixed inset-0 z-[12000] grid place-items-center bg-slate-950/45 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[12000] grid place-items-center bg-[radial-gradient(ellipse_at_center,rgba(2,6,23,.55),rgba(2,6,23,.8))] p-4 backdrop-blur-md"
       role="dialog"
       aria-modal="true"
       aria-labelledby="nextvita-dialog-title"
+      onMouseDown={(e) => e.target === e.currentTarget && close(null)}
     >
-      <div className="nv-fade-in w-full max-w-md overflow-hidden border border-border bg-card shadow-2xl">
-        <div className="p-5">
-          <div className="flex items-start gap-3">
+      <div className="nv-pop relative w-full max-w-[26rem] overflow-hidden border border-white/10 bg-card shadow-[0_30px_80px_-20px_rgba(0,0,0,.7)]">
+        <i
+          aria-hidden
+          className="absolute inset-x-0 top-0 h-[2px]"
+          style={{ background: `linear-gradient(90deg, ${tone}, transparent 80%)` }}
+        />
+        <i
+          aria-hidden
+          className="pointer-events-none absolute -right-16 -top-16 size-44 opacity-25 blur-3xl"
+          style={{ background: tone }}
+        />
+        <div className="relative p-5 pb-4">
+          <div className="flex items-start gap-3.5">
             <span
-              className={`mt-0.5 grid size-9 shrink-0 place-items-center ${request.danger ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"}`}
+              className="relative grid size-11 shrink-0 place-items-center"
+              style={{ color: tone }}
             >
-              {request.danger ? <AlertTriangle size={18} /> : <CheckCircle2 size={18} />}
+              <svg viewBox="0 0 44 44" className="absolute inset-0 size-full">
+                <circle cx="22" cy="22" r="20" fill="currentColor" fillOpacity=".1" />
+                <circle
+                  cx="22"
+                  cy="22"
+                  r="20"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeOpacity=".55"
+                  strokeWidth="1.2"
+                  strokeDasharray="126"
+                  strokeDashoffset="126"
+                  className="nv-dialog-ring"
+                />
+              </svg>
+              <Icon size={19} className="relative" />
             </span>
-            <div>
-              <h2 id="nextvita-dialog-title" className="text-lg font-bold">
+            <div className="min-w-0 flex-1 pt-0.5">
+              <h2
+                id="nextvita-dialog-title"
+                className="font-display text-[17px] font-extrabold leading-tight tracking-tight"
+              >
                 {request.title}
               </h2>
-              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+              <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
                 {request.message}
               </p>
             </div>
             <button
               onClick={() => close(null)}
               aria-label="Fechar"
-              className="-mr-1 -mt-1 ml-auto shrink-0 p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground"
+              className="-mr-1.5 -mt-1.5 shrink-0 p-1.5 text-muted-foreground/70 transition hover:bg-muted hover:text-foreground"
             >
-              <X size={18} />
+              <X size={16} />
             </button>
           </div>
           {request.kind === "prompt" && (
@@ -160,30 +208,30 @@ function DialogOverlay({
               autoFocus
               value={value}
               onChange={(e) => setValue(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && close(value)}
               placeholder={request.placeholder}
               className="field mt-4"
             />
           )}
-          <div className="mt-5 flex justify-end gap-2">
-            <button
-              onClick={() => close(null)}
-              className="border border-border px-4 py-2.5 text-sm font-semibold transition hover:bg-muted"
-            >
-              Cancelar
-            </button>
-            {/* Botão principal: texto escuro sobre o verde do tema (legível no modo escuro e claro). */}
-            <button
-              onClick={() => close(request.kind === "confirm" ? true : value)}
-              className={`px-4 py-2.5 text-sm font-bold transition hover:brightness-110 active:scale-[.98] ${request.danger ? "bg-destructive text-white" : "bg-primary text-primary-foreground"}`}
-            >
-              {request.confirmLabel ??
-                (request.kind === "prompt"
-                  ? "Confirmar"
-                  : request.danger
-                    ? "Excluir"
-                    : "Continuar")}
-            </button>
-          </div>
+        </div>
+        <div className="relative flex items-center gap-2 border-t border-border bg-muted/30 px-5 py-3">
+          <span className="mr-auto hidden items-center gap-2 text-[11px] text-muted-foreground sm:flex">
+            <kbd className="border border-border px-1.5 py-0.5 font-sans">Esc</kbd> fecha
+            <kbd className="border border-border px-1.5 py-0.5 font-sans">Enter</kbd> confirma
+          </span>
+          <button
+            onClick={() => close(null)}
+            className="h-9 px-4 text-[13px] font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={() => close(request.kind === "confirm" ? true : value)}
+            className={`h-9 px-5 text-[13px] font-bold transition hover:brightness-110 active:scale-[.97] ${request.danger ? "bg-destructive text-white" : "bg-primary text-primary-foreground"}`}
+          >
+            {request.confirmLabel ??
+              (request.kind === "prompt" ? "Confirmar" : request.danger ? "Excluir" : "Continuar")}
+          </button>
         </div>
       </div>
     </div>
