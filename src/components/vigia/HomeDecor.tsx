@@ -23,7 +23,7 @@ function SideColumn({ side }: { side: "left" | "right" }) {
   return (
     <div
       aria-hidden="true"
-      className={`pointer-events-none fixed bottom-0 top-14 z-0 hidden w-[4.75rem] overflow-hidden min-[1280px]:block ${flip ? "right-0" : "left-0"}`}
+      className={`pointer-events-none fixed bottom-0 top-14 z-0 hidden w-12 overflow-hidden min-[1280px]:block ${flip ? "right-0" : "left-0"}`}
     >
       <svg
         className="absolute inset-0 size-full text-primary"
@@ -49,7 +49,7 @@ function SideColumn({ side }: { side: "left" | "right" }) {
         />
       </svg>
       <svg
-        className="absolute left-1/2 top-[12%] h-[70%] w-16 -translate-x-1/2 text-primary"
+        className="absolute left-1/2 top-[12%] h-[70%] w-10 -translate-x-1/2 text-primary"
         viewBox="0 0 40 400"
         fill="none"
       >
@@ -64,7 +64,7 @@ function SideColumn({ side }: { side: "left" | "right" }) {
         />
       </svg>
       <div
-        className={`absolute top-[6%] size-28 rounded-full border-2 border-primary/25 ${flip ? "-right-12" : "-left-12"}`}
+        className={`absolute top-[6%] size-20 rounded-full border-2 border-primary/25 ${flip ? "-right-9" : "-left-9"}`}
       >
         <div className="absolute inset-4 rounded-full border border-primary/20" />
         <div className="absolute inset-8 rounded-full bg-primary/10" />
@@ -72,10 +72,10 @@ function SideColumn({ side }: { side: "left" | "right" }) {
       {icons.map((Icon, i) => (
         <span
           key={i}
-          className="nv-float absolute left-1/2 -ml-5 grid size-10 place-items-center rounded-2xl border border-primary/25 bg-card/80 text-primary shadow-lg backdrop-blur"
+          className="nv-float absolute left-1/2 -ml-4 grid size-8 place-items-center rounded-lg border border-primary/25 bg-card/80 text-primary shadow-lg backdrop-blur"
           style={{ top: `${30 + i * 22}%`, animationDelay: `${i * 1.3}s` }}
         >
-          <Icon size={20} />
+          <Icon size={16} />
         </span>
       ))}
     </div>

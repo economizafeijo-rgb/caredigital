@@ -1044,3 +1044,8 @@ html, #care-content { scrollbar-gutter: stable; }
 @keyframes nv-ping-dot { 0% { transform: scale(1); opacity: .6; } 100% { transform: scale(2.4); opacity: 0; } }
 .nv-ping { animation: nv-ping-dot 2.4s ease-out infinite; }
 @media (prefers-reduced-motion: reduce) { .nv-wave-a, .nv-wave-b, .nv-bell-swing, .nv-ping { animation: none; } }
+
+/* Menu superior: abas com barra inferior animada */
+.nv-tab::after { content: ""; position: absolute; left: .875rem; right: .875rem; bottom: 0; height: 2px; background: var(--color-primary); transform: scaleX(0); transform-origin: left; transition: transform .28s cubic-bezier(.2,.8,.2,1); }
+.nv-tab:hover::after { transform: scaleX(.45); }
+.nv-tab-on::after { transform: scaleX(1) !important; }

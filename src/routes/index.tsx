@@ -27,6 +27,7 @@ import { QrCode } from "@/components/vigia/QrCode";
 import { InstallAppButton } from "@/components/vigia/InstallApp";
 import { LogoMark } from "@/components/vigia/Logo";
 import { PartnerCommercial } from "@/components/vigia/PartnerCommercial";
+import { HomeSideArt } from "@/components/vigia/HomeDecor";
 import { HomeNextCareCard } from "@/components/vigia/CareTimer";
 import { HomeModalityTimers } from "@/components/vigia/HomeModalityTimers";
 import { HomeClientMetrics } from "@/components/vigia/HomeClientMetrics";
@@ -90,7 +91,8 @@ function Homepage() {
 
   return (
     <>
-    <div className="relative z-10 mx-auto flex w-full flex-col gap-4 lg:gap-5">
+    <HomeSideArt />
+    <div className="relative z-10 mx-auto flex w-full flex-col gap-4 lg:gap-5 min-[1280px]:px-[1.75rem]">
       {status === "unlinked" && (
         <p role="status" className="rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm">
           Sua conta está conectada, mas ainda não há um prontuário vinculado. Solicite o acesso ao administrador.
@@ -173,34 +175,35 @@ function Homepage() {
       {client && <HomeClientMetrics />}
       {client && <SmartMetricsDashboard />}
 
-      <footer className="mt-2 overflow-hidden rounded-2xl border border-border bg-card">
-        <div className="grid grid-cols-3 gap-x-4 gap-y-5 px-5 py-5 sm:gap-x-8 sm:px-6 sm:py-7 lg:grid-cols-[minmax(0,1.5fr)_repeat(3,minmax(0,1fr))] lg:px-8">
-          <div className="col-span-3 min-w-0 lg:col-span-1">
-            <Link to="/" className="inline-flex items-center gap-2"><LogoMark size={30} /><span className="font-display text-lg font-extrabold">Next<span className="text-primary">Vita</span></span></Link>
-            <p className="mt-2 max-w-xs text-sm text-muted-foreground">Bem-estar organizado: rotina, lembretes e loja no mesmo app.</p>
-            <div className="mt-4 flex items-center gap-3">
-              <span className="hidden rounded-xl bg-white p-1.5 shadow-sm ring-1 ring-border sm:block"><QrCode variant="footer" size={64} /></span>
-              <div className="min-w-0">
-                <p className="hidden text-xs font-semibold sm:block">Abra no celular</p>
-                <p className="hidden text-[11px] text-muted-foreground sm:block">Aponte a câmera para o código.</p>
-                <div className="sm:mt-1.5 [&_button]:!h-8 [&_button]:!px-3 [&_button]:!text-xs"><InstallAppButton /></div>
-              </div>
+      <footer className="mt-1 border border-border bg-card">
+        <div className="flex flex-wrap items-center gap-x-8 gap-y-3 px-4 py-3 lg:px-5">
+          <div className="flex min-w-0 items-center gap-3">
+            <Link to="/" className="inline-flex items-center gap-2"><LogoMark size={26} /><span className="font-display text-base font-extrabold">Next<span className="text-primary">Vita</span></span></Link>
+            <span className="hidden max-w-[16rem] text-xs leading-snug text-muted-foreground xl:block">Bem-estar organizado: rotina, lembretes e loja no mesmo app.</span>
+          </div>
+          <div className="flex min-w-0 flex-1 flex-wrap items-start gap-x-8 gap-y-2">
+            {([
+              ["Ferramentas", [["/hidratacao", "Hidratação"], ["/medicamentos", "Medicação"], ["/dietas", "Alimentação"], ["/treinos", "Treinos"], ["/sono", "Sono"]]],
+              ["Plataforma", [["/loja", "Loja"], ["/lojista", "Seja lojista"], ["/metricas", "Métricas"], ["/protocolos", "Como funciona"]]],
+              ["Empresa", [["/sobre", "Sobre"], ["/entrar?mode=signup", "Criar conta"], ["/entrar", "Entrar"], ["/parceiros", "Parcerias"]]],
+            ] as const).map(([title, links]) => (
+              <nav key={title} aria-label={title} className="min-w-0">
+                <p className="text-[11px] font-bold text-foreground">{title}</p>
+                <ul className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs">
+                  {links.map(([to, label]) => <li key={to}><a href={to} className="text-muted-foreground transition-colors hover:text-foreground">{label}</a></li>)}
+                </ul>
+              </nav>
+            ))}
+          </div>
+          <div className="flex shrink-0 items-center gap-2.5">
+            <span className="hidden bg-white p-1 ring-1 ring-border sm:block"><QrCode variant="footer" size={44} /></span>
+            <div className="min-w-0">
+              <p className="hidden text-[11px] font-semibold sm:block">Abra no celular</p>
+              <div className="sm:mt-1 [&_button]:!h-7 [&_button]:!px-2.5 [&_button]:!text-xs"><InstallAppButton /></div>
             </div>
           </div>
-          {([
-            ["Ferramentas", [["/hidratacao", "Hidratação"], ["/medicamentos", "Medicação"], ["/dietas", "Alimentação"], ["/treinos", "Treinos"], ["/sono", "Sono"]]],
-            ["Plataforma", [["/loja", "Loja"], ["/lojista", "Seja lojista"], ["/metricas", "Métricas"], ["/protocolos", "Como funciona"]]],
-            ["Empresa", [["/sobre", "Sobre"], ["/entrar?mode=signup", "Criar conta grátis"], ["/entrar", "Entrar"], ["/parceiros", "Parcerias"]]],
-          ] as const).map(([title, links]) => (
-            <nav key={title} aria-label={title}>
-              <p className="text-xs font-bold text-foreground">{title}</p>
-              <ul className="mt-2 grid gap-1.5 text-[13px] sm:mt-3 sm:gap-2 sm:text-sm">
-                {links.map(([to, label]) => <li key={to}><a href={to} className="text-muted-foreground transition-colors hover:text-foreground">{label}</a></li>)}
-              </ul>
-            </nav>
-          ))}
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-border px-5 py-3 text-[11px] sm:px-6 sm:text-xs text-muted-foreground lg:px-8">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-0.5 border-t border-border px-4 py-1.5 text-[11px] text-muted-foreground lg:px-5">
           <span>© {new Date().getFullYear()} NextVita. Todos os direitos reservados.</span>
           <span>Desenvolvido por <Link to="/sobre" className="font-semibold text-foreground hover:underline">Franc D&apos;nis</Link> · Feijó, Acre</span>
         </div>

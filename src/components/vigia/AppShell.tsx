@@ -230,14 +230,11 @@ function PublicTopNav({ pathname }: { pathname: string }) {
   }, [open]);
   const resourceActive = resourceLinks.some((r) => r.to === pathname);
   const linkCls =
-    "relative inline-flex h-8 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground";
-  const activeCls = {
-    className:
-      "!bg-card !text-foreground shadow-[0_1px_2px_rgba(0,0,0,.25),inset_0_0_0_1px_var(--color-border)]",
-  };
+    "nv-tab relative inline-flex h-14 items-center gap-1.5 px-3.5 text-[13px] font-semibold text-muted-foreground transition-colors hover:text-foreground";
+  const activeCls = { className: "nv-tab-on !text-foreground" };
   return (
     <nav
-      className="mx-auto hidden items-center gap-0.5 rounded-full border border-border/70 bg-muted/40 p-1 backdrop-blur lg:flex"
+      className="mx-auto hidden items-center gap-0.5 self-stretch lg:flex"
       aria-label="Navegação principal"
     >
       {primaryPublic.map((item) => (
@@ -257,7 +254,7 @@ function PublicTopNav({ pathname }: { pathname: string }) {
           aria-expanded={open}
           aria-haspopup="true"
           onClick={() => setOpen((o) => !o)}
-          className={`${linkCls} ${resourceActive || open ? "!bg-card !text-foreground shadow-sm" : ""}`}
+          className={`${linkCls} ${resourceActive || open ? "nv-tab-on !text-foreground" : ""}`}
         >
           Recursos{" "}
           <ChevronDown
@@ -267,7 +264,7 @@ function PublicTopNav({ pathname }: { pathname: string }) {
           />
         </button>
         {open && (
-          <div className="nv-pop absolute left-1/2 top-full z-40 mt-3 grid w-[30rem] -translate-x-1/2 grid-cols-2 gap-1 rounded-2xl border border-border bg-surface/95 p-2 shadow-pop backdrop-blur-xl">
+          <div className="nv-pop absolute left-1/2 top-full z-40 mt-0 grid w-[30rem] -translate-x-1/2 grid-cols-2 gap-1 rounded-2xl border border-border bg-surface/95 p-2 shadow-pop backdrop-blur-xl">
             {resourceLinks.map((r) => (
               <Link
                 key={r.to}
@@ -289,10 +286,10 @@ function PublicTopNav({ pathname }: { pathname: string }) {
       </div>
       <Link
         to="/loja"
-        className={`${linkCls} font-semibold text-foreground`}
-        activeProps={activeCls}
+        className="mx-1.5 inline-flex h-8 items-center gap-1.5 self-center border border-amber-400/50 bg-amber-400/10 px-3 text-[13px] font-bold text-amber-300 transition hover:bg-amber-400/20"
+        activeProps={{ className: "!bg-amber-400/25" }}
       >
-        <ShoppingBag size={14} aria-hidden="true" className="text-amber-500" /> Loja
+        <ShoppingBag size={14} aria-hidden="true" /> Loja
       </Link>
       <Link to="/lojista" className={linkCls} activeProps={activeCls}>
         Seja lojista
