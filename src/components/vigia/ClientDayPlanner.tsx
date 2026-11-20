@@ -165,6 +165,22 @@ const PERIODS = [
   },
   { id: "noite", label: "Noite", icon: Sunset, color: "#818cf8", test: (h: number) => h >= 18 },
 ] as const;
+/** Descobre o tipo da refeição pelo que foi gravado: o campo "tipo" e, se faltar, o título ou a descrição. */
+const mealKindOf = (...parts: unknown[]): string => {
+  const n = parts
+    .map((x) => String(x ?? ""))
+    .join(" ")
+    .toLowerCase();
+  return /caf[eé]\s*(da)?\s*manh|desjejum/.test(n)
+    ? "cafe_manha"
+    : /almo/.test(n)
+      ? "almoco"
+      : /jant/.test(n)
+        ? "jantar"
+        : /lanch|colaç|colac|ceia/.test(n)
+          ? "lanche"
+          : "";
+};
 const go = (area: ClientSection) => {
   window.location.hash = clientSectionHashes[area];
 };
@@ -398,6 +414,53 @@ export function ClientDayPlanner({
     window.addEventListener("nv-intake-changed", bump);
     return () => window.removeEventListener("nv-intake-changed", bump);
   }, [onRecorded]);
+  // Sincroniza com o que foi registrado em qualquer área: ao voltar para a aba, a cada 20 s
+  // e quando o banco avisa de uma mudança nas tabelas do dia.
+  useEffect(() => {
+    if (!patientId) return;
+    const bump = () => setReload((n) => n + 1);
+    const onVis = () => document.visibilityState === "visible" && bump();
+    const timer = window.setInterval(
+      () => document.visibilityState === "visible" && bump(),
+      20_000,
+    );
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("focus", bump);
+    window.addEventListener("hashchange", bump);
+    let channel: any = null;
+    try {
+      const sb = supabase as any;
+      channel = sb.channel(`meu-dia-${patientId}`);
+      for (const table of [
+        "care_activity_log",
+        "care_nutrition_meal_logs",
+        "care_hydration",
+        "care_client_beverages",
+        "care_client_medication_intakes",
+        "care_supplement_intakes",
+        "care_sleep_logs",
+      ])
+        channel.on(
+          "postgres_changes",
+          { event: "*", schema: "public", table, filter: `patient_id=eq.${patientId}` },
+          bump,
+        );
+      channel.subscribe();
+    } catch {
+      /* sem tempo real: a atualização periódica cobre */
+    }
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("focus", bump);
+      window.removeEventListener("hashchange", bump);
+      try {
+        if (channel) (supabase as any).removeChannel(channel);
+      } catch {
+        /* ok */
+      }
+    };
+  }, [patientId]);
   const refresh = () => {
     setReload((n) => n + 1);
     onRecorded?.();
@@ -688,22 +751,13 @@ export function ClientDayPlanner({
         id: r.id as string,
         t: Date.parse(r.happened_at ?? r.recorded_at),
         text: String(r.details?.description || r.details?.title || "Refeição"),
-        kind: String(r.details?.kind ?? ""),
+        kind:
+          mealKindOf(r.details?.kind) ||
+          mealKindOf(r.details?.title, r.details?.description, r.details?.meal_name),
         src: "act" as "act" | "log",
       }));
     // Refeições registradas pela área de alimentação também contam para o horário previsto
-    const mealKind = (name: string) => {
-      const n = name.toLowerCase();
-      return /caf[eé]/.test(n)
-        ? "cafe_manha"
-        : /almo/.test(n)
-          ? "almoco"
-          : /jant/.test(n)
-            ? "jantar"
-            : /lanch|ceia/.test(n)
-              ? "lanche"
-              : "";
-    };
+    const mealKind = (name: string) => mealKindOf(name);
     for (const r of raw.mlogs) {
       const t = Date.parse(r.recorded_at);
       if (meals.some((m) => Math.abs(m.t - t) < 3 * 60_000)) continue;
@@ -712,7 +766,7 @@ export function ClientDayPlanner({
         id: String(r.id),
         t,
         text: list || String(r.meal_name || "Refeição"),
-        kind: mealKind(String(r.meal_name ?? "")),
+        kind: mealKind(String(r.meal_name ?? "")) || mealKindOf(list),
         src: "log",
       });
     }
@@ -798,12 +852,18 @@ export function ClientDayPlanner({
       const kindHit = meals.find((m) => m.id === byKind.get(t));
       const hit =
         kindHit ??
-        meals.find(
-          (m) =>
-            !used.has(m.id) &&
-            ![...byKind.values()].includes(m.id) &&
-            Math.abs(m.t - ms) <= 90 * 60_000,
-        );
+        meals
+          .filter(
+            (m) =>
+              !used.has(m.id) &&
+              ![...byKind.values()].includes(m.id) &&
+              // refeição com tipo definido só vale no horário do seu tipo
+              (!m.kind ||
+                !Object.values(SLOT_KIND).flat().includes(m.kind) ||
+                m.kind === "lanche") &&
+              Math.abs(m.t - ms) <= 150 * 60_000,
+          )
+          .sort((x, y) => Math.abs(x.t - ms) - Math.abs(y.t - ms))[0];
       if (hit) used.add(hit.id);
       const moved = !hit && post[`meal-${t}`] ? post[`meal-${t}`] : null;
       const when = moved ?? ms;
