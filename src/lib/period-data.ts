@@ -55,6 +55,24 @@ async function fetchAll(
 /** Metas efetivas: as do perfil quando existem; senão as de referência por objetivo e peso. */
 export function resolveTargets(prefs: PrefsInfo, waterMl: number | null): Targets {
   const base = goalTargets(prefs.objective, prefs.weightKg);
+  // Sem peso cadastrado nem metas próprias, não há base para metas nutricionais: nada é cobrado
+  // nem registrado como "não atingido" até a pessoa informar os dados essenciais.
+  const essential =
+    prefs.weightKg !== null ||
+    prefs.kcal !== null ||
+    prefs.protein !== null ||
+    prefs.carbs !== null ||
+    prefs.fat !== null;
+  if (!essential)
+    return {
+      waterMl,
+      objective: prefs.objective,
+      targetWeightKg: prefs.targetWeightKg,
+      kcal: null,
+      protein: null,
+      carbs: null,
+      fat: null,
+    };
   return {
     waterMl,
     objective: prefs.objective,

@@ -368,8 +368,10 @@ function buildOne(index: Map<string, Slot>, plans: PlanInfo[], day: string, ctx:
 
   const goals: GoalResult[] = [];
   const { targets } = ctx;
-  const finish = (status: GoalStatus, met: boolean): GoalStatus =>
-    met ? "atingida" : !hasData && closed ? "sem_registro" : closed ? "nao_atingida" : status;
+  const finish = (status: GoalStatus, met: boolean, has = hasData): GoalStatus =>
+    met ? "atingida" : !has && closed ? "sem_registro" : closed ? "nao_atingida" : status;
+  // Metas de nutrição só contam em dias com alimentos registrados: sem registro, nada a cobrar.
+  const hasFood = s.foods.length > 0;
 
   // Hidratação: a meta do servidor do dia vence a meta atual (a meta pode ter mudado ao longo do tempo).
   // Dias sem meta guardada no servidor usam a meta atual de referência (melhor do que esconder a meta).
@@ -410,9 +412,9 @@ function buildOne(index: Map<string, Slot>, plans: PlanInfo[], day: string, ctx:
       actual: Math.round(counted.kcal),
       pct: pctOf(counted.kcal, kcalTarget),
       status: monotonic
-        ? finish("em_andamento", inBand)
+        ? finish("em_andamento", inBand, hasFood)
         : closed
-          ? !hasData
+          ? !hasFood
             ? "sem_registro"
             : inBand
               ? "atingida"
@@ -431,7 +433,7 @@ function buildOne(index: Map<string, Slot>, plans: PlanInfo[], day: string, ctx:
       target: proteinTarget,
       actual: Math.round(counted.protein),
       pct: pctOf(counted.protein, proteinTarget),
-      status: finish("em_andamento", met),
+      status: finish("em_andamento", met, hasFood),
       rule: "pelo menos 90% da meta de proteínas",
       monotonic: true,
     });

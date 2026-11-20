@@ -179,201 +179,23 @@ function useWeek(patientId: string, ownerId: string, revision: number) {
   return { series, keys };
 }
 
-function MetricCard({
-  k,
-  days,
-  keys,
-  goal,
-  scheduled,
-  onOpen,
-  index,
-}: {
-  k: MetricKey;
-  days: number[];
-  keys: string[];
-  goal: number;
-  scheduled: number;
-  onOpen: () => void;
-  index: number;
-}) {
-  const m = meta[k];
-  const today = days[6];
-  const prev = days.slice(0, 6);
-  const avg = prev.reduce((a, b) => a + b, 0) / Math.max(1, prev.filter((v) => v > 0).length || 1);
-  const target = goal || scheduled;
-  const pct = target ? Math.min(100, Math.round((today / target) * 100)) : null;
-  const max = Math.max(...days, target || 0, 1);
-  const [hover, setHover] = useState<number | null>(null);
-  const shown = hover ?? 6;
-  const trend = avg > 0 ? Math.round(((today - avg) / avg) * 100) : null;
-  const empty = days.every((v) => v === 0);
-  return (
-    <article
-      className="nv-insight nv-rise group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-card p-4"
-      style={{ ["--c" as string]: m.color, animationDelay: `${index * 80}ms` }}
-    >
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-10 -top-10 size-32 rounded-full opacity-20 blur-2xl transition-opacity group-hover:opacity-35"
-        style={{ background: m.color }}
-      />
-      <header className="flex items-center justify-between gap-2">
-        <button
-          type="button"
-          onClick={onOpen}
-          className="flex items-center gap-2 text-sm font-semibold hover:underline"
-        >
-          <span
-            className="grid size-9 place-items-center rounded-xl text-white shadow-md"
-            style={{
-              background: `linear-gradient(135deg, ${m.color}, color-mix(in srgb, ${m.color} 60%, #000))`,
-            }}
-          >
-            <m.icon size={17} />
-          </span>
-          {m.label}
-        </button>
-        {empty && (
-          <button
-            type="button"
-            onClick={onOpen}
-            className="inline-flex h-7 items-center gap-1 rounded-full px-2.5 text-[11px] font-bold text-white transition hover:brightness-110 active:scale-95"
-            style={{ background: m.color }}
-          >
-            <Plus size={12} /> {m.empty}
-          </button>
-        )}
-        {trend !== null && hover === null && (
-          <span
-            className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-bold ${trend >= 0 ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300" : "bg-amber-500/10 text-amber-700 dark:text-amber-300"}`}
-          >
-            {trend >= 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-            {Math.abs(trend)}% vs. média
-          </span>
-        )}
-      </header>
-      <div className="mt-3 flex items-end justify-between gap-2">
-        <div key={shown} className="nv-fade-in min-w-0">
-          <p
-            className={`font-display text-2xl font-extrabold leading-none tabular-nums ${empty ? "text-muted-foreground" : ""}`}
-          >
-            {empty ? "Sem registros" : m.unit(days[shown])}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {empty
-              ? "Nos últimos 7 dias"
-              : shown === 6
-                ? target
-                  ? `hoje · meta ${m.unit(target)}`
-                  : "hoje"
-                : `${weekday(keys[shown])}, ${keys[shown].slice(8)}/${keys[shown].slice(5, 7)}`}
-          </p>
-        </div>
-        {pct !== null && !empty && (
-          <div className="relative size-12 shrink-0" title={`${pct}% da meta de hoje`}>
-            <svg viewBox="0 0 36 36" className="size-full -rotate-90">
-              <circle
-                cx="18"
-                cy="18"
-                r="15"
-                fill="none"
-                stroke="currentColor"
-                className="text-muted"
-                strokeWidth="4"
-              />
-              <circle
-                cx="18"
-                cy="18"
-                r="15"
-                fill="none"
-                stroke={m.color}
-                strokeWidth="4"
-                strokeLinecap="round"
-                pathLength={100}
-                strokeDasharray={`${pct} 100`}
-                className="nv-ring-draw"
-              />
-            </svg>
-            <span className="absolute inset-0 grid place-items-center text-[11px] font-bold tabular-nums">
-              {pct}%
-            </span>
-          </div>
-        )}
-      </div>
-      <div
-        className="mt-auto flex min-h-14 flex-1 items-end gap-1.5 pt-3"
-        onPointerLeave={() => setHover(null)}
-        role="img"
-        aria-label={`${m.label} nos últimos 7 dias`}
-      >
-        {days.map((v, i) => (
-          <button
-            key={keys[i]}
-            type="button"
-            tabIndex={-1}
-            onPointerEnter={() => setHover(i)}
-            onFocus={() => setHover(i)}
-            aria-label={`${weekday(keys[i])}: ${m.unit(v)}`}
-            className="flex h-full flex-1 flex-col items-center justify-end gap-1"
-          >
-            <span
-              className="nv-m-bar w-full rounded-md transition-[opacity,transform] duration-200"
-              style={{
-                height: `${empty ? 12 + ((i * 37) % 30) : Math.max(6, (v / max) * 100)}%`,
-                background: empty
-                  ? "color-mix(in srgb, currentColor 10%, transparent)"
-                  : i === 6
-                    ? m.color
-                    : `color-mix(in srgb, ${m.color} 35%, transparent)`,
-                opacity: hover === null || hover === i ? 1 : 0.45,
-                animationDelay: `${i * 50}ms`,
-                animationIterationCount: 1,
-              }}
-            />
-            <span
-              className={`text-[11px] capitalize ${i === 6 ? "font-bold text-foreground" : "text-muted-foreground"}`}
-            >
-              {i === 6 ? "hoje" : weekday(keys[i]).slice(0, 3)}
-            </span>
-          </button>
-        ))}
-      </div>
-    </article>
-  );
-}
-
-/** Valor curto para caber na linha da pontuação (ex.: 1,2 L · 4 · 30 min). */
-const short = (v: number, k: MetricKey) =>
-  k === "hidratacao"
-    ? v >= 1000
-      ? `${(v / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} L`
-      : `${Math.round(v)} ml`
-    : k === "atividade"
-      ? `${Math.round(v)}`
-      : `${Math.round(v)}`;
 const order: MetricKey[] = ["hidratacao", "alimentacao", "medicacao", "atividade"];
 
 /** Meta de hoje por métrica: água pela meta do perfil, 3 refeições, doses programadas e 1 sessão de atividade. */
 function targetFor(k: MetricKey, waterGoal: number, scheduled: number) {
-  if (k === "hidratacao") return waterGoal || 2000;
+  if (k === "hidratacao") return waterGoal || 0;
   if (k === "alimentacao") return Math.max(3, scheduled);
   if (k === "medicacao") return scheduled;
   return 1;
 }
 
-function ScoreCard({
-  series,
-  waterGoal,
-  scheduled,
-  onOpen,
-}: {
-  series: Series[];
-  waterGoal: number;
-  scheduled: Partial<Record<MetricKey, number>>;
-  onOpen: (k: MetricKey) => void;
-}) {
+/** Comemora quando a meta de hoje é batida (uma vez por dia e por meta). */
+function useGoalCelebrations(
+  series: Series[],
+  waterGoal: number,
+  scheduled: Partial<Record<MetricKey, number>>,
+) {
   const fx = useGoalFx();
-  // Comemora quando a meta de hoje é batida (uma vez por dia e por meta).
   useEffect(() => {
     const today = dayKey(new Date());
     for (const k of ["hidratacao", "medicacao"] as const) {
@@ -405,21 +227,45 @@ function ScoreCard({
       });
     }
   }, [series, waterGoal, scheduled, fx]);
-  const rows = order
-    .filter((k) => (series.find((s) => s.key === k)?.days ?? []).some((v) => v > 0))
-    .map((k) => {
-      const today = series.find((s) => s.key === k)?.days[6] ?? 0;
-      const target = targetFor(k, waterGoal, scheduled[k] ?? 0);
-      return {
-        k,
-        today,
-        target,
-        pct: target ? Math.min(100, Math.round((today / target) * 100)) : null,
-      };
-    });
-  const counted = rows.filter((r) => r.pct !== null);
+}
+
+/**
+ * Painel do dia: pontuação à esquerda e uma coluna por área (hoje, meta e últimos 7 dias).
+ * Áreas ainda sem registro ocupam a mesma coluna com um atalho — nunca sobra espaço vazio.
+ */
+function DayBoard({
+  series,
+  keys,
+  waterGoal,
+  scheduled,
+  onOpen,
+}: {
+  series: Series[];
+  keys: string[];
+  waterGoal: number;
+  scheduled: Partial<Record<MetricKey, number>>;
+  onOpen: (k: MetricKey) => void;
+}) {
+  useGoalCelebrations(series, waterGoal, scheduled);
+  const cells = order.map((k) => {
+    const days = series.find((s) => s.key === k)?.days ?? [0, 0, 0, 0, 0, 0, 0];
+    const today = days[6];
+    const target = targetFor(k, waterGoal, scheduled[k] ?? 0);
+    const prev = days.slice(0, 6);
+    const avg = prev.reduce((a, b) => a + b, 0) / Math.max(1, prev.filter((v) => v > 0).length);
+    return {
+      k,
+      days,
+      today,
+      target,
+      empty: days.every((v) => v === 0),
+      pct: target ? Math.min(100, Math.round((today / target) * 100)) : null,
+      trend: avg > 0 ? Math.round(((today - avg) / avg) * 100) : null,
+    };
+  });
+  const counted = cells.filter((c) => !c.empty && c.pct !== null);
   const score = counted.length
-    ? Math.round(counted.reduce((a, r) => a + (r.pct ?? 0), 0) / counted.length)
+    ? Math.round(counted.reduce((a, c) => a + (c.pct ?? 0), 0) / counted.length)
     : 0;
   const status =
     score >= 85
@@ -429,143 +275,136 @@ function ScoreCard({
         : score >= 25
           ? "Em andamento"
           : "Comece o seu dia";
-  const R = 52,
-    C = 2 * Math.PI * R;
+  const SEG = 20;
+  const lit = Math.round((score / 100) * SEG);
   return (
     <section
-      aria-label="Pontuação do dia"
-      className="nv-dark nv-rise relative isolate flex flex-col overflow-hidden rounded-2xl bg-[#071512] p-4 text-white shadow-card sm:p-5"
+      aria-label="Painel do dia"
+      className="nv-dark nv-rise grid overflow-hidden border border-white/10 bg-[#0a1118] text-white lg:grid-cols-[14.5rem_minmax(0,1fr)]"
     >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 opacity-60"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px)",
-          backgroundSize: "22px 22px",
-        }}
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -left-16 -top-20 -z-10 size-64 rounded-full bg-emerald-400/20 blur-3xl"
-      />
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-semibold text-emerald-200">Pontuação do dia</p>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-bold text-emerald-100">
-          <i className="nv-live size-1.5 rounded-full bg-emerald-300" /> ao vivo
-        </span>
-      </div>
-      <div className="mt-3 flex items-center gap-4">
-        <div
-          className="relative size-28 shrink-0"
-          role="img"
-          aria-label={`Pontuação ${score} de 100`}
-        >
-          <svg viewBox="0 0 120 120" className="size-full -rotate-90">
-            <defs>
-              <linearGradient id="nv-score-g" x1="0" x2="1" y1="0" y2="1">
-                <stop offset="0" stopColor="#34d399" />
-                <stop offset="1" stopColor="#22d3ee" />
-              </linearGradient>
-            </defs>
-            <circle cx="60" cy="60" r={R} fill="none" stroke="#ffffff14" strokeWidth="10" />
-            <circle
-              cx="60"
-              cy="60"
-              r={R}
-              fill="none"
-              stroke="#ffffff10"
-              strokeWidth="10"
-              strokeDasharray="2 6"
-            />
-            <circle
-              cx="60"
-              cy="60"
-              r={R}
-              fill="none"
-              stroke="url(#nv-score-g)"
-              strokeWidth="10"
-              strokeLinecap="round"
-              strokeDasharray={C}
-              strokeDashoffset={C * (1 - score / 100)}
-              style={{
-                transition: "stroke-dashoffset 1.1s cubic-bezier(.2,.8,.2,1)",
-                filter: "drop-shadow(0 0 6px rgba(52,211,153,.55))",
-              }}
-            />
-          </svg>
-          <span className="absolute inset-0 grid place-items-center text-center leading-none">
-            <span>
-              <strong className="block font-display text-3xl font-extrabold tabular-nums">
-                {score}
-              </strong>
-              <span className="text-[11px] font-semibold text-white/60">de 100</span>
-            </span>
+      <div className="relative flex flex-col justify-between gap-3 border-b border-white/10 p-4 lg:border-b-0 lg:border-r">
+        <div className="flex items-center justify-between gap-2 text-[11px] font-semibold text-slate-400">
+          <span>Pontuação do dia</span>
+          <span className="inline-flex items-center gap-1.5 text-emerald-300">
+            <i className="nv-live size-1.5 rounded-full bg-emerald-400" /> ao vivo
           </span>
         </div>
-        <div className="min-w-0">
-          <p className="font-display text-xl font-extrabold">{status}</p>
-          <p className="mt-1 text-xs text-white/65">
-            Média do quanto você já cumpriu das metas de hoje.
+        <div role="img" aria-label={`Pontuação ${score} de 100. ${status}.`}>
+          <p className="font-display text-6xl font-extrabold leading-none tabular-nums tracking-tight">
+            {score}
+            <span className="ml-1 text-base font-semibold text-slate-500">/100</span>
           </p>
+          <p className="mt-1 text-sm font-semibold text-cyan-200">{status}</p>
+        </div>
+        <div className="flex gap-[3px]" aria-hidden="true">
+          {Array.from({ length: SEG }, (_, i) => (
+            <i
+              key={i}
+              className="h-2.5 flex-1 transition-colors duration-500"
+              style={{
+                background:
+                  i < lit
+                    ? `color-mix(in srgb, #34d399 ${100 - (i / SEG) * 45}%, #22d3ee)`
+                    : "rgba(255,255,255,.08)",
+              }}
+            />
+          ))}
         </div>
       </div>
-      <ul className="mt-4 grid gap-2">
-        {rows.map((r, i) => {
-          const m = meta[r.k];
+      <div className="grid grid-cols-2 divide-white/10 max-lg:divide-y xl:grid-cols-4 xl:divide-x">
+        {cells.map((c, idx) => {
+          const m = meta[c.k];
+          const peak = Math.max(...c.days, c.target || 0, 1);
           return (
-            <li key={r.k}>
-              <button
-                type="button"
-                onClick={() => onOpen(r.k)}
-                className="group grid w-full grid-cols-[auto_1fr_auto] items-center gap-2.5 rounded-xl px-1.5 py-1 text-left transition hover:bg-white/[.06]"
-              >
+            <button
+              key={c.k}
+              type="button"
+              onClick={() => onOpen(c.k)}
+              aria-label={c.empty ? `${m.label}: ${m.empty}` : `${m.label}: abrir detalhes`}
+              className={`group relative flex min-w-0 flex-col gap-2 p-3.5 text-left transition-colors hover:bg-white/[.035] ${idx % 2 === 0 ? "max-xl:border-r max-xl:border-white/10" : ""} ${idx > 1 ? "max-xl:border-t max-xl:border-white/10" : ""}`}
+              style={{ ["--c" as string]: m.color }}
+            >
+              <span className="flex items-center gap-2 text-xs font-semibold text-slate-300">
                 <span
-                  className="grid size-7 place-items-center rounded-lg"
-                  style={{
-                    background: `color-mix(in srgb, ${m.color} 25%, transparent)`,
-                    color: m.color,
-                  }}
+                  className="grid size-6 place-items-center text-white"
+                  style={{ background: m.color }}
                 >
-                  <m.icon size={14} />
+                  <m.icon size={13} />
                 </span>
-                <span className="min-w-0">
-                  <span className="flex items-baseline justify-between gap-2 whitespace-nowrap text-[11px] font-semibold">
-                    <span className="truncate text-white/80">{m.label}</span>
-                    <span className="shrink-0 tabular-nums text-white/60">
-                      {r.pct === null
-                        ? "sem doses"
-                        : `${short(r.today, r.k)} / ${short(r.target, r.k)}`}
+                {m.label}
+                {!c.empty && c.trend !== null && (
+                  <span
+                    className={`ml-auto inline-flex items-center gap-0.5 text-[11px] font-bold ${c.trend >= 0 ? "text-emerald-300" : "text-amber-300"}`}
+                    title="Hoje comparado à média dos 6 dias anteriores"
+                  >
+                    {c.trend >= 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                    {Math.abs(c.trend)}%
+                  </span>
+                )}
+              </span>
+              {c.empty ? (
+                <span className="flex flex-1 flex-col justify-between gap-2">
+                  <span className="text-xs text-slate-400">Sem registros nos últimos 7 dias</span>
+                  <span
+                    className="inline-flex h-7 w-fit items-center gap-1 px-2.5 text-[11px] font-bold text-white transition group-hover:brightness-110"
+                    style={{ background: m.color }}
+                  >
+                    <Plus size={12} /> {m.empty}
+                  </span>
+                </span>
+              ) : (
+                <>
+                  <span className="flex items-baseline justify-between gap-2">
+                    <span className="truncate font-display text-xl font-extrabold leading-none tabular-nums">
+                      {m.unit(c.today)}
+                    </span>
+                    <span className="shrink-0 text-[11px] text-slate-400">
+                      {c.target ? `meta ${m.unit(c.target)}` : "hoje"}
                     </span>
                   </span>
-                  <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-white/10">
-                    <i
-                      className="block h-full rounded-full transition-[width] duration-700 ease-out"
-                      style={{
-                        width: `${r.pct ?? 0}%`,
-                        background: m.color,
-                        transitionDelay: `${i * 90}ms`,
-                      }}
-                    />
+                  {c.pct !== null && (
+                    <span className="flex items-center gap-2">
+                      <span className="h-1 flex-1 bg-white/10">
+                        <i
+                          className="block h-full transition-[width] duration-700"
+                          style={{ width: `${c.pct}%`, background: m.color }}
+                        />
+                      </span>
+                      <span className="w-8 text-right text-[11px] font-bold tabular-nums">
+                        {c.pct}%
+                      </span>
+                    </span>
+                  )}
+                  <span
+                    className="mt-auto flex h-10 items-end gap-1"
+                    role="img"
+                    aria-label={`${m.label} nos últimos 7 dias`}
+                  >
+                    {c.days.map((v, i) => (
+                      <i
+                        key={keys[i] ?? i}
+                        title={`${weekday(keys[i] ?? "")}: ${m.unit(v)}`}
+                        className="nv-m-bar flex-1"
+                        style={{
+                          height: `${Math.max(8, (v / peak) * 100)}%`,
+                          background:
+                            i === 6 ? m.color : `color-mix(in srgb, ${m.color} 32%, transparent)`,
+                          animationDelay: `${i * 40}ms`,
+                          animationIterationCount: 1,
+                        }}
+                      />
+                    ))}
                   </span>
-                </span>
-                <span className="w-10 shrink-0 whitespace-nowrap text-right text-xs font-bold tabular-nums text-white/85 transition-transform group-hover:translate-x-0.5">
-                  {r.pct === null ? "—" : `${r.pct}%`}
-                </span>
-              </button>
-            </li>
+                </>
+              )}
+            </button>
           );
         })}
-      </ul>
+      </div>
     </section>
   );
 }
 
-/**
- * Painel da Visão geral: só aparecem as áreas que têm registros nos últimos 7 dias.
- * Quando o usuário registra algo numa área nova, o cartão surge e a grade se reorganiza
- * para ocupar toda a largura; áreas sem dados ficam num atalho discreto, sem ocupar espaço.
- */
 export function OverviewInsights({
   patientId,
   ownerId,
@@ -597,95 +436,23 @@ export function OverviewInsights({
     (k) => series.find((s) => s.key === k) ?? { key: k, days: [0, 0, 0, 0, 0, 0, 0] },
   );
   const active = list.filter((s) => s.days.some((v) => v > 0));
-  const idle = list.filter((s) => !s.days.some((v) => v > 0));
-  const starters = idle.length > 0 && (
-    <div
-      className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground"
-      aria-label="Áreas ainda sem registros"
-    >
-      <span className="font-semibold">
-        {active.length ? "Acompanhar também:" : "Comece registrando:"}
-      </span>
-      {idle.map((s) => {
-        const m = meta[s.key];
-        return (
-          <button
-            key={s.key}
-            type="button"
-            onClick={() => onOpen(s.key)}
-            className="inline-flex h-7 items-center gap-1.5 rounded-full border border-border bg-card px-2.5 font-semibold text-foreground transition hover:bg-muted active:scale-95"
-          >
-            <m.icon size={12} style={{ color: m.color }} /> {m.label}
-          </button>
-        );
-      })}
-    </div>
-  );
   if (!active.length)
     return (
-      <div className="rounded-2xl border border-dashed border-border bg-card/50 p-4">
-        {starters}
-      </div>
+      <DayBoard
+        series={list}
+        keys={keys}
+        waterGoal={waterGoal}
+        scheduled={scheduled}
+        onOpen={onOpen}
+      />
     );
   return (
-    <div className="grid gap-3">
-      <div className="grid gap-3 xl:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
-        <ScoreCard series={list} waterGoal={waterGoal} scheduled={scheduled} onOpen={onOpen} />
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,17rem),1fr))] auto-rows-fr gap-3">
-          {active.map((s, i) => (
-            <MetricCard
-              key={s.key}
-              k={s.key}
-              days={s.days}
-              keys={keys}
-              index={i + 1}
-              goal={s.key === "hidratacao" ? waterGoal : 0}
-              scheduled={
-                s.key === "atividade"
-                  ? 1
-                  : s.key === "alimentacao"
-                    ? Math.max(3, scheduled.alimentacao ?? 0)
-                    : (scheduled[s.key] ?? 0)
-              }
-              onOpen={() => onOpen(s.key)}
-            />
-          ))}
-          {idle.map((s) => {
-            const m = meta[s.key];
-            return (
-              <button
-                key={s.key}
-                type="button"
-                onClick={() => onOpen(s.key)}
-                aria-label={`${m.label}: ${m.empty}`}
-                className="group relative flex min-h-24 min-w-0 flex-col justify-between overflow-hidden border border-dashed border-border bg-card/40 p-3 text-left transition hover:border-solid hover:bg-card"
-                style={{ ["--c" as string]: m.color }}
-              >
-                <span className="flex items-center gap-2 text-sm font-semibold">
-                  <span
-                    className="grid size-8 place-items-center text-white"
-                    style={{ background: m.color }}
-                  >
-                    <m.icon size={15} />
-                  </span>
-                  {m.label}
-                </span>
-                <span className="mt-2 flex items-end justify-between gap-2">
-                  <span className="text-xs text-muted-foreground">
-                    Sem registros nos últimos 7 dias
-                  </span>
-                  <span
-                    className="inline-flex h-7 shrink-0 items-center gap-1 px-2.5 text-[11px] font-bold text-white transition group-hover:brightness-110"
-                    style={{ background: m.color }}
-                  >
-                    <Plus size={12} /> {m.empty}
-                  </span>
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </div>
+    <DayBoard
+      series={list}
+      keys={keys}
+      waterGoal={waterGoal}
+      scheduled={scheduled}
+      onOpen={onOpen}
+    />
   );
 }
