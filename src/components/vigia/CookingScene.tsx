@@ -2,7 +2,7 @@ import { useId } from "react";
 import type { Glyph, Vessel } from "@/lib/cooking-times";
 
 /** Desenho de cada alimento, centrado na origem e ocupando cerca de 56 x 56. */
-function GlyphShape({ glyph, color }: { glyph: Glyph; color: string }) {
+export function GlyphShape({ glyph, color }: { glyph: Glyph; color: string }) {
   const dark = `color-mix(in srgb, ${color} 60%, #000)`;
   const light = `color-mix(in srgb, ${color} 55%, #fff)`;
   switch (glyph) {

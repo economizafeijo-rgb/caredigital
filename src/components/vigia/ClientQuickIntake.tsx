@@ -6,8 +6,8 @@ import { BarChart3 } from "lucide-react";
 import { CareIntakePicker, CareIntakeIcon } from "./CareIntakePicker";
 import { checkIntake } from "@/lib/hydration-need";
 import { DrinkChoices } from "./DrinkChoices";
-import { MealSuggestions } from "./MealSuggestions";
-import { foodCategory,beverageCategory,isFoodKind,typicalFoods,typicalDrinks,mealCombos,type IntakeKind,type FoodKind,type BeverageKind } from "@/lib/care-intake-categories";
+import { MealBoard } from "./MealBoard";
+import { foodCategory,beverageCategory,isFoodKind,type IntakeKind,type FoodKind,type BeverageKind } from "@/lib/care-intake-categories";
 import { parseFoodText, sumNutrients, measureUnit } from "@/lib/food-parser";
 import { drinkGroups, drinkPresetFor, drinkPresets } from "@/lib/drink-presets";
 import { supabase } from "@/integrations/supabase/client";
@@ -151,6 +151,19 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
     }
   }
 
+  const groupToggle = mode==="all" ? (<div role="group" aria-label="Selecionar tipo de consumo" className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-muted/35 p-1">
+              <button type="button" aria-pressed={group==="food"}
+                onClick={()=>{setGroup("food");setKind("almoco");setDescription("");setPortion("");setError("");}}
+                className={"flex min-h-9 items-center justify-center gap-1.5 rounded-lg px-2 text-[11px] font-bold "+(group==="food"?"bg-primary text-primary-foreground":"text-muted-foreground hover:bg-card")}>
+                <UtensilsCrossed size={15}/> Alimentos e refeições
+              </button>
+              <button type="button" aria-pressed={group==="beverage"}
+                onClick={()=>{setGroup("beverage");setKind("agua");setDescription("");setPortion("");setError("");}}
+                className={"flex min-h-9 items-center justify-center gap-1.5 rounded-lg px-2 text-[11px] font-bold "+(group==="beverage"?"bg-primary text-primary-foreground":"text-muted-foreground hover:bg-card")}>
+                <Droplets size={15}/> Líquidos e shakes
+              </button>
+            </div>) : null;
+
   return <>
     {reportOpen&&<CareCategoryReport patientId={patientId} category={mode==="water"||mode==="drink"?"hidratacao":"refeicao"} onClose={()=>setReportOpen(false)}/>}
 
@@ -170,10 +183,10 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
       </div>, document.body
     )}
     {open && typeof document !== "undefined" && createPortal(
-      <div className="care-intake-modal-overlay fixed inset-0 z-[150] flex items-center justify-center overflow-hidden bg-slate-950/60 p-3 backdrop-blur-sm"
+      <div className={"care-intake-modal-overlay fixed inset-0 z-[150] flex items-center justify-center overflow-hidden bg-slate-950/60 backdrop-blur-sm "+(isFood?"p-2":"p-3")}
         onMouseDown={event => { if (event.target === event.currentTarget) closeForm(); }}>
         <section role="dialog" aria-modal="true" aria-labelledby="quick-intake-title"
-          className={"care-premium-intake-dialog care-intake-responsive-v2 care-intake-oneview flex max-h-[94dvh] w-full min-w-0 "+(mode==="water"?"max-w-[560px]":"h-[min(94dvh,860px)] max-w-[min(1200px,96vw)]")+" flex-col overflow-hidden rounded-[24px] border border-border bg-card p-4 text-card-foreground shadow-2xl sm:p-5"}>
+          className={"care-premium-intake-dialog care-intake-responsive-v2 care-intake-oneview flex max-h-[94dvh] w-full min-w-0 "+(mode==="water"?"max-w-[560px]":(isFood?"h-[96dvh] max-w-none":"h-[min(94dvh,860px)] max-w-[min(1200px,96vw)]"))+" flex-col overflow-hidden rounded-[24px] border border-border bg-card p-4 text-card-foreground shadow-2xl sm:p-5"}>
           <div className="care-premium-intake-header flex shrink-0 items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <span className="grid size-9 place-items-center rounded-xl bg-primary/10 text-primary">
@@ -184,24 +197,20 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
                 <p className="text-[11px] text-muted-foreground">Informe o horário do consumo · fuso horário do Acre</p>
               </div>
             </div>
-            <button type="button" aria-label="Fechar" disabled={saving} onClick={closeForm}
-              className="grid size-8 place-items-center rounded-lg border border-border"><X size={18}/></button>
+            <div className="flex items-center gap-2">
+              {isFood&&<button type="button" onClick={()=>setReportOpen(true)} className="nv-btn nv-btn-ghost !min-h-9 px-3 text-xs"><BarChart3 size={15}/> <span className="hidden sm:inline">Relatório diário, mensal e anual</span><span className="sm:hidden">Relatório</span></button>}
+              <button type="button" aria-label="Fechar" disabled={saving} onClick={closeForm}
+                className="grid size-8 place-items-center rounded-lg border border-border"><X size={18}/></button>
+            </div>
           </div>
-          {mode!=="water"&&<button type="button" onClick={()=>setReportOpen(true)} className="mt-3 inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-primary/30 bg-accent px-3 py-2.5 text-xs font-bold text-primary hover:bg-accent"><BarChart3 size={17}/> Relatório diário, mensal e anual</button>}
-          <form className={"care-intake-oneview-form mt-2 grid min-h-0 flex-1 content-start gap-3 overflow-y-auto overscroll-contain pr-1 "+(mode==="water"?"":" lg:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)] lg:overflow-hidden")} onSubmit={event => void save(event)}>
+          {mode!=="water"&&!isFood&&<button type="button" onClick={()=>setReportOpen(true)} className="mt-3 inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-primary/30 bg-accent px-3 py-2.5 text-xs font-bold text-primary hover:bg-accent"><BarChart3 size={17}/> Relatório diário, mensal e anual</button>}
+          <form className={"care-intake-oneview-form mt-2 grid min-h-0 flex-1 content-start gap-3 overflow-y-auto overscroll-contain pr-1 "+(mode==="water"?"":isFood?"":" lg:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)] lg:overflow-hidden")} onSubmit={event => void save(event)}>
+            {isFood ? <MealBoard kind={kind as FoodKind} onKind={selected=>{setKind(selected);setDescription("");setPortion("");setError("");}}
+              description={description} onDescription={setDescription} portion={portion} onPortion={setPortion}
+              consumedAt={consumedAt} onConsumedAt={value=>{setConsumedAt(value);setManualTime(true);}}
+              error={error} saving={saving} onCancel={closeForm} topSlot={groupToggle}/> : <>
             <div className="grid min-w-0 content-start gap-2 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
-            {mode==="all"&&<div role="group" aria-label="Selecionar tipo de consumo" className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-muted/35 p-1">
-              <button type="button" aria-pressed={group==="food"}
-                onClick={()=>{setGroup("food");setKind("almoco");setDescription("");setPortion("");setError("");}}
-                className={"flex min-h-9 items-center justify-center gap-1.5 rounded-lg px-2 text-[11px] font-bold "+(group==="food"?"bg-primary text-primary-foreground":"text-muted-foreground hover:bg-card")}>
-                <UtensilsCrossed size={15}/> Alimentos e refeições
-              </button>
-              <button type="button" aria-pressed={group==="beverage"}
-                onClick={()=>{setGroup("beverage");setKind("agua");setDescription("");setPortion("");setError("");}}
-                className={"flex min-h-9 items-center justify-center gap-1.5 rounded-lg px-2 text-[11px] font-bold "+(group==="beverage"?"bg-primary text-primary-foreground":"text-muted-foreground hover:bg-card")}>
-                <Droplets size={15}/> Líquidos e shakes
-              </button>
-            </div>}
+            {groupToggle}
             {mode!=="water"&&<div className="care-intake-picker-scroll care-intake-picker-visible min-w-0 rounded-xl border border-border/60 bg-muted/[.13] p-2">
               {group==="food"?
                 <CareIntakePicker group="food" value={isFoodKind(kind)?kind:"lanche"}
@@ -215,28 +224,8 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
             </p>
             </div>
             <div className="grid min-w-0 content-start gap-2 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
-            {!isWater && (isFood
-              ? <div className="care-intake-food-fields grid min-w-0 grid-cols-1 gap-3">
-                  <label className="block min-w-0 text-xs font-semibold leading-relaxed">
-                    <span className="block">O que você comeu?</span>
-                    <textarea rows={3} required maxLength={1000} value={description}
-                      onChange={event => setDescription(event.target.value)}
-                      placeholder={foodCategory(kind)?.example??"Descreva o alimento ou a refeição"}
-                      className="field mt-1.5 block min-h-[76px] w-full resize-y"/>
-                  </label>
-                  <MealSuggestions title={`Refeições sugeridas para ${(foodCategory(kind)?.label ?? "refeição").toLowerCase()}`} hint="toque para adicionar · (i) mostra os nutrientes"
-                    items={mealCombos[kind as FoodKind] ?? []} description={description} onChange={setDescription}/>
-                  <MealSuggestions title={`Alimentos típicos de ${(foodCategory(kind)?.label ?? "refeição").toLowerCase()}`} hint="toque para adicionar ou remover · (i) mostra os nutrientes"
-                    items={typicalFoods[kind as FoodKind] ?? []} description={description} onChange={setDescription}/>
-                  <MealSuggestions title="Bebidas que acompanham" hint="toque para adicionar ou remover · (i) mostra os nutrientes" tone="sky"
-                    items={typicalDrinks[kind as FoodKind] ?? []} description={description} onChange={setDescription}/>
-                  <label className="block min-w-0 text-xs font-semibold leading-relaxed">
-                    <span className="block">Quantidade ou porção (opcional)</span>
-                    <input type="text" className="field mt-1.5 block min-h-[44px] w-full" maxLength={100} value={portion}
-                      onChange={event=>setPortion(event.target.value)} placeholder="Ex.: 1 unidade, 100 g, 1 prato"/>
-                  </label>
-                </div>
-              : <div className="grid min-w-0 gap-2">
+            {!isWater && (
+<div className="grid min-w-0 gap-2">
                   <label className="text-xs font-semibold">Escolher bebida
                     <select className="field mt-1 w-full" aria-label="Escolher bebida da lista"
                       value={drinkPresetFor(kind, description)?.key ?? ""}
@@ -312,6 +301,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
               </button>
             </div>
             </div>
+          </>}
           </form>
         </section>
       </div>, document.body
