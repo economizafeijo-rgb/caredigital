@@ -151,16 +151,16 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
     }
   }
 
-  const groupToggle = mode==="all" ? (<div role="group" aria-label="Selecionar tipo de consumo" className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-muted/35 p-1">
+  const groupToggle = mode!=="water" ? (<div role="group" aria-label={mode==="all"?"Selecionar tipo de consumo":"Alternar entre alimentos e bebidas"} className="inline-grid shrink-0 grid-cols-2 gap-0.5 rounded-lg border border-border bg-muted/40 p-0.5">
               <button type="button" aria-pressed={group==="food"}
                 onClick={()=>{setGroup("food");setKind("almoco");setDescription("");setPortion("");setError("");}}
-                className={"flex min-h-9 items-center justify-center gap-1.5 rounded-lg px-2 text-[11px] font-bold "+(group==="food"?"bg-primary text-primary-foreground":"text-muted-foreground hover:bg-card")}>
-                <UtensilsCrossed size={15}/> Alimentos e refeições
+                className={"flex h-8 items-center justify-center gap-1.5 rounded-md px-3 text-xs font-semibold transition "+(group==="food"?"bg-primary text-primary-foreground shadow":"text-muted-foreground hover:text-foreground")}>
+                <UtensilsCrossed size={14}/> Alimentos
               </button>
               <button type="button" aria-pressed={group==="beverage"}
                 onClick={()=>{setGroup("beverage");setKind("agua");setDescription("");setPortion("");setError("");}}
-                className={"flex min-h-9 items-center justify-center gap-1.5 rounded-lg px-2 text-[11px] font-bold "+(group==="beverage"?"bg-primary text-primary-foreground":"text-muted-foreground hover:bg-card")}>
-                <Droplets size={15}/> Líquidos e shakes
+                className={"flex h-8 items-center justify-center gap-1.5 rounded-md px-3 text-xs font-semibold transition "+(group==="beverage"?"bg-primary text-primary-foreground shadow":"text-muted-foreground hover:text-foreground")}>
+                <Droplets size={14}/> Bebidas
               </button>
             </div>) : null;
 
@@ -186,7 +186,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
       <div className={"care-intake-modal-overlay fixed inset-0 z-[150] flex items-center justify-center overflow-hidden bg-slate-950/60 backdrop-blur-sm "+(isFood?"p-2":"p-3")}
         onMouseDown={event => { if (event.target === event.currentTarget) closeForm(); }}>
         <section role="dialog" aria-modal="true" aria-labelledby="quick-intake-title"
-          className={"care-premium-intake-dialog care-intake-responsive-v2 care-intake-oneview flex max-h-[94dvh] w-full min-w-0 "+(mode==="water"?"max-w-[560px]":(isFood?"h-[96dvh] max-w-none":"h-[min(94dvh,860px)] max-w-[min(1200px,96vw)]"))+" flex-col overflow-hidden rounded-[24px] border border-border bg-card p-4 text-card-foreground shadow-2xl sm:p-5"}>
+          className={"care-premium-intake-dialog care-intake-responsive-v2 care-intake-oneview flex max-h-[94dvh] w-full min-w-0 "+(mode==="water"?"max-w-[560px]":(isFood?"h-full max-h-full max-w-[min(1400px,100%)]":"h-[min(94dvh,860px)] max-w-[min(1200px,96vw)]"))+" flex-col overflow-hidden rounded-[24px] border border-border bg-card p-4 text-card-foreground shadow-2xl sm:p-5"}>
           <div className="care-premium-intake-header flex shrink-0 items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <span className="grid size-9 place-items-center rounded-xl bg-primary/10 text-primary">

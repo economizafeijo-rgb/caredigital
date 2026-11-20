@@ -206,43 +206,36 @@ export function MealBoard({
       <li
         key={`${prefix}-${item.label}`}
         className="nv-rise"
-        style={{ animationDelay: `${Math.min(index, 14) * 25}ms` }}
+        style={{ animationDelay: `${Math.min(index, 14) * 20}ms` }}
       >
         <div
           className={
-            "group relative flex h-full flex-col overflow-hidden rounded-2xl border bg-card transition duration-200 hover:-translate-y-0.5 hover:shadow-lg " +
-            (on ? "shadow-md" : "border-border")
+            "group relative flex h-full items-center rounded-xl border transition duration-150 hover:bg-muted/50 " +
+            (on ? "" : "border-border/70 bg-card/60")
           }
-          style={on ? { borderColor: tone, boxShadow: `0 8px 22px -10px ${tone}` } : undefined}
+          style={
+            on
+              ? { borderColor: tone, background: `color-mix(in srgb, ${tone} 12%, var(--card))` }
+              : undefined
+          }
         >
           <button
             type="button"
             aria-pressed={on}
             aria-label={`${on ? "Remover" : "Adicionar"} ${item.label}`}
             onClick={() => toggle(item.text)}
-            className="flex flex-1 flex-col items-center gap-2 p-3 text-center active:scale-[.98]"
+            className="flex min-w-0 flex-1 items-center gap-2.5 py-2 pl-2 pr-1 text-left active:scale-[.985]"
           >
-            <FoodThumb
-              text={item.text}
-              label={item.label}
-              visual={v}
-              className="size-16 transition-transform duration-300 group-hover:scale-110"
-            />
-            <span className="text-sm font-bold leading-tight">{item.label}</span>
-            <span className="text-[11px] text-muted-foreground tabular-nums">
-              {s.kcal > 0 ? `${s.kcal} kcal · ${s.grams} g` : "porção usual"}
+            <FoodThumb text={item.text} label={item.label} visual={v} className="size-10" />
+            <span className="min-w-0 flex-1">
+              <span className="line-clamp-2 block text-[13px] font-semibold leading-tight">
+                {item.label}
+              </span>
+              <span className="block text-[11px] tabular-nums text-muted-foreground">
+                {s.kcal > 0 ? `${s.kcal} kcal · ${s.grams} g` : "porção usual"}
+              </span>
             </span>
           </button>
-          <span
-            aria-hidden="true"
-            className={
-              "pointer-events-none absolute left-2 top-2 grid size-6 place-items-center rounded-full text-white shadow transition-all duration-200 " +
-              (on ? "nv-pop scale-100 opacity-100" : "scale-75 opacity-0")
-            }
-            style={{ background: tone }}
-          >
-            <Check size={14} />
-          </span>
           <button
             type="button"
             aria-label={`Informações nutricionais de ${item.label}`}
@@ -250,14 +243,22 @@ export function MealBoard({
             title="Informações nutricionais"
             onClick={() => setInfo(shown ? null : item)}
             className={
-              "absolute right-2 top-2 grid size-7 place-items-center rounded-full border text-muted-foreground transition hover:text-foreground " +
-              (shown
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border bg-card/90")
+              "mr-1 grid size-6 shrink-0 place-items-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground " +
+              (shown ? "!bg-primary !text-primary-foreground" : "")
             }
           >
-            <Info size={14} />
+            <Info size={13} />
           </button>
+          <span
+            aria-hidden="true"
+            className={
+              "mr-2 grid size-5 shrink-0 place-items-center rounded-full border transition-all duration-200 " +
+              (on ? "nv-pop text-white" : "border-border text-transparent")
+            }
+            style={on ? { background: tone, borderColor: tone } : undefined}
+          >
+            <Check size={12} strokeWidth={3} />
+          </span>
         </div>
       </li>
     );
@@ -266,24 +267,22 @@ export function MealBoard({
   const section = (title: string, hint: string, items: Item[], prefix: string) =>
     items.length ? (
       <section aria-label={title}>
-        <h3 className="flex flex-wrap items-baseline gap-2 text-sm font-bold">
-          <span className="h-4 w-1 rounded-full" style={{ background: tone }} />
-          {title} <span className="text-xs font-normal text-muted-foreground">{hint}</span>
+        <h3 className="flex flex-wrap items-baseline gap-2 text-[13px] font-bold">
+          {title} <span className="text-[11px] font-normal text-muted-foreground">{hint}</span>
         </h3>
-        <ul className="mt-2 grid grid-cols-[repeat(auto-fill,minmax(8.6rem,1fr))] gap-2.5">
+        <ul className="mt-2 grid grid-cols-[repeat(auto-fill,minmax(13.5rem,1fr))] gap-2">
           {items.map((item, i) => card(item, i, prefix))}
         </ul>
       </section>
     ) : null;
 
   return (
-    <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[13.5rem_minmax(0,1fr)_minmax(0,23rem)] lg:overflow-hidden">
-      {/* Setores: tipo de refeição */}
-      <div className="min-w-0 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
+      <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
         {topSlot}
-        <fieldset className="min-w-0">
-          <legend className="mb-1.5 text-xs font-bold">Qual refeição?</legend>
-          <div className="care-intake-choices flex gap-2 overflow-x-auto pb-1 lg:grid lg:overflow-visible lg:pb-0">
+        <fieldset className="min-w-0 flex-1">
+          <legend className="sr-only">Qual refeição?</legend>
+          <div className="care-intake-choices flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none]">
             {foodKinds.map((c) => {
               const on = c.value === kind,
                 color = mealTone[c.value];
@@ -294,44 +293,29 @@ export function MealBoard({
                   aria-pressed={on}
                   data-intake-kind={c.value}
                   data-intake-group="food"
+                  title={c.hint}
                   onClick={() => onKind(c.value)}
                   className={
-                    "group relative flex min-w-[8.5rem] shrink-0 items-center gap-2.5 overflow-hidden rounded-2xl border p-2 text-left transition duration-200 active:scale-[.97] lg:min-w-0 " +
+                    "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition duration-150 active:scale-95 " +
                     (on
-                      ? "scale-[1.02] text-white shadow-lg"
-                      : "border-border bg-card hover:-translate-y-0.5 hover:shadow-md")
+                      ? "text-white shadow-md"
+                      : "border-border/70 bg-card/60 text-muted-foreground hover:text-foreground")
                   }
                   style={
                     on
                       ? {
-                          background: `linear-gradient(135deg, ${color}, color-mix(in srgb, ${color} 62%, #000))`,
+                          background: color,
                           borderColor: color,
-                          boxShadow: `0 10px 24px -12px ${color}`,
+                          boxShadow: `0 6px 16px -8px ${color}`,
                         }
                       : undefined
                   }
                 >
                   <span
-                    className="grid size-9 shrink-0 place-items-center rounded-xl text-white shadow-inner"
-                    style={{
-                      background: on
-                        ? "rgb(255 255 255 / .22)"
-                        : `linear-gradient(135deg, ${color}, color-mix(in srgb, ${color} 65%, #000))`,
-                    }}
-                  >
-                    <CareIntakeIcon kind={c.value} size={18} />
-                  </span>
-                  <span className="min-w-0">
-                    <strong className="block truncate text-[13px] leading-tight">{c.label}</strong>
-                    <span
-                      className={
-                        "block truncate text-[10px] " +
-                        (on ? "text-white/80" : "text-muted-foreground")
-                      }
-                    >
-                      {c.hint}
-                    </span>
-                  </span>
+                    className="size-2 rounded-full"
+                    style={{ background: on ? "#fff" : color }}
+                  />
+                  {c.label}
                 </button>
               );
             })}
@@ -339,228 +323,220 @@ export function MealBoard({
         </fieldset>
       </div>
 
-      {/* Escolha dos alimentos */}
-      <div className="min-w-0 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
-        <div
-          className="rounded-2xl p-3 text-white"
-          style={{
-            background: `linear-gradient(120deg, ${tone}, color-mix(in srgb, ${tone} 55%, #000))`,
-          }}
-        >
-          <div className="flex items-center gap-3">
-            <span className="grid size-11 place-items-center rounded-xl bg-white/20 shadow-inner">
-              <CareIntakeIcon kind={kind} size={22} />
-            </span>
-            <div className="min-w-0">
-              <h2 className="text-lg font-extrabold leading-tight">{category.label}</h2>
-              <p className="text-xs text-white/80">
-                {category.hint} · toque nos alimentos para montar o prato
-              </p>
+      <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_21rem] lg:overflow-hidden">
+        <div className="min-w-0 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
+          <div className="sticky top-0 z-10 -mt-px bg-card/95 pb-2 backdrop-blur">
+            <div className="flex items-center gap-2.5">
+              <span
+                className="grid size-8 shrink-0 place-items-center rounded-lg text-white"
+                style={{ background: tone }}
+              >
+                <CareIntakeIcon kind={kind} size={16} />
+              </span>
+              <div className="min-w-0 leading-tight">
+                <h2 className="text-sm font-bold">{category.label}</h2>
+                <p className="truncate text-[11px] text-muted-foreground">
+                  {category.hint} · toque nos alimentos para montar o prato
+                </p>
+              </div>
+              <label className="relative ml-auto block w-full max-w-[16rem]">
+                <span className="sr-only">Buscar alimento</span>
+                <Search
+                  size={14}
+                  className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+                />
+                <input
+                  type="search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Buscar alimento…"
+                  className="h-9 w-full rounded-lg border border-border bg-background/60 pl-8 pr-2 text-xs outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                />
+              </label>
             </div>
           </div>
-          <label className="relative mt-3 block">
-            <span className="sr-only">Buscar alimento</span>
-            <Search
-              size={16}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar alimento: frango, tomate, pimenta…"
-              className="h-11 w-full rounded-xl border-0 bg-white pl-10 pr-3 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-white/70"
-            />
-          </label>
-        </div>
 
-        {info && (
-          <div className="mt-3">
-            <NutritionInfoCard item={info} onClose={() => setInfo(null)} />
-          </div>
-        )}
+          {info && (
+            <div className="mb-3">
+              <NutritionInfoCard item={info} onClose={() => setInfo(null)} />
+            </div>
+          )}
 
-        <div className="mt-4 grid gap-5">
-          {q.length >= 2 ? (
-            found.length ? (
-              section(
-                `Resultados para “${query.trim()}”`,
-                `${found.length} alimento${found.length === 1 ? "" : "s"}`,
-                found,
-                "busca",
+          <div className="grid gap-4">
+            {q.length >= 2 ? (
+              found.length ? (
+                section(
+                  `Resultados para “${query.trim()}”`,
+                  `${found.length} alimento${found.length === 1 ? "" : "s"}`,
+                  found,
+                  "busca",
+                )
+              ) : (
+                <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
+                  Nenhum alimento com esse nome. Descreva no campo “O que você comeu?”. Para
+                  bebidas, use a aba Bebidas.
+                </p>
               )
             ) : (
-              <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
-                Nenhum alimento com esse nome. Descreva no campo “O que você comeu?”.
-              </p>
-            )
-          ) : (
-            <>
-              {section("Refeições prontas", "combinações comuns", combos, "combo")}
-              {section(
-                `Alimentos típicos de ${category.label.toLowerCase()}`,
-                "toque para adicionar ou remover",
-                typical,
-                "tipico",
-              )}
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Prato e registro */}
-      <aside aria-label="Seu prato" className="min-w-0 lg:min-h-0 lg:overflow-y-auto">
-        <div
-          className="flex min-h-full flex-col gap-3 rounded-2xl border bg-card p-3"
-          style={{ borderColor: `color-mix(in srgb, ${tone} 45%, var(--border))` }}
-        >
-          <div className="flex items-center justify-between gap-2">
-            <h3 className="text-sm font-bold">Seu prato</h3>
-            {description.trim() && (
-              <button
-                type="button"
-                onClick={() => {
-                  onDescription("");
-                  onPortion("");
-                  setInfo(null);
-                }}
-                className="inline-flex h-8 items-center gap-1 rounded-lg border border-border px-2.5 text-xs font-semibold hover:bg-muted active:scale-95"
-              >
-                <Eraser size={13} /> Limpar
-              </button>
+              <>
+                {section("Refeições prontas", "combinações comuns", combos, "combo")}
+                {section(
+                  `Alimentos típicos de ${category.label.toLowerCase()}`,
+                  "toque para adicionar ou remover",
+                  typical,
+                  "tipico",
+                )}
+              </>
             )}
           </div>
+        </div>
 
-          <label className="block text-xs font-semibold">
-            <span className="block">O que você comeu?</span>
-            <textarea
-              rows={3}
-              required
-              maxLength={1000}
-              value={description}
-              onChange={(e) => onDescription(e.target.value)}
-              placeholder={category.example}
-              className="field mt-1.5 block min-h-[76px] w-full resize-y"
-            />
-          </label>
-
-          {foods.length > 0 ? (
-            <div
-              aria-live="polite"
-              className="rounded-xl p-3"
-              style={{
-                background: `color-mix(in srgb, ${tone} 10%, var(--card))`,
-                boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${tone} 28%, transparent)`,
-              }}
-            >
-              <ul className="grid gap-1.5">
-                {foods.map((f, i) => (
-                  <li key={`${f.id}-${i}`} className="nv-rise flex items-center gap-2 text-xs">
-                    <FoodThumb text={f.name} className="size-9" />
-                    <span className="min-w-0 flex-1 truncate font-semibold">
-                      {f.name.split(",")[0]}
-                    </span>
-                    <span className="shrink-0 tabular-nums text-muted-foreground">
-                      {nf(f.grams)} {measureUnit(f.id)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-3 flex items-baseline gap-1.5">
-                <strong className="text-3xl font-extrabold tabular-nums" style={{ color: tone }}>
-                  {nf(kcal)}
-                </strong>
-                <span className="text-xs font-semibold text-muted-foreground">kcal no prato</span>
-              </p>
-              <ul className="mt-2 grid gap-1.5">
-                {macros.map((m) => (
-                  <li
-                    key={m.label}
-                    className="grid grid-cols-[5.4rem_1fr_auto] items-center gap-2 text-[11px]"
-                  >
-                    <span className="font-semibold">{m.label}</span>
-                    <span className="h-2 overflow-hidden rounded-full bg-muted" aria-hidden="true">
-                      <span
-                        className="block h-full rounded-full transition-[width] duration-700"
-                        style={{
-                          width: `${Math.round((m.value / macroMax) * 100)}%`,
-                          background: m.color,
-                        }}
-                      />
-                    </span>
-                    <span className="tabular-nums text-muted-foreground">{nf(m.value, 1)} g</span>
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-2 text-[10px] leading-snug text-muted-foreground">
-                Cálculo automático com porções usuais; valores aproximados.
-              </p>
+        <aside aria-label="Seu prato" className="min-w-0 lg:min-h-0 lg:overflow-y-auto">
+          <div className="flex min-h-full flex-col gap-3 rounded-2xl border border-border/80 bg-muted/20 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-sm font-bold">Seu prato</h3>
+              {description.trim() && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onDescription("");
+                    onPortion("");
+                    setInfo(null);
+                  }}
+                  className="inline-flex h-7 items-center gap-1 rounded-md px-2 text-[11px] font-semibold text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
+                >
+                  <Eraser size={12} /> Limpar
+                </button>
+              )}
             </div>
-          ) : (
-            <p className="rounded-xl border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
-              O prato está vazio. Escolha alimentos ao lado ou escreva acima: o cálculo aparece
-              aqui.
-            </p>
-          )}
 
-          <label className="block text-xs font-semibold">
-            <span className="block">Quantidade ou porção (opcional)</span>
-            <input
-              type="text"
-              className="field mt-1.5 block min-h-[44px] w-full"
-              maxLength={100}
-              value={portion}
-              onChange={(e) => onPortion(e.target.value)}
-              placeholder="Ex.: 1 unidade, 100 g, 1 prato"
-            />
-          </label>
+            <label className="block text-xs font-semibold">
+              <span className="block">O que você comeu?</span>
+              <textarea
+                rows={2}
+                required
+                maxLength={1000}
+                value={description}
+                onChange={(e) => onDescription(e.target.value)}
+                placeholder={category.example}
+                className="field mt-1 block min-h-[60px] w-full resize-y text-sm"
+              />
+            </label>
 
-          <div className="min-w-0 rounded-xl border border-border/70 bg-card/80 p-3">
+            {foods.length > 0 ? (
+              <div
+                aria-live="polite"
+                className="rounded-xl border border-border/70 bg-card/70 p-2.5"
+              >
+                <ul className="grid gap-1">
+                  {foods.map((f, i) => (
+                    <li key={`${f.id}-${i}`} className="nv-rise flex items-center gap-2 text-xs">
+                      <FoodThumb text={f.name} className="size-7" />
+                      <span className="min-w-0 flex-1 truncate font-medium">
+                        {f.name.split(",")[0]}
+                      </span>
+                      <span className="shrink-0 tabular-nums text-muted-foreground">
+                        {nf(f.grams)} {measureUnit(f.id)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2.5 flex items-baseline gap-1.5 border-t border-border/60 pt-2">
+                  <strong className="text-2xl font-extrabold tabular-nums" style={{ color: tone }}>
+                    {nf(kcal)}
+                  </strong>
+                  <span className="text-[11px] font-semibold text-muted-foreground">
+                    kcal no prato
+                  </span>
+                </p>
+                <ul className="mt-1.5 grid gap-1">
+                  {macros.map((m) => (
+                    <li
+                      key={m.label}
+                      className="grid grid-cols-[4.6rem_1fr_auto] items-center gap-2 text-[11px]"
+                    >
+                      <span className="text-muted-foreground">{m.label}</span>
+                      <span
+                        className="h-1.5 overflow-hidden rounded-full bg-muted"
+                        aria-hidden="true"
+                      >
+                        <span
+                          className="block h-full rounded-full transition-[width] duration-700"
+                          style={{
+                            width: `${Math.round((m.value / macroMax) * 100)}%`,
+                            background: m.color,
+                          }}
+                        />
+                      </span>
+                      <span className="tabular-nums">{nf(m.value, 1)} g</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2 text-[10px] leading-snug text-muted-foreground">
+                  Cálculo automático com porções usuais; valores aproximados.
+                </p>
+              </div>
+            ) : (
+              <p className="rounded-xl border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
+                O prato está vazio. Escolha alimentos ao lado ou escreva acima: o cálculo aparece
+                aqui.
+              </p>
+            )}
+
+            <label className="block text-xs font-semibold">
+              <span className="block">Quantidade ou porção (opcional)</span>
+              <input
+                type="text"
+                className="field mt-1 block min-h-[38px] w-full text-sm"
+                maxLength={100}
+                value={portion}
+                onChange={(e) => onPortion(e.target.value)}
+                placeholder="Ex.: 1 unidade, 100 g, 1 prato"
+              />
+            </label>
+
             <label className="block min-w-0 text-xs font-semibold">
-              Data e hora do consumo · horário do Acre (UTC−5)
+              Data e hora · horário do Acre (UTC−5)
               <input
                 type="datetime-local"
                 required
                 value={consumedAt}
                 onChange={(e) => onConsumedAt(e.target.value)}
-                className="field care-intake-datetime mt-1 block w-full min-w-0"
+                className="field care-intake-datetime mt-1 block w-full min-w-0 text-sm"
                 style={{ boxSizing: "border-box" }}
               />
             </label>
-            <p className="mt-1.5 text-[11px] text-muted-foreground">
-              Já vem com o horário atual. Altere só se foi em outro momento.
-            </p>
-          </div>
 
-          {error && (
-            <p
-              role="alert"
-              className="rounded-lg border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive"
-            >
-              {error}
-            </p>
-          )}
+            {error && (
+              <p
+                role="alert"
+                className="rounded-lg border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive"
+              >
+                {error}
+              </p>
+            )}
 
-          <div className="mt-auto grid grid-cols-[auto_1fr] gap-2 pt-1">
-            <button
-              type="button"
-              disabled={saving}
-              onClick={onCancel}
-              className="nv-btn nv-btn-ghost px-4"
-            >
-              <X size={16} /> Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="nv-btn"
-              style={{ ["--btn" as string]: tone }}
-            >
-              <Save size={17} /> {saving ? "Salvando..." : "Registrar agora"}
-            </button>
+            <div className="mt-auto grid grid-cols-[auto_1fr] gap-2 pt-1">
+              <button
+                type="button"
+                disabled={saving}
+                onClick={onCancel}
+                className="nv-btn nv-btn-ghost px-3.5"
+              >
+                <X size={14} /> Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="nv-btn"
+                style={{ ["--btn" as string]: tone }}
+              >
+                <Save size={15} /> {saving ? "Salvando..." : "Registrar agora"}
+              </button>
+            </div>
           </div>
-        </div>
-      </aside>
+        </aside>
+      </div>
     </div>
   );
 }

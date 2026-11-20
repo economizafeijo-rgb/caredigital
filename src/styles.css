@@ -979,7 +979,7 @@ html, #care-content { scrollbar-gutter: stable; }
 }
 
 /* ---------- Botões realistas e animações do registro de refeição ---------- */
-.nv-btn { --btn: var(--primary); position: relative; display: inline-flex; min-height: 2.9rem; align-items: center; justify-content: center; gap: .5rem; padding: 0 1.25rem; border-radius: .95rem; font-size: .9rem; font-weight: 800; color: #fff; text-shadow: 0 1px 0 rgb(0 0 0 / .3);
+.nv-btn { --btn: var(--primary); position: relative; display: inline-flex; min-height: 2.5rem; align-items: center; justify-content: center; gap: .4rem; padding: 0 1rem; border-radius: .7rem; font-size: .8rem; font-weight: 700; color: #fff; text-shadow: 0 1px 0 rgb(0 0 0 / .3);
   background: linear-gradient(180deg, color-mix(in srgb, var(--btn) 78%, #fff) 0%, var(--btn) 46%, color-mix(in srgb, var(--btn) 80%, #000) 100%);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / .5), inset 0 -2px 0 rgb(0 0 0 / .22), 0 2px 0 color-mix(in srgb, var(--btn) 55%, #000), 0 10px 18px -8px color-mix(in srgb, var(--btn) 70%, transparent);
   transition: transform .12s ease, box-shadow .12s ease, filter .18s ease; }
