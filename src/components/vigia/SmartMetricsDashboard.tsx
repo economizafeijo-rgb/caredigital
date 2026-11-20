@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import {
   Activity,
   BedDouble,
@@ -8,19 +8,7 @@ import {
   Sparkles,
   UtensilsCrossed,
 } from "lucide-react";
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { MetricPanel } from "./MetricChart";
 import { supabase } from "@/integrations/supabase/client";
 
 type Point = { day: string; value: number; protein?: number; carbs?: number; fat?: number };
@@ -59,38 +47,6 @@ function group<T extends { day: string }>(rows: T[], key: keyof T): Point[] {
     .sort((a, b) => a[0].localeCompare(b[0]))
     .map(([day, value]) => ({ day: label(day), value }));
 }
-function EmptyChart({ children }: { children: string }) {
-  return (
-    <div className="grid h-44 place-items-center rounded-xl border border-dashed border-border bg-muted/30 px-5 text-center text-sm text-muted-foreground">
-      {children}
-    </div>
-  );
-}
-function ChartCard({
-  title,
-  eyebrow,
-  icon: Icon,
-  children,
-}: {
-  title: string;
-  eyebrow: string;
-  icon: typeof Activity;
-  children: ReactNode;
-}) {
-  return (
-    <article className="min-w-0 rounded-2xl border border-border bg-card p-4 shadow-card">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <div>
-          <p className="text-[11px] font-bold text-primary">{eyebrow}</p>
-          <h3 className="text-lg font-bold">{title}</h3>
-        </div>
-        <Icon className="shrink-0 text-primary" size={20} />
-      </div>
-      {children}
-    </article>
-  );
-}
-
 export function SmartMetricsDashboard() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [loadError, setLoadError] = useState(false);
@@ -263,7 +219,7 @@ export function SmartMetricsDashboard() {
     return (
       <section
         aria-label="Métricas inteligentes"
-        className="mt-5 rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground"
+        className="mt-5  border border-border bg-card p-5 text-sm text-muted-foreground"
       >
         Não foi possível carregar os indicadores agora. Tente atualizar a página.
       </section>
@@ -276,180 +232,108 @@ export function SmartMetricsDashboard() {
         className="mt-5 grid gap-4 lg:grid-cols-2"
       >
         {[0, 1, 2, 3].map((item) => (
-          <div key={item} className="h-60 animate-pulse rounded-2xl bg-muted" />
+          <div key={item} className="h-60 animate-pulse  bg-muted" />
         ))}
       </div>
     );
 
-  const chartClass = "h-44 w-full";
+  const hasCarbsFat = metrics.macros.some((point) => Number(point.carbs) + Number(point.fat) > 0);
   return (
-    <section aria-label="Métricas inteligentes" className="mt-5 grid gap-4 lg:grid-cols-2">
-      <ChartCard title="Consumo nos últimos 30 dias" eyebrow="Hidratação" icon={Droplets}>
-        {metrics.hydration.length ? (
-          <div className={chartClass}>
-            <ResponsiveContainer>
-              <AreaChart data={metrics.hydration}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="day" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip />
-                <Area
-                  dataKey="value"
-                  name="ml"
-                  stroke="var(--water)"
-                  fill="var(--water)"
-                  fillOpacity={0.18}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        ) : (
-          <EmptyChart>Nenhum registro de hidratação encontrado neste período.</EmptyChart>
-        )}
-      </ChartCard>
-      <ChartCard title="Evolução corporal" eyebrow="Peso e IMC" icon={Scale}>
-        {metrics.weight.length ? (
-          <div className={chartClass}>
-            <ResponsiveContainer>
-              <LineChart data={metrics.weight}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="day" tick={{ fontSize: 10 }} />
-                <YAxis domain={["dataMin - 2", "dataMax + 2"]} tick={{ fontSize: 10 }} />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  name="kg"
-                  stroke="var(--primary)"
-                  strokeWidth={3}
-                  dot={{ r: 3 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        ) : (
-          <EmptyChart>
-            Você ainda não possui pesagens registradas. O gráfico será preenchido quando houver uma
-            medição salva.
-          </EmptyChart>
-        )}
-      </ChartCard>
-      <ChartCard
+    <section aria-label="Métricas inteligentes" className="mt-5 grid gap-3 lg:grid-cols-2">
+      <MetricPanel
+        title="Consumo nos últimos 30 dias"
+        eyebrow="Hidratação"
+        icon={Droplets}
+        color="#38bdf8"
+        kind="area"
+        unit="ml"
+        data={metrics.hydration}
+        series={[{ key: "value", name: "Água", color: "#38bdf8" }]}
+        empty="Nenhum registro de hidratação encontrado neste período."
+      />
+      <MetricPanel
+        title="Evolução corporal"
+        eyebrow="Peso e IMC"
+        icon={Scale}
+        color="#2dd4bf"
+        kind="area"
+        unit="kg"
+        decimals={1}
+        domain={["dataMin - 2", "dataMax + 2"]}
+        data={metrics.weight}
+        series={[{ key: "value", name: "Peso", color: "#2dd4bf" }]}
+        empty="Você ainda não possui pesagens registradas. O gráfico será preenchido quando houver uma medição salva."
+      />
+      <MetricPanel
         title="Energia diária"
         eyebrow="Calorias · registros e resumos históricos"
         icon={UtensilsCrossed}
-      >
-        {metrics.energy.length ? (
-          <div className={chartClass}>
-            <ResponsiveContainer>
-              <AreaChart data={metrics.energy}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="day" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip formatter={(value) => [`${value} kcal`, "Energia"]} />
-                <Area
-                  dataKey="value"
-                  name="Calorias"
-                  stroke="#ea580c"
-                  fill="#ea580c"
-                  fillOpacity={0.18}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        ) : (
-          <EmptyChart>
-            Não há resumos calóricos históricos nem refeições com calorias calculadas neste período.
-          </EmptyChart>
-        )}
-      </ChartCard>
-      <ChartCard title="Macronutrientes registrados" eyebrow="Nutrição" icon={UtensilsCrossed}>
-        {metrics.macros.length ? (
-          <div className={chartClass}>
-            <ResponsiveContainer>
-              <BarChart data={metrics.macros}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="day" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip />
-                <Bar dataKey="protein" name="Proteína (g)" fill="#0e8a6a" />
-                {metrics.macros.some((point) => Number(point.carbs) + Number(point.fat) > 0) && (
-                  <>
-                    <Bar dataKey="carbs" name="Carboidratos (g)" fill="#168fa8" />
-                    <Bar dataKey="fat" name="Gorduras (g)" fill="#c96c28" />
-                  </>
-                )}
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        ) : (
-          <EmptyChart>
-            Não há refeições com macronutrientes registrados nos últimos 30 dias.
-          </EmptyChart>
-        )}
-      </ChartCard>
-      <ChartCard title="Duração do sono" eyebrow="Sono · últimos 30 dias" icon={BedDouble}>
-        {metrics.hasSleepData ? (
-          <div className={chartClass}>
-            <ResponsiveContainer>
-              <AreaChart data={metrics.sleep}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="day" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip formatter={(value) => [`${value} h`, "Sono"]} />
-                <Area
-                  dataKey="value"
-                  name="Horas"
-                  stroke="#8b5cf6"
-                  fill="#8b5cf6"
-                  fillOpacity={0.18}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        ) : (
-          <EmptyChart>
-            Nenhum diário de sono encontrado neste período. Registre o horário de dormir e acordar
-            para acompanhar a evolução.
-          </EmptyChart>
-        )}
-      </ChartCard>
-      <ChartCard title="Atividade física" eyebrow="Movimento · últimos 30 dias" icon={Activity}>
-        {metrics.hasActivityData ? (
-          <div className={chartClass}>
-            <ResponsiveContainer>
-              <BarChart data={metrics.activity}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="day" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip formatter={(value) => [`${value} min`, "Atividade"]} />
-                <Bar dataKey="value" name="Minutos" fill="#ea580c" radius={[5, 5, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        ) : (
-          <EmptyChart>
-            Nenhuma atividade com duração registrada neste período. Caminhadas e treinos aparecerão
-            aqui após serem salvos.
-          </EmptyChart>
-        )}
-      </ChartCard>
-      <article className="grid grid-cols-2 gap-3 rounded-2xl border border-border bg-card p-4 shadow-card">
+        color="#fb923c"
+        kind="area"
+        unit="kcal"
+        data={metrics.energy}
+        series={[{ key: "value", name: "Energia", color: "#fb923c" }]}
+        empty="Não há resumos calóricos históricos nem refeições com calorias calculadas neste período."
+      />
+      <MetricPanel
+        title="Macronutrientes registrados"
+        eyebrow="Nutrição"
+        icon={UtensilsCrossed}
+        color="#2dd4bf"
+        kind="bar"
+        stacked={hasCarbsFat}
+        unit="g"
+        data={metrics.macros}
+        series={
+          hasCarbsFat
+            ? [
+                { key: "protein", name: "Proteína", color: "#2dd4bf" },
+                { key: "carbs", name: "Carboidratos", color: "#38bdf8" },
+                { key: "fat", name: "Gorduras", color: "#fb923c" },
+              ]
+            : [{ key: "protein", name: "Proteína", color: "#2dd4bf" }]
+        }
+        empty="Não há refeições com macronutrientes registrados nos últimos 30 dias."
+      />
+      <MetricPanel
+        title="Duração do sono"
+        eyebrow="Sono · últimos 30 dias"
+        icon={BedDouble}
+        color="#a78bfa"
+        kind="area"
+        unit="h"
+        decimals={1}
+        data={metrics.hasSleepData ? metrics.sleep : []}
+        series={[{ key: "value", name: "Sono", color: "#a78bfa" }]}
+        empty="Nenhum diário de sono encontrado neste período. Registre o horário de dormir e acordar para acompanhar a evolução."
+      />
+      <MetricPanel
+        title="Atividade física"
+        eyebrow="Movimento · últimos 30 dias"
+        icon={Activity}
+        color="#f97316"
+        kind="bar"
+        unit="min"
+        data={metrics.hasActivityData ? metrics.activity : []}
+        series={[{ key: "value", name: "Atividade", color: "#f97316" }]}
+        empty="Nenhuma atividade com duração registrada neste período. Caminhadas e treinos aparecerão aqui após serem salvos."
+      />
+      <article className="grid grid-cols-2 gap-3  border border-border bg-card p-4 shadow-card">
         <div className="col-span-2">
           <p className="text-[11px] font-bold text-muted-foreground">Registros de rotina</p>
           <h3 className="text-lg font-bold">Acompanhamento inteligente</h3>
         </div>
-        <div className="rounded-xl bg-med/10 p-3">
+        <div className=" bg-med/10 p-3">
           <Pill className="text-med" size={20} />
           <strong className="mt-2 block text-2xl">{metrics.medicationCount}</strong>
           <span className="text-xs text-muted-foreground">doses registradas</span>
         </div>
-        <div className="rounded-xl bg-amber-500/10 p-3">
+        <div className=" bg-amber-500/10 p-3">
           <Sparkles className="text-amber-600" size={20} />
           <strong className="mt-2 block text-2xl">{metrics.supplementCount}</strong>
           <span className="text-xs text-muted-foreground">doses de suplementos</span>
         </div>
-        <div className="col-span-2 rounded-xl bg-muted p-3 text-xs text-muted-foreground">
+        <div className="col-span-2  bg-muted p-3 text-xs text-muted-foreground">
           <Activity className="mr-1 inline text-primary" size={15} />
           Os gráficos mostram somente dados efetivamente salvos no seu prontuário. Ausência de
           registros não é interpretada como consumo ou atividade igual a zero.
