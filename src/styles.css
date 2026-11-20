@@ -2661,7 +2661,7 @@ html,
   }
   80%,
   100% {
-    transform: scale(3.2);
+    transform: scale(2);
     opacity: 0;
   }
 }

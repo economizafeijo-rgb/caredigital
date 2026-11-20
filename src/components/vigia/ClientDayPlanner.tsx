@@ -1087,7 +1087,7 @@ export function ClientDayPlanner({
                     Nada registrado neste período.
                   </p>
                 ) : (
-                  <ol className="relative -mx-1 grid max-h-[calc(100dvh-25rem)] min-h-[16rem] gap-px overflow-y-auto px-1 [scrollbar-width:thin]">
+                  <ol className="relative -mx-1 grid max-h-[calc(100dvh-25rem)] min-h-[16rem] content-start gap-px overflow-y-auto overflow-x-hidden px-1 [scrollbar-gutter:stable] [scrollbar-width:thin]">
                     {list.map((i, idx) => (
                       <li key={i.id} className="contents">
                         {idx === nowIdx && <NowLine now={now} />}
@@ -1165,7 +1165,7 @@ function FilterChip({
 function NowLine({ now }: { now: number }) {
   return (
     <div
-      className="relative flex items-center gap-2 py-0.5 pl-[1.05rem]"
+      className="relative flex items-center gap-2 overflow-hidden py-1 pl-[1.05rem]"
       aria-label={`Agora, ${hm(now)}`}
     >
       <span className="relative z-10 grid size-3 place-items-center">
