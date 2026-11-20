@@ -211,6 +211,51 @@ function useReducedMotion() {
 
 /** Vitrine única da página inicial: abre com a apresentação da plataforma e segue com ferramentas,
  *  loja, propagandas do administrador e anúncios — em cenas longas que se dissolvem devagar. */
+/** Propaganda de inauguração da loja Bela Vista Fitness, exibida logo após a abertura da home. */
+const launchSlide: Slide = {
+  id: "inauguracao-bela-vista",
+  kicker: "Inauguração",
+  chapter: "Loja online",
+  title: "Bela Vista Fitness abre a loja online",
+  text: "Moda fitness feminina, suplementos, beleza e bijuterias de Feijó. Compre com 5% de desconto no Pix e retire no balcão ou receba em casa.",
+  cta: "Conhecer a loja",
+  to: "/loja",
+  images: [],
+  bg: "/loja/bela-vista/banner.svg",
+  tone: "from-[#2b0a1e] via-[#7a1545] to-[#c2185b]",
+  custom: (
+    <>
+      <span className="nv-rise inline-flex w-fit items-center gap-2 border border-[#d9b382]/60 bg-[#2b0a1e]/60 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-[#f3d9a8]">
+        Inauguração · Feijó, AC
+      </span>
+      <h2
+        style={{ animationDelay: "80ms" }}
+        className="nv-rise mt-3 text-balance font-display text-[1.7rem] font-extrabold leading-[1.08] tracking-tight min-[400px]:text-[2rem] sm:text-[2.3rem]"
+      >
+        Bela Vista Fitness abre a loja online
+      </h2>
+      <p
+        style={{ animationDelay: "220ms" }}
+        className="nv-rise mt-2.5 max-w-[46ch] text-sm leading-relaxed text-rose-50 sm:text-base"
+      >
+        Moda fitness feminina, suplementos, beleza e bijuterias. Pague no Pix com 5% de desconto e
+        escolha retirar no balcão ou receber em casa.
+      </p>
+      <div style={{ animationDelay: "360ms" }} className="nv-rise mt-4 flex flex-wrap gap-2">
+        <a
+          href="/loja?loja=bela-vista-fitness"
+          className="inline-flex h-11 items-center gap-2 bg-[#d9b382] px-5 text-sm font-bold text-[#2b0a1e] hover:brightness-105"
+        >
+          Conhecer a loja
+        </a>
+        <span className="inline-flex h-11 items-center gap-2 border border-white/30 px-4 text-sm font-semibold text-white/90">
+          5% off no Pix · até 3x no cartão
+        </span>
+      </div>
+    </>
+  ),
+};
+
 export function SmartBanner({ className = "", intro }: { className?: string; intro?: Slide }) {
   const { count, subtotal } = useCart();
   const [hour, setHour] = useState<number | null>(null);
@@ -255,7 +300,7 @@ export function SmartBanner({ className = "", intro }: { className?: string; int
   }, []);
 
   const slides = useMemo(() => {
-    const list: Slide[] = intro ? [intro] : [];
+    const list: Slide[] = intro ? [intro, launchSlide] : [];
     if (count > 0)
       list.push({
         id: "carrinho",
