@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ComponentType } from "react";
+import { useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from "react";
 import {
   Activity,
   Check,
@@ -17,6 +17,7 @@ import {
   Undo2,
   UtensilsCrossed,
   X,
+  MoreHorizontal,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useDialog } from "@/lib/dialog";
@@ -1228,7 +1229,7 @@ export function ClientDayPlanner({
                     Nada planejado neste período.
                   </p>
                 ) : (
-                  <ol className="relative grid gap-1 before:absolute before:bottom-3 before:left-[1.4rem] before:top-3 before:w-px before:bg-border">
+                  <ol className="relative -mx-1 grid max-h-[calc(100dvh-25rem)] min-h-[16rem] gap-px overflow-y-auto px-1 [scrollbar-width:thin]">
                     {list.map((i, idx) => (
                       <li key={i.id} className="contents">
                         {idx === nowIdx && <NowLine now={now} />}
@@ -1321,6 +1322,50 @@ function NowLine({ now }: { now: number }) {
   );
 }
 
+function RowMenu({ children, label }: { children: ReactNode; label: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const down = (e: PointerEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const key = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("pointerdown", down);
+    document.addEventListener("keydown", key);
+    return () => {
+      document.removeEventListener("pointerdown", down);
+      document.removeEventListener("keydown", key);
+    };
+  }, [open]);
+  return (
+    <span ref={ref} className="relative shrink-0">
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={label}
+        title="Mais ações"
+        onClick={() => setOpen((o) => !o)}
+        className={`grid size-7 place-items-center border text-muted-foreground transition hover:bg-muted hover:text-foreground active:scale-95 ${open ? "border-foreground/30 bg-muted text-foreground" : "border-transparent"}`}
+      >
+        <MoreHorizontal size={15} />
+      </button>
+      {open && (
+        <div
+          role="menu"
+          onClick={() => setOpen(false)}
+          className="nv-fade-in absolute right-0 top-8 z-30 grid min-w-[11.5rem] border border-border bg-card p-1 text-xs shadow-pop"
+        >
+          {children}
+        </div>
+      )}
+    </span>
+  );
+}
+const menuBtn =
+  "flex h-8 items-center gap-2 px-2.5 text-left font-semibold text-foreground transition hover:bg-muted disabled:opacity-50";
+
 function Row({
   item,
   busy,
@@ -1336,121 +1381,125 @@ function Row({
   const k = KINDS[item.kind];
   const Icon = k.icon;
   const done = item.status === "done";
+  const skipped = item.status === "skipped";
   const open = () => (item.task ? onView(item.task) : go(k.area));
+  const hot = item.status === "now" || item.status === "late";
+  const hasMenu = Boolean(canSkip || item.edit || item.remove || item.undo);
+  const chip =
+    item.status === "late"
+      ? { t: "Atrasado", c: "bg-rose-500/15 text-rose-600 dark:text-rose-300" }
+      : item.status === "now"
+        ? { t: "Na hora", c: "bg-amber-400/20 text-amber-700 dark:text-amber-300" }
+        : skipped
+          ? { t: "Não fiz", c: "bg-slate-500/15 text-slate-600 dark:text-slate-300" }
+          : null;
+  const primary = item.action
+    ? item.status === "late" && item.skippable
+      ? { label: "Resolver", run: () => onResolve(item) }
+      : { label: item.action.label, run: item.action.run }
+    : null;
   return (
     <div
-      className={`group relative flex min-w-0 items-center gap-2 rounded-xl px-1.5 py-1.5 transition-colors ${item.status === "now" ? "bg-amber-400/10 ring-1 ring-amber-400/40" : item.status === "late" ? "bg-rose-500/[.06]" : "hover:bg-muted/50"}`}
+      className={`group relative grid min-w-0 grid-cols-[2.6rem_1.9rem_minmax(0,1fr)_auto] items-center gap-x-2 border-l-2 px-1.5 py-1.5 transition-colors ${item.status === "now" ? "border-l-amber-400 bg-amber-400/10" : item.status === "late" ? "border-l-rose-500 bg-rose-500/[.06]" : done ? "border-l-emerald-500/60" : "border-l-transparent hover:bg-muted/50"}`}
     >
-      <button
-        type="button"
-        onClick={open}
-        className="flex min-w-0 flex-1 items-center gap-2 text-left"
-        title={`Abrir ${k.label}`}
+      <span
+        className="font-mono text-xs font-bold tabular-nums"
+        style={{ color: done ? undefined : k.color }}
       >
-        <span
-          className={`relative z-10 grid size-8 shrink-0 place-items-center rounded-lg ring-4 ring-card transition-transform group-hover:scale-105 ${done ? "bg-emerald-500 text-white" : k.soft}`}
-        >
-          {done ? <Check size={15} className="nv-check" /> : <Icon size={15} />}
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="flex items-baseline gap-1.5">
-            <span
-              className="shrink-0 text-[11px] font-bold tabular-nums"
-              style={{ color: k.color }}
-            >
-              {hm(item.at)}
+        <span className={done ? "text-muted-foreground" : ""}>{hm(item.at)}</span>
+      </span>
+      <span
+        className={`grid size-[1.9rem] place-items-center ${done ? "bg-emerald-500 text-white" : k.soft}`}
+      >
+        {done ? <Check size={15} className="nv-check" /> : <Icon size={15} />}
+      </span>
+      <button type="button" onClick={open} title={`Abrir ${k.label}`} className="min-w-0 text-left">
+        <span className="flex min-w-0 items-center gap-1.5">
+          <strong
+            className={`truncate text-[13px] leading-tight ${done ? "text-muted-foreground line-through decoration-muted-foreground/40" : ""}`}
+          >
+            {item.title}
+          </strong>
+          {chip && (
+            <span className={`shrink-0 px-1.5 py-px text-[10px] font-bold ${chip.c}`}>
+              {chip.t}
             </span>
-            <strong
-              className={`truncate text-[13px] leading-tight ${done ? "text-muted-foreground line-through decoration-muted-foreground/40" : ""}`}
-            >
-              {item.title}
-            </strong>
-          </span>
-          <span className="block truncate text-[11px] text-muted-foreground">
-            {item.status === "late" ? (
-              <b className="font-semibold text-rose-600 dark:text-rose-400">atrasado · </b>
-            ) : item.status === "now" ? (
-              <b className="font-semibold text-amber-600 dark:text-amber-300">na hora · </b>
-            ) : item.status === "skipped" ? (
-              <b className="font-semibold text-slate-500">não fiz · </b>
-            ) : null}
-            {done && item.doneAt && Math.abs(item.doneAt - item.at) > 60_000
-              ? `feito às ${hm(item.doneAt)} · `
-              : ""}
-            {item.detail}
-          </span>
+          )}
+        </span>
+        <span className="line-clamp-2 text-[11px] leading-snug text-muted-foreground">
+          {done && item.doneAt && Math.abs(item.doneAt - item.at) > 60_000
+            ? `feito às ${hm(item.doneAt)} · `
+            : ""}
+          {item.detail}
         </span>
       </button>
-      {(done || item.status === "skipped") && (
-        <AnimatedLock size={15} label={done ? "Registrado" : "Respondido: não fiz"} />
-      )}
-      {canSkip && (
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => onResolve(item)}
-          title="Não fiz"
-          aria-label={`Não fiz: ${item.title}`}
-          className="grid size-7 shrink-0 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-rose-400/50 hover:bg-rose-500/10 hover:text-rose-600 active:scale-95 disabled:opacity-50"
-        >
-          <CircleSlash size={13} />
-        </button>
-      )}
-      {item.edit && (
-        <button
-          type="button"
-          disabled={busy}
-          onClick={item.edit}
-          title={item.editLabel ?? "Alterar a quantidade"}
-          aria-label={`${item.editLabel ?? "Alterar a quantidade"}: ${item.title}`}
-          className="grid size-7 shrink-0 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:bg-muted hover:text-foreground active:scale-95 disabled:opacity-50"
-        >
-          <Pencil size={13} />
-        </button>
-      )}
-      {item.remove && (
-        <button
-          type="button"
-          disabled={busy}
-          onClick={item.remove}
-          title="Excluir registro"
-          aria-label={`Excluir registro: ${item.title}`}
-          className="grid size-7 shrink-0 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-rose-400/50 hover:bg-rose-500/10 hover:text-rose-600 active:scale-95 disabled:opacity-50"
-        >
-          <Trash2 size={13} />
-        </button>
-      )}
-      {item.action ? (
-        <button
-          type="button"
-          disabled={busy}
-          onClick={
-            item.status === "late" && item.skippable ? () => onResolve(item) : item.action.run
-          }
-          className={`h-7 shrink-0 rounded-lg px-2.5 text-[11px] font-bold transition active:scale-95 disabled:opacity-50 ${item.status === "now" || item.status === "late" ? "text-white shadow-sm" : "border border-border bg-card text-foreground hover:bg-muted"}`}
-          style={
-            item.status === "now" || item.status === "late" ? { background: k.color } : undefined
-          }
-        >
-          {busy ? "…" : item.status === "late" && item.skippable ? "Resolver" : item.action.label}
-        </button>
-      ) : item.undo ? (
-        <button
-          type="button"
-          disabled={busy}
-          onClick={item.undo}
-          title="Desfazer"
-          aria-label={`Desfazer ${item.title}`}
-          className="grid size-7 shrink-0 place-items-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground sm:opacity-0 sm:focus-visible:opacity-100 sm:group-hover:opacity-100"
-        >
-          <Undo2 size={13} />
-        </button>
-      ) : (
-        <ChevronRight
-          size={14}
-          className="shrink-0 text-muted-foreground/50 transition group-hover:translate-x-0.5 group-hover:text-muted-foreground"
-        />
-      )}
+      <span className="flex items-center gap-1">
+        {(done || skipped) && (
+          <AnimatedLock size={14} label={done ? "Registrado" : "Respondido: não fiz"} />
+        )}
+        {primary && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={primary.run}
+            className={`h-7 shrink-0 px-2.5 text-[11px] font-bold transition active:scale-95 disabled:opacity-50 ${hot ? "text-white shadow-sm" : "border border-border bg-card text-foreground hover:bg-muted"}`}
+            style={hot ? { background: k.color } : undefined}
+          >
+            {busy ? "…" : primary.label}
+          </button>
+        )}
+        {hasMenu && (
+          <RowMenu label={`Mais ações: ${item.title}`}>
+            {item.edit && (
+              <button
+                type="button"
+                role="menuitem"
+                disabled={busy}
+                onClick={item.edit}
+                className={menuBtn}
+              >
+                <Pencil size={13} /> {item.editLabel ?? "Alterar a quantidade"}
+              </button>
+            )}
+            {canSkip && (
+              <button
+                type="button"
+                role="menuitem"
+                disabled={busy}
+                onClick={() => onResolve(item)}
+                className={menuBtn}
+              >
+                <CircleSlash size={13} /> Não fiz
+              </button>
+            )}
+            {item.undo && (
+              <button
+                type="button"
+                role="menuitem"
+                disabled={busy}
+                onClick={item.undo}
+                className={menuBtn}
+              >
+                <Undo2 size={13} /> Desfazer
+              </button>
+            )}
+            {item.remove && (
+              <button
+                type="button"
+                role="menuitem"
+                disabled={busy}
+                onClick={item.remove}
+                className={`${menuBtn} !text-rose-600 dark:!text-rose-300`}
+              >
+                <Trash2 size={13} /> Excluir registro
+              </button>
+            )}
+          </RowMenu>
+        )}
+        {!primary && !hasMenu && !done && !skipped && (
+          <ChevronRight size={14} className="text-muted-foreground/50" />
+        )}
+      </span>
     </div>
   );
 }
