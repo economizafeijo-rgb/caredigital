@@ -111,6 +111,33 @@ const acreFormatter = new Intl.DateTimeFormat("en-CA", {
 export const acreDay = (timestamp: string) => acreFormatter.format(new Date(timestamp));
 const text = (value: unknown, fallback = "") =>
   typeof value === "string" && value.trim() ? value.trim() : fallback;
+const rec = (value: unknown): Record<string, unknown> =>
+  value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+const describeEntry = (o: Record<string, unknown>) =>
+  text(o.description) ||
+  text(o.title) ||
+  text(o.name) ||
+  (Number(o.amount_ml) > 0 ? `${Number(o.amount_ml)} ml` : "");
+/** Texto legível para eventos de auditoria (alterado, excluído, registrado…), com o que foi consumido. */
+const auditText = (eventType: string, details: Record<string, unknown>) => {
+  if (eventType === "intake_edited") {
+    const after = describeEntry(rec(details.after));
+    const before = describeEntry(rec(details.before));
+    return after
+      ? `Alterado para: ${after}${before && before !== after ? ` (antes: ${before})` : ""}`
+      : "Registro alterado";
+  }
+  if (eventType === "intake_deleted") {
+    const gone = describeEntry(rec(details.deleted));
+    return gone ? `Excluído: ${gone}` : "Registro excluído";
+  }
+  const own = describeEntry(details);
+  if (own) return own;
+  const items = Array.isArray(details.items) ? details.items.map(String).join(", ") : "";
+  if (items) return items;
+  const label = eventType.replace(/_/g, " ").trim();
+  return label ? label.charAt(0).toUpperCase() + label.slice(1) : "Registro do prontuário";
+};
 const quantity = (value: unknown) =>
   typeof value === "number" && Number.isFinite(value) ? value : undefined;
 const clock = (iso: string) =>
@@ -505,15 +532,21 @@ export function assembleCareHistory(sources: HistorySources, now = Date.now()): 
       subtype: item.category,
       status: "registrado",
       title: text(
-        details.title,
-        "Registro de " +
+        item.event_type === "intake_edited" || item.event_type === "intake_deleted"
+          ? ""
+          : details.title,
+        (item.event_type === "intake_edited"
+          ? "Alteração de "
+          : item.event_type === "intake_deleted"
+            ? "Exclusão de "
+            : "Registro de ") +
           (item.category === "hidratacao"
             ? "hidratação"
             : item.category === "refeicao"
               ? "refeição"
               : "cuidado"),
       ),
-      description: "Evento do prontuário: " + text(item.event_type, "registro"),
+      description: auditText(String(item.event_type ?? ""), details),
       occurredAt: item.recorded_at,
       scheduledAt: item.scheduled_at ?? undefined,
     });
