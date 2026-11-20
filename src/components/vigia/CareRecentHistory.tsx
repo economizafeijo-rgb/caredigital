@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { CheckCircle2, Clock3, History, Pencil, Trash2, X } from "lucide-react";
 import { useDialog } from "@/lib/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { AnimatedLock } from "./AnimatedLock";
 import { RecordInfo, type RecordInfoRow } from "./RecordInfo";
 
 type Category = "hidratacao" | "refeicao" | "medicacao" | "resumo";
@@ -605,6 +606,7 @@ export function CareRecentHistory({
                   <Clock3 size={12} />
                   {dateTime(row.at)}
                 </time>
+                <AnimatedLock size={14} label="Registro guardado no prontuário" />
                 {row.rawId && row.edit && (
                   <button
                     type="button"

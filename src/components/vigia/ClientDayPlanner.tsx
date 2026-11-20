@@ -22,6 +22,7 @@ import { useDialog } from "@/lib/dialog";
 import { estimateNextHydration } from "@/lib/hydration-goal";
 import { careReminderState, type ReminderTask } from "@/lib/care-reminders";
 import { clientSectionHashes, type ClientSection } from "@/lib/client-pages";
+import { AnimatedLock } from "./AnimatedLock";
 import { NextUpClock } from "./NextUpClock";
 
 /**
@@ -1158,6 +1159,9 @@ function Row({
           </span>
         </span>
       </button>
+      {(done || item.status === "skipped") && (
+        <AnimatedLock size={15} label={done ? "Registrado" : "Respondido: não fiz"} />
+      )}
       {canSkip && (
         <button
           type="button"

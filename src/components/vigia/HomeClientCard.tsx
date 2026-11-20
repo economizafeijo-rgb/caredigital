@@ -45,6 +45,7 @@ import {
 import { ClientBeverageTracker } from "./ClientBeverageTracker";
 import { ClientQuickIntake } from "./ClientQuickIntake";
 import { LiveModeButton } from "./LiveMode";
+import { AnimatedLock } from "./AnimatedLock";
 import { QuickRegisterFab } from "./QuickRegisterFab";
 import { CareTaskRecordModal } from "./CareTaskRecordModal";
 import { CareReminderBeacon } from "./CareReminderBeacon";
@@ -953,6 +954,16 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                     mode="drink"
                     onRecorded={() => setTick((value) => value + 1)}
                   />
+                )}
+                {profileLocked && (
+                  <span className="inline-flex h-9 items-center gap-1.5 border border-white/20 px-2.5 text-xs font-semibold text-white/80">
+                    <AnimatedLock
+                      size={15}
+                      label="Registros bloqueados até completar o cadastro"
+                      className="!text-amber-300"
+                    />
+                    Registros bloqueados
+                  </span>
                 )}
                 {!profileLocked && (
                   <QuickRegisterFab
