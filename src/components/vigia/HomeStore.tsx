@@ -248,6 +248,37 @@ export function HomeStore({ className = "" }: { className?: string }) {
         </span>
       </p>
 
+      <Link
+        to="/loja"
+        search={{ loja: "bela-vista-fitness" } as never}
+        aria-label="Destaque: visitar a loja Bela Vista Fitness"
+        className="group relative mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 overflow-hidden border border-border bg-[#2b0a1e] p-3 text-white transition hover:border-[#d9b382] sm:p-4"
+      >
+        <span aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-[#d9b382]" />
+        <span className="flex min-w-0 items-center gap-3">
+          <img
+            src="/loja/bela-vista/logo.svg"
+            alt=""
+            loading="lazy"
+            className="size-12 shrink-0 rounded-full bg-white object-contain ring-1 ring-[#d9b382]/60 sm:size-14"
+          />
+          <span className="min-w-0">
+            <span className="block text-[10.5px] font-bold uppercase tracking-[0.18em] text-[#d9b382]">
+              Loja em destaque
+            </span>
+            <strong className="block truncate font-display text-base font-extrabold sm:text-lg">
+              Bela Vista Fitness
+            </strong>
+            <span className="block truncate text-xs text-white/75">
+              Treine com estilo. Brilhe em tudo. · Feijó, AC
+            </span>
+          </span>
+        </span>
+        <span className="inline-flex shrink-0 items-center gap-1.5 bg-[#d9b382] px-3 py-2 text-xs font-bold text-[#2b0a1e] transition group-hover:brightness-105">
+          Ver a loja <ArrowRight size={14} aria-hidden="true" />
+        </span>
+      </Link>
+
       <div className="mt-3 flex items-center gap-2">
         <div
           role="group"
