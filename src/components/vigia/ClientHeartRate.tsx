@@ -266,38 +266,44 @@ export function ClientHeartRate({
   const beat = bpm ? 60 / bpm : 1;
   const pct = bpm ? Math.min(100, Math.round((bpm / max) * 100)) : 0;
 
+  const [tab, setTab] = useState<"sessoes" | "conectar">("sessoes");
+  const [hoverZone, setHoverZone] = useState<string | null>(null);
+  const span = Math.max(1, (zones.at(-1)?.to ?? max) > 250 ? max : (zones.at(-1)?.to ?? max));
+  const markPct = bpm ? Math.min(100, Math.max(0, (bpm / span) * 100)) : 0;
+  const btn =
+    "inline-flex h-9 items-center justify-center gap-2 px-3.5 text-[13px] font-bold transition active:scale-[.97] disabled:opacity-45";
+
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-3">
       <section
         aria-label="Frequência cardíaca ao vivo"
-        className="nv-dark relative isolate overflow-hidden rounded-3xl bg-[#07090f] p-5 text-white shadow-pop sm:p-6"
+        className="nv-dark relative isolate overflow-hidden border border-white/10 bg-[#070b12] p-3.5 text-white shadow-pop sm:p-4"
         style={{ "--hr": zone.color, "--beat": `${beat}s` } as CSSProperties}
       >
         <div
           aria-hidden
           className="absolute inset-0 -z-10 opacity-60 transition-[background] duration-700"
           style={{
-            background: `radial-gradient(70% 90% at 15% 30%, color-mix(in srgb, ${active ? zone.color : "#334155"} 28%, transparent), transparent 70%)`,
+            background: `radial-gradient(60% 100% at 10% 20%, color-mix(in srgb, ${active ? zone.color : "#334155"} 26%, transparent), transparent 70%)`,
           }}
         />
         <div
           aria-hidden
-          className="absolute inset-0 -z-10 opacity-[.07] [background-image:linear-gradient(#fff_1px,transparent_1px),linear-gradient(90deg,#fff_1px,transparent_1px)] [background-size:22px_22px]"
+          className="absolute inset-0 -z-10 opacity-[.06] [background-image:linear-gradient(#fff_1px,transparent_1px),linear-gradient(90deg,#fff_1px,transparent_1px)] [background-size:20px_20px]"
+        />
+        <i
+          aria-hidden
+          className="absolute inset-x-0 top-0 h-[2px] transition-colors duration-700"
+          style={{ background: `linear-gradient(90deg, ${zone.color}, transparent 70%)` }}
         />
 
-        <div className="grid items-center gap-5 md:grid-cols-[auto_minmax(0,1fr)]">
-          <div className="relative mx-auto grid size-40 place-items-center sm:size-44">
+        <div className="grid items-center gap-3 md:grid-cols-[auto_minmax(0,1fr)_auto]">
+          <div className="relative mx-auto grid size-28 place-items-center">
             {active && bpm > 0 && (
-              <>
-                <span
-                  className="nv-hr-ring absolute inset-0 rounded-full border-2"
-                  style={{ borderColor: zone.color }}
-                />
-                <span
-                  className="nv-hr-ring absolute inset-0 rounded-full border-2"
-                  style={{ borderColor: zone.color, animationDelay: `calc(var(--beat) / 2)` }}
-                />
-              </>
+              <span
+                className="nv-hr-ring absolute inset-0 rounded-full border"
+                style={{ borderColor: zone.color }}
+              />
             )}
             <svg viewBox="0 0 100 100" className="absolute inset-0 -rotate-90" aria-hidden>
               <circle
@@ -306,7 +312,7 @@ export function ClientHeartRate({
                 r="45"
                 fill="none"
                 stroke="rgba(255,255,255,.08)"
-                strokeWidth="5"
+                strokeWidth="4"
               />
               <circle
                 cx="50"
@@ -314,7 +320,7 @@ export function ClientHeartRate({
                 r="45"
                 fill="none"
                 stroke={zone.color}
-                strokeWidth="5"
+                strokeWidth="4"
                 strokeLinecap="round"
                 strokeDasharray={`${(pct / 100) * 282.7} 282.7`}
                 className="transition-[stroke-dasharray,stroke] duration-700"
@@ -322,111 +328,70 @@ export function ClientHeartRate({
             </svg>
             <div className="grid justify-items-center">
               <HeartPulse
-                size={30}
+                size={18}
                 className={active && bpm ? "nv-hr-heart" : "opacity-40"}
                 style={{ color: zone.color }}
                 aria-hidden
               />
               <p
-                className="font-display text-5xl font-extrabold tabular-nums leading-none"
+                className="font-display text-4xl font-extrabold tabular-nums leading-none"
                 aria-live="polite"
                 aria-atomic="true"
               >
                 {bpm || "--"}
               </p>
-              <p className="text-xs font-semibold text-white/60">bpm</p>
+              <p className="text-[10px] font-semibold text-white/55">bpm</p>
             </div>
           </div>
 
           <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
               <span
-                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold"
+                className="inline-flex items-center gap-1.5 px-2 py-0.5 font-bold"
                 style={{
                   background: `color-mix(in srgb, ${zone.color} 22%, transparent)`,
                   color: zone.color,
                 }}
               >
-                <span className="size-2 rounded-full" style={{ background: zone.color }} />
+                <span className="size-1.5" style={{ background: zone.color }} />
                 {active && bpm ? zone.label : "Sem leitura"}
               </span>
               {state === "simulando" && (
-                <span className="rounded-full bg-amber-400/20 px-2.5 py-1 text-xs font-bold text-amber-300">
+                <span className="bg-amber-400/20 px-2 py-0.5 font-bold text-amber-300">
                   Simulação
                 </span>
               )}
               {state === "reconectando" && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-xs">
-                  <Loader2 size={12} className="animate-spin" /> Reconectando…
+                <span className="inline-flex items-center gap-1 bg-white/10 px-2 py-0.5">
+                  <Loader2 size={11} className="animate-spin" /> Reconectando…
                 </span>
               )}
               {contact === false && active && (
-                <span className="rounded-full bg-rose-500/20 px-2.5 py-1 text-xs font-semibold text-rose-300">
+                <span className="bg-rose-500/20 px-2 py-0.5 font-semibold text-rose-300">
                   Sem contato com a pele
                 </span>
               )}
               {device && active && (
-                <span className="inline-flex items-center gap-1.5 text-xs text-white/65">
-                  <Watch size={13} /> {device.name}
+                <span className="inline-flex items-center gap-1.5 text-white/65">
+                  <Watch size={12} /> {device.name}
                   {device.battery != null && (
                     <>
-                      <Battery size={13} className="ml-1" /> {device.battery}%
+                      <Battery size={12} className="ml-1" /> {device.battery}%
                     </>
                   )}
                 </span>
               )}
             </div>
             <EcgTrace bpm={bpm} color={zone.color} running={active && bpm > 0} />
-            <div className="flex flex-wrap gap-2">
-              {!active ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => void connect()}
-                    disabled={support !== "ok" || state === "conectando"}
-                    className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-slate-950 transition hover:bg-white/90 active:scale-[.98] disabled:opacity-50"
-                  >
-                    {state === "conectando" ? (
-                      <Loader2 size={16} className="animate-spin" />
-                    ) : (
-                      <Bluetooth size={16} />
-                    )}{" "}
-                    Conectar relógio ou cinta
-                  </button>
-                  <button
-                    type="button"
-                    onClick={simulate}
-                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-4 text-sm font-semibold transition hover:bg-white/10"
-                  >
-                    <Play size={15} /> Ver simulação
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => void stop()}
-                    className="inline-flex h-11 items-center gap-2 rounded-xl bg-white/10 px-4 text-sm font-bold ring-1 ring-white/20 transition hover:bg-white/15"
-                  >
-                    <Square size={14} /> Parar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void save()}
-                    disabled={saving || samples.length < 20 || state === "simulando"}
-                    className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-slate-950 transition hover:bg-white/90 disabled:opacity-45"
-                  >
-                    <Save size={15} /> Salvar sessão
-                  </button>
-                </>
-              )}
-            </div>
             {(detail || support !== "ok") && (
-              <p role="status" className="mt-3 flex items-start gap-2 text-xs text-white/70">
+              <p
+                role="status"
+                className="mt-1.5 flex items-start gap-1.5 text-[11px] text-white/65"
+              >
                 {support !== "ok" ? (
-                  <BluetoothOff size={14} className="mt-0.5 shrink-0" />
+                  <BluetoothOff size={13} className="mt-0.5 shrink-0" />
                 ) : (
-                  <Info size={14} className="mt-0.5 shrink-0" />
+                  <Info size={13} className="mt-0.5 shrink-0" />
                 )}
                 {detail ||
                   (support === "ios"
@@ -437,163 +402,261 @@ export function ClientHeartRate({
               </p>
             )}
           </div>
+
+          <div className="flex flex-wrap gap-2 md:w-44 md:flex-col">
+            {!active ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => void connect()}
+                  disabled={support !== "ok" || state === "conectando"}
+                  className={`${btn} bg-white text-slate-950 hover:bg-white/90 md:w-full`}
+                >
+                  {state === "conectando" ? (
+                    <Loader2 size={15} className="animate-spin" />
+                  ) : (
+                    <Bluetooth size={15} />
+                  )}
+                  Conectar sensor
+                </button>
+                <button
+                  type="button"
+                  onClick={simulate}
+                  className={`${btn} border border-white/20 bg-white/5 hover:bg-white/10 md:w-full`}
+                >
+                  <Play size={14} /> Ver simulação
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => void save()}
+                  disabled={saving || samples.length < 20 || state === "simulando"}
+                  className={`${btn} bg-white text-slate-950 hover:bg-white/90 md:w-full`}
+                >
+                  <Save size={14} /> Salvar sessão
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void stop()}
+                  className={`${btn} bg-white/10 ring-1 ring-white/20 hover:bg-white/15 md:w-full`}
+                >
+                  <Square size={13} /> Parar
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
-        <ul className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-5">
+        <ul className="mt-3 grid grid-cols-2 gap-px bg-white/10 sm:grid-cols-5">
           {[
             [Timer, "Tempo", stats ? fmtClock(stats.secs) : "00:00:00"],
-            [HeartPulse, "Média", stats ? `${stats.avg} bpm` : "—"],
-            [HeartPulse, "Mínima", stats ? `${stats.min} bpm` : "—"],
-            [HeartPulse, "Máxima", stats ? `${stats.max} bpm` : "—"],
-            [HeartPulse, "Máx. estimada", `${max} bpm`],
+            [HeartPulse, "Média", stats ? `${stats.avg}` : "—"],
+            [HeartPulse, "Mínima", stats ? `${stats.min}` : "—"],
+            [HeartPulse, "Máxima", stats ? `${stats.max}` : "—"],
+            [HeartPulse, "Máx. estimada", `${max}`],
           ].map(([I, l, v], i) => {
             const Icon = I as typeof Timer;
             return (
               <li
                 key={l as string}
-                className={`rounded-xl bg-white/[.05] px-3 py-2 ring-1 ring-white/10 ${i === 4 ? "col-span-2 sm:col-span-1" : ""}`}
+                className={`group bg-[#0a1019] px-3 py-1.5 transition-colors hover:bg-[#101a28] ${i === 4 ? "col-span-2 sm:col-span-1" : ""}`}
               >
-                <p className="flex items-center gap-1.5 text-[11px] text-white/55">
-                  <Icon size={12} /> {l as string}
+                <p className="flex items-center gap-1.5 text-[10px] font-semibold text-white/50">
+                  <Icon size={11} className="transition-transform group-hover:scale-125" />{" "}
+                  {l as string}
                 </p>
-                <p className="font-display text-lg font-extrabold tabular-nums">{v as string}</p>
+                <p className="font-display text-base font-extrabold tabular-nums">
+                  {v as string}
+                  {i > 0 && (
+                    <span className="ml-1 text-[10px] font-semibold text-white/45">bpm</span>
+                  )}
+                </p>
               </li>
             );
           })}
         </ul>
-      </section>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-        <section
-          className="rounded-2xl border border-border bg-card p-4"
-          aria-label="Últimos 5 minutos"
-        >
-          <h3 className="text-sm font-bold">Últimos 5 minutos</h3>
-          {chart.points.length > 1 ? (
-            <EvoChart
-              ariaLabel="Frequência cardíaca nos últimos 5 minutos"
-              height={210}
-              yAuto
-              series={[
-                {
-                  id: "bpm",
-                  label: "Frequência",
-                  color: zone.color,
-                  points: chart.points,
-                  area: true,
-                  live: active,
-                },
-              ]}
-              xMin={chart.points[0].x}
-              xMax={Math.max(chart.points.at(-1)!.x, chart.points[0].x + 10)}
-              xTicks={[chart.points[0].x, chart.points.at(-1)!.x].map((x) => ({
-                x,
-                label: fmtClock(Math.round(x)).slice(3),
-              }))}
-              formatX={(x) => fmtClock(Math.round(x))}
-              formatY={(y) => `${Math.round(y)} bpm`}
-              band={{
-                from: zones[2].from,
-                to: zones[3].to,
-                label: "Zona aeróbica",
-                color: "#22c55e",
-              }}
-            />
-          ) : (
-            <p className="grid h-[210px] place-items-center text-center text-sm text-muted-foreground">
-              Conecte um sensor ou veja a simulação para acompanhar ao vivo.
-            </p>
-          )}
-        </section>
-        <section
-          className="rounded-2xl border border-border bg-card p-4"
-          aria-label="Zonas de frequência"
-        >
-          <h3 className="text-sm font-bold">Zonas de frequência</h3>
-          <ul className="mt-3 grid gap-2">
-            {[...zones].reverse().map((z) => {
+        <div className="mt-3" aria-label="Zonas de frequência">
+          <div className="relative">
+            <div className="flex h-3 gap-px">
+              {zones.map((z) => {
+                const w = Math.max(
+                  4,
+                  Math.min(z.to > 250 ? span : z.to, span) - Math.min(z.from, span),
+                );
+                const share = stats
+                  ? Math.round(((stats.inZone[z.key] ?? 0) / samples.length) * 100)
+                  : 0;
+                const here = active && bpm && z.key === zone.key;
+                return (
+                  <button
+                    key={z.key}
+                    type="button"
+                    onMouseEnter={() => setHoverZone(z.key)}
+                    onMouseLeave={() => setHoverZone(null)}
+                    onFocus={() => setHoverZone(z.key)}
+                    onBlur={() => setHoverZone(null)}
+                    aria-label={`${z.label}: ${z.from} a ${z.to > 250 ? "mais" : z.to} bpm, ${share}% do tempo`}
+                    className="relative h-full transition-[filter,transform] duration-200 hover:brightness-125 focus-visible:outline-none"
+                    style={{
+                      flex: w,
+                      background: z.color,
+                      opacity: here ? 1 : hoverZone === z.key ? 0.9 : 0.5,
+                      transform: hoverZone === z.key ? "scaleY(1.5)" : undefined,
+                    }}
+                  />
+                );
+              })}
+            </div>
+            {bpm > 0 && (
+              <i
+                aria-hidden
+                className="absolute -top-1.5 size-0 -translate-x-1/2 border-x-[5px] border-t-[6px] border-x-transparent transition-[left] duration-700"
+                style={{ left: `${markPct}%`, borderTopColor: zone.color }}
+              />
+            )}
+          </div>
+          <p
+            className="mt-1.5 flex flex-wrap items-center justify-between gap-x-3 text-[11px] text-white/60"
+            role="status"
+          >
+            {(() => {
+              const z = zones.find((x) => x.key === (hoverZone ?? zone.key)) ?? zone;
               const share = stats
                 ? Math.round(((stats.inZone[z.key] ?? 0) / samples.length) * 100)
                 : 0;
-              const here = active && bpm && z.key === zone.key;
               return (
-                <li
-                  key={z.key}
-                  className={`grid grid-cols-[1fr_auto] items-center gap-x-3 rounded-lg px-2 py-1 transition-colors ${here ? "bg-muted" : ""}`}
-                >
-                  <span className="flex items-center gap-2 text-[13px]">
-                    <span
-                      className={`size-2.5 rounded-full ${here ? "nv-hr-heart" : ""}`}
-                      style={{ background: z.color }}
-                    />
-                    {z.label}
+                <>
+                  <span className="font-semibold" style={{ color: z.color }}>
+                    {z.label} · {z.from}–{z.to > 250 ? "+" : z.to} bpm
+                  </span>
+                  <span className="tabular-nums">{share}% do tempo na sessão</span>
+                </>
+              );
+            })()}
+          </p>
+        </div>
+      </section>
+
+      <section className="border border-border bg-card p-3" aria-label="Últimos 5 minutos">
+        <h3 className="mb-1 text-[13px] font-bold">Últimos 5 minutos</h3>
+        {chart.points.length > 1 ? (
+          <EvoChart
+            ariaLabel="Frequência cardíaca nos últimos 5 minutos"
+            height={170}
+            yAuto
+            series={[
+              {
+                id: "bpm",
+                label: "Frequência",
+                color: zone.color,
+                points: chart.points,
+                area: true,
+                live: active,
+              },
+            ]}
+            xMin={chart.points[0].x}
+            xMax={Math.max(chart.points.at(-1)!.x, chart.points[0].x + 10)}
+            xTicks={[chart.points[0].x, chart.points.at(-1)!.x].map((x) => ({
+              x,
+              label: fmtClock(Math.round(x)).slice(3),
+            }))}
+            formatX={(x) => fmtClock(Math.round(x))}
+            formatY={(y) => `${Math.round(y)} bpm`}
+            band={{
+              from: zones[2].from,
+              to: zones[3].to,
+              label: "Zona aeróbica",
+              color: "#22c55e",
+            }}
+          />
+        ) : (
+          <p className="grid h-[110px] place-items-center text-center text-sm text-muted-foreground">
+            Conecte um sensor ou veja a simulação para acompanhar ao vivo.
+          </p>
+        )}
+      </section>
+
+      <section className="border border-border bg-card" aria-label="Sessões e conexão">
+        <div role="tablist" className="relative flex border-b border-border">
+          {(
+            [
+              ["sessoes", `Sessões salvas${history.length ? ` · ${history.length}` : ""}`],
+              ["conectar", "Como conectar"],
+            ] as const
+          ).map(([k, l]) => (
+            <button
+              key={k}
+              type="button"
+              role="tab"
+              aria-selected={tab === k}
+              onClick={() => setTab(k)}
+              className={`h-10 flex-1 text-[13px] font-semibold transition-colors ${tab === k ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              {l}
+            </button>
+          ))}
+          <i
+            aria-hidden
+            className="absolute bottom-[-1px] h-[2px] w-1/2 bg-rose-500 transition-transform duration-300"
+            style={{ transform: tab === "sessoes" ? "translateX(0)" : "translateX(100%)" }}
+          />
+        </div>
+        <div key={tab} className="nv-fade-in p-3">
+          {tab === "sessoes" ? (
+            <ul className="divide-y divide-border">
+              {history.map((s) => (
+                <li key={s.id} className="group flex items-center gap-3 py-2 text-[13px]">
+                  <HeartPulse size={15} className="text-rose-500" />
+                  <span className="min-w-0 flex-1">
+                    <strong className="block">{fmtDate(s.started_at)}</strong>
                     <span className="text-[11px] text-muted-foreground">
-                      {z.from}–{z.to > 250 ? "+" : z.to}
+                      {s.device_name ?? "Sensor"} ·{" "}
+                      {fmtClock(
+                        Math.round(
+                          (new Date(s.ended_at).getTime() - new Date(s.started_at).getTime()) /
+                            1000,
+                        ),
+                      )}
                     </span>
                   </span>
-                  <span className="text-xs font-semibold tabular-nums text-muted-foreground">
-                    {share}%
+                  <span className="hidden w-28 sm:block" aria-hidden>
+                    <span className="block h-1.5 bg-muted">
+                      <span
+                        className="nv-grow-x block h-full bg-rose-500"
+                        style={{ width: `${Math.min(100, Math.round((s.max_bpm / max) * 100))}%` }}
+                      />
+                    </span>
                   </span>
-                  <span className="col-span-2 mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
-                    <span
-                      className="block h-full rounded-full transition-[width] duration-700"
-                      style={{ width: `${share}%`, background: z.color }}
-                    />
+                  <span className="text-right text-xs tabular-nums">
+                    <strong className="text-sm">{s.avg_bpm}</strong> média
+                    <span className="block text-[11px] text-muted-foreground">
+                      {s.min_bpm}–{s.max_bpm}
+                    </span>
                   </span>
+                  <button
+                    type="button"
+                    onClick={() => void remove(s)}
+                    aria-label="Apagar sessão"
+                    className="grid size-8 place-items-center text-muted-foreground transition hover:bg-rose-500/10 hover:text-rose-600"
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </li>
-              );
-            })}
-          </ul>
-        </section>
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <section
-          className="rounded-2xl border border-border bg-card p-4"
-          aria-label="Sessões salvas"
-        >
-          <h3 className="text-sm font-bold">Sessões salvas</h3>
-          <ul className="mt-2 divide-y divide-border">
-            {history.map((s) => (
-              <li key={s.id} className="group flex items-center gap-3 py-2 text-[13px]">
-                <HeartPulse size={16} className="text-rose-500" />
-                <span className="min-w-0 flex-1">
-                  <strong className="block">{fmtDate(s.started_at)}</strong>
-                  <span className="text-xs text-muted-foreground">
-                    {s.device_name ?? "Sensor"} ·{" "}
-                    {fmtClock(
-                      Math.round(
-                        (new Date(s.ended_at).getTime() - new Date(s.started_at).getTime()) / 1000,
-                      ),
-                    )}
-                  </span>
-                </span>
-                <span className="text-right text-xs tabular-nums">
-                  <strong className="text-sm">{s.avg_bpm}</strong> média
-                  <br />
-                  <span className="text-muted-foreground">
-                    {s.min_bpm}–{s.max_bpm}
-                  </span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => void remove(s)}
-                  aria-label="Apagar sessão"
-                  className="grid size-8 place-items-center rounded-lg text-muted-foreground opacity-0 hover:bg-muted group-hover:opacity-100 focus:opacity-100"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </li>
-            ))}
-            {!history.length && (
-              <li className="py-6 text-center text-sm text-muted-foreground">
-                Nenhuma sessão salva ainda.
-              </li>
-            )}
-          </ul>
-        </section>
-        <ConnectGuide />
-      </div>
+              ))}
+              {!history.length && (
+                <li className="py-5 text-center text-sm text-muted-foreground">
+                  Nenhuma sessão salva ainda.
+                </li>
+              )}
+            </ul>
+          ) : (
+            <ConnectGuide />
+          )}
+        </div>
+      </section>
     </div>
   );
 }
@@ -689,14 +752,8 @@ function ConnectGuide() {
   const [sel, setSel] = useState("garmin");
   const b = BRANDS.find((x) => x.key === sel) ?? BRANDS[0];
   return (
-    <section
-      className="rounded-2xl border border-border bg-card p-4 text-[13px]"
-      aria-label="Como conectar"
-    >
-      <h3 className="flex items-center gap-2 text-sm font-bold">
-        <Watch size={15} /> Como conectar o seu relógio
-      </h3>
-      <div role="tablist" aria-label="Marca do relógio" className="mt-3 flex flex-wrap gap-1.5">
+    <section className="text-[13px]" aria-label="Como conectar">
+      <div role="tablist" aria-label="Marca do relógio" className="flex flex-wrap gap-1.5">
         {BRANDS.map((x) => (
           <button
             key={x.key}
@@ -704,7 +761,7 @@ function ConnectGuide() {
             role="tab"
             aria-selected={sel === x.key}
             onClick={() => setSel(x.key)}
-            className={`h-8 rounded-full px-3 text-xs font-semibold transition-colors ${sel === x.key ? "bg-foreground text-background" : "border border-border text-muted-foreground hover:text-foreground"}`}
+            className={`h-8 px-3 text-xs font-semibold transition-colors ${sel === x.key ? "bg-foreground text-background" : "border border-border text-muted-foreground hover:text-foreground"}`}
           >
             {x.label}
           </button>

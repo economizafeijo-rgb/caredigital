@@ -108,15 +108,15 @@ function ScoreRing({ score }: { score: number }) {
     c = 2 * Math.PI * r,
     color = scoreColor(score);
   return (
-    <div className="relative mx-auto size-[150px] shrink-0 sm:size-[176px]">
+    <div className="relative mx-auto size-[108px] shrink-0 sm:size-[124px]">
       <svg viewBox="0 0 176 176" className="size-full -rotate-90">
-        <circle cx="88" cy="88" r={r} fill="none" strokeWidth="14" className="stroke-white/15" />
+        <circle cx="88" cy="88" r={r} fill="none" strokeWidth="10" className="stroke-white/15" />
         <circle
           cx="88"
           cy="88"
           r={r}
           fill="none"
-          strokeWidth="14"
+          strokeWidth="10"
           stroke={color}
           strokeLinecap="round"
           strokeDasharray={c}
@@ -129,12 +129,10 @@ function ScoreRing({ score }: { score: number }) {
       </svg>
       <div className="absolute inset-0 grid place-items-center text-center">
         <div>
-          <strong className="block text-5xl font-extrabold tabular-nums leading-none">
+          <strong className="block text-4xl font-extrabold tabular-nums leading-none">
             {score}
           </strong>
-          <span className="text-xs font-semibold uppercase tracking-widest text-white/70">
-            {scoreLabel(score)}
-          </span>
+          <span className="text-[10px] font-semibold text-white/70">{scoreLabel(score)}</span>
         </div>
       </div>
     </div>
@@ -155,7 +153,7 @@ function NightBar({ log }: { log: SleepLog }) {
     b = pos(minutesFrom18(log.wake_at));
   return (
     <div className="mt-3" aria-label={`Dormiu ${clock(log.bed_at)}, acordou ${clock(log.wake_at)}`}>
-      <div className="relative h-9 rounded-xl bg-white/10">
+      <div className="group relative h-7 bg-white/10 transition-colors hover:bg-white/15">
         <span
           aria-hidden="true"
           className="absolute inset-y-0 rounded-xl border border-dashed border-white/25"
@@ -475,7 +473,7 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
 
       <div className="grid gap-3 xl:grid-cols-[1.25fr_1fr]">
         <section
-          className="nv-dark relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#120d3a] via-[#1e1b4b] to-[#3b1d6e] p-4 text-white shadow-card sm:p-5"
+          className="nv-dark relative overflow-hidden border border-white/10 bg-gradient-to-br from-[#120d3a] via-[#1e1b4b] to-[#3b1d6e] p-3.5 text-white shadow-card"
           aria-label="Resumo do sono"
         >
           <div
@@ -490,20 +488,20 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
                 "radial-gradient(1.5px 1.5px at 12% 22%, #fff, transparent), radial-gradient(1px 1px at 38% 12%, #fff, transparent), radial-gradient(1.5px 1.5px at 64% 30%, #fff, transparent), radial-gradient(1px 1px at 84% 16%, #fff, transparent), radial-gradient(1px 1px at 74% 62%, #fff, transparent), radial-gradient(1.5px 1.5px at 22% 70%, #fff, transparent)",
             }}
           />
-          <div className="relative flex flex-wrap items-center gap-5">
+          <div className="relative flex flex-wrap items-center gap-4">
             <ScoreRing score={focus ? sleepScore(focus) : 0} />
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold uppercase tracking-[.14em] text-white/70">
+              <p className="text-[11px] font-semibold text-white/70">
                 {selected ? "Noite selecionada" : "Última noite"}
                 {focus ? ` · ${short(focus.sleep_date)}` : ""}
               </p>
-              <p className="mt-1 text-4xl font-extrabold tabular-nums">
+              <p className="text-3xl font-extrabold leading-tight tabular-nums">
                 {focus ? hm(hours(focus)) : "—"}
                 <span className="ml-2 text-base font-semibold text-white/70">de sono</span>
               </p>
               {focus && <NightBar log={focus} />}
               {focus && (
-                <div className="mt-2 flex flex-wrap gap-1.5 text-xs">
+                <div className="mt-2 grid grid-cols-2 gap-px bg-white/10 text-xs sm:grid-cols-4">
                   {[
                     [Moon, "Dormiu", clock(focus.bed_at)],
                     [Sunrise, "Acordou", clock(focus.wake_at)],
@@ -512,7 +510,7 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
                   ].map(([Icon, label, value]: any) => (
                     <span
                       key={label}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1"
+                      className="flex items-center gap-1.5 bg-[#1b1650] px-2 py-1.5 transition-colors hover:bg-[#25206a]"
                     >
                       <Icon size={12} className="text-white/70" />
                       <span className="text-white/70">{label}</span>
@@ -521,8 +519,8 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
                   ))}
                 </div>
               )}
-              <p className="mt-3 flex gap-2 rounded-xl bg-white/10 p-3 text-sm">
-                <Lightbulb size={17} className="mt-0.5 shrink-0 text-amber-300" />
+              <p className="mt-2 flex gap-2 border-l-2 border-amber-300 bg-white/[.07] p-2.5 text-[13px] leading-snug">
+                <Lightbulb size={15} className="mt-0.5 shrink-0 text-amber-300" />
                 {tip}
               </p>
               <NextUpClock
@@ -538,27 +536,27 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
               />
               <a
                 href="#nv-sleep-form"
-                className="nv-bump mt-3 inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-indigo-950 shadow-sm transition hover:bg-white/90 active:scale-[.97]"
+                className="nv-bump mt-2 inline-flex h-9 items-center gap-2 bg-white px-3.5 text-[13px] font-bold text-indigo-950 shadow-sm transition hover:bg-white/90 active:scale-[.97]"
               >
-                <BedDouble size={17} /> Registrar noite
+                <BedDouble size={15} /> Registrar noite
               </a>
             </div>
           </div>
         </section>
 
         <section
-          className="rounded-2xl border border-border bg-card p-4 shadow-card sm:p-5"
+          className="border border-border bg-card p-3.5 shadow-card"
           aria-label="Sensor em tempo real"
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="flex items-center gap-2 text-lg font-bold">
-              <HeartPulse size={20} className="text-rose-500" /> Sensor em tempo real
+            <h3 className="flex items-center gap-2 text-sm font-bold">
+              <HeartPulse size={17} className="text-rose-500" /> Sensor em tempo real
             </h3>
             {deviceName ? (
               <button
                 type="button"
                 onClick={disconnect}
-                className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-border px-3 text-sm font-bold hover:bg-muted"
+                className="inline-flex h-9 items-center gap-1.5 border border-border px-3 text-[13px] font-bold transition hover:bg-muted active:scale-[.97]"
               >
                 <BluetoothOff size={16} /> Desconectar
               </button>
@@ -567,7 +565,7 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
                 type="button"
                 onClick={() => void connect()}
                 disabled={!bluetooth}
-                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-500 px-4 text-sm font-bold text-white shadow-sm hover:brightness-110 disabled:opacity-50"
+                className="inline-flex h-9 items-center gap-1.5 bg-gradient-to-r from-indigo-600 to-violet-500 px-3.5 text-[13px] font-bold text-white shadow-sm hover:brightness-110 disabled:opacity-50"
               >
                 <Bluetooth size={16} /> Conectar sensor
               </button>
@@ -587,14 +585,14 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
           ) : (
             <>
               <div className="mt-3 flex items-end gap-3">
-                <span className="relative grid size-16 place-items-center">
+                <span className="relative grid size-12 place-items-center">
                   <span
                     className="absolute inset-0 animate-ping rounded-full bg-rose-500/30"
                     style={{ animationDuration: bpm ? `${Math.max(0.35, 60 / bpm)}s` : "1s" }}
                   />
-                  <HeartPulse size={34} className="relative text-rose-500" />
+                  <HeartPulse size={26} className="relative text-rose-500" />
                 </span>
-                <p className="text-5xl font-extrabold tabular-nums leading-none">
+                <p className="text-4xl font-extrabold tabular-nums leading-none">
                   {bpm ?? "—"}
                   <span className="ml-1 text-base font-semibold text-muted-foreground">bpm</span>
                 </p>
@@ -604,7 +602,7 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
                   {samples.length} leituras
                 </span>
               </div>
-              <div className="mt-2 h-24">
+              <div className="mt-1 h-20">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={samples} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
                     <defs>
@@ -630,7 +628,7 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
                   <button
                     type="button"
                     onClick={endNight}
-                    className="inline-flex h-11 items-center gap-2 rounded-xl bg-amber-500 px-4 text-sm font-bold text-slate-950"
+                    className="inline-flex h-9 items-center gap-2 bg-amber-500 px-3.5 text-[13px] font-bold text-slate-950"
                   >
                     <Sunrise size={17} /> Acordei · encerrar noite
                   </button>
@@ -638,7 +636,7 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
                   <button
                     type="button"
                     onClick={startNight}
-                    className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-500 px-4 text-sm font-bold text-white"
+                    className="inline-flex h-9 items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-500 px-3.5 text-[13px] font-bold text-white"
                   >
                     <Moon size={17} /> Vou dormir · iniciar noite
                   </button>
@@ -658,31 +656,31 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
       </div>
 
       <section
-        className="rounded-2xl border border-border bg-card p-4 shadow-card sm:p-5"
+        className="border border-border bg-card p-3.5 shadow-card"
         aria-label="Evolução do sono"
       >
         <div className="flex flex-wrap items-center gap-3">
           <div className="mr-auto">
-            <h3 className="text-lg font-bold">Evolução do sono</h3>
+            <h3 className="text-sm font-bold">Evolução do sono</h3>
             <p className="text-sm text-muted-foreground">
               Horas dormidas e nota de cada noite. Toque em uma barra para ver os detalhes.
             </p>
           </div>
-          <div role="group" aria-label="Período" className="flex gap-1 rounded-xl bg-muted p-1">
+          <div role="group" aria-label="Período" className="flex gap-px bg-border p-px">
             {([7, 14, 30] as const).map((v) => (
               <button
                 key={v}
                 type="button"
                 aria-pressed={range === v}
                 onClick={() => setRange(v)}
-                className={`h-9 rounded-lg px-3 text-sm font-semibold ${range === v ? "bg-card shadow-sm" : "text-muted-foreground"}`}
+                className={`h-8 px-3 text-xs font-semibold transition-colors ${range === v ? "bg-foreground text-background" : "bg-card text-muted-foreground hover:text-foreground"}`}
               >
                 {v} dias
               </button>
             ))}
           </div>
         </div>
-        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="mt-2 grid grid-cols-2 gap-px bg-border sm:grid-cols-4">
           {[
             ["Média por noite", avgHours ? hm(avgHours) : "—", `meta ${GOAL_HOURS}h`],
             [
@@ -697,14 +695,14 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
             ],
             ["Débito de sono", debt ? hm(debt) : "0h00", `em ${range} dias`],
           ].map(([label, value, note]) => (
-            <div key={label} className="rounded-2xl bg-muted/50 p-3">
+            <div key={label} className="bg-card px-3 py-2 transition-colors hover:bg-muted/60">
               <p className="text-xs font-semibold text-muted-foreground">{label}</p>
-              <p className="text-xl font-extrabold tabular-nums">{value}</p>
+              <p className="text-lg font-extrabold tabular-nums">{value}</p>
               <p className="truncate text-xs text-muted-foreground">{note}</p>
             </div>
           ))}
         </div>
-        <div className="mt-3 h-[280px]">
+        <div className="mt-2 h-[220px]">
           {!loaded ? (
             <div className="h-full animate-pulse rounded-2xl bg-muted/60" />
           ) : windowLogs.length === 0 ? (
@@ -858,7 +856,7 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
       </section>
 
       <section
-        className="rounded-2xl border border-border bg-card p-4 shadow-card sm:p-5"
+        className="border border-border bg-card p-3.5 shadow-card"
         id="nv-sleep-form"
         aria-label="Registrar noite"
         data-register-target="Registrar noite"

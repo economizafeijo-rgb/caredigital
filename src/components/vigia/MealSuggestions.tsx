@@ -173,7 +173,7 @@ export function NutritionInfoCard({ item, onClose }: { item: Suggestion; onClose
                         </p>
                         <span className="mt-2 block h-1.5 bg-white/10" aria-hidden>
                           <span
-                            className="nv-grow block h-full"
+                            className="nv-grow-x block h-full"
                             style={{ width: `${Math.min(100, pct)}%`, background: m.color }}
                           />
                         </span>
@@ -200,7 +200,7 @@ export function NutritionInfoCard({ item, onClose }: { item: Suggestion; onClose
                         <span className="truncate font-semibold">{meta.label}</span>
                         <span className="h-1.5 bg-white/10" aria-hidden="true">
                           <span
-                            className="nv-grow block h-full bg-emerald-400"
+                            className="nv-grow-x block h-full bg-emerald-400"
                             style={{ width: `${pct}%` }}
                           />
                         </span>

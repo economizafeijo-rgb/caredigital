@@ -1102,3 +1102,7 @@ html, #care-content { scrollbar-gutter: stable; }
 .nv-hero-dot { animation: nv-hero-dot 3.2s ease-in-out infinite; }
 .nv-hero-check { animation: nv-hero-check .6s ease .5s forwards; }
 @media (prefers-reduced-motion: reduce) { .nv-hero-spin,.nv-hero-pulse,.nv-hero-hand,.nv-hero-hand-slow,.nv-hero-float,.nv-hero-shake,.nv-hero-dot { animation: none; } .nv-hero-check { animation: none; stroke-dashoffset: 0; } }
+
+@keyframes nv-grow-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.nv-grow-x { transform-origin: left; animation: nv-grow-x .8s cubic-bezier(.2,.8,.2,1) both; }
+@media (prefers-reduced-motion: reduce) { .nv-grow-x { animation: none; } }
