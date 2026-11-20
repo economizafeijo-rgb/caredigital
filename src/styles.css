@@ -954,3 +954,22 @@ html, #care-content { scrollbar-gutter: stable; }
 @keyframes nv-hr-ring { 0% { transform: scale(.82); opacity: .55; } 100% { transform: scale(1.28); opacity: 0; } }
 .nv-hr-ring { animation: nv-hr-ring var(--beat, 1s) cubic-bezier(0, 0, .2, 1) infinite; }
 @media (prefers-reduced-motion: reduce) { .nv-hr-heart, .nv-hr-ring { animation: none; } .nv-hr-ring { opacity: 0; } }
+
+/* ---------- Tempo de preparo: cena de cozimento ---------- */
+@keyframes nv-wave { from { transform: translateX(0); } to { transform: translateX(-40px); } }
+@keyframes nv-bubble { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: .8; } 100% { transform: translateY(-38px); opacity: 0; } }
+@keyframes nv-steam { 0% { transform: translateY(8px); opacity: 0; } 30% { opacity: .5; } 100% { transform: translateY(-22px); opacity: 0; } }
+@keyframes nv-flame { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(.94, 1.1); } }
+@keyframes nv-jiggle { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(1.5px, -2px); } }
+@keyframes nv-stir { 0%, 100% { transform: rotate(-9deg); } 50% { transform: rotate(9deg); } }
+@keyframes nv-done-pulse { 0%, 100% { filter: drop-shadow(0 0 0 rgba(94, 216, 195, 0)); } 50% { filter: drop-shadow(0 0 18px rgba(94, 216, 195, .55)); } }
+.nv-wave { animation: nv-wave 3s linear infinite; }
+.nv-bubble { animation: nv-bubble 2s ease-in infinite; }
+.nv-steam { animation: nv-steam 2.6s ease-out infinite; }
+.nv-flame { animation: nv-flame .5s ease-in-out infinite; }
+.nv-jiggle { animation: nv-jiggle 1.4s ease-in-out infinite; }
+.nv-stir { animation: nv-stir 1.6s ease-in-out infinite; }
+.nv-done-pulse { animation: nv-done-pulse 1.8s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .nv-wave, .nv-bubble, .nv-steam, .nv-flame, .nv-jiggle, .nv-stir, .nv-done-pulse { animation: none !important; }
+}
