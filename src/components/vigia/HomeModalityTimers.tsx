@@ -11,7 +11,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { acreDateKey } from "@/lib/acre-time";
 import { WATER_LAST_RECOMMENDED_HOUR } from "@/lib/nutrition-science";
-import { mealKindOf, nextMealSuggestion, nextWaterPlan, type LoggedMeal } from "@/lib/day-plan";
+import { mealKindOf, nextWaterPlan, type LoggedMeal } from "@/lib/day-plan";
 import { clientSectionHashes, type ClientSection } from "@/lib/client-pages";
 import { CareTimer, useTicker } from "./CareTimer";
 
@@ -231,19 +231,19 @@ export function HomeModalityTimers() {
         const items = Array.isArray(r.items) ? r.items.join(", ") : "";
         logged.push({ t, kind: mealKindOf(r.meal_name) || mealKindOf(items) });
       }
-      const { next: nextMeal, last: lastMeal } = nextMealSuggestion(logged, day, now);
+      // Só o que foi programado vira horário; o resto mostra as refeições realmente registradas hoje.
+      const mealTask = first("refeicao");
+      const lastMeal = [...logged].sort((a, b) => a.t - b.t).at(-1) ?? null;
       list.push({
         key: "meal",
         section: "alimentacao",
         label: "Próxima refeição",
         icon: UtensilsCrossed,
-        at: nextMeal && nextMeal.at < Date.parse(day + "T22:00:00-05:00") ? nextMeal.at : null,
-        title:
-          nextMeal?.label ??
-          (logged.length ? "Refeições de hoje registradas" : "Sem refeição prevista"),
+        at: mealTask ? Date.parse(mealTask.scheduled_at) : null,
+        title: mealTask?.title ?? "Sem refeição programada",
         note: lastMeal
           ? `${logged.length} ${logged.length === 1 ? "refeição registrada" : "refeições registradas"} hoje`
-          : "Sugestão de horário · registre o que comeu",
+          : "Registre suas refeições quando quiser",
       });
       setTimers(list);
     })();

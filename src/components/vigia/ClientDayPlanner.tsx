@@ -30,8 +30,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useDialog } from "@/lib/dialog";
-import { estimateNextHydration } from "@/lib/hydration-goal";
-import { mealKindOf, waterCutoff } from "@/lib/day-plan";
+import { mealKindOf } from "@/lib/day-plan";
 import { careReminderState, type ReminderTask } from "@/lib/care-reminders";
 import { clientSectionHashes, type ClientSection } from "@/lib/client-pages";
 import { AnimatedLock } from "./AnimatedLock";
@@ -69,8 +68,6 @@ type Item = {
   task?: PatientCare;
   /** Pode ser respondido como "não fiz" (com motivo). */
   skippable?: boolean;
-  /** Sugestão do sistema (horário típico, copo, sono): nunca fica "atrasada" nem pesa no percentual. */
-  suggested?: boolean;
 };
 const REASONS: [string, string][] = [
   ["nao_consegui", "Não consegui"],
@@ -160,13 +157,6 @@ const KINDS: Record<
     area: "agenda",
   },
 };
-const MEALS: [string, string][] = [
-  ["07:00", "Café da manhã"],
-  ["10:00", "Lanche da manhã"],
-  ["12:30", "Almoço"],
-  ["15:30", "Lanche da tarde"],
-  ["19:00", "Jantar"],
-];
 const PERIODS = [
   { id: "manha", label: "Manhã", icon: Sunrise, color: "#f59e0b", test: (h: number) => h < 12 },
   {
@@ -191,6 +181,7 @@ type Raw = {
   supIn: any[];
   acts: any[];
   mlogs: any[];
+  foods: any[];
   sleep: any[];
   resp: any[];
 };
@@ -222,7 +213,6 @@ export function ClientDayPlanner({
   const [raw, setRaw] = useState<Raw | null>(null);
   const [reload, setReload] = useState(0);
   const [filter, setFilter] = useState<Kind | "todos">("todos");
-  const [allWater, setAllWater] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [sheet, setSheet] = useState<Item | null>(null);
@@ -306,7 +296,7 @@ export function ClientDayPlanner({
         safe(
           db
             .from("care_activity_log")
-            .select("id,category,happened_at,recorded_at,details,request_id")
+            .select("id,category,happened_at,recorded_at,details,request_id,source")
             .eq("patient_id", patientId)
             .in("category", ["refeicao", "atividade"])
             .in("event_type", ["confirmed", "logged"])
@@ -321,8 +311,15 @@ export function ClientDayPlanner({
         ),
         safe(
           db
+            .from("care_food_consumptions")
+            .select("id,food_id,grams,recorded_at,meal_group_id,request_id")
+            .eq("patient_id", patientId)
+            .gte("recorded_at", from),
+        ),
+        safe(
+          db
             .from("care_sleep_logs")
-            .select("bed_at")
+            .select("id,bed_at,wake_at,sleep_date")
             .eq("patient_id", patientId)
             .order("sleep_date", { ascending: false })
             .limit(7),
@@ -345,6 +342,7 @@ export function ClientDayPlanner({
         supIn: [],
         acts: [],
         mlogs: [],
+        foods: [],
         sleep: [],
         resp: [],
       });
@@ -352,58 +350,17 @@ export function ClientDayPlanner({
         active = false;
       };
     }
-    void Promise.all(qs).then(([water, bev, meds, medIn, sup, supIn, acts, mlogs, sleep, resp]) => {
-      if (active) setRaw({ water, bev, meds, medIn, sup, supIn, acts, mlogs, sleep, resp });
-    });
+    void Promise.all(qs).then(
+      ([water, bev, meds, medIn, sup, supIn, acts, mlogs, foods, sleep, resp]) => {
+        if (active)
+          setRaw({ water, bev, meds, medIn, sup, supIn, acts, mlogs, foods, sleep, resp });
+      },
+    );
     return () => {
       active = false;
     };
   }, [patientId, ownerId, day, reload, revision]);
 
-  async function saveSkipConfirmed(item: Item) {
-    if (
-      !(await dialog.confirm(
-        "Cancelar refeição de hoje?",
-        `${item.title} sai das pendências e fica registrada como "sem apetite". Você pode desfazer depois.`,
-        false,
-        "Cancelar refeição",
-      ))
-    )
-      return;
-    await saveSkip(item, "dispensado", "Sem apetite");
-    dialog.notify?.(`${item.title} cancelada para hoje.`, "info");
-  }
-  const postKey = `nv-postpone-${patientId}-${day}`;
-  const [post, setPost] = useState<Record<string, number>>(() => {
-    try {
-      return JSON.parse(localStorage.getItem(postKey) ?? "{}");
-    } catch {
-      return {};
-    }
-  });
-  function postponeMeal(item: Item, minutes: number) {
-    void (async () => {
-      const to = Math.max(Date.now(), item.at) + minutes * 60_000;
-      const label = minutes >= 60 ? `${minutes / 60} h` : `${minutes} min`;
-      if (
-        !(await dialog.confirm(
-          "Adiar refeição?",
-          `O horário de ${item.title} passa para ${hm(to)} (daqui a ${label}). O lembrete volta nessa hora.`,
-          false,
-          "Adiar",
-        ))
-      )
-        return;
-      const next = { ...post, [item.id]: to };
-      setPost(next);
-      try {
-        localStorage.setItem(postKey, JSON.stringify(next));
-      } catch {
-        /* sem armazenamento */
-      }
-      dialog.notify?.(`${item.title} adiada para ${hm(to)}.`, "info");
-    })();
-  }
   useEffect(() => {
     const bump = () => {
       setReload((n) => n + 1);
@@ -432,6 +389,7 @@ export function ClientDayPlanner({
       for (const table of [
         "care_activity_log",
         "care_nutrition_meal_logs",
+        "care_food_consumptions",
         "care_hydration",
         "care_client_beverages",
         "care_client_medication_intakes",
@@ -657,96 +615,13 @@ export function ClientDayPlanner({
             );
           }),
       });
-    const target = waterTarget ?? 0;
-    if (target > 0) {
-      let remaining = Math.max(0, target - drinks.reduce((s, d) => s + d.ml, 0));
-      let last = drinks.at(-1) ?? null;
-      let cursor = now;
-      const cutoff = waterCutoff(day);
-      const recent = drinks.map((d) => ({ at: d.t, ml: d.ml }));
-      for (let i = 0; i < 10 && remaining >= 10; i++) {
-        const next = estimateNextHydration({
-          remainingMl: remaining,
-          lastIntakeAt: last?.t ?? null,
-          lastAmountMl: last?.ml ?? 0,
-          now: cursor,
-          cutoff,
-          recent,
-        });
-        if (!next) break;
-        const id = `agua-plan-${i}`;
-        const ml = next.suggestedMl;
-        out.push({
-          id,
-          kind: "agua",
-          at: next.at,
-          title: `Copo de água · ~${ml} ml`,
-          detail: i === 0 ? "próximo copo sugerido" : "sugestão para bater a meta",
-          status: i === 0 && next.at <= now + 15 * 60_000 ? "now" : "planned",
-          edit:
-            i === 0
-              ? () =>
-                  void askAmount(ml).then((value) => {
-                    if (value === null) return;
-                    void run(
-                      id,
-                      [
-                        "Confirmar registro?",
-                        `Registrar ${value} ml de água agora?`,
-                        "Confirmar registro",
-                      ],
-                      () =>
-                        db.rpc("care_log_unscheduled_intake", {
-                          p_patient_id: patientId,
-                          p_kind: "agua",
-                          p_description: "Água",
-                          p_amount_ml: value,
-                          p_request_id: crypto.randomUUID(),
-                          p_consumed_at: null,
-                        }),
-                      `${value} ml de água registrados.`,
-                    );
-                  })
-              : undefined,
-          action:
-            i === 0
-              ? {
-                  label: `Bebi ${ml} ml`,
-                  run: () =>
-                    void run(
-                      id,
-                      [
-                        "Confirmar registro?",
-                        `Registrar ${ml} ml de água agora?`,
-                        "Confirmar registro",
-                      ],
-                      () =>
-                        db.rpc("care_log_unscheduled_intake", {
-                          p_patient_id: patientId,
-                          p_kind: "agua",
-                          p_description: "Água",
-                          p_amount_ml: ml,
-                          p_request_id: crypto.randomUUID(),
-                          p_consumed_at: null,
-                        }),
-                    ),
-                }
-              : undefined,
-        });
-        remaining -= ml;
-        recent.push({ at: next.at, ml });
-        last = { t: next.at, ml } as any;
-        cursor = next.at + 1;
-        if (next.at >= cutoff) break;
-      }
-    }
-
     // Refeições: cada horário típico é "feito" se houver registro até 90 min dele
     const seen = new Set<string>();
     const meals = raw.acts
       .filter(
         (r) =>
           r.category === "refeicao" &&
+          r.source !== "client_nutrition_library" &&
           (!r.request_id || (!seen.has(r.request_id) && seen.add(r.request_id))),
       )
       .map((r) => ({
@@ -756,7 +631,9 @@ export function ClientDayPlanner({
         kind:
           mealKindOf(r.details?.kind) ||
           mealKindOf(r.details?.title, r.details?.description, r.details?.meal_name),
-        src: "act" as "act" | "log",
+        src: "act" as "act" | "log" | "food",
+        foodIds: [] as string[],
+        groupId: null as string | null,
       }));
     // Refeições registradas pela área de alimentação também contam para o horário previsto
     const mealKind = (name: string) => mealKindOf(name);
@@ -770,10 +647,68 @@ export function ClientDayPlanner({
         text: list || String(r.meal_name || "Refeição"),
         kind: mealKind(String(r.meal_name ?? "")) || mealKindOf(list),
         src: "log",
+        foodIds: [],
+        groupId: null,
+      });
+    }
+    // Refeições montadas na biblioteca alimentar: porções do mesmo pedido formam uma refeição só.
+    const groups = new Map<string, any[]>();
+    for (const r of raw.foods) {
+      const key = String(r.meal_group_id ?? r.request_id ?? r.id);
+      groups.set(key, [...(groups.get(key) ?? []), r]);
+    }
+    for (const [key, rows] of groups) {
+      const t = Math.min(...rows.map((r) => Date.parse(r.recorded_at)));
+      if (meals.some((m) => m.src !== "food" && Math.abs(m.t - t) < 3 * 60_000)) continue;
+      const names = rows
+        .map((r) => String(r.food_id ?? "").replace(/_/g, " "))
+        .filter(Boolean)
+        .join(", ");
+      meals.push({
+        id: `food-${key}`,
+        t,
+        text: names || "Alimentos da biblioteca",
+        kind: mealKindOf(names),
+        src: "food",
+        foodIds: rows.map((r) => String(r.id)),
+        groupId: rows[0].meal_group_id ? String(rows[0].meal_group_id) : null,
       });
     }
     meals.sort((a, b) => a.t - b.t);
+    const rawFoodGrams = (id: string) => raw.foods.find((r) => String(r.id) === id)?.grams ?? 100;
     const editMeal = (m: (typeof meals)[number], label: string) => async () => {
+      if (m.src === "food") {
+        if (m.foodIds.length !== 1) {
+          dialog.notify?.(
+            "Esta refeição tem vários alimentos: ajuste cada porção na área Alimentação.",
+            "info",
+          );
+          return;
+        }
+        const raw = await dialog.prompt(
+          "Editar porção",
+          "Informe a nova quantidade (de 1 a 2.000).",
+          String(Math.round(Number(rawFoodGrams(m.foodIds[0])))),
+        );
+        const grams = Number(String(raw ?? "").replace(",", "."));
+        if (raw === null) return;
+        if (!Number.isFinite(grams) || grams < 1 || grams > 2000) {
+          dialog.notify?.("Informe entre 1 e 2.000.", "danger");
+          return;
+        }
+        void run(
+          `meal-edit-${m.id}`,
+          ["Salvar alteração?", `Alterar a porção de ${m.text} para ${grams}?`, "Salvar alteração"],
+          () =>
+            db.rpc("care_update_food_portion", {
+              p_entry_id: m.foodIds[0],
+              p_grams: grams,
+              p_verified: true,
+            }),
+          "Porção alterada. Métricas recalculadas.",
+        );
+        return;
+      }
       const text = await dialog.prompt(
         "O que foi consumido?",
         `Ajuste a descrição de ${label}.`,
@@ -820,113 +755,51 @@ export function ClientDayPlanner({
           `${label} (${hm(m.t)}) será apagada e as métricas do dia recalculadas. Não dá para desfazer.`,
           "Excluir",
         ],
-        () =>
-          m.src === "act"
+        async () => {
+          if (m.src === "food") {
+            if (m.groupId)
+              return db.rpc("care_delete_food_meal", { p_group_id: m.groupId, p_verified: true });
+            for (const id of m.foodIds) {
+              const r = await db.rpc("care_delete_food_portion", {
+                p_entry_id: id,
+                p_verified: true,
+              });
+              if (r.error) return r;
+            }
+            return { error: null };
+          }
+          return m.src === "act"
             ? db.rpc("care_delete_intake_entry", {
                 p_patient_id: patientId,
                 p_entry_type: "meal",
                 p_entry_id: m.id,
               })
-            : db.from("care_nutrition_meal_logs").delete().eq("id", m.id),
-        "Registro excluído. Métricas recalculadas.",
+            : db.from("care_nutrition_meal_logs").delete().eq("id", m.id);
+        },
+        "Registro excluído de todas as áreas.",
       );
-    const used = new Set<string>();
-    // O tipo escolhido ao registrar (café da manhã, almoço, jantar, lanche) vale mais que o horário:
-    // quem registra o café às 9h40 ou o almoço atrasado também resolve o item certo do dia.
-    const SLOT_KIND: Record<string, string[]> = {
-      "07:00": ["cafe_manha"],
-      "10:00": ["lanche"],
-      "12:30": ["almoco"],
-      "15:30": ["lanche"],
-      "19:00": ["jantar"],
+    const KIND_LABEL: Record<string, string> = {
+      cafe_manha: "Café da manhã",
+      almoco: "Almoço",
+      jantar: "Jantar",
+      lanche: "Lanche",
     };
-    const byKind = new Map<string, string>();
-    for (const [t] of MEALS) {
-      const kinds = SLOT_KIND[t] ?? [];
-      const nearest = meals
-        .filter((m) => !used.has(m.id) && kinds.includes(m.kind))
-        .sort((x, y) => Math.abs(x.t - at(day, t)) - Math.abs(y.t - at(day, t)))[0];
-      const taken = nearest && [...byKind.values()].includes(nearest.id);
-      if (nearest && !taken) byKind.set(t, nearest.id);
-    }
-    for (const [t, label] of MEALS) {
-      const ms = at(day, t);
-      const kindHit = meals.find((m) => m.id === byKind.get(t));
-      const hit =
-        kindHit ??
-        meals
-          .filter(
-            (m) =>
-              !used.has(m.id) &&
-              ![...byKind.values()].includes(m.id) &&
-              // refeição com tipo definido só vale no horário do seu tipo
-              (!m.kind ||
-                !Object.values(SLOT_KIND).flat().includes(m.kind) ||
-                m.kind === "lanche") &&
-              Math.abs(m.t - ms) <= 150 * 60_000,
-          )
-          .sort((x, y) => Math.abs(x.t - ms) - Math.abs(y.t - ms))[0];
-      if (hit) used.add(hit.id);
-      const moved = !hit && post[`meal-${t}`] ? post[`meal-${t}`] : null;
-      const when = moved ?? ms;
-      const mealItem: Item = {
-        id: `meal-${t}`,
-        kind: "refeicao",
-        at: when,
-        title: label,
-        detail: hit ? hit.text : moved ? `adiada para ${hm(moved)}` : "registre o que comer",
-        status: stateOf(when, Boolean(hit), 90),
-        doneAt: hit?.t,
-        skippable: !hit,
-        action: hit ? undefined : { label: "Registrar", run: () => go("alimentacao") },
-      };
-      if (hit) {
-        mealItem.edit = editMeal(hit, label);
-        mealItem.editLabel = "Alterar descrição e horário";
-        mealItem.remove = removeMeal(hit, label);
-      }
-      if (!hit) {
-        mealItem.editLabel = "Alterar o horário";
-        mealItem.edit = () =>
-          void (async () => {
-            const v = await dialog.prompt(
-              "Horário previsto",
-              `Novo horário para ${label} (HH:MM).`,
-              hm(mealItem.at),
-            );
-            const mt = v?.match(/^\s*(\d{1,2})[:h](\d{2})\s*$/);
-            if (!mt || Number(mt[1]) > 23 || Number(mt[2]) > 59) {
-              if (v !== null) dialog.notify?.("Horário inválido. Use o formato HH:MM.", "danger");
-              return;
-            }
-            const to = at(day, `${mt[1].padStart(2, "0")}:${mt[2]}`);
-            const next = { ...post, [mealItem.id]: to };
-            setPost(next);
-            try {
-              localStorage.setItem(postKey, JSON.stringify(next));
-            } catch {
-              /* sem armazenamento */
-            }
-            dialog.notify?.(`${label} reprogramada para ${hm(to)}.`, "info");
-          })();
-        mealItem.postpone = (min) => postponeMeal(mealItem, min);
-        mealItem.cancel = () => void saveSkipConfirmed(mealItem);
-      }
-      out.push(mealItem);
-    }
-    for (const m of meals.filter((m) => !used.has(m.id)))
+    // Só entram refeições que foram realmente registradas (agenda, Alimentação ou biblioteca).
+    for (const m of meals) {
+      const label = KIND_LABEL[m.kind] ?? "Refeição";
       out.push({
-        id: `meal-x-${m.id}`,
+        id: `meal-${m.id}`,
         kind: "refeicao",
         at: m.t,
-        title: "Refeição extra",
+        title: label,
         detail: m.text,
         status: "done",
         doneAt: m.t,
-        edit: editMeal(m, "Refeição extra"),
-        editLabel: "Alterar descrição e horário",
-        remove: removeMeal(m, "Refeição extra"),
+        edit: editMeal(m, label),
+        editLabel: m.src === "food" ? "Alterar a porção" : "Alterar descrição e horário",
+        remove: removeMeal(m, label),
       });
+    }
 
     // Movimento
     const moves = raw.acts.filter((r) => r.category === "atividade");
@@ -939,46 +812,25 @@ export function ClientDayPlanner({
         detail: `${Number(m.details?.duration_minutes) || 0} min`,
         status: "done",
       });
-    if (!moves.length)
+    // Sono: só as noites realmente registradas (acordou hoje).
+    for (const l of raw.sleep) {
+      const woke = Date.parse(l.wake_at);
+      if (
+        !Number.isFinite(woke) ||
+        new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(new Date(woke)) !== day
+      )
+        continue;
+      const hrs = (woke - Date.parse(l.bed_at)) / 3_600_000;
       out.push({
-        id: "act-plan",
-        kind: "atividade",
-        at: at(day, "17:30"),
-        title: "30 min de movimento",
-        detail: "caminhada, treino ou alongamento",
-        status: stateOf(at(day, "17:30"), false, 180),
-        skippable: true,
-        action: { label: "Registrar", run: () => go("atividade") },
+        id: `sleep-${l.id}`,
+        kind: "sono",
+        at: woke,
+        title: `Sono · ${Math.floor(hrs)} h ${String(Math.round((hrs % 1) * 60)).padStart(2, "0")} min`,
+        detail: `dormiu às ${hm(Date.parse(l.bed_at))} · acordou às ${hm(woke)}`,
+        status: "done",
+        doneAt: woke,
       });
-
-    // Sono: média dos últimos horários de deitar (ou 22h30)
-    const mins = raw.sleep.map((l) => {
-      const d = new Date(Date.parse(l.bed_at) - 5 * 3_600_000);
-      let m = d.getUTCHours() * 60 + d.getUTCMinutes();
-      if (m < 720) m += 1440;
-      return m;
-    });
-    const avg = mins.length
-      ? Math.round(mins.reduce((a, b) => a + b, 0) / mins.length)
-      : 22 * 60 + 30;
-    const bed = Math.min(Date.parse(day + "T00:00:00-05:00") + avg * 60_000, at(day, "23:45"));
-    out.push({
-      id: "sleep-wind",
-      kind: "sono",
-      at: bed - 30 * 60_000,
-      title: "Desacelerar",
-      detail: "telas de lado, luz baixa",
-      status: bed - 30 * 60_000 <= now ? (bed <= now ? "done" : "now") : "planned",
-    });
-    out.push({
-      id: "sleep-bed",
-      kind: "sono",
-      at: bed,
-      title: "Hora de dormir",
-      detail: mins.length ? "sua média das últimas noites" : "sugestão para 7–9 h de sono",
-      status: bed <= now + 15 * 60_000 ? "now" : "planned",
-      action: { label: "Sono", run: () => go("sono") },
-    });
+    }
 
     // Cuidados programados pela equipe
     for (const task of tasks) {
@@ -1007,19 +859,6 @@ export function ClientDayPlanner({
             : undefined,
       });
     }
-    // Só o que foi programado (remédios, suplementos, cuidados da equipe) vira obrigação.
-    // Refeições em horário típico, copos de água, movimento e sono são sugestões do sistema.
-    for (const i of out)
-      if (
-        i.status !== "done" &&
-        (i.id.startsWith("meal-") ||
-          i.id.startsWith("agua-plan-") ||
-          i.id === "act-plan" ||
-          i.id.startsWith("sleep-"))
-      ) {
-        i.suggested = true;
-        if (i.status === "late") i.status = "planned";
-      }
     // Respostas "não fiz": o item sai das pendências e mostra o motivo
     for (const r of raw.resp) {
       const it = out.find((i) => i.id === r.item_key);
@@ -1044,7 +883,7 @@ export function ClientDayPlanner({
         );
     }
     return out.sort((a, b) => a.at - b.at);
-  }, [raw, now, day, waterTarget, tasks, resolved, patientId, ownerId, post]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [raw, now, day, waterTarget, tasks, resolved, patientId, ownerId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const counts = useMemo(() => {
     const c = Object.fromEntries(Object.keys(KINDS).map((k) => [k, 0])) as Record<Kind, number>;
@@ -1052,17 +891,10 @@ export function ClientDayPlanner({
     return c;
   }, [items]);
   const matching = items.filter((i) => filter === "todos" || i.kind === filter);
-  // Copos sugeridos: mostra só os 2 próximos e junta o resto numa linha expansível.
-  const isPlan = (i: Item) => i.id.startsWith("agua-plan-");
-  const planned = matching.filter(isPlan);
-  const hiddenPlan = allWater ? [] : planned.slice(2);
-  const hiddenIds = new Set(hiddenPlan.map((i) => i.id));
-  const visible = matching.filter((i) => !hiddenIds.has(i.id));
-  const lastPlanAt = planned.at(-1)?.at ?? 0;
+  const visible = matching;
   const actionable = items.filter(
     (i) =>
       i.kind !== "sono" &&
-      !(i.suggested && i.status !== "done") &&
       i.status !== "skipped" &&
       (i.status === "done" || i.status === "late" || i.at <= now),
   );
@@ -1070,9 +902,15 @@ export function ClientDayPlanner({
   const pct = actionable.length ? Math.round((doneCount / actionable.length) * 100) : 0;
   const late = items.filter((i) => i.status === "late").length;
   const nowCount = items.filter((i) => i.status === "now").length;
+  // O relógio só aponta o que foi programado de verdade (remédios, suplementos, cuidados da equipe).
   const next =
-    items.find((i) => i.status !== "done" && i.status !== "skipped" && i.at >= now - 15 * 60_000) ??
-    null;
+    items.find(
+      (i) =>
+        (i.kind === "med" || i.kind === "supl" || i.kind === "cuidado") &&
+        i.status !== "done" &&
+        i.status !== "skipped" &&
+        i.at >= now - 15 * 60_000,
+    ) ?? null;
   const prevDone = [...items].reverse().find((i) => i.status === "done" && i.at <= now);
   const left = items.filter((i) => i.status === "planned").length;
 
@@ -1243,10 +1081,9 @@ export function ClientDayPlanner({
                     }}
                   />
                 </div>
-                {list.length === 0 &&
-                !(hiddenPlan.length > 0 && p.test(hourOf(hiddenPlan[0].at))) ? (
+                {list.length === 0 ? (
                   <p className="grid flex-1 place-items-center rounded-xl border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground">
-                    Nada planejado neste período.
+                    Nada registrado neste período.
                   </p>
                 ) : (
                   <ol className="relative -mx-1 grid max-h-[calc(100dvh-25rem)] min-h-[16rem] gap-px overflow-y-auto px-1 [scrollbar-width:thin]">
@@ -1256,30 +1093,6 @@ export function ClientDayPlanner({
                         <Row item={i} busy={busy === i.id} onView={onView} onResolve={setSheet} />
                       </li>
                     ))}
-                    {hiddenPlan.length > 0 && p.test(hourOf(hiddenPlan[0].at)) && (
-                      <li className="contents">
-                        <button
-                          type="button"
-                          onClick={() => setAllWater(true)}
-                          className="mt-1 flex h-8 items-center gap-2 border border-dashed border-sky-500/40 bg-sky-500/5 px-2.5 text-left text-[11px] font-semibold text-sky-700 transition hover:bg-sky-500/10 dark:text-sky-300"
-                        >
-                          <Droplets size={13} />+ {hiddenPlan.length}{" "}
-                          {hiddenPlan.length === 1 ? "copo" : "copos"} até as {hm(lastPlanAt)}
-                          <span className="ml-auto font-normal opacity-70">ver todos</span>
-                        </button>
-                      </li>
-                    )}
-                    {allWater && p.test(hourOf(planned[2]?.at ?? 0)) && planned.length > 2 && (
-                      <li className="contents">
-                        <button
-                          type="button"
-                          onClick={() => setAllWater(false)}
-                          className="mt-1 flex h-7 items-center justify-center text-[11px] font-semibold text-muted-foreground hover:text-foreground"
-                        >
-                          Recolher copos sugeridos
-                        </button>
-                      </li>
-                    )}
                     {isNow && nowIdx === -1 && (
                       <li className="contents">
                         <NowLine now={now} />
@@ -1301,8 +1114,8 @@ export function ClientDayPlanner({
         />
       )}
       <p className="text-[11px] text-muted-foreground">
-        A linha do tempo é montada com o que você cadastrou: remédios e suplementos com horário, sua
-        meta de água, as refeições do dia, movimento e sono. Toque num item para abrir a área dele.
+        Só aparece o que foi programado (remédios, suplementos e cuidados da equipe) e o que você
+        registrou de verdade em cada área. Toque num item para abrir a área dele.
       </p>
     </section>
   );
@@ -1463,9 +1276,7 @@ function Row({
         ? { t: "Na hora", c: "bg-amber-400/20 text-amber-700 dark:text-amber-300" }
         : skipped
           ? { t: "Não fiz", c: "bg-slate-500/15 text-slate-600 dark:text-slate-300" }
-          : item.suggested && !done
-            ? { t: "Sugestão", c: "bg-slate-500/10 text-slate-500 dark:text-slate-400" }
-            : null;
+          : null;
   const primary = item.action
     ? item.status === "late" && item.skippable
       ? { label: "Resolver", run: () => onResolve(item) }

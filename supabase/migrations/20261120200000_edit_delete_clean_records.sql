@@ -5,7 +5,8 @@
 CREATE OR REPLACE FUNCTION public.care_skip_intake_audit_rows()
  RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
-  IF NEW.event_type IN ('intake_edited','intake_deleted') AND NEW.source='client_intake_maintenance' THEN
+  IF (NEW.event_type IN ('intake_edited','intake_deleted') AND NEW.source='client_intake_maintenance')
+     OR (NEW.event_type IN ('food_portion_edited','food_portion_deleted','meal_deleted') AND NEW.source='client_nutrition_library') THEN
     RETURN NULL;
   END IF;
   RETURN NEW;
@@ -15,7 +16,8 @@ DROP TRIGGER IF EXISTS care_skip_intake_audit_rows ON public.care_activity_log;
 CREATE TRIGGER care_skip_intake_audit_rows BEFORE INSERT ON public.care_activity_log
   FOR EACH ROW EXECUTE FUNCTION public.care_skip_intake_audit_rows();
 
-DELETE FROM public.care_activity_log WHERE event_type IN ('intake_edited','intake_deleted') AND source='client_intake_maintenance';
+DELETE FROM public.care_activity_log WHERE (event_type IN ('intake_edited','intake_deleted') AND source='client_intake_maintenance')
+   OR (event_type IN ('food_portion_edited','food_portion_deleted','meal_deleted') AND source='client_nutrition_library');
 
 CREATE OR REPLACE FUNCTION public.care_delete_intake_entry(p_patient_id uuid, p_entry_type text, p_entry_id uuid)
  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public', 'pg_temp' AS $function$

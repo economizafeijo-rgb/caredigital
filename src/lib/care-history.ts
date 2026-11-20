@@ -327,7 +327,16 @@ export function assembleCareHistory(sources: HistorySources, now = Date.now()): 
     const kind = text(details.kind);
     if (item.event_type === "confirmed") continue; // Already represented by checklist.
     // Alterar um registro o atualiza no lugar e excluir o apaga: nenhum dos dois vira um registro novo.
-    if (item.event_type === "intake_edited" || item.event_type === "intake_deleted") continue;
+    if (
+      [
+        "intake_edited",
+        "intake_deleted",
+        "food_portion_edited",
+        "food_portion_deleted",
+        "meal_deleted",
+      ].includes(item.event_type)
+    )
+      continue;
     if (item.event_type === "care_not_completed" || item.event_type === "care_cancelled") continue; // Current decision is represented by resolution row.
     if (item.source === "client_unscheduled_intake") {
       if (!isFoodKind(kind)) continue; // Water and drinks come from their source tables.

@@ -24,7 +24,7 @@ export const clientSectionLabels: Record<
   },
   agenda: {
     title: "Meu dia",
-    subtitle: "O que foi programado e as sugestões do dia, hora a hora",
+    subtitle: "Remédios e suplementos programados e tudo o que você registrou hoje",
     tagline: "Organização diária",
   },
   hidratacao: {
