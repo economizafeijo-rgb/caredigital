@@ -37,8 +37,8 @@ describe("NextVita nutrition safety and planning",()=>{
   expect(chicken.fat).toBe(3.2);
   expect(chicken.kcal).toBe(163);
   expect(chicken.provenance).toBe("TACO");
-  expect(ingredients).toHaveLength(231);
-  expect(ingredients.filter(x=>x.protein!==null&&x.carbs!==null&&x.fat!==null).length).toBe(228);
+  expect(ingredients).toHaveLength(246);
+  expect(ingredients.filter(x=>x.protein!==null&&x.carbs!==null&&x.fat!==null).length).toBe(243);
  });
  it("converts 100g and calculated portions without pretending labels are verified",()=>{
   const chicken=ingredients.find(x=>x.id==="frango")!;
@@ -81,5 +81,25 @@ describe("Alimentos regionais adicionados e vitaminas", () => {
     expect(acerola).toContain("C");
     expect(nutrientsInFood("castanha_para").map(n => n.key)).toContain("selenio");
     expect(nutrientsInFood("leite_integral").every(n => n.benefit && n.kind)).toBe(true);
+  });
+});
+
+import { drinkPresets } from "./drink-presets";
+import { mealCombos, typicalDrinks, typicalFoods } from "./care-intake-categories";
+describe("Bebidas e sugestões por refeição", () => {
+  it("todas as bebidas do menu suspenso são calculadas", () => {
+    for (const p of drinkPresets) expect(parseFoodText(p.text, p.ml), p.label).toHaveLength(1);
+  });
+  it("café com leite em pó, desnatado, Nescafé e Nescau têm valores distintos", () => {
+    const id = (t: string) => parseFoodText(t, 200)[0].id;
+    expect(id("café com leite em pó")).toBe("cafe_leite_po");
+    expect(id("café com leite desnatado")).toBe("cafe_leite_desnatado");
+    expect(id("nescafé")).toBe("cafe_soluvel");
+    expect(id("nescau")).toBe("achocolatado");
+    expect(id("leite em pó")).toBe("leite_po_dissolvido");
+  });
+  it("sugestões e refeições prontas são reconhecidas pelo calculador", () => {
+    for (const list of [...Object.values(mealCombos), ...Object.values(typicalFoods), ...Object.values(typicalDrinks)])
+      for (const item of list ?? []) if (item.label !== "Suco") expect(parseFoodText(item.text).length, item.label).toBeGreaterThan(0);
   });
 });

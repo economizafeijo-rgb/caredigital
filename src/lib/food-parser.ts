@@ -10,7 +10,8 @@ export type ParsedFood = { id: string; name: string; grams: number; nutrients: N
 
 /** Micronutrientes aproximados por 100 g (vit. C mg, vit. A mcg RAE, cálcio mg, ferro mg, potássio mg). */
 export const foodMicros: Record<string, [number, number, number, number, number]> = {
-  baiao_dois: [1, 5, 25, 1.2, 180], sopa_legumes: [5, 150, 15, .3, 150], quibe_macaxeira: [8, 2, 20, .8, 180], cafe_soluvel: [0, 0, 3, 0, 70], leite_integral: [1, 30, 123, .1, 133], leite_po_integral: [8, 250, 890, .5, 1100], leite_po_desnatado: [5, 0, 1360, .9, 1700], cereal_com_leite: [3, 100, 95, 1.5, 130], pasta_amendoim: [0, 0, 45, 1.9, 560], queijo_mussarela: [0, 180, 875, .3, 62], queijo_prato: [0, 250, 940, .3, 80], pao_massa_fina: [0, 10, 40, 1.5, 110], suco_acerola: [300, 15, 6, .1, 80], suco_graviola: [10, 0, 7, .3, 140], salada_frutas: [30, 30, 12, .3, 200], mangaba: [140, 30, 41, 2.8, 160], pitaia: [3, 0, 8, .7, 120], couve_crua: [96, 400, 131, .5, 403], cheiro_verde: [52, 400, 179, 3.2, 710], cebolinha: [30, 150, 80, .6, 250], coentro: [27, 340, 67, 1.8, 520], mostarda_folha: [39, 200, 68, 1, 300], acelga: [22, 0, 43, .3, 240], pimentao_vermelho: [158, 150, 6, .3, 210], pimentao_amarelo: [201, 10, 10, .4, 220], brocolis_cru: [34, 50, 86, .6, 320], feijao_corda: [1, 1, 17, 1.1, 310], grao_bico: [1, 1, 49, 2.9, 291],
+  suco_laranja: [50, 10, 11, .1, 180], suco_caju: [110, 5, 1, .1, 62], suco_abacaxi: [17, 2, 11, .15, 65], suco_manga: [32, 27, 4, .05, 69], suco_cupuacu: [12, 2, 6, .25, 165], suco_caja: [13, 15, 13, .15, 100], suco_melancia: [5, 25, 7, .2, 100], suco_maca: [1, 1, 1, .05, 38], limonada: [6, 0, 2, 0, 15], suco_caixinha: [0, 0, 3, .1, 25], cafe_leite_desnatado: [0, 25, 60, 0, 100], leite_desnatado: [1, 1, 120, .1, 150], leite_po_dissolvido: [1, 30, 115, .1, 170], vitamina_banana: [3, 25, 60, .2, 200], vitamina_mamao: [28, 45, 65, .1, 170],
+  baiao_dois: [1, 5, 25, 1.2, 180], sopa_legumes: [5, 150, 15, .3, 150], quibe_macaxeira: [8, 2, 20, .8, 180], cafe_soluvel: [0, 0, 3, 0, 70], leite_integral: [1, 30, 123, .1, 133], leite_po_integral: [8, 250, 890, .5, 1100], leite_po_desnatado: [5, 0, 1360, .9, 1700], cereal_com_leite: [3, 100, 95, 1.5, 130], pasta_amendoim: [0, 0, 45, 1.9, 560], queijo_mussarela: [0, 180, 875, .3, 62], queijo_prato: [0, 250, 940, .3, 80], pao_massa_fina: [0, 10, 40, 1.5, 110], suco_acerola: [470, 19, 7, .1, 83], suco_graviola: [10, 0, 7, .3, 139], salada_frutas: [30, 30, 12, .3, 200], mangaba: [140, 30, 41, 2.8, 160], pitaia: [3, 0, 8, .7, 120], couve_crua: [96, 400, 131, .5, 403], cheiro_verde: [52, 400, 179, 3.2, 710], cebolinha: [30, 150, 80, .6, 250], coentro: [27, 340, 67, 1.8, 520], mostarda_folha: [39, 200, 68, 1, 300], acelga: [22, 0, 43, .3, 240], pimentao_vermelho: [158, 150, 6, .3, 210], pimentao_amarelo: [201, 10, 10, .4, 220], brocolis_cru: [34, 50, 86, .6, 320], feijao_corda: [1, 1, 17, 1.1, 310], grao_bico: [1, 1, 49, 2.9, 291],
   arroz: [0, 0, 4, .1, 15], arroz_integral: [0, 0, 5, .3, 75], feijao: [0, 0, 27, 1.3, 255], feijao_preto: [0, 0, 29, 1.5, 256],
   frango: [0, 6, 8, .4, 250], carne: [0, 0, 5, 2.4, 290], peixe: [0, 10, 20, .3, 300], tilapia: [0, 0, 10, .6, 350], sardinha: [0, 30, 438, 2, 400],
   ovo: [0, 140, 50, 1.2, 130], leite: [1, 50, 120, .1, 150], iogurte: [1, 20, 140, .1, 180],
@@ -29,6 +30,11 @@ export const foodMicros: Record<string, [number, number, number, number, number]
 
 /** Palavras-chave → alimento do catálogo. Ordem importa: termos mais específicos primeiro. */
 const aliases: Array<[RegExp, string]> = [
+  [/caf[eé][ _]com[ _]leite (de gado|de vaca|fresco|da fazenda)/, "cafe_leite_gado"],
+  [/caf[eé][ _]com[ _]leite desnatado/, "cafe_leite_desnatado"], [/leite desnatado/, "leite_desnatado"], [/leite em p[oó] (dissolvido|reconstitu[ií]do)|leite de p[oó]/, "leite_po_dissolvido"],
+  [/vitamina de banana/, "vitamina_banana"], [/vitamina de mam[aã]o/, "vitamina_mamao"], [/suco( natural)? de laranja/, "suco_laranja"], [/suco( natural)? de caju/, "suco_caju"],
+  [/suco( natural)? de abacaxi/, "suco_abacaxi"], [/suco( natural)? de manga/, "suco_manga"], [/suco( natural)? de cupua[cç]u/, "suco_cupuacu"], [/suco( natural)? de (tapereb[aá]|caj[aá])/, "suco_caja"],
+  [/suco( natural)? de melancia/, "suco_melancia"], [/suco( natural)? de ma[cç][aã]/, "suco_maca"], [/limonada|suco( natural)? de lim[aã]o/, "limonada"], [/n[eé]ctar|suco (de )?(caixinha|industrializado|de pacote)/, "suco_caixinha"],
   [/caf[eé][ _]com[ _]leite em p[oó]/, "cafe_leite_po"], [/leite em p[oó] desnatado/, "leite_po_desnatado"], [/leite em p[oó]|leite ninho/, "leite_po_integral"],
   [/cereal_com_leite/, "cereal_com_leite"], [/leite integral|leite de (vaca|gado)/, "leite_integral"], [/nescaf[eé]|caf[eé] sol[uú]vel/, "cafe_soluvel"],
   [/bai[aã]o de dois/, "baiao_dois"], [/sopa de (legumes|verduras)/, "sopa_legumes"], [/quibe de (macaxeira|mandioca)/, "quibe_macaxeira"],
@@ -70,6 +76,7 @@ const aliases: Array<[RegExp, string]> = [
 
 /** Porção padrão em gramas/ml quando o usuário não informa a quantidade. */
 const defaultPortion: Record<string, number> = {
+  suco_laranja: 250, suco_caju: 250, suco_abacaxi: 250, suco_manga: 250, suco_cupuacu: 250, suco_caja: 250, suco_melancia: 250, suco_maca: 250, limonada: 250, suco_caixinha: 250, cafe_leite_desnatado: 200, leite_desnatado: 200, leite_po_dissolvido: 200, vitamina_banana: 300, vitamina_mamao: 300,
   baiao_dois: 200, sopa_legumes: 300, quibe_macaxeira: 80, cafe_soluvel: 150, leite_integral: 200, leite_po_integral: 26, leite_po_desnatado: 26, cereal_com_leite: 230, pasta_amendoim: 15, queijo_mussarela: 30, queijo_prato: 30, pao_massa_fina: 50, suco_acerola: 250, suco_graviola: 250, salada_frutas: 150, mangaba: 80, pitaia: 150, couve_crua: 40, cheiro_verde: 5, cebolinha: 5, coentro: 5, mostarda_folha: 40, acelga: 40, pimentao_vermelho: 30, pimentao_amarelo: 30, brocolis_cru: 60, feijao_corda: 100, grao_bico: 100,
   arroz: 120, arroz_integral: 120, feijao: 100, feijao_preto: 100, frango: 120, carne: 120, peixe: 120, tilapia: 120, sardinha: 80,
   ovo: 50, iogurte: 170, leite: 200, cafe: 100, suco_maracuja: 250, banana_prata: 80, banana_nanica: 100, banana_maca: 70, banana_comprida: 150,
@@ -101,7 +108,7 @@ export function nutrientsFor(item: Ingredient, grams: number): Nutrients {
 /** Reconhece alimentos e quantidades em um texto livre. `liquidMl` é usado quando o registro é de um líquido. */
 export function parseFoodText(text: string, liquidMl?: number | null): ParsedFood[] {
   // Preparos que levam "com" no nome não devem ser separados em dois alimentos.
-  const source = text.toLowerCase().normalize("NFC").replace(/caf[eé] com leite/g, "café_com_leite")
+  const source = text.toLowerCase().normalize("NFC").replace(/nescaf[eé] com leite em p[oó]/g, "café com leite em pó").replace(/nescaf[eé] com leite desnatado/g, "café com leite desnatado").replace(/nescaf[eé] com leite/g, "café com leite").replace(/caf[eé] com leite/g, "café_com_leite")
     .replace(/(mingau de [a-zà-ú]+) com leite/g, "$1").replace(/(cereal|sucrilhos|flocos de milho|corn ?flakes)( de milho)? com leite/g, "cereal_com_leite").replace(/tapioca com ovos?/g, "crepioca").replace(/p[aã]o com ovos?/g, "pão_com_ovo")
     .replace(/sopa de carne com legumes/g, "sopa de carne").replace(/macarr[aã]o com (molho e )?carne mo[ií]da/g, "macarronada");
   const segments = source.split(/,|;|\+|\be\b|\bcom\b/).map(part => part.trim()).filter(Boolean);
@@ -109,7 +116,8 @@ export function parseFoodText(text: string, liquidMl?: number | null): ParsedFoo
   for (const segment of segments) {
     const alias = aliases.find(([pattern]) => pattern.test(segment));
     if (!alias) continue;
-    const item = ingredientById.get(alias[1]);
+    const dissolved: Record<string, string> = { leite_po_integral: "leite_po_dissolvido" };
+    const item = ingredientById.get(liquidMl ? dissolved[alias[1]] ?? alias[1] : alias[1]);
     if (!item) continue;
     let grams: number | null = null;
     const explicit = segment.match(/(\d+(?:[.,]\d+)?)\s*(kg|g|gramas?|ml|l|litros?)\b/);

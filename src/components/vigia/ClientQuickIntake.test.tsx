@@ -10,7 +10,7 @@ const kinds = () => Array.from(document.querySelectorAll("[data-intake-kind]")).
 const groups = () => new Set(Array.from(document.querySelectorAll("[data-intake-group]")).map((el) => el.getAttribute("data-intake-group")));
 const open = (mode: "water" | "food" | "drink") => {
   render(<DialogProvider><ClientQuickIntake patientId="p1" mode={mode} /></DialogProvider>);
-  fireEvent.click(screen.getByRole("button", { name: /Registrar (água|alimento|bebida)/ }));
+  fireEvent.click(screen.getByRole("button", { name: /Registrar (água|refeição|bebida)/ }));
 };
 
 describe("registro de consumo por área", () => {
@@ -25,7 +25,7 @@ describe("registro de consumo por área", () => {
 
   it("Alimentação: mostra só as categorias de alimento, sem as de líquidos", () => {
     open("food");
-    expect(screen.getByRole("heading", { name: "Registrar alimento ou refeição" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Registrar refeição" })).toBeTruthy();
     expect(screen.queryByRole("group", { name: "Selecionar tipo de consumo" })).toBeNull();
     expect(groups()).toEqual(new Set(["food"]));
     expect(kinds()).toContain("almoco");

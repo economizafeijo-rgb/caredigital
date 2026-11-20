@@ -31,7 +31,7 @@ function useWeek(patientId: string, ownerId: string, revision: number) {
       db.from("care_food_consumptions").select("meal_group_id,request_id,recorded_at").eq("patient_id", patientId).gte("recorded_at", from).limit(2000),
       db.from("care_client_medication_intakes").select("id,taken_at").eq("patient_id", patientId).gte("taken_at", from).limit(1000),
       db.from("care_activity_log").select("id,recorded_at").eq("patient_id", patientId).eq("owner_id", ownerId).eq("category", "atividade").in("event_type", ["confirmed", "logged"]).gte("recorded_at", from).limit(1000),
-      // Refeições registradas pelo botão "Registrar alimento" e refeições da agenda confirmadas.
+      // Refeições registradas pelo botão "Registrar refeição" e refeições da agenda confirmadas.
       db.from("care_activity_log").select("id,happened_at,recorded_at,details").eq("patient_id", patientId).eq("owner_id", ownerId).eq("category", "refeicao").in("event_type", ["confirmed", "logged"]).gte("recorded_at", from).limit(1000),
       db.from("care_client_beverages").select("amount_ml,consumed_at").eq("patient_id", patientId).gte("consumed_at", from).limit(2000),
     ]).then(([water, logs, foods, meds, acts, mealActs, bevs]) => {

@@ -1,14 +1,16 @@
-import { nutrientsInFood } from "@/lib/food-vitamins";
+import { nutrientsInFood, nutrientsInFoods } from "@/lib/food-vitamins";
 
 /** Vitaminas e minerais em destaque no alimento, com tipo e benefício. */
 export function FoodVitamins({
   foodId,
+  foodIds,
   tone = "light",
 }: {
-  foodId: string;
+  foodId?: string;
+  foodIds?: string[];
   tone?: "light" | "dark";
 }) {
-  const list = nutrientsInFood(foodId);
+  const list = foodIds ? nutrientsInFoods(foodIds) : nutrientsInFood(foodId ?? "");
   const dark = tone === "dark";
   if (!list.length) return null;
   return (

@@ -215,7 +215,7 @@ export function ClientMealsPage({patientId,ownerId,meals,resolved={},revision,no
       </div>
       {!visible.length&&<div className="rounded-xl border border-dashed border-border p-5 text-center">
         <CalendarDays size={18} className="mx-auto text-muted-foreground"/>
-        <p className="mt-1 text-xs text-muted-foreground">Nenhuma refeição registrada ainda. Use “Registrar alimento” quando fizer sua refeição.</p>
+        <p className="mt-1 text-xs text-muted-foreground">Nenhuma refeição registrada ainda. Use “Registrar refeição” quando fizer sua refeição.</p>
       </div>}
     </div>
     <nav aria-label="Paginação das refeições" className="flex shrink-0 items-center justify-between gap-2 border-t border-border/60 pt-2">

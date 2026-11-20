@@ -4,8 +4,10 @@ import { CheckCircle2, Droplets, Plus, Save, UtensilsCrossed, X } from "lucide-r
 import { CareCategoryReport } from "./CareCategoryReport";
 import { BarChart3 } from "lucide-react";
 import { CareIntakePicker, CareIntakeIcon } from "./CareIntakePicker";
-import { foodCategory,beverageCategory,isFoodKind,typicalFoods,typicalDrinks,type IntakeKind,type FoodKind,type BeverageKind } from "@/lib/care-intake-categories";
+import { MealSuggestions } from "./MealSuggestions";
+import { foodCategory,beverageCategory,isFoodKind,typicalFoods,typicalDrinks,mealCombos,type IntakeKind,type FoodKind,type BeverageKind } from "@/lib/care-intake-categories";
 import { parseFoodText, sumNutrients, measureUnit } from "@/lib/food-parser";
+import { drinkGroups, drinkPresetFor, drinkPresets } from "@/lib/drink-presets";
 import { supabase } from "@/integrations/supabase/client";
 import { useDialog } from "@/lib/dialog";
 
@@ -156,7 +158,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
         : mode === "water"
           ? "inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-sky-500 px-4 text-[13px] font-bold text-white shadow-lg shadow-sky-900/30 transition hover:bg-sky-400 active:scale-[.97] disabled:opacity-50"
           : "inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-emerald-500 px-4 text-[13px] font-bold text-white shadow-lg shadow-emerald-900/30 transition hover:bg-emerald-400 active:scale-[.97] disabled:opacity-50"}>
-      {mode === "water"||mode==="drink" ? <Droplets size={16}/> : mode==="food"?<UtensilsCrossed size={16}/>:<Plus size={16}/>} {mode === "water" ? "Registrar água" : mode==="food"?"Registrar alimento":mode==="drink"?"Registrar bebida":"Registrar consumo"}
+      {mode === "water"||mode==="drink" ? <Droplets size={16}/> : mode==="food"?<UtensilsCrossed size={16}/>:<Plus size={16}/>} {mode === "water" ? "Registrar água" : mode==="food"?"Registrar refeição":mode==="drink"?"Registrar bebida":"Registrar consumo"}
     </button>
     {notice && typeof document !== "undefined" && createPortal(
       <div role="status" className="fixed right-3 top-16 z-[151] flex max-w-sm items-start gap-2 rounded-xl border border-success/30 bg-card p-3 text-xs font-semibold text-foreground shadow-xl">
@@ -176,7 +178,7 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
                 <CareIntakeIcon kind={kind} size={20}/>
               </span>
               <div>
-                <h2 id="quick-intake-title" className="text-base font-bold">{mode==="water"?"Registrar água":isFood?"Registrar alimento ou refeição":"Registrar líquido"}</h2>
+                <h2 id="quick-intake-title" className="text-base font-bold">{mode==="water"?"Registrar água":isFood?"Registrar refeição":"Registrar bebida"}</h2>
                 <p className="text-[11px] text-muted-foreground">Informe o horário do consumo · fuso horário do Acre</p>
               </div>
             </div>
@@ -220,45 +222,39 @@ export function ClientQuickIntake({ patientId, onRecorded, variant = "panel", mo
                       placeholder={foodCategory(kind)?.example??"Descreva o alimento ou a refeição"}
                       className="field mt-1.5 block min-h-[76px] w-full resize-y"/>
                   </label>
-                  {(typicalFoods[kind as FoodKind]?.length ?? 0) > 0 && <div className="min-w-0">
-                    <p className="text-xs font-semibold">Típicos de {(foodCategory(kind)?.label ?? "refeição").toLowerCase()} <span className="font-normal text-muted-foreground">· toque para adicionar ou remover</span></p>
-                    <div className="mt-1.5 flex flex-wrap gap-1.5">
-                      {typicalFoods[kind as FoodKind].map(item=>{
-                        const parts=description.split(/\s*,\s*/).filter(Boolean);
-                        const on=parts.includes(item.text);
-                        return <button key={item.label} type="button" aria-pressed={on}
-                          onClick={()=>setDescription(on?parts.filter(p=>p!==item.text).join(", "):[...parts,item.text].join(", "))}
-                          className={`inline-flex h-8 items-center gap-1 rounded-full border px-3 text-[11px] font-semibold transition active:scale-95 ${on?"border-emerald-500 bg-emerald-500 text-white shadow-sm":"border-border bg-card hover:border-emerald-500/50 hover:bg-emerald-500/[.06]"}`}>
-                          {on?<CheckCircle2 size={13}/>:<Plus size={13} className="text-emerald-600"/>}{item.label}
-                        </button>;
-                      })}
-                    </div>
-                  </div>}
-                  {(typicalDrinks[kind as FoodKind]?.length ?? 0) > 0 && <div className="min-w-0">
-                    <p className="text-xs font-semibold">Bebidas que acompanham <span className="font-normal text-muted-foreground">· toque para adicionar ou remover</span></p>
-                    <div className="mt-1.5 flex flex-wrap gap-1.5">
-                      {typicalDrinks[kind as FoodKind].map(item=>{
-                        const parts=description.split(/\s*,\s*/).filter(Boolean);
-                        const on=parts.includes(item.text);
-                        return <button key={item.label} type="button" aria-pressed={on}
-                          onClick={()=>setDescription(on?parts.filter(p=>p!==item.text).join(", "):[...parts,item.text].join(", "))}
-                          className={`inline-flex h-8 items-center gap-1 rounded-full border px-3 text-[11px] font-semibold transition active:scale-95 ${on?"border-sky-500 bg-sky-500 text-white shadow-sm":"border-border bg-card hover:border-sky-500/50 hover:bg-sky-500/[.06]"}`}>
-                          {on?<CheckCircle2 size={13}/>:<Plus size={13} className="text-sky-600"/>}{item.label}
-                        </button>;
-                      })}
-                    </div>
-                  </div>}
+                  <MealSuggestions title={`Refeições sugeridas para ${(foodCategory(kind)?.label ?? "refeição").toLowerCase()}`} hint="toque para adicionar · (i) mostra os nutrientes"
+                    items={mealCombos[kind as FoodKind] ?? []} description={description} onChange={setDescription}/>
+                  <MealSuggestions title={`Alimentos típicos de ${(foodCategory(kind)?.label ?? "refeição").toLowerCase()}`} hint="toque para adicionar ou remover · (i) mostra os nutrientes"
+                    items={typicalFoods[kind as FoodKind] ?? []} description={description} onChange={setDescription}/>
+                  <MealSuggestions title="Bebidas que acompanham" hint="toque para adicionar ou remover · (i) mostra os nutrientes" tone="sky"
+                    items={typicalDrinks[kind as FoodKind] ?? []} description={description} onChange={setDescription}/>
                   <label className="block min-w-0 text-xs font-semibold leading-relaxed">
                     <span className="block">Quantidade ou porção (opcional)</span>
                     <input type="text" className="field mt-1.5 block min-h-[44px] w-full" maxLength={100} value={portion}
                       onChange={event=>setPortion(event.target.value)} placeholder="Ex.: 1 unidade, 100 g, 1 prato"/>
                   </label>
                 </div>
-              : <label className="text-xs font-semibold">Nome da bebida
-                  <input type="text" className="field mt-1 w-full" maxLength={100}
-                    value={description} required onChange={event => setDescription(event.target.value)}
-                    placeholder={beverageCategory(kind)?.example??"Descreva a bebida"}/>
-                </label>
+              : <div className="grid min-w-0 gap-2">
+                  <label className="text-xs font-semibold">Escolher bebida
+                    <select className="field mt-1 w-full" aria-label="Escolher bebida da lista"
+                      value={drinkPresetFor(kind, description)?.key ?? ""}
+                      onChange={event => {
+                        const preset = drinkPresets.find(item => item.key === event.target.value);
+                        if (!preset) { setDescription(""); return; }
+                        setKind(preset.kind); setDescription(preset.text.charAt(0).toUpperCase() + preset.text.slice(1)); setAmount(String(preset.ml)); setError("");
+                      }}>
+                      <option value="">Outra bebida (digitar abaixo)</option>
+                      {drinkGroups.map(group => <optgroup key={group} label={group}>
+                        {drinkPresets.filter(item => item.group === group).map(item => <option key={item.key} value={item.key}>{item.label}</option>)}
+                      </optgroup>)}
+                    </select>
+                  </label>
+                  <label className="text-xs font-semibold">Nome da bebida
+                    <input type="text" className="field mt-1 w-full" maxLength={100}
+                      value={description} required onChange={event => setDescription(event.target.value)}
+                      placeholder={beverageCategory(kind)?.example??"Descreva a bebida"}/>
+                  </label>
+                </div>
             )}
             {!isWater && (()=>{const foods=parseFoodText(isFood?`${portion} ${description}`:description,isFood?null:Number(amount));if(!foods.length)return null;const t=sumNutrients(foods.map(f=>f.nutrients));
               return <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/[.07] p-3 text-xs" aria-live="polite">

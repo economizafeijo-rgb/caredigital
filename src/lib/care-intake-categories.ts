@@ -49,6 +49,8 @@ export const typicalFoods: Record<FoodKind, { label: string; text: string }[]> =
     { label: "Ovo cozido", text: "2 ovos cozidos" }, { label: "Queijo coalho", text: "1 fatia de queijo coalho" },
     { label: "Banana cozida", text: "1 banana cozida" }, { label: "Macaxeira", text: "1 porção de macaxeira" }, { label: "Mamão", text: "1 fatia de mamão" },
     { label: "Mingau de aveia", text: "1 prato de mingau de aveia" }, { label: "Iogurte", text: "1 iogurte" }, { label: "Leite", text: "1 copo de leite" },
+    { label: "Pão massa fina", text: "1 pão massa fina" }, { label: "Queijo mussarela", text: "2 fatias de queijo mussarela" }, { label: "Presunto", text: "2 fatias de presunto" },
+    { label: "Cereal com leite", text: "1 tigela de cereal com leite" }, { label: "Mingau de maisena", text: "1 prato de mingau de maisena" }, { label: "Pasta de amendoim", text: "1 colher de sopa de pasta de amendoim" },
   ],
   almoco: [
     { label: "Arroz", text: "4 colheres de sopa de arroz" }, { label: "Feijão", text: "1 concha de feijão" }, { label: "Frango", text: "1 filé de frango" },
@@ -93,8 +95,43 @@ export const typicalFoods: Record<FoodKind, { label: string; text: string }[]> =
   ],
 };
 
+/** Refeições prontas sugeridas por tipo de refeição (vários alimentos); entram na descrição e no cálculo. */
+export const mealCombos: Partial<Record<FoodKind, { label: string; text: string }[]>> = {
+  cafe_manha: [
+    { label: "Cuscuz com ovo e café com leite", text: "1 prato de cuscuz, 2 ovos cozidos, 1 xícara de café com leite" },
+    { label: "Tapioca com queijo e suco de acerola", text: "1 tapioca, 2 fatias de queijo mussarela, 1 copo de suco de acerola" },
+    { label: "Mingau de aveia com banana", text: "1 prato de mingau de aveia, 1 banana" },
+    { label: "Pão com ovo e Nescau", text: "1 pão com ovo, 1 copo de nescau" },
+    { label: "Café acreano reforçado", text: "1 prato de baixaria, 1 xícara de café com leite de gado, 1 banana cozida" },
+  ],
+  lanche: [
+    { label: "Sanduíche natural e suco de maracujá", text: "1 sanduíche natural, 1 copo de suco de maracujá" },
+    { label: "Pão massa fina com queijo e presunto", text: "1 pão massa fina, 2 fatias de queijo mussarela, 2 fatias de presunto" },
+    { label: "Iogurte com aveia e banana", text: "1 iogurte, 2 colheres de sopa de aveia, 1 banana" },
+    { label: "Cereal com leite", text: "1 tigela de cereal com leite" },
+  ],
+  almoco: [
+    { label: "Prato brasileiro com frango", text: "4 colheres de sopa de arroz, 1 concha de feijão, 1 filé de frango, 1 prato de salada" },
+    { label: "Baião de dois com salada", text: "1 prato de baião de dois, 1 prato de salada, 1 copo de suco de graviola" },
+    { label: "Tambaqui com macaxeira", text: "1 posta de tambaqui, 1 porção de macaxeira, 1 prato de salada" },
+    { label: "Macarronada com salada", text: "1 prato de macarronada, 1 prato de salada" },
+  ],
+  jantar: [
+    { label: "Sopa de legumes com pão", text: "1 prato de sopa de legumes, 1 pão francês" },
+    { label: "Cuscuz com ovo", text: "1 prato de cuscuz, 2 ovos" },
+    { label: "Frango, arroz e legumes", text: "1 filé de frango, 3 colheres de sopa de arroz, cenoura e abobrinha" },
+    { label: "Tapioca com queijo", text: "1 tapioca, 1 fatia de queijo mussarela" },
+  ],
+  ceia: [
+    { label: "Leite morno com maçã", text: "1 copo de leite, 1 maçã" },
+    { label: "Mingau de maisena leve", text: "1 prato de mingau de maisena" },
+    { label: "Iogurte com castanhas", text: "1 iogurte, 3 castanhas-do-pará" },
+    { label: "Chá com biscoito", text: "1 xícara de chá, 4 biscoitos" },
+  ],
+};
+
 const drinkSet = (...items: [string, string][]) => items.map(([label, text]) => ({ label, text }));
-const juices = drinkSet(["Suco de laranja", "1 copo de suco de laranja"], ["Suco de cupuaçu", "1 copo de suco de cupuaçu"], ["Suco de acerola", "1 copo de suco de acerola"], ["Suco de maracujá", "1 copo de suco de maracujá"], ["Suco de taperebá", "1 copo de suco de taperebá"]);
+const juices = drinkSet(["Suco de laranja", "1 copo de suco de laranja"], ["Suco de cupuaçu", "1 copo de suco de cupuaçu"], ["Suco de acerola", "1 copo de suco de acerola"], ["Suco de maracujá", "1 copo de suco de maracujá"], ["Suco de taperebá", "1 copo de suco de taperebá"], ["Suco de goiaba", "1 copo de suco de goiaba"], ["Suco de graviola", "1 copo de suco de graviola"], ["Suco de caju", "1 copo de suco de caju"]);
 /** Bebidas que costumam acompanhar cada refeição; entram na mesma descrição e no cálculo. */
 export const typicalDrinks: Record<FoodKind, { label: string; text: string }[]> = {
   cafe_manha: [...drinkSet(["Café preto", "1 xícara de café"], ["Café com leite", "1 xícara de café com leite"], ["Café com leite de gado", "1 xícara de café com leite de gado"], ["Café com leite em pó", "1 xícara de café com leite em pó"], ["Leite", "1 copo de leite"], ["Achocolatado", "1 copo de achocolatado"], ["Chá", "1 xícara de chá"]), ...juices.slice(0, 3)],
@@ -108,3 +145,9 @@ export const typicalDrinks: Record<FoodKind, { label: string; text: string }[]> 
   sopa: drinkSet(["Suco de laranja", "1 copo de suco de laranja"], ["Chá", "1 xícara de chá"]),
   sobremesa: drinkSet(["Café preto", "1 xícara de café"], ["Café com leite", "1 xícara de café com leite"]),
 };
+
+const coffeeExtras = drinkSet(["Café com leite desnatado", "1 xícara de café com leite desnatado"], ["Café com leite em pó", "1 xícara de café com leite em pó"], ["Nescafé", "1 xícara de nescafé"], ["Nescau", "1 copo de nescau"], ["Leite em pó dissolvido", "1 copo de leite em pó dissolvido"]);
+for (const kind of ["cafe_manha", "lanche", "ceia", "jantar", "sobremesa"] as FoodKind[]) {
+  const seen = new Set<string>();
+  typicalDrinks[kind] = [...typicalDrinks[kind], ...coffeeExtras].filter(item => !seen.has(item.label) && !!seen.add(item.label));
+}
