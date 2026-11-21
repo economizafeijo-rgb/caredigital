@@ -30,6 +30,7 @@ import {
   type VendorProduct,
 } from "@/lib/marketplace";
 import { StatusBadge } from "./seller/shared";
+import { disputeReasonLabel, disputeStatusLabel, type Dispute } from "@/lib/disputes";
 import { uploadStoreImage } from "./seller/SellerProducts";
 
 type Owner = {
@@ -61,6 +62,7 @@ export function AdminVendorDetail({ vendor, onClose }: { vendor: Vendor; onClose
   const [owner, setOwner] = useState<Owner | null>(null);
   const [orders, setOrders] = useState<VendorOrder[]>([]);
   const [products, setProducts] = useState<VendorProduct[]>([]);
+  const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pw, setPw] = useState("");
   const [nEmail, setNEmail] = useState("");
@@ -83,6 +85,13 @@ export function AdminVendorDetail({ vendor, onClose }: { vendor: Vendor; onClose
     setOwner((o.data as Owner) ?? {});
     setOrders(ord.data ?? []);
     setProducts(p.data ?? []);
+    const { data: ds } = await db
+      .from("care_store_disputes")
+      .select("*")
+      .eq("vendor_id", vendor.id)
+      .order("created_at", { ascending: false })
+      .limit(200);
+    setDisputes(ds ?? []);
   }, [vendor.id]);
   useEffect(() => {
     void load();
@@ -350,6 +359,32 @@ export function AdminVendorDetail({ vendor, onClose }: { vendor: Vendor; onClose
               >
                 Remover
               </button>
+            )}
+          </section>
+
+          <section aria-label="Disputas" className="rounded-2xl border border-border bg-card p-4">
+            <h3 className="text-sm font-bold">
+              Disputas · {disputes.filter((d) => d.status === "aberta").length} aberta(s)
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Somente leitura. O dono da loja é quem responde e resolve.
+            </p>
+            {!disputes.length ? (
+              <p className="mt-3 text-sm text-muted-foreground">Nenhuma disputa.</p>
+            ) : (
+              <ul className="mt-3 divide-y divide-border">
+                {disputes.map((d) => (
+                  <li
+                    key={d.id}
+                    className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm"
+                  >
+                    <span>{disputeReasonLabel(d.reason)}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {disputeStatusLabel(d.status)} · {fmt(d.created_at)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             )}
           </section>
 
