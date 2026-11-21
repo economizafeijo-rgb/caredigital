@@ -352,12 +352,12 @@ export function SellerDashboard({
         >
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 -z-10 bg-cover bg-center opacity-[0.22]"
+            className="pointer-events-none absolute inset-0 -z-10 bg-cover bg-[position:70%_40%] opacity-60 dark:opacity-50"
             style={{ backgroundImage: panelBackground(accent, vendor.banner_url) }}
           />
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-background/70 via-background/85 to-background"
+            className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-background/35 via-background/55 to-background/90"
           />
           {error && (
             <p
