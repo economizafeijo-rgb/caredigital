@@ -3,7 +3,6 @@ import { Loader2, Power } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useDialog } from "@/lib/dialog";
 import type { Vendor } from "@/lib/marketplace";
-import { StoreLed } from "../store/StoreLed";
 
 const hora = (iso?: string | null) =>
   iso
@@ -62,7 +61,10 @@ export function SellerOpenToggle({ vendor, onChanged }: { vendor: Vendor; onChan
           open ? "bg-emerald-500/20" : "bg-muted"
         }`}
       >
-        <StoreLed open={open} className="size-3.5" />
+        <span
+          aria-hidden="true"
+          className={`size-4 rounded-full ${open ? "bg-emerald-400 shadow-[0_0_14px_2px_rgba(52,211,153,.55)]" : "bg-slate-400"}`}
+        />
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-base font-extrabold">
