@@ -11,7 +11,15 @@ import {
 } from "@/lib/chat-rules";
 import { playSound } from "@/lib/chat-sound";
 import { ChatToastHost, SoundToggle, pushChatToast } from "../chat/ChatToasts";
-import { availabilityOf, useStoreStatus } from "@/lib/store-presence";
+import {
+  availabilityOf,
+  fetchQueuePosition,
+  joinStoreQueue,
+  leaveStoreQueue,
+  useStoreStatus,
+  type QueuePosition,
+} from "@/lib/store-presence";
+import { QueueCard } from "./QueueCard";
 
 type Queue = {
   state: "livre" | "atendimento" | "fila" | "vez";
@@ -51,6 +59,36 @@ export function CustomerChat({
   const prevState = useRef<string | null>(null);
   const { status: storeStatus } = useStoreStatus(vendor.id, 20000);
   const storeAvailability = availabilityOf(storeStatus);
+  const [myQueue, setMyQueue] = useState<QueuePosition | null>(null);
+  const [queueBusy, setQueueBusy] = useState(false);
+
+  // Posição do cliente na fila: lida ao abrir (preserva a vez ao recarregar) e atualizada a cada 15 s.
+  useEffect(() => {
+    if (!user) return;
+    let alive = true;
+    const load = () =>
+      fetchQueuePosition(vendor.id)
+        .then((q) => alive && setMyQueue(q))
+        .catch(() => undefined);
+    void load();
+    const t = window.setInterval(() => void load(), 15000);
+    return () => {
+      alive = false;
+      window.clearInterval(t);
+    };
+  }, [user, vendor.id]);
+
+  async function leaveQueue() {
+    setQueueBusy(true);
+    try {
+      await leaveStoreQueue(vendor.id);
+      setMyQueue(await fetchQueuePosition(vendor.id));
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Não foi possível sair da fila.");
+    } finally {
+      setQueueBusy(false);
+    }
+  }
   const seenIds = useRef<Set<string> | null>(null);
   useEffect(() => {
     const t = window.setInterval(() => setClock(Date.now()), 1000);
@@ -156,6 +194,12 @@ export function CustomerChat({
       return setErr("A loja está offline agora. Tente de novo mais tarde.");
     const bad = validateChatText(text);
     if (bad) return setErr(bad);
+    // Entra na fila no servidor (ou é atendido na hora, se houver vaga). Sem atendente, não entra.
+    try {
+      setMyQueue(await joinStoreQueue(vendor.id));
+    } catch (e) {
+      return setErr(e instanceof Error ? e.message : "Não foi possível entrar na fila.");
+    }
     const { error } = await (supabase as any).from("care_store_messages").insert({
       vendor_id: vendor.id,
       customer_id: user.id,
@@ -242,12 +286,11 @@ export function CustomerChat({
               availability={storeAvailability}
               agents={storeStatus?.agents_online ?? null}
             />
-            {queue &&
-              (queue.state === "fila" ||
-                queue.state === "vez" ||
-                queue.state === "atendimento") && (
-                <QueueBanner q={queue} clock={clock + skew.current} accent={accent} />
-              )}
+            <QueueCard
+              queue={myQueue ?? { state: "none" }}
+              onLeave={() => void leaveQueue()}
+              busy={queueBusy}
+            />
             <div className="min-h-0 flex-1 space-y-2 overflow-y-auto bg-muted/40 px-3 py-3">
               {!msgs.length && (
                 <p className="mx-auto mt-6 max-w-[16rem] text-center text-xs text-muted-foreground">
@@ -368,18 +411,27 @@ function StoreAvailabilityLine({
 }) {
   if (availability === "offline")
     return (
-      <p role="status" className="border-b border-border bg-muted px-4 py-2 text-xs text-muted-foreground">
+      <p
+        role="status"
+        className="border-b border-border bg-muted px-4 py-2 text-xs text-muted-foreground"
+      >
         Loja offline no momento. Não é possível entrar na fila agora; tente mais tarde.
       </p>
     );
   if (availability === "ocupado")
     return (
-      <p role="status" className="border-b border-border bg-amber-50 px-4 py-2 text-xs text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+      <p
+        role="status"
+        className="border-b border-border bg-amber-50 px-4 py-2 text-xs text-amber-900 dark:bg-amber-950/40 dark:text-amber-200"
+      >
         Todos os atendentes estão ocupados. Sua mensagem entra na fila.
       </p>
     );
   return (
-    <p role="status" className="border-b border-border bg-emerald-50 px-4 py-2 text-xs text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
+    <p
+      role="status"
+      className="border-b border-border bg-emerald-50 px-4 py-2 text-xs text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
+    >
       Atendimento online{agents ? ` · ${agents} atendente${agents > 1 ? "s" : ""} disponível` : ""}.
     </p>
   );

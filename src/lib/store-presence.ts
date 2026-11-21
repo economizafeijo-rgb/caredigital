@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+/** Se este atendente está marcado como online (lido do servidor ao abrir o painel). */
+export async function fetchMyPresence(vendorId: string): Promise<boolean> {
+  const { data, error } = await rpc("care_store_my_presence", { p_vendor: vendorId });
+  if (error) throw new Error(error.message);
+  return Boolean((data as { online?: boolean } | null)?.online);
+}
+
 /** Estado da loja vindo do servidor (care_store_store_status). Contagens, sem dados internos. */
 export type StoreStatus = {
   open: boolean;
@@ -20,12 +27,18 @@ export function availabilityOf(s: StoreStatus | null | undefined): AgentAvailabi
   return s.free_slots > 0 ? "livre" : "ocupado";
 }
 
-const rpc = (name: string, args: Record<string, unknown>) =>
-  (supabase as any).rpc(name, args) as Promise<{ data: any; error: { message: string } | null }>;
+type RpcResult = { data: unknown; error: { message: string } | null };
+const client = supabase as unknown as {
+  rpc: (name: string, args: Record<string, unknown>) => Promise<RpcResult>;
+};
+const rpc = (name: string, args: Record<string, unknown>) => client.rpc(name, args);
 
 /** Atendente marca-se online ou offline. Offline para de receber novos clientes na hora. */
 export async function setAgentOnline(vendorId: string, online: boolean): Promise<StoreStatus> {
-  const { data, error } = await rpc("care_store_set_online", { p_vendor: vendorId, p_online: online });
+  const { data, error } = await rpc("care_store_set_online", {
+    p_vendor: vendorId,
+    p_online: online,
+  });
   if (error) throw new Error(error.message);
   return data as StoreStatus;
 }
@@ -35,6 +48,35 @@ export async function sendHeartbeat(vendorId: string): Promise<StoreStatus> {
   const { data, error } = await rpc("care_store_heartbeat", { p_vendor: vendorId });
   if (error) throw new Error(error.message);
   return data as StoreStatus;
+}
+
+/** Posição do próprio cliente na fila (care_store_queue_position). */
+export type QueuePosition =
+  | { state: "none" }
+  | { state: "espera"; position: number; ahead: number; since: string; now: string }
+  | { state: "atendimento"; since: string | null };
+
+/** Entra na fila (idempotente: não duplica, não perde a posição). Falha se a loja estiver offline. */
+export async function joinStoreQueue(vendorId: string): Promise<QueuePosition> {
+  const { data, error } = await rpc("care_store_queue_join", { p_vendor: vendorId });
+  if (error)
+    throw new Error(
+      error.message.includes("Store offline") ? "A loja está offline agora." : error.message,
+    );
+  return data as QueuePosition;
+}
+
+/** Posição atual do cliente. Usada ao abrir o chat e a cada atualização. */
+export async function fetchQueuePosition(vendorId: string): Promise<QueuePosition> {
+  const { data, error } = await rpc("care_store_queue_position", { p_vendor: vendorId });
+  if (error) throw new Error(error.message);
+  return data as QueuePosition;
+}
+
+/** Sai voluntariamente da fila de espera. */
+export async function leaveStoreQueue(vendorId: string): Promise<void> {
+  const { error } = await rpc("care_store_queue_leave", { p_vendor: vendorId });
+  if (error) throw new Error(error.message);
 }
 
 /** Status atual da loja, para qualquer usuário autenticado (só contagens). */
