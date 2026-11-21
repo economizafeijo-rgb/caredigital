@@ -41,6 +41,18 @@ import {
 import { CustomerChat } from "./CustomerChat";
 import { StoreStatusChip } from "./StoreLed";
 import { useVCart, vcart } from "./vendorCart";
+import { couponErrorMessage, normalizeCode } from "@/lib/coupons";
+
+/** Cotação devolvida pelo servidor (care_store_quote_order). O navegador só mostra; quem calcula é o banco. */
+type CartQuote = {
+  list_cents: number;
+  promo_cents: number;
+  subtotal_cents: number;
+  discount_cents: number;
+  coupon_code: string | null;
+  fee_cents: number;
+  total_cents: number;
+};
 import { STORE_LIVE } from "@/lib/store";
 
 type Sort = "relevancia" | "menor" | "desconto";
@@ -752,6 +764,48 @@ function VendorCheckout({
         ? 0
         : vendor.delivery_fee_cents
       : 0;
+  const [couponInput, setCouponInput] = useState("");
+  const [coupon, setCoupon] = useState<string | null>(null);
+  const [couponErr, setCouponErr] = useState("");
+  const [quote, setQuote] = useState<CartQuote | null>(null);
+  const itemsPayload = items.map((i) => ({ product_id: i.product_id, qty: i.qty }));
+  const itemsKey = JSON.stringify(itemsPayload);
+  useEffect(() => {
+    const itemsArg = JSON.parse(itemsKey) as { product_id: string; qty: number }[];
+    if (!itemsArg.length) {
+      setQuote(null);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      const { data, error } = await (supabase as any).rpc("care_store_quote_order", {
+        p_vendor_id: vendor.id,
+        p_items: itemsArg,
+        p_fulfillment: mode,
+        p_coupon: coupon,
+      });
+      if (cancelled) return;
+      if (error) {
+        const m = String(error.message ?? "");
+        setQuote(null);
+        if (coupon) {
+          setCoupon(null);
+          setCouponErr(
+            m.includes("Authentication required")
+              ? "Entre na sua conta para aplicar o cupom."
+              : couponErrorMessage(m),
+          );
+        }
+        return;
+      }
+      setQuote(data as CartQuote);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [itemsKey, mode, coupon, vendor.id]);
+  const shownFee = quote ? quote.fee_cents : fee;
+  const shownTotal = quote ? quote.total_cents : subtotal + fee;
   useEffect(() => {
     void supabase.auth.getUser().then(({ data }) => {
       const m = data.user?.user_metadata;
@@ -784,17 +838,22 @@ function VendorCheckout({
     setBusy(true);
     const { data: id, error } = await (supabase as any).rpc("care_store_place_order", {
       p_vendor_id: vendor.id,
-      p_items: items.map((i) => ({ product_id: i.product_id, qty: i.qty })),
+      p_items: itemsPayload,
       p_fulfillment: mode,
       p_name: name.trim(),
       p_phone: phone.trim(),
       p_address: mode === "entrega" ? address.trim() : null,
       p_payment: pay,
       p_notes: notes.trim() || null,
+      p_coupon: coupon,
     });
     setBusy(false);
     if (error) {
       const m = String(error.message ?? "");
+      if (m.includes("Coupon:")) {
+        setCoupon(null);
+        return setErr(couponErrorMessage(m));
+      }
       return setErr(
         m.includes("Out of stock")
           ? "Um dos produtos acabou de esgotar. Ajuste a quantidade e tente de novo."
@@ -889,10 +948,75 @@ function VendorCheckout({
               )}
             </ul>
             <footer className="grid gap-3 border-t border-border p-5">
+              <form
+                className="grid gap-1.5"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const code = normalizeCode(couponInput);
+                  if (!code) return;
+                  setCouponErr("");
+                  setCoupon(code);
+                  setCouponInput("");
+                }}
+              >
+                <label className="text-[13px] font-semibold" htmlFor="cupom-carrinho">
+                  Cupom de desconto
+                </label>
+                {coupon && quote?.coupon_code ? (
+                  <p className="flex items-center justify-between rounded-lg bg-emerald-500/10 px-3 py-2 text-sm">
+                    <span>
+                      <strong>{quote.coupon_code}</strong> aplicado
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setCoupon(null)}
+                      className="text-xs font-semibold underline underline-offset-2"
+                    >
+                      Remover
+                    </button>
+                  </p>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      id="cupom-carrinho"
+                      className={`${field} mt-0 uppercase`}
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value)}
+                      placeholder="Digite o código"
+                      autoComplete="off"
+                      disabled={!items.length}
+                    />
+                    <button
+                      type="submit"
+                      disabled={!items.length || !couponInput.trim()}
+                      className="h-10 shrink-0 rounded-lg border border-border px-4 text-sm font-semibold hover:bg-muted disabled:opacity-45"
+                    >
+                      Aplicar
+                    </button>
+                  </div>
+                )}
+                {couponErr && (
+                  <p role="alert" className="text-xs text-rose-700 dark:text-rose-300">
+                    {couponErr}
+                  </p>
+                )}
+              </form>
               <p className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
-                <strong className="tabular-nums">{money(subtotal)}</strong>
+                <strong className="tabular-nums">{money(quote?.list_cents ?? subtotal)}</strong>
               </p>
+              {quote && quote.promo_cents > 0 && (
+                <p className="flex justify-between text-sm text-emerald-700 dark:text-emerald-300">
+                  <span>Promoções</span>
+                  <strong className="tabular-nums">− {money(quote.promo_cents)}</strong>
+                </p>
+              )}
+              {quote && quote.discount_cents > 0 && (
+                <p className="flex justify-between text-sm text-emerald-700 dark:text-emerald-300">
+                  <span>Cupom {quote.coupon_code}</span>
+                  <strong className="tabular-nums">− {money(quote.discount_cents)}</strong>
+                </p>
+              )}
               {STORE_LIVE ? (
                 <button
                   type="button"
@@ -1030,17 +1154,23 @@ function VendorCheckout({
             <footer className="grid gap-2 border-t border-border p-5 text-sm">
               <p className="flex justify-between">
                 <span className="text-muted-foreground">Produtos</span>
-                <span className="tabular-nums">{money(subtotal)}</span>
+                <span className="tabular-nums">{money(quote?.subtotal_cents ?? subtotal)}</span>
               </p>
+              {quote && quote.discount_cents > 0 && (
+                <p className="flex justify-between text-emerald-700 dark:text-emerald-300">
+                  <span>Cupom {quote.coupon_code}</span>
+                  <span className="tabular-nums">− {money(quote.discount_cents)}</span>
+                </p>
+              )}
               <p className="flex justify-between">
                 <span className="text-muted-foreground">Entrega</span>
                 <span className="tabular-nums">
-                  {mode === "entrega" ? (fee ? money(fee) : "Grátis") : "—"}
+                  {mode === "entrega" ? (shownFee ? money(shownFee) : "Grátis") : "—"}
                 </span>
               </p>
               <p className="flex justify-between text-base font-extrabold">
                 <span>Total</span>
-                <span className="tabular-nums">{money(subtotal + fee)}</span>
+                <span className="tabular-nums">{money(shownTotal)}</span>
               </p>
               <button
                 type="submit"

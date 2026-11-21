@@ -15,6 +15,7 @@ import {
   UserRound,
   Users,
   ShieldAlert,
+  Tag,
   Wallet,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +33,7 @@ import { SellerStaff } from "./SellerStaff";
 import { SellerStore } from "./SellerStore";
 import { SellerClients } from "./SellerClients";
 import { SellerDisputes } from "./SellerDisputes";
+import { SellerPromotions } from "./SellerPromotions";
 
 export type SellerTab =
   | "visao"
@@ -44,6 +46,7 @@ export type SellerTab =
   | "mensagens"
   | "clientes"
   | "disputas"
+  | "promocoes"
   | "loja";
 const STATUS = {
   pendente: ["Em análise", "bg-amber-400"],
@@ -197,6 +200,7 @@ export function SellerDashboard({
       badge: openDisputes,
       group: "operacao",
     },
+    promocoes: { label: "Promoções", icon: Tag, group: "gestao" },
     equipe: { label: "Funcionários", icon: Users, group: "gestao" },
     loja: { label: "Minha loja", icon: Store, group: "gestao" },
   };
@@ -215,7 +219,7 @@ export function SellerDashboard({
         "caixa",
       ] as SellerTab[],
     },
-    { title: "Gestão", keys: ["relatorios", "cadastros", "equipe", "loja"] as SellerTab[] },
+    { title: "Gestão", keys: ["relatorios", "cadastros", "promocoes", "equipe", "loja"] as SellerTab[] },
   ]
     .map((g) => ({ ...g, keys: g.keys.filter(allowed) }))
     .filter((g) => g.keys.length);
@@ -422,6 +426,7 @@ export function SellerDashboard({
                 <SellerOverview vendor={vendor} data={data} go={setTab} onChanged={refresh} />
               )}
               {tab === "disputas" && <SellerDisputes vendor={vendor} onChanged={refresh} />}
+              {tab === "promocoes" && !isStaff && <SellerPromotions vendor={vendor} />}
               {tab === "pedidos" && (
                 <SellerOrders
                   vendor={vendor}
