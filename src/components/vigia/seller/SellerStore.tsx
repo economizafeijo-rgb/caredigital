@@ -23,20 +23,7 @@ import {
   socialLinks,
 } from "./shared";
 
-const SWATCHES = [
-  "#0e7a5f",
-  "#1d4ed8",
-  "#be123c",
-  "#166534",
-  "#4d7c0f",
-  "#be185d",
-  "#1e293b",
-  "#b45309",
-  "#7c3aed",
-  "#0891b2",
-];
-
-/** Identidade, contato, entrega e divulgação da loja: logo, cor, endereço, WhatsApp, link e QR. */
+/** Identidade, contato, entrega e divulgação da loja: logo, endereço, WhatsApp, link e QR. */
 export function SellerStore({
   vendor,
   invoices,
@@ -147,13 +134,11 @@ export function SellerStore({
     const { error } = await (supabase as any)
       .from("care_store_vendors")
       .update({
-        name: f.name.trim(),
         description: f.description.trim() || null,
         phone: f.phone.trim(),
         city: f.city.trim() || "Feijó",
         address: f.address.trim() || null,
         opening_hours: f.hours.trim() || null,
-        accent_hex: f.accent,
         offers_delivery: f.delivery,
         offers_pickup: f.pickup,
         delivery_fee_cents: fee,
@@ -208,15 +193,9 @@ export function SellerStore({
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="text-[13px] font-semibold sm:col-span-2">
-                Nome da loja
-                <input
-                  className={inputCls}
-                  value={f.name}
-                  onChange={(e) => setF({ ...f, name: e.target.value })}
-                  maxLength={80}
-                />
-              </label>
+              <p className="rounded-lg bg-muted px-3 py-2 text-[11.5px] leading-snug text-muted-foreground sm:col-span-2">
+                Nome, cor e banner da loja são definidos pela administração da plataforma.
+              </p>
               <label className="text-[13px] font-semibold sm:col-span-2">
                 Apresentação
                 <textarea
@@ -226,31 +205,6 @@ export function SellerStore({
                   maxLength={500}
                 />
               </label>
-              <fieldset className="sm:col-span-2">
-                <legend className="text-[13px] font-semibold">Cor da loja</legend>
-                <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                  {SWATCHES.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => setF({ ...f, accent: c })}
-                      aria-label={`Usar a cor ${c}`}
-                      aria-pressed={f.accent === c}
-                      className="grid size-8 place-items-center rounded-full ring-offset-2 ring-offset-card transition aria-pressed:ring-2"
-                      style={{ background: c, ["--tw-ring-color" as string]: c }}
-                    >
-                      {f.accent === c && <Check size={14} className="text-white" />}
-                    </button>
-                  ))}
-                  <input
-                    type="color"
-                    value={f.accent}
-                    onChange={(e) => setF({ ...f, accent: e.target.value })}
-                    aria-label="Escolher outra cor"
-                    className="h-8 w-10 cursor-pointer rounded border border-border bg-transparent"
-                  />
-                </div>
-              </fieldset>
             </div>
           </div>
         </Panel>
