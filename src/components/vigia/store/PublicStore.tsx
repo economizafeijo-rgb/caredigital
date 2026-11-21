@@ -594,7 +594,7 @@ function PublicStore({
             role="dialog"
             aria-modal="true"
             aria-labelledby="product-detail-title"
-            className="max-h-[90vh] w-full overflow-y-auto rounded-t-3xl bg-card p-5 shadow-xl sm:max-w-lg sm:rounded-3xl"
+            className="max-h-[90vh] w-full overflow-y-auto rounded-t-3xl bg-card p-4 shadow-xl sm:max-w-md sm:rounded-3xl sm:p-5"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -620,11 +620,11 @@ function PublicStore({
               <img
                 src={detail.image_url}
                 alt={detail.name}
-                className="mt-3 aspect-[4/3] w-full rounded-2xl object-cover"
+                className="mt-3 h-52 w-full rounded-2xl bg-slate-100 object-contain p-2 sm:h-60"
               />
             )}
             <p className="mt-3 flex flex-wrap items-baseline gap-2">
-              <strong className="text-2xl font-extrabold tabular-nums">
+              <strong className="text-xl font-extrabold tabular-nums">
                 {money(detail.price_cents)}
               </strong>
               {detail.old_price_cents ? (
