@@ -8,6 +8,7 @@ import { AdminTestStores } from "@/components/vigia/AdminTestStores";
 import { AdminFinance } from "@/components/vigia/AdminFinance";
 import { isSupabaseConfigured } from "@/lib/supabase-session";
 import { AdminClientManager } from "@/components/vigia/AdminClientManager";
+import { AdminUsers } from "@/components/vigia/AdminUsers";
 import { AdminAds } from "@/components/vigia/AdminAds";
 import { AdminPayments } from "@/components/vigia/AdminPayments";
 
@@ -16,10 +17,11 @@ export const Route = createFileRoute("/admin")({
   component: Admin,
 });
 
-type AdminTab = "visao" | "clientes" | "lojas" | "vendas" | "propagandas" | "pagamentos";
+type AdminTab = "visao" | "clientes" | "usuarios" | "lojas" | "vendas" | "propagandas" | "pagamentos";
 const ADMIN_TABS: { id: AdminTab; label: string; title: string; hint: string }[] = [
   { id: "visao", label: "Visão geral", title: "Visão geral", hint: "" },
   { id: "clientes", label: "Clientes", title: "Cadastro de clientes", hint: "Cadastrar, editar, licenças e acesso dos clientes." },
+  { id: "usuarios", label: "Usuários", title: "Usuários cadastrados", hint: "Contas, datas de cadastro e acesso. Abra um usuário para editar, suspender ou excluir." },
   { id: "lojas", label: "Lojas e estabelecimentos", title: "Lojas e estabelecimentos", hint: "Aprovar lojistas, planos, comissão, selo e cobranças." },
   { id: "vendas", label: "Vendas e faturamento", title: "Vendas e faturamento", hint: "Receita, pedidos, ticket médio e produtos mais vendidos." },
   { id: "propagandas", label: "Propagandas", title: "Propagandas", hint: "Banners por local da plataforma, período e prioridade." },
@@ -184,6 +186,7 @@ function Admin() {
               </section>
             )}
             {tab === "clientes" && <AdminClientManager ownerId={ownerId} />}
+            {tab === "usuarios" && <AdminUsers />}
             {tab === "lojas" && <><AdminMarketplace /><AdminTestStores /></>}
             {tab === "vendas" && <StoreAdminDashboard />}
             {tab === "propagandas" && <AdminAds />}
