@@ -24,7 +24,7 @@ import { LiveModeLauncher } from "@/components/vigia/LiveMode";
 import { HomeStore } from "@/components/vigia/HomeStore";
 import { SmartBanner, ToolDemo } from "@/components/vigia/SmartBanner";
 import { AppShowcase } from "@/components/vigia/AppShowcase";
-import { QrCode } from "@/components/vigia/QrCode";
+import { QrEnlarge } from "@/components/vigia/QrEnlarge";
 import { InstallAppButton } from "@/components/vigia/InstallApp";
 import { LogoMark } from "@/components/vigia/Logo";
 import { PartnerCommercial } from "@/components/vigia/PartnerCommercial";
@@ -391,7 +391,12 @@ function Homepage() {
             </div>
             <div className="flex shrink-0 items-center gap-2.5">
               <span className="hidden bg-white p-1 ring-1 ring-border sm:block">
-                <QrCode variant="footer" size={44} />
+                <QrEnlarge
+                  variant="footer"
+                  thumb={44}
+                  big={280}
+                  label="Abra o NextVita no celular"
+                />
               </span>
               <div className="min-w-0">
                 <p className="hidden text-[11px] font-semibold sm:block">Abra no celular</p>
