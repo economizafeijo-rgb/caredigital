@@ -23,6 +23,7 @@ import { playSound } from "@/lib/chat-sound";
 import { SoundToggle } from "../chat/ChatToasts";
 import { AvailabilityToggle } from "./AvailabilityToggle";
 import { ProductLookup } from "./ProductLookup";
+import { ChatTimer } from "./ChatTimer";
 import { precheckMessage } from "@/lib/store-moderation";
 import { supabase } from "@/integrations/supabase/client";
 import type { ChatMessage, Vendor } from "@/lib/marketplace";
@@ -426,6 +427,14 @@ export function SellerChat({
                 </div>
               )}
             </div>
+            {active && (
+              <ChatTimer
+                key={active}
+                vendorId={vendor.id}
+                customerId={active}
+                onClosed={onChanged}
+              />
+            )}
             <ProductLookup
               vendorId={vendor.id}
               disabled={!active}
