@@ -298,7 +298,7 @@ export const PAYMENT_LABEL: Record<string, string> = {
   dinheiro: "Dinheiro",
 };
 export const storeUrl = (slug: string) =>
-  `https://nextvita.life/loja?loja=${encodeURIComponent(slug)}`;
+  `https://nextvita.life/${encodeURIComponent(slug)}`;
 export const orderUrl = (id: string) =>
   `https://nextvita.life/loja?pedido=${encodeURIComponent(id)}`;
 /** Tempo restante (ms) até o prazo prometido; negativo quando atrasado. */

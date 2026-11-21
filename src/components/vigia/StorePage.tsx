@@ -795,10 +795,10 @@ function Checkout({ onClose }: { onClose: () => void }) {
   );
 }
 
-export function StorePage() {
+export function StorePage({ slug }: { slug?: string } = {}) {
   const location = useLocation();
   const navigate = useNavigate();
-  const vendorParam = (location.search as Record<string, unknown> | undefined)?.loja;
+  const vendorParam = slug ?? (location.search as Record<string, unknown> | undefined)?.loja;
   const vendorId =
     typeof vendorParam === "string" && vendorById(vendorParam as VendorId)
       ? (vendorParam as VendorId)
