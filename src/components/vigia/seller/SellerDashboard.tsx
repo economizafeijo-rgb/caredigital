@@ -14,6 +14,7 @@ import {
   Store,
   UserRound,
   Users,
+  ShieldAlert,
   Wallet,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,6 +31,7 @@ import { SellerRegistry } from "./SellerRegistry";
 import { SellerStaff } from "./SellerStaff";
 import { SellerStore } from "./SellerStore";
 import { SellerClients } from "./SellerClients";
+import { SellerDisputes } from "./SellerDisputes";
 
 export type SellerTab =
   | "visao"
@@ -41,6 +43,7 @@ export type SellerTab =
   | "equipe"
   | "mensagens"
   | "clientes"
+  | "disputas"
   | "loja";
 const STATUS = {
   pendente: ["Em análise", "bg-amber-400"],
@@ -145,6 +148,22 @@ export function SellerDashboard({
     seen.current = { vendor: vendor.id, ids };
   }, [data.messages, data.orders, loaded, vendor.id]);
 
+  const [openDisputes, setOpenDisputes] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      const { count } = await (supabase as any)
+        .from("care_store_disputes")
+        .select("id", { count: "exact", head: true })
+        .eq("vendor_id", vendor.id)
+        .eq("status", "aberta");
+      if (alive) setOpenDisputes(count ?? 0);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [vendor.id, data.orders]);
+
   const badges = useMemo(
     () => ({
       pedidos: data.orders.filter((o) =>
@@ -172,6 +191,12 @@ export function SellerDashboard({
     relatorios: { label: "Relatórios", icon: FileBarChart, group: "gestao" },
     cadastros: { label: "Cadastros", icon: BookUser, group: "gestao" },
     clientes: { label: "Clientes", icon: UserRound, group: "operacao" },
+    disputas: {
+      label: "Disputas",
+      icon: ShieldAlert,
+      badge: openDisputes,
+      group: "operacao",
+    },
     equipe: { label: "Funcionários", icon: Users, group: "gestao" },
     loja: { label: "Minha loja", icon: Store, group: "gestao" },
   };
@@ -180,7 +205,15 @@ export function SellerDashboard({
   const groups = [
     {
       title: "Operação",
-      keys: ["visao", "pedidos", "clientes", "produtos", "mensagens", "caixa"] as SellerTab[],
+      keys: [
+        "visao",
+        "pedidos",
+        "clientes",
+        "disputas",
+        "produtos",
+        "mensagens",
+        "caixa",
+      ] as SellerTab[],
     },
     { title: "Gestão", keys: ["relatorios", "cadastros", "equipe", "loja"] as SellerTab[] },
   ]
@@ -388,6 +421,7 @@ export function SellerDashboard({
               {tab === "visao" && (
                 <SellerOverview vendor={vendor} data={data} go={setTab} onChanged={refresh} />
               )}
+              {tab === "disputas" && <SellerDisputes vendor={vendor} onChanged={refresh} />}
               {tab === "pedidos" && (
                 <SellerOrders
                   vendor={vendor}
