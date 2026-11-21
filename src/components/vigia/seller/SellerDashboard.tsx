@@ -354,7 +354,7 @@ export function SellerDashboard({
               <Loader2 size={16} className="animate-spin" /> Carregando a loja…
             </p>
           ) : (
-            <div key={`${vendor.id}-${tab}`} className="nv-fade-in flex-1">
+            <div key={`${vendor.id}-${tab}`} className="nv-fade-in flex min-h-0 flex-1 flex-col">
               {tab === "visao" && <SellerOverview vendor={vendor} data={data} go={setTab} />}
               {tab === "pedidos" && (
                 <SellerOrders
