@@ -2,21 +2,33 @@ import { useMemo } from "react";
 import {
   AlertTriangle,
   ArrowRight,
+  BadgeCheck,
+  Boxes,
   CircleDollarSign,
   Clock3,
   MessageCircle,
   Package,
+  Plus,
   Receipt,
   ShoppingBag,
   TrendingUp,
 } from "lucide-react";
-import { COUNTED, money, type Vendor } from "@/lib/marketplace";
+import { COUNTED, PLANS, money, type Vendor } from "@/lib/marketplace";
 import { DeadlineChip, Panel, StatusBadge, useNow } from "./shared";
 import type { SellerData } from "./useSellerData";
 import type { SellerTab } from "./SellerDashboard";
 
-const dayKey = (d: Date | string) =>
-  new Date(d).toLocaleDateString("sv-SE", { timeZone: "America/Rio_Branco" });
+const TZ = "America/Rio_Branco";
+const dayKey = (d: Date | string) => new Date(d).toLocaleDateString("sv-SE", { timeZone: TZ });
+
+const greetingFor = (date: Date) => {
+  const hour = Number(
+    new Intl.DateTimeFormat("pt-BR", { timeZone: TZ, hour: "numeric", hour12: false }).format(date),
+  );
+  if (hour < 12) return "Bom dia";
+  if (hour < 18) return "Boa tarde";
+  return "Boa noite";
+};
 
 export function SellerOverview({
   vendor,
@@ -83,13 +95,21 @@ export function SellerOverview({
     };
   }, [data, now]);
   const max = Math.max(1, ...s.series.map((x) => x.v));
+  const last14 = s.series.reduce((a, x) => a + x.v, 0);
+  const current = new Date(now);
+  const dateLabel = new Intl.DateTimeFormat("pt-BR", {
+    timeZone: TZ,
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+  }).format(current);
 
   const kpis = [
     {
       icon: CircleDollarSign,
       label: "Vendido hoje",
       value: money(s.todayValue),
-      hint: `${s.todayCount} ${s.todayCount === 1 ? "pedido" : "pedidos"}`,
+      hint: `${s.todayCount} ${s.todayCount === 1 ? "pedido" : "pedidos"} hoje`,
     },
     {
       icon: TrendingUp,
@@ -108,32 +128,68 @@ export function SellerOverview({
       icon: Receipt,
       label: "Ticket médio",
       value: money(s.avg),
-      hint: `contribuição NextVita ${money(s.commission)}`,
+      hint: `comissão NextVita ${money(s.commission)}`,
     },
   ];
 
   return (
-    <div className="grid gap-4">
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+    <div className="grid gap-5">
+      {/* Cabeçalho da visão geral */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold capitalize text-muted-foreground">{dateLabel}</p>
+          <h2 className="mt-1 font-display text-2xl font-extrabold tracking-tight sm:text-3xl">
+            {greetingFor(current)}, {vendor.name.split(/\s+/)[0]}
+          </h2>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => go("produtos")}
+            className="inline-flex h-10 items-center gap-2 rounded-xl border border-border bg-card px-3.5 text-sm font-semibold transition hover:bg-muted"
+          >
+            <Plus size={15} /> Produto
+          </button>
+          <button
+            type="button"
+            onClick={() => go("pedidos")}
+            className="inline-flex h-10 items-center gap-2 rounded-xl px-3.5 text-sm font-semibold text-white shadow-sm transition hover:brightness-110"
+            style={{ background: "var(--accent-store)" }}
+          >
+            <ShoppingBag size={15} /> Ver pedidos
+          </button>
+        </div>
+      </div>
+
+      {/* Indicadores principais */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {kpis.map((k) => (
-          <div key={k.label} className="rounded-2xl border border-border bg-card p-4">
-            <p className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+          <div
+            key={k.label}
+            className="relative overflow-hidden rounded-2xl border border-border bg-card p-4 sm:p-5"
+          >
+            <span
+              aria-hidden
+              className="absolute inset-x-0 top-0 h-1"
+              style={{ background: "var(--accent-store)" }}
+            />
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs font-semibold text-muted-foreground">{k.label}</p>
               <span
-                className="grid size-7 place-items-center rounded-lg"
+                className="grid size-8 place-items-center rounded-lg"
                 style={{
-                  background: `color-mix(in srgb, var(--accent-store) 14%, transparent)`,
+                  background: "color-mix(in srgb, var(--accent-store) 14%, transparent)",
                   color: "var(--accent-store)",
                 }}
               >
-                <k.icon size={15} />
+                <k.icon size={16} />
               </span>
-              {k.label}
-            </p>
-            <p className="mt-2 font-display text-xl font-extrabold tabular-nums sm:text-2xl">
+            </div>
+            <p className="mt-3 font-display text-2xl font-extrabold tabular-nums sm:text-3xl">
               {k.value}
             </p>
             <p
-              className={`mt-0.5 text-[11.5px] ${k.warn ? "font-semibold text-rose-600 dark:text-rose-300" : "text-muted-foreground"}`}
+              className={`mt-1 text-xs ${k.warn ? "font-semibold text-rose-600 dark:text-rose-300" : "text-muted-foreground"}`}
             >
               {k.hint}
             </p>
@@ -141,23 +197,28 @@ export function SellerOverview({
         ))}
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+      {/* Vendas e pendências */}
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <Panel
           title="Vendas dos últimos 14 dias"
-          action={<span className="text-xs text-muted-foreground">pedidos pagos</span>}
+          action={
+            <span className="text-xs tabular-nums text-muted-foreground">
+              total {money(last14)}
+            </span>
+          }
         >
           <div
-            className="flex h-44 items-end gap-1.5 px-4 pb-3 pt-5"
+            className="flex h-72 items-end gap-2 px-5 pb-4 pt-8 sm:h-80"
             role="img"
             aria-label="Gráfico de vendas por dia"
           >
             {s.series.map((x, i) => (
               <div key={x.d} className="group relative flex h-full flex-1 flex-col justify-end">
-                <span className="pointer-events-none absolute -top-1 left-1/2 z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-md bg-foreground px-1.5 py-0.5 text-[11px] font-semibold text-background opacity-0 transition group-hover:opacity-100">
+                <span className="pointer-events-none absolute -top-1 left-1/2 z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-[11px] font-semibold text-background opacity-0 transition group-hover:opacity-100">
                   {money(x.v)}
                 </span>
                 <span
-                  className="nv-bar block w-full rounded-t-[4px] transition-[filter] group-hover:brightness-110"
+                  className="nv-bar block w-full rounded-t-md transition-[filter] group-hover:brightness-110"
                   style={{
                     height: `${Math.max(2, (x.v / max) * 100)}%`,
                     background: x.v
@@ -166,7 +227,7 @@ export function SellerOverview({
                     animationDelay: `${i * 30}ms`,
                   }}
                 />
-                <span className="mt-1 text-center text-[11px] tabular-nums text-muted-foreground">
+                <span className="mt-2 text-center text-[11px] tabular-nums text-muted-foreground">
                   {x.d.slice(8)}
                 </span>
               </div>
@@ -187,14 +248,14 @@ export function SellerOverview({
           }
         >
           <ul className="divide-y divide-border">
-            {s.open.slice(0, 5).map((o) => (
-              <li key={o.id} className="flex items-center gap-3 px-4 py-2.5">
+            {s.open.slice(0, 6).map((o) => (
+              <li key={o.id} className="flex items-center gap-3 px-4 py-3">
                 <span className="w-12 shrink-0 font-mono text-xs font-bold text-muted-foreground">
                   #{o.order_number}
                 </span>
                 <span className="min-w-0 flex-1">
                   <strong className="block truncate text-[13px]">{o.customer_name}</strong>
-                  <span className="flex flex-wrap items-center gap-1.5">
+                  <span className="mt-0.5 flex flex-wrap items-center gap-1.5">
                     <StatusBadge status={o.status} />
                     <DeadlineChip order={o} now={now} />
                   </span>
@@ -203,7 +264,8 @@ export function SellerOverview({
               </li>
             ))}
             {!s.open.length && (
-              <li className="px-4 py-8 text-center text-sm text-muted-foreground">
+              <li className="flex flex-col items-center gap-2 px-4 py-10 text-center text-sm text-muted-foreground">
+                <BadgeCheck size={22} className="text-emerald-500" />
                 Nenhum pedido em aberto agora.
               </li>
             )}
@@ -211,7 +273,8 @@ export function SellerOverview({
         </Panel>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      {/* Estoque, mensagens e situação da loja */}
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <Panel
           title={
             <span className="flex items-center gap-2">
@@ -230,7 +293,7 @@ export function SellerOverview({
         >
           <ul className="divide-y divide-border">
             {s.low.slice(0, 5).map((p) => (
-              <li key={p.id} className="flex items-center gap-3 px-4 py-2">
+              <li key={p.id} className="flex items-center gap-3 px-4 py-2.5">
                 {p.image_url ? (
                   <img
                     src={p.image_url}
@@ -251,12 +314,13 @@ export function SellerOverview({
               </li>
             ))}
             {!s.low.length && (
-              <li className="px-4 py-6 text-center text-sm text-muted-foreground">
-                Estoque em dia.
+              <li className="flex items-center justify-center gap-2 px-4 py-8 text-sm text-muted-foreground">
+                <Boxes size={14} /> Estoque em dia.
               </li>
             )}
           </ul>
         </Panel>
+
         <Panel
           title={
             <span className="flex items-center gap-2">
@@ -289,13 +353,39 @@ export function SellerOverview({
               </li>
             ))}
             {!s.unread.length && (
-              <li className="flex items-center justify-center gap-2 px-4 py-6 text-sm text-muted-foreground">
+              <li className="flex items-center justify-center gap-2 px-4 py-8 text-sm text-muted-foreground">
                 <Clock3 size={14} /> Nenhuma mensagem esperando resposta.
               </li>
             )}
           </ul>
         </Panel>
+
+        <Panel title="Situação da loja" className="md:col-span-2 xl:col-span-1">
+          <dl className="grid gap-3 p-4 text-sm">
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-muted-foreground">Plano</dt>
+              <dd className="font-semibold">{PLANS[vendor.plan].label}</dd>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-muted-foreground">Comissão NextVita (mês)</dt>
+              <dd className="font-semibold tabular-nums">{money(s.commission)}</dd>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-muted-foreground">Líquido (mês)</dt>
+              <dd className="font-semibold tabular-nums">{money(s.net)}</dd>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-muted-foreground">Pedidos atrasados</dt>
+              <dd
+                className={`font-semibold tabular-nums ${s.late.length ? "text-rose-600 dark:text-rose-300" : ""}`}
+              >
+                {s.late.length}
+              </dd>
+            </div>
+          </dl>
+        </Panel>
       </div>
+
       {vendor.status !== "ativo" && (
         <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm">
           {vendor.status === "pendente"

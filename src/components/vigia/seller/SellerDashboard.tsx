@@ -145,7 +145,10 @@ export function SellerDashboard({
     .toUpperCase();
 
   return (
-    <div className="grid gap-4" style={{ "--accent-store": accent } as CSSProperties}>
+    <div
+      className="flex min-h-full w-full flex-col gap-4"
+      style={{ "--accent-store": accent } as CSSProperties}
+    >
       <ChatToastHost />
       <header
         className="nv-dark relative isolate overflow-hidden rounded-2xl text-white"
@@ -258,10 +261,10 @@ export function SellerDashboard({
         </div>
       </header>
 
-      <div className="grid gap-4 lg:grid-cols-[13.5rem_minmax(0,1fr)]">
+      <div className="grid flex-1 gap-4 lg:grid-cols-[15rem_minmax(0,1fr)]">
         <nav
           aria-label="Painel da loja"
-          className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] lg:sticky lg:top-2 lg:mx-0 lg:flex-col lg:self-start lg:overflow-visible lg:rounded-2xl lg:border lg:border-border lg:bg-card lg:p-2"
+          className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] lg:sticky lg:top-2 lg:mx-0 lg:flex-col lg:self-start lg:overflow-visible lg:rounded-2xl lg:border lg:border-border lg:bg-card lg:p-3"
         >
           {nav.map((n) => {
             const on = tab === n.key;
@@ -287,7 +290,7 @@ export function SellerDashboard({
           })}
         </nav>
 
-        <main className="min-w-0">
+        <main className="flex min-w-0 flex-col">
           {error && (
             <p
               role="alert"
@@ -304,7 +307,7 @@ export function SellerDashboard({
               <Loader2 size={16} className="animate-spin" /> Carregando a loja…
             </p>
           ) : (
-            <div key={`${vendor.id}-${tab}`} className="nv-fade-in">
+            <div key={`${vendor.id}-${tab}`} className="nv-fade-in flex-1">
               {tab === "visao" && <SellerOverview vendor={vendor} data={data} go={setTab} />}
               {tab === "pedidos" && (
                 <SellerOrders
