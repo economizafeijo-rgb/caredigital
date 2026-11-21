@@ -290,6 +290,7 @@ export type ChatMessage = {
   read_at: string | null;
   created_at: string;
   deleted_at?: string | null;
+  is_system?: boolean;
 };
 export const PAYMENT_LABEL: Record<string, string> = {
   pix: "Pix",
@@ -297,8 +298,7 @@ export const PAYMENT_LABEL: Record<string, string> = {
   boleto: "Boleto",
   dinheiro: "Dinheiro",
 };
-export const storeUrl = (slug: string) =>
-  `https://nextvita.life/${encodeURIComponent(slug)}`;
+export const storeUrl = (slug: string) => `https://nextvita.life/${encodeURIComponent(slug)}`;
 export const orderUrl = (id: string) =>
   `https://nextvita.life/loja?pedido=${encodeURIComponent(id)}`;
 /** Tempo restante (ms) até o prazo prometido; negativo quando atrasado. */

@@ -22,6 +22,7 @@ import {
 import { playSound } from "@/lib/chat-sound";
 import { SoundToggle } from "../chat/ChatToasts";
 import { AvailabilityToggle } from "./AvailabilityToggle";
+import { precheckMessage } from "@/lib/store-moderation";
 import { supabase } from "@/integrations/supabase/client";
 import type { ChatMessage, Vendor } from "@/lib/marketplace";
 
@@ -156,6 +157,15 @@ export function SellerChat({
     if (!active || !body.trim()) return;
     const bad = validateChatText(body);
     if (bad) return setErr(bad);
+    // Moderação no servidor também para as mensagens da loja. O texto continua no campo se for recusado.
+    try {
+      const verdict = await precheckMessage(vendor.id, body.trim());
+      if (!verdict.ok) return setErr(verdict.message);
+    } catch (e) {
+      return setErr(
+        e instanceof Error ? e.message : "Não foi possível enviar agora. Tente de novo.",
+      );
+    }
     const { error } = await (supabase as any)
       .from("care_store_messages")
       .insert({ vendor_id: vendor.id, customer_id: active, from_vendor: true, body: body.trim() });

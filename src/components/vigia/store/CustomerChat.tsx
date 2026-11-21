@@ -17,9 +17,11 @@ import {
   joinStoreQueue,
   leaveStoreQueue,
   useStoreStatus,
+  continueChat,
   type QueuePosition,
 } from "@/lib/store-presence";
 import { QueueCard } from "./QueueCard";
+import { precheckMessage } from "@/lib/store-moderation";
 
 type Queue = {
   state: "livre" | "atendimento" | "fila" | "vez";
@@ -194,6 +196,15 @@ export function CustomerChat({
       return setErr("A loja está offline agora. Tente de novo mais tarde.");
     const bad = validateChatText(text);
     if (bad) return setErr(bad);
+    // Moderação no servidor antes de salvar. Em caso de recusa, o rascunho fica no campo para editar.
+    try {
+      const verdict = await precheckMessage(vendor.id, text.trim());
+      if (!verdict.ok) return setErr(verdict.message);
+    } catch (e) {
+      return setErr(
+        e instanceof Error ? e.message : "Não foi possível enviar agora. Tente de novo.",
+      );
+    }
     // Entra na fila no servidor (ou é atendido na hora, se houver vaga). Sem atendente, não entra.
     try {
       setMyQueue(await joinStoreQueue(vendor.id));
@@ -328,6 +339,31 @@ export function CustomerChat({
               ))}
               <div ref={end} />
             </div>
+            {(() => {
+              const last = msgs[msgs.length - 1];
+              const waiting = !!last?.is_system && last.body.startsWith("Você ainda está por aqui");
+              const warned =
+                !!last?.is_system && last.body.startsWith("Seu atendimento será encerrado");
+              if (!waiting && !warned) return null;
+              return (
+                <div className="flex items-center justify-between gap-2 border-t border-border bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+                  <span role="status">{last.body}</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void continueChat(vendor.id)
+                        .then(load)
+                        .catch((e: unknown) =>
+                          setErr(e instanceof Error ? e.message : "Não foi possível continuar."),
+                        )
+                    }
+                    className="shrink-0 rounded-md bg-slate-950 px-3 py-1.5 font-bold text-white"
+                  >
+                    Continuar atendimento
+                  </button>
+                </div>
+              );
+            })()}
             <form onSubmit={send} className="flex gap-2 border-t border-border p-3">
               <input
                 value={text}

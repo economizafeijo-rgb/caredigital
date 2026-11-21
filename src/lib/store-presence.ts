@@ -126,3 +126,9 @@ export function useStoreStatus(vendorId: string | null | undefined, intervalMs =
 
   return { status, error, loading, refresh };
 }
+
+/** Cliente toca "Continuar atendimento": renova o prazo de inatividade (não é sinal de conexão). */
+export async function continueChat(vendorId: string): Promise<void> {
+  const { error } = await rpc("care_store_customer_ping", { p_vendor: vendorId });
+  if (error) throw new Error(error.message);
+}
