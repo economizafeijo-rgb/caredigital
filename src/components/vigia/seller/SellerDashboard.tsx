@@ -385,7 +385,9 @@ export function SellerDashboard({
             </p>
           ) : (
             <div key={`${vendor.id}-${tab}`} className="nv-fade-in flex min-h-0 flex-1 flex-col">
-              {tab === "visao" && <SellerOverview vendor={vendor} data={data} go={setTab} />}
+              {tab === "visao" && (
+                <SellerOverview vendor={vendor} data={data} go={setTab} onChanged={refresh} />
+              )}
               {tab === "pedidos" && (
                 <SellerOrders
                   vendor={vendor}

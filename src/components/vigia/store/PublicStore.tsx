@@ -11,7 +11,6 @@ import {
   ArrowLeft,
   BadgeCheck,
   CheckCircle2,
-  Clock,
   Loader2,
   MapPin,
   MessageCircle,
@@ -40,6 +39,7 @@ import {
   socialLinks,
 } from "../seller/shared";
 import { CustomerChat } from "./CustomerChat";
+import { StoreStatusChip } from "./StoreLed";
 import { useVCart, vcart } from "./vendorCart";
 import { STORE_LIVE } from "@/lib/store";
 
@@ -198,12 +198,14 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
                   <MapPin size={13} /> {vendor.address}
                 </span>
               )}
-              {vendor.opening_hours && (
-                <span className="inline-flex items-center gap-1">
-                  <Clock size={13} /> {vendor.opening_hours}
-                </span>
-              )}
             </p>
+            <div className="mt-3">
+              <StoreStatusChip
+                open={!!vendor.is_open && vendor.status === "ativo"}
+                hours={vendor.opening_hours}
+                dark
+              />
+            </div>
             <div className="mt-5 flex flex-wrap gap-2">
               <button
                 type="button"

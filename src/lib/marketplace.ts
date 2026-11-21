@@ -190,6 +190,8 @@ export type Vendor = {
   accent_hex?: string | null;
   banner_url?: string | null;
   opening_hours?: string | null;
+  is_open?: boolean;
+  opened_at?: string | null;
   prep_minutes?: number;
   delivery_minutes?: number;
   is_demo?: boolean;

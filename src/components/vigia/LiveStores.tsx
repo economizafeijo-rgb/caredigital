@@ -3,10 +3,19 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, BadgeCheck, ShoppingBag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { money, productStatus, type VendorProduct, type Vendor } from "@/lib/marketplace";
+import { StoreLed } from "./store/StoreLed";
 
 type LiveVendor = Pick<
   Vendor,
-  "id" | "name" | "slug" | "city" | "accent_hex" | "logo_url" | "verified"
+  | "id"
+  | "name"
+  | "slug"
+  | "city"
+  | "accent_hex"
+  | "logo_url"
+  | "verified"
+  | "is_open"
+  | "opening_hours"
 >;
 type LiveItem = VendorProduct & { vendor: LiveVendor };
 
@@ -20,7 +29,7 @@ export function useLiveStores() {
     void (async () => {
       const { data: vs } = await db
         .from("care_store_vendors")
-        .select("id,name,slug,city,accent_hex,logo_url,verified")
+        .select("id,name,slug,city,accent_hex,logo_url,verified,is_open,opening_hours")
         .eq("status", "ativo")
         .order("name")
         .limit(100);
@@ -91,12 +100,16 @@ export function LiveProductRail({
                 search={{ loja: v.slug } as never}
                 className="inline-flex items-center gap-1.5 border border-border px-2.5 py-1 text-xs font-semibold hover:bg-muted"
               >
+                <StoreLed open={!!v.is_open} />
                 <span
                   className="size-2.5"
                   style={{ background: v.accent_hex ?? "#0e7a5f" }}
                   aria-hidden="true"
                 />
                 {v.name}
+                {v.opening_hours && (
+                  <span className="font-medium text-muted-foreground">· {v.opening_hours}</span>
+                )}
                 {v.verified && (
                   <BadgeCheck size={12} className="text-sky-600" aria-label="Loja verificada" />
                 )}

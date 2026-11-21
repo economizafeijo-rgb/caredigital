@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { COUNTED, PLANS, money, type Vendor } from "@/lib/marketplace";
 import { DeadlineChip, Panel, StatusBadge, useNow } from "./shared";
+import { SellerOpenToggle } from "./SellerOpenToggle";
 import type { SellerData } from "./useSellerData";
 import type { SellerTab } from "./SellerDashboard";
 
@@ -34,10 +35,12 @@ export function SellerOverview({
   vendor,
   data,
   go,
+  onChanged,
 }: {
   vendor: Vendor;
   data: SellerData;
   go: (t: SellerTab) => void;
+  onChanged: () => void;
 }) {
   const now = useNow();
   const s = useMemo(() => {
@@ -134,6 +137,8 @@ export function SellerOverview({
 
   return (
     <div className="grid gap-5">
+      <SellerOpenToggle vendor={vendor} onChanged={onChanged} />
+
       {/* Cabeçalho da visão geral */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
