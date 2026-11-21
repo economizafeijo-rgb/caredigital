@@ -539,6 +539,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const profile = access.status === "loading" ? "public" : access.status;
   const signedIn = profile !== "public";
   const internalPage = signedIn && location.pathname !== "/";
+  // Painel do lojista tem navegação própria: a lateral global não aparece nele.
+  const lojistaArea = location.pathname.startsWith("/lojista");
   const groups = navByProfile[profile];
   const items = groups.flatMap((group) => group.items);
   const currentHash =
@@ -700,7 +702,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <HydrationProvider>
         <ProductQuickViewHost />
         <div className="care-shell flex h-dvh min-h-0 overflow-hidden bg-background text-foreground">
-          {internalPage && !fullScreen && (
+          {internalPage && !fullScreen && !lojistaArea && (
             <div
               className={`relative hidden shrink-0 transition-[width] duration-300 ease-out xl:block ${fullScreen ? "w-0" : sidebarPinned ? "w-60" : "w-14"}`}
             >
@@ -776,7 +778,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     onClick={() => setMenuOpen(true)}
                     aria-label="Abrir menu"
                     aria-expanded={menuOpen}
-                    className={`${iconButton} xl:hidden`}
+                    className={`${iconButton} ${lojistaArea ? "hidden" : "xl:hidden"}`}
                   >
                     <Menu size={18} />
                   </button>
