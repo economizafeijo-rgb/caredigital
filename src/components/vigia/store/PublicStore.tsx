@@ -210,7 +210,7 @@ function PublicStore({
           aria-hidden
           className="absolute inset-0 -z-10 opacity-[.06] [background-image:radial-gradient(#fff_1px,transparent_1px)] [background-size:18px_18px]"
         />
-        <div className="grid items-center gap-5 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-10 lg:p-6">
+        <div className="grid items-center gap-5 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-10 lg:p-5">
           <div className="min-w-0">
             <div className="flex items-center gap-4">
               <span
@@ -280,21 +280,15 @@ function PublicStore({
               </button>
             </div>
           </div>
-          <div className="mx-auto w-full max-w-[13.5rem] lg:mx-0">
+          <div className="mx-auto w-full max-w-[21rem] lg:mx-0">
             <div
-              className="rounded-3xl border-t-[6px] bg-white p-4 text-slate-900 shadow-[0_28px_60px_-22px_rgba(0,0,0,.75)] ring-4 ring-white/15"
-              style={{ borderTopColor: accent }}
+              className="flex items-center gap-4 rounded-2xl border-l-[6px] bg-white p-3 text-slate-900 shadow-[0_20px_44px_-22px_rgba(0,0,0,.75)] ring-4 ring-white/15"
+              style={{ borderLeftColor: accent }}
             >
-              <p className="text-center font-display text-[15px] font-extrabold leading-tight">
-                Escaneie e abra a loja
-              </p>
-              <p className="mt-0.5 text-center text-xs text-slate-500">
-                Aponte a câmera do celular
-              </p>
-              <div className="mx-auto mt-3 w-fit rounded-2xl p-1.5 ring-1 ring-slate-200">
+              <div className="shrink-0 rounded-xl p-1 ring-1 ring-slate-200">
                 <QrImage
                   text={storeUrl}
-                  size={140}
+                  size={104}
                   label={`QR Code da loja ${vendor.name}`}
                   badge={{
                     initials: ini(vendor.name),
@@ -303,16 +297,21 @@ function PublicStore({
                   }}
                 />
               </div>
-              <p className="mt-2.5 truncate text-center font-mono text-[11px] text-slate-500">
-                {storeUrl.replace("https://", "")}
-              </p>
-              <button
-                type="button"
-                onClick={() => void downloadQrPng(storeUrl, `qr-${vendor.slug}.png`)}
-                className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-slate-900 text-[13px] font-bold text-white transition hover:bg-slate-800 active:scale-[.98] motion-reduce:active:scale-100"
-              >
-                <Download size={15} aria-hidden="true" /> Baixar QR Code
-              </button>
+              <div className="min-w-0 flex-1">
+                <p className="font-display text-[14px] font-extrabold leading-tight">
+                  Escaneie e abra a loja
+                </p>
+                <p className="mt-0.5 truncate font-mono text-[11px] text-slate-500">
+                  {storeUrl.replace("https://", "")}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void downloadQrPng(storeUrl, `qr-${vendor.slug}.png`)}
+                  className="mt-2 inline-flex h-8 items-center justify-center gap-1.5 rounded-lg bg-slate-900 px-3 text-[12px] font-bold text-white transition hover:bg-slate-800 active:scale-[.98] motion-reduce:active:scale-100"
+                >
+                  <Download size={13} aria-hidden="true" /> Baixar QR Code
+                </button>
+              </div>
             </div>
           </div>
         </div>
