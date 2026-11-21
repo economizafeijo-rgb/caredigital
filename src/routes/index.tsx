@@ -5,24 +5,16 @@ import {
   Activity,
   BarChart3,
   BedDouble,
-  CalendarCheck,
-  Clock3,
   Droplets,
-  Gift,
   HeartPulse,
-  LayoutDashboard,
-  LockKeyhole,
   Pill,
   Scale,
-  ShieldCheck,
   Sparkles,
   Utensils,
   ArrowUpRight,
 } from "lucide-react";
 import { useAccess } from "@/lib/use-access";
-import { LiveModeLauncher } from "@/components/vigia/LiveMode";
-import { HomeStore } from "@/components/vigia/HomeStore";
-import { SmartBanner, ToolDemo } from "@/components/vigia/SmartBanner";
+import { HomeBenefits, HomeHero, HomeMarketplace } from "@/components/vigia/HomeMarketplace";
 import { AppShowcase } from "@/components/vigia/AppShowcase";
 import { QrEnlarge } from "@/components/vigia/QrEnlarge";
 import { InstallAppButton } from "@/components/vigia/InstallApp";
@@ -167,7 +159,7 @@ function Homepage() {
   return (
     <>
       <HomeSideArt />
-      <div className="relative z-10 mx-auto flex w-full flex-col gap-4 lg:gap-5 min-[1280px]:px-[1.75rem]">
+      <div className="relative z-10 mx-auto flex w-full flex-col gap-6 max-sm:px-3 sm:max-lg:px-4 lg:gap-8 min-[1280px]:px-[1.75rem]">
         {status === "unlinked" && (
           <p
             role="status"
@@ -178,152 +170,76 @@ function Homepage() {
           </p>
         )}
 
-        <SmartBanner
-          intro={{
-            id: "intro",
-            kicker: "NextVita",
-            chapter: "A plataforma",
-            title: "",
-            text: "",
-            cta: "",
-            to: "/entrar",
-            images: [],
-            bg: "/images/show-treinos.webp",
-            tone: "from-[#041f1d] via-[#0a3f39] to-[#0e6b5c]",
-            custom: (
-              <>
-                <h1
-                  id="home-title"
-                  style={{ animationDelay: "60ms" }}
-                  className="nv-rise text-balance font-display text-[1.75rem] font-extrabold leading-[1.05] tracking-tight min-[400px]:text-[2rem] sm:text-[2.4rem] xl:text-[2.9rem]"
-                >
-                  {client
-                    ? `Olá, ${firstName}. Sua evolução em um só lugar.`
-                    : "Sua rotina de bem-estar, organizada em um só lugar."}
-                </h1>
-                <p
-                  style={{ animationDelay: "300ms" }}
-                  className="nv-rise mt-2.5 max-w-[46ch] text-sm leading-relaxed text-slate-200 sm:text-base"
-                >
-                  {client
-                    ? "Acompanhe métricas, hidratação, alimentação, suplementos e sono ao longo do tempo."
-                    : "Nutrição, hidratação, peso, suplementos e hábitos com horários, lembretes e registros confiáveis."}
-                </p>
-                <div
-                  style={{ animationDelay: "450ms" }}
-                  className="nv-rise mt-4 flex flex-wrap gap-2"
-                >
-                  {panel ? (
-                    <>
-                      <Link
-                        to={panel}
-                        className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-400 px-5 text-sm font-bold text-slate-950 hover:bg-emerald-300"
-                      >
-                        <LayoutDashboard size={16} aria-hidden="true" /> Abrir meu painel
-                      </Link>
-                      {client && <LiveModeLauncher className="!h-11 !px-4 !text-sm" />}
-                    </>
-                  ) : (
-                    <>
-                      <a
-                        href="/entrar?mode=signup"
-                        className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-400 px-5 text-sm font-bold text-slate-950 hover:bg-emerald-300"
-                      >
-                        <Gift size={16} aria-hidden="true" /> Criar conta grátis
-                      </a>
-                      <Link
-                        to="/entrar"
-                        className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/30 bg-white/5 px-5 text-sm font-semibold text-white backdrop-blur hover:bg-white/15"
-                      >
-                        <LockKeyhole size={16} aria-hidden="true" /> Entrar
-                      </Link>
-                    </>
-                  )}
-                </div>
-                <ul
-                  style={{ animationDelay: "600ms" }}
-                  className="nv-rise mt-4 hidden flex-wrap gap-x-4 gap-y-1.5 text-[13px] text-slate-200 min-[400px]:flex"
-                >
-                  <li className="inline-flex items-center gap-1.5">
-                    <CalendarCheck size={14} aria-hidden="true" /> Rotina por horários
-                  </li>
-                  <li className="inline-flex items-center gap-1.5">
-                    <Clock3 size={14} aria-hidden="true" /> Registro com hora real
-                  </li>
-                  <li className="inline-flex items-center gap-1.5">
-                    <ShieldCheck size={14} aria-hidden="true" /> Dados protegidos
-                  </li>
-                </ul>
-              </>
-            ),
-            art: (
-              <div className="relative hidden pr-6 sm:block">
-                <div className="nv-float">
-                  <ToolDemo kind="agua" />
-                </div>
-                <div
-                  className="nv-float absolute -bottom-14 -left-24 hidden lg:block"
-                  style={{ animationDelay: "1.4s" }}
-                >
-                  <ToolDemo kind="medicacao" />
-                </div>
-              </div>
-            ),
-          }}
-        />
+        <HomeHero client={client} panel={panel} firstName={firstName} />
 
-        <nav
-          aria-label="Áreas da plataforma"
-          className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-9"
-        >
-          {areas.map((a) => (
-            <a
-              key={a.to}
-              href={client ? a.client : a.to}
-              style={{ "--tile": a.color } as React.CSSProperties}
-              className="nv-area group relative flex min-w-0 items-center gap-2.5 overflow-hidden border border-border bg-card py-2.5 pl-3.5 pr-2.5 transition-[border-color,background-color,transform] duration-200 active:translate-y-px xl:flex-col xl:items-start xl:gap-3 xl:pb-3 xl:pt-3.5"
-            >
-              <span
-                aria-hidden="true"
-                className="nv-area-bar absolute inset-y-0 left-0 w-[3px]"
-                style={{ background: a.color }}
-              />
-              <span
-                className="nv-area-icon grid size-9 shrink-0 place-items-center border transition-colors duration-200"
-                style={{
-                  color: a.color,
-                  borderColor: `color-mix(in srgb, ${a.color} 35%, transparent)`,
-                  background: `color-mix(in srgb, ${a.color} 10%, transparent)`,
-                }}
-              >
-                <a.icon size={18} strokeWidth={2} aria-hidden="true" />
-              </span>
-              <span className="flex min-w-0 flex-1 flex-col leading-tight">
-                <span className="truncate text-[13px] font-bold">{a.label}</span>
-                <span className="mt-0.5 truncate text-[11px] font-medium text-muted-foreground">
-                  {a.hint}
-                </span>
-              </span>
-              <ArrowUpRight
-                size={14}
-                aria-hidden="true"
-                className="nv-area-go shrink-0 text-muted-foreground xl:absolute xl:right-2 xl:top-2"
-              />
-            </a>
-          ))}
-        </nav>
-
-        <HomeStore />
-
-        {!client && <AppShowcase />}
-
-        <PartnerCommercial />
+        <HomeBenefits />
 
         {client && (
           <div className="rounded-2xl bg-gradient-to-br from-indigo-950 to-slate-900 p-1">
             <HomeNextCareCard panel="/cliente" />
           </div>
         )}
+
+        <HomeMarketplace />
+
+        <section aria-labelledby="tools-title" className="grid gap-3">
+          <div>
+            <h2
+              id="tools-title"
+              className="font-display text-xl font-extrabold tracking-tight sm:text-2xl"
+            >
+              Seu app de rotina, grátis
+            </h2>
+            <p className="mt-0.5 text-[13px] text-muted-foreground sm:text-sm">
+              Lembretes, registros e gráficos para o dia a dia de saúde.
+            </p>
+          </div>
+          <nav
+            aria-label="Áreas da plataforma"
+            className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-9"
+          >
+            {areas.map((a) => (
+              <a
+                key={a.to}
+                href={client ? a.client : a.to}
+                style={{ "--tile": a.color } as React.CSSProperties}
+                className="nv-area group relative flex min-w-0 items-center gap-2.5 overflow-hidden border border-border bg-card py-2.5 pl-3.5 pr-2.5 transition-[border-color,background-color,transform] duration-200 active:translate-y-px xl:flex-col xl:items-start xl:gap-3 xl:pb-3 xl:pt-3.5"
+              >
+                <span
+                  aria-hidden="true"
+                  className="nv-area-bar absolute inset-y-0 left-0 w-[3px]"
+                  style={{ background: a.color }}
+                />
+                <span
+                  className="nv-area-icon grid size-9 shrink-0 place-items-center border transition-colors duration-200"
+                  style={{
+                    color: a.color,
+                    borderColor: `color-mix(in srgb, ${a.color} 35%, transparent)`,
+                    background: `color-mix(in srgb, ${a.color} 10%, transparent)`,
+                  }}
+                >
+                  <a.icon size={18} strokeWidth={2} aria-hidden="true" />
+                </span>
+                <span className="flex min-w-0 flex-1 flex-col leading-tight">
+                  <span className="truncate text-[13px] font-bold">{a.label}</span>
+                  <span className="mt-0.5 truncate text-[11px] font-medium text-muted-foreground">
+                    {a.hint}
+                  </span>
+                </span>
+                <ArrowUpRight
+                  size={14}
+                  aria-hidden="true"
+                  className="nv-area-go shrink-0 text-muted-foreground xl:absolute xl:right-2 xl:top-2"
+                />
+              </a>
+            ))}
+          </nav>
+        </section>
+
+        {!client && <AppShowcase />}
+
+        <PartnerCommercial />
+
         {client && <HomeModalityTimers />}
 
         <footer className="mt-1 border border-border bg-card">

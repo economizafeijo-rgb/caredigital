@@ -21,13 +21,13 @@ import { Route as LojaRouteImport } from './routes/loja'
 import { Route as LojistaRouteImport } from './routes/lojista'
 import { Route as MedicamentosRouteImport } from './routes/medicamentos'
 import { Route as MetricasRouteImport } from './routes/metricas'
+import { Route as NossosParceirosRouteImport } from './routes/nossos-parceiros'
 import { Route as NutricaoEsportivaRouteImport } from './routes/nutricao-esportiva'
 import { Route as PacientesRouteImport } from './routes/pacientes'
 import { Route as ParceirosRouteImport } from './routes/parceiros'
 import { Route as PesoRouteImport } from './routes/peso'
 import { Route as ProntuarioRouteImport } from './routes/prontuario'
 import { Route as ProtocolosRouteImport } from './routes/protocolos'
-import { Route as NossosParceirosRouteImport } from './routes/nossos-parceiros'
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as SonoRouteImport } from './routes/sono'
 import { Route as SuplementosRouteImport } from './routes/suplementos'
@@ -94,6 +94,11 @@ const MetricasRoute = MetricasRouteImport.update({
   path: '/metricas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NossosParceirosRoute = NossosParceirosRouteImport.update({
+  id: '/nossos-parceiros',
+  path: '/nossos-parceiros',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NutricaoEsportivaRoute = NutricaoEsportivaRouteImport.update({
   id: '/nutricao-esportiva',
   path: '/nutricao-esportiva',
@@ -122,11 +127,6 @@ const ProntuarioRoute = ProntuarioRouteImport.update({
 const ProtocolosRoute = ProtocolosRouteImport.update({
   id: '/protocolos',
   path: '/protocolos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NossosParceirosRoute = NossosParceirosRouteImport.update({
-  id: '/nossos-parceiros',
-  path: '/nossos-parceiros',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SobreRoute = SobreRouteImport.update({
@@ -168,13 +168,13 @@ export interface FileRoutesByFullPath {
   '/lojista': typeof LojistaRoute
   '/medicamentos': typeof MedicamentosRoute
   '/metricas': typeof MetricasRoute
+  '/nossos-parceiros': typeof NossosParceirosRoute
   '/nutricao-esportiva': typeof NutricaoEsportivaRoute
   '/pacientes': typeof PacientesRoute
   '/parceiros': typeof ParceirosRoute
   '/peso': typeof PesoRoute
   '/prontuario': typeof ProntuarioRoute
   '/protocolos': typeof ProtocolosRoute
-  '/nossos-parceiros': typeof NossosParceirosRoute
   '/sobre': typeof SobreRoute
   '/sono': typeof SonoRoute
   '/suplementos': typeof SuplementosRoute
@@ -194,13 +194,13 @@ export interface FileRoutesByTo {
   '/lojista': typeof LojistaRoute
   '/medicamentos': typeof MedicamentosRoute
   '/metricas': typeof MetricasRoute
+  '/nossos-parceiros': typeof NossosParceirosRoute
   '/nutricao-esportiva': typeof NutricaoEsportivaRoute
   '/pacientes': typeof PacientesRoute
   '/parceiros': typeof ParceirosRoute
   '/peso': typeof PesoRoute
   '/prontuario': typeof ProntuarioRoute
   '/protocolos': typeof ProtocolosRoute
-  '/nossos-parceiros': typeof NossosParceirosRoute
   '/sobre': typeof SobreRoute
   '/sono': typeof SonoRoute
   '/suplementos': typeof SuplementosRoute
@@ -221,13 +221,13 @@ export interface FileRoutesById {
   '/lojista': typeof LojistaRoute
   '/medicamentos': typeof MedicamentosRoute
   '/metricas': typeof MetricasRoute
+  '/nossos-parceiros': typeof NossosParceirosRoute
   '/nutricao-esportiva': typeof NutricaoEsportivaRoute
   '/pacientes': typeof PacientesRoute
   '/parceiros': typeof ParceirosRoute
   '/peso': typeof PesoRoute
   '/prontuario': typeof ProntuarioRoute
   '/protocolos': typeof ProtocolosRoute
-  '/nossos-parceiros': typeof NossosParceirosRoute
   '/sobre': typeof SobreRoute
   '/sono': typeof SonoRoute
   '/suplementos': typeof SuplementosRoute
@@ -249,13 +249,13 @@ export interface FileRouteTypes {
     | '/lojista'
     | '/medicamentos'
     | '/metricas'
+    | '/nossos-parceiros'
     | '/nutricao-esportiva'
     | '/pacientes'
     | '/parceiros'
     | '/peso'
     | '/prontuario'
     | '/protocolos'
-    | '/nossos-parceiros'
     | '/sobre'
     | '/sono'
     | '/suplementos'
@@ -275,13 +275,13 @@ export interface FileRouteTypes {
     | '/lojista'
     | '/medicamentos'
     | '/metricas'
+    | '/nossos-parceiros'
     | '/nutricao-esportiva'
     | '/pacientes'
     | '/parceiros'
     | '/peso'
     | '/prontuario'
     | '/protocolos'
-    | '/nossos-parceiros'
     | '/sobre'
     | '/sono'
     | '/suplementos'
@@ -301,13 +301,13 @@ export interface FileRouteTypes {
     | '/lojista'
     | '/medicamentos'
     | '/metricas'
+    | '/nossos-parceiros'
     | '/nutricao-esportiva'
     | '/pacientes'
     | '/parceiros'
     | '/peso'
     | '/prontuario'
     | '/protocolos'
-    | '/nossos-parceiros'
     | '/sobre'
     | '/sono'
     | '/suplementos'
@@ -328,13 +328,13 @@ export interface RootRouteChildren {
   LojistaRoute: typeof LojistaRoute
   MedicamentosRoute: typeof MedicamentosRoute
   MetricasRoute: typeof MetricasRoute
+  NossosParceirosRoute: typeof NossosParceirosRoute
   NutricaoEsportivaRoute: typeof NutricaoEsportivaRoute
   PacientesRoute: typeof PacientesRoute
   ParceirosRoute: typeof ParceirosRoute
   PesoRoute: typeof PesoRoute
   ProntuarioRoute: typeof ProntuarioRoute
   ProtocolosRoute: typeof ProtocolosRoute
-  NossosParceirosRoute: typeof NossosParceirosRoute
   SobreRoute: typeof SobreRoute
   SonoRoute: typeof SonoRoute
   SuplementosRoute: typeof SuplementosRoute
@@ -428,6 +428,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MetricasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/nossos-parceiros': {
+      id: '/nossos-parceiros'
+      path: '/nossos-parceiros'
+      fullPath: '/nossos-parceiros'
+      preLoaderRoute: typeof NossosParceirosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/nutricao-esportiva': {
       id: '/nutricao-esportiva'
       path: '/nutricao-esportiva'
@@ -468,13 +475,6 @@ declare module '@tanstack/react-router' {
       path: '/protocolos'
       fullPath: '/protocolos'
       preLoaderRoute: typeof ProtocolosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/nossos-parceiros': {
-      id: '/nossos-parceiros'
-      path: '/nossos-parceiros'
-      fullPath: '/nossos-parceiros'
-      preLoaderRoute: typeof NossosParceirosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sobre': {
@@ -528,13 +528,13 @@ const rootRouteChildren: RootRouteChildren = {
   LojistaRoute: LojistaRoute,
   MedicamentosRoute: MedicamentosRoute,
   MetricasRoute: MetricasRoute,
+  NossosParceirosRoute: NossosParceirosRoute,
   NutricaoEsportivaRoute: NutricaoEsportivaRoute,
   PacientesRoute: PacientesRoute,
   ParceirosRoute: ParceirosRoute,
   PesoRoute: PesoRoute,
   ProntuarioRoute: ProntuarioRoute,
   ProtocolosRoute: ProtocolosRoute,
-  NossosParceirosRoute: NossosParceirosRoute,
   SobreRoute: SobreRoute,
   SonoRoute: SonoRoute,
   SuplementosRoute: SuplementosRoute,
