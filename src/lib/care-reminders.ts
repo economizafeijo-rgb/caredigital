@@ -99,3 +99,20 @@ export const reminderMmSs = (timeMs: number) => {
   const seconds = Math.max(0, Math.ceil(timeMs / 1000));
   return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 };
+
+/** Refeição registrada até 30 min antes do horário previsto ainda responde o lembrete. */
+export const MEAL_MATCH_BEFORE_MS = 30 * 60 * 1000;
+
+/**
+ * Uma refeição avulsa (care_activity_log) registrada entre 30 min antes do horário
+ * previsto e o limite de 2 h do lembrete responde a tarefa de refeição. Não altera a tarefa.
+ */
+export function mealAnswersTask(task: ReminderTask, mealTimes: readonly number[]): boolean {
+  if (task.category !== "refeicao" || task.completed_at) return false;
+  const scheduled = Date.parse(task.scheduled_at);
+  if (!Number.isFinite(scheduled)) return false;
+  return mealTimes.some(
+    (time) =>
+      time >= scheduled - MEAL_MATCH_BEFORE_MS && time <= scheduled + CARE_RECENT_UNANSWERED_MS,
+  );
+}

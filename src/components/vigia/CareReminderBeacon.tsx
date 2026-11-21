@@ -4,6 +4,7 @@ import { CareClockAlert } from "./CareClockAlert";
 import { supabase } from "@/integrations/supabase/client";
 import {
   CARE_REMINDER_WINDOW_MS,
+  mealAnswersTask,
   reminderCategoryLabel,
   reminderClock,
   reminderMmSs,
@@ -179,6 +180,8 @@ export function CareReminderBeacon({
   const [dismissedClockIds, setDismissedClockIds] = useState<ReadonlySet<string>>(() => new Set());
   const [snoozedClock, setSnoozedClock] = useState<{ taskId: string; until: number } | null>(null);
   const [answeredTaskIds, setAnsweredTaskIds] = useState<ReadonlySet<string>>(() => new Set());
+  // Horários (ms) das refeições registradas avulsas nas últimas 26 h.
+  const [mealTimes, setMealTimes] = useState<number[]>([]);
   const [answersStatus, setAnswersStatus] = useState<"loading" | "ready" | "error">("loading");
   const [answersRevision, setAnswersRevision] = useState(0);
   const allTaskIdsKey = useMemo(
@@ -243,12 +246,14 @@ export function CareReminderBeacon({
     // Atualizações periódicas são silenciosas: mantém o aviso visível enquanto consulta.
     if (!patientId || !ownerId) {
       setAnsweredTaskIds(new Set());
+      setMealTimes([]);
       return () => {
         active = false;
       };
     }
     if (!allTaskIdsKey) {
       setAnsweredTaskIds(new Set());
+      setMealTimes([]);
       setAnswersStatus("ready");
       return () => {
         active = false;
@@ -257,7 +262,10 @@ export function CareReminderBeacon({
     void (async () => {
       // "Não bebi" is stored separately from completed_at. Query the
       // authorized, real response rows before deciding which tasks remain open.
-      const [waterResult, resolutionsResult] = await Promise.all([
+      // Refeição registrada avulsa (ClientQuickIntake) vai para care_activity_log,
+      // não para a tarefa agendada: é lida aqui para encerrar o lembrete.
+      const sinceMeals = new Date(Date.now() - 26 * 3_600_000).toISOString();
+      const [waterResult, resolutionsResult, mealsResult] = await Promise.all([
         waterIdsKey
           ? (supabase as any)
               .from("care_hydration_responses")
@@ -276,9 +284,19 @@ export function CareReminderBeacon({
           .in("task_id", allTaskIdsKey.split(","))
           .in("status", ["nao_cumprido", "cancelado"])
           .limit(120),
+        (supabase as any)
+          .from("care_activity_log")
+          .select("happened_at")
+          .eq("patient_id", patientId)
+          .eq("owner_id", ownerId)
+          .eq("category", "refeicao")
+          .eq("event_type", "logged")
+          .eq("source", "client_unscheduled_intake")
+          .gte("happened_at", sinceMeals)
+          .limit(120),
       ]);
       if (!active) return;
-      if (waterResult.error || resolutionsResult.error) {
+      if (waterResult.error || resolutionsResult.error || mealsResult.error) {
         // Fail closed: never claim "no confirmation" when patient responses
         // could not be read.
         setAnswersStatus("error");
@@ -290,15 +308,28 @@ export function CareReminderBeacon({
           ...(resolutionsResult.data ?? []).map((row: { task_id: string }) => row.task_id),
         ]),
       );
+      setMealTimes(
+        (mealsResult.data ?? [])
+          .map((row: { happened_at: string }) => Date.parse(row.happened_at))
+          .filter((time: number) => Number.isFinite(time)),
+      );
       setAnswersStatus("ready");
     })();
     return () => {
       active = false;
     };
   }, [patientId, ownerId, waterIdsKey, allTaskIdsKey, refreshKey, answersRevision]);
+  // Refeição avulsa registrada no horário do lembrete encerra o alerta sem alterar a tarefa.
+  const resolvedIds = useMemo(() => {
+    const ids = new Set<string>(answeredTaskIds);
+    for (const item of tasks) {
+      if (mealAnswersTask(item, mealTimes)) ids.add(item.id);
+    }
+    return ids;
+  }, [tasks, answeredTaskIds, mealTimes]);
   const summary = useMemo(
-    () => summarizeCareReminders(tasks, now, answeredTaskIds),
-    [tasks, now, answeredTaskIds],
+    () => summarizeCareReminders(tasks, now, resolvedIds),
+    [tasks, now, resolvedIds],
   );
   const { primary, dueCount, unconfirmedCount, next } = summary;
   const stage = primary?.state ?? "quiet";
