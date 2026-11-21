@@ -1,6 +1,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   type CSSProperties,
   type FormEvent,
@@ -11,6 +12,8 @@ import {
   Download,
   ArrowLeft,
   BadgeCheck,
+  Check,
+  Copy,
   CheckCircle2,
   Loader2,
   MapPin,
@@ -42,6 +45,7 @@ import {
 } from "../seller/shared";
 import { CustomerChat } from "./CustomerChat";
 import { StoreStatusChip } from "./StoreLed";
+import { useLiveVendor } from "../LiveStores";
 import { useVCart, vcart } from "./vendorCart";
 import { couponErrorMessage, normalizeCode } from "@/lib/coupons";
 
@@ -131,7 +135,14 @@ export function PublicStoreGate({ slug, fallback }: { slug: string; fallback: Re
   return <PublicStore vendor={state.vendor} products={state.products} />;
 }
 
-function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorProduct[] }) {
+function PublicStore({
+  vendor: initialVendor,
+  products,
+}: {
+  vendor: Vendor;
+  products: VendorProduct[];
+}) {
+  const vendor = useLiveVendor(initialVendor);
   const navigate = useNavigate();
   const accent = vendor.accent_hex ?? "#0e7a5f";
   const [cat, setCat] = useState("todos");
@@ -140,6 +151,17 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
   const [chat, setChat] = useState(false);
   const [chatDraft, setChatDraft] = useState<string | undefined>(undefined);
   const [detail, setDetail] = useState<VendorProduct | null>(null);
+  const deepLinked = useRef(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  // Link do produto (/p/<código>): abre o detalhe daquele produto uma única vez.
+  useEffect(() => {
+    if (deepLinked.current) return;
+    const code = new URLSearchParams(window.location.search).get("produto");
+    if (!code) return;
+    deepLinked.current = true;
+    const found = products.find((x) => x.share_code === code);
+    if (found) setDetail(found);
+  }, [products]);
   const [share, setShare] = useState(false);
   const [added, setAdded] = useState<string | null>(null);
   const lines = useVCart(vendor.id);
@@ -188,7 +210,7 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
           aria-hidden
           className="absolute inset-0 -z-10 opacity-[.06] [background-image:radial-gradient(#fff_1px,transparent_1px)] [background-size:18px_18px]"
         />
-        <div className="grid items-center gap-6 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-10 lg:p-8">
+        <div className="grid items-center gap-5 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-10 lg:p-6">
           <div className="min-w-0">
             <div className="flex items-center gap-4">
               <span
@@ -258,7 +280,7 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
               </button>
             </div>
           </div>
-          <div className="mx-auto w-full max-w-[16.5rem] lg:mx-0">
+          <div className="mx-auto w-full max-w-[13.5rem] lg:mx-0">
             <div
               className="rounded-3xl border-t-[6px] bg-white p-4 text-slate-900 shadow-[0_28px_60px_-22px_rgba(0,0,0,.75)] ring-4 ring-white/15"
               style={{ borderTopColor: accent }}
@@ -272,7 +294,7 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
               <div className="mx-auto mt-3 w-fit rounded-2xl p-1.5 ring-1 ring-slate-200">
                 <QrImage
                   text={storeUrl}
-                  size={176}
+                  size={140}
                   label={`QR Code da loja ${vendor.name}`}
                   badge={{
                     initials: ini(vendor.name),
@@ -394,7 +416,12 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
               key={p.id}
               className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-[border-color,box-shadow] duration-300 hover:border-[color-mix(in_srgb,var(--v)_45%,transparent)] hover:shadow-pop"
             >
-              <div className="relative aspect-[4/3.6] overflow-hidden bg-gradient-to-b from-[#f2f3f5] to-[#dfe2e6]">
+              <button
+                type="button"
+                onClick={() => setDetail(p)}
+                aria-label={`Ver detalhes de ${p.name}`}
+                className="relative block aspect-[4/3.6] w-full cursor-pointer overflow-hidden bg-gradient-to-b from-[#f2f3f5] to-[#dfe2e6]"
+              >
                 {p.image_url && (
                   <img
                     src={p.image_url}
@@ -423,7 +450,7 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
                     )
                   )}
                 </span>
-              </div>
+              </button>
               <div className="flex flex-1 flex-col p-3">
                 <span className="text-[10.5px] font-medium text-muted-foreground">
                   {categoryName(p.category)}
@@ -641,6 +668,35 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
             )}
             {detail.description && (
               <p className="mt-3 text-sm text-muted-foreground">{detail.description}</p>
+            )}
+            {detail.share_code && (
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(
+                    `${detail.name} por ${money(detail.price_cents)} na ${vendor.name}:\n${window.location.origin}/p/${detail.share_code}`,
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#25D366] text-sm font-bold text-white"
+                >
+                  <Share2 size={16} /> Enviar no WhatsApp
+                </a>
+                <button
+                  type="button"
+                  onClick={() => {
+                    void navigator.clipboard
+                      ?.writeText(`${window.location.origin}/p/${detail.share_code}`)
+                      .then(() => {
+                        setLinkCopied(true);
+                        setTimeout(() => setLinkCopied(false), 2000);
+                      });
+                  }}
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border text-sm font-semibold hover:bg-muted"
+                >
+                  {linkCopied ? <Check size={16} /> : <Copy size={16} />}
+                  {linkCopied ? "Link copiado" : "Copiar link do produto"}
+                </button>
+              </div>
             )}
             <div className="mt-5 grid gap-2 sm:grid-cols-2">
               <button

@@ -24,6 +24,37 @@ type LiveItem = VendorProduct & { vendor: LiveVendor };
 export function useLiveStores() {
   const [vendors, setVendors] = useState<LiveVendor[]>([]);
   const [products, setProducts] = useState<LiveItem[]>([]);
+  const [channelId] = useState(() => Math.random().toString(36).slice(2, 10));
+  // Abrir/fechar uma loja atualiza a vitrine na hora, sem recarregar a página.
+  useEffect(() => {
+    const db = supabase as any;
+    if (typeof db.channel !== "function") return;
+    const ch = db
+      .channel(`store-vendors-live-${channelId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "care_store_vendors" },
+        (payload: { new?: Partial<Vendor> & { id?: string } }) => {
+          const r = payload.new;
+          if (!r?.id) return;
+          if (r.status && r.status !== "ativo") {
+            setVendors((vs) => vs.filter((v) => v.id !== r.id));
+            setProducts((ps) => ps.filter((p) => p.vendor_id !== r.id));
+            return;
+          }
+          const merge = (v: LiveVendor): LiveVendor =>
+            v.id === r.id ? { ...v, is_open: r.is_open, opening_hours: r.opening_hours } : v;
+          setVendors((vs) => vs.map(merge));
+          setProducts((ps) =>
+            ps.map((p) => (p.vendor_id === r.id ? { ...p, vendor: merge(p.vendor) } : p)),
+          );
+        },
+      )
+      .subscribe();
+    return () => {
+      void db.removeChannel(ch);
+    };
+  }, [channelId]);
   useEffect(() => {
     let alive = true;
     const db = supabase as any;
@@ -62,6 +93,36 @@ export function useLiveStores() {
     };
   }, []);
   return { vendors, products };
+}
+
+/** Situação de uma loja (aberta/fechada, horário) atualizada em tempo real. */
+export function useLiveVendor(initial: Vendor): Vendor {
+  const [patch, setPatch] = useState<Partial<Vendor>>({});
+  const [channelId] = useState(() => Math.random().toString(36).slice(2, 10));
+  useEffect(() => {
+    const db = supabase as any;
+    if (typeof db.channel !== "function") return;
+    const ch = db
+      .channel(`vendor-status-${initial.id}-${channelId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "care_store_vendors",
+          filter: `id=eq.${initial.id}`,
+        },
+        (payload: { new?: Partial<Vendor> }) => {
+          const r = payload.new ?? {};
+          setPatch({ is_open: r.is_open, opening_hours: r.opening_hours, status: r.status });
+        },
+      )
+      .subscribe();
+    return () => {
+      void db.removeChannel(ch);
+    };
+  }, [initial.id, channelId]);
+  return { ...initial, ...patch };
 }
 
 const offOf = (p: VendorProduct) =>
@@ -140,8 +201,9 @@ export function LiveProductRail({
           return (
             <Link
               key={p.id}
-              to="/loja"
-              search={{ loja: p.vendor.slug } as never}
+              to={(p.share_code ? "/p/$code" : "/loja") as never}
+              params={(p.share_code ? { code: p.share_code } : undefined) as never}
+              search={(p.share_code ? undefined : { loja: p.vendor.slug }) as never}
               aria-label={`${p.name}, ${money(p.price_cents)} · loja ${p.vendor.name}`}
               className="group flex w-[11rem] shrink-0 snap-start flex-col overflow-hidden rounded-2xl bg-[#fffafd] text-[#2b0f3d] shadow-[0_10px_24px_-14px_rgba(0,0,0,.6)] ring-1 ring-white/40 transition duration-300 hover:-translate-y-1 hover:ring-2 hover:ring-[#f06bb0]"
             >

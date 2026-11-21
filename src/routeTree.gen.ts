@@ -33,6 +33,7 @@ import { Route as SonoRouteImport } from './routes/sono'
 import { Route as SuplementosRouteImport } from './routes/suplementos'
 import { Route as TesteGratisRouteImport } from './routes/teste-gratis'
 import { Route as TreinosRouteImport } from './routes/treinos'
+import { Route as PCodeRouteImport } from './routes/p.$code'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -154,6 +155,11 @@ const TreinosRoute = TreinosRouteImport.update({
   path: '/treinos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PCodeRoute = PCodeRouteImport.update({
+  id: '/p/$code',
+  path: '/p/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -180,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/suplementos': typeof SuplementosRoute
   '/teste-gratis': typeof TesteGratisRoute
   '/treinos': typeof TreinosRoute
+  '/p/$code': typeof PCodeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -206,6 +213,7 @@ export interface FileRoutesByTo {
   '/suplementos': typeof SuplementosRoute
   '/teste-gratis': typeof TesteGratisRoute
   '/treinos': typeof TreinosRoute
+  '/p/$code': typeof PCodeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -233,6 +241,7 @@ export interface FileRoutesById {
   '/suplementos': typeof SuplementosRoute
   '/teste-gratis': typeof TesteGratisRoute
   '/treinos': typeof TreinosRoute
+  '/p/$code': typeof PCodeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -261,6 +270,7 @@ export interface FileRouteTypes {
     | '/suplementos'
     | '/teste-gratis'
     | '/treinos'
+    | '/p/$code'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -287,6 +297,7 @@ export interface FileRouteTypes {
     | '/suplementos'
     | '/teste-gratis'
     | '/treinos'
+    | '/p/$code'
   id:
     | '__root__'
     | '/'
@@ -313,6 +324,7 @@ export interface FileRouteTypes {
     | '/suplementos'
     | '/teste-gratis'
     | '/treinos'
+    | '/p/$code'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -340,6 +352,7 @@ export interface RootRouteChildren {
   SuplementosRoute: typeof SuplementosRoute
   TesteGratisRoute: typeof TesteGratisRoute
   TreinosRoute: typeof TreinosRoute
+  PCodeRoute: typeof PCodeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -512,6 +525,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TreinosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/p/$code': {
+      id: '/p/$code'
+      path: '/p/$code'
+      fullPath: '/p/$code'
+      preLoaderRoute: typeof PCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -540,6 +560,7 @@ const rootRouteChildren: RootRouteChildren = {
   SuplementosRoute: SuplementosRoute,
   TesteGratisRoute: TesteGratisRoute,
   TreinosRoute: TreinosRoute,
+  PCodeRoute: PCodeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
