@@ -22,6 +22,7 @@ import {
 } from "@/lib/store-presence";
 import { QueueCard } from "./QueueCard";
 import { precheckMessage } from "@/lib/store-moderation";
+import { joinStoreChat } from "@/lib/store-chat-live";
 
 type Queue = {
   state: "livre" | "atendimento" | "fila" | "vez";
@@ -158,6 +159,28 @@ export function CustomerChat({
         .update({ read_at: new Date().toISOString() })
         .in("id", unread);
   }, [user, vendor.id, vendor.name]);
+
+  // Presença e "digitando" do atendente nesta conversa.
+  const [peerTyping, setPeerTyping] = useState(false);
+  const liveRef = useRef<{ leave: () => void; typing: () => void } | null>(null);
+  useEffect(() => {
+    if (!user) return;
+    let typingTimer: number | undefined;
+    const live = joinStoreChat(vendor.id, user.id, "customer", {
+      onTyping: () => {
+        setPeerTyping(true);
+        window.clearTimeout(typingTimer);
+        typingTimer = window.setTimeout(() => setPeerTyping(false), 4000);
+      },
+    });
+    liveRef.current = live;
+    return () => {
+      window.clearTimeout(typingTimer);
+      live.leave();
+      liveRef.current = null;
+      setPeerTyping(false);
+    };
+  }, [user, vendor.id]);
   useEffect(() => {
     void load();
     const t = window.setInterval(() => void load(), 20000);
@@ -367,10 +390,18 @@ export function CustomerChat({
                 </div>
               );
             })()}
+            {peerTyping && (
+              <p role="status" className="px-3 pt-2 text-xs text-muted-foreground">
+                Atendente digitando…
+              </p>
+            )}
             <form onSubmit={send} className="flex gap-2 border-t border-border p-3">
               <input
                 value={text}
-                onChange={(e) => setText(e.target.value)}
+                onChange={(e) => {
+                  setText(e.target.value);
+                  liveRef.current?.typing();
+                }}
                 maxLength={500}
                 placeholder="Escreva sua mensagem"
                 aria-label="Mensagem"

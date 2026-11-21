@@ -236,19 +236,6 @@ export function HomeStore({ className = "" }: { className?: string }) {
         </div>
       </header>
 
-      <p
-        role="note"
-        className="mt-2 flex items-start gap-2 text-[11px] leading-snug text-slate-600 dark:text-muted-foreground sm:items-center sm:text-xs"
-      >
-        <span className="shrink-0 rounded-full border border-border px-2 py-0.5 text-[11px] font-semibold text-foreground">
-          Pré-lançamento
-        </span>
-        <span className="sm:hidden">Produtos e lojas ilustrativos.</span>
-        <span className="hidden sm:inline">
-          Produtos, preços e lojas são ilustrativos. As vendas ainda não estão abertas.
-        </span>
-      </p>
-
       <div className="mt-3">
         <LiveProductRail title="Lojas parceiras e Bela Vista" />
       </div>

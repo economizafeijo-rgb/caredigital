@@ -1,4 +1,10 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { joinStoreChat } from "@/lib/store-chat-live";
+
+type RealtimeChannel = {
+  on: (type: string, filter: Record<string, string>, cb: () => void) => RealtimeChannel;
+  subscribe: () => RealtimeChannel;
+};
 import {
   ArrowLeft,
   CheckSquare,
@@ -86,6 +92,60 @@ export function SellerChat({
     const t = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(t);
   }, []);
+
+  // Presença e "digitando" da conversa aberta.
+  const [custOnline, setCustOnline] = useState(false);
+  const [custTyping, setCustTyping] = useState(false);
+  const liveRef = useRef<{ leave: () => void; typing: () => void } | null>(null);
+  useEffect(() => {
+    setCustOnline(false);
+    setCustTyping(false);
+    if (!active) return;
+    let typingTimer: number | undefined;
+    const live = joinStoreChat(vendor.id, active, "vendor", {
+      onPeer: setCustOnline,
+      onTyping: () => {
+        setCustTyping(true);
+        window.clearTimeout(typingTimer);
+        typingTimer = window.setTimeout(() => setCustTyping(false), 4000);
+      },
+    });
+    liveRef.current = live;
+    return () => {
+      window.clearTimeout(typingTimer);
+      live.leave();
+      liveRef.current = null;
+    };
+  }, [active, vendor.id]);
+
+  // Mensagens novas chegam na hora: o painel é atualizado quando a loja recebe uma mensagem.
+  const onChangedRef = useRef(onChanged);
+  useEffect(() => {
+    onChangedRef.current = onChanged;
+  }, [onChanged]);
+  useEffect(() => {
+    const db = supabase as unknown as {
+      channel: (n: string) => RealtimeChannel;
+      removeChannel: (c: RealtimeChannel) => Promise<unknown>;
+    };
+    const ch = db
+      .channel(`seller-msgs-${vendor.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "care_store_messages",
+          filter: `vendor_id=eq.${vendor.id}`,
+        },
+        () => onChangedRef.current(),
+      )
+      .subscribe();
+    return () => {
+      void db.removeChannel(ch);
+    };
+  }, [vendor.id]);
+
   const queue = useMemo(
     () => computeQueue(messages, now, vendor.chat_capacity ?? 3),
     [messages, now, vendor.chat_capacity],
@@ -428,6 +488,15 @@ export function SellerChat({
               )}
             </div>
             {active && (
+              <p role="status" className="mx-3 mt-2 text-xs text-muted-foreground">
+                {custTyping
+                  ? "Cliente digitando…"
+                  : custOnline
+                    ? "Cliente conectado agora"
+                    : "Cliente fora do chat"}
+              </p>
+            )}
+            {active && (
               <ChatTimer
                 key={active}
                 vendorId={vendor.id}
@@ -443,7 +512,10 @@ export function SellerChat({
             <form onSubmit={send} className="flex gap-2 p-3">
               <input
                 value={text}
-                onChange={(e) => setText(e.target.value)}
+                onChange={(e) => {
+                  setText(e.target.value);
+                  liveRef.current?.typing();
+                }}
                 maxLength={500}
                 placeholder="Escreva uma resposta"
                 aria-label="Mensagem"

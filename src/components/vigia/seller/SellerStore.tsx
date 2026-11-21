@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Check, Copy, Download, ExternalLink, ImagePlus, Printer, ReceiptText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -64,7 +64,68 @@ export function SellerStore({
     prep: String(vendor.prep_minutes ?? 30),
     deliv: String(vendor.delivery_minutes ?? 120),
   });
+  // Tempos do atendimento (aviso, tolerância e encerramento por inatividade), em minutos.
+  const [inact, setInact] = useState({ warn: "3", grace: "2", close: "1" });
+  const [inactMsg, setInactMsg] = useState("");
   const [msg, setMsg] = useState("");
+
+  useEffect(() => {
+    let alive = true;
+    const db = supabase as unknown as {
+      from: (t: string) => {
+        select: (c: string) => {
+          eq: (
+            k: string,
+            v: string,
+          ) => {
+            maybeSingle: () => Promise<{
+              data: Record<string, number> | null;
+              error: unknown;
+            }>;
+          };
+        };
+      };
+    };
+    void db
+      .from("care_store_vendors")
+      .select("inactivity_warn_minutes,inactivity_grace_minutes,inactivity_close_minutes")
+      .eq("id", vendor.id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (!alive || error || !data) return;
+        setInact({
+          warn: String(data.inactivity_warn_minutes ?? 3),
+          grace: String(data.inactivity_grace_minutes ?? 2),
+          close: String(data.inactivity_close_minutes ?? 1),
+        });
+      });
+    return () => {
+      alive = false;
+    };
+  }, [vendor.id]);
+
+  async function saveInactivity() {
+    const w = Number(inact.warn);
+    const g = Number(inact.grace);
+    const c = Number(inact.close);
+    const ok = [w, g, c].every((n) => Number.isInteger(n) && n >= 1 && n <= 60);
+    if (!ok) return setInactMsg("Use números inteiros de 1 a 60 minutos.");
+    const db = supabase as unknown as {
+      rpc: (
+        name: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ error: { message: string } | null }>;
+    };
+    const { error } = await db.rpc("care_store_set_inactivity", {
+      p_vendor: vendor.id,
+      p_warn: w,
+      p_grace: g,
+      p_close: c,
+    });
+    if (error)
+      return setInactMsg("Não foi possível salvar os tempos. Confira se você é o dono da loja.");
+    setInactMsg("Tempos de atendimento salvos.");
+  }
   const [err, setErr] = useState("");
   const [copied, setCopied] = useState(false);
   const url = shortStoreUrl(vendor.slug);
@@ -339,6 +400,58 @@ export function SellerStore({
               O timer de cada pedido começa quando o pagamento é confirmado: preparo para retirada,
               prazo de entrega para entregas.
             </p>
+          </div>
+        </Panel>
+        <Panel title="Tempos do atendimento">
+          <p className="text-xs text-muted-foreground">
+            Quanto tempo a conversa espera o cliente responder antes de encerrar sozinha. Em
+            minutos, de 1 a 60. O cronômetro só corre quando a loja respondeu por último.
+          </p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            <label className="grid gap-1 text-sm font-semibold">
+              Aviso ao cliente
+              <input
+                type="number"
+                min={1}
+                max={60}
+                inputMode="numeric"
+                value={inact.warn}
+                onChange={(e) => setInact({ ...inact, warn: e.target.value })}
+                className="h-10 rounded-lg border border-border bg-surface px-3 font-normal"
+              />
+            </label>
+            <label className="grid gap-1 text-sm font-semibold">
+              Tolerância depois do aviso
+              <input
+                type="number"
+                min={1}
+                max={60}
+                inputMode="numeric"
+                value={inact.grace}
+                onChange={(e) => setInact({ ...inact, grace: e.target.value })}
+                className="h-10 rounded-lg border border-border bg-surface px-3 font-normal"
+              />
+            </label>
+            <label className="grid gap-1 text-sm font-semibold">
+              Encerrar depois do segundo aviso
+              <input
+                type="number"
+                min={1}
+                max={60}
+                inputMode="numeric"
+                value={inact.close}
+                onChange={(e) => setInact({ ...inact, close: e.target.value })}
+                className="h-10 rounded-lg border border-border bg-surface px-3 font-normal"
+              />
+            </label>
+          </div>
+          <div className="mt-3 flex items-center justify-between gap-3">
+            <span role="status" className="text-xs text-muted-foreground">
+              {inactMsg}
+            </span>
+            <button type="button" onClick={saveInactivity} className={btn.primary}>
+              Salvar tempos
+            </button>
           </div>
         </Panel>
         {(err || msg) && (
