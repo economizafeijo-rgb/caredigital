@@ -208,28 +208,28 @@ function useReducedMotion() {
 
 /** Vitrine única da página inicial: abre com a apresentação da plataforma e segue com ferramentas,
  *  loja, propagandas do administrador e anúncios — em cenas longas que se dissolvem devagar. */
-/** Propaganda de inauguração da loja Bela Vista Fitness, exibida logo após a abertura da home. */
+/** Propaganda de inauguração da loja Kessia' Digital Store, exibida logo após a abertura da home. */
 const launchSlide: Slide = {
-  id: "inauguracao-bela-vista",
+  id: "inauguracao-kessia",
   kicker: "Inauguração",
   chapter: "Loja online",
-  title: "Bela Vista Fitness abre a loja online",
+  title: "Kessia' Digital Store abre a loja online",
   text: "Moda fitness feminina, suplementos, beleza e bijuterias de Feijó. Compre com 5% de desconto no Pix e retire no balcão ou receba em casa.",
   cta: "Conhecer a loja",
   to: "/loja",
   images: [],
   bg: "/loja/bela-vista/banner.jpg",
-  tone: "from-[#0b1d4a] via-[#1e3a8a] to-[#1d4ed8]",
+  tone: "from-[#5b1245] via-[#c81d6b] to-[#8b5cf6]",
   custom: (
     <>
-      <span className="nv-rise inline-flex w-fit items-center gap-2 border border-[#d9b382]/60 bg-[#0b1d4a]/60 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-[#f3d9a8]">
+      <span className="nv-rise inline-flex w-fit items-center gap-2 border border-pink-200/70 bg-[#5b1245]/60 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-pink-100">
         Inauguração · Feijó, AC
       </span>
       <h2
         style={{ animationDelay: "80ms" }}
         className="nv-rise mt-3 text-balance font-display text-[1.7rem] font-extrabold leading-[1.08] tracking-tight min-[400px]:text-[2rem] sm:text-[2.3rem]"
       >
-        Bela Vista Fitness abre a loja online
+        Kessia' Digital Store abre a loja online
       </h2>
       <p
         style={{ animationDelay: "220ms" }}
@@ -240,8 +240,8 @@ const launchSlide: Slide = {
       </p>
       <div style={{ animationDelay: "360ms" }} className="nv-rise mt-4 flex flex-wrap gap-2">
         <a
-          href="/loja?loja=bela-vista-fitness"
-          className="inline-flex h-11 items-center gap-2 bg-[#d9b382] px-5 text-sm font-bold text-[#2b0a1e] hover:brightness-105"
+          href="/loja?loja=kessia-digital-store"
+          className="inline-flex h-11 items-center gap-2 bg-white px-5 text-sm font-bold text-[#8a1459] hover:bg-pink-50"
         >
           Conhecer a loja
         </a>

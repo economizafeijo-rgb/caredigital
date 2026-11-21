@@ -180,7 +180,7 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
       <section
         className="nv-dark relative isolate overflow-hidden rounded-3xl text-white shadow-pop"
         style={{
-          background: `radial-gradient(120% 140% at 0% 0%, ${tint(70)} 0%, ${tint(32)} 45%, #070b14 100%)`,
+          background: `radial-gradient(120% 140% at 0% 0%, ${tint(70)} 0%, ${tint(32)} 45%, ${tint(12, "#070b14")} 100%)`,
         }}
       >
         <div

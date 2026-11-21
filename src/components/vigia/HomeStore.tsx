@@ -242,31 +242,31 @@ export function HomeStore({ className = "" }: { className?: string }) {
 
       <Link
         to="/loja"
-        search={{ loja: "bela-vista-fitness" } as never}
-        aria-label="Destaque: visitar a loja Bela Vista Fitness"
-        className="group relative mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 overflow-hidden border border-border bg-[#2b0a1e] p-3 text-white transition hover:border-[#d9b382] sm:p-4"
+        search={{ loja: "kessia-digital-store" } as never}
+        aria-label="Destaque: visitar a loja Kessia' Digital Store"
+        className="group relative mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 overflow-hidden border border-border bg-gradient-to-r from-[#5b1245] via-[#a3195b] to-[#7c4ddb] p-3 text-white transition hover:border-pink-200 sm:p-4"
       >
-        <span aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-[#d9b382]" />
+        <span aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-pink-200" />
         <span className="flex min-w-0 items-center gap-3">
           <img
-            src="/loja/bela-vista/logo.svg"
+            src="/loja/kessia/mark.svg"
             alt=""
             loading="lazy"
-            className="size-12 shrink-0 rounded-full bg-white object-contain ring-1 ring-[#d9b382]/60 sm:size-14"
+            className="size-12 shrink-0 rounded-full bg-white object-contain ring-2 ring-pink-200/70 sm:size-14"
           />
           <span className="min-w-0">
-            <span className="block text-[10.5px] font-bold uppercase tracking-[0.18em] text-[#d9b382]">
+            <span className="block text-[10.5px] font-bold uppercase tracking-[0.18em] text-pink-200">
               Loja em destaque
             </span>
             <strong className="block truncate font-display text-base font-extrabold sm:text-lg">
-              Bela Vista Fitness
+              Kessia' Digital Store
             </strong>
             <span className="block truncate text-xs text-white/75">
-              Treine com estilo. Brilhe em tudo. · Feijó, AC
+              Moda fitness, beleza e bijuterias · Feijó, AC
             </span>
           </span>
         </span>
-        <span className="inline-flex shrink-0 items-center gap-1.5 bg-[#d9b382] px-3 py-2 text-xs font-bold text-[#2b0a1e] transition group-hover:brightness-105">
+        <span className="inline-flex shrink-0 items-center gap-1.5 bg-white px-3 py-2 text-xs font-bold text-[#8a1459] transition group-hover:bg-pink-50">
           Ver a loja <ArrowRight size={14} aria-hidden="true" />
         </span>
       </Link>
