@@ -390,10 +390,10 @@ function Homepage() {
               ))}
             </div>
             <div className="flex shrink-0 items-center gap-2.5">
-              <span className="hidden bg-white p-1 ring-1 ring-border sm:block">
+              <span className="hidden overflow-hidden rounded-[3px] bg-white sm:block">
                 <QrEnlarge
                   variant="footer"
-                  thumb={44}
+                  thumb={52}
                   big={280}
                   label="Abra o NextVita no celular"
                 />

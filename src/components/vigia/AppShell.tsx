@@ -244,11 +244,11 @@ function PublicTopNav({ pathname }: { pathname: string }) {
   }, [open]);
   const resourceActive = resourceLinks.some((r) => r.to === pathname);
   const linkCls =
-    "nv-tab relative inline-flex h-14 items-center gap-1.5 px-3.5 text-[13px] font-semibold text-muted-foreground transition-colors hover:text-foreground";
+    "nv-tab relative inline-flex h-14 items-center gap-2 px-4 text-[15px] font-semibold text-muted-foreground xl:px-5 transition-colors hover:text-foreground";
   const activeCls = { className: "nv-tab-on !text-foreground" };
   return (
     <nav
-      className="mx-auto hidden items-center gap-0.5 self-stretch lg:flex"
+      className="mx-auto hidden items-center gap-1 self-stretch lg:flex"
       aria-label="Navegação principal"
     >
       {primaryPublic.map((item) => (
@@ -272,7 +272,7 @@ function PublicTopNav({ pathname }: { pathname: string }) {
         >
           Recursos{" "}
           <ChevronDown
-            size={14}
+            size={16}
             aria-hidden="true"
             className={`transition-transform duration-300 ${open ? "rotate-180" : ""}`}
           />
@@ -299,7 +299,7 @@ function PublicTopNav({ pathname }: { pathname: string }) {
         )}
       </div>
       <Link to="/loja" className={`${linkCls} !text-foreground`} activeProps={activeCls}>
-        <ShoppingBag size={15} aria-hidden="true" className="text-amber-400" /> Loja
+        <ShoppingBag size={18} aria-hidden="true" className="text-amber-400" /> Loja
       </Link>
       <Link to="/nossos-parceiros" className={linkCls} activeProps={activeCls}>
         Parceiros

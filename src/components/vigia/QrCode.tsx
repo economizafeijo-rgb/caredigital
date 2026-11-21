@@ -5,16 +5,18 @@ export function QrCode({
   variant,
   size = 160,
   logo = true,
+  quiet = 3,
   className = "",
 }: {
   variant: QrVariant;
   size?: number;
   logo?: boolean;
+  /** Margem branca em módulos. Miniaturas usam menos para o código ocupar a área toda. */
+  quiet?: number;
   className?: string;
 }) {
   const rows = QR_MATRIX[variant];
   const n = rows.length;
-  const quiet = 3;
   const total = n + quiet * 2;
   const finder = (x: number, y: number) =>
     (x < 7 && y < 7) || (x >= n - 7 && y < 7) || (x < 7 && y >= n - 7);
@@ -50,8 +52,8 @@ export function QrCode({
           x2={total}
           y2={total}
         >
-          <stop offset="0" stopColor="#022c22" />
-          <stop offset="1" stopColor="#0b6b57" />
+          <stop offset="0" stopColor="#012a20" />
+          <stop offset="1" stopColor="#047857" />
         </linearGradient>
       </defs>
       <rect width={total} height={total} rx="2" fill="#fff" />

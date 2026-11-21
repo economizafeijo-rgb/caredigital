@@ -23,16 +23,16 @@ export function QrEnlarge({
         type="button"
         onClick={() => setOpen(true)}
         aria-label={`Ampliar QR Code: ${label}`}
-        className="group relative block rounded-[2px] focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="group relative block overflow-hidden rounded-[3px] focus-visible:outline-2 focus-visible:outline-offset-2"
       >
-        <QrCode variant={variant} size={thumb} />
+        <QrCode variant={variant} size={thumb} quiet={1} />
         <span className="absolute -bottom-1 -right-1 grid size-4 place-items-center rounded-full bg-foreground text-background opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
           <Maximize2 size={9} aria-hidden="true" />
         </span>
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="grid w-auto place-items-center gap-4 bg-white p-6 sm:max-w-none">
-          <DialogTitle className="text-base font-bold text-foreground">{label}</DialogTitle>
+        <DialogContent className="grid w-auto place-items-center gap-4 border-slate-200 bg-white p-6 text-slate-900 sm:max-w-none [&>button]:text-slate-700 [&>button]:opacity-100 [&>button]:hover:text-slate-950">
+          <DialogTitle className="text-base font-bold text-slate-900">{label}</DialogTitle>
           <DialogDescription className="sr-only">
             Aponte a câmera do celular para o código para abrir o site.
           </DialogDescription>

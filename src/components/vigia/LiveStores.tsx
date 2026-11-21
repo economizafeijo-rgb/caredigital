@@ -86,21 +86,24 @@ export function LiveProductRail({
   return (
     <section
       aria-labelledby="live-stores-title"
-      className="rounded-2xl border border-border bg-card p-4 sm:p-5"
+      className="rounded-3xl border border-fuchsia-300/15 bg-gradient-to-br from-[#2b0f3d] via-[#3a1250] to-[#1d1236] p-4 text-white shadow-[0_20px_50px_-30px_rgba(200,29,107,.6)] sm:p-6"
     >
       <header className="flex flex-wrap items-center justify-between gap-2">
         <h2
           id="live-stores-title"
-          className="flex items-center gap-2 font-display text-lg font-extrabold"
+          className="flex items-center gap-2 font-display text-xl font-extrabold text-white"
         >
-          <ShoppingBag size={18} className="text-primary" aria-hidden="true" /> {title}
+          <span className="grid size-8 place-items-center rounded-full bg-gradient-to-br from-[#e8368f] to-[#8b5cf6] text-white">
+            <ShoppingBag size={16} aria-hidden="true" />
+          </span>{" "}
+          {title}
         </h2>
         {!showStoreNames && (
           <Link
             to="/nossos-parceiros"
-            className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+            className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1.5 text-sm font-bold text-white ring-1 ring-white/25 transition hover:bg-white/20"
           >
-            Conheça os parceiros <ArrowRight size={14} aria-hidden="true" />
+            Conheça os parceiros <ArrowRight size={15} strokeWidth={2.6} aria-hidden="true" />
           </Link>
         )}
         <ul className={showStoreNames ? "flex flex-wrap gap-1.5" : "hidden"}>
@@ -109,7 +112,7 @@ export function LiveProductRail({
               <Link
                 to="/loja"
                 search={{ loja: v.slug } as never}
-                className="inline-flex items-center gap-1.5 border border-border px-2.5 py-1 text-xs font-semibold hover:bg-muted"
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/20 px-2.5 py-1 text-xs font-semibold text-white hover:bg-white/10"
               >
                 <StoreLed open={!!v.is_open} />
                 <span
@@ -119,7 +122,7 @@ export function LiveProductRail({
                 />
                 {v.name}
                 {v.opening_hours && (
-                  <span className="font-medium text-muted-foreground">· {v.opening_hours}</span>
+                  <span className="font-medium text-white/70">· {v.opening_hours}</span>
                 )}
                 {v.verified && (
                   <BadgeCheck size={12} className="text-sky-600" aria-label="Loja verificada" />
@@ -139,9 +142,9 @@ export function LiveProductRail({
               to="/loja"
               search={{ loja: p.vendor.slug } as never}
               aria-label={`${p.name}, ${money(p.price_cents)} · loja ${p.vendor.name}`}
-              className="group flex w-[10.5rem] shrink-0 snap-start flex-col overflow-hidden border border-border bg-background transition hover:border-foreground/30"
+              className="group flex w-[11rem] shrink-0 snap-start flex-col overflow-hidden rounded-2xl bg-[#fffafd] text-[#2b0f3d] shadow-[0_10px_24px_-14px_rgba(0,0,0,.6)] ring-1 ring-white/40 transition duration-300 hover:-translate-y-1 hover:ring-2 hover:ring-[#f06bb0]"
             >
-              <span className="relative block aspect-square overflow-hidden bg-[#f1f2f3]">
+              <span className="relative block aspect-square overflow-hidden bg-[#f6eef3]">
                 {p.image_url ? (
                   <img
                     src={p.image_url}
@@ -155,32 +158,32 @@ export function LiveProductRail({
                   </span>
                 )}
                 {off > 0 && (
-                  <span className="absolute right-1.5 top-1.5 bg-emerald-800 px-1.5 py-0.5 text-[10.5px] font-bold text-white">
+                  <span className="absolute right-2 top-2 rounded-full bg-gradient-to-r from-[#d81b7a] to-[#9b4bd6] px-2 py-0.5 text-[11px] font-extrabold text-white shadow">
                     {off}% off
                   </span>
                 )}
                 {!st.buyable && (
-                  <span className="absolute left-1.5 top-1.5 bg-slate-900 px-1.5 py-0.5 text-[10.5px] font-bold text-white">
+                  <span className="absolute left-2 top-2 rounded-full bg-[#4b2a5e] px-2 py-0.5 text-[11px] font-bold text-white">
                     {st.label}
                   </span>
                 )}
               </span>
-              <span className="flex flex-1 flex-col gap-0.5 p-2.5">
+              <span className="flex flex-1 flex-col gap-0.5 border-t border-[#f0dce8] p-3">
                 <span
-                  className="truncate text-[10.5px] font-semibold uppercase tracking-wide"
-                  style={{ color: p.vendor.accent_hex ?? undefined }}
+                  className="truncate text-[11.5px] font-bold"
+                  style={{ color: p.vendor.accent_hex ?? "#a3195b" }}
                 >
                   {p.vendor.name}
                 </span>
-                <span className="line-clamp-2 min-h-[2.4em] text-[12.5px] font-semibold leading-tight">
+                <span className="line-clamp-2 min-h-[2.5em] text-[13.5px] font-semibold leading-snug text-[#2b0f3d]">
                   {p.name}
                 </span>
                 <span className="mt-auto flex items-baseline gap-1.5 pt-1">
-                  <strong className="text-sm font-extrabold tabular-nums">
+                  <strong className="text-[15px] font-extrabold tabular-nums text-[#a3195b]">
                     {money(p.price_cents)}
                   </strong>
                   {p.old_price_cents && (
-                    <span className="text-[10.5px] text-muted-foreground line-through">
+                    <span className="text-[11px] text-[#7a6a85] line-through">
                       {money(p.old_price_cents)}
                     </span>
                   )}
@@ -190,9 +193,12 @@ export function LiveProductRail({
           );
         })}
       </div>
-      <p className="mt-1 flex items-center justify-end gap-1 text-xs font-semibold text-primary">
-        <Link to="/loja" className="inline-flex items-center gap-1 hover:underline">
-          Ver todas as lojas <ArrowRight size={13} aria-hidden="true" />
+      <p className="mt-2 flex items-center justify-end gap-1 text-sm font-bold text-[#ffc2e0]">
+        <Link
+          to="/loja"
+          className="inline-flex items-center gap-1.5 hover:text-white hover:underline"
+        >
+          Ver todas as lojas <ArrowRight size={15} strokeWidth={2.6} aria-hidden="true" />
         </Link>
       </p>
     </section>

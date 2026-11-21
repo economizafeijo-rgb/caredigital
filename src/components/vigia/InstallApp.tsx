@@ -85,9 +85,9 @@ export function InstallAppButton({ className = "" }: { className?: string }) {
         type="button"
         onClick={() => (canInstall ? void install() : setHelp(true))}
         title="Instalar o aplicativo NextVita"
-        className={`inline-flex h-9 items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-500 px-3 text-sm font-bold text-white shadow-sm transition hover:brightness-110 ${className}`}
+        className={`inline-flex h-9 items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-700 to-emerald-600 px-3 text-sm font-bold text-white shadow-sm ring-1 ring-emerald-400/40 transition hover:from-emerald-600 hover:to-emerald-500 ${className}`}
       >
-        <Download size={16} />
+        <Download size={17} strokeWidth={2.6} aria-hidden="true" />
         <span className="hidden 2xl:inline">Instalar app</span>
       </button>
       {help && (
