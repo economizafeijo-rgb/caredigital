@@ -22,6 +22,7 @@ import {
 import { playSound } from "@/lib/chat-sound";
 import { SoundToggle } from "../chat/ChatToasts";
 import { AvailabilityToggle } from "./AvailabilityToggle";
+import { ProductLookup } from "./ProductLookup";
 import { precheckMessage } from "@/lib/store-moderation";
 import { supabase } from "@/integrations/supabase/client";
 import type { ChatMessage, Vendor } from "@/lib/marketplace";
@@ -425,6 +426,11 @@ export function SellerChat({
                 </div>
               )}
             </div>
+            <ProductLookup
+              vendorId={vendor.id}
+              disabled={!active}
+              onSend={(body) => void send(undefined, body)}
+            />
             <form onSubmit={send} className="flex gap-2 p-3">
               <input
                 value={text}

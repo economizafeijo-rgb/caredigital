@@ -10,12 +10,11 @@ import {
   ChevronRight,
   Droplets,
   HeartPulse,
-  MessageCircle,
   Pause,
   Pill,
   Play,
 } from "lucide-react";
-import { money, products, STORE_WHATSAPP, useCart } from "@/lib/store";
+import { money, products, useCart } from "@/lib/store";
 
 export type Slide = {
   id: string;
@@ -87,16 +86,14 @@ function momentSlide(hour: number): Slide {
   };
 }
 
-const DEV_WHATSAPP = `https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent("Olá, Franc! Tenho uma ideia e quero transformar em site ou aplicativo.")}`;
 const devSlide: Slide = {
   id: "dev",
   kicker: "Franc D'nis · Sites e aplicativos",
   title: "Sua ideia, no ar para o seu público.",
   text: "Crio sites, apps e lojas virtuais sob medida, como a NextVita que você está usando agora. Feito em Feijó, Acre.",
-  cta: "Conversar no WhatsApp",
+  cta: "Conhecer o trabalho",
   chips: ["Sites", "Aplicativos", "Lojas virtuais"],
-  to: "/sobre",
-  href: DEV_WHATSAPP,
+  to: "/parceiros",
   images: [],
   tool: "dev",
   tone: "from-[#050b18] via-[#0b2b29] to-[#0c8063]",
@@ -435,7 +432,6 @@ export function SmartBanner({ className = "", intro }: { className?: string; int
                   style={{ animationDelay: "550ms" }}
                   className={`nv-rise mt-4 inline-flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold text-slate-950 hover:brightness-105 ${sl.tool === "dev" ? "bg-[#25d366]" : "bg-white"}`}
                 >
-                  {sl.tool === "dev" ? <MessageCircle size={16} aria-hidden="true" /> : null}{" "}
                   {sl.cta} {sl.tool !== "dev" && <ArrowRight size={16} aria-hidden="true" />}
                 </a>
               ) : (

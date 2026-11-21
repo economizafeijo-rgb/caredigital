@@ -45,14 +45,17 @@ export function CustomerChat({
   vendor,
   onClose,
   orderId,
+  initialText,
 }: {
   vendor: { id: string; name: string; accent_hex?: string | null };
   onClose: () => void;
   orderId?: string;
+  /** Texto inicial do campo, ex.: pergunta sobre um produto. Fica no campo até o cliente enviar. */
+  initialText?: string;
 }) {
   const [user, setUser] = useState<{ id: string; name: string } | null | undefined>(undefined);
   const [msgs, setMsgs] = useState<ChatMessage[]>([]);
-  const [text, setText] = useState("");
+  const [text, setText] = useState(initialText ?? "");
   const [err, setErr] = useState("");
   const end = useRef<HTMLDivElement>(null);
   const [queue, setQueue] = useState<Queue | null>(null);

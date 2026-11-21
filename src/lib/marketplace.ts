@@ -211,6 +211,8 @@ export type VendorProduct = {
   min_stock?: number;
   unit?: string;
   ref?: string | null;
+  /** Código PRD-000123: gerado pelo servidor, único na plataforma e imutável. */
+  code?: string;
   colors?: ProductColor[];
   display_limit?: number | null;
   availability?: "auto" | "indisponivel" | "esgotado";

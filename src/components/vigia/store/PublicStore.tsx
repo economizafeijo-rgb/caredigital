@@ -105,6 +105,7 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
   const [sort, setSort] = useState<Sort>("relevancia");
   const [cartOpen, setCartOpen] = useState(false);
   const [chat, setChat] = useState(false);
+  const [chatDraft, setChatDraft] = useState<string | undefined>(undefined);
   const [share, setShare] = useState(false);
   const [added, setAdded] = useState<string | null>(null);
   const lines = useVCart(vendor.id);
@@ -205,7 +206,10 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
             <div className="mt-5 flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={() => setChat(true)}
+                onClick={() => {
+                  setChatDraft(undefined);
+                  setChat(true);
+                }}
                 className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-slate-950 transition hover:bg-white/90 active:scale-[.98]"
               >
                 <MessageCircle size={16} /> Conversar com a loja
@@ -383,6 +387,11 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
                 <h3 className="mt-0.5 line-clamp-2 min-h-[2.5em] text-[13.5px] font-semibold leading-tight">
                   {p.name}
                 </h3>
+                {p.code && (
+                  <span className="mt-0.5 text-[10.5px] tabular-nums text-muted-foreground">
+                    Código {p.code}
+                  </span>
+                )}
                 <p className="mt-2 flex items-baseline gap-1.5">
                   <strong className="text-[17px] font-extrabold tabular-nums">
                     {money(p.price_cents)}
@@ -444,6 +453,20 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
                     </>
                   )}
                 </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setChatDraft(
+                      p.code
+                        ? `Tenho uma dúvida sobre o produto ${p.code} (${p.name}).`
+                        : `Tenho uma dúvida sobre o produto ${p.name}.`,
+                    );
+                    setChat(true);
+                  }}
+                  className="mt-1.5 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border text-[12.5px] font-semibold transition hover:bg-muted"
+                >
+                  <MessageCircle size={14} aria-hidden="true" /> Perguntar sobre este produto
+                </button>
               </div>
             </article>
           );
@@ -476,7 +499,9 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
       {cartOpen && (
         <VendorCheckout vendor={vendor} products={products} onClose={() => setCartOpen(false)} />
       )}
-      {chat && <CustomerChat vendor={vendor} onClose={() => setChat(false)} />}
+      {chat && (
+        <CustomerChat vendor={vendor} onClose={() => setChat(false)} initialText={chatDraft} />
+      )}
       {share && <ShareSheet vendor={vendor} onClose={() => setShare(false)} />}
     </div>
   );

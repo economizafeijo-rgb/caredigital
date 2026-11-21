@@ -102,7 +102,10 @@ export function SellerProducts({
       products.filter(
         (p) =>
           (cat === "todos" || p.category === cat) &&
-          (!q.trim() || `${p.name} ${p.sku ?? ""}`.toLowerCase().includes(q.trim().toLowerCase())),
+          (!q.trim() ||
+            `${p.name} ${p.sku ?? ""} ${p.code ?? ""}`
+              .toLowerCase()
+              .includes(q.trim().toLowerCase())),
       ),
     [products, cat, q],
   );
@@ -381,6 +384,7 @@ export function SellerProducts({
                         <span className="min-w-0">
                           <strong className="block truncate font-semibold">{p.name}</strong>
                           <span className="text-xs text-muted-foreground">
+                            {p.code ? `${p.code} · ` : ""}
                             {p.sku ? `${p.sku} · ` : ""}
                             {categoryName(p.category)}
                           </span>

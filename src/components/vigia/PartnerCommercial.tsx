@@ -4,7 +4,6 @@ import {
   ArrowRight,
   Code2,
   Dumbbell,
-  MessageCircle,
   Package,
   Pause,
   Play,
@@ -12,7 +11,6 @@ import {
   Store,
   UserRound,
 } from "lucide-react";
-import { STORE_WHATSAPP } from "@/lib/store";
 
 type Scene = {
   id: string;
@@ -74,8 +72,6 @@ const scenes: Scene[] = [
   },
 ];
 const END_MS = 7000;
-const WHATSAPP = `https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent("Olá! Quero anunciar na NextVita. Pode me explicar como funciona?")}`;
-const DEV_WHATSAPP = `https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent("Olá, Franc! Tenho uma ideia e quero transformar em site ou aplicativo.")}`;
 
 function useReducedMotion() {
   const [reduce, setReduce] = useState(false);
@@ -214,15 +210,13 @@ export function PartnerCommercial({ className = "" }: { className?: string }) {
                 {scene.text}
               </p>
               {scene.dev && (
-                <a
-                  href={DEV_WHATSAPP}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="nv-rise mt-4 inline-flex h-10 w-fit items-center gap-2 rounded-xl bg-[#25d366] px-4 text-sm font-bold text-slate-950 hover:brightness-105"
+                <Link
+                  to="/sobre"
+                  className="nv-rise mt-4 inline-flex h-10 w-fit items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-slate-950 hover:bg-emerald-50"
                   style={{ animationDelay: "900ms" }}
                 >
-                  <MessageCircle size={16} aria-hidden="true" /> Chamar Franc no WhatsApp
-                </a>
+                  Conhecer o trabalho <ArrowRight size={16} aria-hidden="true" />
+                </Link>
               )}
             </div>
           </div>
@@ -249,14 +243,12 @@ export function PartnerCommercial({ className = "" }: { className?: string }) {
                 >
                   Quero anunciar <ArrowRight size={16} aria-hidden="true" />
                 </Link>
-                <a
-                  href={WHATSAPP}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  to="/parceiros"
                   className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/40 px-5 text-sm font-semibold hover:bg-white/10"
                 >
-                  <MessageCircle size={16} aria-hidden="true" /> Falar no WhatsApp
-                </a>
+                  Ver planos
+                </Link>
               </div>
             </div>
           </div>
