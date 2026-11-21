@@ -62,21 +62,6 @@ import { ShareButton } from "./ShareButton";
 
 const payIcon = { pix: QrCode, cartao: CreditCard, boleto: FileText } as const;
 
-export function StoreDevBanner({ className = "" }: { className?: string }) {
-  return (
-    <p
-      role="note"
-      className={`flex flex-wrap items-center gap-x-2.5 gap-y-1 rounded-xl border border-border bg-card px-4 py-2.5 text-xs text-muted-foreground ${className}`}
-    >
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-2 py-0.5 text-[11px] font-semibold text-foreground">
-        <span className="size-1.5 rounded-full bg-amber-500" aria-hidden="true" /> Pré-lançamento
-      </span>
-      Produtos, preços e lojas são ilustrativos. Pedidos feitos agora são apenas de teste, sem
-      cobrança; nossa equipe confirma qualquer compra com você.
-    </p>
-  );
-}
-
 function useWishlist() {
   const [ids, setIds] = useState<string[]>([]);
   useEffect(() => {
@@ -879,27 +864,23 @@ export function StorePage({ slug }: { slug?: string } = {}) {
   if (orderParam)
     return (
       <div className="mx-auto flex w-full flex-col gap-4">
-        <StoreDevBanner />
         <OrderTracking id={orderParam} />
       </div>
     );
   if (search.pedidos !== undefined)
     return (
       <div className="mx-auto flex w-full flex-col gap-4">
-        <StoreDevBanner />
         <MyOrders />
       </div>
     );
   if (slugParam)
     return (
       <div className="mx-auto flex w-full flex-col gap-4">
-        <StoreDevBanner />
         <PublicStoreGate slug={slugParam} fallback={staticVendor} />
       </div>
     );
   return (
     <div className="mx-auto flex w-full flex-col gap-4">
-      <StoreDevBanner />
       <CampaignHero campaign={campaign} />
 
       <div

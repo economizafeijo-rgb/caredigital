@@ -36,7 +36,7 @@ import {
   type Product,
   type StoreCategory,
 } from "@/lib/store";
-import { productStatus } from "@/lib/marketplace";
+import { productStatus, segmentLabel } from "@/lib/marketplace";
 import { LiveModeLauncher } from "./LiveMode";
 import { StoreLed } from "./store/StoreLed";
 import { useLiveStores } from "./LiveStores";
@@ -600,9 +600,111 @@ function FeaturedStore() {
   );
 }
 
+const STOP = new Set(["de", "da", "do", "das", "dos", "e", "&"]);
+const initialsOf = (name: string) => {
+  const w = name
+    .replace(/[^\p{L}\p{N}\s&]/gu, "")
+    .split(/\s+/)
+    .filter((x) => x && !STOP.has(x.toLowerCase()));
+  const two = w.length > 1 ? w[0][0] + w[1][0] : (w[0] ?? "?").slice(0, 2);
+  return two.toUpperCase();
+};
+
+/** Card de loja: monograma na cor da loja quando não há logomarca, segmento, cidade e situação. */
+function StoreCard({
+  name,
+  accent,
+  logo,
+  meta,
+  open,
+  hours,
+  verified,
+  count,
+  rating,
+  search,
+}: {
+  name: string;
+  accent: string;
+  logo?: string | null;
+  meta: string;
+  open?: boolean;
+  hours?: string | null;
+  verified?: boolean;
+  count?: number;
+  rating?: number;
+  search: string;
+}) {
+  return (
+    <Link
+      to="/loja"
+      search={{ loja: search } as never}
+      aria-label={`Visitar a loja ${name}`}
+      style={{ "--accent": accent } as CSSProperties}
+      className="group relative flex h-full flex-col gap-3 overflow-hidden rounded-2xl border border-border bg-card p-3.5 transition-[border-color,transform] duration-200 sm:p-4 [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:border-[color-mix(in_srgb,var(--accent)_70%,transparent)]"
+    >
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-10 -top-12 size-32 rounded-full opacity-25 blur-2xl transition-opacity duration-300 group-hover:opacity-50"
+        style={{ background: accent }}
+      />
+      <span className="relative flex items-start justify-between gap-2">
+        {logo ? (
+          <span className="grid size-12 place-items-center overflow-hidden rounded-2xl bg-white p-1 ring-1 ring-black/10">
+            <img
+              src={logo}
+              alt=""
+              loading="lazy"
+              onError={(e) => (e.currentTarget.style.visibility = "hidden")}
+              className="size-full object-contain"
+            />
+          </span>
+        ) : (
+          <span
+            aria-hidden="true"
+            className="grid size-12 place-items-center rounded-2xl font-display text-[17px] font-extrabold tracking-tight text-white shadow-[inset_0_1px_0_rgba(255,255,255,.35),0_8px_18px_-8px_var(--accent)] ring-1 ring-white/15"
+            style={{
+              background: `linear-gradient(135deg, ${accent}, color-mix(in srgb, ${accent} 55%, #000))`,
+            }}
+          >
+            {initialsOf(name)}
+          </span>
+        )}
+        {open ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-bold text-emerald-300">
+            <StoreLed open /> Aberta
+          </span>
+        ) : rating ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/15 px-2 py-0.5 text-[11px] font-bold text-amber-300">
+            <Star size={11} className="fill-current" aria-hidden="true" />
+            {rating.toFixed(1).replace(".", ",")}
+          </span>
+        ) : null}
+      </span>
+      <span className="relative block min-w-0 leading-tight">
+        <span className="flex items-center gap-1">
+          <strong className="truncate text-[15px] font-bold">{name}</strong>
+          {verified && (
+            <BadgeCheck size={15} className="shrink-0 text-sky-400" aria-label="Loja verificada" />
+          )}
+        </span>
+        <span className="mt-1 block truncate text-xs text-muted-foreground">{meta}</span>
+      </span>
+      <span className="relative mt-auto flex items-center justify-between gap-2 border-t border-border pt-2.5 text-xs">
+        <span className="truncate text-muted-foreground">
+          {count ? `${count} ${count === 1 ? "produto" : "produtos"}` : (hours ?? "Ver vitrine")}
+        </span>
+        <span className="inline-flex shrink-0 items-center gap-1 font-bold text-foreground transition-transform duration-200 group-hover:translate-x-0.5">
+          Visitar <ArrowRight size={13} strokeWidth={2.5} aria-hidden="true" />
+        </span>
+      </span>
+    </Link>
+  );
+}
+
 function PartnerStores() {
-  const { vendors: live } = useLiveStores();
+  const { vendors: live, products: liveProducts } = useLiveStores();
   const hasLive = live.length > 0;
+  const countOf = (id: string) => liveProducts.filter((p) => p.vendor.id === id).length;
   return (
     <section aria-labelledby="stores-title" className="grid grid-cols-[minmax(0,1fr)] gap-3">
       <SectionHead
@@ -622,78 +724,29 @@ function PartnerStores() {
         {hasLive
           ? live.slice(0, 8).map((v) => (
               <li key={v.id}>
-                <Link
-                  to="/loja"
-                  search={{ loja: v.slug } as never}
-                  aria-label={`Visitar a loja ${v.name}`}
-                  style={{ "--accent": v.accent_hex ?? "#0e7a5f" } as CSSProperties}
-                  className="group block overflow-hidden rounded-2xl border border-border bg-card transition-[border-color,transform] duration-200 [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:border-[var(--accent)]"
-                >
-                  <span className="block h-14 bg-[linear-gradient(120deg,var(--accent),color-mix(in_srgb,var(--accent)_45%,#0b1020))]" />
-                  <span className="-mt-7 flex items-end gap-2.5 px-3">
-                    <span className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white ring-2 ring-card">
-                      {v.logo_url ? (
-                        <img
-                          src={v.logo_url}
-                          alt=""
-                          className="size-full object-contain"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <strong className="text-lg font-extrabold text-slate-800">
-                          {v.name.slice(0, 1)}
-                        </strong>
-                      )}
-                    </span>
-                  </span>
-                  <span className="block px-3 pb-3 pt-2 leading-tight">
-                    <span className="flex items-center gap-1">
-                      <strong className="truncate text-sm font-bold">{v.name}</strong>
-                      {v.verified && (
-                        <BadgeCheck
-                          size={14}
-                          className="shrink-0 text-sky-500"
-                          aria-label="Loja verificada"
-                        />
-                      )}
-                    </span>
-                    <span className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                      {v.is_open && <StoreLed open />}
-                      {v.is_open ? "Aberta agora · " : ""}
-                      {v.city}
-                    </span>
-                  </span>
-                </Link>
+                <StoreCard
+                  name={v.name}
+                  accent={v.accent_hex ?? "#0e7a5f"}
+                  logo={v.logo_url}
+                  meta={`${segmentLabel(v.segment)} · ${v.city.replace(", AC", "")}`}
+                  open={!!v.is_open}
+                  hours={v.opening_hours}
+                  verified={v.verified}
+                  count={countOf(v.id)}
+                  search={v.slug}
+                />
               </li>
             ))
           : vendors.slice(0, 8).map((v) => (
               <li key={v.id}>
-                <Link
-                  to="/loja"
-                  search={{ loja: v.id } as never}
-                  aria-label={`Visitar a loja ${v.name}`}
-                  style={{ "--accent": v.hex } as CSSProperties}
-                  className="group flex items-center gap-3 rounded-2xl border border-border bg-card p-3 transition-[border-color,transform] duration-200 [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:border-[var(--accent)]"
-                >
-                  <span
-                    aria-hidden="true"
-                    className="grid size-11 shrink-0 place-items-center rounded-xl text-sm font-extrabold text-white"
-                    style={{ background: v.hex }}
-                  >
-                    {v.initials}
-                  </span>
-                  <span className="min-w-0 leading-tight">
-                    <strong className="block truncate text-sm font-bold">{v.name}</strong>
-                    <span className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                      <Star
-                        size={11}
-                        className="fill-amber-400 text-amber-400"
-                        aria-hidden="true"
-                      />
-                      {v.sampleRating.toFixed(1).replace(".", ",")} · {v.city.replace(", AC", "")}
-                    </span>
-                  </span>
-                </Link>
+                <StoreCard
+                  name={v.name}
+                  accent={v.hex}
+                  meta={`${v.sector} · ${v.city.replace(", AC", "")}`}
+                  verified={v.sampleVerified}
+                  rating={v.sampleRating}
+                  search={v.id}
+                />
               </li>
             ))}
       </ul>

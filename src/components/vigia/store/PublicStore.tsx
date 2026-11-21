@@ -8,6 +8,7 @@ import {
 } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
+  Download,
   ArrowLeft,
   BadgeCheck,
   CheckCircle2,
@@ -32,6 +33,7 @@ import {
   type VendorProduct,
 } from "@/lib/marketplace";
 import {
+  downloadQrPng,
   downloadStoreCard,
   initialsOf as ini,
   QrImage,
@@ -154,9 +156,8 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
     const t = window.setTimeout(() => setAdded(null), 1500);
     return () => window.clearTimeout(t);
   }, [added]);
-  const wa = `https://wa.me/55${vendor.phone.replace(/\D/g, "").replace(/^55/, "")}?text=${encodeURIComponent(`Olá! Vi a ${vendor.name} na NextVita e quero tirar uma dúvida.`)}`;
   const tint = (pct: number, to = "#0b1220") => `color-mix(in srgb, ${accent} ${pct}%, ${to})`;
-  const showcase = products.slice(0, 3);
+  const storeUrl = shortStoreUrl(vendor.slug);
 
   return (
     <div className="flex flex-col gap-4" style={{ "--v": accent } as CSSProperties}>
@@ -248,14 +249,6 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
               >
                 <MessageCircle size={16} /> Conversar com a loja
               </button>
-              <a
-                href={wa}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#25d366] px-4 text-sm font-bold text-slate-950 transition hover:brightness-105"
-              >
-                WhatsApp
-              </a>
               <button
                 type="button"
                 onClick={() => setShare(true)}
@@ -265,24 +258,41 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
               </button>
             </div>
           </div>
-          {showcase.length > 0 && (
+          <div className="mx-auto w-full max-w-[16.5rem] lg:mx-0">
             <div
-              aria-hidden
-              className="relative hidden h-56 w-[23rem] sm:block lg:h-60 lg:w-[26rem]"
+              className="rounded-3xl border-t-[6px] bg-white p-4 text-slate-900 shadow-[0_28px_60px_-22px_rgba(0,0,0,.75)] ring-4 ring-white/15"
+              style={{ borderTopColor: accent }}
             >
-              {showcase.map(
-                (p, i) =>
-                  p.image_url && (
-                    <span
-                      key={p.id}
-                      className={`absolute overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-white/20 ${i === 0 ? "left-1/2 top-0 z-[2] size-48 -translate-x-1/2 lg:size-52" : i === 1 ? "left-0 top-10 size-36 -rotate-6 lg:size-40" : "right-0 top-10 size-36 rotate-6 lg:size-40"}`}
-                    >
-                      <img src={p.image_url} alt="" className="size-full object-cover" />
-                    </span>
-                  ),
-              )}
+              <p className="text-center font-display text-[15px] font-extrabold leading-tight">
+                Escaneie e abra a loja
+              </p>
+              <p className="mt-0.5 text-center text-xs text-slate-500">
+                Aponte a câmera do celular
+              </p>
+              <div className="mx-auto mt-3 w-fit rounded-2xl p-1.5 ring-1 ring-slate-200">
+                <QrImage
+                  text={storeUrl}
+                  size={176}
+                  label={`QR Code da loja ${vendor.name}`}
+                  badge={{
+                    initials: ini(vendor.name),
+                    color: accent,
+                    logo: vendor.logo_url,
+                  }}
+                />
+              </div>
+              <p className="mt-2.5 truncate text-center font-mono text-[11px] text-slate-500">
+                {storeUrl.replace("https://", "")}
+              </p>
+              <button
+                type="button"
+                onClick={() => void downloadQrPng(storeUrl, `qr-${vendor.slug}.png`)}
+                className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-slate-900 text-[13px] font-bold text-white transition hover:bg-slate-800 active:scale-[.98] motion-reduce:active:scale-100"
+              >
+                <Download size={15} aria-hidden="true" /> Baixar QR Code
+              </button>
             </div>
-          )}
+          </div>
         </div>
         <ul className="grid grid-cols-2 border-t border-white/10 bg-black/20 sm:grid-cols-4">
           {[
@@ -301,7 +311,7 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
               "Entrega",
             ],
             [CheckCircle2, "Código de retirada", "Retire com o código"],
-            [MessageCircle, "Chat e WhatsApp", "Atendimento"],
+            [MessageCircle, "Chat com a loja", "Atendimento"],
           ].map(([I, value, label], i) => {
             const Icon = I as typeof Store;
             return (
