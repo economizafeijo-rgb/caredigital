@@ -15,6 +15,7 @@ import {
   type VendorProduct,
 } from "@/lib/marketplace";
 import { btn, fmtDate, inputCls, Panel } from "./shared";
+import { ProductHover } from "./ProductHover";
 
 const UNITS = ["un", "kg", "g", "l", "ml", "par", "kit", "cx"];
 const REASON: Record<string, string> = {
@@ -368,28 +369,30 @@ export function SellerProducts({
                 return (
                   <tr key={p.id} className="group hover:bg-muted/30">
                     <td className="px-4 py-2">
-                      <div className="flex items-center gap-3">
-                        {p.image_url ? (
-                          <img
-                            src={p.image_url}
-                            alt=""
-                            loading="lazy"
-                            className="size-10 shrink-0 rounded-lg bg-muted object-cover"
-                          />
-                        ) : (
-                          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-muted">
-                            <Package size={16} />
+                      <ProductHover product={p}>
+                        <div className="flex items-center gap-3">
+                          {p.image_url ? (
+                            <img
+                              src={p.image_url}
+                              alt=""
+                              loading="lazy"
+                              className="size-10 shrink-0 rounded-lg bg-muted object-cover"
+                            />
+                          ) : (
+                            <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-muted">
+                              <Package size={16} />
+                            </span>
+                          )}
+                          <span className="min-w-0">
+                            <strong className="block truncate font-semibold">{p.name}</strong>
+                            <span className="text-xs text-muted-foreground">
+                              {p.code ? `${p.code} · ` : ""}
+                              {p.sku ? `${p.sku} · ` : ""}
+                              {categoryName(p.category)}
+                            </span>
                           </span>
-                        )}
-                        <span className="min-w-0">
-                          <strong className="block truncate font-semibold">{p.name}</strong>
-                          <span className="text-xs text-muted-foreground">
-                            {p.code ? `${p.code} · ` : ""}
-                            {p.sku ? `${p.sku} · ` : ""}
-                            {categoryName(p.category)}
-                          </span>
-                        </span>
-                      </div>
+                        </div>
+                      </ProductHover>
                     </td>
                     <td className="px-2 tabular-nums">
                       <strong>{money(p.price_cents)}</strong>
