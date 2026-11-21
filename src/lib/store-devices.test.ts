@@ -7,10 +7,10 @@ describe("storeBlockMessage", () => {
     expect(msg).toContain(String(STORE_DEVICE_LIMIT));
     expect(msg).toMatch(/dispositivos/i);
   });
-  it("informa o horário de reabertura do painel", () => {
+  it("informa o expediente do painel", () => {
     const msg = storeBlockMessage("expediente");
-    expect(msg).toMatch(/6h/);
-    expect(msg).toMatch(/22h/);
+    expect(msg).toMatch(/8h às 17h/);
+    expect(msg).toMatch(/sábado/);
   });
   it("não gera mensagem para estados que não bloqueiam", () => {
     expect(storeBlockMessage("ok")).toBeNull();
