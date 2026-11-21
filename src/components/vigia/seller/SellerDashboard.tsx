@@ -12,9 +12,11 @@ import {
   ReceiptText,
   ShoppingBag,
   Store,
+  UserRound,
   Users,
   Wallet,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { PLANS, money, segmentLabel, type Vendor } from "@/lib/marketplace";
 import { ChatToastHost, pushChatToast } from "../chat/ChatToasts";
 import { useSellerData } from "./useSellerData";
@@ -27,6 +29,7 @@ import { SellerReports } from "./SellerReports";
 import { SellerRegistry } from "./SellerRegistry";
 import { SellerStaff } from "./SellerStaff";
 import { SellerStore } from "./SellerStore";
+import { SellerClients } from "./SellerClients";
 
 export type SellerTab =
   | "visao"
@@ -37,6 +40,7 @@ export type SellerTab =
   | "cadastros"
   | "equipe"
   | "mensagens"
+  | "clientes"
   | "loja";
 const STATUS = {
   pendente: ["Em análise", "bg-amber-400"],
@@ -85,6 +89,21 @@ export function SellerDashboard({
   const { data, loaded, error, reload } = useSellerData(vendor.id);
   const accent = vendor.accent_hex ?? "#0e7a5f";
   const isStaff = staffVendorIds.includes(vendor.id);
+  // Papel no banco: 'dono', 'operador' ou 'visualizador'. Visualizador só lê o painel.
+  const [myRole, setMyRole] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      const { data, error } = await (supabase as any).rpc("care_store_my_role", {
+        p_vendor: vendor.id,
+      });
+      if (alive && !error) setMyRole(typeof data === "string" ? data : null);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [vendor.id]);
+  const readOnly = isStaff && myRole === "visualizador";
 
   // Avisos em tempo real: som e pop-up para mensagem nova do cliente e pedido novo.
   const seen = useRef<{ vendor: string; ids: Set<string> } | null>(null);
@@ -152,14 +171,16 @@ export function SellerDashboard({
     caixa: { label: "Caixa", icon: Wallet, group: "operacao" },
     relatorios: { label: "Relatórios", icon: FileBarChart, group: "gestao" },
     cadastros: { label: "Cadastros", icon: BookUser, group: "gestao" },
-    equipe: { label: "Equipe", icon: Users, group: "gestao" },
+    clientes: { label: "Clientes", icon: UserRound, group: "operacao" },
+    equipe: { label: "Funcionários", icon: Users, group: "gestao" },
     loja: { label: "Minha loja", icon: Store, group: "gestao" },
   };
-  const allowed = (key: SellerTab) => !isStaff || ["pedidos", "mensagens"].includes(key);
+  const allowed = (key: SellerTab) =>
+    !isStaff || ["pedidos", "mensagens", "clientes"].includes(key);
   const groups = [
     {
       title: "Operação",
-      keys: ["visao", "pedidos", "produtos", "mensagens", "caixa"] as SellerTab[],
+      keys: ["visao", "pedidos", "clientes", "produtos", "mensagens", "caixa"] as SellerTab[],
     },
     { title: "Gestão", keys: ["relatorios", "cadastros", "equipe", "loja"] as SellerTab[] },
   ]
@@ -346,6 +367,15 @@ export function SellerDashboard({
               {error}
             </p>
           )}
+          {readOnly && (
+            <p
+              role="status"
+              className="mb-3 flex items-center gap-2 rounded-xl border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-sm"
+            >
+              Acesso somente para visualizar. Você consulta o painel, mas não altera pedidos nem
+              responde clientes.
+            </p>
+          )}
           {!loaded ? (
             <p
               role="status"
@@ -378,6 +408,7 @@ export function SellerDashboard({
               {tab === "relatorios" && !isStaff && <SellerReports vendor={vendor} />}
               {tab === "cadastros" && !isStaff && <SellerRegistry vendor={vendor} />}
               {tab === "equipe" && !isStaff && <SellerStaff vendor={vendor} />}
+              {tab === "clientes" && <SellerClients vendor={vendor} readOnly={readOnly} />}
               {tab === "caixa" && (
                 <SellerCash vendor={vendor} cash={data.cash} onChanged={refresh} />
               )}
