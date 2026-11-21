@@ -116,7 +116,7 @@ export function PartnerCommercial({ className = "" }: { className?: string }) {
         Anuncie na NextVita: lojas, academias, personal trainers e produtos
       </h2>
 
-      <div className="relative h-[17rem] min-[400px]:h-[18rem] sm:h-[19rem] lg:h-[20rem]">
+      <div className="relative h-[13rem] min-[400px]:h-[14rem] sm:h-[15rem] lg:h-[16rem]">
         {scene ? (
           <div key={scene.id} className="absolute inset-0">
             {scene.dev ? (
