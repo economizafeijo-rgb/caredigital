@@ -70,9 +70,12 @@ const offOf = (p: VendorProduct) =>
 export function LiveProductRail({
   title = "Lojas parceiras",
   vendorSlug,
+  showStoreNames = true,
 }: {
   title?: string;
   vendorSlug?: string;
+  /** Mostra a lista de lojas com horário ao lado do título. A homepage esconde e leva à página de parceiros. */
+  showStoreNames?: boolean;
 }) {
   const { vendors, products } = useLiveStores();
   const items = useMemo(
@@ -92,7 +95,15 @@ export function LiveProductRail({
         >
           <ShoppingBag size={18} className="text-primary" aria-hidden="true" /> {title}
         </h2>
-        <ul className="flex flex-wrap gap-1.5">
+        {!showStoreNames && (
+          <Link
+            to="/nossos-parceiros"
+            className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+          >
+            Conheça os parceiros <ArrowRight size={14} aria-hidden="true" />
+          </Link>
+        )}
+        <ul className={showStoreNames ? "flex flex-wrap gap-1.5" : "hidden"}>
           {vendors.map((v) => (
             <li key={v.id}>
               <Link

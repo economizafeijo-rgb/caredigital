@@ -27,6 +27,7 @@ import { Route as ParceirosRouteImport } from './routes/parceiros'
 import { Route as PesoRouteImport } from './routes/peso'
 import { Route as ProntuarioRouteImport } from './routes/prontuario'
 import { Route as ProtocolosRouteImport } from './routes/protocolos'
+import { Route as NossosParceirosRouteImport } from './routes/nossos-parceiros'
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as SonoRouteImport } from './routes/sono'
 import { Route as SuplementosRouteImport } from './routes/suplementos'
@@ -123,6 +124,11 @@ const ProtocolosRoute = ProtocolosRouteImport.update({
   path: '/protocolos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NossosParceirosRoute = NossosParceirosRouteImport.update({
+  id: '/nossos-parceiros',
+  path: '/nossos-parceiros',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SobreRoute = SobreRouteImport.update({
   id: '/sobre',
   path: '/sobre',
@@ -168,6 +174,7 @@ export interface FileRoutesByFullPath {
   '/peso': typeof PesoRoute
   '/prontuario': typeof ProntuarioRoute
   '/protocolos': typeof ProtocolosRoute
+  '/nossos-parceiros': typeof NossosParceirosRoute
   '/sobre': typeof SobreRoute
   '/sono': typeof SonoRoute
   '/suplementos': typeof SuplementosRoute
@@ -193,6 +200,7 @@ export interface FileRoutesByTo {
   '/peso': typeof PesoRoute
   '/prontuario': typeof ProntuarioRoute
   '/protocolos': typeof ProtocolosRoute
+  '/nossos-parceiros': typeof NossosParceirosRoute
   '/sobre': typeof SobreRoute
   '/sono': typeof SonoRoute
   '/suplementos': typeof SuplementosRoute
@@ -219,6 +227,7 @@ export interface FileRoutesById {
   '/peso': typeof PesoRoute
   '/prontuario': typeof ProntuarioRoute
   '/protocolos': typeof ProtocolosRoute
+  '/nossos-parceiros': typeof NossosParceirosRoute
   '/sobre': typeof SobreRoute
   '/sono': typeof SonoRoute
   '/suplementos': typeof SuplementosRoute
@@ -246,6 +255,7 @@ export interface FileRouteTypes {
     | '/peso'
     | '/prontuario'
     | '/protocolos'
+    | '/nossos-parceiros'
     | '/sobre'
     | '/sono'
     | '/suplementos'
@@ -271,6 +281,7 @@ export interface FileRouteTypes {
     | '/peso'
     | '/prontuario'
     | '/protocolos'
+    | '/nossos-parceiros'
     | '/sobre'
     | '/sono'
     | '/suplementos'
@@ -296,6 +307,7 @@ export interface FileRouteTypes {
     | '/peso'
     | '/prontuario'
     | '/protocolos'
+    | '/nossos-parceiros'
     | '/sobre'
     | '/sono'
     | '/suplementos'
@@ -322,6 +334,7 @@ export interface RootRouteChildren {
   PesoRoute: typeof PesoRoute
   ProntuarioRoute: typeof ProntuarioRoute
   ProtocolosRoute: typeof ProtocolosRoute
+  NossosParceirosRoute: typeof NossosParceirosRoute
   SobreRoute: typeof SobreRoute
   SonoRoute: typeof SonoRoute
   SuplementosRoute: typeof SuplementosRoute
@@ -457,6 +470,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtocolosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/nossos-parceiros': {
+      id: '/nossos-parceiros'
+      path: '/nossos-parceiros'
+      fullPath: '/nossos-parceiros'
+      preLoaderRoute: typeof NossosParceirosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sobre': {
       id: '/sobre'
       path: '/sobre'
@@ -514,6 +534,7 @@ const rootRouteChildren: RootRouteChildren = {
   PesoRoute: PesoRoute,
   ProntuarioRoute: ProntuarioRoute,
   ProtocolosRoute: ProtocolosRoute,
+  NossosParceirosRoute: NossosParceirosRoute,
   SobreRoute: SobreRoute,
   SonoRoute: SonoRoute,
   SuplementosRoute: SuplementosRoute,

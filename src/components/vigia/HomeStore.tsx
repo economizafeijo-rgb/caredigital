@@ -237,7 +237,7 @@ export function HomeStore({ className = "" }: { className?: string }) {
       </header>
 
       <div className="mt-3">
-        <LiveProductRail title="Lojas parceiras e Bela Vista" />
+        <LiveProductRail title="Novidades das lojas parceiras" showStoreNames={false} />
       </div>
 
       <Link

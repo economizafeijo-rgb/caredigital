@@ -105,6 +105,7 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
         { to: "/treinos", label: "Treinos", icon: Activity },
         { to: "/metricas", label: "Métricas", icon: BarChart3 },
         { to: "/loja", label: "Loja", icon: ShoppingBag },
+        { to: "/nossos-parceiros", label: "Parceiros", icon: Store },
         { to: "/lojista", label: "Seja lojista", icon: Store },
         { to: "/sobre", label: "Sobre", icon: Info },
       ],
@@ -299,6 +300,9 @@ function PublicTopNav({ pathname }: { pathname: string }) {
       </div>
       <Link to="/loja" className={`${linkCls} !text-foreground`} activeProps={activeCls}>
         <ShoppingBag size={15} aria-hidden="true" className="text-amber-400" /> Loja
+      </Link>
+      <Link to="/nossos-parceiros" className={linkCls} activeProps={activeCls}>
+        Parceiros
       </Link>
       <Link to="/lojista" className={linkCls} activeProps={activeCls}>
         Seja lojista
