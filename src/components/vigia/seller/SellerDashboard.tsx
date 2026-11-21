@@ -44,7 +44,22 @@ const STATUS = {
   suspenso: ["Suspensa", "bg-rose-400"],
 } as const;
 
-/** Painel do lojista: navegação lateral, cabeçalho da loja e os módulos de operação. */
+const initialsOf = (name: string) =>
+  name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
+/** Fundo padrão do painel: arcos concêntricos na cor da loja, sem depender de imagem externa. */
+function panelBackground(accent: string, banner?: string | null) {
+  if (banner) return `url("${banner}")`;
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 800' preserveAspectRatio='xMidYMid slice'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='${accent}' stop-opacity='.9'/><stop offset='1' stop-color='#020617' stop-opacity='1'/></linearGradient></defs><rect width='1200' height='800' fill='url(#g)'/><g fill='none' stroke='#ffffff' stroke-opacity='.08' stroke-width='2'><circle cx='1120' cy='-40' r='240'/><circle cx='1120' cy='-40' r='340'/><circle cx='1120' cy='-40' r='440'/><circle cx='80' cy='880' r='300'/><circle cx='80' cy='880' r='420'/></g></svg>`;
+  return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
+}
+
+/** Painel do lojista: menu lateral com a loja e as ações, e os módulos de operação ao lado. */
 export function SellerDashboard({
   vendors,
   onChanged,
@@ -121,176 +136,208 @@ export function SellerDashboard({
     }),
     [data],
   );
-  const allNav: { key: SellerTab; label: string; icon: typeof Store; badge?: number }[] = [
-    { key: "visao", label: "Visão geral", icon: LayoutDashboard },
-    { key: "pedidos", label: "Pedidos", icon: ShoppingBag, badge: badges.pedidos },
-    { key: "produtos", label: "Estoque", icon: Boxes, badge: badges.produtos },
-    { key: "caixa", label: "Caixa", icon: Wallet },
-    { key: "relatorios", label: "Relatórios", icon: FileBarChart },
-    { key: "cadastros", label: "Cadastros", icon: BookUser },
-    { key: "mensagens", label: "Mensagens", icon: MessageCircle, badge: badges.mensagens },
-    { key: "equipe", label: "Equipe", icon: Users },
-    { key: "loja", label: "Minha loja", icon: Store },
-  ];
-  const nav = allNav.filter((n) => !isStaff || ["pedidos", "mensagens"].includes(n.key));
+  const allNav: Record<
+    SellerTab,
+    { label: string; icon: typeof Store; badge?: number; group: "operacao" | "gestao" }
+  > = {
+    visao: { label: "Visão geral", icon: LayoutDashboard, group: "operacao" },
+    pedidos: { label: "Pedidos", icon: ShoppingBag, badge: badges.pedidos, group: "operacao" },
+    produtos: { label: "Estoque", icon: Boxes, badge: badges.produtos, group: "operacao" },
+    mensagens: {
+      label: "Mensagens",
+      icon: MessageCircle,
+      badge: badges.mensagens,
+      group: "operacao",
+    },
+    caixa: { label: "Caixa", icon: Wallet, group: "operacao" },
+    relatorios: { label: "Relatórios", icon: FileBarChart, group: "gestao" },
+    cadastros: { label: "Cadastros", icon: BookUser, group: "gestao" },
+    equipe: { label: "Equipe", icon: Users, group: "gestao" },
+    loja: { label: "Minha loja", icon: Store, group: "gestao" },
+  };
+  const allowed = (key: SellerTab) => !isStaff || ["pedidos", "mensagens"].includes(key);
+  const groups = [
+    {
+      title: "Operação",
+      keys: ["visao", "pedidos", "produtos", "mensagens", "caixa"] as SellerTab[],
+    },
+    { title: "Gestão", keys: ["relatorios", "cadastros", "equipe", "loja"] as SellerTab[] },
+  ]
+    .map((g) => ({ ...g, keys: g.keys.filter(allowed) }))
+    .filter((g) => g.keys.length);
   const refresh = () => {
     void reload();
     onChanged();
   };
-  const initials = vendor.name
-    .split(/\s+/)
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
 
   return (
-    <div
-      className="flex min-h-full w-full flex-col gap-4"
-      style={{ "--accent-store": accent } as CSSProperties}
-    >
+    <>
       <ChatToastHost />
-      <header
-        className="nv-dark relative isolate overflow-hidden rounded-2xl text-white"
-        style={{
-          background: `linear-gradient(120deg, color-mix(in srgb, ${accent} 70%, #020617) 0%, #0b1220 70%)`,
-        }}
+      <div
+        className="grid min-h-full w-full gap-4 lg:grid-cols-[16rem_minmax(0,1fr)]"
+        style={{ "--accent-store": accent } as CSSProperties}
       >
-        <div
-          aria-hidden
-          className="absolute -right-16 -top-20 -z-10 size-72 rounded-full blur-3xl"
-          style={{ background: `color-mix(in srgb, ${accent} 45%, transparent)` }}
-        />
-        <div className="flex items-center gap-3 p-3.5 sm:gap-4 sm:p-5">
-          <span
-            className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-white text-base font-black shadow-lg sm:size-14 sm:rounded-2xl sm:text-lg"
-            style={{ color: accent }}
-          >
-            {vendor.logo_url ? (
-              <img src={vendor.logo_url} alt="" className="size-full object-cover" />
-            ) : (
-              initials
-            )}
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="relative max-w-full">
-              <button
-                type="button"
-                onClick={() => vendors.length > 1 && setSwitcher((v) => !v)}
-                aria-expanded={vendors.length > 1 ? switcher : undefined}
-                className="flex max-w-full items-center gap-2 text-left"
-              >
-                <h1 className="truncate font-display text-lg font-extrabold tracking-tight sm:text-2xl">
-                  {vendor.name}
-                </h1>
-                {vendor.verified && (
-                  <BadgeCheck
-                    size={18}
-                    className="shrink-0 text-sky-300"
-                    aria-label="Loja verificada"
-                  />
-                )}
-                {vendors.length > 1 && (
-                  <ChevronDown
-                    size={18}
-                    className={`shrink-0 text-white/70 transition ${switcher ? "rotate-180" : ""}`}
-                  />
-                )}
-              </button>
-              {switcher && (
-                <ul className="absolute left-0 top-full z-30 mt-2 w-72 overflow-hidden rounded-xl border border-border bg-card p-1 text-foreground shadow-2xl">
-                  {vendors.map((v) => (
-                    <li key={v.id}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setVendorId(v.id);
-                          setSwitcher(false);
-                          setTab("visao");
-                        }}
-                        className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm hover:bg-muted ${v.id === vendor.id ? "bg-muted font-semibold" : ""}`}
-                      >
-                        <span
-                          className="grid size-7 place-items-center rounded-md text-[11px] font-extrabold text-white"
-                          style={{ background: v.accent_hex ?? "#0e7a5f" }}
-                        >
-                          {v.name
-                            .split(/\s+/)
-                            .map((w) => w[0])
-                            .slice(0, 2)
-                            .join("")}
-                        </span>
-                        <span className="min-w-0 flex-1 truncate">{v.name}</span>
-                        {v.is_demo && (
-                          <span className="rounded bg-muted-foreground/15 px-1 text-[11px]">
-                            teste
-                          </span>
-                        )}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-            <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/70">
-              <span className="inline-flex items-center gap-1.5">
-                <span className={`size-2 rounded-full ${STATUS[vendor.status][1]}`} />
-                {STATUS[vendor.status][0]}
-              </span>
-              <span className="hidden sm:inline">{segmentLabel(vendor.segment)}</span>
-              <span className="hidden sm:inline">{vendor.city}</span>
-              <span className="hidden items-center gap-1 sm:inline-flex">
-                <ReceiptText size={12} /> Plano {PLANS[vendor.plan].label}
-              </span>
-              {vendor.is_demo && (
-                <span className="rounded-full bg-white/15 px-2 py-0.5 font-semibold text-white">
-                  Loja de teste
-                </span>
-              )}
-            </p>
-          </div>
-          <a
-            href={`/loja?loja=${vendor.slug}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Ver a página pública da loja"
-            className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-white/10 px-2.5 text-[13px] font-semibold ring-1 ring-white/20 backdrop-blur transition hover:bg-white/20 sm:px-3"
-          >
-            <ExternalLink size={14} /> <span className="hidden sm:inline">Ver loja</span>
-          </a>
-        </div>
-      </header>
-
-      <div className="grid flex-1 gap-4 lg:grid-cols-[15rem_minmax(0,1fr)]">
-        <nav
-          aria-label="Painel da loja"
-          className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] lg:sticky lg:top-2 lg:mx-0 lg:flex-col lg:self-start lg:overflow-visible lg:rounded-2xl lg:border lg:border-border lg:bg-card lg:p-3"
+        {/* Menu lateral: identidade da loja, navegação e ações */}
+        <aside
+          aria-label="Menu do lojista"
+          className="nv-dark relative flex min-w-0 flex-col gap-3 rounded-2xl border border-border bg-card p-3 lg:sticky lg:top-2 lg:h-[calc(100dvh-5.5rem)] lg:self-start"
         >
-          {nav.map((n) => {
-            const on = tab === n.key;
-            return (
-              <button
-                key={n.key}
-                type="button"
-                onClick={() => setTab(n.key)}
-                aria-current={on ? "page" : undefined}
-                className={`relative inline-flex h-10 shrink-0 items-center gap-2.5 rounded-xl px-3 text-[13px] font-semibold transition-colors ${on ? "text-white shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground max-lg:border max-lg:border-border max-lg:bg-card"}`}
-                style={on ? { background: accent } : undefined}
+          <div
+            className="relative overflow-hidden rounded-xl p-3 text-white"
+            style={{
+              background: `linear-gradient(135deg, color-mix(in srgb, ${accent} 75%, #020617) 0%, #0b1220 85%)`,
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <span
+                className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-white text-sm font-black shadow-lg"
+                style={{ color: accent }}
               >
-                <n.icon size={16} /> {n.label}
-                {!!n.badge && (
-                  <span
-                    className={`ml-auto grid min-w-5 place-items-center rounded-full px-1.5 text-[11px] font-bold tabular-nums ${on ? "bg-white/25 text-white" : "bg-[var(--accent-store)] text-white"}`}
-                  >
-                    {n.badge}
-                  </span>
+                {vendor.logo_url ? (
+                  <img src={vendor.logo_url} alt="" className="size-full object-cover" />
+                ) : (
+                  initialsOf(vendor.name)
                 )}
-              </button>
-            );
-          })}
-        </nav>
+              </span>
+              <div className="relative min-w-0 flex-1">
+                <button
+                  type="button"
+                  onClick={() => vendors.length > 1 && setSwitcher((v) => !v)}
+                  aria-expanded={vendors.length > 1 ? switcher : undefined}
+                  className="flex max-w-full items-center gap-1.5 text-left"
+                >
+                  <span className="truncate font-display text-[15px] font-extrabold tracking-tight">
+                    {vendor.name}
+                  </span>
+                  {vendor.verified && (
+                    <BadgeCheck
+                      size={15}
+                      className="shrink-0 text-sky-300"
+                      aria-label="Loja verificada"
+                    />
+                  )}
+                  {vendors.length > 1 && (
+                    <ChevronDown
+                      size={15}
+                      className={`shrink-0 text-white/70 transition ${switcher ? "rotate-180" : ""}`}
+                    />
+                  )}
+                </button>
+                <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-white/70">
+                  <span className={`size-1.5 rounded-full ${STATUS[vendor.status][1]}`} />
+                  {STATUS[vendor.status][0]}
+                </p>
+                {switcher && (
+                  <ul className="absolute left-0 top-full z-30 mt-2 w-64 overflow-hidden rounded-xl border border-border bg-card p-1 text-foreground shadow-2xl">
+                    {vendors.map((v) => (
+                      <li key={v.id}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setVendorId(v.id);
+                            setSwitcher(false);
+                            setTab("visao");
+                          }}
+                          className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm hover:bg-muted ${v.id === vendor.id ? "bg-muted font-semibold" : ""}`}
+                        >
+                          <span
+                            className="grid size-7 place-items-center rounded-md text-[11px] font-extrabold text-white"
+                            style={{ background: v.accent_hex ?? "#0e7a5f" }}
+                          >
+                            {initialsOf(v.name)}
+                          </span>
+                          <span className="min-w-0 flex-1 truncate">{v.name}</span>
+                          {v.is_demo && (
+                            <span className="rounded bg-muted-foreground/15 px-1 text-[11px]">
+                              teste
+                            </span>
+                          )}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+            <p className="mt-2.5 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-white/65">
+              <span>{segmentLabel(vendor.segment)}</span>
+              <span aria-hidden>·</span>
+              <span>{vendor.city}</span>
+              <span aria-hidden>·</span>
+              <span className="inline-flex items-center gap-1">
+                <ReceiptText size={11} /> {PLANS[vendor.plan].label}
+              </span>
+            </p>
+            {vendor.is_demo && (
+              <span className="mt-2 inline-block rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold">
+                Loja de teste
+              </span>
+            )}
+          </div>
 
-        <main className="flex min-w-0 flex-col">
+          <nav
+            aria-label="Painel da loja"
+            className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] lg:mx-0 lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-y-auto lg:overflow-x-visible lg:px-0"
+          >
+            {groups.map((g) => (
+              <div key={g.title} className="flex gap-1 lg:flex-col">
+                <p className="hidden px-3 pb-1 pt-2 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground lg:block">
+                  {g.title}
+                </p>
+                {g.keys.map((key) => {
+                  const n = allNav[key];
+                  const on = tab === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setTab(key)}
+                      aria-current={on ? "page" : undefined}
+                      className={`relative inline-flex h-10 shrink-0 items-center gap-2.5 rounded-xl px-3 text-[13px] font-semibold transition-colors ${on ? "text-white shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground max-lg:border max-lg:border-border max-lg:bg-card"}`}
+                      style={on ? { background: accent } : undefined}
+                    >
+                      <n.icon size={16} /> {n.label}
+                      {!!n.badge && (
+                        <span
+                          className={`ml-auto grid min-w-5 place-items-center rounded-full px-1.5 text-[11px] font-bold tabular-nums ${on ? "bg-white/25 text-white" : "bg-[var(--accent-store)] text-white"}`}
+                        >
+                          {n.badge}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </nav>
+
+          <div className="grid gap-1.5 border-t border-border pt-3">
+            <a
+              href={`/loja?loja=${vendor.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Ver a página pública da loja"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border text-[13px] font-semibold transition hover:bg-muted"
+            >
+              <ExternalLink size={14} /> Ver loja pública
+            </a>
+          </div>
+        </aside>
+
+        {/* Área de trabalho com fundo de imagem */}
+        <main
+          className="relative isolate flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-background p-4 sm:p-6"
+          style={{ minHeight: "calc(100dvh - 5.5rem)" }}
+        >
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 -z-10 bg-cover bg-center opacity-[0.22]"
+            style={{ backgroundImage: panelBackground(accent, vendor.banner_url) }}
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-background/70 via-background/85 to-background"
+          />
           {error && (
             <p
               role="alert"
@@ -302,7 +349,7 @@ export function SellerDashboard({
           {!loaded ? (
             <p
               role="status"
-              className="flex items-center justify-center gap-2 py-24 text-sm text-muted-foreground"
+              className="flex flex-1 items-center justify-center gap-2 py-24 text-sm text-muted-foreground"
             >
               <Loader2 size={16} className="animate-spin" /> Carregando a loja…
             </p>
@@ -355,6 +402,6 @@ export function SellerDashboard({
           )}
         </main>
       </div>
-    </div>
+    </>
   );
 }
