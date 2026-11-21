@@ -106,6 +106,7 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
   const [cartOpen, setCartOpen] = useState(false);
   const [chat, setChat] = useState(false);
   const [chatDraft, setChatDraft] = useState<string | undefined>(undefined);
+  const [detail, setDetail] = useState<VendorProduct | null>(null);
   const [share, setShare] = useState(false);
   const [added, setAdded] = useState<string | null>(null);
   const lines = useVCart(vendor.id);
@@ -385,7 +386,13 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
                   {categoryName(p.category)}
                 </span>
                 <h3 className="mt-0.5 line-clamp-2 min-h-[2.5em] text-[13.5px] font-semibold leading-tight">
-                  {p.name}
+                  <button
+                    type="button"
+                    onClick={() => setDetail(p)}
+                    className="text-left hover:underline"
+                  >
+                    {p.name}
+                  </button>
                 </h3>
                 {p.code && (
                   <span className="mt-0.5 text-[10.5px] tabular-nums text-muted-foreground">
@@ -501,6 +508,118 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
       )}
       {chat && (
         <CustomerChat vendor={vendor} onClose={() => setChat(false)} initialText={chatDraft} />
+      )}
+      {detail && (
+        <div
+          className="fixed inset-0 z-[120] flex items-end justify-center bg-slate-950/60 sm:items-center sm:p-6"
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setDetail(null);
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="product-detail-title"
+            className="max-h-[90vh] w-full overflow-y-auto rounded-t-3xl bg-card p-5 shadow-xl sm:max-w-lg sm:rounded-3xl"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">
+                  {categoryName(detail.category)}
+                  {detail.code ? ` · Código ${detail.code}` : ""}
+                </p>
+                <h2 id="product-detail-title" className="text-lg font-extrabold leading-tight">
+                  {detail.name}
+                </h2>
+              </div>
+              <button
+                type="button"
+                autoFocus
+                onClick={() => setDetail(null)}
+                aria-label="Fechar"
+                className="shrink-0 rounded-full p-2 hover:bg-muted"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            {detail.image_url && (
+              <img
+                src={detail.image_url}
+                alt={detail.name}
+                className="mt-3 aspect-[4/3] w-full rounded-2xl object-cover"
+              />
+            )}
+            <p className="mt-3 flex flex-wrap items-baseline gap-2">
+              <strong className="text-2xl font-extrabold tabular-nums">
+                {money(detail.price_cents)}
+              </strong>
+              {detail.old_price_cents ? (
+                <span className="text-sm text-muted-foreground line-through tabular-nums">
+                  {money(detail.old_price_cents)}
+                </span>
+              ) : null}
+            </p>
+            <p className="mt-1 text-sm font-semibold">
+              {productStatus(detail).label}
+              {productStatus(detail).buyable && detail.stock <= 3
+                ? ` · últimas ${detail.stock}`
+                : ""}
+            </p>
+            {!!detail.colors?.length && (
+              <div className="mt-3">
+                <p className="text-xs font-semibold">Cores</p>
+                <ul className="mt-1 flex flex-wrap gap-2">
+                  {detail.colors.map((c) => (
+                    <li
+                      key={c.name}
+                      className={`flex items-center gap-1.5 text-xs ${c.stock <= 0 ? "opacity-50 line-through" : ""}`}
+                    >
+                      <span
+                        className="size-4 rounded-full border border-border"
+                        style={{ background: c.hex }}
+                        aria-hidden="true"
+                      />
+                      {c.name}
+                      {c.stock <= 0 ? " (esgotada)" : ""}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {detail.description && (
+              <p className="mt-3 text-sm text-muted-foreground">{detail.description}</p>
+            )}
+            <div className="mt-5 grid gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                disabled={!productStatus(detail).buyable}
+                onClick={() => {
+                  vcart.add(vendor.id, detail.id, productStatus(detail).max);
+                  setAdded(detail.id);
+                }}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl text-sm font-bold text-white disabled:opacity-45"
+                style={{ background: accent }}
+              >
+                <ShoppingCart size={16} /> Adicionar ao carrinho
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setChatDraft(
+                    detail.code
+                      ? `Tenho uma dúvida sobre o produto ${detail.code} (${detail.name}).`
+                      : `Tenho uma dúvida sobre o produto ${detail.name}.`,
+                  );
+                  setDetail(null);
+                  setChat(true);
+                }}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border text-sm font-semibold hover:bg-muted"
+              >
+                <MessageCircle size={16} /> Perguntar sobre este produto
+              </button>
+            </div>
+          </div>
+        </div>
       )}
       {share && <ShareSheet vendor={vendor} onClose={() => setShare(false)} />}
     </div>

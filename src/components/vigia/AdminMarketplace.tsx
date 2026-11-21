@@ -27,6 +27,7 @@ import {
 } from "@/lib/marketplace";
 import { NiceSelect } from "./NiceSelect";
 import { AdminVendorDetail } from "./AdminVendorDetail";
+import { AdminModerationSettings } from "./AdminModerationSettings";
 
 const inputCls = "mt-1 block h-10 w-full rounded-lg border border-border bg-surface px-2 text-sm";
 const monthNow = () => new Date(Date.now() - 5 * 3_600_000).toISOString().slice(0, 7);
@@ -191,6 +192,7 @@ export function AdminMarketplace() {
           <RefreshCw size={14} /> Atualizar
         </button>
       </header>
+      <AdminModerationSettings />
       {error && (
         <p
           role="alert"
