@@ -280,36 +280,35 @@ function PublicStore({
               </button>
             </div>
           </div>
-          <div className="mx-auto w-full max-w-[21rem] lg:mx-0">
-            <div
-              className="flex items-center gap-4 rounded-2xl border-l-[6px] bg-white p-3 text-slate-900 shadow-[0_20px_44px_-22px_rgba(0,0,0,.75)] ring-4 ring-white/15"
-              style={{ borderLeftColor: accent }}
-            >
-              <div className="shrink-0 rounded-xl p-1 ring-1 ring-slate-200">
-                <QrImage
-                  text={storeUrl}
-                  size={104}
-                  label={`QR Code da loja ${vendor.name}`}
-                  badge={{
-                    initials: ini(vendor.name),
-                    color: accent,
-                    logo: vendor.logo_url,
-                  }}
-                />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="font-display text-[14px] font-extrabold leading-tight">
+          <div className="mx-auto w-full max-w-[17.5rem] lg:mx-0">
+            <div className="overflow-hidden rounded-2xl bg-white text-slate-900 shadow-[0_24px_50px_-24px_rgba(0,0,0,.8)] ring-1 ring-white/20">
+              <div className="h-1.5" style={{ background: accent }} aria-hidden="true" />
+              <div className="flex flex-col items-center px-5 pb-5 pt-4">
+                <div className="rounded-xl border border-slate-200 p-2">
+                  <QrImage
+                    text={storeUrl}
+                    size={124}
+                    label={`QR Code da loja ${vendor.name}`}
+                    badge={{
+                      initials: ini(vendor.name),
+                      color: accent,
+                      logo: vendor.logo_url,
+                    }}
+                  />
+                </div>
+                <p className="mt-3 font-display text-[15px] font-extrabold leading-tight">
                   Escaneie e abra a loja
                 </p>
-                <p className="mt-0.5 truncate font-mono text-[11px] text-slate-500">
+                <p className="mt-1 max-w-full truncate rounded-full bg-slate-100 px-3 py-0.5 font-mono text-[11px] text-slate-500">
                   {storeUrl.replace("https://", "")}
                 </p>
                 <button
                   type="button"
                   onClick={() => void downloadQrPng(storeUrl, `qr-${vendor.slug}.png`)}
-                  className="mt-2 inline-flex h-8 items-center justify-center gap-1.5 rounded-lg bg-slate-900 px-3 text-[12px] font-bold text-white transition hover:bg-slate-800 active:scale-[.98] motion-reduce:active:scale-100"
+                  className="mt-4 inline-flex h-9 w-full items-center justify-center gap-2 rounded-xl text-[13px] font-bold text-white transition hover:brightness-110 active:scale-[.98] motion-reduce:active:scale-100"
+                  style={{ background: accent }}
                 >
-                  <Download size={13} aria-hidden="true" /> Baixar QR Code
+                  <Download size={14} aria-hidden="true" /> Baixar QR Code
                 </button>
               </div>
             </div>
