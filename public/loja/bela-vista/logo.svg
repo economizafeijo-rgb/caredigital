@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 10 400 350" role="img" aria-label="Bela Vista Fitness">
   <defs>
     <linearGradient id="wine" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#7a1c4f"/>
-      <stop offset="1" stop-color="#2b0720"/>
+      <stop offset="0" stop-color="#1e3a8a"/>
+      <stop offset="1" stop-color="#0b1d4a"/>
     </linearGradient>
     <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#f3d9a8"/>
@@ -20,7 +20,7 @@
     <rect x="289" y="191" width="13" height="37" rx="3"/>
     <rect x="305" y="200" width="9" height="21" rx="2"/>
   </g>
-  <text x="200" y="312" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="30" font-weight="700" letter-spacing="4" fill="#4a0f33">BELA VISTA</text>
+  <text x="200" y="312" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="30" font-weight="700" letter-spacing="4" fill="#0b1d4a">BELA VISTA</text>
   <text x="200" y="340" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" letter-spacing="7" fill="#a86f3c">FITNESS</text>
   <rect x="108" y="333" width="26" height="1.5" fill="#c8955a"/>
   <rect x="266" y="333" width="26" height="1.5" fill="#c8955a"/>

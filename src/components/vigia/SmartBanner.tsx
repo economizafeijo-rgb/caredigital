@@ -219,10 +219,10 @@ const launchSlide: Slide = {
   to: "/loja",
   images: [],
   bg: "/loja/bela-vista/banner.svg",
-  tone: "from-[#2b0a1e] via-[#7a1545] to-[#c2185b]",
+  tone: "from-[#0b1d4a] via-[#1e3a8a] to-[#1d4ed8]",
   custom: (
     <>
-      <span className="nv-rise inline-flex w-fit items-center gap-2 border border-[#d9b382]/60 bg-[#2b0a1e]/60 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-[#f3d9a8]">
+      <span className="nv-rise inline-flex w-fit items-center gap-2 border border-[#d9b382]/60 bg-[#0b1d4a]/60 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-[#f3d9a8]">
         Inauguração · Feijó, AC
       </span>
       <h2
