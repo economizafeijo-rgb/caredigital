@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Check, Copy, Download, ExternalLink, ImagePlus, Printer, ReceiptText } from "lucide-react";
+import { Check, Copy, Download, ExternalLink, Printer, ReceiptText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   centsToInput,
@@ -22,7 +22,6 @@ import {
   shortStoreUrl,
   socialLinks,
 } from "./shared";
-import { uploadStoreImage } from "./SellerProducts";
 
 const SWATCHES = [
   "#0e7a5f",
@@ -155,7 +154,6 @@ export function SellerStore({
         address: f.address.trim() || null,
         opening_hours: f.hours.trim() || null,
         accent_hex: f.accent,
-        logo_url: f.logo || null,
         offers_delivery: f.delivery,
         offers_pickup: f.pickup,
         delivery_fee_cents: fee,
@@ -169,17 +167,6 @@ export function SellerStore({
     if (error) return setErr("Não foi possível salvar. Tente de novo.");
     setMsg("Dados da loja salvos.");
     onChanged();
-  }
-  async function upload(file?: File) {
-    if (!file) return;
-    try {
-      const link = await uploadStoreImage(vendor.id, file, "logo");
-      setF((x) => ({ ...x, logo: link }));
-      setErr("");
-      setMsg("Logo enviada. Salve para aplicar.");
-    } catch (e) {
-      setErr((e as Error).message);
-    }
   }
   async function copy() {
     try {
@@ -216,24 +203,9 @@ export function SellerStore({
                     .toUpperCase()
                 )}
               </span>
-              <label className={`${btn.ghost} cursor-pointer`}>
-                <ImagePlus size={14} /> Logo
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  className="sr-only"
-                  onChange={(e) => void upload(e.target.files?.[0])}
-                />
-              </label>
-              {f.logo && (
-                <button
-                  type="button"
-                  onClick={() => setF({ ...f, logo: "" })}
-                  className="text-xs text-muted-foreground hover:underline"
-                >
-                  Remover logo
-                </button>
-              )}
+              <p className="max-w-[9rem] text-center text-[11px] leading-snug text-muted-foreground">
+                A logomarca é definida pela administração da plataforma.
+              </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="text-[13px] font-semibold sm:col-span-2">

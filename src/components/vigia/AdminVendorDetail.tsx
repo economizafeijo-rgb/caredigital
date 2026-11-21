@@ -4,6 +4,7 @@ import {
   CalendarDays,
   CheckCircle2,
   ExternalLink,
+  ImagePlus,
   KeyRound,
   LayoutDashboard,
   Mail,
@@ -29,6 +30,7 @@ import {
   type VendorProduct,
 } from "@/lib/marketplace";
 import { StatusBadge } from "./seller/shared";
+import { uploadStoreImage } from "./seller/SellerProducts";
 
 type Owner = {
   user_id?: string;
@@ -156,6 +158,26 @@ export function AdminVendorDetail({ vendor, onClose }: { vendor: Vendor; onClose
     setMsg({ ok: true, text: ok });
     void load();
     return true;
+  }
+  const setLogo = (url: string | null) =>
+    run(
+      "logo",
+      () =>
+        (supabase as any).rpc("care_store_admin_set_logo", {
+          p_vendor: vendor.id,
+          p_logo_url: url,
+        }),
+      url ? "Logomarca atualizada." : "Logomarca removida.",
+      () => "Não foi possível salvar a logomarca.",
+    );
+  async function uploadLogo(file?: File) {
+    if (!file) return;
+    try {
+      const link = await uploadStoreImage(vendor.id, file, "logo");
+      await setLogo(link);
+    } catch (e) {
+      setMsg({ ok: false, text: (e as Error).message });
+    }
   }
   const confirmEmail = () =>
     run(
@@ -291,6 +313,45 @@ export function AdminVendorDetail({ vendor, onClose }: { vendor: Vendor; onClose
               {msg.text}
             </p>
           )}
+
+          <section
+            aria-label="Logomarca"
+            className="flex flex-wrap items-center gap-4 rounded-2xl border border-border bg-card p-4"
+          >
+            <span className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-xl bg-muted text-sm font-black">
+              {vendor.logo_url ? (
+                <img src={vendor.logo_url} alt="Logo atual" className="size-full object-cover" />
+              ) : (
+                <ImagePlus size={20} className="text-muted-foreground" />
+              )}
+            </span>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm font-bold">Logomarca da loja</h3>
+              <p className="text-xs text-muted-foreground">
+                Só a administração define a logo. PNG, JPG ou WEBP de até 2 MB.
+              </p>
+            </div>
+            <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-muted">
+              <ImagePlus size={14} /> {vendor.logo_url ? "Trocar logo" : "Enviar logo"}
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="sr-only"
+                disabled={busy === "logo"}
+                onChange={(e) => void uploadLogo(e.target.files?.[0])}
+              />
+            </label>
+            {vendor.logo_url && (
+              <button
+                type="button"
+                disabled={busy === "logo"}
+                onClick={() => void setLogo(null)}
+                className="h-9 rounded-lg px-3 text-xs font-semibold text-rose-600 hover:bg-rose-500/10 disabled:opacity-50"
+              >
+                Remover
+              </button>
+            )}
+          </section>
 
           <section aria-label="Faturamento" className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
             {[
