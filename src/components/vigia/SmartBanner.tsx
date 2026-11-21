@@ -218,7 +218,7 @@ const launchSlide: Slide = {
   cta: "Conhecer a loja",
   to: "/loja",
   images: [],
-  bg: "/loja/bela-vista/banner.svg",
+  bg: "/loja/bela-vista/banner.jpg",
   tone: "from-[#0b1d4a] via-[#1e3a8a] to-[#1d4ed8]",
   custom: (
     <>
