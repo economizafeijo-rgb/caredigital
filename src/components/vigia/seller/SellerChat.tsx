@@ -242,7 +242,7 @@ export function SellerChat({
   }
 
   return (
-    <div className="grid h-[min(40rem,calc(100dvh-14rem))] min-h-[28rem] overflow-hidden rounded-2xl border border-border bg-card lg:grid-cols-[18rem_minmax(0,1fr)]">
+    <div className="grid h-[calc(100dvh-10rem)] min-h-[30rem] overflow-hidden rounded-2xl border border-border bg-card lg:grid-cols-[18rem_minmax(0,1fr)]">
       <aside
         className={`min-h-0 flex-col border-r border-border ${active ? "hidden lg:flex" : "flex"}`}
       >
