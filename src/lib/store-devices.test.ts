@@ -1,0 +1,20 @@
+import { describe, expect, it } from "vitest";
+import { storeBlockMessage, STORE_DEVICE_LIMIT } from "./store-devices";
+
+describe("storeBlockMessage", () => {
+  it("explica o limite de dispositivos sem culpar o usuário", () => {
+    const msg = storeBlockMessage("limit");
+    expect(msg).toContain(String(STORE_DEVICE_LIMIT));
+    expect(msg).toMatch(/dispositivos/i);
+  });
+  it("informa o horário de reabertura do painel", () => {
+    const msg = storeBlockMessage("expediente");
+    expect(msg).toMatch(/6h/);
+    expect(msg).toMatch(/22h/);
+  });
+  it("não gera mensagem para estados que não bloqueiam", () => {
+    expect(storeBlockMessage("ok")).toBeNull();
+    expect(storeBlockMessage("not_store")).toBeNull();
+    expect(storeBlockMessage("error")).toBeNull();
+  });
+});

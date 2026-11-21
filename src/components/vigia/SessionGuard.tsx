@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { checkStoreDevice, releaseStoreDevice, type StoreDeviceState } from "@/lib/store-devices";
 
 /** Marca que a saída foi pedida pelo próprio usuário (botão Sair), para não mostrar o aviso de "outro dispositivo". */
 export const MANUAL_SIGNOUT_KEY = "nv-manual-signout";
@@ -49,6 +50,8 @@ export function isSessionGone(
  */
 export function SessionGuard() {
   const hadSession = useRef(false);
+  // Conta de loja: "unknown" até a primeira conferência; "not" para contas comuns (não confere de novo).
+  const storeKind = useRef<"unknown" | "store" | "not">("unknown");
 
   useEffect(() => {
     let stopped = false;
@@ -62,6 +65,31 @@ export function SessionGuard() {
       }
       if (window.location.pathname !== "/entrar") window.location.assign(OTHER_DEVICE_PATH);
     };
+    // Limite de dispositivos ou expediente encerrado: sai deste aparelho e explica o motivo.
+    const endStoreSession = async (state: StoreDeviceState) => {
+      if (stopped) return;
+      stopped = true;
+      storage.set(MANUAL_SIGNOUT_KEY, "1");
+      await releaseStoreDevice();
+      try {
+        await supabase.auth.signOut({ scope: "local" });
+      } catch {
+        /* já encerrada */
+      }
+      const reason = state === "limit" ? "device-limit" : "expediente";
+      window.location.assign(`/entrar?reason=${reason}`);
+    };
+    const enforceStore = async () => {
+      if (storeKind.current === "not") return;
+      const state = await checkStoreDevice();
+      if (state === "not_store") {
+        storeKind.current = "not";
+        return;
+      }
+      if (state === "error") return;
+      storeKind.current = "store";
+      if (state !== "ok") await endStoreSession(state);
+    };
     const check = async () => {
       if (stopped || document.visibilityState === "hidden") return;
       try {
@@ -69,12 +97,17 @@ export function SessionGuard() {
         if (!data.session) return;
         hadSession.current = true;
         const { error } = await supabase.auth.getUser();
-        if (isSessionGone(error)) await kicked();
+        if (isSessionGone(error)) {
+          await kicked();
+          return;
+        }
+        await enforceStore();
       } catch {
         /* sem rede: tenta de novo no próximo ciclo */
       }
     };
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN") storeKind.current = "unknown";
       if (session) hadSession.current = true;
       if (event === "SIGNED_OUT" && hadSession.current) {
         if (storage.get(MANUAL_SIGNOUT_KEY)) {

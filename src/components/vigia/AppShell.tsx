@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { MANUAL_SIGNOUT_KEY } from "./SessionGuard";
+import { releaseStoreDevice } from "@/lib/store-devices";
 import {
   Activity,
   Apple,
@@ -522,6 +523,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     } catch {
       /* sem armazenamento */
     }
+    await releaseStoreDevice();
     const { error } = await supabase.auth.signOut();
     setSigningOut(false);
     if (error) {

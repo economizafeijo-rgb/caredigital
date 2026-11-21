@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { bootstrapPublicSignup } from "@/lib/public-signup-bootstrap";
+import { checkStoreDevice, storeBlockMessage } from "@/lib/store-devices";
 import { getSupabaseConfigurationIssue } from "@/lib/supabase-session";
 import {
   formatBrazilPhone,
@@ -82,8 +83,13 @@ function Entrar() {
   const [authStatus, setAuthStatus] = useState<AuthStatus>("idle");
   // Aparelho desconectado porque a conta entrou em outro dispositivo.
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("reason") === "other-device")
+    const reason = new URLSearchParams(window.location.search).get("reason");
+    if (reason === "other-device")
       setNotice({ type: "error", message: "Sua conta foi conectada em outro dispositivo e esta sessão foi encerrada. Por segurança, só um dispositivo fica conectado por vez. Entre novamente para continuar aqui." });
+    if (reason === "device-limit")
+      setNotice({ type: "error", message: storeBlockMessage("limit") ?? "" });
+    if (reason === "expediente")
+      setNotice({ type: "error", message: storeBlockMessage("expediente") ?? "" });
   }, []);
   const configurationIssue = getSupabaseConfigurationIssue();
 
@@ -190,8 +196,16 @@ function Entrar() {
         fail();
         return;
       }
-      // Sessão única: este login passa a ser o único ativo da conta.
-      await endOtherSessions();
+      // Conta de loja: até 3 dispositivos e só no expediente. Conta comum: sessão única.
+      const storeAccess = await checkStoreDevice();
+      const blocked = storeBlockMessage(storeAccess);
+      if (blocked) {
+        await supabase.auth.signOut({ scope: "local" });
+        setNotice({ type: "error", message: blocked });
+        fail();
+        return;
+      }
+      if (storeAccess === "not_store") await endOtherSessions();
       if (data.user.user_metadata?.nextvita_signup) await bootstrapPublicSignup(data.user);
       setAuthStatus("success");
       if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) await new Promise((r) => window.setTimeout(r, 700));
