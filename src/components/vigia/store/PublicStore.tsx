@@ -91,7 +91,26 @@ export function PublicStoreGate({ slug, fallback }: { slug: string; fallback: Re
         .eq("vendor_id", v.id)
         .eq("active", true)
         .order("created_at");
-      if (alive) setState({ vendor: v, products: p ?? [] });
+      const nowIso = new Date().toISOString();
+      const { data: promos } = await db
+        .from("care_store_promotions")
+        .select("percent,product_ids")
+        .eq("vendor_id", v.id)
+        .eq("status", "ativo")
+        .lte("starts_at", nowIso)
+        .gte("ends_at", nowIso);
+      const pct = new Map<string, number>();
+      for (const pr of promos ?? []) {
+        for (const id of pr.product_ids ?? []) pct.set(id, Math.max(pct.get(id) ?? 0, pr.percent));
+      }
+      const list: VendorProduct[] = (p ?? []).map((prod: VendorProduct) => {
+        const x = pct.get(prod.id);
+        if (!x) return prod;
+        // Vale o menor entre o preço atual e o preço com a promoção.
+        const promo = Math.min(prod.price_cents, Math.round((prod.price_cents * (100 - x)) / 100));
+        return { ...prod, old_price_cents: prod.price_cents, price_cents: promo, promo_percent: x };
+      });
+      if (alive) setState({ vendor: v, products: list });
     })();
     return () => {
       alive = false;
@@ -413,13 +432,18 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
                     Código {p.code}
                   </span>
                 )}
-                <p className="mt-2 flex items-baseline gap-1.5">
+                <p className="mt-2 flex flex-wrap items-baseline gap-1.5">
                   <strong className="text-[17px] font-extrabold tabular-nums">
                     {money(p.price_cents)}
                   </strong>
                   {p.old_price_cents && (
                     <span className="text-[11px] text-muted-foreground line-through tabular-nums">
                       {money(p.old_price_cents)}
+                    </span>
+                  )}
+                  {p.promo_percent && (
+                    <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10.5px] font-bold text-emerald-700 dark:text-emerald-300">
+                      Promoção −{p.promo_percent}%
                     </span>
                   )}
                 </p>
@@ -570,6 +594,11 @@ function PublicStore({ vendor, products }: { vendor: Vendor; products: VendorPro
               {detail.old_price_cents ? (
                 <span className="text-sm text-muted-foreground line-through tabular-nums">
                   {money(detail.old_price_cents)}
+                </span>
+              ) : null}
+              {detail.promo_percent ? (
+                <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                  Promoção −{detail.promo_percent}%
                 </span>
               ) : null}
             </p>

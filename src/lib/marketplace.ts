@@ -220,6 +220,8 @@ export type VendorProduct = {
   availability?: "auto" | "indisponivel" | "esgotado";
   featured?: boolean;
   created_at?: string;
+  /** Preenchido na vitrine quando há promoção ativa: preço "de" é o preço cheio. */
+  promo_percent?: number;
 };
 export type ProductColor = { name: string; hex: string; stock: number };
 /** Situação do produto na vitrine: leva em conta estoque, limite de exibição e a escolha manual do lojista. */
@@ -240,6 +242,9 @@ export type VendorOrder = {
   fulfillment: "entrega" | "retirada";
   items: { id: string; name: string; qty: number; price_cents: number }[];
   total_cents: number;
+  subtotal_cents?: number | null;
+  discount_cents?: number;
+  coupon_code?: string | null;
   delivery_fee_cents: number;
   commission_cents: number;
   vendor_net_cents: number;

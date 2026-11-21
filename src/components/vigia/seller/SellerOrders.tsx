@@ -405,6 +405,14 @@ export function SellerOrders({
                         </dd>
                         <dt className="text-muted-foreground">Entrega</dt>
                         <dd className="text-right tabular-nums">{money(o.delivery_fee_cents)}</dd>
+                        {!!o.discount_cents && (
+                          <>
+                            <dt className="text-muted-foreground">Cupom {o.coupon_code ?? ""}</dt>
+                            <dd className="text-right tabular-nums text-emerald-700 dark:text-emerald-300">
+                              −{money(o.discount_cents)}
+                            </dd>
+                          </>
+                        )}
                         <dt className="text-muted-foreground">Contribuição NextVita</dt>
                         <dd className="text-right tabular-nums text-rose-600 dark:text-rose-300">
                           −{money(o.commission_cents)}
