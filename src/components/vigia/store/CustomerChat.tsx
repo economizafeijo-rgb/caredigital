@@ -11,6 +11,7 @@ import {
 } from "@/lib/chat-rules";
 import { playSound } from "@/lib/chat-sound";
 import { ChatToastHost, SoundToggle, pushChatToast } from "../chat/ChatToasts";
+import { availabilityOf, useStoreStatus } from "@/lib/store-presence";
 
 type Queue = {
   state: "livre" | "atendimento" | "fila" | "vez";
@@ -48,6 +49,8 @@ export function CustomerChat({
   const [clock, setClock] = useState(() => Date.now());
   const skew = useRef(0);
   const prevState = useRef<string | null>(null);
+  const { status: storeStatus } = useStoreStatus(vendor.id, 20000);
+  const storeAvailability = availabilityOf(storeStatus);
   const seenIds = useRef<Set<string> | null>(null);
   useEffect(() => {
     const t = window.setInterval(() => setClock(Date.now()), 1000);
@@ -149,6 +152,8 @@ export function CustomerChat({
   async function send(e: FormEvent) {
     e.preventDefault();
     if (!user || !text.trim()) return;
+    if (storeAvailability === "offline")
+      return setErr("A loja está offline agora. Tente de novo mais tarde.");
     const bad = validateChatText(text);
     if (bad) return setErr(bad);
     const { error } = await (supabase as any).from("care_store_messages").insert({
@@ -233,6 +238,10 @@ export function CustomerChat({
           </div>
         ) : (
           <>
+            <StoreAvailabilityLine
+              availability={storeAvailability}
+              agents={storeStatus?.agents_online ?? null}
+            />
             {queue &&
               (queue.state === "fila" ||
                 queue.state === "vez" ||
@@ -284,11 +293,11 @@ export function CustomerChat({
                 placeholder="Escreva sua mensagem"
                 aria-label="Mensagem"
                 className="h-10 min-w-0 flex-1 rounded-full border border-border bg-surface px-4 text-sm"
-                disabled={!user}
+                disabled={!user || storeAvailability === "offline"}
               />
               <button
                 type="submit"
-                disabled={!text.trim() || !user}
+                disabled={!text.trim() || !user || storeAvailability === "offline"}
                 aria-label="Enviar"
                 className="grid size-10 place-items-center rounded-full text-white disabled:opacity-40"
                 style={{ background: accent }}
@@ -346,5 +355,32 @@ function QueueBanner({ q, clock, accent }: { q: Queue; clock: number; accent: st
         />
       </div>
     </div>
+  );
+}
+
+/** Estado da loja para o cliente: texto e ícone, sem depender só de cor. */
+function StoreAvailabilityLine({
+  availability,
+  agents,
+}: {
+  availability: "offline" | "livre" | "ocupado";
+  agents: number | null;
+}) {
+  if (availability === "offline")
+    return (
+      <p role="status" className="border-b border-border bg-muted px-4 py-2 text-xs text-muted-foreground">
+        Loja offline no momento. Não é possível entrar na fila agora; tente mais tarde.
+      </p>
+    );
+  if (availability === "ocupado")
+    return (
+      <p role="status" className="border-b border-border bg-amber-50 px-4 py-2 text-xs text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+        Todos os atendentes estão ocupados. Sua mensagem entra na fila.
+      </p>
+    );
+  return (
+    <p role="status" className="border-b border-border bg-emerald-50 px-4 py-2 text-xs text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
+      Atendimento online{agents ? ` · ${agents} atendente${agents > 1 ? "s" : ""} disponível` : ""}.
+    </p>
   );
 }

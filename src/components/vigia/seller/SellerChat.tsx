@@ -21,6 +21,7 @@ import {
 } from "@/lib/chat-rules";
 import { playSound } from "@/lib/chat-sound";
 import { SoundToggle } from "../chat/ChatToasts";
+import { AvailabilityToggle } from "./AvailabilityToggle";
 import { supabase } from "@/integrations/supabase/client";
 import type { ChatMessage, Vendor } from "@/lib/marketplace";
 
@@ -173,6 +174,7 @@ export function SellerChat({
       <aside
         className={`min-h-0 flex-col border-r border-border ${active ? "hidden lg:flex" : "flex"}`}
       >
+        <AvailabilityToggle vendorId={vendor.id} />
         <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-2.5">
           <p className="text-sm font-bold">
             Conversas <span className="font-normal text-muted-foreground">· {threads.length}</span>
