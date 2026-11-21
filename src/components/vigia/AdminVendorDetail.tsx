@@ -168,6 +168,92 @@ export function AdminVendorDetail({ vendor, onClose }: { vendor: Vendor; onClose
     void load();
     return true;
   }
+  const [idf, setIdf] = useState({
+    name: "",
+    slug: "",
+    accent: "#0e7a5f",
+    description: "",
+    city: "",
+    phone: "",
+    opening: "",
+  });
+  useEffect(() => {
+    setIdf({
+      name: vendor.name,
+      slug: vendor.slug,
+      accent: vendor.accent_hex ?? "#0e7a5f",
+      description: vendor.description ?? "",
+      city: vendor.city ?? "",
+      phone: vendor.phone ?? "",
+      opening: vendor.opening_hours ?? "",
+    });
+  }, [
+    vendor.id,
+    vendor.name,
+    vendor.slug,
+    vendor.accent_hex,
+    vendor.description,
+    vendor.city,
+    vendor.phone,
+    vendor.opening_hours,
+  ]);
+  const identityFail = (m: string) =>
+    m.includes("já está em uso")
+      ? "Este endereço já está em uso por outra loja."
+      : m.includes("Nome")
+        ? "Nome deve ter de 2 a 80 caracteres."
+        : m.includes("Endereço inválido")
+          ? "Endereço inválido: use só letras minúsculas, números e hífen."
+          : m.includes("Cor")
+            ? "Escolha uma cor válida."
+            : "Não foi possível salvar a identidade da loja.";
+  const saveIdentity = (e: FormEvent) => {
+    e.preventDefault();
+    void run(
+      "identity",
+      () =>
+        (supabase as any).rpc("care_store_admin_update_identity", {
+          p_vendor: vendor.id,
+          p_name: idf.name,
+          p_slug: idf.slug,
+          p_accent_hex: idf.accent,
+          p_description: idf.description,
+          p_city: idf.city,
+          p_phone: idf.phone,
+          p_opening_hours: idf.opening,
+          p_logo_url: null,
+          p_banner_url: null,
+        }),
+      "Identidade da loja salva.",
+      identityFail,
+    );
+  };
+  async function uploadBanner(file?: File) {
+    if (!file) return;
+    try {
+      const link = await uploadStoreImage(vendor.id, file, "banner");
+      await run(
+        "identity",
+        () =>
+          (supabase as any).rpc("care_store_admin_update_identity", {
+            p_vendor: vendor.id,
+            p_name: idf.name,
+            p_slug: idf.slug,
+            p_accent_hex: idf.accent,
+            p_description: idf.description,
+            p_city: idf.city,
+            p_phone: idf.phone,
+            p_opening_hours: idf.opening,
+            p_logo_url: null,
+            p_banner_url: link,
+          }),
+        "Banner atualizado.",
+        identityFail,
+      );
+    } catch (e) {
+      setMsg({ ok: false, text: (e as Error).message });
+    }
+  }
   const setLogo = (url: string | null) =>
     run(
       "logo",
@@ -322,6 +408,118 @@ export function AdminVendorDetail({ vendor, onClose }: { vendor: Vendor; onClose
               {msg.text}
             </p>
           )}
+
+          <form
+            aria-label="Identidade da loja"
+            onSubmit={saveIdentity}
+            className="grid gap-3 rounded-2xl border border-border bg-card p-4"
+          >
+            <div>
+              <h3 className="text-sm font-bold">Identidade da loja</h3>
+              <p className="text-xs text-muted-foreground">
+                Só a administração altera nome, endereço, cor e informações da loja.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="text-[13px] font-semibold">
+                Nome da loja
+                <input
+                  className={field}
+                  value={idf.name}
+                  onChange={(e) => setIdf({ ...idf, name: e.target.value })}
+                  maxLength={80}
+                  required
+                />
+              </label>
+              <label className="text-[13px] font-semibold">
+                Endereço da loja (link)
+                <input
+                  className={`${field} font-mono`}
+                  value={idf.slug}
+                  onChange={(e) =>
+                    setIdf({ ...idf, slug: e.target.value.toLowerCase().replace(/\s+/g, "-") })
+                  }
+                  maxLength={60}
+                  required
+                />
+                <span className="mt-1 block text-[11px] font-normal text-muted-foreground">
+                  Links antigos da loja deixam de funcionar ao trocar.
+                </span>
+              </label>
+              <label className="text-[13px] font-semibold">
+                Cor da loja
+                <span className="mt-1 flex items-center gap-2">
+                  <input
+                    type="color"
+                    aria-label="Escolher cor"
+                    value={idf.accent}
+                    onChange={(e) => setIdf({ ...idf, accent: e.target.value })}
+                    className="h-10 w-12 cursor-pointer rounded-lg border border-border bg-surface p-1"
+                  />
+                  <input
+                    className={`${field} mt-0 font-mono`}
+                    value={idf.accent}
+                    onChange={(e) => setIdf({ ...idf, accent: e.target.value })}
+                    maxLength={7}
+                  />
+                </span>
+              </label>
+              <label className="text-[13px] font-semibold">
+                Cidade
+                <input
+                  className={field}
+                  value={idf.city}
+                  onChange={(e) => setIdf({ ...idf, city: e.target.value })}
+                />
+              </label>
+              <label className="text-[13px] font-semibold">
+                WhatsApp (com DDD)
+                <input
+                  className={field}
+                  inputMode="tel"
+                  value={idf.phone}
+                  onChange={(e) => setIdf({ ...idf, phone: e.target.value })}
+                />
+              </label>
+              <label className="text-[13px] font-semibold">
+                Horário de atendimento
+                <input
+                  className={field}
+                  value={idf.opening}
+                  onChange={(e) => setIdf({ ...idf, opening: e.target.value })}
+                  placeholder="Seg a sáb · 8h às 17h"
+                />
+              </label>
+            </div>
+            <label className="text-[13px] font-semibold">
+              Descrição
+              <textarea
+                className="mt-1 block min-h-20 w-full rounded-lg border border-border bg-surface px-2.5 py-2 text-sm font-normal"
+                value={idf.description}
+                onChange={(e) => setIdf({ ...idf, description: e.target.value })}
+                maxLength={500}
+              />
+            </label>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-muted">
+                <ImagePlus size={14} /> {busy === "identity" ? "Enviando…" : "Trocar banner"}
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="sr-only"
+                  disabled={busy === "identity"}
+                  onChange={(e) => void uploadBanner(e.target.files?.[0])}
+                />
+              </label>
+              <button
+                type="submit"
+                disabled={busy === "identity"}
+                className="h-10 rounded-lg bg-primary px-4 text-sm font-bold text-primary-foreground hover:brightness-110 disabled:opacity-50"
+              >
+                {busy === "identity" ? "Salvando…" : "Salvar identidade"}
+              </button>
+            </div>
+          </form>
 
           <section
             aria-label="Logomarca"
