@@ -30,6 +30,9 @@ import {
 import { btn, DeadlineChip, Panel, printOrderTicket, StatusBadge, useNow } from "./shared";
 
 type Filter = "abertos" | OrderStatus | "todos";
+const accentBtn =
+  "inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-[var(--accent-store)] px-3.5 text-[13px] font-semibold text-white transition hover:brightness-110 active:scale-[.98] disabled:opacity-50";
+
 const FILTERS: { key: Filter; label: string }[] = [
   { key: "abertos", label: "Em aberto" },
   { key: "aguardando_pagamento", label: "A pagar" },
@@ -201,7 +204,7 @@ export function SellerOrders({
                 type="button"
                 aria-pressed={filter === f.key}
                 onClick={() => setFilter(f.key)}
-                className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-xs font-semibold transition-colors ${filter === f.key ? "bg-foreground text-background" : "border border-border bg-card text-muted-foreground hover:text-foreground"}`}
+                className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-xs font-semibold transition-colors ${filter === f.key ? "bg-[var(--accent-store)] text-white" : "border border-border bg-card text-muted-foreground hover:text-foreground"}`}
               >
                 {f.label}
                 <span className="tabular-nums opacity-70">{counts[f.key] ?? 0}</span>
@@ -230,9 +233,9 @@ export function SellerOrders({
               }
               placeholder="Código do cliente"
               autoComplete="off"
-              className="h-10 min-w-0 flex-1 rounded-lg border border-border bg-card px-3 font-mono text-base font-bold"
+              className="h-10 min-w-0 flex-1 rounded-lg border border-border bg-card px-3 text-base font-bold tracking-[.12em]"
             />
-            <button type="submit" className={btn.primary}>
+            <button type="submit" className={accentBtn}>
               Validar
             </button>
           </div>
@@ -291,7 +294,7 @@ export function SellerOrders({
                         type="button"
                         disabled={busy === o.id}
                         onClick={() => void setStatus(o, nxt)}
-                        className={btn.primary}
+                        className={accentBtn}
                       >
                         <Check size={14} /> {NEXT_ACTION[o.status]}
                       </button>
@@ -378,7 +381,7 @@ export function SellerOrders({
                       <p>
                         <span className="text-muted-foreground">Contato:</span>{" "}
                         <a
-                          className="font-semibold text-primary hover:underline"
+                          className="font-semibold text-[var(--accent-store)] hover:underline"
                           href={`https://wa.me/55${o.customer_phone.replace(/\D/g, "").replace(/^55/, "")}`}
                           target="_blank"
                           rel="noopener noreferrer"

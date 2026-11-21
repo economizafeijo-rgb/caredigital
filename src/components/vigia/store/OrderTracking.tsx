@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { DisputePanel } from "./DisputePanel";
 import { useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
@@ -260,6 +261,7 @@ export function OrderTracking({ id }: { id: string }) {
             </button>
           )}
         </section>
+        <DisputePanel orderId={order.id} orderStatus={order.status} createdAt={order.created_at} />
         <section className="rounded-2xl border border-border bg-card p-5" aria-label="Resumo">
           <h2 className="text-sm font-bold">Resumo</h2>
           <ul className="mt-3 divide-y divide-border">
