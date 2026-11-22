@@ -192,8 +192,6 @@ export function SellerOverview({
 
   return (
     <div className="mx-auto grid w-full max-w-[88rem] gap-6">
-      <SellerOpenToggle vendor={vendor} onChanged={onChanged} />
-
       {/* Cabeçalho da visão geral */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
@@ -202,7 +200,8 @@ export function SellerOverview({
             {greetingFor(current)}, {vendor.name.split(/\s+/)[0]}
           </h2>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <SellerOpenToggle vendor={vendor} onChanged={onChanged} compact />
           <button
             type="button"
             onClick={() => go("produtos")}

@@ -14,7 +14,16 @@ const hora = (iso?: string | null) =>
     : null;
 
 /** Abre ou fecha a loja. Aberta, a loja aparece como "aberta agora" na vitrine e na home da plataforma. */
-export function SellerOpenToggle({ vendor, onChanged }: { vendor: Vendor; onChanged: () => void }) {
+export function SellerOpenToggle({
+  vendor,
+  onChanged,
+  compact = false,
+}: {
+  vendor: Vendor;
+  onChanged: () => void;
+  /** Versão discreta, em uma linha, para o cabeçalho da visão geral. */
+  compact?: boolean;
+}) {
   const { confirm } = useDialog();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -47,6 +56,37 @@ export function SellerOpenToggle({ vendor, onChanged }: { vendor: Vendor; onChan
       return;
     }
     onChanged();
+  }
+
+  if (compact) {
+    return (
+      <div className="flex flex-wrap items-center gap-2.5 rounded-xl border border-border bg-card px-3 py-1.5">
+        <span
+          aria-hidden="true"
+          className={`size-2.5 shrink-0 rounded-full ${open ? "bg-emerald-400 shadow-[0_0_10px_1px_rgba(52,211,153,.5)]" : "bg-slate-400"}`}
+        />
+        <span className="text-[13px] font-bold">{open ? "Loja aberta" : "Loja fechada"}</span>
+        <button
+          type="button"
+          onClick={() => void toggle()}
+          disabled={!approved || busy}
+          aria-label={open ? "Fechar loja" : "Abrir loja"}
+          className={`inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-50 ${
+            open
+              ? "border border-rose-500/40 text-rose-600 hover:bg-rose-500/10 dark:text-rose-300"
+              : "bg-emerald-600 text-white hover:bg-emerald-700"
+          }`}
+        >
+          {busy ? <Loader2 size={13} className="animate-spin" /> : <Power size={13} />}
+          {open ? "Fechar" : "Abrir"}
+        </button>
+        {err && (
+          <span role="alert" className="basis-full text-xs text-rose-600 dark:text-rose-300">
+            {err}
+          </span>
+        )}
+      </div>
+    );
   }
 
   return (

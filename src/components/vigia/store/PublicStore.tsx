@@ -44,6 +44,7 @@ import {
   socialLinks,
 } from "../seller/shared";
 import { CustomerChat } from "./CustomerChat";
+import { PilotNotice } from "./PilotNotice";
 import { StoreStatusChip } from "./StoreLed";
 import { useLiveVendor } from "../LiveStores";
 import { useVCart, vcart } from "./vendorCart";
@@ -205,6 +206,7 @@ function PublicStore({
 
   return (
     <div className="flex flex-col gap-4" style={{ "--v": accent } as CSSProperties}>
+      <PilotNotice />
       <section
         className="nv-dark relative isolate rounded-3xl text-white shadow-pop"
         style={{

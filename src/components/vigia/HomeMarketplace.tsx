@@ -27,6 +27,7 @@ import { openProduct } from "./StoreViews";
 import { CartDrawer, Checkout } from "./StorePage";
 import { CampaignTeaser, FlashDeals } from "./store/StorePromos";
 import { currentCampaign } from "@/lib/store-promos";
+import { PilotNotice } from "./store/PilotNotice";
 
 type Filter = StoreCategory | "todos";
 
@@ -469,6 +470,8 @@ export function HomeMarketplace({ middle }: { middle?: ReactNode }) {
           ))}
         </Rail>
       </Band>
+
+      <PilotNotice className="mb-1" />
 
       {middle}
 
