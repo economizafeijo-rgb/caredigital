@@ -68,6 +68,20 @@ type LibraryItem = {
   tips: string[];
   caution: string;
   pack: { shape: PackShape; color: string; label: string; sub: string };
+  /** Foto real da embalagem (PNG/WebP com fundo transparente), quando existir. */
+  photo?: string;
+  brand?: string;
+  /** Dados transcritos do rótulo do produto. */
+  label?: ProductLabel;
+};
+type ProductLabel = {
+  serving: string;
+  servings: string;
+  rows: { name: string; detail?: string; amount: string; dv?: string }[];
+  other: string;
+  free: string[];
+  seals: string[];
+  note: string;
 };
 type Seed = Omit<LibraryItem, "pack" | "icon" | "gradient"> & {
   icon?: LucideIcon;
@@ -79,6 +93,22 @@ const seed = (x: Seed): LibraryItem => ({
   gradient: "from-violet-500 to-fuchsia-500",
   ...x,
 });
+
+/** Mostra a foto real da embalagem quando houver; senão, a ilustração em SVG. */
+function PackArt({ item, className }: { item: LibraryItem; className?: string }) {
+  if (item.photo) {
+    return (
+      <img
+        src={item.photo}
+        alt={item.name}
+        loading="lazy"
+        decoding="async"
+        className={`${className ?? ""} object-contain`}
+      />
+    );
+  }
+  return <SupplementPack {...item.pack} title={item.name} className={className} />;
+}
 
 /** Referências educativas usuais em adultos saudáveis. Não substitui orientação profissional. */
 export const supplementLibrary: LibraryItem[] = [
@@ -368,6 +398,54 @@ export const supplementLibrary: LibraryItem[] = [
     tips: ["Doses de até 500 mg por vez são melhor absorvidas.", "Não tome junto com ferro."],
     caution: "Histórico de cálculo renal pede orientação.",
     pack: { shape: "frasco", color: "#64748b", label: "CÁLCIO + D", sub: "60 comp" },
+  }),
+  seed({
+    key: "solgar-cmz",
+    name: "Solgar Cálcio + Magnésio + Zinco",
+    brand: "Solgar",
+    category: "Minerais",
+    dose: 3,
+    unit: "comprimido",
+    range: "3 comprimidos por dia (1 porção), com uma refeição",
+    timing: "Com uma refeição; pode dividir os 3 comprimidos ao longo do dia",
+    times: ["12:00"],
+    withFood: true,
+    benefit:
+      "Promove ossos saudáveis e apoia a função dos nervos e dos músculos. O cálcio ajuda a manter ossos e dentes fortes; o magnésio regula o transporte do cálcio e participa da função muscular; o zinco atua na síntese de colágeno do tecido ósseo.",
+    tips: [
+      "Conforme o rótulo: 3 comprimidos ao dia com uma refeição, ou como orientado pelo profissional de saúde.",
+      "Pode distribuir os comprimidos entre as refeições do dia.",
+      "Não exceda a porção indicada. Guarde em temperatura ambiente, longe de crianças.",
+    ],
+    caution:
+      "Gestantes, lactantes, quem usa medicamentos ou tem alguma condição de saúde devem consultar o profissional antes. Suspenda e procure atendimento se houver reação adversa. Cálcio, magnésio e zinco podem interferir na absorção de alguns medicamentos: pergunte sobre o horário.",
+    pack: { shape: "frasco", color: "#b45309", label: "CÁLCIO MAG ZINCO", sub: "Solgar · 100 comp" },
+    photo: "/images/suplementos/solgar-calcio-magnesio-zinco.webp",
+    label: {
+      serving: "3 comprimidos",
+      servings: "33 porções por frasco (100 comprimidos)",
+      rows: [
+        {
+          name: "Cálcio",
+          detail: "carbonato, citrato e gluconato de cálcio",
+          amount: "1.000 mg",
+          dv: "77%",
+        },
+        {
+          name: "Magnésio",
+          detail: "óxido, gluconato e citrato de magnésio",
+          amount: "400 mg",
+          dv: "95%",
+        },
+        { name: "Zinco", detail: "gluconato de zinco", amount: "15 mg", dv: "136%" },
+        { name: "Sódio", detail: "naturalmente presente", amount: "15 mg", dv: "<1%" },
+      ],
+      other:
+        "Celulose microcristalina, celulose vegetal, ácido cítrico, estearato de magnésio vegetal, ácido esteárico vegetal, glicerina vegetal e cera de carnaúba.",
+      free: ["Glúten", "Trigo", "Laticínios", "Soja", "Levedura", "Açúcar", "Aromas, adoçantes e corantes artificiais"],
+      seals: ["Não transgênico", "Adequado para veganos", "Kosher pareve"],
+      note: "%VD conforme o rótulo norte-americano (base de adultos dos EUA). Informações do rótulo do fabricante; confira sempre a embalagem em mãos.",
+    },
   }),
   seed({
     key: "probiotico",
@@ -909,7 +987,7 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
                           className="grid size-11 shrink-0 place-items-center rounded-xl"
                           style={{ background: `${item.pack.color}1f` }}
                         >
-                          <SupplementPack {...item.pack} className="h-10 w-auto" />
+                          <PackArt item={item} className="h-10 w-auto" />
                         </span>
                       ) : (
                         <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-sm">
@@ -1001,7 +1079,7 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
                         className="grid size-14 shrink-0 place-items-center rounded-xl"
                         style={{ background: `${item.pack.color}1f` }}
                       >
-                        <SupplementPack {...item.pack} className="h-12 w-auto" />
+                        <PackArt item={item} className="h-12 w-auto" />
                       </span>
                     ) : (
                       <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white">
@@ -1089,9 +1167,8 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
                       background: `radial-gradient(circle at 50% 28%, ${item.pack.color}22, transparent 65%)`,
                     }}
                   >
-                    <SupplementPack
-                      {...item.pack}
-                      title={item.name}
+                    <PackArt
+                      item={item}
                       className="h-[4.25rem] w-auto shrink-0 drop-shadow-[0_6px_8px_rgba(0,0,0,.35)] transition-transform duration-500 group-hover:scale-105"
                     />
                     <strong className="mt-1.5 line-clamp-2 min-h-[2rem] w-full text-[11px] font-semibold leading-4">
@@ -1114,10 +1191,9 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
                 background: `radial-gradient(circle at 50% 40%, ${info.pack.color}33, transparent 70%), linear-gradient(180deg, ${info.pack.color}14, transparent)`,
               }}
             >
-              <SupplementPack
-                {...info.pack}
-                title={info.name}
-                className="nv-float h-24 w-auto drop-shadow-xl"
+              <PackArt
+                item={info}
+                className={`nv-float w-auto drop-shadow-xl ${info.photo ? "h-40" : "h-24"}`}
               />
               <span
                 className="absolute left-2 top-2 bg-card/80 px-2 py-0.5 text-[10px] font-bold backdrop-blur"
@@ -1129,6 +1205,61 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
             <div className="p-3">
               <h4 className="text-base font-bold">{info.name}</h4>
               <p className="mt-0.5 text-xs">{info.benefit}</p>
+              {info.label && (
+                <div className="mt-2 border border-border text-xs" aria-label="Informação nutricional do rótulo">
+                  <div className="bg-foreground px-2.5 py-1 font-bold text-background">
+                    Informação nutricional · porção de {info.label.serving}
+                  </div>
+                  <p className="px-2.5 pt-1 text-[11px] text-muted-foreground">
+                    {info.label.servings}
+                  </p>
+                  <table className="w-full">
+                    <thead className="sr-only">
+                      <tr>
+                        <th>Nutriente</th>
+                        <th>Quantidade</th>
+                        <th>%VD</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {info.label.rows.map((row) => (
+                        <tr key={row.name} className="border-t border-border">
+                          <td className="px-2.5 py-1.5">
+                            <strong>{row.name}</strong>
+                            {row.detail && (
+                              <span className="block text-[10px] leading-3 text-muted-foreground">
+                                {row.detail}
+                              </span>
+                            )}
+                          </td>
+                          <td className="whitespace-nowrap px-1 text-right font-bold tabular-nums">
+                            {row.amount}
+                          </td>
+                          <td className="whitespace-nowrap px-2.5 text-right tabular-nums text-muted-foreground">
+                            {row.dv}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div className="grid gap-1 border-t border-border px-2.5 py-1.5 text-[11px]">
+                    <p>
+                      <strong>Outros ingredientes:</strong> {info.label.other}
+                    </p>
+                    <p>
+                      <strong>Livre de:</strong> {info.label.free.join(", ")}.
+                    </p>
+                    <p className="flex flex-wrap gap-1">
+                      {info.label.seals.map((seal) => (
+                        <span key={seal} className="bg-muted px-1.5 py-0.5 font-semibold">
+                          {seal}
+                        </span>
+                      ))}
+                    </p>
+                    <p className="text-muted-foreground">{info.label.note}</p>
+                  </div>
+                </div>
+              )}
               <dl className="mt-2 grid gap-1 text-xs">
                 <div className="flex justify-between gap-3 bg-muted/50 px-2.5 py-1.5">
                   <dt className="text-muted-foreground">Dose de referência</dt>
