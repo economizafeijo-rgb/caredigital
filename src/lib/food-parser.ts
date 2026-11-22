@@ -159,6 +159,9 @@ export const foodMicros: Record<string, [number, number, number, number, number]
   panelada: [0, 0, 40, 1.5, 60],
   churrasco: [0, 0, 10, 2.7, 320],
   carne_assada: [0, 0, 6, 3, 330],
+  pernil_assado: [0, 0, 10, 1.2, 360],
+  lombo_assado: [0, 0, 8, 1, 400],
+  refrigerante_zero: [0, 0, 3, 0, 5],
   frango_assado: [0, 40, 12, 1.1, 240],
   calabresa: [0, 0, 10, 1, 250],
   salsicha: [0, 0, 10, 1.2, 180],
@@ -377,7 +380,7 @@ const aliases: Array<[RegExp, string]> = [
   ],
   [/frango grelhado|fil[eé] de frango|peito de frango( grelhado)?/, "frango_grelhado"],
   [/\bbife|contra.?fil[eé]|carne grelhada|alcatra grelhada/, "contrafile_grelhado"],
-  [/bisteca|costeleta de porco|lombo de porco/, "bisteca_grelhada"],
+  [/bisteca|costeleta de porco/, "bisteca_grelhada"],
   [/hamb[uú]rguer (grelhado|caseiro|na chapa)|carne de hamb[uú]rguer/, "hamburguer_grelhado"],
   [/ovos? fritos?/, "ovo_frito"],
   [/omelete|ovos? mexidos?/, "omelete"],
@@ -397,7 +400,11 @@ const aliases: Array<[RegExp, string]> = [
   [/quibe/, "quibe_arroz"],
   [/feij[aã]o[- ]preto/, "feijao_preto"],
   [/suco( natural)? de goiaba/, "suco_goiaba"],
-  [/carne( bovina)? assada/, "carne_assada"],
+  [/refrigerante_zero/, "refrigerante_zero"],
+  [/carne de porco assada|porco assado|pernil/, "pernil_assado"],
+  [/lombo/, "lombo_assado"],
+  [/peixe cozido|caldeirada|peixe ensopado/, "peixe"],
+  [/carne( bovina| de boi| de gado)? assada/, "carne_assada"],
   [/banana[- ]ma[cç][aã]/, "banana_maca"],
   [/banana[- ]nanica/, "banana_nanica"],
   [/banana[- ]pacov[aã]/, "banana_pacova"],
@@ -494,7 +501,7 @@ const aliases: Array<[RegExp, string]> = [
   [/quibe/, "quibe_arroz"],
   [/frango|galinha/, "frango"],
   [/sardinha (em|de) lata|sardinha enlatada|lata de sardinha/, "sardinha_lata"],
-  [/peixe frito|fil[eé] de peixe frito|til[aá]pia frita/, "peixe_frito"],
+  [/peixe frito|pescada frita|peixe empanado|fil[eé] de peixe frito|til[aá]pia frita/, "peixe_frito"],
   [/til[aá]pia/, "tilapia"],
   [/sardinha/, "sardinha"],
   [/peixe/, "peixe"],
@@ -550,7 +557,6 @@ const defaultPortion: Record<string, number> = {
   macarrao_instantaneo: 270,
   feijoada_lata: 250,
   sardinha_lata: 90,
-  peixe_frito: 120,
   ketchup: 15,
   maionese: 15,
   suco_laranja: 250,
@@ -704,6 +710,10 @@ const defaultPortion: Record<string, number> = {
   panelada: 300,
   churrasco: 150,
   carne_assada: 120,
+  pernil_assado: 120,
+  lombo_assado: 120,
+  peixe_frito: 120,
+  refrigerante_zero: 350,
   frango_assado: 150,
   calabresa: 60,
   salsicha: 50,
@@ -855,6 +865,7 @@ export function parseFoodText(text: string, liquidMl?: number | null): ParsedFoo
     .replace(/nescaf[eé] com leite desnatado/g, "café com leite desnatado")
     .replace(/nescaf[eé] com leite/g, "café com leite")
     .replace(/caf[eé] com leite/g, "café_com_leite")
+    .replace(/(refrigerante|refri|coca(-| )?cola|coca|guaran[aá])( zero| 0| diet| light| sem a[cç][uú]car| zero a[cç][uú]car| 0 a[cç][uú]car)+/g, "refrigerante_zero")
     .replace(/(mingau de [a-zà-ú]+) com leite/g, "$1")
     .replace(
       /(cereal|sucrilhos|flocos de milho|corn ?flakes)( de milho)? com leite/g,

@@ -105,6 +105,8 @@ const overrides: Record<string, [HealthLevel, string]> = {
     "moderacao",
     "Caseiro e grelhado é melhor; o industrializado tem mais sódio.",
   ],
+  refrigerante_zero: ["moderacao", "Sem açúcar e quase sem calorias, mas ultraprocessado e com adoçantes: água é a melhor escolha."],
+  pernil_assado: ["moderacao", "Corte gordo: retire a capa de gordura ou prefira o lombo."],
   crepioca: ["frequente", "Ovo dá proteína e saciedade à tapioca."],
 };
 
@@ -183,7 +185,7 @@ const swaps: Record<string, string[]> = {
   bolo_simples: ["banana_prata", "mingau_aveia_leite"],
   biscoito_salgado: ["tapioca", "pao_integral"],
   pao_frances: ["pao_integral", "cuscuz"],
-  margarina: ["azeite"],
+  margarina: ["azeite"], refrigerante_zero: ["agua_coco", "suco_maracuja"], peixe_frito: ["peixe", "tilapia"], pernil_assado: ["lombo_assado", "frango_grelhado"],
   canjica: ["milho_cozido"],
   mungunza: ["milho_cozido", "mingau_aveia_leite"],
   pamonha: ["milho_cozido"],
