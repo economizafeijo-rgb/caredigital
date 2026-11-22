@@ -160,6 +160,7 @@ export function SidePanel({
   onClear,
   tone,
   summary,
+  pinned,
   children,
   consumedAt,
   onConsumedAt,
@@ -173,6 +174,7 @@ export function SidePanel({
   onClear?: () => void;
   tone: string;
   summary?: ReactNode;
+  pinned?: ReactNode;
   children: ReactNode;
   consumedAt: string;
   onConsumedAt: (value: string) => void;
@@ -207,6 +209,7 @@ export function SidePanel({
           </button>
         )}
       </header>
+      {pinned}
       {summary && <div className="border-b border-border bg-muted/20 px-3 py-2.5">{summary}</div>}
       <div className="grid grid-cols-[minmax(0,1fr)] content-start gap-3 p-3 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overflow-x-hidden">
         {children}
@@ -246,5 +249,31 @@ export function SidePanel({
         </div>
       </footer>
     </aside>
+  );
+}
+
+/** Aviso fixo: existe uma edição em aberto no outro grupo (refeição ou bebida) — toque para voltar. */
+export function DraftChip({
+  title,
+  detail,
+  onOpen,
+}: {
+  title: string;
+  detail: string;
+  onOpen: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="flex w-full items-center gap-2 border-b border-amber-400/30 border-l-[3px] border-l-amber-400 bg-amber-400/10 px-3 py-2 text-left transition hover:bg-amber-400/15 active:scale-[.99]"
+    >
+      <span className="min-w-0 flex-1 leading-tight">
+        <span className="block text-[10px] font-bold text-amber-300">Edição em aberto</span>
+        <span className="block truncate text-xs font-semibold">{title}</span>
+        <span className="block truncate text-[11px] text-muted-foreground">{detail}</span>
+      </span>
+      <span className="shrink-0 text-[11px] font-bold text-amber-300">Voltar ›</span>
+    </button>
   );
 }

@@ -131,6 +131,24 @@ export function ClientQuickIntake({
   const drinkDraft = group === "beverage" ? live : stash.beverage;
   const foodCount = (foodDraft?.description ?? "").split(/\s*,\s*/).filter(Boolean).length;
   const drinkSelected = !!drinkDraft?.description.trim();
+  const foodKcal = Math.round(
+    sumNutrients(parseFoodText(foodDraft?.description ?? "").map((f) => f.nutrients)).kcal,
+  );
+  // Aviso de edição em aberto no OUTRO grupo, mostrado no painel lateral.
+  const otherDraft =
+    group === "beverage" && foodCount > 0
+      ? {
+          title: `Refeição em montagem · ${foodCount} ${foodCount === 1 ? "item" : "itens"}`,
+          detail: `${foodKcal} kcal · toque para voltar aos alimentos`,
+          onOpen: () => switchGroup("food"),
+        }
+      : group === "food" && drinkSelected
+        ? {
+            title: `Bebida escolhida · ${drinkDraft!.description.trim()}`,
+            detail: `${drinkDraft!.amount} ml · toque para voltar às bebidas`,
+            onOpen: () => switchGroup("beverage"),
+          }
+        : undefined;
 
   function switchGroup(next: "food" | "beverage") {
     if (next === group) return;
@@ -284,14 +302,14 @@ export function ClientQuickIntake({
         aria-label={
           mode === "all" ? "Selecionar tipo de consumo" : "Alternar entre alimentos e bebidas"
         }
-        className="inline-grid shrink-0 grid-cols-2 gap-0.5 border border-border bg-muted/40 p-0.5"
+        className="grid w-full shrink-0 grid-cols-2 gap-0.5 border border-border bg-muted/40 p-0.5"
       >
         <button
           type="button"
           aria-pressed={group === "food"}
           onClick={() => switchGroup("food")}
           className={
-            "flex h-8 items-center justify-center gap-1.5 px-3 text-xs font-semibold transition " +
+            "relative flex h-8 min-w-0 items-center justify-center gap-1 px-1.5 text-[11px] font-semibold transition " +
             (group === "food"
               ? "bg-primary text-primary-foreground shadow"
               : "text-muted-foreground hover:text-foreground")
@@ -299,7 +317,7 @@ export function ClientQuickIntake({
         >
           <UtensilsCrossed size={14} /> Alimentos
           {foodCount > 0 && group !== "food" && (
-            <span className="grid h-4 min-w-4 place-items-center bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+            <span className="absolute -right-1 -top-1.5 grid h-4 min-w-4 place-items-center bg-amber-400 px-1 text-[10px] font-bold text-slate-900 shadow">
               {foodCount}
             </span>
           )}
@@ -309,7 +327,7 @@ export function ClientQuickIntake({
           aria-pressed={group === "beverage"}
           onClick={() => switchGroup("beverage")}
           className={
-            "flex h-8 items-center justify-center gap-1.5 px-3 text-xs font-semibold transition " +
+            "relative flex h-8 min-w-0 items-center justify-center gap-1 px-1.5 text-[11px] font-semibold transition " +
             (group === "beverage"
               ? "bg-primary text-primary-foreground shadow"
               : "text-muted-foreground hover:text-foreground")
@@ -317,7 +335,7 @@ export function ClientQuickIntake({
         >
           <Droplets size={14} /> Bebidas
           {drinkSelected && group !== "beverage" && (
-            <span className="grid h-4 min-w-4 place-items-center bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+            <span className="absolute -right-1 -top-1.5 grid h-4 min-w-4 place-items-center bg-amber-400 px-1 text-[10px] font-bold text-slate-900 shadow">
               1
             </span>
           )}
@@ -471,6 +489,7 @@ export function ClientQuickIntake({
                     saving={saving}
                     onCancel={closeForm}
                     topSlot={groupToggle}
+                    otherDraft={otherDraft}
                   />
                 ) : mode !== "water" ? (
                   <DrinkBoard
@@ -492,6 +511,7 @@ export function ClientQuickIntake({
                     saving={saving}
                     onCancel={closeForm}
                     topSlot={groupToggle}
+                    otherDraft={otherDraft}
                   />
                 ) : (
                   <>

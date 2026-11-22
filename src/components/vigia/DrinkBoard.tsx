@@ -2,9 +2,9 @@ import { useMemo, useState, type ReactNode } from "react";
 import { Check, Info, Minus, Plus, Search } from "lucide-react";
 import { HowItWorks, drinkHowTo } from "./HowItWorks";
 import { CareIntakeIcon } from "./CareIntakePicker";
-import { FoodThumb, foodVisual } from "./FoodArt";
+import { FoodThumb } from "./FoodArt";
 import { NutritionInfoCard } from "./MealSuggestions";
-import { KindRail, NutritionSummary, SidePanel } from "./IntakeParts";
+import { DraftChip, KindRail, NutritionSummary, SidePanel } from "./IntakeParts";
 import { beverageKinds, type BeverageKind } from "@/lib/care-intake-categories";
 import { drinkPresets, type DrinkPreset } from "@/lib/drink-presets";
 import { checkIntake } from "@/lib/hydration-need";
@@ -60,6 +60,8 @@ type Props = {
   saving: boolean;
   onCancel: () => void;
   topSlot?: ReactNode;
+  /** Edição em aberto no outro grupo (ex.: refeição montada enquanto escolhe bebida). */
+  otherDraft?: { title: string; detail: string; onOpen: () => void };
 };
 
 /**
@@ -79,6 +81,7 @@ export function DrinkBoard({
   saving,
   onCancel,
   topSlot,
+  otherDraft,
 }: Props) {
   const tone = drinkTone[kind];
   const category = beverageKinds.find((c) => c.value === kind)!;
@@ -111,7 +114,6 @@ export function DrinkBoard({
   const card = (item: Card, index: number, prefix: string) => {
     const on = picked(item);
     const shown = info?.key === item.key;
-    const v = foodVisual(item.text, item.label);
     const tint = drinkTone[item.kind];
     return (
       <li
@@ -138,7 +140,13 @@ export function DrinkBoard({
             }}
             className="flex min-w-0 flex-1 items-center gap-2.5 py-2 pl-2 pr-1 text-left active:scale-[.985]"
           >
-            <FoodThumb text={item.text} label={item.label} visual={v} className="size-10" />
+            <span
+              aria-hidden="true"
+              className="grid size-10 shrink-0 place-items-center"
+              style={{ background: `color-mix(in srgb, ${tint} 16%, transparent)`, color: tint }}
+            >
+              <CareIntakeIcon kind={item.kind} size={20} />
+            </span>
             <span className="min-w-0 flex-1">
               <span className="line-clamp-2 block text-[13px] font-semibold leading-tight">
                 {item.label}
@@ -296,6 +304,11 @@ export function DrinkBoard({
         label="Sua bebida"
         title="Sua bebida"
         tone={tone}
+        pinned={
+          otherDraft ? (
+            <DraftChip title={otherDraft.title} detail={otherDraft.detail} onOpen={otherDraft.onOpen} />
+          ) : undefined
+        }
         summary={
           parsed.length > 0 ? (
             <NutritionSummary

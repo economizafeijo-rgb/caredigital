@@ -5,7 +5,7 @@ import { CareIntakeIcon } from "./CareIntakePicker";
 import { FoodThumb, foodVisual } from "./FoodArt";
 import { NutritionInfoCard } from "./MealSuggestions";
 import { PlateBuilder, PlateRows } from "./PlateBuilder";
-import { KindRail, NutritionSummary, SidePanel } from "./IntakeParts";
+import { DraftChip, KindRail, NutritionSummary, SidePanel } from "./IntakeParts";
 import { foodKinds, mealCombos, typicalFoods, type FoodKind } from "@/lib/care-intake-categories";
 import { measureUnit, parseFoodText, sumNutrients } from "@/lib/food-parser";
 import { foodsForKind, isRegionalFood, searchFoods } from "@/lib/food-search";
@@ -92,6 +92,8 @@ type Props = {
   saving: boolean;
   onCancel: () => void;
   topSlot?: ReactNode;
+  /** Edição em aberto no outro grupo (ex.: refeição montada enquanto escolhe bebida). */
+  otherDraft?: { title: string; detail: string; onOpen: () => void };
 };
 
 export function MealBoard({
@@ -107,6 +109,7 @@ export function MealBoard({
   saving,
   onCancel,
   topSlot,
+  otherDraft,
 }: Props) {
   const tone = mealTone[kind];
   const category = foodKinds.find((c) => c.value === kind)!;
@@ -354,6 +357,11 @@ export function MealBoard({
         title="Seu prato"
         count={plateCount}
         tone={tone}
+        pinned={
+          otherDraft ? (
+            <DraftChip title={otherDraft.title} detail={otherDraft.detail} onOpen={otherDraft.onOpen} />
+          ) : undefined
+        }
         summary={
           foods.length > 0 ? (
             <NutritionSummary
