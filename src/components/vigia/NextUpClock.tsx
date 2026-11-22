@@ -260,7 +260,7 @@ export function NextUpClock({
   return (
     <div className="@container min-w-0">
       <div
-        className={`${compact ? "flex items-center gap-2.5 rounded-xl p-2" : "grid grid-cols-1 gap-x-3 gap-y-2 bg-gradient-to-br from-white/[.10] to-white/[.03] p-2 pb-2.5 @[30rem]:grid-cols-[minmax(0,1fr)_auto] @[30rem]:items-center"} relative overflow-hidden border backdrop-blur transition-colors duration-500 ${due ? "nv-due border-white/15 border-l-[3px] !border-l-amber-300" : "border-white/15"} ${className}`}
+        className={`${compact ? "flex items-center gap-2.5 rounded-xl p-2" : "grid grid-cols-1 gap-x-3 gap-y-2 bg-gradient-to-br from-white/[.10] to-white/[.03] p-2 pb-2.5 @[46rem]:grid-cols-[minmax(0,1fr)_auto] @[46rem]:items-center"} relative overflow-hidden border backdrop-blur transition-colors duration-500 ${due ? "nv-due border-white/15 border-l-[3px] !border-l-amber-300" : "border-white/15"} ${className}`}
         style={{ ["--due" as string]: PEND }}
       >
         {!compact && when !== null && (
@@ -432,7 +432,7 @@ export function NextUpClock({
         </div>
         {!compact && when !== null && (
           <div
-            className={`flex h-8 w-full shrink-0 items-stretch gap-1 @[30rem]:w-auto transition-opacity duration-300 ${due || onPostpone || when - now < 15 * 60_000 ? "opacity-100" : "pointer-events-none opacity-0"}`}
+            className={`flex h-8 w-full shrink-0 items-stretch gap-1 @[46rem]:w-auto transition-opacity duration-300 ${due || onPostpone || when - now < 15 * 60_000 ? "opacity-100" : "pointer-events-none opacity-0"}`}
             aria-hidden={!(due || onPostpone || when - now < 15 * 60_000)}
           >
             {onAction && (
