@@ -215,8 +215,8 @@ export function DrinkBoard({
         onPick={(value) => {
           const c = beverageKinds.find((b) => b.value === value)!;
           onKind(c.value);
-          onDescription("");
-          onAmount(String(c.amount ?? 200));
+          // Trocar de categoria não apaga a bebida já escolhida.
+          if (!description.trim()) onAmount(String(c.amount ?? 200));
         }}
         topSlot={topSlot}
       />

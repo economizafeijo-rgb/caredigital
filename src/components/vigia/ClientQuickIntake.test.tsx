@@ -98,4 +98,24 @@ describe("registro de consumo por área", () => {
     expect(screen.getAllByRole("button", { name: "Cancelar" }).length).toBeGreaterThan(1);
     expect(screen.getByRole("button", { name: "Confirmar registro" })).toBeTruthy();
   });
+
+  it("trocar entre Alimentos e Bebidas, ou de categoria, não apaga o que foi escolhido", async () => {
+    render(
+      <DialogProvider>
+        <ClientQuickIntake patientId="p1" mode="all" />
+      </DialogProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Registrar/ }));
+    fireEvent.change(screen.getByLabelText(/O que você comeu/), { target: { value: "Arroz 100 g" } });
+    // troca de refeição: mantém o prato
+    fireEvent.click(document.querySelector('[data-intake-kind="jantar"]') as HTMLElement);
+    expect((screen.getByLabelText(/O que você comeu/) as HTMLTextAreaElement).value).toBe("Arroz 100 g");
+    // vai para bebidas, escolhe uma e volta: prato continua lá
+    fireEvent.click(screen.getByRole("button", { name: /Bebidas/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Escolher Suco de graviola" }));
+    fireEvent.click(screen.getByRole("button", { name: /Alimentos/ }));
+    expect((screen.getByLabelText(/O que você comeu/) as HTMLTextAreaElement).value).toBe("Arroz 100 g");
+    fireEvent.click(screen.getByRole("button", { name: /Bebidas/ }));
+    expect((screen.getByLabelText("Nome da bebida") as HTMLInputElement).value).toMatch(/graviola/i);
+  });
 });

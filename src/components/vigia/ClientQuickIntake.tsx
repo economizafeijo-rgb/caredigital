@@ -22,6 +22,8 @@ import { drinkGroups, drinkPresetFor, drinkPresets } from "@/lib/drink-presets";
 import { supabase } from "@/integrations/supabase/client";
 import { useDialog } from "@/lib/dialog";
 
+type Draft = { kind: IntakeKind; description: string; portion: string; amount: string };
+
 type Props = {
   patientId: string;
   onRecorded?: () => void;
@@ -76,20 +78,19 @@ export function ClientQuickIntake({
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const requestId = useRef<string | null>(null);
+  const drinkRequestId = useRef<string | null>(null);
+  // Rascunho do outro grupo: trocar entre Alimentos e Bebidas nunca apaga o que já foi escolhido.
+  const [stash, setStash] = useState<{ food?: Draft; beverage?: Draft }>({});
   const openedBySignal = useRef(0);
 
   const isFood = isFoodKind(kind);
   const isWater = kind === "agua";
   const option = foodCategory(kind) ?? beverageCategory(kind);
   const label = option?.label ?? "Consumo avulso";
-  const formDescription = isFood
-    ? description.trim() + (portion.trim() ? " · Porção: " + portion.trim() : "")
-    : isWater
-      ? "Água"
-      : description.trim();
-
   function openForm() {
     requestId.current = crypto.randomUUID();
+    drinkRequestId.current = crypto.randomUUID();
+    setStash({});
     const initialGroup = mode === "water" || mode === "drink" ? "beverage" : "food";
     setGroup(initialGroup);
     setKind(
@@ -121,27 +122,85 @@ export function ClientQuickIntake({
       setOpen(false);
       setError("");
       requestId.current = null;
+      drinkRequestId.current = null;
     }
+  }
+
+  const live: Draft = { kind, description, portion, amount };
+  const foodDraft = group === "food" ? live : stash.food;
+  const drinkDraft = group === "beverage" ? live : stash.beverage;
+  const foodCount = (foodDraft?.description ?? "").split(/\s*,\s*/).filter(Boolean).length;
+  const drinkSelected = !!drinkDraft?.description.trim();
+
+  function switchGroup(next: "food" | "beverage") {
+    if (next === group) return;
+    const saved = stash[next];
+    setStash((current) => ({ ...current, [group]: live }));
+    setGroup(next);
+    setKind(saved?.kind ?? (next === "food" ? "almoco" : "agua"));
+    setDescription(saved?.description ?? "");
+    setPortion(saved?.portion ?? "");
+    setAmount(saved?.amount ?? "200");
+    setError("");
   }
 
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (saving || !requestId.current) return;
-    const volume = isFood ? null : Number(amount);
-    if (
-      !isWater &&
-      (description.trim().length < (isFood ? 3 : 2) ||
-        formDescription.length > (isFood ? 1000 : 100))
-    ) {
+    if (saving || !requestId.current || !drinkRequestId.current) return;
+    type Entry = {
+      id: string;
+      kind: IntakeKind;
+      description: string;
+      volume: number | null;
+      summary: string;
+    };
+    const entries: Entry[] = [];
+    // Alimentos escolhidos (qualquer refeição) viram um registro.
+    if (foodDraft && foodDraft.description.trim()) {
+      const text =
+        foodDraft.description.trim() +
+        (foodDraft.portion.trim() ? " · Porção: " + foodDraft.portion.trim() : "");
+      if (foodDraft.description.trim().length < 3 || text.length > 1000) {
+        setError("Descreva o alimento consumido (3 a 1.000 caracteres).");
+        return;
+      }
+      entries.push({
+        id: requestId.current,
+        kind: foodDraft.kind,
+        description: text,
+        volume: null,
+        summary: `${(foodCategory(foodDraft.kind)?.label ?? "refeição").toLowerCase()}: ${text}`,
+      });
+    }
+    // A bebida escolhida (se houver) vira outro registro, junto com a refeição.
+    const drinkIsWater = drinkDraft?.kind === "agua";
+    if (drinkDraft && (drinkDraft.description.trim() || (group === "beverage" && drinkIsWater))) {
+      const name = drinkIsWater ? "Água" : drinkDraft.description.trim();
+      const ml = Number(drinkDraft.amount);
+      if (!drinkIsWater && (name.length < 2 || name.length > 100)) {
+        setError("Informe a bebida (2 a 100 caracteres).");
+        return;
+      }
+      if (!Number.isInteger(ml) || ml < 10 || ml > 1500) {
+        setError("Informe um volume entre 10 e 1.500 ml.");
+        return;
+      }
+      entries.push({
+        id: drinkRequestId.current,
+        kind: drinkDraft.kind,
+        description: name,
+        volume: ml,
+        summary: drinkIsWater
+          ? `${ml} ml de água`
+          : `${(beverageCategory(drinkDraft.kind)?.label ?? "bebida").toLowerCase()}: ${name} (${ml} ml)`,
+      });
+    }
+    if (!entries.length) {
       setError(
-        isFood
+        group === "food"
           ? "Descreva o alimento consumido (3 a 1.000 caracteres)."
           : "Informe a bebida (2 a 100 caracteres).",
       );
-      return;
-    }
-    if (!isFood && (volume === null || !Number.isInteger(volume) || volume < 10 || volume > 1500)) {
-      setError("Informe um volume entre 10 e 1.500 ml.");
       return;
     }
     // Current-time entries use the database clock. Only manually selected times
@@ -153,11 +212,7 @@ export function ClientQuickIntake({
     }
     setError("");
     const when = manualTime ? `em ${consumedAt.replace("T", " às ")}` : "agora";
-    const summary = isWater
-      ? `${volume} ml de água ${when}`
-      : isFood
-        ? `${label.toLowerCase()}: ${formDescription} ${when}`
-        : `${label.toLowerCase()}: ${formDescription} (${volume} ml) ${when}`;
+    const summary = `${entries.map((e) => e.summary).join(" + ")} ${when}`;
     if (
       !(await dialog.confirm(
         "Confirmar registro?",
@@ -169,26 +224,37 @@ export function ClientQuickIntake({
       return;
     setSaving(true);
     try {
-      const { data, error: failure } = await (supabase as any).rpc("care_log_unscheduled_intake", {
-        p_patient_id: patientId,
-        p_kind: kind,
-        p_description: formDescription,
-        p_amount_ml: volume,
-        p_request_id: requestId.current,
-        p_consumed_at: consumed?.toISOString() ?? null,
-      });
-      if (failure) throw failure;
+      let data: unknown = null;
+      for (const entry of entries) {
+        const { data: when, error: failure } = await (supabase as any).rpc(
+          "care_log_unscheduled_intake",
+          {
+            p_patient_id: patientId,
+            p_kind: entry.kind,
+            p_description: entry.description,
+            p_amount_ml: entry.volume,
+            p_request_id: entry.id,
+            p_consumed_at: consumed?.toISOString() ?? null,
+          },
+        );
+        if (failure) throw failure;
+        data = when;
+      }
       if (typeof data !== "string" || !Number.isFinite(Date.parse(data))) {
         throw new Error("O servidor não confirmou o horário de registro.");
       }
       const effectiveConsumedAt = manualTime ? consumed!.toISOString() : data;
+      const only = entries.length === 1 ? entries[0] : null;
       setNotice(
-        isWater
+        only && only.kind === "agua"
           ? `Água registrada em ${formatTime(effectiveConsumedAt)} (Acre). Meta e histórico atualizados.`
-          : `Consumo (${label.toLowerCase()}) registrado em ${formatTime(effectiveConsumedAt)} (Acre). Veja o histórico no prontuário.`,
+          : entries.length > 1
+            ? `Refeição e bebida registradas em ${formatTime(effectiveConsumedAt)} (Acre). Veja o histórico no prontuário.`
+            : `Consumo (${(only ? (foodCategory(only.kind) ?? beverageCategory(only.kind))?.label : label)?.toLowerCase()}) registrado em ${formatTime(effectiveConsumedAt)} (Acre). Veja o histórico no prontuário.`,
       );
       setOpen(false);
       requestId.current = null;
+      drinkRequestId.current = null;
       onRecorded?.();
     } catch (failure) {
       const detail =
@@ -223,13 +289,7 @@ export function ClientQuickIntake({
         <button
           type="button"
           aria-pressed={group === "food"}
-          onClick={() => {
-            setGroup("food");
-            setKind("almoco");
-            setDescription("");
-            setPortion("");
-            setError("");
-          }}
+          onClick={() => switchGroup("food")}
           className={
             "flex h-8 items-center justify-center gap-1.5 px-3 text-xs font-semibold transition " +
             (group === "food"
@@ -238,17 +298,16 @@ export function ClientQuickIntake({
           }
         >
           <UtensilsCrossed size={14} /> Alimentos
+          {foodCount > 0 && group !== "food" && (
+            <span className="grid h-4 min-w-4 place-items-center bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+              {foodCount}
+            </span>
+          )}
         </button>
         <button
           type="button"
           aria-pressed={group === "beverage"}
-          onClick={() => {
-            setGroup("beverage");
-            setKind("agua");
-            setDescription("");
-            setPortion("");
-            setError("");
-          }}
+          onClick={() => switchGroup("beverage")}
           className={
             "flex h-8 items-center justify-center gap-1.5 px-3 text-xs font-semibold transition " +
             (group === "beverage"
@@ -257,6 +316,11 @@ export function ClientQuickIntake({
           }
         >
           <Droplets size={14} /> Bebidas
+          {drinkSelected && group !== "beverage" && (
+            <span className="grid h-4 min-w-4 place-items-center bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+              1
+            </span>
+          )}
         </button>
       </div>
     ) : null;
@@ -392,8 +456,6 @@ export function ClientQuickIntake({
                     kind={kind as FoodKind}
                     onKind={(selected) => {
                       setKind(selected);
-                      setDescription("");
-                      setPortion("");
                       setError("");
                     }}
                     description={description}
