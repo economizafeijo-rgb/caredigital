@@ -93,7 +93,7 @@ export function KindRail({
   );
 }
 
-/** Calorias grandes + barras proporcionais dos quatro nutrientes. */
+/** Resumo compacto sempre visível: calorias à esquerda e os quatro nutrientes em grade 2×2. */
 export function NutritionSummary({
   kcal,
   protein,
@@ -122,28 +122,29 @@ export function NutritionSummary({
   ];
   const max = Math.max(1, ...rows.map((r) => r.value));
   return (
-    <div aria-live="polite" className="border border-border/70 bg-card/70 p-2.5">
-      <p className="flex items-baseline gap-1.5">
-        <strong className="text-3xl font-extrabold leading-none tabular-nums" style={{ color: tone }}>
+    <div aria-live="polite" title={note} className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
+      <p className="leading-none">
+        <strong className="block text-3xl font-extrabold tabular-nums" style={{ color: tone }}>
           {nf(shown)}
         </strong>
-        <span className="text-[11px] font-semibold text-muted-foreground">{caption}</span>
+        <span className="mt-1 block text-[10px] font-semibold text-muted-foreground">{caption}</span>
       </p>
-      <ul className="mt-2.5 grid gap-1.5">
+      <ul className="grid min-w-0 grid-cols-2 gap-x-3 gap-y-1.5">
         {rows.map((r) => (
-          <li key={r.label} className="grid grid-cols-[5.2rem_1fr_3.2rem] items-center gap-2 text-[11px]">
-            <span className="text-muted-foreground">{r.label}</span>
-            <span className="h-1.5 overflow-hidden bg-muted">
+          <li key={r.label} className="min-w-0">
+            <p className="flex items-baseline justify-between gap-1 text-[10px] text-muted-foreground">
+              <span className="truncate">{r.label}</span>
+              <strong className="shrink-0 tabular-nums text-foreground">{nf(r.value, 1)} g</strong>
+            </p>
+            <span className="mt-0.5 block h-1 overflow-hidden bg-muted">
               <span
                 className="block h-full transition-[width] duration-500 ease-out"
                 style={{ width: `${Math.round((r.value / max) * 100)}%`, background: r.color }}
               />
             </span>
-            <strong className="text-right tabular-nums">{nf(r.value, 1)} g</strong>
           </li>
         ))}
       </ul>
-      <p className="mt-2 text-[10px] leading-snug text-muted-foreground">{note}</p>
     </div>
   );
 }
@@ -158,6 +159,7 @@ export function SidePanel({
   count,
   onClear,
   tone,
+  summary,
   children,
   consumedAt,
   onConsumedAt,
@@ -170,6 +172,7 @@ export function SidePanel({
   count?: number;
   onClear?: () => void;
   tone: string;
+  summary?: ReactNode;
   children: ReactNode;
   consumedAt: string;
   onConsumedAt: (value: string) => void;
@@ -204,6 +207,7 @@ export function SidePanel({
           </button>
         )}
       </header>
+      {summary && <div className="border-b border-border bg-muted/20 px-3 py-2.5">{summary}</div>}
       <div className="grid grid-cols-[minmax(0,1fr)] content-start gap-3 p-3 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overflow-x-hidden">
         {children}
       </div>

@@ -199,7 +199,7 @@ export function DrinkBoard({
   }, []);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3 lg:grid lg:grid-cols-[11.5rem_minmax(0,1fr)_22rem] lg:overflow-hidden">
+    <div className="flex min-h-0 flex-1 flex-col gap-3 lg:grid lg:grid-cols-[10.5rem_minmax(0,1fr)_24rem] lg:overflow-hidden">
       <KindRail
         legend="Qual bebida?"
         group="beverage"
@@ -296,6 +296,20 @@ export function DrinkBoard({
         label="Sua bebida"
         title="Sua bebida"
         tone={tone}
+        summary={
+          parsed.length > 0 ? (
+            <NutritionSummary
+              kcal={total.kcal}
+              protein={total.protein}
+              carbs={total.carbs}
+              fat={total.fat}
+              fiber={total.fiber}
+              tone={tone}
+              caption="kcal"
+              note="Cálculo automático pelo volume; valores aproximados."
+            />
+          ) : undefined
+        }
         onClear={
           description.trim() && !isWater
             ? () => {
@@ -395,7 +409,7 @@ export function DrinkBoard({
 
         {parsed.length > 0 ? (
           <>
-            <ul className="grid gap-1 border border-border/70 bg-card/70 p-2.5">
+            <ul className="grid grid-cols-[minmax(0,1fr)] gap-1 border border-border/70 bg-card/70 p-2.5">
               {parsed.map((f, i) => (
                 <li key={`${f.id}-${i}`} className="flex items-center gap-2 text-xs">
                   <FoodThumb text={f.name} className="size-7" />
@@ -406,16 +420,6 @@ export function DrinkBoard({
                 </li>
               ))}
             </ul>
-            <NutritionSummary
-              kcal={total.kcal}
-              protein={total.protein}
-              carbs={total.carbs}
-              fat={total.fat}
-              fiber={total.fiber}
-              tone={tone}
-              caption="kcal"
-              note="Cálculo automático pelo volume; valores aproximados."
-            />
           </>
         ) : (
           <p className="border border-dashed border-border p-3 text-center text-xs text-muted-foreground">

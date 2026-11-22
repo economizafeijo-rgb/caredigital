@@ -242,7 +242,7 @@ export function MealBoard({
   const plateCount = description.split(/\s*,\s*/).filter((p) => p.trim()).length;
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3 lg:grid lg:grid-cols-[11.5rem_minmax(0,1fr)_22rem] lg:overflow-hidden">
+    <div className="flex min-h-0 flex-1 flex-col gap-3 lg:grid lg:grid-cols-[10.5rem_minmax(0,1fr)_24rem] lg:overflow-hidden">
       <KindRail
         legend="Qual refeição?"
         group="food"
@@ -354,6 +354,20 @@ export function MealBoard({
         title="Seu prato"
         count={plateCount}
         tone={tone}
+        summary={
+          foods.length > 0 ? (
+            <NutritionSummary
+              kcal={total.kcal}
+              protein={total.protein}
+              carbs={total.carbs}
+              fat={total.fat}
+              fiber={total.fiber}
+              tone={tone}
+              caption="kcal no prato"
+              note="Cálculo automático com porções usuais; valores aproximados."
+            />
+          ) : undefined
+        }
         onClear={
           description.trim()
             ? () => {
@@ -407,16 +421,6 @@ export function MealBoard({
                 }
               />
             </div>
-            <NutritionSummary
-              kcal={total.kcal}
-              protein={total.protein}
-              carbs={total.carbs}
-              fat={total.fat}
-              fiber={total.fiber}
-              tone={tone}
-              caption="kcal no prato"
-              note="Cálculo automático com porções usuais; valores aproximados."
-            />
           </>
         ) : (
           <p className="border border-dashed border-border p-3 text-center text-xs text-muted-foreground">

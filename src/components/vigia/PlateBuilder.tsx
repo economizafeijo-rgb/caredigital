@@ -377,11 +377,11 @@ export function PlateRows({
   };
 
   return (
-    <ul className="grid gap-1.5">
+    <ul className="grid grid-cols-[minmax(0,1fr)] gap-1.5">
       {rows.map(({ idx, j, f, foods }) => {
         const name = f.name.split(",")[0];
         return (
-          <li key={`${idx}-${j}-${f.id}`} className="flex items-center gap-1.5 text-xs">
+          <li key={`${idx}-${j}-${f.id}`} className="flex min-w-0 items-center gap-1.5 text-xs">
             <FoodThumb text={f.name} className="size-7 shrink-0" />
             <span className="min-w-0 flex-1">
               <span className="block truncate font-medium">{name}</span>
