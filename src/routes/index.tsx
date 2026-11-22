@@ -61,130 +61,140 @@ function Homepage() {
 
   return (
     <>
-      <div className="relative z-10 mx-auto flex w-full max-w-[84rem] flex-col gap-10 max-sm:px-3 sm:max-lg:px-4 lg:gap-14 min-[1280px]:px-[1.75rem]">
-        {status === "unlinked" && (
-          <p
-            role="status"
-            className="rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm"
-          >
-            Sua conta está conectada, mas ainda não há um prontuário vinculado. Solicite o acesso ao
-            administrador.
-          </p>
-        )}
-
-        <HomeStage client={client} panel={panel} firstName={firstName} />
-
-        {client && (
-          <div className="rounded-2xl bg-gradient-to-br from-indigo-950 to-slate-900 p-1">
-            <HomeNextCareCard panel="/cliente" />
-          </div>
-        )}
-
-        <HomeKessiaAd />
-
-        <HomeMarketplace middle={<HomeToolAds client={client} />} />
-
-        <HomePartnerBand />
-
-        {client && <HomeModalityTimers />}
-
-        <footer
-          className="nv-dark overflow-hidden rounded-2xl border border-white/10 bg-[#0a1226] bg-cover bg-center text-white"
+      <div className="relative isolate">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-10"
           style={{
             backgroundImage:
-              "linear-gradient(180deg, rgba(10,18,38,.86), rgba(10,18,38,.94)), url(/images/caredigital-care-hero.webp)",
+              "radial-gradient(60rem 32rem at 0% 4%, rgba(63,224,200,.10), transparent 70%), radial-gradient(56rem 30rem at 100% 24%, rgba(200,29,107,.10), transparent 70%), radial-gradient(60rem 32rem at 0% 52%, rgba(99,102,241,.10), transparent 70%), radial-gradient(56rem 30rem at 100% 78%, rgba(63,224,200,.08), transparent 70%)",
           }}
-        >
-          <div className="flex flex-wrap items-center gap-x-8 gap-y-3 px-4 py-3 lg:px-5">
-            <div className="flex min-w-0 items-center gap-3">
-              <Link to="/" className="inline-flex items-center gap-2">
-                <LogoMark size={26} />
-                <span className="font-display text-base font-extrabold">
-                  Next<span className="text-primary">Vita</span>
+        />
+        <div className="relative z-10 mx-auto flex w-full max-w-[96rem] flex-col gap-5 max-sm:px-3 sm:max-lg:px-4 lg:gap-7 min-[1280px]:px-8">
+          {status === "unlinked" && (
+            <p
+              role="status"
+              className="rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm"
+            >
+              Sua conta está conectada, mas ainda não há um prontuário vinculado. Solicite o acesso
+              ao administrador.
+            </p>
+          )}
+
+          <HomeStage client={client} panel={panel} firstName={firstName} />
+
+          {client && (
+            <div className="rounded-2xl bg-gradient-to-br from-indigo-950 to-slate-900 p-1">
+              <HomeNextCareCard panel="/cliente" />
+            </div>
+          )}
+
+          <HomeKessiaAd />
+
+          <HomeMarketplace middle={<HomeToolAds client={client} />} />
+
+          <HomePartnerBand />
+
+          {client && <HomeModalityTimers />}
+
+          <footer
+            className="nv-dark overflow-hidden rounded-2xl border border-white/10 bg-[#0a1226] bg-cover bg-center text-white"
+            style={{
+              backgroundImage:
+                "linear-gradient(180deg, rgba(10,18,38,.86), rgba(10,18,38,.94)), url(/images/caredigital-care-hero.webp)",
+            }}
+          >
+            <div className="flex flex-wrap items-center gap-x-8 gap-y-3 px-4 py-3 lg:px-5">
+              <div className="flex min-w-0 items-center gap-3">
+                <Link to="/" className="inline-flex items-center gap-2">
+                  <LogoMark size={26} />
+                  <span className="font-display text-base font-extrabold">
+                    Next<span className="text-primary">Vita</span>
+                  </span>
+                </Link>
+                <span className="hidden max-w-[16rem] text-xs leading-snug text-muted-foreground xl:block">
+                  Bem-estar organizado: rotina, lembretes e loja no mesmo app.
                 </span>
-              </Link>
-              <span className="hidden max-w-[16rem] text-xs leading-snug text-muted-foreground xl:block">
-                Bem-estar organizado: rotina, lembretes e loja no mesmo app.
-              </span>
-            </div>
-            <div className="flex min-w-0 flex-1 flex-wrap items-start gap-x-8 gap-y-2">
-              {(
-                [
+              </div>
+              <div className="flex min-w-0 flex-1 flex-wrap items-start gap-x-8 gap-y-2">
+                {(
                   [
-                    "Ferramentas",
                     [
-                      ["/hidratacao", "Hidratação"],
-                      ["/medicamentos", "Medicação"],
-                      ["/dietas", "Alimentação"],
-                      ["/treinos", "Treinos"],
-                      ["/sono", "Sono"],
+                      "Ferramentas",
+                      [
+                        ["/hidratacao", "Hidratação"],
+                        ["/medicamentos", "Medicação"],
+                        ["/dietas", "Alimentação"],
+                        ["/treinos", "Treinos"],
+                        ["/sono", "Sono"],
+                      ],
                     ],
-                  ],
-                  [
-                    "Plataforma",
                     [
-                      ["/loja", "Loja"],
-                      ["/lojista", "Seja lojista"],
-                      ["/metricas", "Métricas"],
-                      ["/protocolos", "Como funciona"],
+                      "Plataforma",
+                      [
+                        ["/loja", "Loja"],
+                        ["/lojista", "Seja lojista"],
+                        ["/metricas", "Métricas"],
+                        ["/protocolos", "Como funciona"],
+                      ],
                     ],
-                  ],
-                  [
-                    "Empresa",
                     [
-                      ["/sobre", "Sobre"],
-                      ["/entrar?mode=signup", "Criar conta"],
-                      ["/entrar", "Entrar"],
-                      ["/parceiros", "Parcerias"],
+                      "Empresa",
+                      [
+                        ["/sobre", "Sobre"],
+                        ["/entrar?mode=signup", "Criar conta"],
+                        ["/entrar", "Entrar"],
+                        ["/parceiros", "Parcerias"],
+                      ],
                     ],
-                  ],
-                ] as const
-              ).map(([title, links]) => (
-                <nav key={title} aria-label={title} className="min-w-0">
-                  <p className="text-[11px] font-bold text-foreground">{title}</p>
-                  <ul className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs">
-                    {links.map(([to, label]) => (
-                      <li key={to}>
-                        <a
-                          href={to}
-                          className="text-muted-foreground transition-colors hover:text-foreground"
-                        >
-                          {label}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </nav>
-              ))}
-            </div>
-            <div className="flex shrink-0 items-center gap-2.5">
-              <span className="hidden overflow-hidden rounded-[3px] bg-white sm:block">
-                <QrEnlarge
-                  variant="footer"
-                  thumb={52}
-                  big={280}
-                  label="Abra o NextVita no celular"
-                />
-              </span>
-              <div className="min-w-0">
-                <p className="hidden text-[11px] font-semibold sm:block">Abra no celular</p>
-                <div className="sm:mt-1 [&_button]:!h-7 [&_button]:!px-2.5 [&_button]:!text-xs">
-                  <InstallAppButton />
+                  ] as const
+                ).map(([title, links]) => (
+                  <nav key={title} aria-label={title} className="min-w-0">
+                    <p className="text-[11px] font-bold text-foreground">{title}</p>
+                    <ul className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs">
+                      {links.map(([to, label]) => (
+                        <li key={to}>
+                          <a
+                            href={to}
+                            className="text-muted-foreground transition-colors hover:text-foreground"
+                          >
+                            {label}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </nav>
+                ))}
+              </div>
+              <div className="flex shrink-0 items-center gap-2.5">
+                <span className="hidden overflow-hidden rounded-[3px] bg-white sm:block">
+                  <QrEnlarge
+                    variant="footer"
+                    thumb={52}
+                    big={280}
+                    label="Abra o NextVita no celular"
+                  />
+                </span>
+                <div className="min-w-0">
+                  <p className="hidden text-[11px] font-semibold sm:block">Abra no celular</p>
+                  <div className="sm:mt-1 [&_button]:!h-7 [&_button]:!px-2.5 [&_button]:!text-xs">
+                    <InstallAppButton />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-0.5 border-t border-border px-4 py-1.5 text-[11px] text-muted-foreground lg:px-5">
-            <span>© {new Date().getFullYear()} NextVita. Todos os direitos reservados.</span>
-            <span>
-              Desenvolvido por{" "}
-              <Link to="/sobre" className="font-semibold text-foreground hover:underline">
-                Franc D&apos;nis
-              </Link>{" "}
-              · Feijó, Acre
-            </span>
-          </div>
-        </footer>
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-0.5 border-t border-border px-4 py-1.5 text-[11px] text-muted-foreground lg:px-5">
+              <span>© {new Date().getFullYear()} NextVita. Todos os direitos reservados.</span>
+              <span>
+                Desenvolvido por{" "}
+                <Link to="/sobre" className="font-semibold text-foreground hover:underline">
+                  Franc D&apos;nis
+                </Link>{" "}
+                · Feijó, Acre
+              </span>
+            </div>
+          </footer>
+        </div>
       </div>
     </>
   );
