@@ -177,6 +177,10 @@ export type Vendor = {
   address: string | null;
   offers_delivery: boolean;
   offers_pickup: boolean;
+  min_card_order_cents?: number;
+  min_delivery_order_cents?: number;
+  delivery_max_km?: number;
+  delivery_per_km_cents?: number;
   delivery_fee_cents: number;
   free_delivery_from_cents: number | null;
   delivery_area: string | null;

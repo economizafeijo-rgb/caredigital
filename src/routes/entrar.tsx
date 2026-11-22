@@ -85,7 +85,11 @@ function Entrar() {
   useEffect(() => {
     const reason = new URLSearchParams(window.location.search).get("reason");
     if (reason === "other-device")
-      setNotice({ type: "error", message: "Sua conta foi conectada em outro dispositivo e esta sessão foi encerrada. Por segurança, só um dispositivo fica conectado por vez. Entre novamente para continuar aqui." });
+      setNotice({
+        type: "error",
+        message:
+          "Sua conta foi conectada em outro dispositivo e esta sessão foi encerrada. Por segurança, só um dispositivo fica conectado por vez. Entre novamente para continuar aqui.",
+      });
     if (reason === "device-limit")
       setNotice({ type: "error", message: storeBlockMessage("limit") ?? "" });
     if (reason === "expediente")
@@ -126,17 +130,26 @@ function Entrar() {
     }
     // Quem veio de "Seja lojista" volta para lá depois de entrar.
     try {
-      const back = window.sessionStorage.getItem("nv_after_login");
+      const back =
+        window.sessionStorage.getItem("nv_after_login") ??
+        window.localStorage.getItem("nv_after_login");
       window.sessionStorage.removeItem("nv_after_login");
+      window.localStorage.removeItem("nv_after_login");
       if (back && /^\/[a-z0-9\-/]*$/i.test(back) && !back.startsWith("//")) {
         await navigate({ to: back as "/lojista" });
         return;
       }
-    } catch { /* sem armazenamento */ }
+    } catch {
+      /* sem armazenamento */
+    }
     // Conta criada pelo cadastro de lojista vai direto para o painel da loja.
     const { data: current } = await supabase.auth.getUser();
     // Dono de loja (cadastrado como lojista ou com loja transferida pelo administrador) abre o painel da loja.
-    const { data: ownStore } = await (supabase as any).from("care_store_vendors").select("id").eq("owner_id", userId).limit(1);
+    const { data: ownStore } = await (supabase as any)
+      .from("care_store_vendors")
+      .select("id")
+      .eq("owner_id", userId)
+      .limit(1);
     if (current.user?.user_metadata?.account_type === "vendor" || ownStore?.length) {
       await navigate({ to: "/lojista" });
       return;
@@ -172,7 +185,10 @@ function Entrar() {
     setAuthStatus("busy");
     setNotice(null);
     setNeedsConfirmation(false);
-    const fail = () => { setAuthStatus("error"); window.setTimeout(() => setAuthStatus("idle"), 1600); };
+    const fail = () => {
+      setAuthStatus("error");
+      window.setTimeout(() => setAuthStatus("idle"), 1600);
+    };
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
@@ -208,7 +224,8 @@ function Entrar() {
       if (storeAccess === "not_store") await endOtherSessions();
       if (data.user.user_metadata?.nextvita_signup) await bootstrapPublicSignup(data.user);
       setAuthStatus("success");
-      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) await new Promise((r) => window.setTimeout(r, 700));
+      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+        await new Promise((r) => window.setTimeout(r, 700));
       await openAuthenticatedArea(data.user.id, data.user.email ?? "");
     } catch (error: any) {
       fail();
@@ -261,7 +278,10 @@ function Entrar() {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim()))
         return setNotice({ type: "error", message: "Informe um e-mail válido." });
       if (!isValidBrazilPhone(normalizedPhone))
-        return setNotice({ type: "error", message: "Informe um celular brasileiro válido com DDD." });
+        return setNotice({
+          type: "error",
+          message: "Informe um celular brasileiro válido com DDD.",
+        });
       if (password.length < 8)
         return setNotice({ type: "error", message: "Use uma senha com pelo menos 8 caracteres." });
       setSignupStep(1);
@@ -417,8 +437,8 @@ function Entrar() {
         : mode === "vendor"
           ? "Cadastro de parceiro"
           : mode === "forgot"
-          ? "Recuperar acesso"
-          : "Criar nova senha";
+            ? "Recuperar acesso"
+            : "Criar nova senha";
   const field = "field mt-1.5";
   const iconField = (Icon: LucideIcon, props: InputHTMLAttributes<HTMLInputElement>) => (
     <span className="relative block">
@@ -432,20 +452,47 @@ function Entrar() {
       label="Acesso NextVita"
       className="mx-auto grid w-full max-w-5xl items-stretch gap-5 py-1 lg:grid-cols-[1.05fr_1fr]"
     >
-      <AuthStage mode={mode} email={email} password={mode === "login" ? password : newPassword || password} focus={focus} status={authStatus} />
+      <AuthStage
+        mode={mode}
+        email={email}
+        password={mode === "login" ? password : newPassword || password}
+        focus={focus}
+        status={authStatus}
+      />
       <section
-        onFocusCapture={(e) => { const t = (e.target as HTMLInputElement).type; setFocus(t === "email" ? "email" : t === "password" || (e.target as HTMLInputElement).autocomplete?.includes("password") ? "password" : "other"); }}
+        onFocusCapture={(e) => {
+          const t = (e.target as HTMLInputElement).type;
+          setFocus(
+            t === "email"
+              ? "email"
+              : t === "password" ||
+                  (e.target as HTMLInputElement).autocomplete?.includes("password")
+                ? "password"
+                : "other",
+          );
+        }}
         onBlurCapture={() => setFocus(null)}
-        className="relative flex min-h-0 flex-col justify-center-safe overflow-y-auto overflow-x-hidden rounded-3xl border border-border bg-card shadow-pop [scrollbar-width:thin]">
-        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-500" />
-        <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 size-64 rounded-full bg-primary/10 blur-3xl" />
+        className="relative flex min-h-0 flex-col justify-center-safe overflow-y-auto overflow-x-hidden rounded-3xl border border-border bg-card shadow-pop [scrollbar-width:thin]"
+      >
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-500"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-24 -top-24 size-64 rounded-full bg-primary/10 blur-3xl"
+        />
         <div className="relative flex items-center gap-3 px-4 pb-1 pt-5 sm:px-6">
           <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 text-white shadow-[0_8px_20px_-8px_rgba(16,185,129,.7)]">
             <LockKeyhole size={20} />
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-muted-foreground">NextVita · conta protegida</p>
-            <h1 className="mt-0.5 text-2xl font-extrabold tracking-tight text-foreground">{title}</h1>
+            <p className="text-xs font-semibold text-muted-foreground">
+              NextVita · conta protegida
+            </p>
+            <h1 className="mt-0.5 text-2xl font-extrabold tracking-tight text-foreground">
+              {title}
+            </h1>
           </div>
         </div>
         <div className="relative space-y-3 p-4 sm:px-6 sm:py-5 lg:space-y-3">
@@ -457,8 +504,8 @@ function Entrar() {
                 : mode === "vendor"
                   ? "Duas etapas rápidas. Sem mensalidade para começar."
                   : mode === "forgot"
-                  ? "Informe o e-mail da conta para solicitar um link seguro de recuperação."
-                  : "Defina uma senha nova e segura para sua conta."}
+                    ? "Informe o e-mail da conta para solicitar um link seguro de recuperação."
+                    : "Defina uma senha nova e segura para sua conta."}
           </p>
           {configurationIssue && (
             <div
@@ -493,10 +540,29 @@ function Entrar() {
           )}
 
           {(mode === "signup" || mode === "vendor") && (
-            <div role="tablist" aria-label="Tipo de conta" className="grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
-              {([["signup", "Quero me cuidar", "Conta pessoal grátis"], ["vendor", "Sou parceiro", "Loja, academia, personal"]] as const).map(([m, t, h]) => (
-                <button key={m} role="tab" type="button" aria-selected={mode === m} onClick={() => { setMode(m); setNotice(null); }}
-                  title={h} className={`rounded-lg px-3 py-1.5 text-center transition-colors ${mode === m ? "bg-card shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
+            <div
+              role="tablist"
+              aria-label="Tipo de conta"
+              className="grid grid-cols-2 gap-1 rounded-xl bg-muted p-1"
+            >
+              {(
+                [
+                  ["signup", "Quero me cuidar", "Conta pessoal grátis"],
+                  ["vendor", "Sou parceiro", "Loja, academia, personal"],
+                ] as const
+              ).map(([m, t, h]) => (
+                <button
+                  key={m}
+                  role="tab"
+                  type="button"
+                  aria-selected={mode === m}
+                  onClick={() => {
+                    setMode(m);
+                    setNotice(null);
+                  }}
+                  title={h}
+                  className={`rounded-lg px-3 py-1.5 text-center transition-colors ${mode === m ? "bg-card shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                >
                   <strong className="block text-sm">{t}</strong>
                 </button>
               ))}
@@ -583,126 +649,151 @@ function Entrar() {
               <ol className="grid grid-cols-2 gap-2 sm:col-span-2" aria-label="Etapas do cadastro">
                 {["Sua conta", "Seu perfil"].map((t, i) => (
                   <li key={t} className="grid gap-1">
-                    <span className={`h-1 rounded-full transition-colors ${i <= signupStep ? "bg-primary" : "bg-muted"}`} />
-                    <span className={`text-[11px] font-semibold ${i === signupStep ? "text-foreground" : "text-muted-foreground"}`}>{i + 1}. {t}</span>
+                    <span
+                      className={`h-1 rounded-full transition-colors ${i <= signupStep ? "bg-primary" : "bg-muted"}`}
+                    />
+                    <span
+                      className={`text-[11px] font-semibold ${i === signupStep ? "text-foreground" : "text-muted-foreground"}`}
+                    >
+                      {i + 1}. {t}
+                    </span>
                   </li>
                 ))}
               </ol>
               {signupStep === 0 ? (
                 <>
-              <label className="block text-xs font-bold text-foreground sm:col-span-2">
-                Nome completo
-                {iconField(User, {
-                  type: "text",
-                  autoComplete: "name",
-                  required: true,
-                  value: fullName,
-                  onChange: (e) => setFullName(e.target.value.toUpperCase()),
-                  placeholder: "Seu nome completo",
-                  disabled: busy,
-                })}
-              </label>
-              <label className="block text-xs font-bold text-foreground">
-                E-mail
-                {iconField(Mail, {
-                  type: "email",
-                  autoComplete: "email",
-                  required: true,
-                  value: email,
-                  onChange: (e) => setEmail(e.target.value),
-                  placeholder: "seuemail@exemplo.com",
-                  disabled: busy,
-                })}
-              </label>
-              <label className="block text-xs font-bold text-foreground">
-                Celular
-                {iconField(Phone, {
-                  type: "tel",
-                  inputMode: "tel",
-                  autoComplete: "tel",
-                  required: true,
-                  value: formatBrazilPhone(phone),
-                  onChange: (e) => setPhone(e.target.value),
-                  placeholder: "(68) 99999-9999",
-                  disabled: busy,
-                })}
-              </label>
-              <label className="block text-xs font-bold text-foreground sm:col-span-2">
-                <span className="flex items-center justify-between">Senha <button type="button" onClick={() => setShowPassword((v) => !v)} className="text-[11px] font-semibold text-muted-foreground hover:text-foreground">{showPassword ? "Ocultar" : "Mostrar"}</button></span>
-                {iconField(KeyRound, {
-                  type: showPassword ? "text" : "password",
-                  autoComplete: "new-password",
-                  minLength: 8,
-                  required: true,
-                  value: password,
-                  onChange: (e) => setPassword(e.target.value),
-                  placeholder: "Mínimo 8 caracteres",
-                  disabled: busy,
-                })}
-              </label>
+                  <label className="block text-xs font-bold text-foreground sm:col-span-2">
+                    Nome completo
+                    {iconField(User, {
+                      type: "text",
+                      autoComplete: "name",
+                      required: true,
+                      value: fullName,
+                      onChange: (e) => setFullName(e.target.value.toUpperCase()),
+                      placeholder: "Seu nome completo",
+                      disabled: busy,
+                    })}
+                  </label>
+                  <label className="block text-xs font-bold text-foreground">
+                    E-mail
+                    {iconField(Mail, {
+                      type: "email",
+                      autoComplete: "email",
+                      required: true,
+                      value: email,
+                      onChange: (e) => setEmail(e.target.value),
+                      placeholder: "seuemail@exemplo.com",
+                      disabled: busy,
+                    })}
+                  </label>
+                  <label className="block text-xs font-bold text-foreground">
+                    Celular
+                    {iconField(Phone, {
+                      type: "tel",
+                      inputMode: "tel",
+                      autoComplete: "tel",
+                      required: true,
+                      value: formatBrazilPhone(phone),
+                      onChange: (e) => setPhone(e.target.value),
+                      placeholder: "(68) 99999-9999",
+                      disabled: busy,
+                    })}
+                  </label>
+                  <label className="block text-xs font-bold text-foreground sm:col-span-2">
+                    <span className="flex items-center justify-between">
+                      Senha{" "}
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        className="text-[11px] font-semibold text-muted-foreground hover:text-foreground"
+                      >
+                        {showPassword ? "Ocultar" : "Mostrar"}
+                      </button>
+                    </span>
+                    {iconField(KeyRound, {
+                      type: showPassword ? "text" : "password",
+                      autoComplete: "new-password",
+                      minLength: 8,
+                      required: true,
+                      value: password,
+                      onChange: (e) => setPassword(e.target.value),
+                      placeholder: "Mínimo 8 caracteres",
+                      disabled: busy,
+                    })}
+                  </label>
                 </>
               ) : (
                 <>
-                  <p className="text-xs text-muted-foreground sm:col-span-2">Usamos estes dados para calcular suas metas de água, nutrição e peso.</p>
-              <label className="block text-xs font-bold text-foreground">
-                CPF
-                {iconField(CreditCard, {
-                  type: "text",
-                  inputMode: "numeric",
-                  autoComplete: "off",
-                  required: true,
-                  value: formatCpf(cpf),
-                  onChange: (e) => setCpf(e.target.value),
-                  placeholder: "000.000.000-00",
-                  disabled: busy,
-                })}
-              </label>
-              <label className="block text-xs font-bold text-foreground">
-                Data de nascimento
-                {iconField(CalendarDays, {
-                  type: "date",
-                  autoComplete: "bday",
-                  required: true,
-                  value: birthDate,
-                  onChange: (e) => setBirthDate(e.target.value),
-                  disabled: busy,
-                })}
-              </label>
-              <label className="block text-xs font-bold text-foreground">
-                Peso em kg
-                {iconField(Scale, {
-                  type: "number",
-                  inputMode: "decimal",
-                  min: 20,
-                  max: 350,
-                  step: "0.1",
-                  required: true,
-                  value: weightKg,
-                  onChange: (e) => setWeightKg(e.target.value),
-                  placeholder: "70",
-                  disabled: busy,
-                })}
-              </label>
-              <label className="block text-xs font-bold text-foreground">
-                Altura em cm
-                {iconField(Ruler, {
-                  type: "number",
-                  inputMode: "decimal",
-                  min: 100,
-                  max: 230,
-                  step: "0.1",
-                  required: true,
-                  value: heightCm,
-                  onChange: (e) => setHeightCm(e.target.value),
-                  placeholder: "170",
-                  disabled: busy,
-                })}
-              </label>
+                  <p className="text-xs text-muted-foreground sm:col-span-2">
+                    Usamos estes dados para calcular suas metas de água, nutrição e peso.
+                  </p>
+                  <label className="block text-xs font-bold text-foreground">
+                    CPF
+                    {iconField(CreditCard, {
+                      type: "text",
+                      inputMode: "numeric",
+                      autoComplete: "off",
+                      required: true,
+                      value: formatCpf(cpf),
+                      onChange: (e) => setCpf(e.target.value),
+                      placeholder: "000.000.000-00",
+                      disabled: busy,
+                    })}
+                  </label>
+                  <label className="block text-xs font-bold text-foreground">
+                    Data de nascimento
+                    {iconField(CalendarDays, {
+                      type: "date",
+                      autoComplete: "bday",
+                      required: true,
+                      value: birthDate,
+                      onChange: (e) => setBirthDate(e.target.value),
+                      disabled: busy,
+                    })}
+                  </label>
+                  <label className="block text-xs font-bold text-foreground">
+                    Peso em kg
+                    {iconField(Scale, {
+                      type: "number",
+                      inputMode: "decimal",
+                      min: 20,
+                      max: 350,
+                      step: "0.1",
+                      required: true,
+                      value: weightKg,
+                      onChange: (e) => setWeightKg(e.target.value),
+                      placeholder: "70",
+                      disabled: busy,
+                    })}
+                  </label>
+                  <label className="block text-xs font-bold text-foreground">
+                    Altura em cm
+                    {iconField(Ruler, {
+                      type: "number",
+                      inputMode: "decimal",
+                      min: 100,
+                      max: 230,
+                      step: "0.1",
+                      required: true,
+                      value: heightCm,
+                      onChange: (e) => setHeightCm(e.target.value),
+                      placeholder: "170",
+                      disabled: busy,
+                    })}
+                  </label>
                 </>
               )}
               <div className="flex gap-2 sm:col-span-2">
                 {signupStep === 1 && (
-                  <button type="button" onClick={() => { setSignupStep(0); setNotice(null); }} aria-label="Etapa anterior" className="inline-flex h-11 items-center gap-1.5 rounded-xl border border-border px-3.5 text-sm font-semibold hover:border-primary/40">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSignupStep(0);
+                      setNotice(null);
+                    }}
+                    aria-label="Etapa anterior"
+                    className="inline-flex h-11 items-center gap-1.5 rounded-xl border border-border px-3.5 text-sm font-semibold hover:border-primary/40"
+                  >
                     <ArrowLeft size={15} />
                   </button>
                 )}
@@ -711,7 +802,11 @@ function Entrar() {
                   disabled={busy || !!configurationIssue}
                   className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:opacity-50"
                 >
-                  {busy ? "Criando sua conta…" : signupStep === 0 ? "Continuar" : "Criar minha conta grátis"}
+                  {busy
+                    ? "Criando sua conta…"
+                    : signupStep === 0
+                      ? "Continuar"
+                      : "Criar minha conta grátis"}
                 </button>
               </div>
               <button
@@ -733,12 +828,19 @@ function Entrar() {
               disabled={!!configurationIssue}
               errorMessage={authErrorMessage}
               onSignedIn={openAuthenticatedArea}
-              onBack={() => { setMode("login"); setNotice(null); }}
+              onBack={() => {
+                setMode("login");
+                setNotice(null);
+              }}
               onNeedsConfirmation={(mail) => {
                 setEmail(mail);
                 setMode("login");
                 setNeedsConfirmation(true);
-                setNotice({ type: "success", message: "Conta de parceiro criada. Confirme o e-mail que enviamos e depois entre para concluir o cadastro do seu negócio." });
+                setNotice({
+                  type: "success",
+                  message:
+                    "Conta de parceiro criada. Confirme o e-mail que enviamos e depois entre para concluir o cadastro do seu negócio.",
+                });
               }}
             />
           )}

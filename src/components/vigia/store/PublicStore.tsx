@@ -58,8 +58,13 @@ type CartQuote = {
   coupon_code: string | null;
   fee_cents: number;
   total_cents: number;
+  km?: number | null;
+  min_card_cents?: number;
+  min_delivery_cents?: number;
+  max_km?: number;
 };
 import { STORE_LIVE } from "@/lib/store";
+import { ACRE_CITIES, formatCpf, isValidCpf } from "@/lib/checkout";
 
 type Sort = "relevancia" | "menor" | "desconto";
 const offOf = (p: VendorProduct) =>
@@ -149,6 +154,15 @@ function PublicStore({
   const [sort, setSort] = useState<Sort>("relevancia");
   const [cartOpen, setCartOpen] = useState(false);
   const [chat, setChat] = useState(false);
+  // Voltou do cadastro/e-mail confirmado com itens na cesta: abre o checkout direto.
+  useEffect(() => {
+    try {
+      if (STORE_LIVE && window.localStorage.getItem("nv_checkout_open") === vendor.slug)
+        setCartOpen(true);
+    } catch {
+      /* ok */
+    }
+  }, [vendor.slug]);
   const [chatDraft, setChatDraft] = useState<string | undefined>(undefined);
   const [detail, setDetail] = useState<VendorProduct | null>(null);
   const deepLinked = useRef(false);
@@ -577,7 +591,15 @@ function PublicStore({
         )}
       </button>
       {cartOpen && (
-        <VendorCheckout vendor={vendor} products={products} onClose={() => setCartOpen(false)} />
+        <VendorCheckout
+          vendor={vendor}
+          products={products}
+          onClose={() => setCartOpen(false)}
+          onChat={() => {
+            setCartOpen(false);
+            setChat(true);
+          }}
+        />
       )}
       {chat && (
         <CustomerChat vendor={vendor} onClose={() => setChat(false)} initialText={chatDraft} />
@@ -828,10 +850,12 @@ function VendorCheckout({
   vendor,
   products,
   onClose,
+  onChat,
 }: {
   vendor: Vendor;
   products: VendorProduct[];
   onClose: () => void;
+  onChat: () => void;
 }) {
   const navigate = useNavigate();
   const lines = useVCart(vendor.id);
@@ -847,6 +871,11 @@ function VendorCheckout({
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [city, setCity] = useState<string>(vendor.city.replace(/,\s*AC$/i, ""));
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [quoteErr, setQuoteErr] = useState("");
+  const [signedIn, setSignedIn] = useState(true);
   const [pay, setPay] = useState("pix");
   const [notes, setNotes] = useState("");
   const [err, setErr] = useState("");
@@ -871,16 +900,26 @@ function VendorCheckout({
     }
     let cancelled = false;
     void (async () => {
-      const { data, error } = await (supabase as any).rpc("care_store_quote_order", {
+      const { data, error } = await (supabase as any).rpc("care_store_quote_checkout", {
         p_vendor_id: vendor.id,
         p_items: itemsArg,
         p_fulfillment: mode,
         p_coupon: coupon,
+        p_city: city,
+        p_lat: coords?.lat ?? null,
+        p_lng: coords?.lng ?? null,
       });
       if (cancelled) return;
       if (error) {
         const m = String(error.message ?? "");
         setQuote(null);
+        setQuoteErr(
+          m.includes("Delivery minimum")
+            ? `Para receber em casa, o pedido precisa ter pelo menos ${money(vendor.min_delivery_order_cents ?? 3000)} em produtos.`
+            : m.includes("Delivery out of range")
+              ? `Entregamos de moto-taxi só em ${vendor.city.replace(/,\s*AC$/i, "")}, até ${vendor.delivery_max_km ?? 8} km da loja. Escolha retirar na loja ou fale com a loja.`
+              : "",
+        );
         if (coupon) {
           setCoupon(null);
           setCouponErr(
@@ -891,25 +930,78 @@ function VendorCheckout({
         }
         return;
       }
+      setQuoteErr("");
       setQuote(data as CartQuote);
     })();
     return () => {
       cancelled = true;
     };
-  }, [itemsKey, mode, coupon, vendor.id]);
+  }, [
+    itemsKey,
+    mode,
+    coupon,
+    vendor.id,
+    city,
+    coords,
+    vendor.city,
+    vendor.min_delivery_order_cents,
+    vendor.delivery_max_km,
+  ]);
+  const minCard = quote?.min_card_cents ?? vendor.min_card_order_cents ?? 0;
   const shownFee = quote ? quote.fee_cents : fee;
   const shownTotal = quote ? quote.total_cents : subtotal + fee;
   useEffect(() => {
-    void supabase.auth.getUser().then(({ data }) => {
+    void supabase.auth.getUser().then(async ({ data }) => {
+      setSignedIn(!!data.user);
+      try {
+        if (data.user && window.localStorage.getItem("nv_checkout_open") === vendor.slug) {
+          window.localStorage.removeItem("nv_checkout_open");
+          setStep("dados");
+        }
+      } catch {
+        /* ok */
+      }
       const m = data.user?.user_metadata;
       if (m?.full_name || m?.name) setName(String(m.full_name ?? m.name));
+      if (!data.user) return;
+      // Cliente que já comprou (ou se cadastrou): preenche os dados sozinho.
+      const { data: saved } = await (supabase as any)
+        .from("care_customer_checkout")
+        .select("full_name,cpf,phone,city,address")
+        .eq("user_id", data.user.id)
+        .maybeSingle();
+      if (saved) {
+        if (saved.full_name) setName(saved.full_name);
+        if (saved.cpf) setCpf(formatCpf(saved.cpf));
+        if (saved.phone) setPhone(saved.phone);
+        if (saved.city) setCity(saved.city);
+        if (saved.address) setAddress(saved.address);
+      } else if (m?.phone) setPhone(String(m.phone));
     });
-  }, []);
+  }, [vendor.slug]);
   useEffect(() => {
     const k = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", k);
     return () => window.removeEventListener("keydown", k);
   }, [onClose]);
+
+  /** Visitante pode montar a cesta; para fechar o pedido precisa se cadastrar e confirmar o e-mail. */
+  async function goCheckout() {
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) {
+      try {
+        const back = `/${vendor.slug}`;
+        window.sessionStorage.setItem("nv_after_login", back);
+        window.localStorage.setItem("nv_after_login", back);
+        window.localStorage.setItem("nv_checkout_open", vendor.slug);
+      } catch {
+        /* ok */
+      }
+      window.location.assign("/entrar?mode=signup");
+      return;
+    }
+    setStep("dados");
+  }
 
   async function place(e: FormEvent) {
     e.preventDefault();
@@ -924,21 +1016,28 @@ function VendorCheckout({
       return;
     }
     if (name.trim().length < 3) return setErr("Informe seu nome completo.");
+    if (!isValidCpf(cpf)) return setErr("Informe um CPF válido.");
     if (phone.replace(/\D/g, "").length < 10) return setErr("Informe o WhatsApp com DDD.");
+    if (pay === "cartao" && minCard && shownTotal < minCard)
+      return setErr(`Cartão a partir de ${money(minCard)}. Escolha Pix ou aumente o pedido.`);
     if (mode === "entrega" && address.trim().length < 8)
       return setErr("Informe o endereço de entrega.");
     setErr("");
     setBusy(true);
-    const { data: id, error } = await (supabase as any).rpc("care_store_place_order", {
+    const { data: id, error } = await (supabase as any).rpc("care_store_place_checkout", {
       p_vendor_id: vendor.id,
       p_items: itemsPayload,
       p_fulfillment: mode,
       p_name: name.trim(),
       p_phone: phone.trim(),
-      p_address: mode === "entrega" ? address.trim() : null,
+      p_cpf: cpf,
+      p_city: city,
+      p_address: address.trim() || null,
       p_payment: pay,
       p_notes: notes.trim() || null,
       p_coupon: coupon,
+      p_lat: coords?.lat ?? null,
+      p_lng: coords?.lng ?? null,
     });
     setBusy(false);
     if (error) {
@@ -947,6 +1046,10 @@ function VendorCheckout({
         setCoupon(null);
         return setErr(couponErrorMessage(m));
       }
+      if (m.includes("Card minimum")) return setErr("Valor abaixo do mínimo para pagar no cartão.");
+      if (m.includes("CPF invalid")) return setErr("Informe um CPF válido.");
+      if (m.includes("Delivery"))
+        return setErr(quoteErr || "Entrega indisponível para este pedido.");
       return setErr(
         m.includes("Out of stock")
           ? "Um dos produtos acabou de esgotar. Ajuste a quantidade e tente de novo."
@@ -1114,7 +1217,7 @@ function VendorCheckout({
                 <button
                   type="button"
                   disabled={!items.length}
-                  onClick={() => setStep("dados")}
+                  onClick={() => void goCheckout()}
                   className="h-12 rounded-xl text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-45"
                   style={{ background: accent }}
                 >
@@ -1182,17 +1285,60 @@ function VendorCheckout({
                   placeholder="(68) 90000-0000"
                 />
               </label>
+              <label className="text-[13px] font-semibold">
+                CPF
+                <input
+                  className={field}
+                  value={cpf}
+                  onChange={(e) => setCpf(formatCpf(e.target.value))}
+                  inputMode="numeric"
+                  autoComplete="off"
+                  placeholder="000.000.000-00"
+                />
+              </label>
+              <label className="text-[13px] font-semibold">
+                Cidade
+                <select className={field} value={city} onChange={(e) => setCity(e.target.value)}>
+                  {ACRE_CITIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </label>
               {mode === "entrega" && (
-                <label className="text-[13px] font-semibold">
-                  Endereço
-                  <input
-                    className={field}
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    autoComplete="street-address"
-                    placeholder="Rua, número, bairro e referência"
-                  />
-                </label>
+                <>
+                  <label className="text-[13px] font-semibold">
+                    Endereço
+                    <input
+                      className={field}
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      autoComplete="street-address"
+                      placeholder="Rua, número, bairro e referência"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigator.geolocation?.getCurrentPosition(
+                        (g) => setCoords({ lat: g.coords.latitude, lng: g.coords.longitude }),
+                        () => setErr("Não foi possível obter sua localização."),
+                        { timeout: 8000 },
+                      )
+                    }
+                    className="justify-self-start text-xs font-semibold underline underline-offset-2"
+                  >
+                    {coords
+                      ? `Localização usada no cálculo${quote?.km ? ` · ${quote.km} km da loja` : ""}`
+                      : "Usar minha localização para calcular a entrega"}
+                  </button>
+                  {quoteErr && (
+                    <p role="alert" className="rounded-lg bg-amber-500/10 p-2.5 text-xs">
+                      {quoteErr}
+                    </p>
+                  )}
+                </>
               )}
               <fieldset>
                 <legend className="text-[13px] font-semibold">Pagamento</legend>
@@ -1219,6 +1365,11 @@ function VendorCheckout({
                     </label>
                   ))}
                 </div>
+                {minCard > 0 && (
+                  <p className="mt-1 text-[11.5px] text-muted-foreground">
+                    Cartão a partir de {money(minCard)}.
+                  </p>
+                )}
               </fieldset>
               <label className="text-[13px] font-semibold">
                 Observação
@@ -1231,10 +1382,17 @@ function VendorCheckout({
                 />
               </label>
               <p className="rounded-lg bg-muted px-3 py-2 text-[11.5px] leading-snug text-muted-foreground">
-                Ao confirmar, você recebe um código de retirada e o acompanhamento do pedido. A loja
-                confirma o pagamento e começa a separar. Durante o pré-lançamento, os pedidos são de
-                teste.
+                Ao confirmar, você acompanha cada etapa do pedido no seu painel, até a retirada ou
+                entrega. Trocas e devoluções seguem o prazo de 7 dias do Código de Defesa do
+                Consumidor, combinadas com a loja.
               </p>
+              <button
+                type="button"
+                onClick={onChat}
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-border text-[13px] font-semibold hover:bg-muted"
+              >
+                Falar com a loja antes de fechar
+              </button>
               {err && (
                 <p
                   role="alert"
@@ -1267,7 +1425,7 @@ function VendorCheckout({
               </p>
               <button
                 type="submit"
-                disabled={busy || !items.length}
+                disabled={busy || !items.length || (mode === "entrega" && !!quoteErr)}
                 className="mt-1 h-12 rounded-xl text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-50"
                 style={{ background: accent }}
               >
