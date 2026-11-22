@@ -31,6 +31,9 @@ export const PRODUCT_CATEGORIES = [
   { key: "farmacia", label: "Farmácia" },
   { key: "beleza", label: "Beleza e cosméticos" },
   { key: "bijuterias", label: "Bijuterias" },
+  { key: "papelaria", label: "Papelaria" },
+  { key: "infantil", label: "Infantil" },
+  { key: "festa", label: "Festa e decoração" },
   { key: "outros", label: "Outros" },
 ] as const;
 export const categoryName = (key: string) =>
