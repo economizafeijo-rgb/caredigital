@@ -89,7 +89,7 @@ export function NutritionHero({
         aria-hidden="true"
         className="pointer-events-none absolute -bottom-10 left-1/3 -z-10 size-56 rounded-full bg-emerald-300/10 blur-3xl"
       />
-      <div className="grid items-center gap-3.5 lg:grid-cols-[auto_minmax(0,1fr)_22rem]">
+      <div className="grid items-center gap-3.5 lg:grid-cols-[auto_minmax(0,1fr)_minmax(16rem,20rem)]">
         <div
           className="relative mx-auto size-24 shrink-0 lg:mx-0"
           role="img"
@@ -149,6 +149,7 @@ export function NutritionHero({
             <span className="inline-flex items-center gap-1.5 border border-white/15 bg-white/10 px-2 py-0.5 text-[11px] font-semibold text-lime-100">
               <Target size={12} /> {objectiveLabel(objective)}
             </span>
+            {actions && <div className="ml-auto flex flex-wrap gap-2">{actions}</div>}
           </div>
           <p className="mt-0.5 text-sm text-white/80">
             {!entries.length
@@ -191,7 +192,6 @@ export function NutritionHero({
               );
             })}
           </ul>
-          {actions && <div className="mt-3 flex flex-wrap gap-2">{actions}</div>}
         </div>
 
         <NextUpClock
