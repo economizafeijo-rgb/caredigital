@@ -7,7 +7,7 @@ import { NutritionInfoCard } from "./MealSuggestions";
 import { PlateBuilder, PlateRows } from "./PlateBuilder";
 import { foodKinds, mealCombos, typicalFoods, type FoodKind } from "@/lib/care-intake-categories";
 import { measureUnit, parseFoodText, sumNutrients } from "@/lib/food-parser";
-import { ingredients } from "@/lib/nutrition-catalog";
+import { searchFoods } from "@/lib/food-search";
 
 /** Cor de cada tipo de refeição, usada nos setores, no cabeçalho e no prato. */
 export const mealTone: Record<FoodKind, string> = {
@@ -25,7 +25,6 @@ export const mealTone: Record<FoodKind, string> = {
 
 type Item = { label: string; text: string };
 const nf = (n: number, digits = 0) => n.toLocaleString("pt-BR", { maximumFractionDigits: digits });
-const norm = (value: string) => value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 /**
  * Alimentos e líquidos não se misturam: bebidas têm a sua própria área.
@@ -77,27 +76,6 @@ function statsOf(text: string) {
     stats.set(text, hit);
   }
   return hit;
-}
-
-let catalogCache: Item[] | null = null;
-/** Alimentos do catálogo que o leitor reconhece pelo nome (para a busca). */
-function catalogItems(): Item[] {
-  if (catalogCache) return catalogCache;
-  catalogCache = ingredients
-    .filter((item) => item.group !== "bebidas")
-    .map((item) => ({
-      id: item.id,
-      label: item.name
-        .split(",")[0]
-        .replace(/\s*\(.*$/, "")
-        .trim(),
-    }))
-    .filter(({ id, label }) => {
-      const parsed = parseFoodText(label);
-      return parsed.length === 1 && parsed[0].id === id;
-    })
-    .map(({ label }) => ({ label, text: label }));
-  return catalogCache;
 }
 
 function useCountUp(target: number) {
@@ -177,16 +155,11 @@ export function MealBoard({
 
   const combos = useMemo(() => stripLiquids(mealCombos[kind] ?? []), [kind]);
   const typical = useMemo(() => stripLiquids(typicalFoods[kind] ?? []), [kind]);
-  const q = norm(query.trim());
-  const found = useMemo(
-    () =>
-      q.length < 2
-        ? []
-        : catalogItems()
-            .filter((i) => norm(i.label).includes(q))
-            .slice(0, 36),
-    [q],
-  );
+  const q = query.trim();
+  const search = useMemo(() => searchFoods(q), [q]);
+  const found = search.items;
+  // A categoria é só uma sugestão: destaca a mais provável, sem limitar a busca.
+  const suggestedKind = q.length >= 2 ? search.suggestedKind : null;
 
   const foods = useMemo(() => parseFoodText(`${portion} ${description}`), [portion, description]);
   const total = useMemo(() => sumNutrients(foods.map((f) => f.nutrients)), [foods]);
@@ -286,7 +259,8 @@ export function MealBoard({
           <div className="care-intake-choices flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none]">
             {foodKinds.map((c) => {
               const on = c.value === kind,
-                color = mealTone[c.value];
+                color = mealTone[c.value],
+                suggested = suggestedKind === c.value;
               return (
                 <button
                   key={c.value}
@@ -294,13 +268,15 @@ export function MealBoard({
                   aria-pressed={on}
                   data-intake-kind={c.value}
                   data-intake-group="food"
-                  title={c.hint}
+                  title={suggested && !on ? `${c.hint} · sugerida para esta busca` : c.hint}
                   onClick={() => onKind(c.value)}
                   className={
                     "inline-flex h-8 shrink-0 items-center gap-1.5 border px-3 text-xs font-semibold transition duration-150 active:scale-95 " +
                     (on
                       ? "border-foreground bg-foreground text-background"
-                      : "border-border text-muted-foreground hover:bg-muted hover:text-foreground")
+                      : suggested
+                        ? "border-primary bg-primary/10 text-foreground ring-2 ring-primary/30 hover:bg-primary/15"
+                        : "border-border text-muted-foreground hover:bg-muted hover:text-foreground")
                   }
                 >
                   <span className="size-2" style={{ background: color }} />
