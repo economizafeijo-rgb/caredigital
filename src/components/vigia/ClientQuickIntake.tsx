@@ -23,6 +23,25 @@ import { drinkGroups, drinkPresetFor, drinkPresets } from "@/lib/drink-presets";
 import { supabase } from "@/integrations/supabase/client";
 import { useDialog } from "@/lib/dialog";
 
+const mealTimes: { value: FoodKind; label: string }[] = [
+  { value: "cafe_manha", label: "Café da manhã" },
+  { value: "almoco", label: "Almoço" },
+  { value: "jantar", label: "Jantar" },
+  { value: "lanche", label: "Lanche" },
+  { value: "ceia", label: "Ceia" },
+];
+/** Sugere a refeição pelo horário do Acre ("YYYY-MM-DDTHH:mm"). */
+function suggestMealType(wallTime: string): FoodKind {
+  const minutes = Number(wallTime.slice(11, 13)) * 60 + Number(wallTime.slice(14, 16));
+  if (!Number.isFinite(minutes)) return "lanche";
+  if (minutes >= 300 && minutes < 600) return "cafe_manha";
+  if (minutes >= 600 && minutes < 690) return "lanche";
+  if (minutes >= 690 && minutes < 900) return "almoco";
+  if (minutes >= 900 && minutes < 1080) return "lanche";
+  if (minutes >= 1080 && minutes < 1260) return "jantar";
+  return "ceia";
+}
+
 type Draft = { kind: IntakeKind; description: string; portion: string; amount: string };
 
 type Props = {
@@ -80,6 +99,8 @@ export function ClientQuickIntake({
   const [notice, setNotice] = useState("");
   const requestId = useRef<string | null>(null);
   const drinkRequestId = useRef<string | null>(null);
+  // Tipo da refeição escolhido pelo usuário; enquanto null, vale a sugestão pelo horário.
+  const [mealChoice, setMealChoice] = useState<FoodKind | null>(null);
   // Rascunho do outro grupo: trocar entre Alimentos e Bebidas nunca apaga o que já foi escolhido.
   const [stash, setStash] = useState<{ food?: Draft; beverage?: Draft }>({});
   const openedBySignal = useRef(0);
@@ -92,6 +113,7 @@ export function ClientQuickIntake({
     requestId.current = crypto.randomUUID();
     drinkRequestId.current = crypto.randomUUID();
     setStash({});
+    setMealChoice(null);
     const initialGroup = mode === "water" || mode === "drink" ? "beverage" : "food";
     setGroup(initialGroup);
     setKind(
@@ -130,6 +152,7 @@ export function ClientQuickIntake({
   const live: Draft = { kind, description, portion, amount };
   const foodDraft = group === "food" ? live : stash.food;
   const drinkDraft = group === "beverage" ? live : stash.beverage;
+  const mealType: FoodKind = mealChoice ?? suggestMealType(consumedAt || acreInputValue());
   const foodCount = (foodDraft?.description ?? "").split(/\s*,\s*/).filter(Boolean).length;
   const drinkSelected = !!drinkDraft?.description.trim();
   // Resumo consolidado do que está sendo montado: alimentos (um por linha) + bebida escolhida.
@@ -165,7 +188,22 @@ export function ClientQuickIntake({
     ...drinkParsed.map((f) => f.nutrients),
   ]);
   const overview = allItems.length ? (
-    <RecordOverview items={allItems} active={group} onOpen={switchGroup} totals={combined} />
+    <RecordOverview
+      items={allItems}
+      active={group}
+      onOpen={switchGroup}
+      totals={combined}
+      mealType={
+        allItems.some((i) => i.group === "food")
+          ? {
+              value: mealType,
+              options: mealTimes,
+              suggested: mealChoice === null,
+              onChange: (value) => setMealChoice(value as FoodKind),
+            }
+          : undefined
+      }
+    />
   ) : undefined;
   const totals = allItems.length ? combined : undefined;
   const registerNote =
@@ -205,10 +243,10 @@ export function ClientQuickIntake({
       }
       entries.push({
         id: requestId.current,
-        kind: foodDraft.kind,
+        kind: mealType,
         description: text,
         volume: null,
-        summary: `${(foodCategory(foodDraft.kind)?.label ?? "refeição").toLowerCase()}: ${text}`,
+        summary: `${(foodCategory(mealType)?.label ?? "refeição").toLowerCase()}: ${text}`,
       });
     }
     // A bebida escolhida (se houver) vira outro registro, junto com a refeição.
@@ -495,6 +533,7 @@ export function ClientQuickIntake({
                     kind={kind as FoodKind}
                     onKind={(selected) => {
                       setKind(selected);
+                      if (mealTimes.some((m) => m.value === selected)) setMealChoice(selected);
                       setError("");
                     }}
                     description={description}

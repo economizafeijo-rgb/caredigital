@@ -110,6 +110,12 @@ describe("registro de consumo por área", () => {
     // troca de refeição: mantém o prato
     fireEvent.click(document.querySelector('[data-intake-kind="jantar"]') as HTMLElement);
     expect((screen.getByLabelText(/O que você comeu/) as HTMLTextAreaElement).value).toBe("Arroz 100 g");
+    // o tipo da refeição é explícito e segue a escolha do usuário
+    const chooser = screen.getByRole("group", { name: "Tipo da refeição" });
+    expect(chooser.textContent).toContain("Almoço");
+    expect(
+      Array.from(chooser.querySelectorAll("button")).find((b) => b.textContent === "Jantar")?.getAttribute("aria-pressed"),
+    ).toBe("true");
     // vai para bebidas, escolhe uma e volta: prato continua lá
     fireEvent.click(screen.getByRole("button", { name: /Bebidas/ }));
     fireEvent.click(screen.getByRole("button", { name: "Escolher Suco de graviola" }));

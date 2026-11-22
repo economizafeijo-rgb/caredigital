@@ -272,11 +272,19 @@ export function RecordOverview({
   active,
   onOpen,
   totals,
+  mealType,
 }: {
   items: OverviewItem[];
   active: "food" | "beverage";
   onOpen: (group: "food" | "beverage") => void;
   totals?: { protein: number; carbs: number; fat: number; fiber: number };
+  /** Qual refeição é esta (café, almoço…): obrigatório para registrar os alimentos. */
+  mealType?: {
+    value: string;
+    options: { value: string; label: string }[];
+    suggested: boolean;
+    onChange: (value: string) => void;
+  };
 }) {
   if (!items.length) return null;
   const kcal = items.reduce((sum, i) => sum + i.kcal, 0);
@@ -288,6 +296,36 @@ export function RecordOverview({
       aria-label="Resumo do registro"
       className="border-b border-amber-400/30 border-l-[3px] border-l-amber-400 bg-amber-400/[.07]"
     >
+      {mealType && (
+        <div className="px-3 pt-2" role="group" aria-label="Tipo da refeição">
+          <p className="text-[10px] font-bold text-amber-300">
+            Qual refeição é esta?
+            {mealType.suggested && (
+              <span className="ml-1 font-normal text-muted-foreground">
+                (sugerido pelo horário — toque para mudar)
+              </span>
+            )}
+          </p>
+          <div className="mt-1 flex flex-wrap gap-1">
+            {mealType.options.map((o) => (
+              <button
+                key={o.value}
+                type="button"
+                aria-pressed={o.value === mealType.value}
+                onClick={() => mealType.onChange(o.value)}
+                className={
+                  "h-6 border px-2 text-[11px] font-semibold transition active:scale-95 " +
+                  (o.value === mealType.value
+                    ? "border-amber-300 bg-amber-300 text-slate-900"
+                    : "border-border text-muted-foreground hover:bg-muted hover:text-foreground")
+                }
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <p className="px-3 pt-2 text-[10px] font-bold text-amber-300">
         Tudo o que entra neste registro · {items.length} {items.length === 1 ? "item" : "itens"}
         <span className="ml-1 font-normal text-muted-foreground">(kcal por item)</span>
