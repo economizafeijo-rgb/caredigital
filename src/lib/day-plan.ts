@@ -66,37 +66,38 @@ export type LoggedMeal = { t: number; kind: string };
  * (pelo tipo escolhido ou, sem tipo, por até 2h30 de distância).
  */
 export function mealSlotStatus(meals: LoggedMeal[], day: string) {
-  const used = new Set<number>();
-  const byKind = new Map<string, number>();
-  for (const slot of MEAL_SLOTS) {
-    const ms = at(day, slot.time);
-    const hit = meals
-      .map((m, i) => ({ m, i }))
-      .filter(({ m, i }) => !used.has(i) && slot.kinds.includes(m.kind))
-      .sort((a, b) => Math.abs(a.m.t - ms) - Math.abs(b.m.t - ms))[0];
-    if (hit) {
-      used.add(hit.i);
-      byKind.set(slot.time, hit.m.t);
+  const usedMeal = new Set<number>();
+  const doneBy = new Map<number, number>(); // índice do horário -> hora da refeição registrada
+  const slotMs = MEAL_SLOTS.map((slot) => at(day, slot.time));
+
+  // Casa as refeições com os horários pela MENOR distância, e não pela ordem do dia. Assim um lanche
+  // registrado perto das 15:30 cobre o "Lanche da tarde" e não é consumido pelo "Lanche da manhã".
+  const pairs = (accepts: (m: LoggedMeal, slotIdx: number, dist: number) => boolean) => {
+    const list: { si: number; mi: number; dist: number }[] = [];
+    MEAL_SLOTS.forEach((_, si) =>
+      meals.forEach((m, mi) => {
+        if (usedMeal.has(mi) || doneBy.has(si)) return;
+        const dist = Math.abs(m.t - slotMs[si]);
+        if (accepts(m, si, dist)) list.push({ si, mi, dist });
+      }),
+    );
+    list.sort((x, y) => x.dist - y.dist);
+    for (const { si, mi } of list) {
+      if (usedMeal.has(mi) || doneBy.has(si)) continue;
+      usedMeal.add(mi);
+      doneBy.set(si, meals[mi].t);
     }
-  }
-  return MEAL_SLOTS.map((slot) => {
-    const ms = at(day, slot.time);
-    let doneAt = byKind.get(slot.time) ?? null;
-    if (doneAt === null) {
-      const near = meals
-        .map((m, i) => ({ m, i }))
-        .filter(
-          ({ m, i }) =>
-            !used.has(i) && (!m.kind || m.kind === "lanche") && Math.abs(m.t - ms) <= 150 * 60_000,
-        )
-        .sort((a, b) => Math.abs(a.m.t - ms) - Math.abs(b.m.t - ms))[0];
-      if (near) {
-        used.add(near.i);
-        doneAt = near.m.t;
-      }
-    }
-    return { ...slot, at: ms, doneAt };
-  });
+  };
+  // 1) Refeição do mesmo tipo (até 4 h do horário, inclusive adiantada ou atrasada).
+  pairs((m, si, dist) => MEAL_SLOTS[si].kinds.includes(m.kind) && dist <= 240 * 60_000);
+  // 2) Sem tipo definido (ou lanche): por até 2h30 de distância.
+  pairs((m, _si, dist) => (!m.kind || m.kind === "lanche") && dist <= 150 * 60_000);
+
+  return MEAL_SLOTS.map((slot, si) => ({
+    ...slot,
+    at: slotMs[si],
+    doneAt: doneBy.get(si) ?? null,
+  }));
 }
 
 /** Próxima refeição sugerida (a que ainda não foi registrada) e a última refeição de fato registrada. */
