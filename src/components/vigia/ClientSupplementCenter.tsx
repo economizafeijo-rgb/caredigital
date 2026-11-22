@@ -146,7 +146,7 @@ function ProductPage({
   ];
   return createPortal(
     <div
-      className="fixed inset-0 z-[300] overflow-y-auto bg-slate-950/75 backdrop-blur-sm"
+      className="fixed inset-0 z-[300] flex items-center justify-center bg-slate-950/75 p-0 backdrop-blur-sm sm:p-4"
       onClick={onClose}
     >
       <article
@@ -154,7 +154,7 @@ function ProductPage({
         aria-modal="true"
         aria-label={`Página do produto: ${item.name}`}
         onClick={(e) => e.stopPropagation()}
-        className="nv-fade-in relative mx-auto my-0 grid min-h-full w-full max-w-5xl overflow-hidden bg-background shadow-2xl sm:my-6 sm:min-h-0 sm:rounded-3xl md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]"
+        className="nv-fade-in relative flex h-[100dvh] w-full max-w-5xl flex-col overflow-hidden bg-background shadow-2xl sm:h-[min(46rem,calc(100dvh-2rem))] sm:rounded-3xl md:grid md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]"
       >
         <button
           type="button"
@@ -165,7 +165,7 @@ function ProductPage({
           <X size={18} />
         </button>
         <div
-          className="relative grid min-h-[18rem] place-items-center p-8 md:min-h-full"
+          className="relative h-44 shrink-0 md:h-auto md:min-h-0"
           style={{
             background: `radial-gradient(circle at 50% 42%, ${color}55, transparent 68%), linear-gradient(160deg, ${color}26, ${color}0d 60%, transparent)`,
           }}
@@ -176,16 +176,15 @@ function ProductPage({
           >
             {item.category}
           </span>
-          <span
-            aria-hidden="true"
-            className="absolute bottom-10 h-6 w-1/2 rounded-[50%] bg-black/30 blur-xl"
-          />
-          <PackArt
-            item={item}
-            className={`nv-float relative w-auto drop-shadow-[0_24px_30px_rgba(0,0,0,.4)] ${item.photo ? "h-72 md:h-[26rem]" : "h-56 md:h-80"}`}
-          />
+          <div className="absolute inset-x-6 bottom-6 top-12 grid place-items-center md:inset-x-10 md:bottom-10 md:top-14">
+            <PackArt
+              item={item}
+              className="nv-float max-h-full max-w-full object-contain drop-shadow-[0_20px_24px_rgba(0,0,0,.4)]"
+            />
+          </div>
         </div>
-        <div className="flex min-w-0 flex-col gap-4 p-5 sm:p-7">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <div className="grid min-h-0 flex-1 content-start gap-4 overflow-y-auto p-5 sm:p-6">
           <header>
             {item.brand && (
               <p className="text-xs font-bold tracking-wide" style={{ color }}>
@@ -295,7 +294,8 @@ function ProductPage({
             </p>
           </aside>
 
-          <div className="sticky bottom-0 -mx-5 mt-auto flex flex-wrap gap-2 border-t border-border bg-background/95 px-5 py-3 backdrop-blur sm:-mx-7 sm:px-7">
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-2 border-t border-border bg-background px-5 py-3 sm:px-6">
             <button
               type="button"
               onClick={onAdd}
