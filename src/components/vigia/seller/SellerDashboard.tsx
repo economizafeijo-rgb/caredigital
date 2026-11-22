@@ -314,14 +314,14 @@ export function SellerDashboard({
       >
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[26rem] overflow-hidden rounded-3xl"
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[30rem] overflow-hidden rounded-3xl"
         >
           <img
             src="/images/hero-metricas.webp"
             alt=""
-            className="size-full object-cover opacity-30"
+            className="size-full object-cover opacity-70"
           />
-          <span className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/80 to-background" />
+          <span className="absolute inset-0 bg-gradient-to-b from-background/10 via-background/45 to-background" />
         </div>
         {/* Menu lateral: identidade da loja, navegação e ações */}
         <aside

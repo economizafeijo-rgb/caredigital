@@ -249,128 +249,6 @@ function Band({
   );
 }
 
-const SPOTLIGHT = "kessia-digital-store";
-
-/** Novidades reais das lojas parceiras, abertas pela loja em destaque (logomarca, segmento e acesso). */
-function LiveNews() {
-  const { products: live, vendors } = useLiveStores();
-  const items = useMemo(() => live.slice(0, 18), [live]);
-  if (!items.length) return null;
-  const store = vendors.find((v) => v.slug === SPOTLIGHT);
-  const storeCount = live.filter((p) => p.vendor.slug === SPOTLIGHT).length;
-  return (
-    <Band
-      aria-labelledby="live-news-title"
-      src="/loja/bela-vista/banner.jpg"
-      tint="bg-gradient-to-r from-[#3b0a2a]/90 via-[#2a1048]/80 to-[#0a1226]/75"
-    >
-      <SectionHead
-        title="Novidades das lojas de Feijó"
-        sub="Produtos que acabaram de chegar nas lojas parceiras."
-        to="/nossos-parceiros"
-        cta="Conheça os parceiros"
-      />
-      <h2 id="live-news-title" className="sr-only">
-        Novidades das lojas de Feijó
-      </h2>
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-3 lg:grid-cols-[16.5rem_minmax(0,1fr)] lg:gap-5">
-        {store && (
-          <Link
-            to="/loja"
-            search={{ loja: SPOTLIGHT } as never}
-            aria-label={`Visitar a loja ${store.name}`}
-            className="group flex items-center gap-3.5 rounded-2xl border border-border bg-card p-3.5 transition-colors hover:border-foreground/25 lg:flex-col lg:items-start lg:gap-4 lg:p-5"
-          >
-            <img
-              src="/loja/kessia/mark.svg"
-              alt=""
-              className="size-14 shrink-0 rounded-full object-contain lg:size-16"
-            />
-            <span className="min-w-0 flex-1 leading-tight">
-              <span className="block text-[12px] font-medium text-muted-foreground">
-                Loja em destaque
-              </span>
-              <strong className="mt-0.5 block truncate font-display text-[1.05rem] font-bold lg:text-lg">
-                {store.name}
-              </strong>
-              <span className="mt-1 hidden text-[13px] leading-snug text-muted-foreground sm:block">
-                Moda fitness, beleza, bijuterias e moda regional.
-              </span>
-              <span className="mt-1.5 flex items-center gap-1 text-[12px] text-muted-foreground">
-                <MapPin size={12} aria-hidden="true" />
-                {store.city}
-                {storeCount ? ` · ${storeCount} ${storeCount === 1 ? "produto" : "produtos"}` : ""}
-              </span>
-            </span>
-            <span className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-border px-3.5 text-[13px] font-semibold transition-colors group-hover:border-primary/60 group-hover:text-primary lg:mt-auto lg:w-full lg:justify-center">
-              <span className="max-sm:sr-only">Visitar a loja</span>
-              <ArrowRight size={15} aria-hidden="true" />
-            </span>
-          </Link>
-        )}
-        <Rail label="Novidades das lojas de Feijó">
-          {items.map((p) => {
-            const st = productStatus(p);
-            const off = offOf(p.price_cents, p.old_price_cents);
-            return (
-              <Link
-                key={p.id}
-                to="/loja"
-                search={{ loja: p.vendor.slug } as never}
-                aria-label={`${p.name}, ${money(p.price_cents)}, loja ${p.vendor.name}`}
-                className={tile}
-              >
-                <span className="relative block overflow-hidden bg-[#eceef0]">
-                  {p.image_url ? (
-                    <img
-                      src={p.image_url}
-                      onError={(e) => (e.currentTarget.style.visibility = "hidden")}
-                      alt=""
-                      width={360}
-                      height={360}
-                      loading="lazy"
-                      decoding="async"
-                      className={`aspect-square w-full object-cover motion-safe:transition motion-safe:duration-500 [@media(hover:hover)]:group-hover:scale-105 ${st.buyable ? "" : "opacity-50 grayscale"}`}
-                    />
-                  ) : (
-                    <span className="grid aspect-square w-full place-items-center text-xs text-slate-500">
-                      Sem foto
-                    </span>
-                  )}
-                  {off > 0 && (
-                    <span className="absolute right-2 top-2 rounded-full bg-amber-400 px-2 py-0.5 text-[11px] font-extrabold text-slate-950">
-                      −{off}%
-                    </span>
-                  )}
-                  {!st.buyable && (
-                    <span className="absolute left-2 top-2 rounded-full bg-slate-900/85 px-2 py-0.5 text-[11px] font-semibold text-white">
-                      {st.label}
-                    </span>
-                  )}
-                </span>
-                <span className="flex flex-1 flex-col p-2.5">
-                  <span className="truncate text-[11px] font-medium text-slate-500">
-                    {p.vendor.name}
-                  </span>
-                  <span className="mt-0.5 line-clamp-2 min-h-[2.5em] text-[13px] font-semibold leading-tight">
-                    {p.name}
-                  </span>
-                  <strong className="mt-1.5 block whitespace-nowrap text-[15px] font-extrabold tabular-nums">
-                    {money(p.price_cents)}
-                  </strong>
-                  <span className="block h-4 whitespace-nowrap text-[11px] leading-4 text-slate-500 tabular-nums">
-                    {p.old_price_cents ? <s>{money(p.old_price_cents)}</s> : null}
-                  </span>
-                </span>
-              </Link>
-            );
-          })}
-        </Rail>
-      </div>
-    </Band>
-  );
-}
-
 const STOP = new Set(["de", "da", "do", "das", "dos", "e", "&"]);
 const initialsOf = (name: string) => {
   const w = name
@@ -593,8 +471,6 @@ export function HomeMarketplace({ middle }: { middle?: ReactNode }) {
       </Band>
 
       {middle}
-
-      <LiveNews />
 
       <PartnerStores />
 
