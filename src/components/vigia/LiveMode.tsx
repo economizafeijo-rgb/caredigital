@@ -169,15 +169,17 @@ function Ring({
 
 function Bar2({ pct, from, to }: { pct: number; from: string; to: string }) {
   return (
-    <div className="mt-2 h-3 overflow-hidden rounded-full bg-white/10">
+    <div className="relative mt-2 h-2 overflow-hidden rounded-full bg-white/10">
       <div
-        className="h-full rounded-full transition-all duration-1000"
+        className="relative h-full overflow-hidden rounded-full transition-all duration-1000"
         style={{
           width: `${Math.max(0, Math.min(100, pct))}%`,
           background: `linear-gradient(90deg,${from},${to})`,
-          boxShadow: `0 0 14px ${to}77`,
+          boxShadow: `0 0 12px ${to}77`,
         }}
-      />
+      >
+        <span className="lv-shine absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/45 to-transparent" />
+      </div>
     </div>
   );
 }
@@ -193,7 +195,7 @@ function Spark({
 }) {
   const id = useMemo(() => `sp${Math.random().toString(36).slice(2, 8)}`, []);
   return (
-    <div className="h-10 w-full" aria-hidden="true">
+    <div className="h-9 w-full" aria-hidden="true">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
           <defs>
@@ -257,25 +259,86 @@ const TILE_META: Record<MetricKey, { icon: LucideIcon; tone: string; title: stri
   supl: { icon: Sparkles, tone: "linear-gradient(135deg,#a855f7,#6366f1)", title: "Suplementos" },
   streak: { icon: Flame, tone: "linear-gradient(135deg,#fbbf24,#f97316)", title: "Sequência" },
 };
-/** Foto de cada cartão: preenche o espaço livre no canto inferior, tingida pela cor da área. */
-const tileImage: Partial<Record<MetricKey, string>> = {
-  // "Dia em dia": agenda com café (sem pessoas), combina com metas do dia.
-  score: "/images/painel-agenda.webp",
-  agua: "/images/hero-hidratacao.webp",
-  peso: "/images/hero-peso.webp",
-  imc: "/images/show-peso.webp",
-  metapeso: "/images/painel-peso.webp",
-  sono: "/images/hero-sono.webp",
-  exercicio: "/images/hero-treinos.webp",
-  semana: "/images/show-treinos.webp",
-  calorias: "/images/hero-alimentacao.webp",
-  proteina: "/images/caredigital-alimentacao.webp",
-  carbs: "/images/painel-cardapios.webp",
-  gordura: "/images/caredigital-alimentacao.webp",
-  supl: "/images/hero-suplementos.webp",
-  med: "/images/hero-medicamentos.webp",
-  streak: "/images/hero-metricas.webp",
+const GRID = "grid grid-cols-2 gap-2.5 sm:grid-cols-6 lg:grid-cols-12 lg:gap-3";
+const GOAL_COLOR: Record<string, string> = {
+  atingida: "#34d399",
+  em_andamento: "#fbbf24",
+  nao_atingida: "#fb7185",
+  sem_registro: "#94a3b8",
+  sem_meta: "#475569",
 };
+const WEEKDAY_INITIAL = ["D", "S", "T", "Q", "Q", "S", "S"];
+
+const LIVE_CSS = `
+@keyframes lv-in{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes lv-tick{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes lv-shine{from{transform:translateX(-120%)}to{transform:translateX(320%)}}
+.lv-in{animation:lv-in .55s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*38ms)}
+.lv-shine{animation:lv-shine 2.8s ease-in-out infinite}
+.lv-tick{transform-origin:left;animation:lv-tick 30s linear both}
+@media (prefers-reduced-motion:reduce){.lv-in,.lv-shine,.lv-tick{animation:none}}
+`;
+
+function SectionTitle({ children }: { children: ReactNode }) {
+  return (
+    <div className="mt-1 flex items-center gap-3">
+      <h2 className="text-[13px] font-semibold text-white/70">{children}</h2>
+      <span className="h-px flex-1 bg-gradient-to-r from-white/20 via-white/5 to-transparent" />
+    </div>
+  );
+}
+
+function Big({ v, unit, color }: { v: string; unit?: string; color?: string }) {
+  return (
+    <p
+      className="text-[28px] font-extrabold leading-none tracking-tight tabular-nums"
+      style={color ? { color } : undefined}
+    >
+      {v}
+      {unit ? <span className="ml-1 text-xs font-semibold text-white/50">{unit}</span> : null}
+    </p>
+  );
+}
+
+function Progress({
+  value,
+  unit,
+  target,
+  from,
+  to,
+}: {
+  value: number;
+  unit: string;
+  target: number;
+  from: string;
+  to: string;
+}) {
+  const pct = target ? (value / target) * 100 : 0;
+  const left = target ? target - value : 0;
+  return (
+    <>
+      <div className="flex items-end justify-between gap-2">
+        <Big v={nf(value)} unit={unit} />
+        {target ? (
+          <span
+            className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-bold tabular-nums"
+            style={{ color: to }}
+          >
+            {Math.round(pct)}%
+          </span>
+        ) : null}
+      </div>
+      <Bar2 pct={pct} from={from} to={to} />
+      <p className="mt-1.5 text-[11px] text-white/55">
+        {target
+          ? left > 0
+            ? `faltam ${nf(left)} ${unit} · meta ${nf(target)}`
+            : `meta de ${nf(target)} ${unit} atingida (+${nf(-left)})`
+          : "Meta não definida"}
+      </p>
+    </>
+  );
+}
 
 function Tile({
   k,
@@ -284,6 +347,9 @@ function Tile({
   icon: Icon,
   tone,
   title,
+  span = "",
+  i = 0,
+  badge,
   children,
 }: {
   k: MetricKey;
@@ -292,6 +358,9 @@ function Tile({
   icon: LucideIcon;
   tone: string;
   title: string;
+  span?: string;
+  i?: number;
+  badge?: string;
   children: ReactNode;
 }) {
   // O cartão inteiro abre os detalhes; botões e campos dentro dele mantêm a própria ação.
@@ -303,10 +372,16 @@ function Tile({
       return;
     openDetail(k);
   };
+  const tint = `${tone.match(/#[0-9a-f]{6}/i)?.[0] ?? "#ffffff"}2e`;
   return (
     <section
       aria-label={title}
       onClick={go}
+      onPointerMove={(e) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        e.currentTarget.style.setProperty("--mx", `${e.clientX - r.left}px`);
+        e.currentTarget.style.setProperty("--my", `${e.clientY - r.top}px`);
+      }}
       onKeyDown={(e) => {
         if ((e.key === "Enter" || e.key === " ") && e.target === e.currentTarget) {
           e.preventDefault();
@@ -315,41 +390,36 @@ function Tile({
       }}
       tabIndex={0}
       title={`Ver detalhes de ${title}`}
-      className={`group relative isolate min-w-0 overflow-hidden rounded-[26px] p-4 ring-1 transition-[box-shadow,background-color,--tw-ring-color] duration-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${on ? "bg-slate-900/70 ring-white/45 shadow-[0_0_44px_-10px_var(--tile)]" : "bg-slate-900/55 ring-white/10 hover:ring-white/30 hover:shadow-[0_18px_40px_-20px_rgba(0,0,0,.8)]"}`}
-      style={{ ["--tile" as string]: tone }}
+      className={`lv-in group relative isolate min-w-0 cursor-pointer overflow-hidden rounded-2xl p-3.5 ring-1 backdrop-blur-sm transition-[transform,box-shadow,background-color,--tw-ring-color] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 hover:-translate-y-0.5 ${span} ${on ? "bg-slate-900/80 ring-white/40 shadow-[0_0_36px_-12px_var(--tile)]" : "bg-slate-900/55 ring-white/10 hover:ring-white/25 hover:shadow-[0_18px_36px_-22px_rgba(0,0,0,.9)]"}`}
+      style={{ ["--tile" as string]: tone, ["--i" as string]: i }}
     >
-      {tileImage[k] && (
-      <img
-        src={tileImage[k]}
-        alt=""
-        aria-hidden="true"
-        loading="lazy"
-        decoding="async"
-        className="pointer-events-none absolute inset-0 -z-20 size-full object-cover opacity-45 transition-[transform,opacity] duration-700 ease-out [mask-image:linear-gradient(200deg,transparent_25%,#000_95%)] group-hover:scale-[1.06] group-hover:opacity-60"
-      />
-      )}
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-slate-950/80 via-slate-950/55 to-transparent"
+        className="pointer-events-none absolute inset-0 -z-10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{
+          background: `radial-gradient(260px circle at var(--mx,50%) var(--my,0%), ${tint}, transparent 70%)`,
+        }}
       />
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-16 -left-10 -z-10 size-48 rounded-full opacity-25 blur-3xl transition-opacity duration-500 group-hover:opacity-45"
+        className="pointer-events-none absolute inset-y-3 left-0 w-[3px] rounded-r-full opacity-90"
         style={{ background: tone }}
       />
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-6 top-0 h-px opacity-80"
-        style={{ background: tone }}
-      />
-      <div className="flex w-full items-center gap-2.5">
+      <div className="flex w-full items-center gap-2">
         <span
-          className="grid size-10 place-items-center rounded-2xl text-white shadow-lg ring-1 ring-white/25 transition-transform duration-300 group-hover:scale-110"
+          className="grid size-8 place-items-center rounded-xl text-white shadow-md ring-1 ring-white/25 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3"
           style={{ background: tone }}
         >
-          <Icon size={19} />
+          <Icon size={16} />
         </span>
-        <strong className="flex-1 text-sm font-bold tracking-wide text-white/95">{title}</strong>
+        <strong className="min-w-0 flex-1 truncate text-[13px] font-semibold text-white/90">
+          {title}
+        </strong>
+        {badge ? (
+          <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-bold tabular-nums text-white/80">
+            {badge}
+          </span>
+        ) : null}
         <button
           type="button"
           onClick={() => {
@@ -358,20 +428,12 @@ function Tile({
           }}
           aria-pressed={on}
           aria-label={`Ver detalhes e gráfico de ${title}`}
-          className={`inline-flex cursor-pointer items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-bold transition ${on ? "bg-white/25 text-white" : "bg-white/10 text-white/60 hover:bg-white/20 hover:text-white"}`}
+          className={`grid size-6 shrink-0 cursor-pointer place-items-center rounded-full transition duration-200 group-hover:translate-x-0.5 ${on ? "bg-white/25 text-white" : "bg-white/10 text-white/60 hover:bg-white/25 hover:text-white"}`}
         >
-          Gráfico <ChevronRight size={11} />
+          <ChevronRight size={13} />
         </button>
       </div>
       <div className="mt-3">{children}</div>
-      {(
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute bottom-3 right-3 inline-flex translate-y-1 items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[11px] font-bold text-white opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100"
-        >
-          Ver detalhes <ChevronRight size={11} />
-        </span>
-      )}
     </section>
   );
 }
@@ -399,7 +461,7 @@ function HeaderBtn({
       onClick={onClick}
       aria-label={label}
       title={label}
-      className={`inline-flex h-11 items-center gap-2 rounded-2xl px-3 text-sm font-bold ring-1 backdrop-blur transition active:scale-95 sm:px-4 ${cls}`}
+      className={`inline-flex h-10 items-center gap-2 rounded-xl px-3 text-sm font-bold ring-1 backdrop-blur transition hover:-translate-y-0.5 active:scale-95 sm:px-4 ${cls}`}
     >
       <Icon size={18} className={spin ? "animate-spin" : ""} />
       <span className="hidden sm:inline">{label}</span>
@@ -1156,14 +1218,26 @@ function LiveDashboard({
   const ui = (
     <div
       ref={root}
-      className="fixed inset-0 z-[500] overflow-y-auto overscroll-contain bg-[radial-gradient(ellipse_at_top,#0b3b3a_0%,#020617_62%)] text-white"
+      className="fixed inset-0 z-[500] overflow-y-auto overscroll-contain bg-[radial-gradient(ellipse_at_top,#0b3b3a_0%,#020617_62%)] text-white [scrollbar-width:thin]"
       role="dialog"
       aria-modal="true"
       aria-label="Painel ao vivo"
     >
-      <div className="mx-auto flex min-h-full max-w-[1500px] flex-col gap-4 p-3 pb-24 sm:p-6">
-        <header className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-          <span className="inline-flex items-center gap-2 rounded-full bg-emerald-400/15 px-3 py-2 text-xs font-extrabold text-emerald-300 ring-1 ring-emerald-400/40">
+      <style>{LIVE_CSS}</style>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(255,255,255,.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.035)_1px,transparent_1px)] bg-[size:44px_44px] [mask-image:radial-gradient(ellipse_at_top,#000,transparent_75%)]"
+      />
+      <div className="relative mx-auto flex min-h-full max-w-[1500px] flex-col gap-3 p-3 pb-24 sm:p-6">
+        <header className="sticky top-0 z-20 -mx-3 flex flex-wrap items-center gap-2.5 border-b border-white/10 bg-slate-950/55 px-3 py-2.5 backdrop-blur-xl sm:-mx-6 sm:gap-3 sm:px-6">
+          {data && (
+            <span
+              key={data.at}
+              aria-hidden="true"
+              className="lv-tick absolute inset-x-0 bottom-[-1px] h-px bg-gradient-to-r from-emerald-400 via-cyan-300 to-transparent"
+            />
+          )}
+          <span className="inline-flex items-center gap-2 rounded-full bg-emerald-400/15 px-3 py-1.5 text-xs font-extrabold text-emerald-300 ring-1 ring-emerald-400/40">
             <span className="relative flex size-2.5">
               <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex size-2.5 rounded-full bg-emerald-400" />
@@ -1176,7 +1250,7 @@ function LiveDashboard({
               {dateFmt.format(now)}
               {name ? ` · ${name.split(" ")[0]}` : ""}
             </p>
-            <p className="font-mono text-3xl font-extrabold tabular-nums leading-none sm:text-4xl">
+            <p className="font-mono text-2xl font-extrabold tabular-nums leading-none sm:text-3xl">
               {clockFmt.format(now)}
             </p>
           </div>
@@ -1221,78 +1295,287 @@ function LiveDashboard({
           </p>
         ) : (
           <>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Resumo do dia: leitura rápida, cada chip abre os detalhes */}
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+              {(
+                [
+                  {
+                    k: "score" as const,
+                    label: "Dia em dia",
+                    value: today?.score == null ? "—" : `${Math.round(scoreShown)}%`,
+                    sub: today ? `${today.goals.filter((g) => g.status === "atingida").length} de ${today.goals.length} metas` : "sem dados",
+                    pct: today?.score ?? 0,
+                    color: "#34d399",
+                  },
+                  {
+                    k: "agua" as const,
+                    label: "Água",
+                    value: `${nf(waterShown)} ml`,
+                    sub: waterTarget ? `meta ${nf(waterTarget)} ml` : "sem meta",
+                    pct: waterPct,
+                    color: "#38bdf8",
+                  },
+                  {
+                    k: "calorias" as const,
+                    label: "Calorias",
+                    value: `${nf(today?.kcal ?? 0)} kcal`,
+                    sub: kcalTarget ? `meta ${nf(kcalTarget)} kcal` : "sem meta",
+                    pct: kcalTarget ? ((today?.kcal ?? 0) / kcalTarget) * 100 : 0,
+                    color: "#fbbf24",
+                  },
+                  {
+                    k: "proteina" as const,
+                    label: "Proteína",
+                    value: `${nf(today?.protein ?? 0)} g`,
+                    sub: proteinTarget ? `meta ${nf(proteinTarget)} g` : "sem meta",
+                    pct: proteinTarget ? ((today?.protein ?? 0) / proteinTarget) * 100 : 0,
+                    color: "#4ade80",
+                  },
+                  {
+                    k: "exercicio" as const,
+                    label: "Exercício",
+                    value: `${today?.activityMinutes ?? 0} min`,
+                    sub: `referência ${EXERCISE_GOAL} min`,
+                    pct: ((today?.activityMinutes ?? 0) / EXERCISE_GOAL) * 100,
+                    color: "#fb923c",
+                  },
+                  {
+                    k: "sono" as const,
+                    label: "Sono",
+                    value: sleep ? `${nf(sleep.hours, 1)} h` : "—",
+                    sub: `meta ${SLEEP_GOAL} h`,
+                    pct: sleep ? (sleep.hours / SLEEP_GOAL) * 100 : 0,
+                    color: "#818cf8",
+                  },
+                ]
+              ).map((c, i) => (
+                <button
+                  key={c.k}
+                  type="button"
+                  onClick={() => openDetail?.(c.k)}
+                  aria-label={`Resumo: ${c.label}, ${c.value}. Abrir detalhes`}
+                  style={{ ["--i" as string]: i }}
+                  className="lv-in group relative overflow-hidden rounded-xl bg-white/[.045] px-3 py-2.5 text-left ring-1 ring-white/10 transition duration-200 hover:-translate-y-0.5 hover:bg-white/[.08] hover:ring-white/25 active:scale-[.98]"
+                >
+                  <span className="flex items-baseline justify-between gap-2">
+                    <span className="text-[11px] font-semibold text-white/55">{c.label}</span>
+                    <span className="text-[10px] font-bold tabular-nums" style={{ color: c.color }}>
+                      {Math.round(Math.max(0, c.pct))}%
+                    </span>
+                  </span>
+                  <span className="mt-0.5 block text-lg font-extrabold leading-tight tabular-nums">
+                    {c.value}
+                  </span>
+                  <span className="block truncate text-[11px] text-white/45">{c.sub}</span>
+                  <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-white/10">
+                    <span
+                      className="block h-full rounded-full transition-[width] duration-1000"
+                      style={{
+                        width: `${Math.max(0, Math.min(100, c.pct))}%`,
+                        background: c.color,
+                        boxShadow: `0 0 10px ${c.color}99`,
+                      }}
+                    />
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Agora: o que vem a seguir, com contagem regressiva e alerta */}
+            {(() => {
+              const ups = [
+                nextUps?.agua && {
+                  key: "agua",
+                  alertKey: "ao-vivo-agua",
+                  title: "Próximo copo",
+                  color: "#38bdf8",
+                  up: nextUps.agua,
+                  actionLabel: "Bebi 250 ml",
+                  onAction: () => askWater(250),
+                },
+                nextUps?.refeicao && {
+                  key: "refeicao",
+                  alertKey: "ao-vivo-refeicao",
+                  title: "Próxima refeição",
+                  color: "#fdba74",
+                  up: nextUps.refeicao,
+                },
+                nextUps?.med && {
+                  key: "med",
+                  alertKey: "ao-vivo-medicacao",
+                  title: "Próxima dose",
+                  color: "#fb7185",
+                  up: nextUps.med,
+                },
+                nextUps?.supl && {
+                  key: "supl",
+                  alertKey: "ao-vivo-suplemento",
+                  title: "Próximo suplemento",
+                  color: "#c084fc",
+                  up: nextUps.supl,
+                },
+                nextUps?.exercicio && {
+                  key: "exercicio",
+                  alertKey: "ao-vivo-atividade",
+                  title: "Hora de se mexer",
+                  color: "#fdba74",
+                  up: nextUps.exercicio,
+                },
+                nextUps?.sono && {
+                  key: "sono",
+                  alertKey: "ao-vivo-sono",
+                  title: "Hora de desacelerar",
+                  color: "#a5b4fc",
+                  up: nextUps.sono,
+                },
+              ].filter(Boolean) as {
+                key: string;
+                alertKey: string;
+                title: string;
+                color: string;
+                up: { at: number; from: number | null; detail: string };
+                actionLabel?: string;
+                onAction?: () => void;
+              }[];
+              if (!ups.length) return null;
+              return (
+                <>
+                  <SectionTitle>Agora e a seguir</SectionTitle>
+                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    {ups.map((u, i) => (
+                      <div key={u.key} className="lv-in" style={{ ["--i" as string]: i }}>
+                        <NextUpClock
+                          compact
+                          alertKey={u.alertKey}
+                          title={u.title}
+                          color={u.color}
+                          target={u.up.at}
+                          from={u.up.from}
+                          detail={u.up.detail}
+                          actionLabel={u.actionLabel}
+                          onAction={u.onAction}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </>
+              );
+            })()}
+
+            <SectionTitle>Hoje</SectionTitle>
+            <div className={GRID}>
               <Tile
                 k="score"
+                i={0}
+                span="col-span-2 sm:col-span-3 lg:col-span-4"
                 on={selected === "score"}
                 onPick={pick}
                 icon={Target}
                 tone="linear-gradient(135deg,#10b981,#06b6d4)"
                 title="Dia em dia"
+                badge={today?.score == null ? undefined : `${Math.round(scoreShown)}%`}
               >
-                <div className="flex items-center gap-4">
-                  <Ring pct={today?.score ?? 0} color="#34d399">
-                    <div>
-                      <p className="text-3xl font-extrabold tabular-nums">
-                        {today?.score == null ? "—" : `${Math.round(scoreShown)}%`}
-                      </p>
-                      <p className="text-[11px] text-white/60">metas</p>
-                    </div>
+                <div className="flex items-center gap-3">
+                  <Ring pct={today?.score ?? 0} color="#34d399" size={84} stroke={8}>
+                    <p className="text-xl font-extrabold tabular-nums">
+                      {today?.score == null ? "—" : `${Math.round(scoreShown)}%`}
+                    </p>
                   </Ring>
-                  <p className="text-sm text-white/70">
+                  <p className="text-xs leading-relaxed text-white/65">
                     {today?.score == null
                       ? "As metas aparecem conforme o dia avança."
                       : `${today.goals.filter((g) => g.status === "atingida").length} de ${today.goals.length} metas atingidas hoje.`}
                   </p>
                 </div>
+                {today && today.goals.length > 0 && (
+                  <ul className="mt-2.5 grid grid-cols-2 gap-1.5">
+                    {today.goals
+                      .filter((g) => g.status !== "sem_meta")
+                      .map((g) => (
+                        <li
+                          key={g.metric}
+                          className="flex items-center gap-1.5 rounded-lg bg-white/[.05] px-2 py-1.5 text-[11px] ring-1 ring-white/10"
+                          title={g.rule}
+                        >
+                          <span
+                            className="size-1.5 shrink-0 rounded-full"
+                            style={{
+                              background: GOAL_COLOR[g.status],
+                              boxShadow: `0 0 8px ${GOAL_COLOR[g.status]}`,
+                            }}
+                          />
+                          <span className="min-w-0 flex-1 truncate text-white/75">{g.label}</span>
+                          <span className="font-bold tabular-nums text-white/90">
+                            {Math.round(g.pct)}%
+                          </span>
+                        </li>
+                      ))}
+                  </ul>
+                )}
               </Tile>
 
               <Tile
                 k="agua"
+                i={1}
+                span="col-span-2 sm:col-span-3 lg:col-span-5"
                 on={selected === "agua"}
                 onPick={pick}
                 icon={Droplets}
                 tone="linear-gradient(135deg,#0ea5e9,#22d3ee)"
                 title="Hidratação"
+                badge={waterTarget ? `${Math.round(waterPct)}%` : undefined}
               >
-                <div className="flex items-center gap-4">
-                  <Ring pct={waterPct} color="#38bdf8">
+                <div className="flex items-center gap-3">
+                  <Ring pct={waterPct} color="#38bdf8" size={92} stroke={8}>
                     <div>
-                      <p className="text-2xl font-extrabold tabular-nums">{nf(waterShown)}</p>
-                      <p className="text-[11px] text-white/60">
+                      <p className="text-lg font-extrabold leading-none tabular-nums">{nf(waterShown)}</p>
+                      <p className="mt-0.5 text-[10px] text-white/55">
                         {waterTarget ? `de ${nf(waterTarget)} ml` : "ml hoje"}
                       </p>
                     </div>
                   </Ring>
-                  <div className="grid flex-1 grid-cols-3 gap-1.5">
-                    {[
-                      { ml: 150, label: "Gole", size: 16 },
-                      { ml: 250, label: "Copo", size: 20 },
-                      { ml: 500, label: "Garrafa", size: 25 },
-                    ].map((c) => (
-                      <button
-                        key={c.ml}
-                        type="button"
-                        disabled={busy}
-                        onClick={() => askWater(c.ml)}
-                        className="flex flex-col items-center justify-center gap-0.5 rounded-2xl bg-gradient-to-b from-sky-300/30 to-sky-500/10 py-2.5 ring-1 ring-sky-300/40 transition hover:from-sky-300/45 active:scale-95 disabled:opacity-50"
-                        aria-label={`Registrar ${c.ml} ml de água`}
-                      >
-                        <Droplets size={c.size} className="text-sky-200" />
-                        <span className="text-sm font-extrabold leading-none">+{c.ml}</span>
-                        <span className="text-[11px] font-bold text-sky-100/70">{c.label}</span>
-                      </button>
-                    ))}
-                  </div>
+                  <dl className="grid flex-1 grid-cols-2 gap-1.5 text-[11px]">
+                    <div className="rounded-lg bg-white/[.05] px-2 py-1.5 ring-1 ring-white/10">
+                      <dt className="text-white/50">Faltam</dt>
+                      <dd className="text-sm font-extrabold tabular-nums">
+                        {waterTarget ? `${nf(Math.max(0, waterTarget - Math.round(waterShown)))} ml` : "—"}
+                      </dd>
+                    </div>
+                    <div className="rounded-lg bg-white/[.05] px-2 py-1.5 ring-1 ring-white/10">
+                      <dt className="text-white/50">Meta batida</dt>
+                      <dd className="text-sm font-extrabold">{waterPct >= 100 ? "Sim" : "Ainda não"}</dd>
+                    </div>
+                  </dl>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setCustomOpen((v) => !v)}
-                  aria-expanded={customOpen}
-                  className="mt-2 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-xl bg-white/10 text-xs font-bold ring-1 ring-white/15 transition hover:bg-white/20"
-                >
-                  <Plus size={14} /> Outro valor
-                </button>
+                <div className="mt-2.5 grid grid-cols-4 gap-1.5">
+                  {[
+                    { ml: 150, label: "Gole" },
+                    { ml: 250, label: "Copo" },
+                    { ml: 500, label: "Garrafa" },
+                  ].map((c) => (
+                    <button
+                      key={c.ml}
+                      type="button"
+                      disabled={busy}
+                      onClick={() => askWater(c.ml)}
+                      className="flex flex-col items-center justify-center gap-0.5 rounded-xl bg-gradient-to-b from-sky-300/25 to-sky-500/10 py-2 ring-1 ring-sky-300/35 transition hover:-translate-y-0.5 hover:from-sky-300/40 active:scale-95 disabled:opacity-50"
+                      aria-label={`Registrar ${c.ml} ml de água`}
+                    >
+                      <span className="text-sm font-extrabold leading-none">+{c.ml}</span>
+                      <span className="text-[10px] font-semibold text-sky-100/70">{c.label}</span>
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setCustomOpen((v) => !v)}
+                    aria-expanded={customOpen}
+                    aria-label="Outro valor"
+                    className="flex flex-col items-center justify-center gap-0.5 rounded-xl bg-white/[.07] py-2 ring-1 ring-white/15 transition hover:-translate-y-0.5 hover:bg-white/15 active:scale-95"
+                  >
+                    <Plus size={14} />
+                    <span className="text-[10px] font-semibold text-white/70">Outro</span>
+                  </button>
+                </div>
                 {customOpen && (
                   <div className="mt-2 flex gap-1.5">
                     <input
@@ -1301,13 +1584,13 @@ function LiveDashboard({
                       inputMode="numeric"
                       placeholder="ml"
                       aria-label="Quantidade de água em ml"
-                      className="h-11 min-w-0 flex-1 rounded-xl bg-white/10 px-3 text-sm text-white outline-none ring-1 ring-white/15 placeholder:text-white/40 focus:ring-sky-300/60"
+                      className="h-10 min-w-0 flex-1 rounded-xl bg-white/10 px-3 text-sm text-white outline-none ring-1 ring-white/15 placeholder:text-white/40 focus:ring-sky-300/60"
                     />
                     <button
                       type="button"
                       disabled={!customMl}
                       onClick={() => askWater(Number(customMl))}
-                      className="h-11 rounded-xl bg-gradient-to-r from-sky-400 to-cyan-400 px-4 text-xs font-extrabold text-slate-950 disabled:opacity-40"
+                      className="h-10 rounded-xl bg-gradient-to-r from-sky-400 to-cyan-400 px-4 text-xs font-extrabold text-slate-950 disabled:opacity-40"
                     >
                       Registrar
                     </button>
@@ -1318,48 +1601,72 @@ function LiveDashboard({
                     <CheckCircle2 size={14} /> Meta batida!
                   </p>
                 )}
-                {nextUps?.agua && (
-                  <NextUpClock
-                    compact
-                    className="mt-3"
-                    alertKey="ao-vivo-agua"
-                    title="Próximo copo"
-                    color="#38bdf8"
-                    target={nextUps.agua.at}
-                    from={nextUps.agua.from}
-                    detail={nextUps.agua.detail}
-                    actionLabel="Bebi 250 ml"
-                    onAction={() => askWater(250)}
-                  />
-                )}
               </Tile>
 
               <Tile
+                k="streak"
+                i={2}
+                span="col-span-2 sm:col-span-6 lg:col-span-3"
+                on={selected === "streak"}
+                onPick={pick}
+                icon={Flame}
+                tone="linear-gradient(135deg,#fbbf24,#f97316)"
+                title="Sequência"
+              >
+                <Big v={`${streak}${streak >= 14 ? "+" : ""}`} unit={streak === 1 ? "dia" : "dias"} />
+                <p className="mt-1 text-xs text-white/60">
+                  {streak > 0
+                    ? "seguidos registrando o seu cuidado."
+                    : "Registre algo hoje para começar uma sequência."}
+                </p>
+                <div className="mt-3 flex gap-1" aria-hidden="true">
+                  {(data.days ?? []).map((d) => (
+                    <span key={d.day} className="flex flex-1 flex-col items-center gap-1">
+                      <span
+                        className={`h-6 w-full rounded-md transition-colors ${d.hasData ? "bg-gradient-to-t from-amber-500 to-amber-300 shadow-[0_0_10px_-2px_#fbbf24]" : "bg-white/10"}`}
+                      />
+                      <span className="text-[9px] font-semibold text-white/40">
+                        {WEEKDAY_INITIAL[new Date(`${d.day}T12:00:00`).getDay()]}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              </Tile>
+            </div>
+
+            <SectionTitle>Corpo e descanso</SectionTitle>
+            <div className={GRID}>
+              <Tile
                 k="peso"
+                i={3}
+                span="col-span-2 sm:col-span-3 lg:col-span-5"
                 on={selected === "peso"}
                 onPick={pick}
                 icon={Scale}
                 tone="linear-gradient(135deg,#d946ef,#ec4899)"
                 title="Peso"
               >
-                <p className="text-4xl font-extrabold tabular-nums">
-                  {lastWeight ? nf(lastWeight.kg, 1) : "—"}
-                  <span className="ml-1 text-base font-semibold text-white/60">kg</span>
-                </p>
-                <p className="text-xs text-white/60">
-                  {lastWeight && prevWeight
-                    ? `${lastWeight.kg - prevWeight.kg > 0 ? "▲ +" : lastWeight.kg - prevWeight.kg < 0 ? "▼ " : ""}${nf(lastWeight.kg - prevWeight.kg, 1)} kg desde a medida anterior`
-                    : "Registre seu peso para acompanhar a evolução."}
-                </p>
-                <Spark data={series.peso} color="#e879f9" />
-                <div className="mt-1 flex items-center gap-1.5">
+                <div className="flex items-end justify-between gap-3">
+                  <div>
+                    <Big v={lastWeight ? nf(lastWeight.kg, 1) : "—"} unit="kg" />
+                    <p className="mt-1 text-[11px] text-white/60">
+                      {lastWeight && prevWeight
+                        ? `${lastWeight.kg - prevWeight.kg > 0 ? "▲ +" : lastWeight.kg - prevWeight.kg < 0 ? "▼ " : ""}${nf(lastWeight.kg - prevWeight.kg, 1)} kg desde a medida anterior`
+                        : "Registre seu peso para acompanhar a evolução."}
+                    </p>
+                  </div>
+                  <div className="w-28 shrink-0 sm:w-36">
+                    <Spark data={series.peso} color="#e879f9" />
+                  </div>
+                </div>
+                <div className="mt-2.5 flex items-center gap-1.5">
                   <button
                     type="button"
                     onClick={() => stepWeight(-0.1)}
                     aria-label="Diminuir 0,1 kg"
-                    className="grid size-11 shrink-0 place-items-center rounded-xl bg-white/10 ring-1 ring-white/15 transition hover:bg-white/20 active:scale-95"
+                    className="grid size-10 shrink-0 place-items-center rounded-xl bg-white/10 ring-1 ring-white/15 transition hover:bg-white/20 active:scale-90"
                   >
-                    <Minus size={16} />
+                    <Minus size={15} />
                   </button>
                   <input
                     value={weightInput}
@@ -1367,43 +1674,44 @@ function LiveDashboard({
                     inputMode="decimal"
                     placeholder="kg hoje"
                     aria-label="Peso de hoje em kg"
-                    className="h-11 min-w-0 flex-1 rounded-xl bg-white/10 px-3 text-center text-base font-bold text-white outline-none ring-1 ring-white/15 placeholder:text-sm placeholder:font-normal placeholder:text-white/40 focus:ring-fuchsia-300/60"
+                    className="h-10 min-w-0 flex-1 rounded-xl bg-white/10 px-3 text-center text-base font-bold text-white outline-none ring-1 ring-white/15 placeholder:text-sm placeholder:font-normal placeholder:text-white/40 focus:ring-fuchsia-300/60"
                   />
                   <button
                     type="button"
                     onClick={() => stepWeight(0.1)}
                     aria-label="Aumentar 0,1 kg"
-                    className="grid size-11 shrink-0 place-items-center rounded-xl bg-white/10 ring-1 ring-white/15 transition hover:bg-white/20 active:scale-95"
+                    className="grid size-10 shrink-0 place-items-center rounded-xl bg-white/10 ring-1 ring-white/15 transition hover:bg-white/20 active:scale-90"
                   >
-                    <Plus size={16} />
+                    <Plus size={15} />
                   </button>
                 </div>
                 <button
                   type="button"
                   disabled={busy || !weightInput}
                   onClick={askWeight}
-                  className="mt-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-fuchsia-500 to-pink-500 text-sm font-extrabold shadow-[0_10px_28px_-12px_rgba(236,72,153,.9)] transition active:scale-95 disabled:opacity-40"
+                  className="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-fuchsia-500 to-pink-500 text-sm font-extrabold shadow-[0_10px_28px_-12px_rgba(236,72,153,.9)] transition active:scale-[.98] disabled:opacity-40"
                 >
-                  <Check size={16} /> Registrar peso de hoje
+                  <Check size={15} /> Registrar peso de hoje
                 </button>
               </Tile>
 
               <Tile
                 k="imc"
+                i={4}
+                span="col-span-2 sm:col-span-3 lg:col-span-3"
                 on={selected === "imc"}
                 onPick={pick}
                 icon={Zap}
                 tone="linear-gradient(135deg,#10b981,#84cc16)"
                 title="IMC"
+                badge={cat?.label}
               >
-                <p className="text-4xl font-extrabold tabular-nums" style={{ color: cat?.color }}>
-                  {bmi ? nf(bmi, 1) : "—"}
-                </p>
-                <p className="text-sm font-semibold" style={{ color: cat?.color }}>
+                <Big v={bmi ? nf(bmi, 1) : "—"} unit="kg/m²" color={cat?.color} />
+                <p className="mt-1 text-xs font-semibold" style={{ color: cat?.color }}>
                   {cat?.label ?? (h ? "Sem peso registrado" : "Informe sua altura")}
                 </p>
                 <div
-                  className="relative mt-3 h-3 overflow-hidden rounded-full"
+                  className="relative mt-3 h-2 overflow-hidden rounded-full"
                   style={{
                     background:
                       "linear-gradient(90deg,#38bdf8 0 14%,#10b981 14% 40%,#f59e0b 40% 60%,#f97316 60% 80%,#ef4444 80%)",
@@ -1412,7 +1720,7 @@ function LiveDashboard({
                 >
                   {bmi && (
                     <span
-                      className="absolute top-0 h-3 w-1 -translate-x-1/2 rounded bg-white shadow-[0_0_8px_#fff]"
+                      className="absolute top-0 h-2 w-1 -translate-x-1/2 rounded bg-white shadow-[0_0_8px_#fff]"
                       style={{
                         left: `${Math.max(0, Math.min(100, ((bmi - 15) / 25) * 100))}%`,
                         transition: "left 1s",
@@ -1420,7 +1728,7 @@ function LiveDashboard({
                     />
                   )}
                 </div>
-                <div className="mt-1 flex justify-between text-[11px] text-white/50">
+                <div className="mt-1 flex justify-between text-[10px] text-white/45">
                   <span>15</span>
                   <span>25</span>
                   <span>40</span>
@@ -1429,32 +1737,38 @@ function LiveDashboard({
 
               <Tile
                 k="metapeso"
+                i={5}
+                span="col-span-2 sm:col-span-6 lg:col-span-4"
                 on={selected === "metapeso"}
                 onPick={pick}
                 icon={Trophy}
                 tone="linear-gradient(135deg,#ec4899,#f59e0b)"
                 title="Meta de peso"
+                badge={targetKg && lastWeight ? `${Math.round(Math.max(0, Math.min(100, goalPct)))}%` : undefined}
               >
                 {targetKg && lastWeight ? (
                   <>
-                    <p className="text-3xl font-extrabold tabular-nums">
-                      {toGo !== null && Math.abs(toGo) < 0.05
-                        ? "Meta atingida"
-                        : `${nf(Math.abs(toGo ?? 0), 1)} kg`}
-                    </p>
-                    <p className="text-xs text-white/60">
+                    <Big
+                      v={
+                        toGo !== null && Math.abs(toGo) < 0.05
+                          ? "Meta atingida"
+                          : nf(Math.abs(toGo ?? 0), 1)
+                      }
+                      unit={toGo !== null && Math.abs(toGo) < 0.05 ? "" : "kg"}
+                    />
+                    <p className="mt-1 text-[11px] text-white/60">
                       {toGo !== null && Math.abs(toGo) >= 0.05
-                        ? (toGo > 0 ? "para chegar a " : "para chegar a ") + `${nf(targetKg, 1)} kg`
+                        ? `para chegar a ${nf(targetKg, 1)} kg`
                         : `Peso atual ${nf(lastWeight.kg, 1)} kg`}
                     </p>
                     <Bar2 pct={goalPct} from="#ec4899" to="#f59e0b" />
-                    <p className="mt-1 text-[11px] text-white/50">
-                      {Math.round(Math.max(0, Math.min(100, goalPct)))}% do caminho · início{" "}
-                      {firstWeight ? nf(firstWeight.kg, 1) : "—"} kg
+                    <p className="mt-1.5 text-[11px] text-white/50">
+                      início {firstWeight ? nf(firstWeight.kg, 1) : "—"} kg · atual {nf(lastWeight.kg, 1)} kg · meta{" "}
+                      {nf(targetKg, 1)} kg
                     </p>
                   </>
                 ) : (
-                  <p className="text-sm text-white/70">
+                  <p className="text-xs text-white/70">
                     {targetKg
                       ? "Registre seu peso para ver o progresso."
                       : "Defina a meta de peso no seu perfil para acompanhar o caminho até ela."}
@@ -1464,33 +1778,33 @@ function LiveDashboard({
 
               <Tile
                 k="sono"
+                i={6}
+                span="col-span-2 sm:col-span-3 lg:col-span-5"
                 on={selected === "sono"}
                 onPick={pick}
                 icon={BedDouble}
                 tone="linear-gradient(135deg,#6366f1,#8b5cf6)"
                 title="Sono"
               >
-                <div className="flex items-center gap-4">
-                  <Ring pct={sleep ? (sleep.hours / SLEEP_GOAL) * 100 : 0} color="#818cf8">
+                <div className="flex items-center gap-3">
+                  <Ring pct={sleep ? (sleep.hours / SLEEP_GOAL) * 100 : 0} color="#818cf8" size={84} stroke={8}>
                     <div>
-                      <p className="text-2xl font-extrabold tabular-nums">
+                      <p className="text-lg font-extrabold leading-none tabular-nums">
                         {sleep ? nf(sleep.hours, 1) : "—"}
                       </p>
-                      <p className="text-[11px] text-white/60">horas</p>
+                      <p className="mt-0.5 text-[10px] text-white/55">horas</p>
                     </div>
                   </Ring>
-                  <div className="text-sm text-white/70">
+                  <div className="min-w-0 flex-1 text-xs text-white/70">
                     {sleep ? (
                       <>
-                        <p>
-                          Qualidade {"★".repeat(Math.max(0, Math.min(5, sleep.quality)))}
-                          {"☆".repeat(5 - Math.max(0, Math.min(5, sleep.quality)))}
+                        <p className="text-sm tracking-widest text-indigo-200">
+                          {"★".repeat(Math.max(0, Math.min(5, sleep.quality)))}
+                          <span className="text-white/25">{"★".repeat(5 - Math.max(0, Math.min(5, sleep.quality)))}</span>
                         </p>
-                        <p className="text-xs">Meta de {SLEEP_GOAL} h por noite</p>
+                        <p>Meta de {SLEEP_GOAL} h por noite</p>
                         {sleepAvg !== null && (
-                          <p className="mt-1 text-xs text-indigo-200">
-                            Média de 7 noites: {nf(sleepAvg, 1)} h
-                          </p>
+                          <p className="mt-0.5 text-indigo-200">Média de 7 noites: {nf(sleepAvg, 1)} h</p>
                         )}
                       </>
                     ) : (
@@ -1498,207 +1812,138 @@ function LiveDashboard({
                     )}
                   </div>
                 </div>
-                <Spark data={series.sono} color="#818cf8" goal={SLEEP_GOAL} />
-                {nextUps?.sono && (
-                  <NextUpClock
-                    compact
-                    className="mt-3"
-                    alertKey="ao-vivo-sono"
-                    title="Hora de desacelerar"
-                    color="#a5b4fc"
-                    target={nextUps.sono.at}
-                    from={nextUps.sono.from}
-                    detail={nextUps.sono.detail}
-                  />
-                )}
+                <div className="mt-1.5">
+                  <Spark data={series.sono} color="#818cf8" goal={SLEEP_GOAL} />
+                </div>
               </Tile>
 
               <Tile
                 k="exercicio"
+                i={7}
+                span="col-span-2 sm:col-span-3 lg:col-span-4"
                 on={selected === "exercicio"}
                 onPick={pick}
                 icon={Activity}
                 tone="linear-gradient(135deg,#f97316,#f59e0b)"
                 title="Exercício hoje"
               >
-                <div className="flex items-center gap-4">
-                  <Ring pct={((today?.activityMinutes ?? 0) / EXERCISE_GOAL) * 100} color="#fb923c">
+                <div className="flex items-center gap-3">
+                  <Ring pct={((today?.activityMinutes ?? 0) / EXERCISE_GOAL) * 100} color="#fb923c" size={84} stroke={8}>
                     <div>
-                      <p className="text-2xl font-extrabold tabular-nums">
-                        {today?.activityMinutes ?? 0}
-                      </p>
-                      <p className="text-[11px] text-white/60">min hoje</p>
+                      <p className="text-lg font-extrabold leading-none tabular-nums">{today?.activityMinutes ?? 0}</p>
+                      <p className="mt-0.5 text-[10px] text-white/55">min hoje</p>
                     </div>
                   </Ring>
-                  <p className="text-sm text-white/70">
-                    {today && today.activityKm > 0
-                      ? `${nf(today.activityKm, 1)} km percorridos. `
-                      : ""}
+                  <p className="text-xs leading-relaxed text-white/65">
+                    {today && today.activityKm > 0 ? `${nf(today.activityKm, 1)} km percorridos. ` : ""}
                     Referência: {EXERCISE_GOAL} min por dia.
                   </p>
                 </div>
-                <Spark data={series.exercicio} color="#fb923c" goal={EXERCISE_GOAL} />
-                {nextUps?.exercicio && (
-                  <NextUpClock
-                    compact
-                    className="mt-3"
-                    alertKey="ao-vivo-atividade"
-                    title="Hora de se mexer"
-                    color="#fdba74"
-                    target={nextUps.exercicio.at}
-                    from={nextUps.exercicio.from}
-                    detail={nextUps.exercicio.detail}
-                  />
-                )}
+                <div className="mt-1.5">
+                  <Spark data={series.exercicio} color="#fb923c" goal={EXERCISE_GOAL} />
+                </div>
               </Tile>
 
               <Tile
                 k="semana"
+                i={8}
+                span="col-span-2 sm:col-span-6 lg:col-span-3"
                 on={selected === "semana"}
                 onPick={pick}
                 icon={Dumbbell}
                 tone="linear-gradient(135deg,#ef4444,#f97316)"
                 title="Exercício na semana"
+                badge={`${Math.round((weekMin / WEEK_GOAL) * 100)}%`}
               >
-                <p className="text-4xl font-extrabold tabular-nums">
-                  {nf(weekMin)}
-                  <span className="ml-1 text-base font-semibold text-white/60">min</span>
-                </p>
+                <Big v={nf(weekMin)} unit="min" />
                 <Bar2 pct={(weekMin / WEEK_GOAL) * 100} from="#ef4444" to="#f97316" />
-                <p className="mt-1 text-xs text-white/60">
+                <p className="mt-1.5 text-[11px] text-white/55">
                   Meta da OMS: {WEEK_GOAL} min por semana
                   {weekKm > 0 ? ` · ${nf(weekKm, 1)} km` : ""}
-                  {weekMin >= WEEK_GOAL ? " · meta batida!" : ""}
+                  {weekMin >= WEEK_GOAL ? " · meta batida!" : ` · faltam ${nf(WEEK_GOAL - weekMin)} min`}
                 </p>
               </Tile>
+            </div>
 
+            <SectionTitle>Alimentação</SectionTitle>
+            <div className={GRID}>
               <Tile
                 k="calorias"
+                i={9}
+                span="col-span-2 sm:col-span-3 lg:col-span-3"
                 on={selected === "calorias"}
                 onPick={pick}
                 icon={Flame}
                 tone="linear-gradient(135deg,#f59e0b,#ef4444)"
                 title="Calorias"
               >
-                <p className="text-4xl font-extrabold tabular-nums">
-                  {nf(today?.kcal ?? 0)}
-                  <span className="ml-1 text-base font-semibold text-white/60">kcal</span>
-                </p>
-                <Bar2
-                  pct={kcalTarget ? ((today?.kcal ?? 0) / kcalTarget) * 100 : 0}
-                  from="#fbbf24"
-                  to="#f97316"
-                />
-                <p className="mt-1 text-xs text-white/60">
-                  {kcalTarget ? `Meta de ${nf(kcalTarget)} kcal` : "Meta não definida"}
-                </p>
-                {nextUps?.refeicao && (
-                  <NextUpClock
-                    compact
-                    className="mt-3"
-                    alertKey="ao-vivo-refeicao"
-                    title="Próxima refeição"
-                    color="#fdba74"
-                    target={nextUps.refeicao.at}
-                    from={nextUps.refeicao.from}
-                    detail={nextUps.refeicao.detail}
-                  />
-                )}
+                <Progress value={today?.kcal ?? 0} unit="kcal" target={kcalTarget} from="#fbbf24" to="#f97316" />
               </Tile>
-
               <Tile
                 k="proteina"
+                i={10}
+                span="col-span-1 sm:col-span-3 lg:col-span-3"
                 on={selected === "proteina"}
                 onPick={pick}
                 icon={Egg}
                 tone="linear-gradient(135deg,#22c55e,#14b8a6)"
                 title="Proteína"
               >
-                <p className="text-4xl font-extrabold tabular-nums">
-                  {nf(today?.protein ?? 0)}
-                  <span className="ml-1 text-base font-semibold text-white/60">g</span>
-                </p>
-                <Bar2
-                  pct={proteinTarget ? ((today?.protein ?? 0) / proteinTarget) * 100 : 0}
-                  from="#4ade80"
-                  to="#2dd4bf"
-                />
-                <p className="mt-1 text-xs text-white/60">
-                  {proteinTarget ? `Meta de ${nf(proteinTarget)} g` : "Meta não definida"}
-                </p>
+                <Progress value={today?.protein ?? 0} unit="g" target={proteinTarget} from="#4ade80" to="#2dd4bf" />
               </Tile>
-
               <Tile
                 k="carbs"
+                i={11}
+                span="col-span-1 sm:col-span-3 lg:col-span-3"
                 on={selected === "carbs"}
                 onPick={pick}
                 icon={Wheat}
                 tone="linear-gradient(135deg,#eab308,#f59e0b)"
                 title="Carboidratos"
               >
-                <p className="text-4xl font-extrabold tabular-nums">
-                  {nf(today?.carbs ?? 0)}
-                  <span className="ml-1 text-base font-semibold text-white/60">g</span>
-                </p>
-                <Bar2
-                  pct={carbsTarget ? ((today?.carbs ?? 0) / carbsTarget) * 100 : 0}
-                  from="#fde047"
-                  to="#f59e0b"
-                />
-                <p className="mt-1 text-xs text-white/60">
-                  {carbsTarget ? `Meta de ${nf(carbsTarget)} g` : "Meta não definida"}
-                </p>
+                <Progress value={today?.carbs ?? 0} unit="g" target={carbsTarget} from="#fde047" to="#f59e0b" />
               </Tile>
-
               <Tile
                 k="gordura"
+                i={12}
+                span="col-span-2 sm:col-span-3 lg:col-span-3"
                 on={selected === "gordura"}
                 onPick={pick}
                 icon={Sparkles}
                 tone="linear-gradient(135deg,#fb923c,#e11d48)"
                 title="Gorduras"
               >
-                <p className="text-4xl font-extrabold tabular-nums">
-                  {nf(today?.fat ?? 0)}
-                  <span className="ml-1 text-base font-semibold text-white/60">g</span>
-                </p>
-                <Bar2
-                  pct={fatTarget ? ((today?.fat ?? 0) / fatTarget) * 100 : 0}
-                  from="#fb923c"
-                  to="#e11d48"
-                />
-                <p className="mt-1 text-xs text-white/60">
-                  {fatTarget ? `Meta de ${nf(fatTarget)} g` : "Meta não definida"}
-                </p>
+                <Progress value={today?.fat ?? 0} unit="g" target={fatTarget} from="#fb923c" to="#e11d48" />
               </Tile>
+            </div>
 
+            <SectionTitle>Rotina de cuidado</SectionTitle>
+            <div className={GRID}>
               <Tile
                 k="med"
+                i={13}
+                span="col-span-2 sm:col-span-3 lg:col-span-6"
                 on={selected === "med"}
                 onPick={pick}
                 icon={Pill}
                 tone="linear-gradient(135deg,#f43f5e,#fb7185)"
                 title="Medicação"
               >
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                   <Ring
-                    pct={
-                      today?.medication.planned
-                        ? (today.medication.taken / today.medication.planned) * 100
-                        : 0
-                    }
+                    pct={today?.medication.planned ? (today.medication.taken / today.medication.planned) * 100 : 0}
                     color="#fb7185"
-                    size={96}
-                    stroke={9}
+                    size={76}
+                    stroke={8}
                   >
                     <div>
-                      <p className="text-xl font-extrabold tabular-nums">
+                      <p className="text-base font-extrabold leading-none tabular-nums">
                         {today?.medication.taken ?? 0}/{today?.medication.planned ?? 0}
                       </p>
-                      <p className="text-[11px] text-white/60">doses</p>
+                      <p className="mt-0.5 text-[10px] text-white/55">doses</p>
                     </div>
                   </Ring>
-                  <p className="text-sm text-white/70">
+                  <p className="text-xs leading-relaxed text-white/65">
                     {today?.medication.planned
                       ? today.medication.taken >= today.medication.planned
                         ? "Todas as doses de hoje registradas."
@@ -1706,95 +1951,39 @@ function LiveDashboard({
                       : "Sem medicação programada hoje."}
                   </p>
                 </div>
-                {nextUps?.med && (
-                  <NextUpClock
-                    compact
-                    className="mt-3"
-                    alertKey="ao-vivo-medicacao"
-                    title="Próxima dose"
-                    color="#fb7185"
-                    target={nextUps.med.at}
-                    from={nextUps.med.from}
-                    detail={nextUps.med.detail}
-                  />
-                )}
               </Tile>
 
               <Tile
                 k="supl"
+                i={14}
+                span="col-span-2 sm:col-span-3 lg:col-span-6"
                 on={selected === "supl"}
                 onPick={pick}
                 icon={Sparkles}
                 tone="linear-gradient(135deg,#a855f7,#6366f1)"
                 title="Suplementos"
               >
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                   <Ring
-                    pct={
-                      today?.supplements.planned
-                        ? (today.supplements.taken / today.supplements.planned) * 100
-                        : 0
-                    }
+                    pct={today?.supplements.planned ? (today.supplements.taken / today.supplements.planned) * 100 : 0}
                     color="#c084fc"
-                    size={96}
-                    stroke={9}
+                    size={76}
+                    stroke={8}
                   >
                     <div>
-                      <p className="text-xl font-extrabold tabular-nums">
+                      <p className="text-base font-extrabold leading-none tabular-nums">
                         {today?.supplements.taken ?? 0}/{today?.supplements.planned ?? 0}
                       </p>
-                      <p className="text-[11px] text-white/60">doses</p>
+                      <p className="mt-0.5 text-[10px] text-white/55">doses</p>
                     </div>
                   </Ring>
-                  <p className="text-sm text-white/70">
+                  <p className="text-xs leading-relaxed text-white/65">
                     {today?.supplements.planned
                       ? today.supplements.taken >= today.supplements.planned
                         ? "Suplementação de hoje completa."
                         : `${today.supplements.planned - today.supplements.taken} dose(s) a tomar hoje.`
                       : "Nenhum suplemento programado hoje."}
                   </p>
-                </div>
-                {nextUps?.supl && (
-                  <NextUpClock
-                    compact
-                    className="mt-3"
-                    alertKey="ao-vivo-suplemento"
-                    title="Próximo suplemento"
-                    color="#c084fc"
-                    target={nextUps.supl.at}
-                    from={nextUps.supl.from}
-                    detail={nextUps.supl.detail}
-                  />
-                )}
-              </Tile>
-
-              <Tile
-                k="streak"
-                on={selected === "streak"}
-                onPick={pick}
-                icon={Flame}
-                tone="linear-gradient(135deg,#fbbf24,#f97316)"
-                title="Sequência"
-              >
-                <p className="text-4xl font-extrabold tabular-nums">
-                  {streak}
-                  {streak >= 14 ? "+" : ""}
-                  <span className="ml-1 text-base font-semibold text-white/60">
-                    {streak === 1 ? "dia" : "dias"}
-                  </span>
-                </p>
-                <p className="text-sm text-white/70">
-                  {streak > 0
-                    ? "seguidos registrando o seu cuidado."
-                    : "Registre algo hoje para começar uma sequência."}
-                </p>
-                <div className="mt-2 flex gap-1" aria-hidden="true">
-                  {(data.days ?? []).map((d) => (
-                    <span
-                      key={d.day}
-                      className={`h-2 flex-1 rounded-full ${d.hasData ? "bg-amber-300" : "bg-white/10"}`}
-                    />
-                  ))}
                 </div>
               </Tile>
             </div>
