@@ -1991,6 +1991,25 @@ const baseIngredients: Omit<Ingredient, "carbs" | "fat" | "fiber">[] = [
     note: "Estimativa para filé empanado ou passado na farinha e frito.",
   },
   {
+    id: "peixe_frito_empanado",
+    name: "Peixe frito empanado (filé de pescada com farinha)",
+    group: "proteinas",
+    protein: 21.4,
+    kcal: 283,
+    provenance: "TACO",
+    flags: ["frito", "gorduroso"],
+  },
+  {
+    id: "peixe_frito_simples",
+    name: "Peixe frito sem farinha (filé de pescada)",
+    group: "proteinas",
+    protein: 28.6,
+    kcal: 154,
+    provenance: "TACO",
+    flags: ["frito"],
+    note: "Frito sem empanar absorve bem menos óleo.",
+  },
+  {
     id: "macarrao_instantaneo",
     name: "Macarrão instantâneo (miojo) preparado com tempero",
     group: "cereais",
@@ -2362,6 +2381,8 @@ const macroMap: Record<
   feijoada_lata: [11, 5.5, 3.5],
   sardinha_lata: [0, 11.5, 0],
   peixe_frito: [4, 13, 0.2],
+  peixe_frito_empanado: [5, 19.1, 0.2, "TACO"],
+  peixe_frito_simples: [0, 3.6, 0, "TACO"],
 };
 export const ingredients: Ingredient[] = baseIngredients.map((food) => {
   const n = macroMap[food.id];
