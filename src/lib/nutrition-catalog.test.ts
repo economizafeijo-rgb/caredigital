@@ -115,7 +115,8 @@ describe("Bebidas e sugestões por refeição", () => {
     expect(id("café com leite em pó")).toBe("cafe_leite_po");
     expect(id("café com leite desnatado")).toBe("cafe_leite_desnatado");
     expect(id("nescafé")).toBe("cafe_soluvel");
-    expect(id("nescau")).toBe("achocolatado");
+    expect(id("nescau")).toBe("nescau_leite_pronto");
+    expect(id("achocolatado")).toBe("achocolatado");
     expect(id("leite em pó")).toBe("leite_po_dissolvido");
   });
   it("sugestões e refeições prontas são reconhecidas pelo calculador", () => {
