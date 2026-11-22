@@ -160,8 +160,9 @@ export function NutritionGuardPanel({ data }: { data: DailyNutrition }) {
       )}
       <p className="mt-2 text-[10.5px] leading-snug text-muted-foreground">
         Limites: sódio abaixo de 2.000 mg/dia e açúcar livre abaixo de 10% das calorias (OMS);
-        gordura pela sua meta. Valores estimados (TACO/TBCA) a partir do que você registrou; sal de
-        mesa e molhos só entram se forem registrados. Não substitui orientação de médico ou
+        gordura pela sua meta. Açúcar livre inclui o açúcar adicionado, o mel, os xaropes e os
+        sucos. Valores estimados (TACO/TBCA e rótulos) a partir do que você registrou; sal de mesa,
+        açúcar de colher e molhos só entram se forem registrados. Não substitui orientação de médico ou
         nutricionista.
       </p>
     </section>

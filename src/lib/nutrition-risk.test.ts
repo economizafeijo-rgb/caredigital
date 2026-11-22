@@ -40,4 +40,35 @@ describe("limites de saúde", () => {
     ].filter((id) => !ingredientById.has(id));
     expect(missing).toEqual([]);
   });
+
+  it("conta o açúcar e o sódio das porções da biblioteca alimentar", () => {
+    const r = evaluateRisks(
+      [
+        {
+          foods: [],
+          direct: { fat: 0 },
+          foodId: "acucar",
+          grams: 30,
+          foodName: "Açúcar refinado",
+        },
+      ],
+      { kcal: 2000, fat: 70 },
+    );
+    const sugar = r.find((x) => x.key === "sugar")!;
+    expect(Math.round(sugar.value)).toBe(30);
+    expect(sugar.culprits[0].id).toBe("acucar");
+  });
+  it("conta o açúcar adicionado dos itens de rótulo e dos sucos", () => {
+    const r = evaluateRisks(
+      [
+        { foods: parseFoodText("1 copo de nescau") },
+        { foods: parseFoodText("suco de laranja", 250) },
+      ],
+      { kcal: 2000, fat: 70 },
+    );
+    const sugar = r.find((x) => x.key === "sugar")!;
+    expect(sugar.value).toBeGreaterThan(30);
+    expect(sugar.culprits.map((c) => c.id)).toContain("nescau_leite_pronto");
+    expect(sugar.culprits.map((c) => c.id)).toContain("suco_laranja");
+  });
 });

@@ -440,7 +440,7 @@ const aliases: Array<[RegExp, string]> = [
   [/mel[aã]o/, "melao"],
   [/ervilha/, "ervilha"],
   [/^coco|coco (fresco|ralado|seco)/, "coco"],
-  [/\bch[aá]( |$)|camomila|erva.doce|capim.santo/, "cha_camomila"],
+  [/(?<!colheres? de )\bch[aá]( |$)|camomila|erva.doce|capim.santo/, "cha_camomila"],
   [/granola/, "granola"],
   [/neston/, "neston"],
   [/mucilon/, "mucilon"],
@@ -464,7 +464,7 @@ const aliases: Array<[RegExp, string]> = [
   [/feijoada/, "feijoada"],
   [/macarronada|macarr[aã]o (ao|à|a) bolonhesa|espaguete (ao|à|a) bolonhesa/, "macarronada"],
   [/crepioca/, "crepioca"],
-  [/sopa/, "sopa_carne_legumes"],
+  [/(?<!colheres? de )sopa/, "sopa_carne_legumes"],
   [/panelada|dobradinha|bucho/, "panelada"],
   [/churrasco|picanha|espetinho|costela/, "churrasco"],
   [/carne assada|assado de panela|lagarto/, "carne_assada"],
@@ -938,6 +938,12 @@ export function parseFoodText(text: string, liquidMl?: number | null): ParsedFoo
     .map((part) => part.trim())
     .filter(Boolean);
   const found: ParsedFood[] = [];
+  const isAdditive = (id: string) => /^acucar|^mel$/.test(id);
+  // Bebida com adição (café com açúcar, limonada com açúcar): o volume vale para o líquido, não para o açúcar.
+  const liquidSegments = segments.filter((part) => {
+    const al = aliases.find(([pattern]) => pattern.test(part));
+    return al && !isAdditive(al[1]);
+  }).length;
   for (const segment of segments) {
     const alias = aliases.find(([pattern]) => pattern.test(segment));
     if (!alias) continue;
@@ -972,7 +978,10 @@ export function parseFoodText(text: string, liquidMl?: number | null): ParsedFoo
             : (defaultPortion[item.id] ?? 100);
       grams = count * base;
     }
-    if (liquidMl && !explicit && segments.length === 1) grams = liquidMl;
+    if (liquidMl && !explicit && liquidSegments === 1 && !isAdditive(item.id)) grams = liquidMl;
+    // Açúcar sem quantidade numa bebida: cerca de 10 g para cada 200 ml (estimativa).
+    else if (liquidMl && !explicit && isAdditive(item.id) && !/colher/.test(segment) && !/\d/.test(segment))
+      grams = Math.max(5, Math.min(80, Math.round((10 * liquidMl) / 200)));
     if (!grams || grams <= 0 || grams > 3000) continue;
     found.push({
       id: item.id,

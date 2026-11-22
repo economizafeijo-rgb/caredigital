@@ -24,4 +24,21 @@ describe("parseFoodText", () => {
       goalTargets("equilibrio", 80).protein,
     );
   });
+
+  it("bebida com açúcar mantém o volume no líquido e soma o açúcar", () => {
+    const list = parseFoodText("limonada com açúcar", 700);
+    expect(list.map((f) => f.id)).toEqual(["limonada", "acucar"]);
+    expect(list[0].grams).toBe(700);
+    expect(list[1].grams).toBe(35);
+  });
+  it("colheres de sopa e de chá de açúcar são reconhecidas", () => {
+    expect(parseFoodText("2 colheres de sopa de açúcar")[0]).toMatchObject({
+      id: "acucar",
+      grams: 24,
+    });
+    expect(parseFoodText("café coado, 2 colheres de chá de açúcar", 100).map((f) => [f.id, f.grams])).toEqual([
+      ["cafe", 100],
+      ["acucar", 10],
+    ]);
+  });
 });

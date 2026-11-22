@@ -22,6 +22,8 @@ const d = (
 
 export const drinkPresets: DrinkPreset[] = [
   d("cafe", "Café", "Café coado sem açúcar", 100, "café coado"),
+  d("cafe", "Café", "Café coado com açúcar (2 colheres de chá)", 100, "café coado, 2 colheres de chá de açúcar"),
+  d("cafe", "Café", "Café com leite em pó e açúcar", 200, "café com leite em pó com açúcar"),
   d("cafe", "Café", "Café expresso", 50, "café expresso"),
   d("cafe", "Café", "Café com leite integral", 200, "café com leite"),
   d("cafe", "Café", "Café com leite desnatado", 200, "café com leite desnatado"),
@@ -50,7 +52,9 @@ export const drinkPresets: DrinkPreset[] = [
   d("suco", "Sucos naturais", "Suco de cajá (taperebá)", 250, "suco de cajá"),
   d("suco", "Sucos naturais", "Suco de melancia", 250, "suco de melancia"),
   d("suco", "Sucos naturais", "Suco de maçã", 250, "suco de maçã"),
-  d("suco", "Sucos naturais", "Limonada sem açúcar", 250, "limonada"),
+  d("suco", "Sucos naturais", "Limonada sem açúcar", 250, "limonada sem açúcar"),
+  d("suco", "Sucos naturais", "Limonada com açúcar", 250, "limonada com açúcar"),
+  d("suco", "Sucos naturais", "Suco de laranja com açúcar", 250, "suco de laranja com açúcar"),
   d("suco", "Sucos naturais", "Suco de caixinha / néctar", 200, "néctar de caixinha"),
   d("suco", "Sucos naturais", "Suco de uva (envasado)", 200, "suco de uva"),
   d("suco", "Sucos naturais", "Caldo de cana (garapa)", 300, "caldo de cana"),

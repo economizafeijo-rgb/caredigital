@@ -103,18 +103,39 @@ export const sodiumPer100: Record<string, number> = {
   leite: 50,
   leite_integral: 50,
   achocolatado: 60,
+  nescau_leite_pronto: 51,
+  nescafe_leite_lata: 29,
+  ninho_integral_preparado: 49,
+  quinari_zero: 17,
+  cafe_leite_po: 45,
+  biscoito_doce: 290,
+  biscoito_recheado: 190,
   pamonha: 150,
   mungunza: 80,
 };
 const SODIUM_DEFAULT = 15;
 
-/** Açúcar livre/adicionado (g) por 100 g. Açúcar natural de frutas e leite não conta. */
+/**
+ * Açúcar livre/adicionado (g) por 100 g. Açúcar natural de fruta inteira e de leite não conta;
+ * já os sucos (mesmo naturais), o mel e os xaropes contam como açúcar livre (OMS), por isso
+ * `juiceFreeSugar` soma os carboidratos dos sucos.
+ */
 export const sugarPer100: Record<string, number> = {
   acucar: 100,
   acucar_gramixo: 95,
   refrigerante: 10.6,
   suco_caixinha: 10,
   achocolatado: 8,
+  nescau_leite_pronto: 7,
+  nescafe_leite_lata: 7.1,
+  refrigerante_laranja: 11,
+  suco_uva: 14,
+  caldo_cana: 18,
+  biscoito_doce: 18,
+  biscoito_recheado: 35,
+  barra_chocolate: 45,
+  chocolate_leite: 52,
+  chocolate_meio_amargo: 30,
   leite_condensado: 55,
   doce_leite: 55,
   goiabada: 70,
@@ -145,6 +166,10 @@ export const sugarPer100: Record<string, number> = {
   pao_frances: 1,
   pasta_amendoim: 3,
 };
+
+/** Parcela dos carboidratos de um suco natural que a OMS conta como açúcar livre. */
+const JUICE_FREE_SHARE = 0.9;
+const isNaturalJuice = (id: string) => /^suco_/.test(id) && !(id in sugarPer100);
 
 /** Perigos por alimento, em linguagem simples (aparecem junto do alerta). */
 export const foodHazard: Record<string, string> = {
@@ -185,8 +210,20 @@ export const levelOf = (pct: number): RiskLevel =>
   pct >= 1.3 ? "severe" : pct >= 1 ? "over" : pct >= 0.8 ? "near" : "ok";
 export const levelRank: Record<RiskLevel, number> = { ok: 0, near: 1, over: 2, severe: 3 };
 
-type FoodLike = { id: string; name: string; grams: number; nutrients: { fat: number } };
-type EntryLike = { foods: FoodLike[]; direct?: { fat: number } | null };
+type FoodLike = {
+  id: string;
+  name: string;
+  grams: number;
+  nutrients: { fat: number; carbs?: number };
+};
+type EntryLike = {
+  foods: FoodLike[];
+  direct?: { fat: number } | null;
+  /** Porção da biblioteca alimentar: só traz o id e a quantidade, sem a lista de alimentos. */
+  foodId?: string;
+  grams?: number;
+  foodName?: string;
+};
 
 export function evaluateRisks(
   entries: EntryLike[],
@@ -206,10 +243,19 @@ export function evaluateRisks(
   let fatDirect = 0;
   for (const e of entries) {
     if (e.direct) fatDirect += e.direct.fat;
+    // Porções da biblioteca entram com sódio e açúcar pelo id e pela quantidade registrada.
+    if (e.foodId && e.grams && e.grams > 0) {
+      const short = (e.foodName ?? e.foodId).split(",")[0].split("(")[0].trim();
+      add("sodium", e.foodId, short, ((sodiumPer100[e.foodId] ?? SODIUM_DEFAULT) * e.grams) / 100);
+      add("sugar", e.foodId, short, ((sugarPer100[e.foodId] ?? 0) * e.grams) / 100);
+    }
     for (const f of e.foods) {
       const short = f.name.split(",")[0].split("(")[0].trim();
       add("sodium", f.id, short, ((sodiumPer100[f.id] ?? SODIUM_DEFAULT) * f.grams) / 100);
-      add("sugar", f.id, short, ((sugarPer100[f.id] ?? 0) * f.grams) / 100);
+      const sugar = isNaturalJuice(f.id)
+        ? (f.nutrients.carbs ?? 0) * JUICE_FREE_SHARE
+        : ((sugarPer100[f.id] ?? 0) * f.grams) / 100;
+      add("sugar", f.id, short, sugar);
       add("fat", f.id, short, f.nutrients.fat);
     }
   }

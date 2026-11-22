@@ -135,7 +135,7 @@ export async function loadPeriodRaw(
       scope(
         db
           .from("care_activity_log")
-          .select("happened_at,details,event_type")
+          .select("happened_at,details,event_type,source")
           .eq("category", "refeicao")
           .in("event_type", ["confirmed", "logged"]),
       )
@@ -283,6 +283,9 @@ export async function loadPeriodRaw(
 
   const nutritionRequests = new Set(mealLogs.rows.map((row) => row.request_id).filter(Boolean));
   for (const row of meals.rows) {
+    // Mesma regra da tela de Alimentação: versões antigas (editadas/excluídas) e registros da biblioteca
+    // (que já entram como porções) não contam de novo.
+    if (row.details?.superseded || row.source === "client_nutrition_library") continue;
     const requestId = typeof row.details?.request_id === "string" ? row.details.request_id : null;
     if (requestId && nutritionRequests.has(requestId)) continue;
     const text = String(row.details?.description || row.details?.title || "");

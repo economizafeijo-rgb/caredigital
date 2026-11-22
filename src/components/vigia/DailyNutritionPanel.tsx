@@ -16,6 +16,7 @@ import { RecordInfo } from "./RecordInfo";
 import { supabase } from "@/integrations/supabase/client";
 import { acreDateKey, DAY_CUTOFF_HOUR } from "@/lib/acre-time";
 import {
+  foodMicros,
   goalAdvice,
   goalTargets,
   microTargets,
@@ -27,6 +28,9 @@ import {
   measureUnit,
 } from "@/lib/food-parser";
 import { objectiveLabel } from "@/lib/objective-nutrition";
+import { beverageNutrients } from "@/lib/beverage-nutrients";
+import { isBeverageKind } from "@/lib/care-intake-categories";
+import { ingredientById } from "@/lib/nutrition-catalog";
 import { useDialog } from "@/lib/dialog";
 import { MacroBreakdown } from "./MacroBreakdown";
 
@@ -36,6 +40,10 @@ type Entry = {
   text: string;
   foods: ParsedFood[];
   direct?: Nutrients;
+  /** Porção da biblioteca: id e quantidade, usados no cálculo de sódio e açúcar. */
+  foodId?: string;
+  grams?: number;
+  foodName?: string;
   entryType?: "meal" | "beverage" | "food";
   entryId?: string;
   amountMl?: number;
@@ -127,18 +135,45 @@ export function useDailyNutrition(
         }
         for (const row of drinks.data ?? []) {
           const text = String(row.name || row.kind || "");
+          const ml = Number(row.amount_ml);
+          const named = parseFoodText(text, ml);
+          // Mesma regra do painel ao vivo e do histórico: sem alimento reconhecido, usa a estimativa do tipo de bebida.
+          const byKind =
+            !named.length && isBeverageKind(String(row.kind)) && ml > 0
+              ? beverageNutrients(row.kind, ml)
+              : null;
           list.push({
             at: row.consumed_at,
             source: "Bebida",
             text: `${text} · ${row.amount_ml} ml`,
-            foods: parseFoodText(text, Number(row.amount_ml)),
+            foods: named,
+            direct: byKind
+              ? {
+                  kcal: byKind.kcal,
+                  protein: byKind.protein,
+                  carbs: byKind.carbs,
+                  fat: byKind.fat,
+                  fiber: 0,
+                  vitC: 0,
+                  vitA: 0,
+                  calcium: 0,
+                  iron: 0,
+                  potassium: 0,
+                }
+              : undefined,
             entryType: "beverage",
             entryId: row.id,
-            amountMl: Number(row.amount_ml),
+            amountMl: ml,
           });
         }
         for (const row of portions.data ?? []) {
+          // Vitaminas e minerais da porção vêm da tabela do alimento (a linha salva só guarda os macros).
+          const micro = foodMicros[row.food_id] ?? [0, 0, 0, 0, 0];
+          const factor = Number(row.grams) / 100;
           list.push({
+            foodId: row.food_id,
+            grams: Number(row.grams),
+            foodName: ingredientById.get(row.food_id)?.name,
             at: row.recorded_at,
             source: "Biblioteca alimentar",
             text: `${row.food_id.replace(/_/g, " ")} · Porção: ${Number(row.grams)} ${measureUnit(row.food_id)}`,
@@ -151,11 +186,11 @@ export function useDailyNutrition(
               carbs: Number(row.carbs_g),
               fat: Number(row.fat_g),
               fiber: Number(row.fiber_g),
-              vitC: 0,
-              vitA: 0,
-              calcium: 0,
-              iron: 0,
-              potassium: 0,
+              vitC: micro[0] * factor,
+              vitA: micro[1] * factor,
+              calcium: micro[2] * factor,
+              iron: micro[3] * factor,
+              potassium: micro[4] * factor,
             },
           });
         }
