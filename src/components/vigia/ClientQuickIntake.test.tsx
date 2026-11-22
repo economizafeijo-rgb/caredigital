@@ -143,4 +143,19 @@ describe("registro de consumo por área", () => {
     expect(pressed?.textContent).toBe("Jantar");
     expect(chooser.textContent).toContain("Café da manhã");
   });
+
+  it("não deixa bebida entrar no prato: pede para registrar na aba Bebidas", async () => {
+    render(
+      <DialogProvider>
+        <ClientQuickIntake patientId="p1" mode="all" />
+      </DialogProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Registrar/ }));
+    fireEvent.change(screen.getByLabelText(/O que você comeu/), {
+      target: { value: "Arroz 100 g, cerveja 300 ml" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Registrar agora/ }));
+    expect((await screen.findByRole("alert")).textContent).toMatch(/é bebida.*aba Bebidas/);
+    expect(screen.queryByText("Confirmar registro?")).toBeNull();
+  });
 });

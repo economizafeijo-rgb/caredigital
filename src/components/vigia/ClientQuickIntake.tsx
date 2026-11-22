@@ -19,6 +19,7 @@ import {
   type BeverageKind,
 } from "@/lib/care-intake-categories";
 import { parseFoodText, sumNutrients, measureUnit } from "@/lib/food-parser";
+import { ingredientById } from "@/lib/nutrition-catalog";
 import { drinkGroups, drinkPresetFor, drinkPresets } from "@/lib/drink-presets";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -334,6 +335,16 @@ export function ClientQuickIntake({
         (foodDraft.portion.trim() ? " · Porção: " + foodDraft.portion.trim() : "");
       if (foodDraft.description.trim().length < 3 || text.length > 1000) {
         setError("Descreva o alimento consumido (3 a 1.000 caracteres).");
+        return;
+      }
+      // Alimentos e bebidas não se misturam: bebida digitada no prato vai para a aba Bebidas.
+      const stray = parseFoodText(foodDraft.description).filter(
+        (f) => ingredientById.get(f.id)?.group === "bebidas",
+      );
+      if (stray.length) {
+        setError(
+          `“${stray.map((f) => f.name.split(",")[0]).join(", ")}” é bebida. Retire do prato e registre na aba Bebidas.`,
+        );
         return;
       }
       entries.push({
