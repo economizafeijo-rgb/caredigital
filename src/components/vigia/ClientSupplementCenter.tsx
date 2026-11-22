@@ -609,6 +609,48 @@ export const supplementLibrary: LibraryItem[] = [
     pack: { shape: "frasco", color: "#64748b", label: "CÁLCIO + D", sub: "60 comp" },
   }),
   seed({
+    key: "drb-magnesio",
+    name: "Doctor's Best Magnésio de Alta Absorção",
+    brand: "Doctor's Best",
+    category: "Minerais",
+    dose: 2,
+    unit: "cápsula",
+    range: "2 cápsulas por dia (1 porção = 105 mg de magnésio)",
+    timing: "Todos os dias; à noite é uma opção para quem busca relaxamento e sono",
+    times: ["21:00"],
+    withFood: true,
+    benefit:
+      "Magnésio quelado (lisinato glicinato, Albion®), apresentado pelo fabricante para relaxamento muscular, função dos nervos e apoio ao sono, com boa tolerância intestinal. O magnésio participa de centenas de reações enzimáticas do corpo.",
+    tips: [
+      "Rótulo: tomar 2 cápsulas ao dia, ou conforme a orientação de um profissional de saúde com conhecimento em nutrição.",
+      "Forma quelada: o magnésio vem ligado aos aminoácidos glicina e lisina, que o fabricante indica para melhor absorção e menos desconforto no intestino.",
+      "Orientação geral: se o estômago incomodar, tome junto de uma refeição ou divida as 2 cápsulas em dois horários.",
+      "Para apoio ao sono, o fabricante posiciona o produto assim; tomar à noite é uma opção, não uma regra do rótulo.",
+      "Se já usa outro suplemento com magnésio (como o Solgar Cálcio + Magnésio + Zinco, com 400 mg por porção), some as doses. O limite superior para magnésio de suplementos em adultos é de 350 mg por dia (NIH).",
+      "Guarde em local fresco e seco.",
+    ],
+    caution:
+      "Quem tem doença renal, está grávida ou amamentando, ou usa medicamentos (como alguns antibióticos, remédios para osteoporose e para a tireoide) deve consultar o profissional antes. Excesso de magnésio pode causar diarreia.",
+    pack: { shape: "frasco", color: "#ea580c", label: "MAGNÉSIO", sub: "Doctor's Best · 240 cáps" },
+    photo: "/images/suplementos/doctors-best-magnesio-alta-absorcao.webp",
+    label: {
+      serving: "2 cápsulas vegetais",
+      servings: "120 porções no frasco de 240 cápsulas (60 porções no de 120)",
+      rows: [
+        {
+          name: "Magnésio",
+          detail: "de 1.050 mg de quelato de lisinato glicinato de magnésio (Albion®)",
+          amount: "105 mg",
+          dv: "25%",
+        },
+      ],
+      other: "Hipromelose (cápsula vegetal), estearato de cálcio, celulose microcristalina e dióxido de silício.",
+      free: ["Glúten", "Soja", "Transgênicos"],
+      seals: ["Quelato 100%", "Vegano", "Sem glúten", "Sem soja"],
+      note: "%VD norte-americano. Dados conferidos em lojas que vendem o frasco de 120 cápsulas; confirme no rótulo do seu frasco de 240.",
+    },
+  }),
+  seed({
     key: "solgar-cmz",
     name: "Solgar Cálcio + Magnésio + Zinco",
     brand: "Solgar",
@@ -630,7 +672,7 @@ export const supplementLibrary: LibraryItem[] = [
       "Guarde em temperatura ambiente, longe de crianças. Não use se o lacre estiver ausente ou danificado.",
     ],
     caution:
-      "Gestantes, lactantes, quem usa medicamentos ou tem alguma condição de saúde devem consultar o profissional antes. Suspenda e procure atendimento se houver reação adversa. Cálcio, magnésio e zinco podem interferir na absorção de alguns medicamentos: pergunte sobre o horário.",
+      "Gestantes, lactantes, quem usa medicamentos ou tem alguma condição de saúde devem consultar o profissional antes. Suspenda e procure atendimento se houver reação adversa. Cálcio, magnésio e zinco podem interferir na absorção de alguns medicamentos: pergunte sobre o horário. O magnésio desta porção (400 mg) já passa do limite de 350 mg/dia indicado para magnésio de suplementos; não some outro suplemento com magnésio sem orientação.",
     pack: { shape: "frasco", color: "#b45309", label: "CÁLCIO MAG ZINCO", sub: "Solgar · 100 comp" },
     photo: "/images/suplementos/solgar-calcio-magnesio-zinco.webp",
     label: {
