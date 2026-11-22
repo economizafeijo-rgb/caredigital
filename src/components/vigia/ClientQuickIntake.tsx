@@ -6,6 +6,7 @@ import { BarChart3 } from "lucide-react";
 import { CareIntakePicker, CareIntakeIcon } from "./CareIntakePicker";
 import { checkIntake } from "@/lib/hydration-need";
 import { DrinkBoard } from "./DrinkBoard";
+import { RecordOverview, type OverviewItem } from "./IntakeParts";
 import { DrinkChoices } from "./DrinkChoices";
 import { MealBoard } from "./MealBoard";
 import { HowItWorks, drinkHowTo } from "./HowItWorks";
@@ -131,24 +132,44 @@ export function ClientQuickIntake({
   const drinkDraft = group === "beverage" ? live : stash.beverage;
   const foodCount = (foodDraft?.description ?? "").split(/\s*,\s*/).filter(Boolean).length;
   const drinkSelected = !!drinkDraft?.description.trim();
-  const foodKcal = Math.round(
-    sumNutrients(parseFoodText(foodDraft?.description ?? "").map((f) => f.nutrients)).kcal,
-  );
-  // Aviso de edição em aberto no OUTRO grupo, mostrado no painel lateral.
-  const otherDraft =
-    group === "beverage" && foodCount > 0
-      ? {
-          title: `Refeição em montagem · ${foodCount} ${foodCount === 1 ? "item" : "itens"}`,
-          detail: `${foodKcal} kcal · toque para voltar aos alimentos`,
-          onOpen: () => switchGroup("food"),
-        }
-      : group === "food" && drinkSelected
-        ? {
-            title: `Bebida escolhida · ${drinkDraft!.description.trim()}`,
-            detail: `${drinkDraft!.amount} ml · toque para voltar às bebidas`,
-            onOpen: () => switchGroup("beverage"),
-          }
-        : undefined;
+  // Resumo consolidado do que está sendo montado: alimentos (um por linha) + bebida escolhida.
+  const foodParsed = parseFoodText(foodDraft?.description ?? "");
+  const drinkMl = Number(drinkDraft?.amount) || 0;
+  const drinkParsed = drinkSelected ? parseFoodText(drinkDraft!.description, drinkMl || null) : [];
+  const overviewItems: OverviewItem[] = [
+    ...foodParsed.map((f, i) => ({
+      key: `a${i}-${f.id}`,
+      group: "food" as const,
+      name: f.name.split(",")[0],
+      detail: `${Math.round(f.grams)} ${measureUnit(f.id)}`,
+      kcal: f.nutrients.kcal,
+    })),
+    ...(drinkSelected
+      ? [
+          {
+            key: "bebida",
+            group: "beverage" as const,
+            name: drinkDraft!.description.trim(),
+            detail: `${drinkMl} ml`,
+            kcal: sumNutrients(drinkParsed.map((f) => f.nutrients)).kcal,
+          },
+        ]
+      : []),
+  ];
+  // Itens escritos que o leitor não reconheceu ainda contam como item do registro.
+  const unrecognized =
+    foodCount > 0 && foodParsed.length === 0 ? [{ key: "livre", group: "food" as const, name: foodDraft!.description.trim(), detail: "texto livre", kcal: 0 }] : [];
+  const allItems = [...overviewItems, ...unrecognized];
+  const combined = sumNutrients([
+    ...foodParsed.map((f) => f.nutrients),
+    ...drinkParsed.map((f) => f.nutrients),
+  ]);
+  const overview = allItems.length ? (
+    <RecordOverview items={allItems} active={group} onOpen={switchGroup} />
+  ) : undefined;
+  const totals = allItems.length ? combined : undefined;
+  const registerNote =
+    allItems.length > 1 ? `${allItems.length} itens` : undefined;
 
   function switchGroup(next: "food" | "beverage") {
     if (next === group) return;
@@ -489,7 +510,9 @@ export function ClientQuickIntake({
                     saving={saving}
                     onCancel={closeForm}
                     topSlot={groupToggle}
-                    otherDraft={otherDraft}
+                    overview={overview}
+                    totals={totals}
+                    registerNote={registerNote}
                   />
                 ) : mode !== "water" ? (
                   <DrinkBoard
@@ -511,7 +534,9 @@ export function ClientQuickIntake({
                     saving={saving}
                     onCancel={closeForm}
                     topSlot={groupToggle}
-                    otherDraft={otherDraft}
+                    overview={overview}
+                    totals={totals}
+                    registerNote={registerNote}
                   />
                 ) : (
                   <>

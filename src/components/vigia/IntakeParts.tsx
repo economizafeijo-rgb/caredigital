@@ -167,6 +167,7 @@ export function SidePanel({
   error,
   saving,
   onCancel,
+  registerNote,
 }: {
   label: string;
   title: string;
@@ -181,6 +182,7 @@ export function SidePanel({
   error: string;
   saving: boolean;
   onCancel: () => void;
+  registerNote?: string;
 }) {
   return (
     <aside
@@ -245,6 +247,7 @@ export function SidePanel({
             style={{ ["--btn" as string]: tone }}
           >
             <Save size={15} /> {saving ? "Salvando..." : "Registrar agora"}
+            {!saving && registerNote ? <span className="text-[11px] font-semibold opacity-80">· {registerNote}</span> : null}
           </button>
         </div>
       </footer>
@@ -252,28 +255,67 @@ export function SidePanel({
   );
 }
 
-/** Aviso fixo: existe uma edição em aberto no outro grupo (refeição ou bebida) — toque para voltar. */
-export function DraftChip({
-  title,
-  detail,
+export type OverviewItem = {
+  key: string;
+  group: "food" | "beverage";
+  name: string;
+  detail: string;
+  kcal: number;
+};
+
+/**
+ * Resumo consolidado do registro em andamento: TUDO o que já foi escolhido (alimentos e bebida),
+ * visível em qualquer aba. Tocar num item leva de volta ao grupo dele para continuar editando.
+ */
+export function RecordOverview({
+  items,
+  active,
   onOpen,
 }: {
-  title: string;
-  detail: string;
-  onOpen: () => void;
+  items: OverviewItem[];
+  active: "food" | "beverage";
+  onOpen: (group: "food" | "beverage") => void;
 }) {
+  if (!items.length) return null;
+  const kcal = items.reduce((sum, i) => sum + i.kcal, 0);
   return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className="flex w-full items-center gap-2 border-b border-amber-400/30 border-l-[3px] border-l-amber-400 bg-amber-400/10 px-3 py-2 text-left transition hover:bg-amber-400/15 active:scale-[.99]"
+    <section
+      aria-label="Resumo do registro"
+      className="border-b border-amber-400/30 border-l-[3px] border-l-amber-400 bg-amber-400/[.07]"
     >
-      <span className="min-w-0 flex-1 leading-tight">
-        <span className="block text-[10px] font-bold text-amber-300">Edição em aberto</span>
-        <span className="block truncate text-xs font-semibold">{title}</span>
-        <span className="block truncate text-[11px] text-muted-foreground">{detail}</span>
-      </span>
-      <span className="shrink-0 text-[11px] font-bold text-amber-300">Voltar ›</span>
-    </button>
+      <p className="flex items-center justify-between gap-2 px-3 pt-2 text-[10px] font-bold text-amber-300">
+        <span>
+          Registro em andamento · {items.length} {items.length === 1 ? "item" : "itens"}
+        </span>
+        <span className="tabular-nums">{nf(kcal)} kcal</span>
+      </p>
+      <ul className="grid max-h-[7.5rem] grid-cols-[minmax(0,1fr)] overflow-y-auto px-1.5 py-1">
+        {items.map((item) => (
+          <li key={item.key} className="min-w-0">
+            <button
+              type="button"
+              onClick={() => onOpen(item.group)}
+              title={item.group === active ? "Editar" : "Voltar para editar"}
+              className="flex w-full min-w-0 items-center gap-2 px-1.5 py-1 text-left text-xs transition hover:bg-amber-400/10"
+            >
+              <span
+                aria-hidden="true"
+                className={
+                  "grid size-5 shrink-0 place-items-center text-[9px] font-bold " +
+                  (item.group === "food" ? "bg-emerald-500/20 text-emerald-300" : "bg-sky-500/20 text-sky-300")
+                }
+              >
+                {item.group === "food" ? "A" : "B"}
+              </span>
+              <span className="min-w-0 flex-1 truncate font-semibold">{item.name}</span>
+              <span className="shrink-0 tabular-nums text-[11px] text-muted-foreground">{item.detail}</span>
+              <span className="w-12 shrink-0 text-right tabular-nums text-[11px] font-bold">
+                {nf(item.kcal)}
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

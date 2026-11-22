@@ -4,7 +4,7 @@ import { HowItWorks, drinkHowTo } from "./HowItWorks";
 import { CareIntakeIcon } from "./CareIntakePicker";
 import { FoodThumb } from "./FoodArt";
 import { NutritionInfoCard } from "./MealSuggestions";
-import { DraftChip, KindRail, NutritionSummary, SidePanel } from "./IntakeParts";
+import { KindRail, NutritionSummary, SidePanel } from "./IntakeParts";
 import { beverageKinds, type BeverageKind } from "@/lib/care-intake-categories";
 import { drinkPresets, type DrinkPreset } from "@/lib/drink-presets";
 import { checkIntake } from "@/lib/hydration-need";
@@ -61,7 +61,10 @@ type Props = {
   onCancel: () => void;
   topSlot?: ReactNode;
   /** Edição em aberto no outro grupo (ex.: refeição montada enquanto escolhe bebida). */
-  otherDraft?: { title: string; detail: string; onOpen: () => void };
+  overview?: ReactNode;
+  /** Totais do registro inteiro (alimentos + bebida), quando há itens nos dois grupos. */
+  totals?: { kcal: number; protein: number; carbs: number; fat: number; fiber: number };
+  registerNote?: string;
 };
 
 /**
@@ -81,7 +84,9 @@ export function DrinkBoard({
   saving,
   onCancel,
   topSlot,
-  otherDraft,
+  overview,
+  totals,
+  registerNote,
 }: Props) {
   const tone = drinkTone[kind];
   const category = beverageKinds.find((c) => c.value === kind)!;
@@ -304,21 +309,18 @@ export function DrinkBoard({
         label="Sua bebida"
         title="Sua bebida"
         tone={tone}
-        pinned={
-          otherDraft ? (
-            <DraftChip title={otherDraft.title} detail={otherDraft.detail} onOpen={otherDraft.onOpen} />
-          ) : undefined
-        }
+        pinned={overview}
+        registerNote={registerNote}
         summary={
-          parsed.length > 0 ? (
+          totals || parsed.length > 0 ? (
             <NutritionSummary
-              kcal={total.kcal}
-              protein={total.protein}
-              carbs={total.carbs}
-              fat={total.fat}
-              fiber={total.fiber}
+              kcal={(totals ?? total).kcal}
+              protein={(totals ?? total).protein}
+              carbs={(totals ?? total).carbs}
+              fat={(totals ?? total).fat}
+              fiber={(totals ?? total).fiber}
               tone={tone}
-              caption="kcal"
+              caption={totals ? "kcal no registro" : "kcal"}
               note="Cálculo automático pelo volume; valores aproximados."
             />
           ) : undefined

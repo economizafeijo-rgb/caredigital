@@ -113,6 +113,11 @@ describe("registro de consumo por área", () => {
     // vai para bebidas, escolhe uma e volta: prato continua lá
     fireEvent.click(screen.getByRole("button", { name: /Bebidas/ }));
     fireEvent.click(screen.getByRole("button", { name: "Escolher Suco de graviola" }));
+    // o resumo consolidado mostra a refeição E a bebida, em qualquer aba
+    const summary = screen.getByLabelText("Resumo do registro");
+    expect(summary.textContent).toContain("2 itens");
+    expect(summary.textContent).toMatch(/Arroz/);
+    expect(summary.textContent).toMatch(/graviola/i);
     fireEvent.click(screen.getByRole("button", { name: /Alimentos/ }));
     expect((screen.getByLabelText(/O que você comeu/) as HTMLTextAreaElement).value).toBe("Arroz 100 g");
     fireEvent.click(screen.getByRole("button", { name: /Bebidas/ }));
