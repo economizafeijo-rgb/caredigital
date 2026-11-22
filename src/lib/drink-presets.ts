@@ -63,6 +63,7 @@ export const drinkPresets: DrinkPreset[] = [
   d("cha", "Chás", "Chá verde", 200, "chá verde"),
   d("cha", "Chás", "Chá preto ou mate", 200, "chá preto"),
   d("agua_coco", "Água de coco", "Água de coco", 250, "água de coco"),
+  d("agua", "Água", "Água com limão", 300, "água com limão"),
   d("refrigerante", "Refrigerante", "Refrigerante tipo cola", 250, "refrigerante"),
   d("refrigerante", "Refrigerante", "Refrigerante zero açúcar", 350, "refrigerante zero"),
   d("refrigerante", "Refrigerante", "Guaraná Quinari Zero", 350, "guaraná quinari zero"),
