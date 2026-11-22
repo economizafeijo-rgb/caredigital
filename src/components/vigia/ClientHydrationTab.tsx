@@ -90,12 +90,13 @@ const dateKey = (iso: string) =>
     month: "2-digit",
     day: "2-digit",
   }).format(new Date(iso));
-function estimate(profile: Profile) {
+function estimate(profile: Profile, trainedMinutesToday: number) {
   const need = hydrationNeed({
     sex: profile.sex,
     age: profile.age,
     weightKg: profile.weight_kg,
-    activityMinutes: profile.activity_minutes,
+    // Dia normal: sem reposição de suor. Só conta o treino registrado hoje (máx. 240 min).
+    activityMinutes: Math.min(240, Math.max(0, Math.round(trainedMinutesToday))),
     sweat: profile.sweat,
     fluidRestriction: profile.fluid_restriction,
   });
@@ -138,6 +139,7 @@ export function ClientHydrationTab({
   const [notice, setNotice] = useState("");
   const [reload, setReload] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [trainedToday, setTrainedToday] = useState(0);
   const [dailyGoal, setDailyGoal] = useState<HydrationGoalSnapshot | null>(null);
   const lastDeadlineRefresh = useRef<string>("");
   const [clock, setClock] = useState(() => Date.now());
@@ -200,7 +202,24 @@ export function ClientHydrationTab({
           .order("consumed_at", { ascending: true })
           .limit(200),
       ]);
+      const activityToday = await db
+        .from("care_activity_log")
+        .select("details")
+        .eq("patient_id", patientId)
+        .eq("category", "atividade")
+        .gte("happened_at", start.toISOString())
+        .lt("happened_at", end.toISOString())
+        .limit(50);
       if (!active) return;
+      setTrainedToday(
+        activityToday.error
+          ? 0
+          : (activityToday.data ?? []).reduce(
+              (total: number, row: { details?: { duration_minutes?: unknown } }) =>
+                total + (Number(row.details?.duration_minutes) || 0),
+              0,
+            ),
+      );
       if (saved.error || water.error || responses.error || goalSummary.error)
         setError(
           "Não foi possível consultar todos os registros de hidratação ou o fechamento da meta. Confira as permissões.",
@@ -264,7 +283,27 @@ export function ClientHydrationTab({
       active = false;
     };
   }, [patientId, ownerId, revision, reload]);
-  const calculation = useMemo(() => estimate(profile), [profile]);
+  const calculation = useMemo(() => estimate(profile, trainedToday), [profile, trainedToday]);
+  // A meta acompanha o dia: dia normal = base; dia de treino = base + reposição do suor registrado hoje.
+  const syncedTarget = useRef<string>("");
+  useEffect(() => {
+    if (loading || !configured || !calculation || calculation.requiresReview) return;
+    if (profile.fluid_restriction || !profile.target_ml || calculation.target === profile.target_ml)
+      return;
+    const key = `${acreCalendarDay(Date.now())}:${calculation.target}`;
+    if (syncedTarget.current === key) return;
+    syncedTarget.current = key;
+    void (async () => {
+      const result = await (supabase as any)
+        .from("care_hydration_profiles")
+        .update({ target_ml: calculation.target, updated_at: new Date().toISOString() })
+        .eq("patient_id", patientId);
+      if (!result.error) {
+        setProfile((prev) => ({ ...prev, target_ml: calculation.target }));
+        setReload((n) => n + 1);
+      }
+    })();
+  }, [loading, configured, calculation, profile.fluid_restriction, profile.target_ml, patientId]);
   const planValid = Boolean(configured && profile.target_ml && !profile.fluid_restriction);
   const goal = dailyGoal?.target_ml ?? (planValid ? profile.target_ml! : 0);
   // Horário ideal para concluir a água (orientação: líquidos em volume 3 h antes de dormir). Os registros não são limitados.
@@ -741,7 +780,7 @@ export function ClientHydrationTab({
               />
             </label>
             <label className="text-[11px]">
-              Treino (min/dia)
+              Treino habitual (min)
               <input
                 className="field mt-1"
                 type="number"
@@ -782,9 +821,11 @@ export function ClientHydrationTab({
               {calculation.band.max.toLocaleString("pt-BR")} ml; EFSA 2010 e National Academies
               2004)
               {calculation.activity > 0
-                ? `, mais ${calculation.activity.toLocaleString("pt-BR")} ml para repor o suor do treino`
+                ? `, mais ${calculation.activity.toLocaleString("pt-BR")} ml para repor o suor do treino de hoje (${trainedToday} min registrados)`
                 : ""}
-              . O objetivo não muda a quantidade de água; o que muda é o treino e o suor.
+              . Dia normal: só a base. Dia de treino: a reposição do suor entra automaticamente
+              quando você registra a atividade, sem passar de 500 ml por hora. O objetivo não muda a
+              quantidade de água.
               {calculation.requiresReview && (
                 <span className="mt-1 block font-semibold text-amber-700 dark:text-amber-300">
                   <AlertCircle size={12} className="mr-1 inline" />
