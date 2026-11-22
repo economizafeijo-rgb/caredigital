@@ -1,28 +1,99 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { useLiveStores } from "./LiveStores";
+import { money } from "@/lib/marketplace";
 import { ArrowRight, MapPin, Megaphone, Sparkles, Store } from "lucide-react";
 
-const kessiaProducts = [
-  { ref: "vestido-floresta", name: "Vestido Midi Floresta", price: "R$ 159,90", old: "R$ 189,90" },
-  { ref: "cropped-bordado", name: "Cropped Bordado à Mão", price: "R$ 89,90", old: "R$ 109,90" },
-  { ref: "bolsa-palha", name: "Bolsa de Palha", price: "R$ 139,90" },
-  { ref: "colar-sementes", name: "Colar de Sementes", price: "R$ 49,90" },
-];
+const KESSIA = "kessia-digital-store";
 
-/** Frases que alternam no destaque da Kessia, para chamar atenção sem poluir. */
-const kessiaLines = [
-  "Moda feminina com a cara do Acre",
-  "Bijuterias artesanais feitas em Feijó",
-  "5% de desconto pagando no Pix",
-  "Retire na loja ou receba em casa",
-];
+type Card = {
+  key: string;
+  name: string;
+  img: string;
+  price: string;
+  old?: string;
+  off: number;
+  note?: string;
+  href: string;
+};
+
+/** Vitrine de reserva enquanto os produtos reais não chegam do banco. */
+const fallbackCards: Card[] = (
+  [
+    ["vestido-floresta", "Vestido Midi Floresta", 15990, 18990],
+    ["cropped-bordado", "Cropped Bordado à Mão", 8990, 10990],
+    ["bolsa-palha", "Bolsa de Palha", 13990, 0],
+    ["colar-sementes", "Colar de Sementes", 4990, 0],
+  ] as const
+).map(([ref, name, price, old]) => ({
+  key: ref,
+  name,
+  img: `/loja/kessia/${ref}.png`,
+  price: money(price),
+  old: old ? money(old) : undefined,
+  off: old ? Math.round((1 - price / old) * 100) : 0,
+  href: `/loja?loja=${KESSIA}`,
+}));
+
+type Ctx = { cards: Card[]; tick: number };
+
+function ProductPages({ cards, tick }: Ctx) {
+  const pages: Card[][] = [];
+  for (let i = 0; i < cards.length; i += 4) pages.push(cards.slice(i, i + 4));
+  const page = pages.length ? Math.floor(tick / 2) % pages.length : 0;
+  return (
+    <div className="grid">
+      {pages.map((pg, k) => (
+        <ul
+          key={k}
+          aria-hidden={k !== page}
+          className={`col-start-1 row-start-1 grid grid-cols-2 gap-2.5 transition-opacity duration-700 sm:grid-cols-4 ${k === page ? "opacity-100" : "pointer-events-none opacity-0"}`}
+        >
+          {pg.map((p) => (
+            <li key={p.key} className="min-w-0">
+              <a
+                href={p.href}
+                tabIndex={k === page ? 0 : -1}
+                className="group relative block overflow-hidden rounded-xl bg-white text-slate-900 shadow-lg"
+              >
+                <img
+                  src={p.img}
+                  alt=""
+                  loading="lazy"
+                  className="aspect-square w-full object-cover transition duration-500 group-hover:scale-105"
+                />
+                {p.off > 0 && (
+                  <span className="absolute left-2 top-2 rounded-full bg-[#c81d6b] px-2 py-0.5 text-[11px] font-extrabold text-white">
+                    −{p.off}%
+                  </span>
+                )}
+                {p.note && (
+                  <span className="absolute right-2 top-2 rounded-full bg-amber-400 px-2 py-0.5 text-[11px] font-bold text-slate-900">
+                    {p.note}
+                  </span>
+                )}
+                <div className="p-2.5">
+                  <p className="truncate text-[12.5px] font-semibold">{p.name}</p>
+                  <p className="mt-0.5 flex items-baseline gap-1.5">
+                    <span className="text-sm font-extrabold text-[#8a1459]">{p.price}</span>
+                    {p.old && <s className="text-[11px] text-slate-400">{p.old}</s>}
+                  </p>
+                </div>
+              </a>
+            </li>
+          ))}
+        </ul>
+      ))}
+    </div>
+  );
+}
 
 type Slide = {
   id: string;
   bg: string;
   tint: string;
-  render: (line: string) => ReactNode;
+  render: (line: string, ctx: Ctx) => ReactNode;
 };
 
 function Tag({ children }: { children: ReactNode }) {
@@ -38,7 +109,7 @@ const slides: Slide[] = [
     id: "kessia",
     bg: "/loja/bela-vista/banner.jpg",
     tint: "from-[#2a0a22]/95 via-[#4a0f3a]/85 to-[#2a0a22]/60",
-    render: (line) => (
+    render: (line, ctx) => (
       <div className="grid gap-6 lg:grid-cols-[minmax(0,.9fr)_minmax(0,1.4fr)] lg:items-center lg:gap-10">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -76,28 +147,7 @@ const slides: Slide[] = [
             </a>
           </div>
         </div>
-        <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-          {kessiaProducts.map((p) => (
-            <li
-              key={p.ref}
-              className="group overflow-hidden rounded-xl bg-white text-slate-900 shadow-lg"
-            >
-              <img
-                src={`/loja/kessia/${p.ref}.png`}
-                alt={p.name}
-                loading="lazy"
-                className="aspect-square w-full object-cover transition duration-500 group-hover:scale-105"
-              />
-              <div className="p-2.5">
-                <p className="truncate text-[12.5px] font-semibold">{p.name}</p>
-                <p className="mt-0.5 flex items-baseline gap-1.5">
-                  <span className="text-sm font-extrabold text-[#8a1459]">{p.price}</span>
-                  {p.old && <s className="text-[11px] text-slate-400">{p.old}</s>}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <ProductPages {...ctx} />
       </div>
     ),
   },
@@ -153,7 +203,6 @@ const slides: Slide[] = [
 ];
 
 const lines: Record<string, string[]> = {
-  kessia: kessiaLines,
   empreendedor: [
     "Cadastro simples e rápido",
     "Seus produtos para toda Feijó",
@@ -203,12 +252,58 @@ function adSlide(a: AdRow): Slide {
   };
 }
 
+type LiveList = ReturnType<typeof useLiveStores>;
+
+/** Monta a vitrine e as frases da Kessia a partir dos produtos reais (preços, promoções, estoque). */
+function buildKessia(live: LiveList["products"], vendors: LiveList["vendors"]) {
+  const mine = live.filter((p) => p.vendor.slug === KESSIA && p.stock > 0);
+  if (!mine.length) {
+    return {
+      cards: fallbackCards,
+      lines: [
+        "Moda feminina com a cara do Acre",
+        "Bijuterias artesanais feitas em Feijó",
+        "5% de desconto pagando no Pix",
+        "Retire na loja ou receba em casa",
+      ],
+    };
+  }
+  const offOf = (p: (typeof mine)[number]) =>
+    p.old_price_cents && p.old_price_cents > p.price_cents
+      ? Math.round((1 - p.price_cents / p.old_price_cents) * 100)
+      : 0;
+  const sorted = [...mine].sort((a, b) => offOf(b) - offOf(a));
+  const cards: Card[] = sorted.slice(0, 12).map((p) => ({
+    key: p.id,
+    name: p.name,
+    img: p.image_url || "/loja/kessia/mark.svg",
+    price: money(p.price_cents),
+    old: offOf(p) ? money(p.old_price_cents as number) : undefined,
+    off: offOf(p),
+    note: p.stock <= 3 ? `Últimas ${p.stock}` : undefined,
+    href: p.share_code ? `/p/${p.share_code}` : `/loja?loja=${KESSIA}`,
+  }));
+  const best = sorted[0];
+  const open = vendors.find((v) => v.slug === KESSIA)?.is_open;
+  const lines = [
+    `${mine.length} produtos na vitrine online`,
+    offOf(best)
+      ? `Até ${offOf(best)}% off: ${best.name}`
+      : `${best.name} por ${money(best.price_cents)}`,
+    "5% de desconto pagando no Pix",
+    open ? "Loja aberta agora" : "Retire na loja ou receba em casa",
+  ];
+  return { cards, lines };
+}
+
 /** Destaques premium da home: carrossel com textos que alternam. A Kessia abre a sequência. */
 export function HomeKessiaAd() {
   const [i, setI] = useState(0);
   const [tick, setTick] = useState(0);
   const [paused, setPaused] = useState(false);
   const [ads, setAds] = useState<AdRow[]>([]);
+  const { products: live, vendors } = useLiveStores();
+  const kessia = useMemo(() => buildKessia(live, vendors), [live, vendors]);
   useEffect(() => {
     let alive = true;
     const today = new Date().toISOString().slice(0, 10);
@@ -247,12 +342,12 @@ export function HomeKessiaAd() {
     const t = window.setInterval(() => setTick((n) => n + 1), 3200);
     return () => window.clearInterval(t);
   }, [paused]);
-  // A cada 4 trocas de frase passa para o próximo destaque.
+  // A cada 6 trocas de frase passa para o próximo destaque.
   useEffect(() => {
-    if (tick > 0 && tick % 4 === 0) setI((n) => (n + 1) % all.length);
+    if (tick > 0 && tick % 6 === 0) setI((n) => (n + 1) % all.length);
   }, [tick, all.length]);
   const slide = all[i % all.length];
-  const set = lines[slide.id] ?? [""];
+  const set = slide.id === "kessia" ? kessia.lines : (lines[slide.id] ?? [""]);
   const line = set[tick % set.length];
   return (
     <section
@@ -279,7 +374,7 @@ export function HomeKessiaAd() {
         className={`absolute inset-0 -z-10 bg-gradient-to-r ${slide.tint}`}
       />
       <div key={slide.id} className="nv-rise">
-        {slide.render(line)}
+        {slide.render(line, { cards: kessia.cards, tick })}
       </div>
       <div className="mt-5 flex items-center gap-2" role="tablist" aria-label="Escolher destaque">
         {all.map((s, k) => (

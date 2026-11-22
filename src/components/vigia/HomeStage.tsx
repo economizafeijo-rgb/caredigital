@@ -166,9 +166,6 @@ export function HomeStage({
   }, [auto, touched]);
 
   const goal = goals[idx];
-  const picks = goal.ids
-    .map((id) => products.find((p) => p.id === id))
-    .filter((p): p is Product => !!p);
   const greet =
     hour === null ? "Olá" : hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
   const choose = (i: number) => {
@@ -310,47 +307,59 @@ export function HomeStage({
         </div>
 
         <div className="min-w-0">
-          <div
-            key={goal.key}
-            className="nv-fade-in grid grid-cols-3 gap-2 sm:gap-3 lg:grid-cols-2 lg:grid-rows-2"
-          >
-            {picks.map((p, i) => {
-              const off = offOf(p.priceCents, p.oldPriceCents);
-              const pix = Math.round(p.priceCents * (1 - PIX_DISCOUNT));
+          <div className="grid">
+            {goals.map((g, gi) => {
+              const on = gi === idx;
+              const gp = g.ids
+                .map((id) => products.find((x) => x.id === id))
+                .filter((x): x is Product => !!x);
               return (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => openProduct(p.id)}
-                  aria-label={`Ver ${p.name}, ${money(p.priceCents)}`}
-                  className={`group relative overflow-hidden rounded-2xl bg-[#e9ebee] text-left ring-1 ring-white/20 transition-transform duration-200 [@media(hover:hover)]:hover:-translate-y-1 ${i === 0 ? "aspect-[3/4] lg:row-span-2 lg:aspect-auto lg:min-h-[21rem]" : "aspect-[3/4] lg:aspect-[4/3]"}`}
+                <div
+                  key={g.key}
+                  aria-hidden={!on}
+                  className={`col-start-1 row-start-1 grid grid-cols-3 gap-2 transition-opacity duration-700 ease-in-out sm:gap-3 lg:grid-cols-2 lg:grid-rows-2 ${on ? "opacity-100" : "pointer-events-none opacity-0"}`}
                 >
-                  <img
-                    src={p.img}
-                    alt=""
-                    width={480}
-                    height={480}
-                    loading={i === 0 ? "eager" : "lazy"}
-                    decoding="async"
-                    className="size-full object-cover motion-safe:transition motion-safe:duration-500 [@media(hover:hover)]:group-hover:scale-105"
-                  />
-                  {off > 0 && (
-                    <span className="absolute right-1.5 top-1.5 rounded-full bg-amber-400 px-2 py-0.5 text-[11px] font-extrabold text-slate-950 sm:right-2.5 sm:top-2.5">
-                      −{off}%
-                    </span>
-                  )}
-                  <span className="absolute inset-x-1.5 bottom-1.5 rounded-xl bg-white/95 px-2 py-1.5 text-slate-900 shadow sm:inset-x-2.5 sm:bottom-2.5 sm:px-3 sm:py-2">
-                    <span className="line-clamp-1 hidden text-[13px] font-semibold leading-tight sm:block">
-                      {p.name}
-                    </span>
-                    <strong className="block text-[13px] font-extrabold tabular-nums text-slate-900 sm:text-base">
-                      {money(p.priceCents)}
-                    </strong>
-                    <span className="hidden text-[11px] font-semibold tabular-nums text-slate-500 sm:block">
-                      {money(pix)} no Pix
-                    </span>
-                  </span>
-                </button>
+                  {gp.map((p, i) => {
+                    const off = offOf(p.priceCents, p.oldPriceCents);
+                    const pix = Math.round(p.priceCents * (1 - PIX_DISCOUNT));
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        tabIndex={on ? 0 : -1}
+                        onClick={() => openProduct(p.id)}
+                        aria-label={`Ver ${p.name}, ${money(p.priceCents)}`}
+                        className={`group relative overflow-hidden rounded-2xl bg-[#e9ebee] text-left ring-1 ring-white/20 transition-transform duration-200 [@media(hover:hover)]:hover:-translate-y-1 ${i === 0 ? "aspect-[3/4] lg:row-span-2 lg:aspect-auto lg:min-h-[21rem]" : "aspect-[3/4] lg:aspect-[4/3]"}`}
+                      >
+                        <img
+                          src={p.img}
+                          alt=""
+                          width={480}
+                          height={480}
+                          loading="eager"
+                          decoding="async"
+                          className="size-full object-cover motion-safe:transition motion-safe:duration-500 [@media(hover:hover)]:group-hover:scale-105"
+                        />
+                        {off > 0 && (
+                          <span className="absolute right-1.5 top-1.5 rounded-full bg-amber-400 px-2 py-0.5 text-[11px] font-extrabold text-slate-950 sm:right-2.5 sm:top-2.5">
+                            −{off}%
+                          </span>
+                        )}
+                        <span className="absolute inset-x-1.5 bottom-1.5 rounded-xl bg-white/95 px-2 py-1.5 text-slate-900 shadow sm:inset-x-2.5 sm:bottom-2.5 sm:px-3 sm:py-2">
+                          <span className="line-clamp-1 hidden text-[13px] font-semibold leading-tight sm:block">
+                            {p.name}
+                          </span>
+                          <strong className="block text-[13px] font-extrabold tabular-nums text-slate-900 sm:text-base">
+                            {money(p.priceCents)}
+                          </strong>
+                          <span className="hidden text-[11px] font-semibold tabular-nums text-slate-500 sm:block">
+                            {money(pix)} no Pix
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               );
             })}
           </div>
