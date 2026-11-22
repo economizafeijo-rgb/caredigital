@@ -49,6 +49,7 @@ export const foodMicros: Record<string, [number, number, number, number, number]
   cafe_soluvel: [0, 0, 3, 0, 70],
   leite_integral: [1, 30, 123, 0.1, 133],
   leite_po_integral: [8, 250, 890, 0.5, 1100],
+  ninho_integral_preparado: [9.5, 100, 191, 1.4, 0],
   leite_po_desnatado: [5, 0, 1360, 0.9, 1700],
   cereal_com_leite: [3, 100, 95, 1.5, 130],
   pasta_amendoim: [0, 0, 45, 1.9, 560],
@@ -275,6 +276,7 @@ const aliases: Array<[RegExp, string]> = [
     "pimenta_terra",
   ],
   [/nescafe_leite_lata/, "nescafe_leite_lata"],
+  [/ninho_integral_preparado/, "ninho_integral_preparado"],
   [/caf[eé][ _]com[ _]leite (de gado|de vaca|fresco|da fazenda)/, "cafe_leite_gado"],
   [/caf[eé][ _]com[ _]leite desnatado/, "cafe_leite_desnatado"],
   [/leite desnatado/, "leite_desnatado"],
@@ -471,6 +473,7 @@ const aliases: Array<[RegExp, string]> = [
   [/feij[aã]o preto/, "feijao_preto"],
   [/feij[aã]o/, "feijao"],
   [/nescafe_leite_lata/, "nescafe_leite_lata"],
+  [/ninho_integral_preparado/, "ninho_integral_preparado"],
   [/caf[eé][ _]com[ _]leite (de gado|de vaca|fresco|da fazenda)/, "cafe_leite_gado"],
   [/caf[eé][ _]com[ _]leite em p[oó]|leite em p[oó]|leite ninho/, "cafe_leite_po"],
   [/caf[eé][ _]com[ _]leite|pingado/, "cafe_com_leite"],
@@ -689,6 +692,7 @@ const defaultPortion: Record<string, number> = {
   cafe_leite_gado: 200,
   cafe_leite_po: 200,
   nescafe_leite_lata: 110,
+  ninho_integral_preparado: 200,
   agua_coco: 300,
   refrigerante: 350,
   pirarucu: 120,
@@ -899,6 +903,7 @@ export function parseFoodText(text: string, liquidMl?: number | null): ParsedFoo
     .toLowerCase()
     .normalize("NFC")
     .replace(/nescaf[eé] com leite (cremoso|\(?lata\)?)/g, "nescafe_leite_lata")
+    .replace(/(leite )?ninho (leite )?integral( preparado| dissolvido)?|leite ninho (preparado|dissolvido)|copo de leite ninho/g, "ninho_integral_preparado")
     .replace(/nescaf[eé] com leite em p[oó]/g, "café com leite em pó")
     .replace(/nescaf[eé] com leite desnatado/g, "café com leite desnatado")
     .replace(/nescaf[eé] com leite/g, "café com leite")

@@ -35,6 +35,7 @@ export const drinkPresets: DrinkPreset[] = [
   d("leite", "Leite e achocolatado", "Leite semidesnatado", 200, "leite semidesnatado"),
   d("leite", "Leite e achocolatado", "Leite desnatado", 200, "leite desnatado"),
   d("leite", "Leite e achocolatado", "Leite em pó dissolvido", 200, "leite em pó dissolvido"),
+  d("leite", "Leite e achocolatado", "Leite Ninho Integral (lata, 25 g + 200 ml)", 200, "leite ninho integral"),
   d("leite", "Leite e achocolatado", "Nescau (achocolatado com leite)", 250, "nescau"),
   d("leite", "Leite e achocolatado", "Iogurte natural", 170, "iogurte natural"),
   d("suco", "Sucos naturais", "Suco de graviola", 250, "suco de graviola"),

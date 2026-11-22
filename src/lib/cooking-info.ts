@@ -5,6 +5,12 @@
 export type CookInfo = { kind: string; benefit: string; prep: string };
 
 export const cookInfo: Record<string, CookInfo> = {
+  ninho_integral_preparado: {
+    kind: "Leite em pó integral reconstituído",
+    benefit:
+      "Cada porção de 25 g (2 colheres de sopa) tem 124 kcal, 6,4 g de proteína e 6,7 g de gordura, com 380 mg de cálcio (38% do valor diário). Os 9 g de açúcares são a lactose do leite, sem açúcar adicionado (rótulo Nestlé). Contém lactose.",
+    prep: "Rótulo: 2 colheres de sopa (25 g) por porção; a lata rende cerca de 15 copos. Pelos valores do rótulo, 25 g equivalem a um copo de cerca de 200 ml. Dissolva o pó em um pouco de água morna e complete com água, mexendo até ficar homogêneo.",
+  },
   nescafe_leite_lata: {
     kind: "Bebida instantânea de café com leite",
     benefit:
