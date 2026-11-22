@@ -164,6 +164,7 @@ export const foodMicros: Record<string, [number, number, number, number, number]
   pernil_assado: [0, 0, 10, 1.2, 360],
   lombo_assado: [0, 0, 8, 1, 400],
   refrigerante_zero: [0, 0, 3, 0, 5],
+  quinari_zero: [0, 0, 0, 0, 0],
   frango_assado: [0, 40, 12, 1.1, 240],
   calabresa: [0, 0, 10, 1, 250],
   salsicha: [0, 0, 10, 1.2, 180],
@@ -402,6 +403,7 @@ const aliases: Array<[RegExp, string]> = [
   [/quibe/, "quibe_arroz"],
   [/feij[aã]o[- ]preto/, "feijao_preto"],
   [/suco( natural)? de goiaba/, "suco_goiaba"],
+  [/quinari_zero/, "quinari_zero"],
   [/refrigerante_zero/, "refrigerante_zero"],
   [/peixe (frito )?empanado|peixe frito (na|com) farinha|pescada empanada/, "peixe_frito_empanado"],
   [/peixe frito (sem farinha|sem empanar|puro|simples)/, "peixe_frito_simples"],
@@ -720,6 +722,7 @@ const defaultPortion: Record<string, number> = {
   peixe_frito_empanado: 120,
   peixe_frito_simples: 120,
   refrigerante_zero: 350,
+  quinari_zero: 350,
   frango_assado: 150,
   calabresa: 60,
   salsicha: 50,
@@ -871,6 +874,7 @@ export function parseFoodText(text: string, liquidMl?: number | null): ParsedFoo
     .replace(/nescaf[eé] com leite desnatado/g, "café com leite desnatado")
     .replace(/nescaf[eé] com leite/g, "café com leite")
     .replace(/caf[eé] com leite/g, "café_com_leite")
+    .replace(/(guaran[aá] )?quinari( guaran[aá])?( zero| 0| diet| sem a[cç][uú]car)+/g, "quinari_zero")
     .replace(/(refrigerante|refri|coca(-| )?cola|coca|guaran[aá])( zero| 0| diet| light| sem a[cç][uú]car| zero a[cç][uú]car| 0 a[cç][uú]car)+/g, "refrigerante_zero")
     .replace(/(mingau de [a-zà-ú]+) com leite/g, "$1")
     .replace(
