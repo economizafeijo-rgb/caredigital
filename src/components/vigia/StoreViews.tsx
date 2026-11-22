@@ -374,8 +374,8 @@ export function VendorStorePage({ vendorId, onBack }: { vendorId: VendorId; onBa
                 <h1 className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-display text-2xl font-extrabold leading-tight tracking-tight sm:text-[2rem]">
                   {v.name}
                   {v.sampleVerified && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-white/12 px-2.5 py-0.5 text-[11px] font-bold text-sky-200 ring-1 ring-white/15">
-                      <BadgeCheck size={13} /> Verificada
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-2.5 py-1 text-[11px] font-extrabold text-white shadow-[0_0_0_3px_rgba(16,185,129,.25)]">
+                      <BadgeCheck size={13} aria-hidden="true" /> Loja verificada
                     </span>
                   )}
                 </h1>

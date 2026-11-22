@@ -269,8 +269,8 @@ function PublicStore({
               <h1 className="flex flex-wrap items-center gap-x-2 gap-y-1 font-display text-xl font-extrabold leading-tight tracking-tight sm:text-2xl">
                 {vendor.name}
                 {vendor.verified && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[10.5px] font-bold text-sky-200 ring-1 ring-white/20">
-                    <BadgeCheck size={12} /> Verificada
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-2.5 py-1 text-[11px] font-extrabold text-white shadow-[0_0_0_3px_rgba(16,185,129,.25)]">
+                    <BadgeCheck size={14} aria-hidden="true" /> Loja verificada
                   </span>
                 )}
               </h1>
