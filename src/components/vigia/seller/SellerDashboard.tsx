@@ -63,13 +63,6 @@ const initialsOf = (name: string) =>
     .join("")
     .toUpperCase();
 
-/** Fundo padrão do painel: arcos concêntricos na cor da loja, sem depender de imagem externa. */
-function panelBackground(accent: string, banner?: string | null) {
-  if (banner) return `url("${banner}")`;
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 800' preserveAspectRatio='xMidYMid slice'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='${accent}' stop-opacity='.9'/><stop offset='1' stop-color='#020617' stop-opacity='1'/></linearGradient></defs><rect width='1200' height='800' fill='url(#g)'/><g fill='none' stroke='#ffffff' stroke-opacity='.08' stroke-width='2'><circle cx='1120' cy='-40' r='240'/><circle cx='1120' cy='-40' r='340'/><circle cx='1120' cy='-40' r='440'/><circle cx='80' cy='880' r='300'/><circle cx='80' cy='880' r='420'/></g></svg>`;
-  return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
-}
-
 /** Painel do lojista: menu lateral com a loja e as ações, e os módulos de operação ao lado. */
 export function SellerDashboard({
   vendors,
@@ -309,20 +302,9 @@ export function SellerDashboard({
         </div>
       )}
       <div
-        className="relative isolate grid min-h-full w-full gap-4 lg:grid-cols-[16rem_minmax(0,1fr)]"
+        className="grid min-h-full w-full gap-4 lg:grid-cols-[16rem_minmax(0,1fr)]"
         style={{ "--accent-store": accent } as CSSProperties}
       >
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[30rem] overflow-hidden rounded-3xl"
-        >
-          <img
-            src="/images/hero-metricas.webp"
-            alt=""
-            className="size-full object-cover opacity-70"
-          />
-          <span className="absolute inset-0 bg-gradient-to-b from-background/10 via-background/45 to-background" />
-        </div>
         {/* Menu lateral: identidade da loja, navegação e ações */}
         <aside
           aria-label="Menu do lojista"
@@ -477,12 +459,10 @@ export function SellerDashboard({
         >
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 -z-10 bg-cover bg-[position:70%_40%] opacity-25 blur-[2px] dark:opacity-20"
-            style={{ backgroundImage: panelBackground(accent, vendor.banner_url) }}
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 -z-10 bg-background/90"
+            className="pointer-events-none absolute inset-0 -z-10"
+            style={{
+              backgroundImage: `radial-gradient(60rem 22rem at 100% 0%, color-mix(in srgb, ${accent} 16%, transparent), transparent 70%), radial-gradient(40rem 20rem at 0% 100%, color-mix(in srgb, ${accent} 10%, transparent), transparent 70%)`,
+            }}
           />
           {error && (
             <p
@@ -501,6 +481,45 @@ export function SellerDashboard({
               responde clientes.
             </p>
           )}
+          <div
+            className="nv-dark relative -mx-4 -mt-4 mb-5 flex min-h-[8.5rem] items-end overflow-hidden rounded-t-2xl p-4 text-white sm:-mx-6 sm:-mt-6 sm:min-h-[10rem] sm:p-6"
+            style={{
+              backgroundImage: `linear-gradient(100deg, color-mix(in srgb, ${accent} 92%, #000) 0%, color-mix(in srgb, ${accent} 70%, #fff 0%) 38%, rgba(15,23,42,.35) 100%), url(${vendor.banner_url || "/loja/bela-vista/banner.jpg"})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center 30%",
+            }}
+          >
+            <span
+              aria-hidden
+              className="absolute -right-10 -top-14 size-44 rounded-full bg-white/15 blur-2xl"
+            />
+            <span
+              aria-hidden
+              className="absolute bottom-0 right-1/4 size-24 rounded-full bg-white/10 blur-xl"
+            />
+            <div className="relative flex min-w-0 items-center gap-3 sm:gap-4">
+              <span className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white p-1 shadow-lg ring-4 ring-white/30 sm:size-16">
+                {vendor.logo_url ? (
+                  <img src={vendor.logo_url} alt="" className="size-full object-contain" />
+                ) : (
+                  <span className="text-xl font-black" style={{ color: accent }}>
+                    {vendor.name.slice(0, 1)}
+                  </span>
+                )}
+              </span>
+              <div className="min-w-0">
+                <p className="text-[12px] font-semibold tracking-wide text-white/85">
+                  Painel da loja
+                </p>
+                <p className="truncate font-display text-xl font-extrabold leading-tight tracking-tight sm:text-3xl">
+                  {vendor.name}
+                </p>
+                <p className="mt-0.5 text-[13px] text-white/85">
+                  {allNav[tab]?.label ?? "Visão geral"} · {vendor.city.replace(/,\s*AC$/i, "")}
+                </p>
+              </div>
+            </div>
+          </div>
           {!loaded ? (
             <p
               role="status"
