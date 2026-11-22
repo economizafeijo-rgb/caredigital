@@ -471,7 +471,9 @@ export function HomeMarketplace({ middle }: { middle?: ReactNode }) {
         </Rail>
       </Band>
 
-      <PilotNotice className="mb-1" />
+      <div className="flex justify-end">
+        <PilotNotice />
+      </div>
 
       {middle}
 

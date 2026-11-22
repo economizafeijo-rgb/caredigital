@@ -206,7 +206,6 @@ function PublicStore({
 
   return (
     <div className="flex flex-col gap-4" style={{ "--v": accent } as CSSProperties}>
-      <PilotNotice />
       <section
         className="nv-dark relative isolate rounded-3xl text-white shadow-pop"
         style={{
@@ -231,6 +230,7 @@ function PublicStore({
               loja de teste
             </span>
           )}
+          <PilotNotice className="ml-auto" />
         </nav>
         <div aria-hidden className="absolute inset-0 -z-10 overflow-hidden rounded-3xl">
           <img
