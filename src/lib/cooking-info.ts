@@ -5,6 +5,12 @@
 export type CookInfo = { kind: string; benefit: string; prep: string };
 
 export const cookInfo: Record<string, CookInfo> = {
+  nescau_leite_pronto: {
+    kind: "Achocolatado em pó com leite",
+    benefit:
+      "Por 100 ml pronto: 86 kcal, 3,5 g de proteína e 12 g de açúcares, dos quais 7 g adicionados, além de 318 mg de cálcio (rótulo Nestlé). Cada 20 g de pó trazem 15 g de açúcares adicionados, 30% do valor diário: vale contar no dia.",
+    prep: "Porção do rótulo: 2 colheres de sopa (20 g). Pelos valores do rótulo, o copo pronto tem cerca de 200 ml de leite; misture o pó no leite até dissolver por completo.",
+  },
   ninho_integral_preparado: {
     kind: "Leite em pó integral reconstituído",
     benefit:

@@ -424,6 +424,16 @@ const baseIngredients: Omit<Ingredient, "carbs" | "fat" | "fiber">[] = [
     note: "Estimativa para café coado com leite integral, sem açúcar.",
   },
   {
+    id: "nescau_leite_pronto",
+    name: "Nescau (achocolatado em pó) com leite, pronto",
+    group: "bebidas",
+    protein: 3.5,
+    kcal: 86,
+    provenance: "rotulo",
+    flags: ["laticinio", "industrializado"],
+    note: "Rótulo Nestlé (edição limitada, lata de 350 g), por 100 ml pronto: 13 g de carboidratos (12 g de açúcares, 7 g adicionados), 2,1 g de gordura (1,3 g saturada), 0,4 g de fibras e 51 mg de sódio; cálcio 318 mg, ferro 1,3 mg e vitaminas A, C, D, B2, B3, B6 e B12 adicionadas. Porção de 20 g de pó (2 colheres de sopa): 76 kcal, 15 g de açúcares adicionados (30% do valor diário). Contém derivados de leite e de soja; pode conter trigo, aveia e cevada.",
+  },
+  {
     id: "achocolatado",
     name: "Leite com achocolatado",
     group: "bebidas",
@@ -1624,7 +1634,7 @@ const baseIngredients: Omit<Ingredient, "carbs" | "fat" | "fiber">[] = [
     kcal: 0,
     provenance: "rotulo",
     flags: ["industrializado"],
-    note: "Rótulo: 0 kcal e 0 g de açúcar; 17 mg de sódio por 100 ml. Adoçado com ciclamato, sacarina e sucralose.",
+    note: "Rótulo: 0 kcal e 0 g de açúcar; 17 mg de sódio por 100 ml. Adoçado com ciclamato, sacarina e sucralose. Contém extrato padronizado de guaraná (fonte de cafeína; a quantidade não consta no rótulo). Porção de 200 ml: 34 mg de sódio.",
   },
   {
     id: "refrigerante_zero",
@@ -2370,6 +2380,7 @@ const macroMap: Record<
   cafe_leite_po: [4.8, 3.2, 0],
   nescafe_leite_lata: [13, 1.8, 0, "rotulo"],
   ninho_integral_preparado: [4.7, 3.4, 0, "rotulo"],
+  nescau_leite_pronto: [13, 2.1, 0.4, "rotulo"],
   agua_coco: [5.3, 0, 0.1, "TACO"],
   refrigerante: [8.7, 0, 0, "TACO"],
   baixaria: [22, 6, 1.5],
