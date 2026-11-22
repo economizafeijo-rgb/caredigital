@@ -32,7 +32,6 @@ type Goal = {
   tool: string;
   toolTo: string;
   toolClient: string;
-  color: string;
 };
 
 /** Objetivos que o visitante escolhe: cada um muda a vitrine, o texto e a ferramenta sugerida. */
@@ -46,7 +45,6 @@ const goals: Goal[] = [
     tool: "Alimentação e treinos",
     toolTo: "/dietas",
     toolClient: "/cliente#alimentacao",
-    color: "#34d399",
   },
   {
     key: "saude",
@@ -57,7 +55,6 @@ const goals: Goal[] = [
     tool: "Medicação e suplementos",
     toolTo: "/medicamentos",
     toolClient: "/cliente#medicacao",
-    color: "#fb7185",
   },
   {
     key: "peso",
@@ -68,7 +65,6 @@ const goals: Goal[] = [
     tool: "Peso e medidas",
     toolTo: "/peso",
     toolClient: "/cliente#peso",
-    color: "#e879f9",
   },
   {
     key: "moda",
@@ -79,7 +75,6 @@ const goals: Goal[] = [
     tool: "Treinos",
     toolTo: "/treinos",
     toolClient: "/cliente#atividade",
-    color: "#f472b6",
   },
   {
     key: "casa",
@@ -90,7 +85,6 @@ const goals: Goal[] = [
     tool: "Registro de treinos",
     toolTo: "/treinos",
     toolClient: "/cliente#atividade",
-    color: "#fbbf24",
   },
 ];
 
@@ -114,11 +108,17 @@ function CampaignPill() {
     <a
       href="#relampago"
       style={{ animationDelay: "40ms" }}
-      className={`nv-rise inline-flex max-w-full items-center gap-2 rounded-full px-3 py-1.5 text-[12.5px] font-extrabold transition hover:brightness-110 ${bf ? "bg-yellow-300 text-black" : "bg-emerald-300 text-emerald-950"}`}
+      className="nv-rise inline-flex max-w-full items-center gap-2 rounded-full bg-white/[.08] px-3 py-1.5 text-[12.5px] font-semibold text-white ring-1 ring-white/15 transition hover:bg-white/[.14]"
     >
-      <Zap size={14} aria-hidden="true" className="shrink-0" />
+      <Zap
+        size={14}
+        aria-hidden="true"
+        className={`shrink-0 ${bf ? "text-amber-300" : "text-[#3fe0c8]"}`}
+      />
       <span className="truncate">
-        {campaign.name} · {campaign.untilLabel.toLowerCase()}{" "}
+        {campaign.untilLabel === "Black Friday em"
+          ? `${campaign.headline} · começa em`
+          : `${campaign.name} · ${campaign.untilLabel.toLowerCase()}`}{" "}
         <span className="tabular-nums">
           {c.d > 0 ? `${c.d}d ` : ""}
           {String(c.h).padStart(2, "0")}h {String(c.m).padStart(2, "0")}min
@@ -163,7 +163,8 @@ export function HomeStage({
   const picks = goal.ids
     .map((id) => products.find((p) => p.id === id))
     .filter((p): p is Product => !!p);
-  const greet = hour === null ? "Olá" : hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
+  const greet =
+    hour === null ? "Olá" : hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
   const choose = (i: number) => {
     setTouched(true);
     setIdx(i);
@@ -172,18 +173,14 @@ export function HomeStage({
   return (
     <section
       aria-labelledby="home-title"
-      className="nv-dark relative isolate overflow-hidden bg-[#05110e] text-white shadow-card max-sm:-mx-5 sm:rounded-3xl"
+      className="nv-dark relative isolate overflow-hidden bg-[#0a1226] text-white ring-1 ring-white/10 max-sm:-mx-5 sm:rounded-3xl"
     >
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-10 transition-[background] duration-700"
+        className="absolute inset-0 -z-10"
         style={{
-          background: `radial-gradient(60% 90% at 88% 8%, ${goal.color}40, transparent 65%), radial-gradient(45% 70% at 0% 100%, rgba(20,184,166,.20), transparent 65%)`,
+          background: "radial-gradient(55% 80% at 92% 0%, rgba(63,224,200,.13), transparent 70%)",
         }}
-      />
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 -z-10 opacity-[.07] [background-image:radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px]"
       />
 
       <div className="grid items-center gap-6 px-4 pb-5 pt-6 sm:gap-8 sm:p-8 sm:pb-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-10 lg:p-10 lg:pb-7 xl:px-12">
@@ -192,11 +189,11 @@ export function HomeStage({
             <CampaignPill />
             <p
               style={{ animationDelay: "120ms" }}
-              className="nv-rise inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-[12.5px] font-semibold text-emerald-100 ring-1 ring-white/15"
+              className="nv-rise inline-flex items-center gap-2 rounded-full px-1 py-1.5 text-[12.5px] font-medium text-white/70"
             >
               <span className="relative flex size-2">
-                <span className="absolute inline-flex size-full rounded-full bg-emerald-400/70 motion-safe:animate-ping" />
-                <span className="relative inline-flex size-2 rounded-full bg-emerald-400" />
+                <span className="absolute inline-flex size-full rounded-full bg-[#3fe0c8]/70 motion-safe:animate-ping" />
+                <span className="relative inline-flex size-2 rounded-full bg-[#3fe0c8]" />
               </span>
               Lojas de Feijó, Acre
             </p>
@@ -209,15 +206,10 @@ export function HomeStage({
           >
             {client ? (
               <>
-                {greet}, {firstName}.{" "}
-                <span className="text-emerald-300">Sua rotina em dia</span> e as melhores ofertas de
-                Feijó.
+                {greet}, {firstName}. Sua rotina em dia e as melhores ofertas de Feijó.
               </>
             ) : (
-              <>
-                Compre de quem é daqui e{" "}
-                <span className="text-emerald-300">cuide da sua rotina</span> no mesmo lugar.
-              </>
+              <>Compre de quem é daqui e cuide da sua rotina no mesmo lugar.</>
             )}
           </h1>
 
@@ -235,7 +227,7 @@ export function HomeStage({
           >
             <a
               href="#ofertas"
-              className="inline-flex h-13 items-center justify-center gap-2 rounded-xl bg-emerald-400 px-6 py-3.5 text-[15px] font-extrabold text-slate-950 shadow-[0_12px_30px_-12px_rgba(52,211,153,.9)] transition hover:bg-emerald-300 active:scale-[.98] motion-reduce:active:scale-100"
+              className="inline-flex h-13 items-center justify-center gap-2 rounded-xl bg-[#3fe0c8] px-6 py-3.5 text-[15px] font-extrabold text-slate-950 transition hover:bg-[#6ae9d6] active:scale-[.98] motion-reduce:active:scale-100"
             >
               <ShoppingCart size={18} aria-hidden="true" /> Ver ofertas da loja
             </a>
@@ -247,7 +239,9 @@ export function HomeStage({
                 >
                   <LayoutDashboard size={17} aria-hidden="true" /> Abrir meu painel
                 </Link>
-                {client && <LiveModeLauncher className="!h-[3.25rem] !justify-center !px-4 !text-sm" />}
+                {client && (
+                  <LiveModeLauncher className="!h-[3.25rem] !justify-center !px-4 !text-sm" />
+                )}
               </>
             ) : (
               <a
@@ -260,7 +254,9 @@ export function HomeStage({
           </div>
 
           <div style={{ animationDelay: "420ms" }} className="nv-rise mt-5">
-            <p className="text-[12.5px] font-semibold text-white/60">O que você quer cuidar agora?</p>
+            <p className="text-[12.5px] font-semibold text-white/60">
+              O que você quer cuidar agora?
+            </p>
             <div
               role="group"
               aria-label="Escolha um objetivo"
@@ -274,8 +270,7 @@ export function HomeStage({
                     type="button"
                     aria-pressed={on}
                     onClick={() => choose(i)}
-                    style={on ? { borderColor: g.color, color: g.color } : undefined}
-                    className={`relative inline-flex h-11 shrink-0 snap-start items-center gap-2 overflow-hidden rounded-full border px-4 text-[13.5px] font-bold transition active:scale-95 ${on ? "bg-white/10" : "border-white/15 bg-white/[.04] text-white/80 hover:border-white/35 hover:text-white"}`}
+                    className={`relative inline-flex h-11 shrink-0 snap-start items-center gap-2 overflow-hidden rounded-full border px-4 text-[13.5px] font-semibold transition active:scale-95 motion-reduce:active:scale-100 ${on ? "border-[#3fe0c8]/70 bg-[#3fe0c8]/10 text-white" : "border-white/15 bg-transparent text-white/75 hover:border-white/35 hover:text-white"}`}
                   >
                     <g.icon size={16} aria-hidden="true" />
                     {g.label}
@@ -283,7 +278,7 @@ export function HomeStage({
                       <span
                         key={g.key}
                         aria-hidden="true"
-                        className="nv-progress absolute inset-x-0 bottom-0 block h-[3px] bg-current"
+                        className="nv-progress absolute inset-x-0 bottom-0 block h-[2px] bg-[#3fe0c8]"
                         style={{ animationDuration: "7000ms" }}
                       />
                     )}
@@ -328,7 +323,7 @@ export function HomeStage({
                     <span className="line-clamp-1 hidden text-[13px] font-semibold leading-tight sm:block">
                       {p.name}
                     </span>
-                    <strong className="block text-[13px] font-extrabold tabular-nums text-emerald-700 sm:text-base">
+                    <strong className="block text-[13px] font-extrabold tabular-nums text-slate-900 sm:text-base">
                       {money(p.priceCents)}
                     </strong>
                     <span className="hidden text-[11px] font-semibold tabular-nums text-slate-500 sm:block">
@@ -341,7 +336,7 @@ export function HomeStage({
           </div>
           <a
             href={client ? goal.toolClient : goal.toolTo}
-            className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-white/15 bg-white/[.06] px-4 py-3 text-sm backdrop-blur transition hover:bg-white/10"
+            className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[.04] px-4 py-3 text-sm transition hover:bg-white/[.08]"
           >
             <span className="min-w-0">
               <span className="block text-[11.5px] font-semibold text-white/55">
@@ -349,18 +344,18 @@ export function HomeStage({
               </span>
               <strong className="block truncate font-bold">{goal.tool}</strong>
             </span>
-            <ArrowRight size={18} aria-hidden="true" className="shrink-0" style={{ color: goal.color }} />
+            <ArrowRight size={18} aria-hidden="true" className="shrink-0 text-[#3fe0c8]" />
           </a>
         </div>
       </div>
 
-      <ul className="grid grid-cols-2 border-t border-white/10 bg-black/20 sm:grid-cols-4">
+      <ul className="grid grid-cols-2 border-t border-white/10 sm:grid-cols-4">
         {trust.map((b, i) => (
           <li
             key={b.title}
             className={`flex items-center gap-2.5 px-4 py-3 sm:px-5 ${i % 2 === 0 ? "border-r border-white/10" : ""} ${i < 2 ? "border-b border-white/10 sm:border-b-0" : ""} ${i === 1 ? "sm:border-r" : ""}`}
           >
-            <b.icon size={18} aria-hidden="true" className="shrink-0 text-emerald-300" />
+            <b.icon size={18} aria-hidden="true" className="shrink-0 text-[#3fe0c8]" />
             <span className="min-w-0 leading-tight">
               <strong className="block truncate text-[13px] font-bold">{b.title}</strong>
               <span className="block truncate text-[11.5px] text-white/55">{b.text}</span>

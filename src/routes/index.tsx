@@ -1,28 +1,13 @@
 import { useEffect } from "react";
-import type React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  Activity,
-  BarChart3,
-  BedDouble,
-  Droplets,
-  HeartPulse,
-  Pill,
-  Scale,
-  Sparkles,
-  Utensils,
-  ArrowUpRight,
-} from "lucide-react";
 import { useAccess } from "@/lib/use-access";
 import { HomeMarketplace } from "@/components/vigia/HomeMarketplace";
 import { HomeStage } from "@/components/vigia/HomeStage";
 import { HomeToolAds } from "@/components/vigia/HomeToolAds";
-import { SmartBanner } from "@/components/vigia/SmartBanner";
 import { QrEnlarge } from "@/components/vigia/QrEnlarge";
 import { InstallAppButton } from "@/components/vigia/InstallApp";
 import { LogoMark } from "@/components/vigia/Logo";
-import { PartnerCommercial } from "@/components/vigia/PartnerCommercial";
-import { HomeSideArt } from "@/components/vigia/HomeDecor";
+import { HomePartnerBand } from "@/components/vigia/HomePartnerBand";
 import { HomeNextCareCard } from "@/components/vigia/CareTimer";
 import { HomeModalityTimers } from "@/components/vigia/HomeModalityTimers";
 
@@ -44,91 +29,6 @@ export const Route = createFileRoute("/")({
   }),
   component: Homepage,
 });
-
-/** Áreas da plataforma: atalhos compactos. Para clientes, levam direto à seção do painel. */
-const areas = [
-  {
-    to: "/medicamentos",
-    client: "/cliente#medicacao",
-    label: "Medicação",
-    hint: "Doses e horários",
-    icon: Pill,
-    tone: "text-rose-600 bg-rose-500/10",
-    color: "#e11d48",
-  },
-  {
-    to: "/hidratacao",
-    client: "/cliente#minha-hidratacao",
-    label: "Hidratação",
-    hint: "Meta de água",
-    icon: Droplets,
-    tone: "text-sky-600 bg-sky-500/10",
-    color: "#0284c7",
-  },
-  {
-    to: "/dietas",
-    client: "/cliente#alimentacao",
-    label: "Alimentação",
-    hint: "Refeições e macros",
-    icon: Utensils,
-    tone: "text-emerald-700 bg-emerald-500/10",
-    color: "#059669",
-  },
-  {
-    to: "/suplementos",
-    client: "/suplementos",
-    label: "Suplementos",
-    hint: "Timer de doses",
-    icon: Sparkles,
-    tone: "text-violet-600 bg-violet-500/10",
-    color: "#7c3aed",
-  },
-  {
-    to: "/peso",
-    client: "/peso",
-    label: "Peso",
-    hint: "Evolução e IMC",
-    icon: Scale,
-    tone: "text-fuchsia-600 bg-fuchsia-500/10",
-    color: "#c026d3",
-  },
-  {
-    to: "/treinos",
-    client: "/treinos",
-    label: "Treinos",
-    hint: "Corridas com GPS",
-    icon: Activity,
-    tone: "text-orange-600 bg-orange-500/10",
-    color: "#ea580c",
-  },
-  {
-    to: "/sono",
-    client: "/cliente#sono",
-    label: "Sono",
-    hint: "Batimentos ao vivo",
-    icon: BedDouble,
-    tone: "text-indigo-600 bg-indigo-500/10",
-    color: "#4f46e5",
-  },
-  {
-    to: "/metricas",
-    client: "/metricas",
-    label: "Métricas",
-    hint: "Gráficos do mês",
-    icon: BarChart3,
-    tone: "text-teal-700 bg-teal-500/10",
-    color: "#0d9488",
-  },
-  {
-    to: "/protocolos",
-    client: "/protocolos",
-    label: "Como funciona",
-    hint: "Passo a passo",
-    icon: HeartPulse,
-    tone: "text-primary bg-primary/10",
-    color: "#0c8063",
-  },
-] as const;
 
 function Homepage() {
   const { status, name } = useAccess();
@@ -160,8 +60,7 @@ function Homepage() {
 
   return (
     <>
-      <HomeSideArt />
-      <div className="relative z-10 mx-auto flex w-full flex-col gap-6 max-sm:px-3 sm:max-lg:px-4 lg:gap-8 min-[1280px]:px-[1.75rem]">
+      <div className="relative z-10 mx-auto flex w-full max-w-[84rem] flex-col gap-10 max-sm:px-3 sm:max-lg:px-4 lg:gap-14 min-[1280px]:px-[1.75rem]">
         {status === "unlinked" && (
           <p
             role="status"
@@ -180,71 +79,13 @@ function Homepage() {
           </div>
         )}
 
-        <SmartBanner variant="home" className="max-sm:-mx-5 max-sm:!rounded-none" />
+        <HomeMarketplace middle={<HomeToolAds client={client} />} />
 
-        <HomeToolAds client={client} />
-
-        <HomeMarketplace />
-
-        <section aria-labelledby="tools-title" className="grid gap-3">
-          <div>
-            <h2
-              id="tools-title"
-              className="font-display text-xl font-extrabold tracking-tight sm:text-2xl"
-            >
-              Todas as áreas do app
-            </h2>
-            <p className="mt-0.5 text-[13px] text-muted-foreground sm:text-sm">
-              Atalhos para cada ferramenta: lembretes, registros e gráficos do dia a dia.
-            </p>
-          </div>
-          <nav
-            aria-label="Áreas da plataforma"
-            className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-9"
-          >
-            {areas.map((a) => (
-              <a
-                key={a.to}
-                href={client ? a.client : a.to}
-                style={{ "--tile": a.color } as React.CSSProperties}
-                className="nv-area group relative flex min-w-0 items-center gap-2.5 overflow-hidden border border-border bg-card py-2.5 pl-3.5 pr-2.5 transition-[border-color,background-color,transform] duration-200 active:translate-y-px xl:flex-col xl:items-start xl:gap-3 xl:pb-3 xl:pt-3.5"
-              >
-                <span
-                  aria-hidden="true"
-                  className="nv-area-bar absolute inset-y-0 left-0 w-[3px]"
-                  style={{ background: a.color }}
-                />
-                <span
-                  className="nv-area-icon grid size-9 shrink-0 place-items-center border transition-colors duration-200"
-                  style={{
-                    color: a.color,
-                    borderColor: `color-mix(in srgb, ${a.color} 35%, transparent)`,
-                    background: `color-mix(in srgb, ${a.color} 10%, transparent)`,
-                  }}
-                >
-                  <a.icon size={18} strokeWidth={2} aria-hidden="true" />
-                </span>
-                <span className="flex min-w-0 flex-1 flex-col leading-tight">
-                  <span className="truncate text-[13px] font-bold">{a.label}</span>
-                  <span className="mt-0.5 truncate text-[11px] font-medium text-muted-foreground">
-                    {a.hint}
-                  </span>
-                </span>
-                <ArrowUpRight
-                  size={14}
-                  aria-hidden="true"
-                  className="nv-area-go shrink-0 text-muted-foreground xl:absolute xl:right-2 xl:top-2"
-                />
-              </a>
-            ))}
-          </nav>
-        </section>
-
-        <PartnerCommercial />
+        <HomePartnerBand />
 
         {client && <HomeModalityTimers />}
 
-        <footer className="mt-1 border border-border bg-card">
+        <footer className="rounded-2xl border border-border bg-card">
           <div className="flex flex-wrap items-center gap-x-8 gap-y-3 px-4 py-3 lg:px-5">
             <div className="flex min-w-0 items-center gap-3">
               <Link to="/" className="inline-flex items-center gap-2">

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Gift, ShoppingCart, Snowflake, Zap } from "lucide-react";
+import { ArrowRight, Gift, ShoppingCart, Zap } from "lucide-react";
 import { cart, money, products } from "@/lib/store";
 import {
   countdownParts,
@@ -21,68 +21,24 @@ export function useTicker(ms = 1000) {
   return now;
 }
 
-
-export function Countdown({ until, light = false }: { until: number; light?: boolean }) {
+export function Countdown({ until }: { until: number }) {
   const now = useTicker();
   const c = countdownParts(until - now);
-  const box = light ? "bg-white/15 text-white" : "bg-[#0a0a0a] text-yellow-300";
   return (
-    <div
-      className="flex items-center gap-1.5"
-      aria-label={`${c.d} dias, ${c.h} horas e ${c.m} minutos`}
+    <p
+      className="flex items-center gap-1 font-mono text-sm font-semibold tabular-nums"
+      aria-label={`Termina em ${c.h} horas, ${c.m} minutos e ${c.s} segundos`}
     >
-      {(
-        [
-          [c.d, "dias"],
-          [c.h, "h"],
-          [c.m, "min"],
-          [c.s, "s"],
-        ] as const
-      ).map(([v, l], i) => (
-        <span key={l} className="flex items-center gap-1.5">
-          <span
-            className={`grid min-w-[3rem] place-items-center rounded-xl px-2 py-1.5 text-center leading-none ring-1 ring-white/10 ${box}`}
-          >
-            <strong
-              key={v}
-              className="nv-tick block font-mono text-2xl font-extrabold tabular-nums"
-            >
-              {String(v).padStart(2, "0")}
-            </strong>
-            <span className="mt-0.5 text-[9px] font-bold uppercase opacity-70">{l}</span>
+      <span className="text-[12px] font-sans font-medium text-muted-foreground">Termina em</span>
+      {([c.d ? c.d * 24 + c.h : c.h, c.m, c.s] as const).map((v, i) => (
+        <span key={i} className="flex items-center gap-1">
+          <span className="grid min-w-[2.1rem] place-items-center rounded-md bg-muted px-1.5 py-1 ring-1 ring-border">
+            {String(v).padStart(2, "0")}
           </span>
-          {i < 3 && <span className="text-lg font-bold opacity-50">:</span>}
+          {i < 2 && <span className="text-muted-foreground">:</span>}
         </span>
       ))}
-    </div>
-  );
-}
-
-/** Faixa rolante com os avisos da campanha. */
-export function CampaignTicker({ campaign }: { campaign: Campaign }) {
-  const items = [
-    "5% OFF no Pix",
-    "3x sem juros no cartão",
-    campaign.name,
-    "Frete grátis acima de R$ 199",
-    "Produtos da Amazônia",
-    "Lojas parceiras do Acre",
-    "Troca fácil",
-  ];
-  return (
-    <div
-      className={`nv-marquee overflow-hidden rounded-2xl py-2.5 ${campaign.id === "black-friday" ? "bg-yellow-300 text-black" : "bg-primary text-primary-foreground"}`}
-      aria-hidden
-    >
-      <ul className="nv-marquee-track flex w-max gap-8 px-4 text-sm font-extrabold uppercase tracking-wide">
-        {[...items, ...items].map((t, i) => (
-          <li key={i} className="flex items-center gap-8 whitespace-nowrap">
-            {t}
-            <Zap size={14} />
-          </li>
-        ))}
-      </ul>
-    </div>
+    </p>
   );
 }
 
@@ -104,77 +60,69 @@ export function FlashDeals({ campaign }: { campaign: Campaign }) {
     <section
       id="relampago"
       aria-labelledby="relampago-title"
-      className="scroll-mt-20 rounded-3xl border border-border bg-card p-4 sm:p-5"
+      className="grid scroll-mt-20 grid-cols-[minmax(0,1fr)] gap-4"
     >
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <span className="nv-bolt grid size-11 place-items-center rounded-2xl bg-gradient-to-br from-rose-600 to-orange-500 text-white shadow-lg">
-            <Zap size={20} />
-          </span>
-          <div>
-            <h2 id="relampago-title" className="text-lg font-extrabold leading-tight">
-              Ofertas relâmpago
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              Preço especial só hoje · acabam à meia-noite
-            </p>
-          </div>
+      <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+        <div className="min-w-0">
+          <h2
+            id="relampago-title"
+            className="flex items-center gap-2 font-display text-xl font-extrabold tracking-tight sm:text-2xl"
+          >
+            <Zap size={20} className="shrink-0 text-amber-400" aria-hidden="true" />
+            Ofertas relâmpago
+          </h2>
+          <p className="mt-0.5 text-[13px] text-muted-foreground sm:text-sm">
+            Preço especial só hoje, até a meia-noite.
+          </p>
         </div>
-        <div className="[&_strong]:text-lg [&_span.grid]:min-w-[2.6rem]">
-          <Countdown until={endOfDay} />
-        </div>
-      </div>
-      <div className="-mx-1 mt-4 flex snap-x gap-3 overflow-x-auto px-1 pb-2 [scrollbar-width:thin]">
+        <Countdown until={endOfDay} />
+      </header>
+      <div className="-mx-3 flex snap-x gap-3 overflow-x-auto px-3 pb-2 [scrollbar-width:none] sm:-mx-4 sm:px-4 lg:mx-0 lg:px-0 [&::-webkit-scrollbar]:hidden">
         {deals.map((p) => {
           const b = productBadges(p, campaign);
           return (
             <article
               key={p.id}
-              className="group relative w-52 shrink-0 snap-start overflow-hidden rounded-2xl border border-border bg-background transition-shadow hover:shadow-pop sm:w-56"
+              className="group flex w-[10.5rem] shrink-0 snap-start flex-col overflow-hidden rounded-2xl bg-white text-slate-900 ring-1 ring-black/5 sm:w-[12rem]"
             >
-              <div className="relative aspect-square overflow-hidden bg-[#e9eaec]">
-                <button
-                  type="button"
-                  onClick={() => openProduct(p.id)}
-                  aria-label={`Ver detalhes de ${p.name}`}
-                  className="block size-full cursor-zoom-in"
-                >
-                  <img
-                    src={p.img}
-                    alt={p.name}
-                    loading="lazy"
-                    className="size-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                </button>
-                <span className="absolute left-2 top-2 rounded-lg bg-rose-600 px-2 py-1 text-xs font-extrabold text-white shadow">
-                  -{b.off}%
+              <button
+                type="button"
+                onClick={() => openProduct(p.id)}
+                aria-label={`Ver detalhes de ${p.name}`}
+                className="relative block aspect-square cursor-zoom-in overflow-hidden bg-[#eceef0]"
+              >
+                <img
+                  src={p.img}
+                  alt={p.name}
+                  loading="lazy"
+                  className="size-full object-cover motion-safe:transition-transform motion-safe:duration-500 [@media(hover:hover)]:group-hover:scale-105"
+                />
+                <span className="absolute right-2 top-2 rounded-full bg-amber-400 px-2 py-0.5 text-[11px] font-extrabold text-slate-950">
+                  −{b.off}%
                 </span>
-              </div>
-              <div className="p-3">
-                <h3 className="line-clamp-1 text-sm font-bold">{p.name}</h3>
-                <p className="mt-0.5 text-xs">
-                  <span className="text-muted-foreground line-through">
-                    {money(p.oldPriceCents!)}
-                  </span>{" "}
-                  <strong className="text-base font-extrabold text-rose-600 dark:text-rose-400">
-                    {money(p.priceCents)}
-                  </strong>
+              </button>
+              <div className="flex flex-1 flex-col p-2.5">
+                <h3 className="line-clamp-1 text-[13px] font-semibold">{p.name}</h3>
+                <p className="mt-1 flex items-baseline gap-1.5 whitespace-nowrap tabular-nums">
+                  <strong className="text-[15px] font-extrabold">{money(p.priceCents)}</strong>
+                  <s className="text-[11px] text-slate-500">{money(p.oldPriceCents!)}</s>
                 </p>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200"
+                  aria-hidden="true"
+                >
                   <i
-                    className="nv-stock block h-full rounded-full bg-gradient-to-r from-orange-500 to-rose-600"
+                    className="block h-full rounded-full bg-amber-400"
                     style={{ width: `${b.sold}%` }}
                   />
                 </div>
-                <p className="mt-1 text-[11px] font-semibold text-muted-foreground">
-                  {b.sold}% vendido
-                </p>
+                <p className="mt-1 text-[11px] text-slate-500">{b.sold}% vendido</p>
                 <button
                   type="button"
                   onClick={() => cart.add(p.id)}
-                  className="mt-2 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-xl bg-slate-950 text-xs font-bold text-white transition hover:bg-slate-800 active:scale-95 dark:bg-white dark:text-slate-950"
+                  className="mt-2 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-700 text-xs font-bold text-white transition hover:bg-emerald-600 active:scale-[.97] motion-reduce:active:scale-100"
                 >
-                  <ShoppingCart size={14} /> Garantir
+                  <ShoppingCart size={14} aria-hidden="true" /> Adicionar
                 </button>
               </div>
             </article>
@@ -185,36 +133,26 @@ export function FlashDeals({ campaign }: { campaign: Campaign }) {
   );
 }
 
-/** Aviso da próxima campanha (Natal) durante a Black Friday. */
+/** Aviso da próxima campanha (Natal) durante a Black Friday, discreto e no mesmo padrão da página. */
 export function CampaignTeaser() {
   const teaser = nextCampaignTeaser();
   if (!teaser) return null;
   return (
-    <aside className="nv-dark relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-[#2a0508] via-[#5b0a12] to-[#0d3b26] p-5 text-white sm:p-6">
-      {Array.from({ length: 10 }, (_, i) => (
-        <Snowflake
-          key={i}
-          aria-hidden
-          size={10 + (i % 3) * 5}
-          className="nv-snow absolute -top-6 text-white/35"
-          style={{
-            left: `${(i * 11) % 100}%`,
-            animationDelay: `${i * 0.9}s`,
-            animationDuration: `${9 + (i % 4)}s`,
-          }}
-        />
-      ))}
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-widest">
-        <Gift size={13} /> {teaser.when}
+    <aside className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border border-border bg-card p-4 sm:p-5">
+      <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-muted text-foreground ring-1 ring-border">
+        <Gift size={20} aria-hidden="true" />
       </span>
-      <h2 className="mt-3 font-display text-2xl font-extrabold">{teaser.name}</h2>
-      <p className="mt-1 max-w-md text-sm text-white/80">{teaser.text}</p>
+      <div className="min-w-[12rem] flex-1">
+        <p className="text-[12px] font-medium text-muted-foreground">{teaser.when}</p>
+        <h2 className="font-display text-lg font-bold leading-tight">{teaser.name}</h2>
+        <p className="mt-0.5 text-[13px] text-muted-foreground">{teaser.text}</p>
+      </div>
       <Link
         to="/"
         hash="ofertas"
-        className="mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-rose-900 transition hover:bg-white/90"
+        className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border max-sm:w-full border-border px-4 text-[13px] font-semibold transition-colors hover:border-primary/60 hover:text-primary"
       >
-        Ver presentes <ArrowRight size={16} />
+        Ver presentes <ArrowRight size={15} aria-hidden="true" />
       </Link>
     </aside>
   );

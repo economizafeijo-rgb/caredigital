@@ -1,21 +1,14 @@
-import { useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
   Check,
   ChevronLeft,
   ChevronRight,
-  Gem,
-  Leaf,
+  MapPin,
   Minus,
-  Pill,
   Plus,
-  Shirt,
   ShoppingCart,
-  Sparkles,
-  Store,
-  Utensils,
-  type LucideIcon,
 } from "lucide-react";
 import {
   cart,
@@ -32,7 +25,7 @@ import { productStatus, segmentLabel } from "@/lib/marketplace";
 import { useLiveStores } from "./LiveStores";
 import { openProduct } from "./StoreViews";
 import { CartDrawer, Checkout } from "./StorePage";
-import { CampaignTeaser, CampaignTicker, FlashDeals } from "./store/StorePromos";
+import { CampaignTeaser, FlashDeals } from "./store/StorePromos";
 import { currentCampaign } from "@/lib/store-promos";
 
 type Filter = StoreCategory | "todos";
@@ -85,64 +78,6 @@ function SectionHead({
         </Link>
       )}
     </header>
-  );
-}
-
-/* ----------------------------------------------------------- Vitrine */
-
-const categoryStyle: Record<StoreCategory, { icon: LucideIcon; color: string }> = {
-  suplementos: { icon: Pill, color: "#a78bfa" },
-  vitaminas: { icon: Sparkles, color: "#fbbf24" },
-  nutricao: { icon: Utensils, color: "#34d399" },
-  fitoterapicos: { icon: Leaf, color: "#4ade80" },
-  "roupas-masculinas": { icon: Shirt, color: "#38bdf8" },
-  "roupas-femininas": { icon: Shirt, color: "#f472b6" },
-  acessorios: { icon: Gem, color: "#fb923c" },
-};
-
-function CategoryTiles({ active, onPick }: { active: Filter; onPick: (f: Filter) => void }) {
-  const list = categories.filter(
-    (c): c is { key: StoreCategory; label: string } => c.key !== "todos",
-  );
-  return (
-    <div
-      role="group"
-      aria-label="Compre por categoria"
-      className="-mx-3 flex snap-x gap-2.5 overflow-x-auto px-3 pb-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-4 sm:overflow-visible sm:px-0 lg:grid-cols-7 [&::-webkit-scrollbar]:hidden"
-    >
-      {list.map((c) => {
-        const st = categoryStyle[c.key];
-        const n = products.filter((p) => p.category === c.key).length;
-        if (!n) return null;
-        const on = active === c.key;
-        return (
-          <button
-            key={c.key}
-            type="button"
-            aria-pressed={on}
-            onClick={() => onPick(on ? "todos" : c.key)}
-            style={{ "--cat": st.color } as CSSProperties}
-            className={`group flex w-[8.25rem] shrink-0 snap-start flex-col items-start gap-3 rounded-2xl border p-3.5 text-left transition-[border-color,background-color,transform] duration-200 active:scale-[.98] motion-reduce:active:scale-100 sm:w-auto ${on ? "border-[var(--cat)] bg-[color-mix(in_srgb,var(--cat)_14%,transparent)]" : "border-border bg-card [@media(hover:hover)]:hover:border-[color-mix(in_srgb,var(--cat)_55%,transparent)]"}`}
-          >
-            <span
-              className="grid size-11 place-items-center rounded-xl"
-              style={{
-                background: `color-mix(in srgb, ${st.color} 18%, transparent)`,
-                color: st.color,
-              }}
-            >
-              <st.icon size={22} aria-hidden="true" />
-            </span>
-            <span className="leading-tight">
-              <strong className="block text-sm font-bold">{c.label}</strong>
-              <span className="mt-0.5 block text-xs text-muted-foreground">
-                {n} {n === 1 ? "produto" : "produtos"}
-              </span>
-            </span>
-          </button>
-        );
-      })}
-    </div>
   );
 }
 
@@ -281,151 +216,121 @@ function Rail({
   );
 }
 
+const SPOTLIGHT = "kessia-digital-store";
+
+/** Novidades reais das lojas parceiras, abertas pela loja em destaque (logomarca, segmento e acesso). */
 function LiveNews() {
-  const { products: live } = useLiveStores();
+  const { products: live, vendors } = useLiveStores();
   const items = useMemo(() => live.slice(0, 18), [live]);
   if (!items.length) return null;
+  const store = vendors.find((v) => v.slug === SPOTLIGHT);
+  const storeCount = live.filter((p) => p.vendor.slug === SPOTLIGHT).length;
   return (
-    <section aria-labelledby="live-news-title" className="grid grid-cols-[minmax(0,1fr)] gap-3">
-      <div className="flex items-end justify-between gap-3">
-        <div>
-          <h2
-            id="live-news-title"
-            className="font-display text-xl font-extrabold tracking-tight sm:text-2xl"
-          >
-            Novidades das lojas de Feijó
-          </h2>
-          <p className="mt-0.5 text-[13px] text-muted-foreground sm:text-sm">
-            Produtos que acabaram de chegar nas lojas parceiras.
-          </p>
-        </div>
-        <Link
-          to="/nossos-parceiros"
-          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-[13px] font-bold transition-colors hover:border-primary/50 hover:text-primary"
-        >
-          Conheça os parceiros <ArrowRight size={14} strokeWidth={2.4} aria-hidden="true" />
-        </Link>
-      </div>
-      <Rail label="Novidades das lojas de Feijó">
-        {items.map((p) => {
-          const st = productStatus(p);
-          const off = offOf(p.price_cents, p.old_price_cents);
-          return (
-            <Link
-              key={p.id}
-              to="/loja"
-              search={{ loja: p.vendor.slug } as never}
-              aria-label={`${p.name}, ${money(p.price_cents)}, loja ${p.vendor.name}`}
-              className={tile}
-            >
-              <span className="relative block overflow-hidden bg-[#f3eef2]">
-                {p.image_url ? (
-                  <img
-                    src={p.image_url}
-                    onError={(e) => (e.currentTarget.style.visibility = "hidden")}
-                    alt=""
-                    width={360}
-                    height={360}
-                    loading="lazy"
-                    decoding="async"
-                    className={`aspect-square w-full object-cover motion-safe:transition motion-safe:duration-500 [@media(hover:hover)]:group-hover:scale-105 ${st.buyable ? "" : "opacity-50 grayscale"}`}
-                  />
-                ) : (
-                  <span className="grid aspect-square w-full place-items-center text-xs text-slate-500">
-                    Sem foto
-                  </span>
-                )}
-                {off > 0 && (
-                  <span className="absolute right-2 top-2 rounded-full bg-amber-400 px-2 py-0.5 text-[11px] font-extrabold text-slate-950">
-                    −{off}%
-                  </span>
-                )}
-                {!st.buyable && (
-                  <span className="absolute left-2 top-2 rounded-full bg-slate-900/85 px-2 py-0.5 text-[11px] font-semibold text-white">
-                    {st.label}
-                  </span>
-                )}
-              </span>
-              <span className="flex flex-1 flex-col p-2.5">
-                <span
-                  className="truncate text-[11px] font-bold"
-                  style={{ color: p.vendor.accent_hex ?? "#047857" }}
-                >
-                  {p.vendor.name}
-                </span>
-                <span className="mt-0.5 line-clamp-2 min-h-[2.5em] text-[13px] font-semibold leading-tight">
-                  {p.name}
-                </span>
-                <strong className="mt-1.5 block whitespace-nowrap text-[15px] font-extrabold tabular-nums">
-                  {money(p.price_cents)}
-                </strong>
-                <span className="block h-4 whitespace-nowrap text-[11px] leading-4 text-slate-500 tabular-nums">
-                  {p.old_price_cents ? <s>{money(p.old_price_cents)}</s> : null}
-                </span>
-              </span>
-            </Link>
-          );
-        })}
-      </Rail>
-    </section>
-  );
-}
-
-function FeaturedStore() {
-  const { products: live } = useLiveStores();
-  const thumbs = live
-    .filter((p) => p.vendor.slug === "kessia-digital-store" && p.image_url)
-    .slice(0, 4);
-  return (
-    <Link
-      to="/loja"
-      search={{ loja: "kessia-digital-store" } as never}
-      aria-label="Visitar a loja Kessia' Digital Store"
-      className="group relative isolate grid grid-cols-[minmax(0,1fr)] items-center gap-4 overflow-hidden rounded-3xl bg-gradient-to-r from-[#4a0f3a] via-[#9b1860] to-[#6d3fd1] p-4 text-white shadow-card sm:grid-cols-[minmax(0,1fr)_auto] sm:p-6 lg:p-7"
-    >
-      <span
-        aria-hidden="true"
-        className="absolute -right-10 -top-16 -z-10 size-64 rounded-full bg-white/10 blur-2xl"
+    <section aria-labelledby="live-news-title" className="grid grid-cols-[minmax(0,1fr)] gap-4">
+      <SectionHead
+        title="Novidades das lojas de Feijó"
+        sub="Produtos que acabaram de chegar nas lojas parceiras."
+        to="/nossos-parceiros"
+        cta="Conheça os parceiros"
       />
-      <span className="flex min-w-0 items-center gap-4">
-        <img
-          src="/loja/kessia/mark.svg"
-          alt=""
-          loading="lazy"
-          className="size-14 shrink-0 rounded-full bg-white object-contain ring-4 ring-pink-200/50 sm:size-[4.5rem]"
-        />
-        <span className="min-w-0">
-          <span className="inline-flex rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-semibold text-pink-100 ring-1 ring-white/20">
-            Loja em destaque
-          </span>
-          <strong className="mt-1 block truncate font-display text-xl font-extrabold sm:text-2xl">
-            Kessia' Digital Store
-          </strong>
-          <span className="block text-[13px] text-white/80 sm:text-sm">
-            Moda fitness, beleza, bijuterias e moda regional · Feijó, AC
-          </span>
-        </span>
-      </span>
-      <span className="flex items-center gap-4 sm:justify-end">
-        {thumbs.length > 0 && (
-          <span className="hidden -space-x-3 lg:flex" aria-hidden="true">
-            {thumbs.map((p) => (
-              <img
-                key={p.id}
-                src={p.image_url!}
-                onError={(e) => (e.currentTarget.style.visibility = "hidden")}
-                alt=""
-                loading="lazy"
-                className="size-14 rounded-full bg-white object-cover ring-2 ring-[#9b1860]"
-              />
-            ))}
-          </span>
+      <h2 id="live-news-title" className="sr-only">
+        Novidades das lojas de Feijó
+      </h2>
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3 lg:grid-cols-[16.5rem_minmax(0,1fr)] lg:gap-5">
+        {store && (
+          <Link
+            to="/loja"
+            search={{ loja: SPOTLIGHT } as never}
+            aria-label={`Visitar a loja ${store.name}`}
+            className="group flex items-center gap-3.5 rounded-2xl border border-border bg-card p-3.5 transition-colors hover:border-foreground/25 lg:flex-col lg:items-start lg:gap-4 lg:p-5"
+          >
+            <img
+              src="/loja/kessia/mark.svg"
+              alt=""
+              className="size-14 shrink-0 rounded-full object-contain lg:size-16"
+            />
+            <span className="min-w-0 flex-1 leading-tight">
+              <span className="block text-[12px] font-medium text-muted-foreground">
+                Loja em destaque
+              </span>
+              <strong className="mt-0.5 block truncate font-display text-[1.05rem] font-bold lg:text-lg">
+                {store.name}
+              </strong>
+              <span className="mt-1 hidden text-[13px] leading-snug text-muted-foreground sm:block">
+                Moda fitness, beleza, bijuterias e moda regional.
+              </span>
+              <span className="mt-1.5 flex items-center gap-1 text-[12px] text-muted-foreground">
+                <MapPin size={12} aria-hidden="true" />
+                {store.city}
+                {storeCount ? ` · ${storeCount} ${storeCount === 1 ? "produto" : "produtos"}` : ""}
+              </span>
+            </span>
+            <span className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-border px-3.5 text-[13px] font-semibold transition-colors group-hover:border-primary/60 group-hover:text-primary lg:mt-auto lg:w-full lg:justify-center">
+              <span className="max-sm:sr-only">Visitar a loja</span>
+              <ArrowRight size={15} aria-hidden="true" />
+            </span>
+          </Link>
         )}
-        <span className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-[#8a1459] transition group-hover:bg-pink-50">
-          Visitar a loja <ArrowRight size={16} strokeWidth={2.6} aria-hidden="true" />
-        </span>
-      </span>
-    </Link>
+        <Rail label="Novidades das lojas de Feijó">
+          {items.map((p) => {
+            const st = productStatus(p);
+            const off = offOf(p.price_cents, p.old_price_cents);
+            return (
+              <Link
+                key={p.id}
+                to="/loja"
+                search={{ loja: p.vendor.slug } as never}
+                aria-label={`${p.name}, ${money(p.price_cents)}, loja ${p.vendor.name}`}
+                className={tile}
+              >
+                <span className="relative block overflow-hidden bg-[#eceef0]">
+                  {p.image_url ? (
+                    <img
+                      src={p.image_url}
+                      onError={(e) => (e.currentTarget.style.visibility = "hidden")}
+                      alt=""
+                      width={360}
+                      height={360}
+                      loading="lazy"
+                      decoding="async"
+                      className={`aspect-square w-full object-cover motion-safe:transition motion-safe:duration-500 [@media(hover:hover)]:group-hover:scale-105 ${st.buyable ? "" : "opacity-50 grayscale"}`}
+                    />
+                  ) : (
+                    <span className="grid aspect-square w-full place-items-center text-xs text-slate-500">
+                      Sem foto
+                    </span>
+                  )}
+                  {off > 0 && (
+                    <span className="absolute right-2 top-2 rounded-full bg-amber-400 px-2 py-0.5 text-[11px] font-extrabold text-slate-950">
+                      −{off}%
+                    </span>
+                  )}
+                  {!st.buyable && (
+                    <span className="absolute left-2 top-2 rounded-full bg-slate-900/85 px-2 py-0.5 text-[11px] font-semibold text-white">
+                      {st.label}
+                    </span>
+                  )}
+                </span>
+                <span className="flex flex-1 flex-col p-2.5">
+                  <span className="truncate text-[11px] font-medium text-slate-500">
+                    {p.vendor.name}
+                  </span>
+                  <span className="mt-0.5 line-clamp-2 min-h-[2.5em] text-[13px] font-semibold leading-tight">
+                    {p.name}
+                  </span>
+                  <strong className="mt-1.5 block whitespace-nowrap text-[15px] font-extrabold tabular-nums">
+                    {money(p.price_cents)}
+                  </strong>
+                  <span className="block h-4 whitespace-nowrap text-[11px] leading-4 text-slate-500 tabular-nums">
+                    {p.old_price_cents ? <s>{money(p.old_price_cents)}</s> : null}
+                  </span>
+                </span>
+              </Link>
+            );
+          })}
+        </Rail>
+      </div>
+    </section>
   );
 }
 
@@ -439,17 +344,15 @@ const initialsOf = (name: string) => {
   return two.toUpperCase();
 };
 
-/** Card de loja: monograma na cor da loja quando não há logomarca, segmento, cidade e situação. */
+/** Card de loja: logomarca (ou monograma neutro), quantidade de produtos, segmento e cidade. */
 function StoreRow({
   name,
-  accent,
   logo,
   meta,
   count,
   search,
 }: {
   name: string;
-  accent: string;
   logo?: string | null;
   meta: string;
   count?: number;
@@ -475,8 +378,7 @@ function StoreRow({
       ) : (
         <span
           aria-hidden="true"
-          className="grid size-9 shrink-0 place-items-center rounded-lg text-[13px] font-bold"
-          style={{ color: accent, background: `color-mix(in srgb, ${accent} 16%, transparent)` }}
+          className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-[12px] font-bold text-foreground ring-1 ring-border"
         >
           {initialsOf(name)}
         </span>
@@ -525,7 +427,6 @@ function PartnerStores() {
               <li key={v.id} className="border-b border-r border-border">
                 <StoreRow
                   name={v.name}
-                  accent={v.accent_hex ?? "#0e7a5f"}
                   logo={v.logo_url}
                   meta={`${segmentLabel(v.segment)} · ${v.city.replace(", AC", "")}`}
                   count={countOf(v.id)}
@@ -537,7 +438,6 @@ function PartnerStores() {
               <li key={v.id} className="border-b border-r border-border">
                 <StoreRow
                   name={v.name}
-                  accent={v.hex}
                   meta={`${v.sector} · ${v.city.replace(", AC", "")}`}
                   search={v.id}
                 />
@@ -556,7 +456,7 @@ function PartnerStores() {
 }
 
 /** Vitrine completa da home: categorias que filtram, novidades reais, vendas da plataforma, destaque e lojas. */
-export function HomeMarketplace() {
+export function HomeMarketplace({ middle }: { middle?: ReactNode }) {
   const [filter, setFilter] = useState<Filter>("todos");
   const [announcement, setAnnouncement] = useState("");
   const [cartOpen, setCartOpen] = useState(false);
@@ -572,13 +472,6 @@ export function HomeMarketplace() {
   const visibleCategories = categories.filter(
     (c) => c.key === "todos" || products.some((p) => p.category === c.key),
   );
-  const pick = (f: Filter) => {
-    setFilter(f);
-    document.getElementById("ofertas")?.scrollIntoView({
-      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-      block: "start",
-    });
-  };
   const add = (p: Product) => {
     cart.add(p.id);
     setAnnouncement(`${p.name} adicionado ao carrinho.`);
@@ -589,23 +482,6 @@ export function HomeMarketplace() {
       <p className="sr-only" role="status" aria-live="polite">
         {announcement}
       </p>
-
-      <CampaignTicker campaign={campaign} />
-
-      <section aria-labelledby="cats-title" className="grid grid-cols-[minmax(0,1fr)] gap-3">
-        <SectionHead
-          title="Compre por categoria"
-          sub="Toque em uma categoria para ver as ofertas."
-        />
-        <h2 id="cats-title" className="sr-only">
-          Categorias
-        </h2>
-        <CategoryTiles active={filter} onPick={pick} />
-      </section>
-
-      <LiveNews />
-
-      <FeaturedStore />
 
       <FlashDeals campaign={campaign} />
 
@@ -674,6 +550,10 @@ export function HomeMarketplace() {
           ))}
         </Rail>
       </section>
+
+      {middle}
+
+      <LiveNews />
 
       <PartnerStores />
 
