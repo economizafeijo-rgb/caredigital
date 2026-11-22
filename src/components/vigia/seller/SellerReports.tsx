@@ -288,7 +288,7 @@ export function SellerReports({ vendor }: { vendor: Vendor }) {
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
           <Panel title="Por categoria">
-            <table className="w-full text-[13px]">
+            <table className="w-full min-w-[22rem] text-[13px]">
               <tbody className="divide-y divide-border">
                 {byCat.map(([c, v]) => (
                   <tr key={c}>
@@ -312,7 +312,7 @@ export function SellerReports({ vendor }: { vendor: Vendor }) {
             </table>
           </Panel>
           <Panel title="Produtos mais vendidos">
-            <table className="w-full text-[13px]">
+            <table className="w-full min-w-[22rem] text-[13px]">
               <tbody className="divide-y divide-border">
                 {top.map(([n, v]) => (
                   <tr key={n}>
@@ -356,7 +356,7 @@ export function SellerReports({ vendor }: { vendor: Vendor }) {
           </Panel>
         )}
         <Panel title="Lançamentos do período">
-          <table className="w-full text-[12.5px]">
+          <table className="w-full min-w-[34rem] text-[12.5px]">
             <tbody className="divide-y divide-border">
               {cash.map((c) => (
                 <tr key={c.id}>

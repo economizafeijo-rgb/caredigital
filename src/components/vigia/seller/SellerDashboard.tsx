@@ -313,10 +313,10 @@ export function SellerDashboard({
         {/* Menu lateral: identidade da loja, navegação e ações */}
         <aside
           aria-label="Menu do lojista"
-          className="nv-dark relative flex min-w-0 flex-col gap-3 rounded-2xl border border-border bg-card p-3 lg:sticky lg:top-2 lg:h-[calc(100dvh-5.5rem)] lg:self-start"
+          className="nv-dark relative z-20 flex min-w-0 flex-col gap-3 rounded-2xl border border-border bg-card/95 p-2 backdrop-blur max-lg:sticky max-lg:top-0 max-lg:gap-0 lg:p-3 lg:sticky lg:top-2 lg:h-[calc(100dvh-5.5rem)] lg:self-start"
         >
           <div
-            className="relative overflow-hidden rounded-xl p-3 text-white"
+            className="relative overflow-hidden rounded-xl p-3 text-white max-lg:hidden"
             style={{
               background: `linear-gradient(135deg, color-mix(in srgb, ${accent} 75%, #020617) 0%, #0b1220 85%)`,
             }}
@@ -444,7 +444,7 @@ export function SellerDashboard({
             ))}
           </nav>
 
-          <div className="grid gap-1.5 border-t border-border pt-3">
+          <div className="grid gap-1.5 border-t border-border pt-3 max-lg:hidden">
             <a
               href={`/loja?loja=${vendor.slug}`}
               target="_blank"
@@ -459,7 +459,7 @@ export function SellerDashboard({
 
         {/* Área de trabalho com fundo de imagem */}
         <main
-          className="relative isolate flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-background p-4 sm:p-6"
+          className="relative isolate flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-background p-3 sm:p-6"
           style={{ minHeight: "calc(100dvh - 5.5rem)" }}
         >
           {/* Uma só foto: a mesma imagem, na mesma escala, passa por trás do cabeçalho e continua abaixo dele */}
@@ -501,7 +501,7 @@ export function SellerDashboard({
             </p>
           )}
           <div
-            className="nv-dark relative -mx-4 -mt-4 mb-5 flex min-h-[9rem] items-end overflow-hidden rounded-t-2xl p-4 text-white sm:-mx-6 sm:-mt-6 sm:min-h-[10rem] sm:p-6"
+            className="nv-dark relative -mx-3 -mt-3 mb-4 flex min-h-[7rem] items-end overflow-hidden rounded-t-2xl p-3 text-white sm:-mx-6 sm:-mt-6 sm:min-h-[10rem] sm:p-6"
             style={{
               backgroundImage: `linear-gradient(90deg, color-mix(in srgb, ${accent} 88%, transparent) 0%, color-mix(in srgb, ${accent} 45%, transparent) 42%, transparent 100%)`,
             }}

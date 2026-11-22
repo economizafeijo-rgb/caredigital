@@ -12,7 +12,7 @@ export function storeBlockMessage(state: StoreDeviceState): string | null {
     return `Esta conta de loja já está conectada em ${STORE_DEVICE_LIMIT} dispositivos. Para entrar aqui, saia da conta em um dos aparelhos conectados e tente novamente. Dispositivos sem uso por 24 horas são liberados automaticamente.`;
   }
   if (state === "expediente") {
-    return "O painel da loja funciona de segunda a sábado, das 8h às 17h (horário do Acre), exceto feriados. Por segurança, a sessão foi encerrada. Entre novamente no próximo dia de expediente.";
+    return "O painel da loja está indisponível neste momento. Por segurança, a sessão foi encerrada. Entre novamente em instantes.";
   }
   return null;
 }
