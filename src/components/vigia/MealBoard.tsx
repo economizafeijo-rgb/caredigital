@@ -161,6 +161,14 @@ export function MealBoard({
   // A categoria é só uma sugestão: destaca a mais provável, sem limitar a busca.
   const suggestedKind = q.length >= 2 ? search.suggestedKind : null;
 
+  // Texto livre: o que foi digitado é reconhecido pelo leitor de alimentos, mesmo fora das categorias.
+  const typed = useMemo(() => (q.length >= 2 ? parseFoodText(q) : []), [q]);
+  const addTyped = () => {
+    if (!typed.length || isOn(q)) return;
+    toggle(q);
+    setQuery("");
+  };
+
   const foods = useMemo(() => parseFoodText(`${portion} ${description}`), [portion, description]);
   const total = useMemo(() => sumNutrients(foods.map((f) => f.nutrients)), [foods]);
   const kcal = useCountUp(Math.round(total.kcal));
@@ -314,7 +322,13 @@ export function MealBoard({
                   type="search"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Buscar alimento…"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addTyped();
+                    }
+                  }}
+                  placeholder="Digite um alimento (Enter adiciona)…"
                   className="h-9 w-full border border-border bg-background/60 pl-8 pr-2 text-xs outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
               </label>
@@ -328,6 +342,21 @@ export function MealBoard({
           )}
 
           <div className="grid gap-4">
+            {q.length >= 2 && typed.length > 0 && (
+              <button
+                type="button"
+                onClick={addTyped}
+                className="flex items-center justify-between gap-2 border border-primary/40 bg-primary/10 px-3 py-2 text-left text-xs font-semibold hover:bg-primary/15 active:scale-[.99]"
+              >
+                <span>
+                  Adicionar “{q}” ao prato
+                  <span className="ml-1 font-normal text-muted-foreground">
+                    · reconhecido como {typed.map((f) => f.name.split(",")[0]).join(" + ")}
+                  </span>
+                </span>
+                <Check size={14} />
+              </button>
+            )}
             {q.length >= 2 ? (
               found.length ? (
                 section(
