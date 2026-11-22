@@ -205,29 +205,31 @@ function PublicStore({
 
   return (
     <div className="flex flex-col gap-4" style={{ "--v": accent } as CSSProperties}>
-      <nav aria-label="Caminho" className="flex items-center gap-1.5 text-sm text-muted-foreground">
-        <button
-          type="button"
-          onClick={() => void navigate({ to: "/loja" })}
-          className="inline-flex items-center gap-1.5 rounded-lg px-1.5 py-1 font-semibold transition hover:bg-muted hover:text-foreground"
-        >
-          <ArrowLeft size={15} /> Loja NextVita
-        </button>
-        <span aria-hidden>/</span>
-        <span className="truncate font-semibold text-foreground">{vendor.name}</span>
-        {vendor.is_demo && (
-          <span className="ml-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10.5px] font-semibold text-amber-700 dark:text-amber-300">
-            loja de teste
-          </span>
-        )}
-      </nav>
-
       <section
         className="nv-dark relative isolate rounded-3xl text-white shadow-pop"
         style={{
           background: `radial-gradient(120% 140% at 0% 0%, ${tint(70)} 0%, ${tint(32)} 45%, ${tint(12, "#070b14")} 100%)`,
         }}
       >
+        <nav
+          aria-label="Caminho"
+          className="relative flex flex-wrap items-center gap-1.5 px-4 pt-3 text-[13px] text-white/75 sm:px-5"
+        >
+          <button
+            type="button"
+            onClick={() => void navigate({ to: "/loja" })}
+            className="inline-flex items-center gap-1.5 rounded-lg px-1.5 py-1 font-semibold text-white/85 transition hover:bg-white/10 hover:text-white"
+          >
+            <ArrowLeft size={15} /> Loja NextVita
+          </button>
+          <span aria-hidden>/</span>
+          <span className="truncate font-semibold text-white">{vendor.name}</span>
+          {vendor.is_demo && (
+            <span className="ml-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10.5px] font-semibold text-amber-700 dark:text-amber-300">
+              loja de teste
+            </span>
+          )}
+        </nav>
         <div aria-hidden className="absolute inset-0 -z-10 overflow-hidden rounded-3xl">
           <img
             src={vendor.banner_url || bannerFor(vendor.segment)}
@@ -275,18 +277,42 @@ function PublicStore({
                   {vendor.description}
                 </p>
               )}
-              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-white/75">
-                <StoreStatusChip
-                  open={!!vendor.is_open && vendor.status === "ativo"}
-                  hours={vendor.opening_hours}
-                  dark
-                />
+              <dl className="mt-3 grid max-w-[40rem] gap-2 sm:grid-cols-2">
+                <div
+                  className={`flex items-center gap-2.5 rounded-xl px-3 py-2 ring-1 ${
+                    vendor.is_open && vendor.status === "ativo"
+                      ? "bg-emerald-400/20 ring-emerald-300/50"
+                      : "bg-amber-400/20 ring-amber-300/50"
+                  }`}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`size-2.5 shrink-0 rounded-full ${
+                      vendor.is_open && vendor.status === "ativo"
+                        ? "bg-emerald-300"
+                        : "bg-amber-300"
+                    }`}
+                  />
+                  <div className="min-w-0">
+                    <dt className="text-[12px] font-extrabold text-white">
+                      {vendor.is_open && vendor.status === "ativo"
+                        ? "Aberta agora"
+                        : "Fechada no momento"}
+                    </dt>
+                    <dd className="truncate text-[11.5px] text-white/85">
+                      {vendor.opening_hours || "Horário a confirmar"}
+                    </dd>
+                  </div>
+                </div>
                 {vendor.address && (
-                  <span className="inline-flex items-center gap-1">
-                    <MapPin size={12} /> {vendor.address}
-                  </span>
+                  <div className="flex items-start gap-2.5 rounded-xl bg-white/10 px-3 py-2 ring-1 ring-white/20">
+                    <MapPin size={15} className="mt-0.5 shrink-0 text-sky-200" aria-hidden="true" />
+                    <dd className="min-w-0 text-[12px] leading-snug text-white/90">
+                      {vendor.address}
+                    </dd>
+                  </div>
                 )}
-              </div>
+              </dl>
             </div>
           </div>
           <div className="relative flex shrink-0 flex-wrap items-center gap-2">
