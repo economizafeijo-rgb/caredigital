@@ -44,6 +44,8 @@ import {
   socialLinks,
 } from "../seller/shared";
 import { CustomerChat } from "./CustomerChat";
+import { useVendorReplies } from "./useVendorReplies";
+import { ChatToastHost } from "../chat/ChatToasts";
 import { PilotNotice } from "./PilotNotice";
 import { StoreStatusChip } from "./StoreLed";
 import { useLiveVendor } from "../LiveStores";
@@ -162,6 +164,7 @@ function PublicStore({
   const [sort, setSort] = useState<Sort>("relevancia");
   const [cartOpen, setCartOpen] = useState(false);
   const [chat, setChat] = useState(false);
+  const replies = useVendorReplies(vendor.id, vendor.name, chat);
   const [qrOpen, setQrOpen] = useState(false);
   // Voltou do cadastro/e-mail confirmado com itens na cesta: abre o checkout direto.
   useEffect(() => {
@@ -614,6 +617,17 @@ function PublicStore({
         )}
       </section>
 
+      {!chat && <ChatToastHost />}
+      {replies > 0 && !chat && (
+        <button
+          type="button"
+          onClick={() => setChat(true)}
+          className="nv-msg-pulse fixed bottom-[calc(8.5rem+env(safe-area-inset-bottom))] right-3 z-[90] inline-flex h-11 items-center gap-2 rounded-full bg-emerald-600 px-4 text-sm font-extrabold text-white shadow-xl sm:bottom-[calc(5.5rem+env(safe-area-inset-bottom))]"
+        >
+          <MessageCircle size={18} aria-hidden="true" /> {replies} nova{replies > 1 ? "s" : ""}{" "}
+          resposta{replies > 1 ? "s" : ""}
+        </button>
+      )}
       <button
         type="button"
         onClick={() => setCartOpen(true)}

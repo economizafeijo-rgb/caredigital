@@ -4556,3 +4556,24 @@ body {
     display: none !important;
   }
 }
+
+/* Sinal luminoso de mensagem nova: anel que pulsa. Sem movimento para quem prefere menos animação. */
+@keyframes nv-msg-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.65);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+.nv-msg-pulse {
+  animation: nv-msg-pulse 1.6s ease-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .nv-msg-pulse {
+    animation: none;
+  }
+}

@@ -171,6 +171,20 @@ export function SellerDashboard({
     }),
     [data],
   );
+  // Título da aba do navegador avisa mensagem pendente mesmo com outra aba em primeiro plano.
+  useEffect(() => {
+    if (!badges.mensagens) return;
+    const base = document.title;
+    let on = true;
+    const t = window.setInterval(() => {
+      document.title = on ? `(${badges.mensagens}) Nova mensagem` : base;
+      on = !on;
+    }, 1200);
+    return () => {
+      window.clearInterval(t);
+      document.title = base;
+    };
+  }, [badges.mensagens]);
   const allNav: Record<
     SellerTab,
     { label: string; icon: typeof Store; badge?: number; group: "operacao" | "gestao" }
@@ -432,7 +446,7 @@ export function SellerDashboard({
                       <n.icon size={16} /> {n.label}
                       {!!n.badge && (
                         <span
-                          className={`ml-auto grid min-w-5 place-items-center rounded-full px-1.5 text-[11px] font-bold tabular-nums ${on ? "bg-white/25 text-white" : "bg-[var(--accent-store)] text-white"}`}
+                          className={`ml-auto grid min-w-5 place-items-center rounded-full px-1.5 text-[11px] font-bold tabular-nums ${key === "mensagens" ? "nv-msg-pulse" : ""} ${on ? "bg-white/25 text-white" : "bg-[var(--accent-store)] text-white"}`}
                         >
                           {n.badge}
                         </span>
