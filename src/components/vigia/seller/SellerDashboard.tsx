@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { Search } from "lucide-react";
 import {
   BadgeCheck,
   BookUser,
@@ -204,6 +205,32 @@ export function SellerDashboard({
     equipe: { label: "Funcionários", icon: Users, group: "gestao" },
     loja: { label: "Minha loja", icon: Store, group: "gestao" },
   };
+  const about: Partial<Record<SellerTab, string>> = {
+    pedidos: "Acompanhe cada pedido do pagamento à entrega e responda dentro do prazo.",
+    produtos: "Cadastre produtos, controle o estoque e ajuste preços e margem.",
+    mensagens: "Converse com os clientes e tire dúvidas antes da compra.",
+    caixa: "Entradas, saídas e fechamento do caixa da loja.",
+    relatorios: "Vendas, margem e desempenho por período, prontos para exportar.",
+    cadastros: "Fornecedores, categorias e dados de apoio da operação.",
+    clientes: "Quem compra de você, histórico e contato.",
+    disputas: "Reclamações abertas e a resolução de cada caso.",
+    promocoes: "Cupons e ofertas para vender mais.",
+    equipe: "Funcionários e o que cada um pode acessar.",
+    loja: "Logomarca, banner, horário e dados públicos da vitrine.",
+  };
+  const [palette, setPalette] = useState(false);
+  const [q, setQ] = useState("");
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPalette((v) => !v);
+        setQ("");
+      } else if (e.key === "Escape") setPalette(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   const allowed = (key: SellerTab) =>
     !isStaff || ["pedidos", "mensagens", "clientes"].includes(key);
   const groups = [
@@ -219,7 +246,10 @@ export function SellerDashboard({
         "caixa",
       ] as SellerTab[],
     },
-    { title: "Gestão", keys: ["relatorios", "cadastros", "promocoes", "equipe", "loja"] as SellerTab[] },
+    {
+      title: "Gestão",
+      keys: ["relatorios", "cadastros", "promocoes", "equipe", "loja"] as SellerTab[],
+    },
   ]
     .map((g) => ({ ...g, keys: g.keys.filter(allowed) }))
     .filter((g) => g.keys.length);
@@ -231,6 +261,53 @@ export function SellerDashboard({
   return (
     <>
       <ChatToastHost />
+      {palette && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Ir para uma seção"
+          className="fixed inset-0 z-[120] grid place-items-start bg-black/55 p-4 pt-[15vh]"
+          onClick={() => setPalette(false)}
+        >
+          <div
+            className="mx-auto w-full max-w-md overflow-hidden rounded-2xl border border-border bg-card shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <label className="flex items-center gap-2 border-b border-border px-4">
+              <Search size={15} className="text-muted-foreground" aria-hidden />
+              <input
+                autoFocus
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Para onde quer ir? Pedidos, estoque, caixa…"
+                className="h-12 w-full bg-transparent text-sm outline-none"
+              />
+            </label>
+            <ul className="max-h-72 overflow-y-auto p-1.5">
+              {groups
+                .flatMap((g) => g.keys)
+                .filter((k) => allNav[k].label.toLowerCase().includes(q.trim().toLowerCase()))
+                .map((k) => {
+                  const I = allNav[k].icon;
+                  return (
+                    <li key={k}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTab(k);
+                          setPalette(false);
+                        }}
+                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm hover:bg-muted"
+                      >
+                        <I size={16} aria-hidden /> {allNav[k].label}
+                      </button>
+                    </li>
+                  );
+                })}
+            </ul>
+          </div>
+        </div>
+      )}
       <div
         className="grid min-h-full w-full gap-4 lg:grid-cols-[16rem_minmax(0,1fr)]"
         style={{ "--accent-store": accent } as CSSProperties}
@@ -422,6 +499,32 @@ export function SellerDashboard({
             </p>
           ) : (
             <div key={`${vendor.id}-${tab}`} className="nv-fade-in flex min-h-0 flex-1 flex-col">
+              {tab !== "visao" && (
+                <header className="mb-4 flex flex-wrap items-end justify-between gap-3 border-b border-border pb-3">
+                  <div className="min-w-0">
+                    <h2 className="flex items-center gap-2 font-display text-xl font-extrabold tracking-tight sm:text-2xl">
+                      {(() => {
+                        const I = allNav[tab].icon;
+                        return <I size={20} style={{ color: "var(--accent-store)" }} aria-hidden />;
+                      })()}
+                      {allNav[tab].label}
+                    </h2>
+                    {about[tab] && (
+                      <p className="mt-0.5 text-[13px] text-muted-foreground">{about[tab]}</p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setPalette(true)}
+                    className="hidden h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs text-muted-foreground transition hover:text-foreground sm:inline-flex"
+                  >
+                    <Search size={13} aria-hidden /> Ir para…
+                    <kbd className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold">
+                      Ctrl K
+                    </kbd>
+                  </button>
+                </header>
+              )}
               {tab === "visao" && (
                 <SellerOverview vendor={vendor} data={data} go={setTab} onChanged={refresh} />
               )}
