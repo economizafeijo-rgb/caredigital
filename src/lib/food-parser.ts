@@ -991,6 +991,26 @@ export function parseFoodText(text: string, liquidMl?: number | null): ParsedFoo
       estimatedPortion: !explicit,
     });
   }
+  // Limonada sem informação de açúcar: no Brasil costuma ser adoçada. Contamos o mesmo açúcar de "com
+  // açúcar" (estimativa, cerca de 10 g para cada 200 ml), a menos que o texto diga que não leva.
+  const lemonade = found.find((f) => f.id === "limonada");
+  const sugarItem = ingredientById.get("acucar");
+  if (
+    lemonade &&
+    sugarItem &&
+    !found.some((f) => isAdditive(f.id)) &&
+    !/sem a[cç][uú]car|sem ado[cç]|ado[cç]ante|zero|diet|\bpura\b/.test(source)
+  ) {
+    const ml = liquidMl && liquidMl > 0 ? liquidMl : lemonade.grams;
+    const grams = Math.max(5, Math.min(80, Math.round((10 * ml) / 200)));
+    found.push({
+      id: sugarItem.id,
+      name: sugarItem.name,
+      grams,
+      nutrients: nutrientsFor(sugarItem, grams),
+      estimatedPortion: true,
+    });
+  }
   if (!found.length && liquidMl && /leite|suco|caf[eé]/.test(source)) {
     const alias = aliases.find(([pattern]) => pattern.test(source));
     const item = alias && ingredientById.get(alias[1]);

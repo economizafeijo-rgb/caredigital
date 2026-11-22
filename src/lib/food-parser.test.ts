@@ -41,4 +41,14 @@ describe("parseFoodText", () => {
       ["acucar", 10],
     ]);
   });
+  it("limonada sem informação presume açúcar (estimativa); 'sem açúcar' não soma", () => {
+    const plain = parseFoodText("Limonada", 700);
+    expect(plain.map((f) => f.id)).toEqual(["limonada", "acucar"]);
+    expect(plain[1]).toMatchObject({ grams: 35, estimatedPortion: true });
+    expect(parseFoodText("limonada sem açúcar", 700).map((f) => f.id)).toEqual(["limonada"]);
+    expect(parseFoodText("limonada com 2 colheres de sopa de açúcar", 700).map((f) => f.grams)).toEqual([
+      700, 24,
+    ]);
+    expect(parseFoodText("água com limão", 300).map((f) => f.id)).toEqual(["limao"]);
+  });
 });
