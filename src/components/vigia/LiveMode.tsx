@@ -239,8 +239,8 @@ const tileArea: Partial<Record<MetricKey, ClientSection>> = {
 } as Partial<Record<MetricKey, ClientSection>>;
 let openArea: ((area: ClientSection) => void) | null = null;
 /** Foto de cada cartão: preenche o espaço livre no canto inferior, tingida pela cor da área. */
-const tileImage: Record<MetricKey, string> = {
-  score: "/images/painel-visao.webp",
+const tileImage: Partial<Record<MetricKey, string>> = {
+  // "Dia em dia" (score) fica sem foto: só o anel de metas.
   agua: "/images/hero-hidratacao.webp",
   peso: "/images/hero-peso.webp",
   imc: "/images/show-peso.webp",
@@ -299,6 +299,7 @@ function Tile({
       className={`group relative isolate min-w-0 overflow-hidden rounded-[26px] p-4 ring-1 transition-[box-shadow,background-color,--tw-ring-color] duration-300 ${area ? "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70" : ""} ${on ? "bg-slate-900/70 ring-white/45 shadow-[0_0_44px_-10px_var(--tile)]" : "bg-slate-900/55 ring-white/10 hover:ring-white/30 hover:shadow-[0_18px_40px_-20px_rgba(0,0,0,.8)]"}`}
       style={{ ["--tile" as string]: tone }}
     >
+      {tileImage[k] && (
       <img
         src={tileImage[k]}
         alt=""
@@ -307,6 +308,7 @@ function Tile({
         decoding="async"
         className="pointer-events-none absolute inset-0 -z-20 size-full object-cover opacity-45 transition-[transform,opacity] duration-700 ease-out [mask-image:linear-gradient(200deg,transparent_25%,#000_95%)] group-hover:scale-[1.06] group-hover:opacity-60"
       />
+      )}
       <span
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-slate-950/80 via-slate-950/55 to-transparent"
