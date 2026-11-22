@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalize, searchFoods } from "./food-search";
+import { foodsForKind, normalize, searchFoods } from "./food-search";
 
 const labels = (q: string) => searchFoods(q).items.map((i) => normalize(i.label));
 
@@ -40,5 +40,12 @@ describe("busca de alimentos", () => {
 
   it("consulta curta não retorna nada", () => {
     expect(searchFoods("b").items).toEqual([]);
+  });
+
+  it("aba Frutas lista as frutas do catálogo, inclusive regionais", () => {
+    const names = foodsForKind("fruta").map((i) => normalize(i.label));
+    for (const esperado of ["banana prata", "banana maca", "melao", "maracuja", "abacate", "morango", "tangerina", "buriti", "acerola", "biriba", "castanha de caju"])
+      expect(names.some((n) => n.startsWith(esperado))).toBe(true);
+    expect(names.length).toBeGreaterThan(50);
   });
 });

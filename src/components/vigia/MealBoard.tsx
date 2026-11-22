@@ -7,7 +7,7 @@ import { NutritionInfoCard } from "./MealSuggestions";
 import { PlateBuilder, PlateRows } from "./PlateBuilder";
 import { foodKinds, mealCombos, typicalFoods, type FoodKind } from "@/lib/care-intake-categories";
 import { measureUnit, parseFoodText, sumNutrients } from "@/lib/food-parser";
-import { searchFoods } from "@/lib/food-search";
+import { foodsForKind, searchFoods } from "@/lib/food-search";
 
 /** Cor de cada tipo de refeição, usada nos setores, no cabeçalho e no prato. */
 export const mealTone: Record<FoodKind, string> = {
@@ -154,7 +154,11 @@ export function MealBoard({
   };
 
   const combos = useMemo(() => stripLiquids(mealCombos[kind] ?? []), [kind]);
-  const typical = useMemo(() => stripLiquids(typicalFoods[kind] ?? []), [kind]);
+  // Frutas: mostra todas as do catálogo (inclusive regionais), não só as mais comuns.
+  const typical = useMemo(
+    () => (kind === "fruta" ? foodsForKind("fruta") : stripLiquids(typicalFoods[kind] ?? [])),
+    [kind],
+  );
   const q = query.trim();
   const search = useMemo(() => searchFoods(q), [q]);
   const found = search.items;
@@ -375,7 +379,9 @@ export function MealBoard({
               <>
                 {section("Refeições prontas", "combinações comuns", combos, "combo")}
                 {section(
-                  `Alimentos típicos de ${category.label.toLowerCase()}`,
+                  kind === "fruta"
+                    ? "Todas as frutas"
+                    : `Alimentos típicos de ${category.label.toLowerCase()}`,
                   "toque para adicionar ou remover",
                   typical,
                   "tipico",

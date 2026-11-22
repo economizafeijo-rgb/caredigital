@@ -48,6 +48,10 @@ const synonyms: Record<string, string[]> = {
   cozido: ["cozidao"],
 };
 
+/** Itens que a pessoa espera achar na aba Frutas mesmo fora do grupo "frutas" do catálogo. */
+const alsoFruit = new Set(["castanha_caju", "castanha_para", "coco", "amendoim"]);
+const notFruit = new Set(["goiabada"]);
+
 const groupKind: Record<string, FoodKind> = {
   frutas: "fruta",
   legumes: "salada",
@@ -139,7 +143,9 @@ function buildIndex(): Entry[] {
     if (item.group === "bebidas") continue;
     const text = catalogText(item);
     if (!text) continue;
-    add(text, text, groupKind[item.group], true, item.name);
+    const kind = notFruit.has(item.id) ? "sobremesa" : groupKind[item.group];
+    add(text, text, kind, true, item.name);
+    if (alsoFruit.has(item.id)) add(text, text, "fruta", true, item.name);
   }
   // sinônimos entram no "palheiro" de cada item que contém a palavra-base
   for (const entry of byText.values()) {
@@ -216,4 +222,19 @@ export function searchFoods(query: string, limit = 36): SearchResult {
   });
   const suggestedKind = [...votes.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
   return { items: hits, suggestedKind };
+}
+
+/** Alimentos de uma categoria: os sugeridos primeiro e depois todo o catálogo que combina com ela. */
+export function foodsForKind(kind: FoodKind): SearchItem[] {
+  const out: SearchItem[] = [];
+  const seen = new Set<string>();
+  for (const entry of buildIndex()) {
+    if (!entry.kinds.has(kind)) continue;
+    const key = entry.id ?? normalize(entry.label);
+    const dupKey = `${key}|${normalize(entry.label)}`;
+    if (seen.has(dupKey)) continue;
+    seen.add(dupKey);
+    out.push({ label: entry.label, text: entry.text });
+  }
+  return out;
 }

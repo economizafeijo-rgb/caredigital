@@ -325,6 +325,7 @@ const aliases: Array<[RegExp, string]> = [
   [/atem[oó]i?a/, "atemoia"],
   [/banana ouro|banana-ouro/, "banana_ouro"],
   [/caj[aá].?manga/, "cajamanga"],
+  [/castanha[- ]de[- ]caju|castanha de caju|castanha caju/, "castanha_caju"],
   [/caju\b/, "caju"],
   [/caqui/, "caqui"],
   [/carambola/, "carambola"],
@@ -826,6 +827,7 @@ const defaultPortion: Record<string, number> = {
   farofa: 30,
   azeite: 8,
   castanha_para: 10,
+  castanha_caju: 30,
   amendoim: 30,
 };
 const unitGrams: Array<[RegExp, number]> = [
