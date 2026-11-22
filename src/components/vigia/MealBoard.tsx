@@ -5,7 +5,7 @@ import { CareIntakeIcon } from "./CareIntakePicker";
 import { FoodThumb, foodVisual } from "./FoodArt";
 import { NutritionInfoCard } from "./MealSuggestions";
 import { PlateBuilder, PlateRows } from "./PlateBuilder";
-import { EditingHeader, KindRail, NutritionSummary, SidePanel } from "./IntakeParts";
+import { EditingHeader, FocusStrip, KindRail, NutritionSummary, SidePanel } from "./IntakeParts";
 import { foodKinds, mealCombos, typicalFoods, type FoodKind } from "@/lib/care-intake-categories";
 import { measureUnit, parseFoodText, sumNutrients } from "@/lib/food-parser";
 import { foodsForKind, isRegionalFood, searchFoods } from "@/lib/food-search";
@@ -120,6 +120,16 @@ export function MealBoard({
   const category = foodKinds.find((c) => c.value === kind)!;
   const [query, setQuery] = useState("");
   const [info, setInfo] = useState<Item | null>(null);
+  // Item em foco (mouse/toque): suas características ficam sempre visíveis, longe do painel do prato.
+  const [focus, setFocus] = useState<Item | null>(null);
+  const focusInfo = useMemo(() => {
+    if (!focus) return null;
+    const parsed = parseFoodText(focus.text);
+    if (!parsed.length) return null;
+    const n = sumNutrients(parsed.map((f) => f.nutrients));
+    const grams = Math.round(parsed.reduce((sum, f) => sum + f.grams, 0));
+    return { ...n, amount: `${grams} ${parsed.length === 1 ? measureUnit(parsed[0].id) : "g"}` };
+  }, [focus]);
 
   const isOn = (text: string) => description.toLowerCase().includes(text.toLowerCase());
   const toggle = (text: string) => {
@@ -185,7 +195,12 @@ export function MealBoard({
             type="button"
             aria-pressed={on}
             aria-label={`${on ? "Remover" : "Adicionar"} ${item.label}`}
-            onClick={() => toggle(item.text)}
+            onClick={() => {
+              setFocus(item);
+              toggle(item.text);
+            }}
+            onMouseEnter={() => setFocus(item)}
+            onFocus={() => setFocus(item)}
             className="flex min-w-0 flex-1 items-center gap-2.5 py-2 pl-2 pr-1 text-left active:scale-[.985]"
           >
             <FoodThumb text={item.text} label={item.label} visual={v} className="size-10" />
@@ -301,6 +316,25 @@ export function MealBoard({
                 className="h-9 w-full border border-border bg-background/60 pl-8 pr-2 text-xs outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
               />
             </label>
+          </div>
+          <div className="mt-2">
+            {focus && focusInfo ? (
+              <FocusStrip
+                name={focus.label}
+                amount={focusInfo.amount}
+                kcal={focusInfo.kcal}
+                protein={focusInfo.protein}
+                carbs={focusInfo.carbs}
+                fat={focusInfo.fat}
+                fiber={focusInfo.fiber}
+                tone={tone}
+                regional={isRegionalFood(focus.text)}
+              />
+            ) : (
+              <p className="border border-dashed border-border px-3 py-2 text-[11px] text-muted-foreground">
+                Passe o mouse ou toque num alimento para ver calorias e nutrientes da porção.
+              </p>
+            )}
           </div>
         </div>
 

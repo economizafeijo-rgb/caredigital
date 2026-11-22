@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { Eraser, Save, X } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { ChevronDown, Eraser, ListChecks, Save, X } from "lucide-react";
 import { CareIntakeIcon } from "./CareIntakePicker";
 import { useCountUp } from "@/lib/use-count-up";
 
@@ -264,28 +264,35 @@ export type OverviewItem = {
 };
 
 /**
- * Resumo consolidado do registro em andamento: TUDO o que já foi escolhido (alimentos e bebida),
- * visível em qualquer aba. Tocar num item leva de volta ao grupo dele para continuar editando.
+ * Resumo do registro em andamento, em UMA linha compacta (itens, kcal e macros).
+ * A lista completa abre como camada sobre o painel — nunca empurra nem encobre a área de edição.
  */
 export function RecordOverview({
   items,
   active,
   onOpen,
   totals,
-  mealType,
 }: {
   items: OverviewItem[];
   active: "food" | "beverage";
   onOpen: (group: "food" | "beverage") => void;
   totals?: { protein: number; carbs: number; fat: number; fiber: number };
-  /** Qual refeição é esta (café, almoço…): obrigatório para registrar os alimentos. */
-  mealType?: {
-    value: string;
-    options: { value: string; label: string }[];
-    suggested: boolean;
-    onChange: (value: string) => void;
-  };
 }) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const away = (e: MouseEvent) => {
+      if (box.current && !box.current.contains(e.target as Node)) setOpen(false);
+    };
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", away);
+    document.addEventListener("keydown", esc);
+    return () => {
+      document.removeEventListener("mousedown", away);
+      document.removeEventListener("keydown", esc);
+    };
+  }, [open]);
   if (!items.length) return null;
   const kcal = items.reduce((sum, i) => sum + i.kcal, 0);
   const foodKcal = items.filter((i) => i.group === "food").reduce((sum, i) => sum + i.kcal, 0);
@@ -293,101 +300,163 @@ export function RecordOverview({
   const hasBoth = items.some((i) => i.group === "food") && items.some((i) => i.group === "beverage");
   return (
     <section
+      ref={box}
       aria-label="Resumo do registro"
-      className="border-b border-amber-400/30 border-l-[3px] border-l-amber-400 bg-amber-400/[.07]"
+      className="relative border-b border-amber-400/30 border-l-[3px] border-l-amber-400 bg-amber-400/[.07]"
     >
-      {mealType && (
-        <div className="px-3 pt-2" role="group" aria-label="Tipo da refeição">
-          <p className="text-[10px] font-bold text-amber-300">
-            Qual refeição é esta?
-            {mealType.suggested && (
-              <span className="ml-1 font-normal text-muted-foreground">
-                (sugerido pelo horário — toque para mudar)
-              </span>
-            )}
-          </p>
-          <div className="mt-1 flex flex-wrap gap-1">
-            {mealType.options.map((o) => (
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center gap-2 px-3 py-2 text-left transition hover:bg-amber-400/10"
+      >
+        <ListChecks size={16} className="shrink-0 text-amber-300" aria-hidden="true" />
+        <span className="min-w-0 flex-1 leading-tight">
+          <span className="block text-[11px] font-bold text-amber-300">
+            {items.length} {items.length === 1 ? "item" : "itens"} no registro · Soma do registro
+          </span>
+          {totals && (
+            <span className="block truncate text-[10px] tabular-nums text-muted-foreground">
+              P {nf(totals.protein, 1)} · C {nf(totals.carbs, 1)} · G {nf(totals.fat, 1)} · Fibras{" "}
+              {nf(totals.fiber, 1)} g
+            </span>
+          )}
+        </span>
+        <strong className="shrink-0 text-lg tabular-nums text-amber-300">{nf(kcal)} kcal</strong>
+        <ChevronDown
+          size={15}
+          aria-hidden="true"
+          className={"shrink-0 text-muted-foreground transition-transform " + (open ? "rotate-180" : "")}
+        />
+      </button>
+      <div
+        className={
+          (open ? "" : "hidden ") +
+          "absolute inset-x-0 top-full z-30 max-h-[18rem] overflow-y-auto border border-amber-400/40 bg-card shadow-2xl"
+        }
+      >
+        <ul className="grid grid-cols-[minmax(0,1fr)] px-1.5 py-1.5">
+          {items.map((item) => (
+            <li key={item.key} className="min-w-0">
               <button
-                key={o.value}
                 type="button"
-                aria-pressed={o.value === mealType.value}
-                onClick={() => mealType.onChange(o.value)}
+                onClick={() => {
+                  setOpen(false);
+                  onOpen(item.group);
+                }}
+                aria-current={item.group === active ? "true" : undefined}
+                title={item.group === active ? "Em edição agora" : "Toque para voltar e editar"}
                 className={
-                  "h-6 border px-2 text-[11px] font-semibold transition active:scale-95 " +
-                  (o.value === mealType.value
-                    ? "border-amber-300 bg-amber-300 text-slate-900"
-                    : "border-border text-muted-foreground hover:bg-muted hover:text-foreground")
+                  "flex w-full min-w-0 items-center gap-2 border-l-2 px-1.5 py-1.5 text-left text-xs transition hover:bg-amber-400/10 " +
+                  (item.group === active ? "border-l-amber-300 bg-white/[.06]" : "border-l-transparent")
                 }
               >
-                {o.label}
+                <span
+                  aria-hidden="true"
+                  className={
+                    "w-11 shrink-0 text-center text-[9px] font-bold " +
+                    (item.group === "food"
+                      ? "bg-emerald-500/20 text-emerald-300"
+                      : "bg-sky-500/20 text-sky-300")
+                  }
+                >
+                  {item.group === "food" ? "Prato" : "Bebida"}
+                </span>
+                <span className="min-w-0 flex-1 truncate font-semibold">{item.name}</span>
+                <span className="shrink-0 tabular-nums text-[11px] text-muted-foreground">
+                  {item.detail}
+                </span>
+                <span className="w-10 shrink-0 text-right tabular-nums text-[11px] font-bold">
+                  {nf(item.kcal)}
+                </span>
               </button>
-            ))}
-          </div>
+            </li>
+          ))}
+        </ul>
+        <div className="border-t border-amber-400/30 px-3 py-2 text-[11px]">
+          {hasBoth && (
+            <p className="flex justify-between text-muted-foreground">
+              <span>Alimentos</span>
+              <span className="tabular-nums">{nf(foodKcal)} kcal</span>
+            </p>
+          )}
+          {hasBoth && (
+            <p className="flex justify-between text-muted-foreground">
+              <span>Bebidas</span>
+              <span className="tabular-nums">{nf(drinkKcal)} kcal</span>
+            </p>
+          )}
+          <p className="flex justify-between font-bold">
+            <span>Total</span>
+            <span className="tabular-nums text-amber-300">{nf(kcal)} kcal</span>
+          </p>
         </div>
-      )}
-      <p className="px-3 pt-2 text-[10px] font-bold text-amber-300">
-        Tudo o que entra neste registro · {items.length} {items.length === 1 ? "item" : "itens"}
-        <span className="ml-1 font-normal text-muted-foreground">(kcal por item)</span>
+      </div>
+    </section>
+  );
+}
+
+/** Características do item em foco (passar o mouse ou tocar): sempre visível na área de escolha. */
+export function FocusStrip({
+  name,
+  amount,
+  kcal,
+  protein,
+  carbs,
+  fat,
+  fiber,
+  tone,
+  regional,
+}: {
+  name: string;
+  amount: string;
+  kcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber: number;
+  tone: string;
+  regional?: boolean;
+}) {
+  const macros = [
+    ["Proteínas", protein, "#f43f5e"],
+    ["Carboidratos", carbs, "#f59e0b"],
+    ["Gorduras", fat, "#8b5cf6"],
+    ["Fibras", fiber, "#22c55e"],
+  ] as const;
+  return (
+    <div
+      aria-live="polite"
+      className="flex flex-wrap items-center gap-x-4 gap-y-1 border border-border border-l-[3px] bg-muted/30 px-3 py-1.5"
+      style={{ borderLeftColor: tone }}
+    >
+      <div className="min-w-0 leading-tight">
+        <p className="flex items-center gap-1.5 text-[13px] font-bold">
+          <span className="truncate">{name}</span>
+          {regional && (
+            <span className="shrink-0 rounded-sm bg-emerald-600/15 px-1.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
+              Regional
+            </span>
+          )}
+        </p>
+        <p className="text-[10px] text-muted-foreground">porção: {amount}</p>
+      </div>
+      <p className="leading-none">
+        <strong className="text-xl font-extrabold tabular-nums" style={{ color: tone }}>
+          {nf(kcal)}
+        </strong>
+        <span className="ml-1 text-[10px] font-semibold text-muted-foreground">kcal</span>
       </p>
-      <ul className="grid max-h-[7.5rem] grid-cols-[minmax(0,1fr)] overflow-y-auto px-1.5 py-1">
-        {items.map((item) => (
-          <li key={item.key} className="min-w-0">
-            <button
-              type="button"
-              onClick={() => onOpen(item.group)}
-              aria-current={item.group === active ? "true" : undefined}
-              title={item.group === active ? "Em edição agora" : "Toque para voltar e editar"}
-              className={
-                "flex w-full min-w-0 items-center gap-2 border-l-2 px-1.5 py-1 text-left text-xs transition hover:bg-amber-400/10 " +
-                (item.group === active ? "border-l-amber-300 bg-white/[.06]" : "border-l-transparent")
-              }
-            >
-              <span
-                aria-hidden="true"
-                className={
-                  "w-11 shrink-0 text-center text-[9px] font-bold " +
-                  (item.group === "food" ? "bg-emerald-500/20 text-emerald-300" : "bg-sky-500/20 text-sky-300")
-                }
-              >
-                {item.group === "food" ? "Prato" : "Bebida"}
-              </span>
-              <span className="min-w-0 flex-1 truncate font-semibold">{item.name}</span>
-              <span className="shrink-0 tabular-nums text-[11px] text-muted-foreground">{item.detail}</span>
-              <span className="w-10 shrink-0 text-right tabular-nums text-[11px] font-bold">
-                {nf(item.kcal)}
-              </span>
-            </button>
+      <ul className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] tabular-nums">
+        {macros.map(([label, value, color]) => (
+          <li key={label} className="flex items-center gap-1">
+            <span className="size-2" style={{ background: color }} />
+            <span className="text-muted-foreground">{label}</span>
+            <strong>{nf(value, 1)} g</strong>
           </li>
         ))}
       </ul>
-      <div className="mx-1.5 mb-1.5 border-t border-amber-400/30 px-1.5 pt-1.5">
-        {hasBoth && (
-          <p className="flex justify-between text-[10px] text-muted-foreground">
-            <span>Alimentos</span>
-            <span className="tabular-nums">{nf(foodKcal)} kcal</span>
-          </p>
-        )}
-        {hasBoth && (
-          <p className="flex justify-between text-[10px] text-muted-foreground">
-            <span>Bebidas</span>
-            <span className="tabular-nums">{nf(drinkKcal)} kcal</span>
-          </p>
-        )}
-        <p className="mt-0.5 flex items-baseline justify-between gap-2">
-          <strong className="text-xs">Soma do registro</strong>
-          <strong className="text-base tabular-nums text-amber-300">{nf(kcal)} kcal</strong>
-        </p>
-        {totals && (
-          <p className="mt-0.5 flex flex-wrap gap-x-3 text-[10px] tabular-nums text-muted-foreground">
-            <span>Prot. <b className="text-foreground">{nf(totals.protein, 1)} g</b></span>
-            <span>Carb. <b className="text-foreground">{nf(totals.carbs, 1)} g</b></span>
-            <span>Gord. <b className="text-foreground">{nf(totals.fat, 1)} g</b></span>
-            <span>Fibras <b className="text-foreground">{nf(totals.fiber, 1)} g</b></span>
-          </p>
-        )}
-      </div>
-    </section>
+    </div>
   );
 }
 

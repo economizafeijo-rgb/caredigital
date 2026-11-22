@@ -4,7 +4,7 @@ import { HowItWorks, drinkHowTo } from "./HowItWorks";
 import { CareIntakeIcon } from "./CareIntakePicker";
 import { FoodThumb } from "./FoodArt";
 import { NutritionInfoCard } from "./MealSuggestions";
-import { EditingHeader, KindRail, NutritionSummary, SidePanel } from "./IntakeParts";
+import { EditingHeader, FocusStrip, KindRail, NutritionSummary, SidePanel } from "./IntakeParts";
 import { beverageKinds, type BeverageKind } from "@/lib/care-intake-categories";
 import { drinkPresets, type DrinkPreset } from "@/lib/drink-presets";
 import { checkIntake } from "@/lib/hydration-need";
@@ -93,6 +93,12 @@ export function DrinkBoard({
   const isWater = kind === "agua";
   const [query, setQuery] = useState("");
   const [info, setInfo] = useState<Card | null>(null);
+  const [focus, setFocus] = useState<Card | null>(null);
+  const focusInfo = useMemo(() => {
+    if (!focus || focus.kind === "agua") return focus ? { zero: true } : null;
+    const n = sumNutrients(parseFoodText(focus.text, focus.ml).map((f) => f.nutrients));
+    return { zero: false, ...n };
+  }, [focus]);
 
   const own = useMemo(() => allCards.filter((c) => c.kind === kind), [kind]);
   const q = normalize(query);
@@ -139,10 +145,13 @@ export function DrinkBoard({
             aria-pressed={on}
             aria-label={`Escolher ${item.label}`}
             onClick={() => {
+              setFocus(item);
               onKind(item.kind);
               onDescription(item.text);
               onAmount(String(item.ml));
             }}
+            onMouseEnter={() => setFocus(item)}
+            onFocus={() => setFocus(item)}
             className="flex min-w-0 flex-1 items-center gap-2.5 py-2 pl-2 pr-1 text-left active:scale-[.985]"
           >
             <span
@@ -263,6 +272,24 @@ export function DrinkBoard({
                 className="h-9 w-full border border-border bg-background/60 pl-8 pr-2 text-xs outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
               />
             </label>
+          </div>
+          <div className="mt-2">
+            {focus && focusInfo ? (
+              <FocusStrip
+                name={focus.label}
+                amount={`${focus.ml} ml`}
+                kcal={"kcal" in focusInfo ? focusInfo.kcal : 0}
+                protein={"protein" in focusInfo ? focusInfo.protein : 0}
+                carbs={"carbs" in focusInfo ? focusInfo.carbs : 0}
+                fat={"fat" in focusInfo ? focusInfo.fat : 0}
+                fiber={"fiber" in focusInfo ? focusInfo.fiber : 0}
+                tone={drinkTone[focus.kind]}
+              />
+            ) : (
+              <p className="border border-dashed border-border px-3 py-2 text-[11px] text-muted-foreground">
+                Passe o mouse ou toque numa bebida para ver calorias e nutrientes do volume.
+              </p>
+            )}
           </div>
         </div>
 
