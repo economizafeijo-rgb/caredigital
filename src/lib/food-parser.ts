@@ -913,6 +913,7 @@ export function parseFoodText(text: string, liquidMl?: number | null): ParsedFoo
       "80 g de carne assada, 60 g de linguiça, 80 g de frango assado",
     )
     // Água com limão é bebida: a água (0 kcal) mais o suco de cerca de meio limão-taiti (estimativa).
+    .replace(/[aá]gua com lim[aã]o inteiro/g, "água, 60 g de limão-taiti")
     .replace(/[aá]gua com lim[aã]o/g, "água, 30 g de limão-taiti")
     .replace(/sopa de carne com legumes/g, "sopa de carne")
     .replace(/coz(ido|id[aã]o) de carne( com legumes)?/g, "100 g de carne, 100 g de batata, 60 g de cenoura, 60 g de chuchu")
