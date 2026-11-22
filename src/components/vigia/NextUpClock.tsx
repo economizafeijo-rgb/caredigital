@@ -251,16 +251,16 @@ export function NextUpClock({
   const progress = when ? Math.min(1, Math.max(0, (now - start) / span)) : 0;
   const R = 40,
     C = 2 * Math.PI * R;
-  const sec = new Date(now).getSeconds();
-  // Vencido: o relógio para de "correr" e assume a cor âmbar de pendência, com um brilho lento.
+    // Vencido: o relógio para de "correr" e assume a cor âmbar de pendência, com um brilho lento.
   const PEND = "#fbbf24";
-  const ink = due ? PEND : color;
+  const idle = when === null;
+  const ink = due ? PEND : idle ? "#34d399" : color;
   const lateMin = due && when !== null ? Math.max(0, Math.floor((now - when) / 60_000)) : 0;
 
   return (
     <div className="@container min-w-0">
       <div
-        className={`${compact ? "flex items-center gap-2.5 rounded-xl p-2" : "grid grid-cols-1 gap-x-3 gap-y-2 bg-gradient-to-br from-white/[.10] to-white/[.03] p-2 pb-2.5 @[46rem]:grid-cols-[minmax(0,1fr)_auto] @[46rem]:items-center"} relative overflow-hidden border backdrop-blur transition-colors duration-500 ${due ? "nv-due border-white/15 border-l-[3px] !border-l-amber-300" : "border-white/15"} ${className}`}
+        className={`${compact ? "flex items-center gap-3 rounded-2xl bg-gradient-to-br from-white/[.09] to-white/[.02] p-2.5" : "grid grid-cols-1 gap-x-3 gap-y-2 bg-gradient-to-br from-white/[.10] to-white/[.03] p-2 pb-2.5 @[46rem]:grid-cols-[minmax(0,1fr)_auto] @[46rem]:items-center"} relative overflow-hidden border backdrop-blur transition-colors duration-500 ${due ? "nv-due border-white/15 border-l-[3px] !border-l-amber-300" : "border-white/15"} ${className}`}
         style={{ ["--due" as string]: PEND }}
       >
         {!compact && when !== null && (
@@ -277,65 +277,45 @@ export function NextUpClock({
         )}
         <div className={`flex min-w-0 items-center gap-3 ${compact ? "" : "flex-1"}`}>
           <div
-            className={`relative shrink-0 ${compact ? "size-[54px]" : "size-[58px]"}`}
+            className={`relative shrink-0 ${compact ? "size-[60px]" : "size-[62px]"}`}
             aria-hidden="true"
           >
             <svg viewBox="0 0 100 100" className="size-full">
-              {Array.from({ length: 60 }, (_, i) => {
-                const a = (i / 60) * Math.PI * 2,
-                  big = i % 5 === 0;
-                const r1 = big ? 44 : 46,
-                  r2 = 48.5;
-                return (
-                  <line
-                    key={i}
-                    x1={50 + r1 * Math.sin(a)}
-                    y1={50 - r1 * Math.cos(a)}
-                    x2={50 + r2 * Math.sin(a)}
-                    y2={50 - r2 * Math.cos(a)}
-                    stroke="#fff"
-                    strokeOpacity={i === sec ? 0.95 : big ? 0.45 : 0.15}
-                    strokeWidth={big ? 1.6 : 1}
-                  />
-                );
-              })}
               <defs>
                 <linearGradient id={`${gid}-g`} x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0" stopColor={ink} stopOpacity=".35" />
+                  <stop offset="0" stopColor={ink} stopOpacity=".45" />
                   <stop offset="1" stopColor={ink} />
                 </linearGradient>
               </defs>
-              <circle cx="50" cy="50" r={R} fill="#00000026" stroke="#ffffff14" strokeWidth="6" />
+              <circle cx="50" cy="50" r={R + 4} fill="#ffffff08" />
+              <circle cx="50" cy="50" r={R} fill="none" stroke="#ffffff1f" strokeWidth="6" />
               <circle
                 cx="50"
                 cy="50"
                 r={R}
                 fill="none"
-                stroke={compact ? ink : `url(#${gid}-g)`}
-                strokeWidth={compact ? 6 : 7}
+                stroke={`url(#${gid}-g)`}
+                strokeWidth="6"
                 strokeLinecap="round"
                 transform="rotate(-90 50 50)"
                 className={due ? "nv-breathe" : ""}
                 strokeDasharray={C}
-                strokeDashoffset={C * (1 - (due ? 1 : progress))}
+                strokeDashoffset={C * (1 - (due || idle ? 1 : progress))}
+                strokeOpacity={idle ? 0.55 : 1}
                 style={{
                   transition: "stroke-dashoffset 1s linear, stroke .5s",
-                  filter: due ? "none" : `drop-shadow(0 0 3px ${ink})`,
+                  filter: due || idle ? "none" : `drop-shadow(0 0 4px ${ink}99)`,
                 }}
               />
-              {!due && (
-                <line
-                  x1="50"
-                  y1="50"
-                  x2={50 + 30 * Math.sin((sec / 60) * Math.PI * 2)}
-                  y2={50 - 30 * Math.cos((sec / 60) * Math.PI * 2)}
-                  stroke={color}
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  style={{ transition: sec === 0 ? "none" : "all .25s cubic-bezier(.4,2.2,.6,1)" }}
+              {!due && !idle && progress > 0.02 && (
+                <circle
+                  cx={50 + R * Math.sin(progress * Math.PI * 2)}
+                  cy={50 - R * Math.cos(progress * Math.PI * 2)}
+                  r="4.2"
+                  fill="#fff"
+                  style={{ filter: `drop-shadow(0 0 4px ${ink})`, transition: "all 1s linear" }}
                 />
               )}
-              {!due && <circle cx="50" cy="50" r="2.6" fill={color} />}
             </svg>
             <span className="absolute inset-0 grid place-items-center">
               {due ? (
@@ -370,16 +350,19 @@ export function NextUpClock({
                   />
                 </span>
               ) : (
-                !compact && (
-                  <span className="mt-[26px] font-mono text-[8px] font-bold tabular-nums text-white/55">
-                    {Math.round(progress * 100)}%
+                idle ? (
+                  <Check size={compact ? 18 : 20} strokeWidth={3} style={{ color: ink }} />
+                ) : (
+                  <span className="text-[13px] font-extrabold tabular-nums text-white/90">
+                    {Math.round(progress * 100)}
+                    <span className="text-[8px] font-bold text-white/50">%</span>
                   </span>
                 )
               )}
             </span>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="flex items-center justify-between gap-2 text-[10.5px] font-semibold text-white/65">
+            <p className="flex items-center justify-between gap-2 text-[11px] font-semibold tracking-wide text-white/60">
               <span className="min-w-0 truncate" title={title}>
                 {title}
               </span>
@@ -395,7 +378,7 @@ export function NextUpClock({
               </button>
             </p>
             {when === null ? (
-              <p className="mt-0.5 truncate text-sm font-bold">{emptyText}</p>
+              <p className="mt-1 truncate text-[15px] font-bold leading-tight text-white">{emptyText}</p>
             ) : due ? (
               <p
                 className={`mt-0.5 flex items-baseline gap-2 whitespace-nowrap text-lg font-extrabold leading-none`}
