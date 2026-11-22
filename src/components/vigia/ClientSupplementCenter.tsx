@@ -165,7 +165,7 @@ function ProductPage({
           <X size={18} />
         </button>
         <div
-          className="relative h-44 shrink-0 md:h-auto md:min-h-0"
+          className="relative h-60 shrink-0 md:h-auto md:min-h-0"
           style={{
             background: `radial-gradient(circle at 50% 42%, ${color}55, transparent 68%), linear-gradient(160deg, ${color}26, ${color}0d 60%, transparent)`,
           }}
@@ -176,12 +176,19 @@ function ProductPage({
           >
             {item.category}
           </span>
-          <div className="absolute inset-x-6 bottom-6 top-12 grid place-items-center md:inset-x-10 md:bottom-10 md:top-14">
+          <div className="absolute inset-x-6 bottom-16 top-12 grid place-items-center md:bottom-20 md:top-14">
             <PackArt
               item={item}
-              className="nv-float max-h-full max-w-full object-contain drop-shadow-[0_20px_24px_rgba(0,0,0,.4)]"
+              className={`nv-float w-auto max-w-[70%] object-contain drop-shadow-[0_16px_18px_rgba(0,0,0,.35)] ${item.photo ? "max-h-[min(100%,19rem)]" : "max-h-[min(100%,15rem)]"}`}
             />
           </div>
+          <span
+            aria-hidden="true"
+            className="absolute bottom-[4.25rem] left-1/2 h-4 w-40 -translate-x-1/2 rounded-[50%] bg-black/30 blur-lg md:bottom-[5.25rem]"
+          />
+          <p className="absolute inset-x-4 bottom-4 text-center text-xs font-semibold text-foreground/70">
+            {item.pack.sub}
+          </p>
         </div>
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <div className="grid min-h-0 flex-1 content-start gap-4 overflow-y-auto p-5 sm:p-6">
