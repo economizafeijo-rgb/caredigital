@@ -238,8 +238,8 @@ export function SellerOverview({
               <span
                 className="grid size-8 place-items-center rounded-lg"
                 style={{
-                  background: "color-mix(in srgb, var(--accent-store) 14%, transparent)",
-                  color: "var(--accent-store)",
+                  background: "color-mix(in srgb, var(--accent-store) 24%, transparent)",
+                  color: "var(--accent-ink, var(--accent-store))",
                 }}
               >
                 <k.icon size={16} />
@@ -280,7 +280,11 @@ export function SellerOverview({
             onClick={() => go(key)}
             className="flex flex-col items-center gap-1.5 rounded-xl border border-border bg-card px-2 py-3 text-[12.5px] font-semibold transition hover:border-[var(--accent-store)]"
           >
-            <Icon size={18} style={{ color: "var(--accent-store)" }} aria-hidden />
+            <Icon
+              size={18}
+              style={{ color: "var(--accent-ink, var(--accent-store))" }}
+              aria-hidden
+            />
             {label}
           </button>
         ))}

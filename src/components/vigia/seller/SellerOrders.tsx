@@ -381,7 +381,7 @@ export function SellerOrders({
                       <p>
                         <span className="text-muted-foreground">Contato:</span>{" "}
                         <a
-                          className="font-semibold text-[var(--accent-store)] hover:underline"
+                          className="font-semibold text-[var(--accent-ink)] hover:underline"
                           href={`https://wa.me/55${o.customer_phone.replace(/\D/g, "").replace(/^55/, "")}`}
                           target="_blank"
                           rel="noopener noreferrer"

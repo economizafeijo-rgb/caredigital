@@ -303,7 +303,12 @@ export function SellerDashboard({
       )}
       <div
         className="grid min-h-full w-full gap-4 lg:grid-cols-[16rem_minmax(0,1fr)]"
-        style={{ "--accent-store": accent } as CSSProperties}
+        style={
+          {
+            "--accent-store": accent,
+            "--accent-ink": `color-mix(in srgb, ${accent} 58%, var(--foreground))`,
+          } as CSSProperties
+        }
       >
         {/* Menu lateral: identidade da loja, navegação e ações */}
         <aside
@@ -459,9 +464,16 @@ export function SellerDashboard({
         >
           <div
             aria-hidden
+            className="pointer-events-none absolute inset-0 -z-10 bg-cover bg-[position:center_20%] opacity-50"
+            style={{
+              backgroundImage: `url(${vendor.banner_url || "/loja/bela-vista/banner.jpg"})`,
+            }}
+          />
+          <div
+            aria-hidden
             className="pointer-events-none absolute inset-0 -z-10"
             style={{
-              backgroundImage: `radial-gradient(60rem 22rem at 100% 0%, color-mix(in srgb, ${accent} 16%, transparent), transparent 70%), radial-gradient(40rem 20rem at 0% 100%, color-mix(in srgb, ${accent} 10%, transparent), transparent 70%)`,
+              backgroundImage: `linear-gradient(180deg, color-mix(in srgb, var(--background) 25%, transparent) 0%, color-mix(in srgb, var(--background) 62%, transparent) 40%, color-mix(in srgb, var(--background) 80%, transparent) 100%), radial-gradient(60rem 24rem at 100% 0%, color-mix(in srgb, ${accent} 22%, transparent), transparent 70%)`,
             }}
           />
           {error && (
@@ -535,7 +547,13 @@ export function SellerDashboard({
                     <h2 className="flex items-center gap-2 font-display text-xl font-extrabold tracking-tight sm:text-2xl">
                       {(() => {
                         const I = allNav[tab].icon;
-                        return <I size={20} style={{ color: "var(--accent-store)" }} aria-hidden />;
+                        return (
+                          <I
+                            size={20}
+                            style={{ color: "var(--accent-ink, var(--accent-store))" }}
+                            aria-hidden
+                          />
+                        );
                       })()}
                       {allNav[tab].label}
                     </h2>
