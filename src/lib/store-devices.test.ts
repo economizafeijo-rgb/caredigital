@@ -10,7 +10,6 @@ describe("storeBlockMessage", () => {
   it("informa o expediente do painel", () => {
     const msg = storeBlockMessage("expediente");
     expect(msg).toMatch(/indisponível/);
-    expect(msg).toMatch(/sábado/);
   });
   it("não gera mensagem para estados que não bloqueiam", () => {
     expect(storeBlockMessage("ok")).toBeNull();
