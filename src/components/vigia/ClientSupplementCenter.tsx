@@ -411,11 +411,14 @@ export const supplementLibrary: LibraryItem[] = [
     times: ["12:00"],
     withFood: true,
     benefit:
-      "Promove ossos saudáveis e apoia a função dos nervos e dos músculos. O cálcio ajuda a manter ossos e dentes fortes; o magnésio regula o transporte do cálcio e participa da função muscular; o zinco atua na síntese de colágeno do tecido ósseo.",
+      "Promove ossos saudáveis e apoia a função dos nervos e dos músculos; o fabricante também cita apoio ao sistema imunológico. O cálcio ajuda a manter ossos e dentes fortes; o magnésio regula o transporte do cálcio e participa da função muscular; o zinco atua na síntese de colágeno do tecido ósseo.",
     tips: [
-      "Conforme o rótulo: 3 comprimidos ao dia com uma refeição, ou como orientado pelo profissional de saúde.",
-      "Pode distribuir os comprimidos entre as refeições do dia.",
-      "Não exceda a porção indicada. Guarde em temperatura ambiente, longe de crianças.",
+      "Rótulo e site oficial: tomar 3 comprimidos ao dia, com uma refeição.",
+      "Rótulo: a dose pode ser distribuída ao longo do dia. Uma forma prática é 1 comprimido em cada uma das 3 refeições principais.",
+      "Siga a orientação do seu profissional de saúde se ela for diferente da indicada no frasco.",
+      "Orientação geral: o cálcio costuma ser melhor aproveitado em doses menores e divididas. Dividir os 3 comprimidos ajuda nisso.",
+      "Se usa outros medicamentos, pergunte ao médico ou farmacêutico qual horário escolher. A página oficial não lista interações.",
+      "Guarde em temperatura ambiente, longe de crianças. Não use se o lacre estiver ausente ou danificado.",
     ],
     caution:
       "Gestantes, lactantes, quem usa medicamentos ou tem alguma condição de saúde devem consultar o profissional antes. Suspenda e procure atendimento se houver reação adversa. Cálcio, magnésio e zinco podem interferir na absorção de alguns medicamentos: pergunte sobre o horário.",
