@@ -31,7 +31,7 @@ export const drinkTone: Record<BeverageKind, string> = {
 const nf = (n: number, digits = 0) => n.toLocaleString("pt-BR", { maximumFractionDigits: digits });
 const capital = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
-type Card = { key: string; label: string; text: string; ml: number; kind: BeverageKind };
+export type Card = { key: string; label: string; text: string; ml: number; kind: BeverageKind };
 const waterCards: Card[] = [
   { key: "agua:100", label: "Gole de água", text: "Água", ml: 100, kind: "agua" },
   { key: "agua:200", label: "Copo de água", text: "Água", ml: 200, kind: "agua" },
@@ -45,7 +45,7 @@ const asCard = (p: DrinkPreset): Card => ({
   ml: p.ml,
   kind: p.kind,
 });
-const allCards: Card[] = [...waterCards, ...drinkPresets.map(asCard)];
+export const drinkCards: Card[] = [...waterCards, ...drinkPresets.map(asCard)];
 
 type Props = {
   kind: BeverageKind;
@@ -100,12 +100,12 @@ export function DrinkBoard({
     return { zero: false, ...n };
   }, [focus]);
 
-  const own = useMemo(() => allCards.filter((c) => c.kind === kind), [kind]);
+  const own = useMemo(() => drinkCards.filter((c) => c.kind === kind), [kind]);
   const q = normalize(query);
   const { found, suggestedKind } = useMemo(() => {
     if (q.length < 2) return { found: [] as Card[], suggestedKind: null as BeverageKind | null };
     const tokens = q.split(" ");
-    const hits = allCards.filter((c) => {
+    const hits = drinkCards.filter((c) => {
       const hay = normalize(`${c.label} ${c.text}`).split(" ");
       return tokens.every((t) => hay.some((w) => w.startsWith(t)));
     });
@@ -212,11 +212,11 @@ export function DrinkBoard({
       </section>
     ) : null;
 
-  const others = useMemo(() => allCards.filter((c) => c.kind !== kind), [kind]);
+  const others = useMemo(() => drinkCards.filter((c) => c.kind !== kind), [kind]);
 
   const counts = useMemo(() => {
     const out: Record<string, number> = {};
-    for (const c of allCards) out[c.kind] = (out[c.kind] ?? 0) + 1;
+    for (const c of drinkCards) out[c.kind] = (out[c.kind] ?? 0) + 1;
     return out;
   }, []);
 
