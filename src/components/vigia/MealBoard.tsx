@@ -428,6 +428,8 @@ export function MealBoard({
           </p>
         )}
 
+        {/* Com alimentos reconhecidos, a quantidade já é editada em cada linha: o campo seria redundante. */}
+        {foods.length === 0 && (
         <label className="block text-xs font-semibold">
           <span className="block">Quantidade ou porção (opcional)</span>
           <input
@@ -439,6 +441,7 @@ export function MealBoard({
             placeholder="Ex.: 1 unidade, 100 g, 1 prato"
           />
         </label>
+        )}
 
         <HowItWorks>{foodHowTo}</HowItWorks>
       </SidePanel>
