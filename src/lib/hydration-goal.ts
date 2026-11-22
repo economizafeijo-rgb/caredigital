@@ -120,7 +120,9 @@ export function estimateNextHydration(input: {
   if (remainingMl < 10 || now >= cutoff) return null;
   const from = lastIntakeAt ?? now;
   const portions = Math.max(1, Math.ceil(remainingMl / 250));
-  const windowMin = Math.max(0, (cutoff - from) / 60_000);
+  // O tempo que ainda existe até o horário-limite conta a partir de agora (ou do último gole, se for mais tarde),
+  // nunca de um gole antigo: assim o ritmo sempre mira o fim da meta sem acumular atraso.
+  const windowMin = Math.max(0, (cutoff - Math.max(now, from)) / 60_000);
   const minGap = Math.max(MIN_GAP_MIN, Math.round((lastAmountMl / COMFORT_ML_PER_HOUR) * 60));
   const spread = windowMin / portions;
   const intervalMin = lastIntakeAt ? Math.round(Math.min(120, Math.max(minGap, spread))) : 0;
@@ -150,5 +152,55 @@ export function estimateNextHydration(input: {
     portions,
     reachable: remainingMl <= safeRemainingMl,
     safeRemainingMl,
+  };
+}
+
+export type HydrationDose = { at: number; ml: number };
+
+/**
+ * Plano completo das doses que faltam até o horário-limite.
+ * Simula cada dose sendo tomada no horário sugerido e recalcula a seguinte, então o plano sempre:
+ * termina a meta até o horário ideal (se couber), mantém no máximo 500 ml em qualquer hora corrida
+ * e nunca pede para compensar atraso bebendo tudo de uma vez.
+ * `unreachableMl` é o quanto da meta NÃO cabe com segurança até o limite.
+ */
+export function planHydrationSchedule(input: {
+  remainingMl: number;
+  lastIntakeAt: number | null;
+  lastAmountMl: number;
+  now: number;
+  cutoff: number;
+  recent?: { at: number; ml: number }[];
+}): { doses: HydrationDose[]; reachable: boolean; safeRemainingMl: number; unreachableMl: number } {
+  let remaining = Math.max(0, input.remainingMl);
+  let lastAt = input.lastIntakeAt;
+  let lastMl = input.lastAmountMl;
+  let now = input.now;
+  const recent = [...(input.recent ?? [])];
+  const doses: HydrationDose[] = [];
+  const first = estimateNextHydration({ ...input, remainingMl: remaining, recent });
+  for (let i = 0; i < 40 && remaining >= 10; i += 1) {
+    const step = estimateNextHydration({
+      remainingMl: remaining,
+      lastIntakeAt: lastAt,
+      lastAmountMl: lastMl,
+      now,
+      cutoff: input.cutoff,
+      recent,
+    });
+    if (!step || step.at > input.cutoff) break;
+    doses.push({ at: step.at, ml: step.suggestedMl });
+    recent.push({ at: step.at, ml: step.suggestedMl });
+    remaining -= step.suggestedMl;
+    lastAt = step.at;
+    lastMl = step.suggestedMl;
+    now = Math.max(now, step.at);
+  }
+  const planned = doses.reduce((sum, d) => sum + d.ml, 0);
+  return {
+    doses,
+    reachable: remaining < 10,
+    safeRemainingMl: first?.safeRemainingMl ?? 0,
+    unreachableMl: Math.max(0, Math.round(input.remainingMl - planned)),
   };
 }

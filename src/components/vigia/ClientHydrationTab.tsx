@@ -26,6 +26,7 @@ import {
   acreCalendarDay,
   acreHour,
   estimateNextHydration,
+  planHydrationSchedule,
   hydrationGoalNotice,
   type HydrationGoalSnapshot,
 } from "@/lib/hydration-goal";
@@ -402,6 +403,20 @@ export function ClientHydrationTab({
           })),
         })
       : null;
+  const dayPlan =
+    goal > 0 && !dayClosed && remaining >= 10
+      ? planHydrationSchedule({
+          remainingMl: remaining,
+          lastIntakeAt: lastWater ? Date.parse(lastWater.recorded_at) : null,
+          lastAmountMl: lastWater ? Number(lastWater.amount_ml) : 0,
+          now: clock,
+          cutoff: cutoffUtc,
+          recent: [...drinks, ...otherDrinks].map((d) => ({
+            at: Date.parse(d.recorded_at),
+            ml: Number(d.amount_ml) || 0,
+          })),
+        })
+      : null;
   const nextHydrationAt = nextPlan?.at ?? null;
   const nextHydrationLabel = nextPlan
     ? nextPlan.at <= clock
@@ -707,6 +722,21 @@ export function ClientHydrationTab({
           </div>
         </div>
       </header>
+      {dayPlan && dayPlan.doses.length > 0 && (
+        <p
+          role="note"
+          className={`rounded-xl px-3 py-2 text-xs leading-relaxed ${dayPlan.reachable ? "bg-sky-500/10 text-foreground" : "bg-amber-500/10 text-foreground"}`}
+        >
+          <strong>Plano até as {WATER_LAST_RECOMMENDED_HOUR}h:</strong> {dayPlan.doses.length}{" "}
+          {dayPlan.doses.length === 1 ? "dose" : "doses"} de cerca de{" "}
+          {Math.round(
+            dayPlan.doses.reduce((sum, dose) => sum + dose.ml, 0) / dayPlan.doses.length / 10,
+          ) * 10}{" "}
+          ml, com no máximo 500 ml por hora para poupar os rins.
+          {!dayPlan.reachable &&
+            ` Não compense o atraso de uma vez: só cabem cerca de ${dayPlan.safeRemainingMl} ml com segurança até lá e o restante fica para amanhã.`}
+        </p>
+      )}
       <HowItWorks>{hydrationHowTo}</HowItWorks>
       {editing && (
         <div className="rounded-xl border border-border bg-muted/30 p-2.5">
