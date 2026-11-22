@@ -216,6 +216,39 @@ function Rail({
   );
 }
 
+/** Faixa com foto de fundo e véu escuro: dá cor e profundidade às seções de vitrine. */
+function Band({
+  src,
+  tint,
+  children,
+  className = "",
+  ...rest
+}: {
+  src: string;
+  tint: string;
+  children: ReactNode;
+  className?: string;
+  id?: string;
+  "aria-labelledby"?: string;
+}) {
+  return (
+    <section
+      {...rest}
+      className={`nv-dark relative isolate grid grid-cols-[minmax(0,1fr)] gap-4 overflow-hidden rounded-3xl p-4 text-white max-sm:-mx-3 max-sm:rounded-none sm:p-7 ${className}`}
+    >
+      <img
+        src={src}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        className="absolute inset-0 -z-20 size-full object-cover opacity-45"
+      />
+      <span aria-hidden="true" className={`absolute inset-0 -z-10 ${tint}`} />
+      {children}
+    </section>
+  );
+}
+
 const SPOTLIGHT = "kessia-digital-store";
 
 /** Novidades reais das lojas parceiras, abertas pela loja em destaque (logomarca, segmento e acesso). */
@@ -226,7 +259,11 @@ function LiveNews() {
   const store = vendors.find((v) => v.slug === SPOTLIGHT);
   const storeCount = live.filter((p) => p.vendor.slug === SPOTLIGHT).length;
   return (
-    <section aria-labelledby="live-news-title" className="grid grid-cols-[minmax(0,1fr)] gap-4">
+    <Band
+      aria-labelledby="live-news-title"
+      src="/loja/bela-vista/banner.jpg"
+      tint="bg-gradient-to-r from-[#3b0a2a]/90 via-[#2a1048]/80 to-[#0a1226]/75"
+    >
       <SectionHead
         title="Novidades das lojas de Feijó"
         sub="Produtos que acabaram de chegar nas lojas parceiras."
@@ -330,7 +367,7 @@ function LiveNews() {
           })}
         </Rail>
       </div>
-    </section>
+    </Band>
   );
 }
 
@@ -404,9 +441,11 @@ function PartnerStores() {
   const hasLive = live.length > 0;
   const countOf = (id: string) => liveProducts.filter((p) => p.vendor.id === id).length;
   return (
-    <section
+    <Band
       aria-labelledby="stores-title"
-      className="hidden grid-cols-[minmax(0,1fr)] gap-3 md:grid"
+      src="/images/hero-metricas.webp"
+      tint="bg-gradient-to-r from-[#0b2b29]/90 via-[#0a1226]/80 to-[#0a1226]/70"
+      className="max-md:hidden"
     >
       <SectionHead
         title="Lojas parceiras"
@@ -451,7 +490,7 @@ function PartnerStores() {
         Tem uma loja em Feijó? <span className="font-semibold text-primary">Venda na NextVita</span>
         <ArrowRight size={14} aria-hidden="true" />
       </Link>
-    </section>
+    </Band>
   );
 }
 
@@ -485,10 +524,12 @@ export function HomeMarketplace({ middle }: { middle?: ReactNode }) {
 
       <FlashDeals campaign={campaign} />
 
-      <section
+      <Band
         id="ofertas"
         aria-labelledby="offers-title"
-        className="grid scroll-mt-20 grid-cols-[minmax(0,1fr)] gap-3"
+        src="/images/hero-alimentacao.webp"
+        tint="bg-gradient-to-r from-[#052e2b]/90 via-[#0a1226]/80 to-[#0a1226]/70"
+        className="scroll-mt-20"
       >
         <div className="flex items-end justify-between gap-3">
           <div>
@@ -549,7 +590,7 @@ export function HomeMarketplace({ middle }: { middle?: ReactNode }) {
             <ProductTile key={p.id} p={p} qty={qtyOf(p.id)} onAdd={add} />
           ))}
         </Rail>
-      </section>
+      </Band>
 
       {middle}
 
