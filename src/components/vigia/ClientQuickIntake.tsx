@@ -165,7 +165,7 @@ export function ClientQuickIntake({
     ...drinkParsed.map((f) => f.nutrients),
   ]);
   const overview = allItems.length ? (
-    <RecordOverview items={allItems} active={group} onOpen={switchGroup} />
+    <RecordOverview items={allItems} active={group} onOpen={switchGroup} totals={combined} />
   ) : undefined;
   const totals = allItems.length ? combined : undefined;
   const registerNote =

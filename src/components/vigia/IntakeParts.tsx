@@ -271,13 +271,18 @@ export function RecordOverview({
   items,
   active,
   onOpen,
+  totals,
 }: {
   items: OverviewItem[];
   active: "food" | "beverage";
   onOpen: (group: "food" | "beverage") => void;
+  totals?: { protein: number; carbs: number; fat: number; fiber: number };
 }) {
   if (!items.length) return null;
   const kcal = items.reduce((sum, i) => sum + i.kcal, 0);
+  const foodKcal = items.filter((i) => i.group === "food").reduce((sum, i) => sum + i.kcal, 0);
+  const drinkKcal = kcal - foodKcal;
+  const hasBoth = items.some((i) => i.group === "food") && items.some((i) => i.group === "beverage");
   return (
     <section
       aria-label="Resumo do registro"
@@ -316,6 +321,32 @@ export function RecordOverview({
           </li>
         ))}
       </ul>
+      <div className="mx-1.5 mb-1.5 border-t border-amber-400/30 px-1.5 pt-1.5">
+        {hasBoth && (
+          <p className="flex justify-between text-[10px] text-muted-foreground">
+            <span>Alimentos</span>
+            <span className="tabular-nums">{nf(foodKcal)} kcal</span>
+          </p>
+        )}
+        {hasBoth && (
+          <p className="flex justify-between text-[10px] text-muted-foreground">
+            <span>Bebidas</span>
+            <span className="tabular-nums">{nf(drinkKcal)} kcal</span>
+          </p>
+        )}
+        <p className="mt-0.5 flex items-baseline justify-between gap-2">
+          <strong className="text-xs">Soma do registro</strong>
+          <strong className="text-base tabular-nums text-amber-300">{nf(kcal)} kcal</strong>
+        </p>
+        {totals && (
+          <p className="mt-0.5 flex flex-wrap gap-x-3 text-[10px] tabular-nums text-muted-foreground">
+            <span>Prot. <b className="text-foreground">{nf(totals.protein, 1)} g</b></span>
+            <span>Carb. <b className="text-foreground">{nf(totals.carbs, 1)} g</b></span>
+            <span>Gord. <b className="text-foreground">{nf(totals.fat, 1)} g</b></span>
+            <span>Fibras <b className="text-foreground">{nf(totals.fiber, 1)} g</b></span>
+          </p>
+        )}
+      </div>
     </section>
   );
 }

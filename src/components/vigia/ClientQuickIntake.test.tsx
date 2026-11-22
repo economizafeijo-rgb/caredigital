@@ -116,6 +116,7 @@ describe("registro de consumo por área", () => {
     // o resumo consolidado mostra a refeição E a bebida, em qualquer aba
     const summary = screen.getByLabelText("Resumo do registro");
     expect(summary.textContent).toContain("2 itens");
+    expect(summary.textContent).toContain("Soma do registro");
     expect(summary.textContent).toMatch(/Arroz/);
     expect(summary.textContent).toMatch(/graviola/i);
     fireEvent.click(screen.getByRole("button", { name: /Alimentos/ }));
