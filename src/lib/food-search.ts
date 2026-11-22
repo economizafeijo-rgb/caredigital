@@ -63,7 +63,7 @@ const STOPWORDS = new Set(["de", "da", "do", "das", "dos", "em", "com", "e", "a"
 const DESCRIPTORS = new Set([
   "cru", "crua", "cozido", "cozida", "fuji", "formosa", "tommy", "italia", "vermelha", "caseiro",
   "caseira", "simples", "integral", "natural", "lisa", "tipo", "taiti", "industrializada", "magra", "oliva",
-  "carioca", "tradicional",
+  "carioca", "bovina", "tradicional",
 ]);
 const words = (text: string) => normalize(text).split(" ").filter(Boolean);
 const queryWords = (text: string) => {

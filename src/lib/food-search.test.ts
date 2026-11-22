@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { foodsForKind, normalize, searchFoods } from "./food-search";
+import { parseFoodText } from "./food-parser";
 
 const labels = (q: string) => searchFoods(q).items.map((i) => normalize(i.label));
 
@@ -69,5 +70,14 @@ describe("selo regional", () => {
     expect(isRegionalFood("1 porção de buriti")).toBe(true);
     expect(isRegionalFood("100 g de graviola")).toBe(true);
     expect(isRegionalFood("1 banana prata")).toBe(false);
+  });
+});
+
+describe("carnes assadas", () => {
+  it("acha carne assada e mixto de carnes assadas", () => {
+    expect(labels("carne assada")).toContain("carne assada");
+    expect(labels("mixto de carnes")).toContain("mixto de carnes assadas");
+    const ids = parseFoodText("mixto de carnes assadas").map((f) => f.id);
+    expect(ids).toEqual(["carne_assada", "linguica", "frango_assado"]);
   });
 });

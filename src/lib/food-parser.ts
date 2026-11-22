@@ -908,6 +908,10 @@ export function parseFoodText(text: string, liquidMl?: number | null): ParsedFoo
     )
     .replace(/tapioca com ovos?/g, "crepioca")
     .replace(/p[aã]o com ovos?/g, "pão_com_ovo")
+    .replace(
+      /(mi?xto|misto) de carnes?( assadas?)?|churrasco misto|assado misto/g,
+      "80 g de carne assada, 60 g de linguiça, 80 g de frango assado",
+    )
     .replace(/sopa de carne com legumes/g, "sopa de carne")
     .replace(/coz(ido|id[aã]o) de carne( com legumes)?/g, "100 g de carne, 100 g de batata, 60 g de cenoura, 60 g de chuchu")
     .replace(/pimenta de panela/g, "pimenta da terra")
