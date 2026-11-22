@@ -605,12 +605,12 @@ export function HomeMarketplace({ middle }: { middle?: ReactNode }) {
           type="button"
           onClick={() => setCartOpen(true)}
           aria-label={`Abrir carrinho, ${count} ${count === 1 ? "item" : "itens"}`}
-          className="nv-fab fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-[90] inline-flex h-14 items-center gap-2 rounded-full bg-slate-950 px-5 text-sm font-extrabold text-white shadow-xl ring-4 ring-white/70 lg:bottom-6 dark:ring-slate-900/70"
+          className="nv-fab fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-3 z-[90] inline-flex size-12 items-center justify-center rounded-full bg-slate-950 text-white shadow-xl ring-2 ring-white/70 lg:hidden dark:ring-slate-900/70"
         >
-          <ShoppingCart size={22} /> Carrinho
+          <ShoppingCart size={20} />
           <span
             key={count}
-            className="nv-heart-pop grid size-6 place-items-center rounded-full bg-emerald-400 text-xs text-slate-950"
+            className="nv-heart-pop absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-emerald-400 text-[11px] font-extrabold text-slate-950"
           >
             {count}
           </span>

@@ -138,7 +138,13 @@ export function CampaignTeaser() {
   const teaser = nextCampaignTeaser();
   if (!teaser) return null;
   return (
-    <aside className="nv-dark flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl bg-gradient-to-r from-[#2a0508] via-[#5b0a12] to-[#0d3b26] p-4 text-white sm:p-5">
+    <aside
+      className="nv-dark flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl bg-[#2a0508] bg-cover bg-center p-4 text-white sm:p-5"
+      style={{
+        backgroundImage:
+          "linear-gradient(90deg, rgba(42,5,8,.92), rgba(91,10,18,.82) 55%, rgba(13,59,38,.88)), url(/images/hero-alimentacao.webp)",
+      }}
+    >
       <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-white/15 text-white">
         <Gift size={20} aria-hidden="true" />
       </span>

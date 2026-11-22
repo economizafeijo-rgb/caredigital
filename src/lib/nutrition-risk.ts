@@ -167,6 +167,19 @@ export const sugarPer100: Record<string, number> = {
   pasta_amendoim: 3,
 };
 
+/**
+ * Açúcares naturais (g por 100 g) de alimentos comuns, somados ao total consumido. Valores do USDA
+ * FoodData Central: arroz branco cozido 0,08; feijão pinto 0,54; leite em pó integral 38,42 (lactose).
+ * Café com leite em pó: estimativa de 12 g de leite em pó por 100 g de bebida (2 colheres de sopa em
+ * 200 ml, como no catálogo) × 38,42 = 4,6 g, coerente com os 4,5 g/100 ml do rótulo do Nescafé com leite.
+ */
+export const naturalSugarPer100: Record<string, number> = {
+  arroz: 0.08,
+  feijao: 0.54,
+  leite_po_integral: 38.42,
+  cafe_leite_po: 4.6,
+};
+
 /** Parcela dos carboidratos de um suco natural que a OMS conta como açúcar livre. */
 const JUICE_FREE_SHARE = 0.9;
 const isNaturalJuice = (id: string) => /^suco_/.test(id) && !(id in sugarPer100);
@@ -247,14 +260,19 @@ export function evaluateRisks(
     if (e.foodId && e.grams && e.grams > 0) {
       const short = (e.foodName ?? e.foodId).split(",")[0].split("(")[0].trim();
       add("sodium", e.foodId, short, ((sodiumPer100[e.foodId] ?? SODIUM_DEFAULT) * e.grams) / 100);
-      add("sugar", e.foodId, short, ((sugarPer100[e.foodId] ?? 0) * e.grams) / 100);
+      add(
+        "sugar",
+        e.foodId,
+        short,
+        ((sugarPer100[e.foodId] ?? naturalSugarPer100[e.foodId] ?? 0) * e.grams) / 100,
+      );
     }
     for (const f of e.foods) {
       const short = f.name.split(",")[0].split("(")[0].trim();
       add("sodium", f.id, short, ((sodiumPer100[f.id] ?? SODIUM_DEFAULT) * f.grams) / 100);
       const sugar = isNaturalJuice(f.id)
         ? (f.nutrients.carbs ?? 0) * JUICE_FREE_SHARE
-        : ((sugarPer100[f.id] ?? 0) * f.grams) / 100;
+        : ((sugarPer100[f.id] ?? naturalSugarPer100[f.id] ?? 0) * f.grams) / 100;
       add("sugar", f.id, short, sugar);
       add("fat", f.id, short, f.nutrients.fat);
     }

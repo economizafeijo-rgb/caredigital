@@ -72,3 +72,13 @@ describe("limites de saúde", () => {
     expect(sugar.culprits.map((c) => c.id)).toContain("suco_laranja");
   });
 });
+
+describe("açúcar natural nas quantidades consumidas", () => {
+  it("soma o açúcar do café com leite em pó, do arroz e do feijão pelo peso", () => {
+    const foods = parseFoodText("Nescafé com leite em pó, 250 g de arroz, 170 g de feijão", 200);
+    const r = evaluateRisks([{ foods }], { kcal: 2000, fat: 60 });
+    const sugar = r.find((x) => x.key === "sugar")!;
+    expect(sugar.value).toBeGreaterThan(8);
+    expect(sugar.value).toBeLessThan(12);
+  });
+});

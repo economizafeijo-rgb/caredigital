@@ -240,7 +240,7 @@ function PublicTopNav({ pathname }: { pathname: string }) {
   }, [open]);
   const resourceActive = resourceLinks.some((r) => r.to === pathname);
   const linkCls =
-    "nv-tab relative inline-flex h-14 items-center gap-2 px-4 text-[15px] font-semibold text-muted-foreground xl:px-5 transition-colors hover:text-foreground";
+    "nv-tab relative inline-flex h-14 items-center gap-2 px-3.5 text-sm font-semibold text-muted-foreground xl:px-5 transition-colors hover:text-foreground";
   const activeCls = { className: "nv-tab-on !text-foreground" };
   return (
     <nav
@@ -773,7 +773,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           )}
 
           <div className="flex min-w-0 flex-1 flex-col">
-            <header className="nv-topbar z-30 flex h-12 shrink-0 items-center gap-2.5 border-b border-border bg-surface/90 px-2.5 backdrop-blur sm:px-4">
+            <header className="nv-topbar z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-surface/90 px-2.5 backdrop-blur sm:px-4">
               {internalPage ? (
                 <>
                   <button
@@ -918,10 +918,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                   const active = it.hash
                     ? false
                     : it.to
-                    ? it.to === "/"
-                      ? location.pathname === "/"
-                      : location.pathname.startsWith(it.to)
-                    : menuOpen;
+                      ? it.to === "/"
+                        ? location.pathname === "/"
+                        : location.pathname.startsWith(it.to)
+                      : menuOpen;
                   const cls = `nv-tab relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-semibold ${active ? "text-primary" : "text-muted-foreground"}`;
                   const inner = (
                     <>

@@ -243,11 +243,11 @@ export function HomeStage({
 
           <div
             style={{ animationDelay: "320ms" }}
-            className="nv-rise mt-4 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center"
+            className="nv-rise mt-4 grid gap-2.5 sm:grid-cols-2 [&>*]:w-full"
           >
             <a
               href="#ofertas"
-              className="inline-flex h-13 items-center justify-center gap-2 rounded-xl bg-[#3fe0c8] px-6 py-3.5 text-[15px] font-extrabold text-slate-950 transition hover:bg-[#6ae9d6] active:scale-[.98] motion-reduce:active:scale-100"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#3fe0c8] px-5 text-[15px] font-extrabold text-slate-950 transition hover:bg-[#6ae9d6] active:scale-[.98] motion-reduce:active:scale-100"
             >
               <ShoppingCart size={18} aria-hidden="true" /> Ver ofertas da loja
             </a>
@@ -255,18 +255,18 @@ export function HomeStage({
               <>
                 <Link
                   to={panel}
-                  className="inline-flex h-13 items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/5 px-5 py-3.5 text-[15px] font-semibold text-white backdrop-blur transition hover:bg-white/15"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/5 px-5 text-[15px] font-semibold text-white backdrop-blur transition hover:bg-white/15"
                 >
                   <LayoutDashboard size={17} aria-hidden="true" /> Abrir meu painel
                 </Link>
                 {client && (
-                  <LiveModeLauncher className="!h-[3.25rem] !justify-center !px-4 !text-sm" />
+                  <LiveModeLauncher className="!h-12 !justify-center !px-4 !text-sm sm:col-span-2" />
                 )}
               </>
             ) : (
               <a
                 href="/entrar?mode=signup"
-                className="inline-flex h-13 items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/5 px-5 py-3.5 text-[15px] font-semibold text-white backdrop-blur transition hover:bg-white/15"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/5 px-5 text-[15px] font-semibold text-white backdrop-blur transition hover:bg-white/15"
               >
                 <Gift size={17} aria-hidden="true" /> Criar conta grátis
               </a>
@@ -280,7 +280,7 @@ export function HomeStage({
             <div
               role="group"
               aria-label="Escolha um objetivo"
-              className="-mx-4 mt-2 flex snap-x gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden"
+              className="-mx-4 mt-2 flex snap-x gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-5 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden"
             >
               {goals.map((g, i) => {
                 const on = i === idx;
@@ -290,9 +290,9 @@ export function HomeStage({
                     type="button"
                     aria-pressed={on}
                     onClick={() => choose(i)}
-                    className={`relative inline-flex h-11 shrink-0 snap-start items-center gap-2 overflow-hidden rounded-full border px-4 text-[13.5px] font-semibold transition active:scale-95 motion-reduce:active:scale-100 ${on ? "border-[#3fe0c8]/70 bg-[#3fe0c8]/10 text-white" : "border-white/15 bg-transparent text-white/75 hover:border-white/35 hover:text-white"}`}
+                    className={`relative inline-flex h-11 shrink-0 snap-start items-center justify-center gap-2 overflow-hidden rounded-full border px-4 text-[13.5px] sm:h-[4.25rem] sm:flex-col sm:gap-1.5 sm:rounded-2xl sm:px-2 sm:text-[12.5px] font-semibold transition active:scale-95 motion-reduce:active:scale-100 ${on ? "border-[#3fe0c8]/70 bg-[#3fe0c8]/10 text-white" : "border-white/15 bg-transparent text-white/75 hover:border-white/35 hover:text-white"}`}
                   >
-                    <g.icon size={16} aria-hidden="true" />
+                    <g.icon size={18} aria-hidden="true" />
                     {g.label}
                     {on && auto && !touched && (
                       <span

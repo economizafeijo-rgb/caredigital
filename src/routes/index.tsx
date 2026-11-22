@@ -85,7 +85,13 @@ function Homepage() {
 
         {client && <HomeModalityTimers />}
 
-        <footer className="rounded-2xl border border-border bg-card">
+        <footer
+          className="nv-dark overflow-hidden rounded-2xl border border-white/10 bg-[#0a1226] bg-cover bg-center text-white"
+          style={{
+            backgroundImage:
+              "linear-gradient(180deg, rgba(10,18,38,.86), rgba(10,18,38,.94)), url(/images/caredigital-care-hero.webp)",
+          }}
+        >
           <div className="flex flex-wrap items-center gap-x-8 gap-y-3 px-4 py-3 lg:px-5">
             <div className="flex min-w-0 items-center gap-3">
               <Link to="/" className="inline-flex items-center gap-2">
