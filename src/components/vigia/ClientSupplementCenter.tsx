@@ -638,7 +638,7 @@ export const supplementLibrary: LibraryItem[] = [
     ],
     caution:
       "Quem tem doença renal, está grávida ou amamentando, ou usa medicamentos (como alguns antibióticos, remédios para osteoporose e para a tireoide) deve consultar o profissional antes. Excesso de magnésio pode causar diarreia.",
-    pack: { shape: "frasco", color: "#ea580c", label: "MAGNÉSIO", sub: "Doctor's Best · 240 cáps" },
+    pack: { shape: "frasco", color: "#ea580c", label: "MAGNÉSIO", sub: "Doctor's Best · cápsulas vegetais" },
     photo: "/images/suplementos/doctors-best-magnesio-alta-absorcao.webp",
     label: {
       serving: "2 cápsulas vegetais",

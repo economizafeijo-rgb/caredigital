@@ -5,6 +5,12 @@
 export type CookInfo = { kind: string; benefit: string; prep: string };
 
 export const cookInfo: Record<string, CookInfo> = {
+  nescafe_leite_lata: {
+    kind: "Bebida instantânea de café com leite",
+    benefit:
+      "Cada porção de 20 g (2 colheres de sopa) tem 84 kcal, 2,3 g de proteína e 11 g de açúcares, dos quais 7,8 g adicionados (rótulo Nestlé). Conta cafeína e açúcar no dia.",
+    prep: "Rótulo: coloque 2 colheres de sopa (20 g) em uma xícara, acrescente 100 ml de água quente a 85 °C e mexa bem.",
+  },
   ovo_cozido: {
     kind: "Proteína de origem animal",
     benefit:

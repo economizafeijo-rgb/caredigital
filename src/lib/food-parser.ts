@@ -274,6 +274,7 @@ const aliases: Array<[RegExp, string]> = [
     /pimentas? (da terra|de cheiro|malagueta|murupi|biquinho|dedo.de.mo[cç]a)|\bpimenta\b/,
     "pimenta_terra",
   ],
+  [/nescafe_leite_lata/, "nescafe_leite_lata"],
   [/caf[eé][ _]com[ _]leite (de gado|de vaca|fresco|da fazenda)/, "cafe_leite_gado"],
   [/caf[eé][ _]com[ _]leite desnatado/, "cafe_leite_desnatado"],
   [/leite desnatado/, "leite_desnatado"],
@@ -469,6 +470,7 @@ const aliases: Array<[RegExp, string]> = [
   [/arroz/, "arroz"],
   [/feij[aã]o preto/, "feijao_preto"],
   [/feij[aã]o/, "feijao"],
+  [/nescafe_leite_lata/, "nescafe_leite_lata"],
   [/caf[eé][ _]com[ _]leite (de gado|de vaca|fresco|da fazenda)/, "cafe_leite_gado"],
   [/caf[eé][ _]com[ _]leite em p[oó]|leite em p[oó]|leite ninho/, "cafe_leite_po"],
   [/caf[eé][ _]com[ _]leite|pingado/, "cafe_com_leite"],
@@ -686,6 +688,7 @@ const defaultPortion: Record<string, number> = {
   linguica: 60,
   cafe_leite_gado: 200,
   cafe_leite_po: 200,
+  nescafe_leite_lata: 110,
   agua_coco: 300,
   refrigerante: 350,
   pirarucu: 120,
@@ -895,6 +898,7 @@ export function parseFoodText(text: string, liquidMl?: number | null): ParsedFoo
   const source = text
     .toLowerCase()
     .normalize("NFC")
+    .replace(/nescaf[eé] com leite (cremoso|\(?lata\)?)/g, "nescafe_leite_lata")
     .replace(/nescaf[eé] com leite em p[oó]/g, "café com leite em pó")
     .replace(/nescaf[eé] com leite desnatado/g, "café com leite desnatado")
     .replace(/nescaf[eé] com leite/g, "café com leite")

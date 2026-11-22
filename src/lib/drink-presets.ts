@@ -28,6 +28,7 @@ export const drinkPresets: DrinkPreset[] = [
   d("cafe", "Café", "Café com leite em pó", 200, "café com leite em pó"),
   d("cafe", "Café", "Café com leite de gado (leite fresco)", 200, "café com leite de gado"),
   d("cafe", "Café", "Nescafé (café solúvel)", 150, "nescafé"),
+  d("cafe", "Café", "Nescafé com Leite (lata, 20 g + 100 ml)", 110, "nescafé com leite cremoso"),
   d("cafe", "Café", "Nescafé com leite integral", 200, "nescafé com leite"),
   d("cafe", "Café", "Nescafé com leite em pó", 200, "nescafé com leite em pó"),
   d("leite", "Leite e achocolatado", "Leite integral", 200, "leite integral"),
