@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { NiceSelect } from "./NiceSelect";
 import {
   BookOpen,
@@ -12,6 +13,7 @@ import {
   Lightbulb,
   Moon,
   Pencil,
+  Pill,
   Plus,
   ShieldCheck,
   Sparkles,
@@ -108,6 +110,213 @@ function PackArt({ item, className }: { item: LibraryItem; className?: string })
     );
   }
   return <SupplementPack {...item.pack} title={item.name} className={className} />;
+}
+
+/** Página própria do produto: vitrine em tela cheia com foto, ficha, como tomar e cuidados. */
+function ProductPage({
+  item,
+  onClose,
+  onAdd,
+}: {
+  item: LibraryItem;
+  onClose: () => void;
+  onAdd: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose]);
+  const color = item.pack.color;
+  const specs = [
+    { icon: Pill, label: "Dose de referência", value: item.range },
+    { icon: Clock, label: "Melhor momento", value: item.timing },
+    {
+      icon: UtensilsCrossed,
+      label: "Com refeição?",
+      value: item.withFood ? "Sim, de preferência" : "Não é necessário",
+    },
+  ];
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[300] overflow-y-auto bg-slate-950/75 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <article
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Página do produto: ${item.name}`}
+        onClick={(e) => e.stopPropagation()}
+        className="nv-fade-in relative mx-auto my-0 grid min-h-full w-full max-w-5xl overflow-hidden bg-background shadow-2xl sm:my-6 sm:min-h-0 sm:rounded-3xl md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]"
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Fechar página do produto"
+          className="absolute right-3 top-3 z-10 grid size-10 place-items-center rounded-full bg-background/85 text-foreground shadow ring-1 ring-border backdrop-blur transition hover:bg-background"
+        >
+          <X size={18} />
+        </button>
+        <div
+          className="relative grid min-h-[18rem] place-items-center p-8 md:min-h-full"
+          style={{
+            background: `radial-gradient(circle at 50% 42%, ${color}55, transparent 68%), linear-gradient(160deg, ${color}26, ${color}0d 60%, transparent)`,
+          }}
+        >
+          <span
+            className="absolute left-4 top-4 rounded-full bg-background/80 px-3 py-1 text-xs font-bold backdrop-blur"
+            style={{ color }}
+          >
+            {item.category}
+          </span>
+          <span
+            aria-hidden="true"
+            className="absolute bottom-10 h-6 w-1/2 rounded-[50%] bg-black/30 blur-xl"
+          />
+          <PackArt
+            item={item}
+            className={`nv-float relative w-auto drop-shadow-[0_24px_30px_rgba(0,0,0,.4)] ${item.photo ? "h-72 md:h-[26rem]" : "h-56 md:h-80"}`}
+          />
+        </div>
+        <div className="flex min-w-0 flex-col gap-4 p-5 sm:p-7">
+          <header>
+            {item.brand && (
+              <p className="text-xs font-bold tracking-wide" style={{ color }}>
+                {item.brand}
+              </p>
+            )}
+            <h3 className="mt-0.5 pr-10 text-2xl font-extrabold leading-tight">{item.name}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.benefit}</p>
+            {item.label && (
+              <p className="mt-2 flex flex-wrap gap-1.5">
+                {item.label.seals.map((seal) => (
+                  <span
+                    key={seal}
+                    className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300"
+                  >
+                    <Check size={12} /> {seal}
+                  </span>
+                ))}
+              </p>
+            )}
+          </header>
+
+          <dl className="grid gap-2">
+            {specs.map(({ icon: Icon, label, value }) => (
+              <div key={label} className="flex items-start gap-3 rounded-2xl bg-muted/60 px-3 py-2.5">
+                <span
+                  className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-xl text-white"
+                  style={{ background: color }}
+                >
+                  <Icon size={16} />
+                </span>
+                <div className="min-w-0">
+                  <dt className="text-[11px] font-semibold text-muted-foreground">{label}</dt>
+                  <dd className="text-sm font-bold">{value}</dd>
+                </div>
+              </div>
+            ))}
+          </dl>
+
+          {item.label && (
+            <section aria-label="Informação nutricional" className="overflow-hidden rounded-2xl border border-border">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 bg-foreground px-3 py-2 text-background">
+                <h4 className="text-sm font-extrabold">Informação nutricional</h4>
+                <span className="text-[11px] opacity-80">Porção: {item.label.serving}</span>
+              </div>
+              <p className="px-3 pt-1.5 text-[11px] text-muted-foreground">{item.label.servings}</p>
+              <table className="w-full text-sm">
+                <thead className="sr-only">
+                  <tr>
+                    <th>Nutriente</th>
+                    <th>Quantidade por porção</th>
+                    <th>%VD</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {item.label.rows.map((row) => (
+                    <tr key={row.name} className="border-t border-border">
+                      <td className="px-3 py-2">
+                        <strong>{row.name}</strong>
+                        {row.detail && (
+                          <span className="block text-[11px] leading-4 text-muted-foreground">
+                            {row.detail}
+                          </span>
+                        )}
+                      </td>
+                      <td className="whitespace-nowrap px-1 text-right font-bold tabular-nums">
+                        {row.amount}
+                      </td>
+                      <td className="w-14 whitespace-nowrap px-3 text-right tabular-nums text-muted-foreground">
+                        {row.dv}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="grid gap-1.5 border-t border-border px-3 py-2.5 text-xs">
+                <p>
+                  <strong>Outros ingredientes:</strong> {item.label.other}
+                </p>
+                <p>
+                  <strong>Livre de:</strong> {item.label.free.join(", ")}.
+                </p>
+                <p className="text-[11px] text-muted-foreground">{item.label.note}</p>
+              </div>
+            </section>
+          )}
+
+          <section aria-label="Como tomar">
+            <h4 className="flex items-center gap-2 text-sm font-extrabold">
+              <Lightbulb size={16} className="text-amber-500" /> Como tomar
+            </h4>
+            <ul className="mt-2 grid gap-2 text-sm">
+              {item.tips.map((tip) => (
+                <li key={tip} className="flex gap-2.5">
+                  <Check size={15} className="mt-0.5 shrink-0" style={{ color }} />
+                  <span>{tip}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <aside className="flex gap-2.5 rounded-2xl bg-amber-500/10 p-3 text-xs leading-relaxed">
+            <ShieldCheck size={16} className="mt-0.5 shrink-0 text-amber-600" />
+            <p>
+              <strong>Atenção:</strong> {item.caution} Converse com seu médico ou nutricionista
+              antes de iniciar.
+            </p>
+          </aside>
+
+          <div className="sticky bottom-0 -mx-5 mt-auto flex flex-wrap gap-2 border-t border-border bg-background/95 px-5 py-3 backdrop-blur sm:-mx-7 sm:px-7">
+            <button
+              type="button"
+              onClick={onAdd}
+              className="inline-flex h-11 min-w-[12rem] flex-1 items-center justify-center gap-2 rounded-xl px-5 text-sm font-extrabold text-white shadow-lg transition hover:brightness-110 active:scale-[.98]"
+              style={{ background: color }}
+            >
+              <Plus size={18} /> Adicionar à minha programação
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="h-11 rounded-xl bg-muted px-5 text-sm font-bold transition hover:bg-muted/70"
+            >
+              Voltar à biblioteca
+            </button>
+          </div>
+        </div>
+      </article>
+    </div>,
+    document.body,
+  );
 }
 
 /** Referências educativas usuais em adultos saudáveis. Não substitui orientação profissional. */
@@ -649,6 +858,7 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
   const [editing, setEditing] = useState<Partial<SupplementPlan> | null>(null);
   const [selected, setSelected] = useState<string>("creatina");
   const [libCat, setLibCat] = useState("Todos");
+  const [productOpen, setProductOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [reload, setReload] = useState(0);
   const day = acreDateKey();
@@ -1149,8 +1359,8 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
             ))}
           </div>
         </div>
-        <div className="mt-2.5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
-          <div className="grid auto-rows-max grid-cols-3 content-start gap-2 sm:grid-cols-4 xl:grid-cols-5">
+        <div className="mt-2.5 grid gap-3">
+          <div className="grid auto-rows-max grid-cols-3 content-start gap-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
             {supplementLibrary
               .filter((item) => libCat === "Todos" || item.category === libCat)
               .map((item, i) => {
@@ -1159,7 +1369,11 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
                   <button
                     key={item.key}
                     type="button"
-                    onClick={() => setSelected(item.key)}
+                    onClick={() => {
+                      setSelected(item.key);
+                      setProductOpen(true);
+                    }}
+                    aria-haspopup="dialog"
                     aria-pressed={on}
                     className={`nv-rise group relative flex min-h-[7.5rem] shrink-0 flex-col items-center justify-start overflow-hidden border px-2 pb-2 pt-2.5 text-center transition duration-300 ${on ? "border-transparent shadow-lg" : "border-border hover:-translate-y-0.5 hover:shadow-md"}`}
                     style={{
@@ -1184,131 +1398,19 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
                 );
               })}
           </div>
-          <article
-            key={info.key}
-            className="nv-fade-in self-start overflow-hidden border border-border lg:sticky lg:top-2"
-          >
-            <div
-              className="relative grid place-items-center py-2.5"
-              style={{
-                background: `radial-gradient(circle at 50% 40%, ${info.pack.color}33, transparent 70%), linear-gradient(180deg, ${info.pack.color}14, transparent)`,
-              }}
-            >
-              <PackArt
-                item={info}
-                className={`nv-float w-auto drop-shadow-xl ${info.photo ? "h-40" : "h-24"}`}
-              />
-              <span
-                className="absolute left-2 top-2 bg-card/80 px-2 py-0.5 text-[10px] font-bold backdrop-blur"
-                style={{ color: info.pack.color }}
-              >
-                {info.category}
-              </span>
-            </div>
-            <div className="p-3">
-              <h4 className="text-base font-bold">{info.name}</h4>
-              <p className="mt-0.5 text-xs">{info.benefit}</p>
-              {info.label && (
-                <div className="mt-2 border border-border text-xs" aria-label="Informação nutricional do rótulo">
-                  <div className="bg-foreground px-2.5 py-1 font-bold text-background">
-                    Informação nutricional · porção de {info.label.serving}
-                  </div>
-                  <p className="px-2.5 pt-1 text-[11px] text-muted-foreground">
-                    {info.label.servings}
-                  </p>
-                  <table className="w-full">
-                    <thead className="sr-only">
-                      <tr>
-                        <th>Nutriente</th>
-                        <th>Quantidade</th>
-                        <th>%VD</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {info.label.rows.map((row) => (
-                        <tr key={row.name} className="border-t border-border">
-                          <td className="px-2.5 py-1.5">
-                            <strong>{row.name}</strong>
-                            {row.detail && (
-                              <span className="block text-[10px] leading-3 text-muted-foreground">
-                                {row.detail}
-                              </span>
-                            )}
-                          </td>
-                          <td className="whitespace-nowrap px-1 text-right font-bold tabular-nums">
-                            {row.amount}
-                          </td>
-                          <td className="whitespace-nowrap px-2.5 text-right tabular-nums text-muted-foreground">
-                            {row.dv}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  <div className="grid gap-1 border-t border-border px-2.5 py-1.5 text-[11px]">
-                    <p>
-                      <strong>Outros ingredientes:</strong> {info.label.other}
-                    </p>
-                    <p>
-                      <strong>Livre de:</strong> {info.label.free.join(", ")}.
-                    </p>
-                    <p className="flex flex-wrap gap-1">
-                      {info.label.seals.map((seal) => (
-                        <span key={seal} className="bg-muted px-1.5 py-0.5 font-semibold">
-                          {seal}
-                        </span>
-                      ))}
-                    </p>
-                    <p className="text-muted-foreground">{info.label.note}</p>
-                  </div>
-                </div>
-              )}
-              <dl className="mt-2 grid gap-1 text-xs">
-                <div className="flex justify-between gap-3 bg-muted/50 px-2.5 py-1.5">
-                  <dt className="text-muted-foreground">Dose de referência</dt>
-                  <dd className="text-right font-bold">{info.range}</dd>
-                </div>
-                <div className="flex justify-between gap-3 bg-muted/50 px-2.5 py-1.5">
-                  <dt className="text-muted-foreground">Melhor momento</dt>
-                  <dd className="text-right font-bold">{info.timing}</dd>
-                </div>
-                <div className="flex justify-between gap-3 bg-muted/50 px-2.5 py-1.5">
-                  <dt className="text-muted-foreground">Com refeição?</dt>
-                  <dd className="flex items-center gap-1 font-bold">
-                    {info.withFood ? (
-                      <>
-                        <UtensilsCrossed size={14} /> Sim
-                      </>
-                    ) : (
-                      "Não é necessário"
-                    )}
-                  </dd>
-                </div>
-              </dl>
-              <ul className="mt-2 grid gap-1 text-xs">
-                {info.tips.map((tip) => (
-                  <li key={tip} className="flex gap-2">
-                    <Lightbulb size={14} className="mt-0.5 shrink-0 text-amber-500" />
-                    {tip}
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-1.5 text-[11px] text-muted-foreground">
-                <strong>Atenção:</strong> {info.caution} Converse com seu médico ou nutricionista
-                antes de iniciar.
-              </p>
-              <button
-                type="button"
-                onClick={() => startFromLibrary(info)}
-                className="mt-2 inline-flex h-9 w-full items-center justify-center gap-2 px-5 text-xs font-bold text-white shadow-sm transition hover:brightness-110 active:scale-[.98]"
-                style={{ background: info.pack.color }}
-              >
-                <Plus size={17} /> Adicionar à minha programação
-              </button>
-            </div>
-          </article>
         </div>
       </section>
+
+      {productOpen && (
+        <ProductPage
+          item={info}
+          onClose={() => setProductOpen(false)}
+          onAdd={() => {
+            setProductOpen(false);
+            startFromLibrary(info);
+          }}
+        />
+      )}
 
       {editing && (
         <div
