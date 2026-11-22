@@ -49,3 +49,16 @@ describe("busca de alimentos", () => {
     expect(names.length).toBeGreaterThan(50);
   });
 });
+
+describe("bolacha e biscoito", () => {
+  it("bolacha sem qualificativo é o cream cracker; doce e recheado são separados", async () => {
+    const { parseFoodText } = await import("./food-parser");
+    expect(parseFoodText("bolacha")[0].id).toBe("biscoito_salgado");
+    expect(parseFoodText("cream cracker")[0].id).toBe("biscoito_salgado");
+    expect(parseFoodText("bolacha doce")[0].id).toBe("biscoito_doce");
+    expect(parseFoodText("biscoito maisena")[0].id).toBe("biscoito_doce");
+    expect(parseFoodText("bolacha recheada")[0].id).toBe("biscoito_recheado");
+    expect(parseFoodText("1 bolacha")[0].grams).toBe(30);
+    expect(parseFoodText("2 bolas de sorvete")[0].grams).toBe(120);
+  });
+});

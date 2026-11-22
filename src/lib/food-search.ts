@@ -23,7 +23,7 @@ export const normalize = (value: string) =>
 
 /** Nomes populares que não aparecem no nome oficial do alimento. */
 const synonyms: Record<string, string[]> = {
-  bolacha: ["biscoito", "cream cracker"],
+  bolacha: ["biscoito", "cream", "cracker"],
   biscoito: ["bolacha"],
   macaxeira: ["mandioca", "aipim"],
   mandioca: ["macaxeira", "aipim"],

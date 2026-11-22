@@ -1,0 +1,5 @@
+-- Biscoito doce maisena e biscoito doce recheado (TACO/NEPA-UNICAMP). Fibra do recheado: IBGE; do maisena: não informada.
+insert into public.care_food_catalog (id,name,food_group,kcal,protein_g,carbs_g,fat_g,fiber_g,provenance,note,flags) values
+($q$biscoito_doce$q$,$q$Biscoito doce tipo maisena$q$,$q$cereais$q$,443,8.1,75.2,12,null,$q$TACO/UNICAMP 4ª ed. (2011)$q$,$q$TACO (NEPA/UNICAMP): biscoito doce maisena. Fibra não informada na fonte. 1 unidade ≈ 6 g.$q$,array[$q$industrializado$q$]::text[]),
+($q$biscoito_recheado$q$,$q$Biscoito doce recheado$q$,$q$cereais$q$,472,6.4,70.5,19.6,3,$q$TACO/UNICAMP 4ª ed. (2011)$q$,$q$TACO (NEPA/UNICAMP): biscoito doce recheado com chocolate. Fibra: tabela do IBGE. 1 unidade ≈ 12 g.$q$,array[$q$industrializado$q$,$q$gorduroso$q$]::text[])
+on conflict (id) do update set name=excluded.name,food_group=excluded.food_group,kcal=excluded.kcal,protein_g=excluded.protein_g,carbs_g=excluded.carbs_g,fat_g=excluded.fat_g,fiber_g=excluded.fiber_g,provenance=excluded.provenance,note=excluded.note,flags=excluded.flags;
