@@ -204,7 +204,7 @@ export function SidePanel({
           </button>
         )}
       </header>
-      <div className="grid content-start gap-3 p-3 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
+      <div className="grid grid-cols-[minmax(0,1fr)] content-start gap-3 p-3 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overflow-x-hidden">
         {children}
       </div>
       <footer className="sticky bottom-0 z-10 grid gap-2 border-t border-border bg-card p-3" data-intake-actions>

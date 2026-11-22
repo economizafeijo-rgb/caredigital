@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Minus, Plus, Search, Trash2, UtensilsCrossed, X } from "lucide-react";
 import { FoodThumb } from "./FoodArt";
 import {
@@ -278,7 +278,70 @@ export function PlateBuilder({
   );
 }
 
-/** Linhas editáveis do prato: cada alimento reconhecido na descrição, com quantidade e estimativa. */
+/** Campo de quantidade que aplica a edição em tempo real, sem perder o foco ao digitar. */
+function GramsInput({
+  grams,
+  label,
+  onCommit,
+}: {
+  grams: number;
+  label: string;
+  onCommit: (value: number) => void;
+}) {
+  const [text, setText] = useState(String(Math.round(grams)));
+  const focused = useRef(false);
+  useEffect(() => {
+    if (!focused.current) setText(String(Math.round(grams)));
+  }, [grams]);
+  return (
+    <input
+      inputMode="decimal"
+      value={text}
+      aria-label={label}
+      onChange={(e) => {
+        setText(e.target.value);
+        const v = Number(e.target.value.replace(",", "."));
+        if (v > 0 && Math.round(v) !== Math.round(grams)) onCommit(v);
+      }}
+      onFocus={(e) => {
+        focused.current = true;
+        e.currentTarget.select();
+      }}
+      onBlur={() => {
+        focused.current = false;
+        setText(String(Math.round(grams)));
+      }}
+      onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), e.currentTarget.blur())}
+      className="field h-7 w-14 px-1 text-center tabular-nums"
+    />
+  );
+}
+
+const clampGrams = (g: number) => Math.round(Math.max(1, Math.min(5000, g)) * 10) / 10;
+type Parsed = ReturnType<typeof parseFoodText>[number];
+/** Texto com quantidade explícita que o leitor lê de volta como o MESMO alimento (ou null). */
+function explicit(food: Parsed, g: number): string | null {
+  const name = food.name.split(",")[0];
+  const words = name.replace(/\s*\(.*?\)/g, "").split(/\s+/);
+  const candidates = [
+    name,
+    name.replace(/ de galinha/i, ""),
+    words.slice(0, 2).join(" "),
+    words[0],
+  ];
+  for (const c of candidates) {
+    const text = `${c} ${clampGrams(g)} ${measureUnit(food.id)}`;
+    const back = parseFoodText(text);
+    if (back.length === 1 && back[0].id === food.id) return text;
+  }
+  return null;
+}
+
+/**
+ * Linhas editáveis do prato: TODOS os alimentos reconhecidos na descrição, em tempo real.
+ * Um trecho que vira vários alimentos (ex.: "mixto de carnes assadas") ganha uma linha por alimento;
+ * ao editar uma delas, o trecho é reescrito com as quantidades explícitas.
+ */
 export function PlateRows({
   description,
   onDescription,
@@ -289,30 +352,36 @@ export function PlateRows({
   fallback?: ReactNode;
 }) {
   const parts = pieces(description);
-  const rows = parts
-    .map((text, idx) => {
-      const p = parseFoodText(text);
-      return p.length === 1 ? { idx, f: p[0], text } : null;
-    })
-    .filter((x): x is NonNullable<typeof x> => x !== null);
+  const rows = parts.flatMap((text, idx) => {
+    const foods = parseFoodText(text);
+    return foods.map((f, j) => ({ idx, j, f, foods }));
+  });
   if (rows.length === 0) return <>{fallback}</>;
+
   const rewrite = (idx: number, next: string | null) => {
     const copy = [...parts];
     if (next === null) copy.splice(idx, 1);
     else copy[idx] = next;
     onDescription(copy.join(", "));
   };
-  const setGrams = (idx: number, name: string, id: string, g: number) =>
-    rewrite(
-      idx,
-      `${name} ${Math.round(Math.max(1, Math.min(5000, g)) * 10) / 10} ${measureUnit(id)}`,
-    );
+  // Reescreve o trecho inteiro com quantidades explícitas, trocando só o alimento editado.
+  const edit = (idx: number, j: number, foods: Parsed[], g: number) => {
+    const next = foods.map((food, k) => explicit(food, k === j ? g : food.grams));
+    // Se algum alimento não puder ser escrito de forma legível, mantém o trecho como está.
+    if (next.every((t): t is string => t !== null)) rewrite(idx, next.join(", "));
+  };
+  const remove = (idx: number, j: number, foods: Parsed[]) => {
+    if (foods.length === 1) return rewrite(idx, null);
+    const rest = foods.filter((_, k) => k !== j).map((food) => explicit(food, food.grams));
+    if (rest.every((t): t is string => t !== null)) rewrite(idx, rest.join(", "));
+  };
+
   return (
-    <ul className="grid gap-1">
-      {rows.map(({ idx, f }) => {
+    <ul className="grid gap-1.5">
+      {rows.map(({ idx, j, f, foods }) => {
         const name = f.name.split(",")[0];
         return (
-          <li key={idx} className="flex items-center gap-1.5 text-xs">
+          <li key={`${idx}-${j}-${f.id}`} className="flex items-center gap-1.5 text-xs">
             <FoodThumb text={f.name} className="size-7 shrink-0" />
             <span className="min-w-0 flex-1">
               <span className="block truncate font-medium">{name}</span>
@@ -323,38 +392,30 @@ export function PlateRows({
             <button
               type="button"
               aria-label={`Diminuir ${name}`}
-              onClick={() => setGrams(idx, name, f.id, f.grams - 10)}
-              className="grid size-7 place-items-center border border-border hover:bg-muted"
+              onClick={() => edit(idx, j, foods, f.grams - 10)}
+              className="grid size-7 shrink-0 place-items-center border border-border hover:bg-muted"
             >
               <Minus size={12} />
             </button>
-            <input
-              inputMode="decimal"
-              defaultValue={Math.round(f.grams)}
-              key={`${idx}-${Math.round(f.grams)}`}
-              aria-label={`Quantidade de ${name}`}
-              onBlur={(e) => {
-                const v = Number(e.target.value.replace(",", "."));
-                if (v > 0 && Math.round(v) !== Math.round(f.grams)) setGrams(idx, name, f.id, v);
-              }}
-              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), e.currentTarget.blur())}
-              onFocus={(e) => e.currentTarget.select()}
-              className="field h-7 w-14 px-1 text-center tabular-nums"
+            <GramsInput
+              grams={f.grams}
+              label={`Quantidade de ${name}`}
+              onCommit={(v) => edit(idx, j, foods, v)}
             />
             <button
               type="button"
               aria-label={`Aumentar ${name}`}
-              onClick={() => setGrams(idx, name, f.id, f.grams + 10)}
-              className="grid size-7 place-items-center border border-border hover:bg-muted"
+              onClick={() => edit(idx, j, foods, f.grams + 10)}
+              className="grid size-7 shrink-0 place-items-center border border-border hover:bg-muted"
             >
               <Plus size={12} />
             </button>
-            <span className="w-5 text-[10px] text-muted-foreground">{measureUnit(f.id)}</span>
+            <span className="w-4 shrink-0 text-[10px] text-muted-foreground">{measureUnit(f.id)}</span>
             <button
               type="button"
               aria-label={`Remover ${name}`}
-              onClick={() => rewrite(idx, null)}
-              className="grid size-7 place-items-center text-muted-foreground hover:bg-muted hover:text-destructive"
+              onClick={() => remove(idx, j, foods)}
+              className="grid size-7 shrink-0 place-items-center text-muted-foreground hover:bg-muted hover:text-destructive"
             >
               <Trash2 size={13} />
             </button>
