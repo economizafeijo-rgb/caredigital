@@ -108,7 +108,16 @@ import { drinkPresets } from "./drink-presets";
 import { mealCombos, typicalDrinks, typicalFoods } from "./care-intake-categories";
 describe("Bebidas e sugestões por refeição", () => {
   it("todas as bebidas do menu suspenso são calculadas", () => {
-    for (const p of drinkPresets) expect(parseFoodText(p.text, p.ml), p.label).toHaveLength(1);
+    for (const p of drinkPresets) {
+      const list = parseFoodText(p.text, p.ml);
+      // Atalhos "com açúcar" trazem a bebida mais o açúcar adicionado; os demais, um item só.
+      const sweetened = /com a[cç][uú]car|colheres? de .+ de a[cç][uú]car/.test(p.text);
+      expect(list, p.label).toHaveLength(sweetened ? 2 : 1);
+      if (sweetened) {
+        expect(list[1].id, p.label).toBe("acucar");
+        expect(list[0].grams, p.label).toBe(p.ml);
+      }
+    }
   });
   it("café com leite em pó, desnatado, Nescafé e Nescau têm valores distintos", () => {
     const id = (t: string) => parseFoodText(t, 200)[0].id;
