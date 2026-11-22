@@ -243,7 +243,7 @@ let openArea: ((area: ClientSection) => void) | null = null;
 let openDetail: ((k: MetricKey) => void) | null = null;
 
 const TILE_META: Record<MetricKey, { icon: LucideIcon; tone: string; title: string }> = {
-  score: { icon: Target, tone: "linear-gradient(135deg,#10b981,#06b6d4)", title: "Dia em dia" },
+  score: { icon: Target, tone: "linear-gradient(135deg,#10b981,#06b6d4)", title: "Metas de hoje" },
   agua: { icon: Droplets, tone: "linear-gradient(135deg,#0ea5e9,#22d3ee)", title: "Hidratação" },
   peso: { icon: Scale, tone: "linear-gradient(135deg,#d946ef,#ec4899)", title: "Peso" },
   imc: { icon: Zap, tone: "linear-gradient(135deg,#10b981,#84cc16)", title: "IMC" },
@@ -734,6 +734,11 @@ function LiveDashboard({
   const waterShown = useCountUp(today?.waterMl ?? 0);
   const nextUps = useNextUps(patientId, ownerId, waterTarget, (data?.at ?? 0) + clockKey);
   const scoreShown = useCountUp(today?.score ?? 0);
+  const goalCount = {
+    met: today?.goals.filter((g) => g.status === "atingida").length ?? 0,
+    missed: today?.goals.filter((g) => g.status === "nao_atingida").length ?? 0,
+    pending: today?.goals.filter((g) => g.status === "em_andamento").length ?? 0,
+  };
 
   // REGRA: toda gravação do modo ao vivo (inserir, alterar ou remover) só acontece aqui, depois de o usuário tocar em "Confirmar" na folha de confirmação.
   async function runPending() {
@@ -1126,7 +1131,7 @@ function LiveDashboard({
     switch (detail) {
       case "score":
         value = `${t?.score ?? 0}%`;
-        sub = "das metas de hoje atingidas";
+        sub = "das metas já encerradas hoje foram atingidas";
         break;
       case "agua":
         value = `${nf(t?.waterMl ?? 0)} ml`;
@@ -1295,92 +1300,6 @@ function LiveDashboard({
           </p>
         ) : (
           <>
-            {/* Resumo do dia: leitura rápida, cada chip abre os detalhes */}
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-              {(
-                [
-                  {
-                    k: "score" as const,
-                    label: "Dia em dia",
-                    value: today?.score == null ? "—" : `${Math.round(scoreShown)}%`,
-                    sub: today ? `${today.goals.filter((g) => g.status === "atingida").length} de ${today.goals.length} metas` : "sem dados",
-                    pct: today?.score ?? 0,
-                    color: "#34d399",
-                  },
-                  {
-                    k: "agua" as const,
-                    label: "Água",
-                    value: `${nf(waterShown)} ml`,
-                    sub: waterTarget ? `meta ${nf(waterTarget)} ml` : "sem meta",
-                    pct: waterPct,
-                    color: "#38bdf8",
-                  },
-                  {
-                    k: "calorias" as const,
-                    label: "Calorias",
-                    value: `${nf(today?.kcal ?? 0)} kcal`,
-                    sub: kcalTarget ? `meta ${nf(kcalTarget)} kcal` : "sem meta",
-                    pct: kcalTarget ? ((today?.kcal ?? 0) / kcalTarget) * 100 : 0,
-                    color: "#fbbf24",
-                  },
-                  {
-                    k: "proteina" as const,
-                    label: "Proteína",
-                    value: `${nf(today?.protein ?? 0)} g`,
-                    sub: proteinTarget ? `meta ${nf(proteinTarget)} g` : "sem meta",
-                    pct: proteinTarget ? ((today?.protein ?? 0) / proteinTarget) * 100 : 0,
-                    color: "#4ade80",
-                  },
-                  {
-                    k: "exercicio" as const,
-                    label: "Exercício",
-                    value: `${today?.activityMinutes ?? 0} min`,
-                    sub: `referência ${EXERCISE_GOAL} min`,
-                    pct: ((today?.activityMinutes ?? 0) / EXERCISE_GOAL) * 100,
-                    color: "#fb923c",
-                  },
-                  {
-                    k: "sono" as const,
-                    label: "Sono",
-                    value: sleep ? `${nf(sleep.hours, 1)} h` : "—",
-                    sub: `meta ${SLEEP_GOAL} h`,
-                    pct: sleep ? (sleep.hours / SLEEP_GOAL) * 100 : 0,
-                    color: "#818cf8",
-                  },
-                ]
-              ).map((c, i) => (
-                <button
-                  key={c.k}
-                  type="button"
-                  onClick={() => openDetail?.(c.k)}
-                  aria-label={`Resumo: ${c.label}, ${c.value}. Abrir detalhes`}
-                  style={{ ["--i" as string]: i }}
-                  className="lv-in group relative overflow-hidden rounded-xl bg-white/[.045] px-3 py-2.5 text-left ring-1 ring-white/10 transition duration-200 hover:-translate-y-0.5 hover:bg-white/[.08] hover:ring-white/25 active:scale-[.98]"
-                >
-                  <span className="flex items-baseline justify-between gap-2">
-                    <span className="text-[11px] font-semibold text-white/55">{c.label}</span>
-                    <span className="text-[10px] font-bold tabular-nums" style={{ color: c.color }}>
-                      {Math.round(Math.max(0, c.pct))}%
-                    </span>
-                  </span>
-                  <span className="mt-0.5 block text-lg font-extrabold leading-tight tabular-nums">
-                    {c.value}
-                  </span>
-                  <span className="block truncate text-[11px] text-white/45">{c.sub}</span>
-                  <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-white/10">
-                    <span
-                      className="block h-full rounded-full transition-[width] duration-1000"
-                      style={{
-                        width: `${Math.max(0, Math.min(100, c.pct))}%`,
-                        background: c.color,
-                        boxShadow: `0 0 10px ${c.color}99`,
-                      }}
-                    />
-                  </span>
-                </button>
-              ))}
-            </div>
-
             {/* Agora: o que vem a seguir, com contagem regressiva e alerta */}
             {(() => {
               const ups = [
@@ -1472,8 +1391,7 @@ function LiveDashboard({
                 onPick={pick}
                 icon={Target}
                 tone="linear-gradient(135deg,#10b981,#06b6d4)"
-                title="Dia em dia"
-                badge={today?.score == null ? undefined : `${Math.round(scoreShown)}%`}
+                title="Metas de hoje"
               >
                 <div className="flex items-center gap-3">
                   <Ring pct={today?.score ?? 0} color="#34d399" size={84} stroke={8}>
@@ -1483,8 +1401,16 @@ function LiveDashboard({
                   </Ring>
                   <p className="text-xs leading-relaxed text-white/65">
                     {today?.score == null
-                      ? "As metas aparecem conforme o dia avança."
-                      : `${today.goals.filter((g) => g.status === "atingida").length} de ${today.goals.length} metas atingidas hoje.`}
+                      ? goalCount.pending > 0
+                        ? `${goalCount.pending} em andamento. A porcentagem aparece quando a primeira meta for encerrada.`
+                        : "As metas aparecem conforme o dia avança."
+                      : [
+                          `${goalCount.met} atingida${goalCount.met === 1 ? "" : "s"}`,
+                          goalCount.missed > 0 ? `${goalCount.missed} não atingida${goalCount.missed === 1 ? "" : "s"}` : null,
+                          goalCount.pending > 0 ? `${goalCount.pending} em andamento` : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
                   </p>
                 </div>
                 {today && today.goals.length > 0 && (
@@ -1523,7 +1449,6 @@ function LiveDashboard({
                 icon={Droplets}
                 tone="linear-gradient(135deg,#0ea5e9,#22d3ee)"
                 title="Hidratação"
-                badge={waterTarget ? `${Math.round(waterPct)}%` : undefined}
               >
                 <div className="flex items-center gap-3">
                   <Ring pct={waterPct} color="#38bdf8" size={92} stroke={8}>
@@ -1536,14 +1461,22 @@ function LiveDashboard({
                   </Ring>
                   <dl className="grid flex-1 grid-cols-2 gap-1.5 text-[11px]">
                     <div className="rounded-lg bg-white/[.05] px-2 py-1.5 ring-1 ring-white/10">
-                      <dt className="text-white/50">Faltam</dt>
-                      <dd className="text-sm font-extrabold tabular-nums">
-                        {waterTarget ? `${nf(Math.max(0, waterTarget - Math.round(waterShown)))} ml` : "—"}
+                      <dt className="text-white/50">{waterTarget && waterPct >= 100 ? "Meta" : "Faltam"}</dt>
+                      <dd
+                        className={`text-sm font-extrabold tabular-nums ${waterTarget && waterPct >= 100 ? "text-emerald-300" : ""}`}
+                      >
+                        {!waterTarget
+                          ? "—"
+                          : waterPct >= 100
+                            ? "Batida"
+                            : `${nf(Math.max(0, waterTarget - Math.round(waterShown)))} ml`}
                       </dd>
                     </div>
                     <div className="rounded-lg bg-white/[.05] px-2 py-1.5 ring-1 ring-white/10">
-                      <dt className="text-white/50">Meta batida</dt>
-                      <dd className="text-sm font-extrabold">{waterPct >= 100 ? "Sim" : "Ainda não"}</dd>
+                      <dt className="text-white/50">Concluído</dt>
+                      <dd className="text-sm font-extrabold tabular-nums">
+                        {waterTarget ? `${Math.round(waterPct)}%` : "—"}
+                      </dd>
                     </div>
                   </dl>
                 </div>
@@ -1595,11 +1528,6 @@ function LiveDashboard({
                       Registrar
                     </button>
                   </div>
-                )}
-                {waterPct >= 100 && (
-                  <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-400/20 px-3 py-1 text-xs font-bold text-emerald-200">
-                    <CheckCircle2 size={14} /> Meta batida!
-                  </p>
                 )}
               </Tile>
 
@@ -1704,7 +1632,6 @@ function LiveDashboard({
                 icon={Zap}
                 tone="linear-gradient(135deg,#10b981,#84cc16)"
                 title="IMC"
-                badge={cat?.label}
               >
                 <Big v={bmi ? nf(bmi, 1) : "—"} unit="kg/m²" color={cat?.color} />
                 <p className="mt-1 text-xs font-semibold" style={{ color: cat?.color }}>
@@ -1759,12 +1686,11 @@ function LiveDashboard({
                     <p className="mt-1 text-[11px] text-white/60">
                       {toGo !== null && Math.abs(toGo) >= 0.05
                         ? `para chegar a ${nf(targetKg, 1)} kg`
-                        : `Peso atual ${nf(lastWeight.kg, 1)} kg`}
+                        : `Você chegou a ${nf(targetKg, 1)} kg`}
                     </p>
                     <Bar2 pct={goalPct} from="#ec4899" to="#f59e0b" />
                     <p className="mt-1.5 text-[11px] text-white/50">
-                      início {firstWeight ? nf(firstWeight.kg, 1) : "—"} kg · atual {nf(lastWeight.kg, 1)} kg · meta{" "}
-                      {nf(targetKg, 1)} kg
+                      início {firstWeight ? nf(firstWeight.kg, 1) : "—"} kg · meta {nf(targetKg, 1)} kg
                     </p>
                   </>
                 ) : (
