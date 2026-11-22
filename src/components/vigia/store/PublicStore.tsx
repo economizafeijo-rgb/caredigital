@@ -69,6 +69,13 @@ import { ACRE_CITIES, formatCpf, isValidCpf } from "@/lib/checkout";
 type Sort = "relevancia" | "menor" | "desconto";
 const offOf = (p: VendorProduct) =>
   p.old_price_cents ? Math.round((1 - p.price_cents / p.old_price_cents) * 100) : 0;
+/** Foto de destaque quando a loja ainda não enviou o próprio banner. */
+const bannerFor = (segment?: string | null) =>
+  /moda|roupa|acess|bijut|beleza|fitness/i.test(segment ?? "")
+    ? "/loja/mulher2.webp"
+    : /suplement|farm|natural|saude|saúde/i.test(segment ?? "")
+      ? "/images/hero-suplementos.webp"
+      : "/images/hero-alimentacao.webp";
 const initialsOf = (name: string) =>
   name
     .split(/\s+/)
@@ -154,6 +161,7 @@ function PublicStore({
   const [sort, setSort] = useState<Sort>("relevancia");
   const [cartOpen, setCartOpen] = useState(false);
   const [chat, setChat] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
   // Voltou do cadastro/e-mail confirmado com itens na cesta: abre o checkout direto.
   useEffect(() => {
     try {
@@ -215,120 +223,123 @@ function PublicStore({
       </nav>
 
       <section
-        className="nv-dark relative isolate overflow-hidden rounded-3xl text-white shadow-pop"
+        className="nv-dark relative isolate rounded-3xl text-white shadow-pop"
         style={{
           background: `radial-gradient(120% 140% at 0% 0%, ${tint(70)} 0%, ${tint(32)} 45%, ${tint(12, "#070b14")} 100%)`,
         }}
       >
-        <div
-          aria-hidden
-          className="absolute inset-0 -z-10 opacity-[.06] [background-image:radial-gradient(#fff_1px,transparent_1px)] [background-size:18px_18px]"
-        />
-        <div className="grid items-center gap-5 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-10 lg:p-5">
-          <div className="min-w-0">
-            <div className="flex items-center gap-4">
-              <span
-                className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white text-xl font-black shadow-xl ring-4 ring-white/10 sm:size-[4.5rem]"
-                style={{ color: accent }}
-              >
-                {vendor.logo_url ? (
-                  <img
-                    src={vendor.logo_url}
-                    alt={`Logo ${vendor.name}`}
-                    className="size-full object-cover"
-                  />
-                ) : (
-                  initialsOf(vendor.name)
+        <div aria-hidden className="absolute inset-0 -z-10 overflow-hidden rounded-3xl">
+          <img
+            src={vendor.banner_url || bannerFor(vendor.segment)}
+            alt=""
+
+            className="absolute inset-y-0 right-0 h-full w-full object-cover opacity-55 lg:w-2/3"
+          />
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `linear-gradient(90deg, ${tint(78, "#070b14")} 0%, ${tint(62, "#070b14")} 40%, transparent 100%)`,
+            }}
+          />
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-4 sm:px-5">
+          <div className="flex min-w-0 flex-1 basis-[22rem] items-center gap-3.5">
+            <span
+              className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white text-lg font-black shadow-xl ring-2 ring-white/30"
+              style={{ color: accent }}
+            >
+              {vendor.logo_url ? (
+                <img
+                  src={vendor.logo_url}
+                  alt={`Logo ${vendor.name}`}
+                  className="size-full object-cover"
+                />
+              ) : (
+                initialsOf(vendor.name)
+              )}
+            </span>
+            <div className="min-w-0">
+              <p className="text-[11.5px] font-semibold text-white/75">
+                Loja parceira NextVita · {vendor.city}
+              </p>
+              <h1 className="flex flex-wrap items-center gap-x-2 gap-y-1 font-display text-xl font-extrabold leading-tight tracking-tight sm:text-2xl">
+                {vendor.name}
+                {vendor.verified && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[10.5px] font-bold text-sky-200 ring-1 ring-white/20">
+                    <BadgeCheck size={12} /> Verificada
+                  </span>
                 )}
-              </span>
-              <div className="min-w-0">
-                <p className="text-xs font-semibold text-white/65">
-                  Loja parceira NextVita · {vendor.city}
+              </h1>
+              {vendor.description && (
+                <p className="mt-1 line-clamp-1 max-w-[56ch] text-[13px] text-white/85">
+                  {vendor.description}
                 </p>
-                <h1 className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-display text-2xl font-extrabold leading-tight tracking-tight sm:text-[2rem]">
-                  {vendor.name}
-                  {vendor.verified && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-white/12 px-2.5 py-0.5 text-[11px] font-bold text-sky-200 ring-1 ring-white/15">
-                      <BadgeCheck size={13} /> Verificada
-                    </span>
-                  )}
-                </h1>
+              )}
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-white/75">
+                <StoreStatusChip
+                  open={!!vendor.is_open && vendor.status === "ativo"}
+                  hours={vendor.opening_hours}
+                  dark
+                />
+                {vendor.address && (
+                  <span className="inline-flex items-center gap-1">
+                    <MapPin size={12} /> {vendor.address}
+                  </span>
+                )}
               </div>
             </div>
-            {vendor.description && (
-              <p className="mt-3 max-w-[52ch] text-sm leading-relaxed text-white/80 sm:text-[15px]">
-                {vendor.description}
-              </p>
-            )}
-            <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-white/70">
-              {vendor.address && (
-                <span className="inline-flex items-center gap-1">
-                  <MapPin size={13} /> {vendor.address}
-                </span>
-              )}
-            </p>
-            <div className="mt-3">
-              <StoreStatusChip
-                open={!!vendor.is_open && vendor.status === "ativo"}
-                hours={vendor.opening_hours}
-                dark
-              />
-            </div>
-            <div className="mt-5 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setChatDraft(undefined);
-                  setChat(true);
-                }}
-                className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-slate-950 transition hover:bg-white/90 active:scale-[.98]"
-              >
-                <MessageCircle size={16} /> Conversar com a loja
-              </button>
-              <button
-                type="button"
-                onClick={() => setShare(true)}
-                className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/25 bg-white/5 px-4 text-sm font-semibold backdrop-blur transition hover:bg-white/15"
-              >
-                <Share2 size={15} /> Compartilhar
-              </button>
-            </div>
           </div>
-          <div className="mx-auto w-full max-w-[17.5rem] lg:mx-0">
-            <div className="overflow-hidden rounded-2xl bg-white text-slate-900 shadow-[0_24px_50px_-24px_rgba(0,0,0,.8)] ring-1 ring-white/20">
-              <div className="h-1.5" style={{ background: accent }} aria-hidden="true" />
-              <div className="flex flex-col items-center px-5 pb-5 pt-4">
-                <div className="rounded-xl border border-slate-200 p-2">
+          <div className="relative flex shrink-0 flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setChatDraft(undefined);
+                setChat(true);
+              }}
+              className="inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-[13px] font-bold text-slate-950 transition hover:bg-white/90 active:scale-[.98]"
+            >
+              <MessageCircle size={15} /> Conversar
+            </button>
+            <button
+              type="button"
+              onClick={() => setShare(true)}
+              className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/30 bg-black/20 px-3.5 text-[13px] font-semibold backdrop-blur transition hover:bg-white/15"
+            >
+              <Share2 size={14} /> Compartilhar
+            </button>
+            <button
+              type="button"
+              aria-expanded={qrOpen}
+              onClick={() => setQrOpen((v) => !v)}
+              className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/30 bg-black/20 px-3.5 text-[13px] font-semibold backdrop-blur transition hover:bg-white/15"
+            >
+              <QrCode size={14} /> QR Code
+            </button>
+            {qrOpen && (
+              <div className="absolute right-0 top-12 z-20 w-60 overflow-hidden rounded-2xl bg-white text-slate-900 shadow-2xl ring-1 ring-black/10">
+                <div className="h-1.5" style={{ background: accent }} aria-hidden="true" />
+                <div className="flex flex-col items-center px-4 pb-4 pt-3">
                   <QrImage
                     text={storeUrl}
-                    size={124}
+                    size={132}
                     label={`QR Code da loja ${vendor.name}`}
-                    badge={{
-                      initials: ini(vendor.name),
-                      color: accent,
-                      logo: vendor.logo_url,
-                    }}
+                    badge={{ initials: ini(vendor.name), color: accent, logo: vendor.logo_url }}
                   />
+                  <p className="mt-2 text-[13px] font-extrabold">Escaneie e abra a loja</p>
+                  <button
+                    type="button"
+                    onClick={() => void downloadQrPng(storeUrl, `qr-${vendor.slug}.png`)}
+                    className="mt-3 inline-flex h-9 w-full items-center justify-center gap-2 rounded-xl text-[13px] font-bold text-white transition hover:brightness-110"
+                    style={{ background: accent }}
+                  >
+                    <Download size={14} aria-hidden="true" /> Baixar QR Code
+                  </button>
                 </div>
-                <p className="mt-3 font-display text-[15px] font-extrabold leading-tight">
-                  Escaneie e abra a loja
-                </p>
-                <p className="mt-1 max-w-full truncate rounded-full bg-slate-100 px-3 py-0.5 font-mono text-[11px] text-slate-500">
-                  {storeUrl.replace("https://", "")}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => void downloadQrPng(storeUrl, `qr-${vendor.slug}.png`)}
-                  className="mt-4 inline-flex h-9 w-full items-center justify-center gap-2 rounded-xl text-[13px] font-bold text-white transition hover:brightness-110 active:scale-[.98] motion-reduce:active:scale-100"
-                  style={{ background: accent }}
-                >
-                  <Download size={14} aria-hidden="true" /> Baixar QR Code
-                </button>
               </div>
-            </div>
+            )}
           </div>
         </div>
-        <ul className="grid grid-cols-2 border-t border-white/10 bg-black/20 sm:grid-cols-4">
+        <ul className="grid grid-cols-2 rounded-b-3xl border-t border-white/10 bg-black/25 sm:grid-cols-4">
           {[
             [
               Store,
