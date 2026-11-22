@@ -54,25 +54,28 @@ describe("registro de consumo por área", () => {
     expect(screen.getByText("Nome da bebida")).toBeTruthy();
   });
 
-  it("Bebidas: toca numa opção, vê outras com 'Ver todas' e abre as informações (i)", () => {
+  it("Bebidas: mesmo modelo dos alimentos, com cartões, outras bebidas e informações (i)", () => {
     open("drink");
     fireEvent.click(document.querySelector('[data-intake-kind="cafe"]') as HTMLElement);
-    fireEvent.click(screen.getByRole("button", { name: "Café com leite em pó" }));
+    fireEvent.click(screen.getByRole("button", { name: "Escolher Café com leite em pó" }));
     expect((screen.getByLabelText("Nome da bebida") as HTMLInputElement).value).toBe(
       "Café com leite em pó",
     );
-    expect(screen.queryByRole("button", { name: "Suco de graviola" })).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Ver todas as bebidas" }));
-    fireEvent.click(screen.getByRole("button", { name: "Suco de graviola" }));
+    // outras bebidas continuam à mão, sem prender à categoria
+    fireEvent.click(screen.getByRole("button", { name: "Escolher Suco de graviola" }));
     expect((screen.getByLabelText("Nome da bebida") as HTMLInputElement).value).toBe(
       "Suco de graviola",
     );
     fireEvent.click(
-      screen.getByRole("button", { name: "Informações nutricionais: Suco de graviola" }),
+      screen.getByRole("button", { name: "Informações nutricionais de Suco de graviola" }),
     );
-    expect(
-      screen.getByRole("region", { name: /Informações nutricionais: Suco de graviola/ }),
-    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Registrar agora/ })).toBeTruthy();
+  });
+
+  it("Bebidas: a busca acha bebida de qualquer tipo", () => {
+    open("drink");
+    fireEvent.change(screen.getByPlaceholderText("Buscar bebida…"), { target: { value: "cerveja" } });
+    expect(screen.getByRole("button", { name: /Escolher Cerveja/ })).toBeTruthy();
   });
 
   it("Relógio da refeição: abre pelo sinal e pede confirmação com Cancelar", async () => {

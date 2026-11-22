@@ -5,6 +5,7 @@ import { CareCategoryReport } from "./CareCategoryReport";
 import { BarChart3 } from "lucide-react";
 import { CareIntakePicker, CareIntakeIcon } from "./CareIntakePicker";
 import { checkIntake } from "@/lib/hydration-need";
+import { DrinkBoard } from "./DrinkBoard";
 import { DrinkChoices } from "./DrinkChoices";
 import { MealBoard } from "./MealBoard";
 import { HowItWorks, drinkHowTo } from "./HowItWorks";
@@ -320,7 +321,7 @@ export function ClientQuickIntake({
           <div
             className={
               "care-intake-modal-overlay fixed inset-0 z-[150] flex items-center justify-center overflow-hidden bg-slate-950/60 backdrop-blur-sm " +
-              (isFood ? "p-2" : "p-3")
+              (mode !== "water" ? "p-2" : "p-3")
             }
             onMouseDown={(event) => {
               if (event.target === event.currentTarget) closeForm();
@@ -334,9 +335,7 @@ export function ClientQuickIntake({
                 "care-premium-intake-dialog care-intake-responsive-v2 care-intake-oneview flex max-h-[94dvh] w-full min-w-0 " +
                 (mode === "water"
                   ? "max-w-[560px]"
-                  : isFood
-                    ? "h-full max-h-full max-w-[min(1400px,100%)]"
-                    : "h-[min(94dvh,860px)] max-w-[min(1200px,96vw)]") +
+                  : "h-full max-h-full max-w-[min(1400px,100%)]") +
                 " flex-col overflow-hidden border border-border bg-card p-4 text-card-foreground shadow-2xl sm:p-5"
               }
             >
@@ -359,7 +358,7 @@ export function ClientQuickIntake({
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {isFood && (
+                  {mode !== "water" && (
                     <button
                       type="button"
                       onClick={() => setReportOpen(true)}
@@ -381,23 +380,10 @@ export function ClientQuickIntake({
                   </button>
                 </div>
               </div>
-              {mode !== "water" && !isFood && (
-                <button
-                  type="button"
-                  onClick={() => setReportOpen(true)}
-                  className="mt-3 inline-flex shrink-0 items-center justify-center gap-2 border border-primary/30 bg-accent px-3 py-2.5 text-xs font-bold text-primary hover:bg-accent"
-                >
-                  <BarChart3 size={17} /> Relatório diário, mensal e anual
-                </button>
-              )}
               <form
                 className={
                   "care-intake-oneview-form mt-2 grid min-h-0 flex-1 content-start gap-3 overflow-y-auto overscroll-contain pr-1 " +
-                  (mode === "water"
-                    ? ""
-                    : isFood
-                      ? ""
-                      : " lg:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)] lg:overflow-hidden")
+                  (mode === "water" ? "" : "")
                 }
                 onSubmit={(event) => void save(event)}
               >
@@ -414,6 +400,27 @@ export function ClientQuickIntake({
                     onDescription={setDescription}
                     portion={portion}
                     onPortion={setPortion}
+                    consumedAt={consumedAt}
+                    onConsumedAt={(value) => {
+                      setConsumedAt(value);
+                      setManualTime(true);
+                    }}
+                    error={error}
+                    saving={saving}
+                    onCancel={closeForm}
+                    topSlot={groupToggle}
+                  />
+                ) : mode !== "water" ? (
+                  <DrinkBoard
+                    kind={kind as BeverageKind}
+                    onKind={(selected) => {
+                      setKind(selected);
+                      setError("");
+                    }}
+                    description={description}
+                    onDescription={setDescription}
+                    amount={amount}
+                    onAmount={setAmount}
                     consumedAt={consumedAt}
                     onConsumedAt={(value) => {
                       setConsumedAt(value);
