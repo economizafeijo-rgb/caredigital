@@ -205,7 +205,10 @@ function PublicStore({
   const storeUrl = shortStoreUrl(vendor.slug);
 
   return (
-    <div className="flex flex-col gap-4" style={{ "--v": accent } as CSSProperties}>
+    <div
+      className="flex min-w-0 flex-col gap-3 sm:gap-4"
+      style={{ "--v": accent } as CSSProperties}
+    >
       <section
         className="nv-dark relative isolate rounded-3xl text-white shadow-pop"
         style={{
@@ -275,7 +278,7 @@ function PublicStore({
                 )}
               </h1>
               {vendor.description && (
-                <p className="mt-1 line-clamp-1 max-w-[56ch] text-[13px] text-white/85">
+                <p className="mt-1 line-clamp-1 max-w-[56ch] text-[13px] text-white/85 max-sm:hidden">
                   {vendor.description}
                 </p>
               )}
@@ -307,7 +310,7 @@ function PublicStore({
                   </div>
                 </div>
                 {vendor.address && (
-                  <div className="flex items-start gap-2.5 rounded-xl bg-white/10 px-3 py-2 ring-1 ring-white/20">
+                  <div className="flex items-start gap-2.5 rounded-xl bg-white/10 px-3 py-2 ring-1 ring-white/20 max-sm:hidden">
                     <MapPin size={15} className="mt-0.5 shrink-0 text-sky-200" aria-hidden="true" />
                     <dd className="min-w-0 text-[12px] leading-snug text-white/90">
                       {vendor.address}
@@ -317,7 +320,7 @@ function PublicStore({
               </dl>
             </div>
           </div>
-          <div className="relative flex shrink-0 flex-wrap items-center gap-2">
+          <div className="relative flex shrink-0 flex-wrap items-center gap-2 max-sm:w-full [&>button]:max-sm:flex-1 [&>button]:max-sm:justify-center">
             <button
               type="button"
               onClick={() => {
@@ -367,7 +370,7 @@ function PublicStore({
             )}
           </div>
         </div>
-        <ul className="grid grid-cols-2 rounded-b-3xl border-t border-white/10 bg-black/25 sm:grid-cols-4">
+        <ul className="rounded-b-3xl border-t border-white/10 bg-black/25 max-sm:hidden sm:grid sm:grid-cols-4">
           {[
             [
               Store,
@@ -410,11 +413,11 @@ function PublicStore({
         </ul>
       </section>
 
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex min-w-0 items-center justify-between gap-2 max-sm:-mx-3 max-sm:px-3">
         <div
           role="group"
           aria-label="Categorias"
-          className="flex min-w-0 gap-1.5 overflow-x-auto [scrollbar-width:none]"
+          className="flex min-w-0 flex-1 snap-x gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [&>button]:shrink-0 [&>button]:snap-start"
         >
           {["todos", ...cats].map((c) => {
             const on = cat === c;
@@ -439,8 +442,8 @@ function PublicStore({
             );
           })}
         </div>
-        <label className="flex items-center gap-2 text-xs text-muted-foreground">
-          Ordenar
+        <label className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
+          <span className="max-sm:sr-only">Ordenar</span>
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as Sort)}
@@ -516,7 +519,7 @@ function PublicStore({
                   </button>
                 </h3>
                 {p.code && (
-                  <span className="mt-0.5 text-[10.5px] tabular-nums text-muted-foreground">
+                  <span className="mt-0.5 text-[10.5px] tabular-nums text-muted-foreground max-sm:hidden">
                     Código {p.code}
                   </span>
                 )}
@@ -596,7 +599,7 @@ function PublicStore({
                     );
                     setChat(true);
                   }}
-                  className="mt-1.5 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border text-[12.5px] font-semibold transition hover:bg-muted"
+                  className="mt-1.5 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border text-[12.5px] max-sm:hidden font-semibold transition hover:bg-muted"
                 >
                   <MessageCircle size={14} aria-hidden="true" /> Perguntar sobre este produto
                 </button>
@@ -615,10 +618,10 @@ function PublicStore({
         type="button"
         onClick={() => setCartOpen(true)}
         aria-label={`Abrir carrinho da loja, ${count} itens`}
-        className="nv-fab fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-4 z-[90] inline-flex h-14 items-center gap-2 rounded-full px-5 text-sm font-extrabold text-white shadow-xl ring-4 ring-white/70 dark:ring-slate-900/70"
+        className="nv-fab fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-3 z-[90] inline-flex h-12 items-center gap-2 rounded-full px-4 text-sm font-extrabold text-white shadow-xl ring-2 ring-white/70 sm:bottom-[calc(1rem+env(safe-area-inset-bottom))] sm:h-14 sm:px-5 sm:ring-4 dark:ring-slate-900/70"
         style={{ background: accent }}
       >
-        <ShoppingCart size={21} /> Carrinho
+        <ShoppingCart size={20} /> <span className="max-sm:sr-only">Carrinho</span>
         {count > 0 && (
           <span
             key={count}

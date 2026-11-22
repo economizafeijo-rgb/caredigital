@@ -218,8 +218,6 @@ export function CustomerChat({
   async function send(e: FormEvent) {
     e.preventDefault();
     if (!user || !text.trim()) return;
-    if (storeAvailability === "offline")
-      return setErr("A loja está offline agora. Tente de novo mais tarde.");
     const bad = validateChatText(text);
     if (bad) return setErr(bad);
     // Moderação no servidor antes de salvar. Em caso de recusa, o rascunho fica no campo para editar.
@@ -232,10 +230,13 @@ export function CustomerChat({
       );
     }
     // Entra na fila no servidor (ou é atendido na hora, se houver vaga). Sem atendente, não entra.
-    try {
-      setMyQueue(await joinStoreQueue(vendor.id));
-    } catch (e) {
-      return setErr(e instanceof Error ? e.message : "Não foi possível entrar na fila.");
+    // Sem atendente online a mensagem fica registrada e a loja responde depois: não bloqueia o envio.
+    if (storeAvailability !== "offline") {
+      try {
+        setMyQueue(await joinStoreQueue(vendor.id));
+      } catch {
+        /* segue: a mensagem é salva mesmo sem vaga na fila agora */
+      }
     }
     const { error } = await (supabase as any).from("care_store_messages").insert({
       vendor_id: vendor.id,
@@ -406,11 +407,11 @@ export function CustomerChat({
                 placeholder="Escreva sua mensagem"
                 aria-label="Mensagem"
                 className="h-10 min-w-0 flex-1 rounded-full border border-border bg-surface px-4 text-sm"
-                disabled={!user || storeAvailability === "offline"}
+                disabled={!user}
               />
               <button
                 type="submit"
-                disabled={!text.trim() || !user || storeAvailability === "offline"}
+                disabled={!text.trim() || !user}
                 aria-label="Enviar"
                 className="grid size-10 place-items-center rounded-full text-white disabled:opacity-40"
                 style={{ background: accent }}
@@ -485,7 +486,8 @@ function StoreAvailabilityLine({
         role="status"
         className="border-b border-border bg-muted px-4 py-2 text-xs text-muted-foreground"
       >
-        Loja offline no momento. Não é possível entrar na fila agora; tente mais tarde.
+        Nenhum atendente online agora. Envie sua mensagem: ela fica registrada e a loja responde
+        assim que possível.
       </p>
     );
   if (availability === "ocupado")
