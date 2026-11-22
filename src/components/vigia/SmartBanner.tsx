@@ -99,7 +99,7 @@ const devSlide: Slide = {
   tone: "from-[#050b18] via-[#0b2b29] to-[#0c8063]",
 };
 
-const toolSlides: Slide[] = [
+export const toolSlides: Slide[] = [
   {
     id: "t-medidas",
     kicker: "Novo · Medidas do corpo",
@@ -253,7 +253,17 @@ const launchSlide: Slide = {
   ),
 };
 
-export function SmartBanner({ className = "", intro }: { className?: string; intro?: Slide }) {
+export function SmartBanner({
+  className = "",
+  intro,
+  variant = "full",
+}: {
+  className?: string;
+  intro?: Slide;
+  /** "home": só vitrine e propagandas; as ferramentas e o convite a lojistas têm blocos próprios na página. */
+  variant?: "full" | "home";
+}) {
+  const home = variant === "home";
   const { count, subtotal } = useCart();
   const [hour, setHour] = useState<number | null>(null);
   const [ads, setAds] = useState<Slide[]>([]);
@@ -297,7 +307,7 @@ export function SmartBanner({ className = "", intro }: { className?: string; int
   }, []);
 
   const slides = useMemo(() => {
-    const list: Slide[] = intro ? [intro, launchSlide] : [];
+    const list: Slide[] = intro ? [intro, launchSlide] : home ? [launchSlide] : [];
     if (count > 0)
       list.push({
         id: "carrinho",
@@ -311,16 +321,18 @@ export function SmartBanner({ className = "", intro }: { className?: string; int
         tone: "from-[#052e2b] to-[#0c8063]",
       });
     const mixed: Slide[] = [];
-    const max = Math.max(toolSlides.length, baseSlides.length);
+    const tools = home ? [] : toolSlides;
+    const base = home ? baseSlides.filter((s) => s.id !== "vender") : baseSlides;
+    const max = Math.max(tools.length, base.length);
     for (let i = 0; i < max; i++) {
-      if (toolSlides[i]) mixed.push(toolSlides[i]);
+      if (tools[i]) mixed.push(tools[i]);
       if (i === 0 && hour !== null) mixed.push(momentSlide(hour));
       if (ads[i]) mixed.push(ads[i]);
-      if (baseSlides[i]) mixed.push(baseSlides[i]);
+      if (base[i]) mixed.push(base[i]);
     }
-    mixed.splice(4, 0, devSlide);
+    if (!home) mixed.splice(4, 0, devSlide);
     return [...list, ...mixed, ...ads.slice(max)];
-  }, [count, subtotal, hour, ads, intro]);
+  }, [count, subtotal, hour, ads, intro, home]);
 
   const [index, setIndex] = useState(0);
   const [prev, setPrev] = useState<number | null>(null);

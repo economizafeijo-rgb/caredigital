@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Gift, ShoppingCart, Snowflake, Tag, Zap } from "lucide-react";
+import { ArrowRight, Gift, ShoppingCart, Snowflake, Zap } from "lucide-react";
 import { cart, money, products } from "@/lib/store";
 import {
   countdownParts,
@@ -12,7 +12,7 @@ import { openProduct } from "../StoreViews";
 
 /** Blocos de campanha da loja (Black Friday, Natal, ofertas relâmpago), exibidos na página inicial. */
 
-function useTicker(ms = 1000) {
+export function useTicker(ms = 1000) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const t = window.setInterval(() => setNow(Date.now()), ms);
@@ -57,133 +57,6 @@ export function Countdown({ until, light = false }: { until: number; light?: boo
     </div>
   );
 }
-
-export function CampaignHero({ campaign }: { campaign: Campaign }) {
-  const bf = campaign.id === "black-friday",
-    xmas = campaign.id === "natal";
-  const stars = products.filter((p) => p.oldPriceCents).slice(0, 3);
-  const maxOff = Math.max(
-    0,
-    ...products
-      .filter((p) => p.oldPriceCents)
-      .map((p) => Math.round((1 - p.priceCents / p.oldPriceCents!) * 100)),
-  );
-  return (
-    <section
-      aria-labelledby="campanha-title"
-      className={`nv-dark relative isolate overflow-hidden rounded-3xl bg-gradient-to-br ${campaign.theme.bg} text-white shadow-pop`}
-    >
-      <div
-        aria-hidden
-        className="absolute inset-0 -z-10 opacity-[.07] [background-image:radial-gradient(#fff_1px,transparent_1px)] [background-size:18px_18px]"
-      />
-      <div
-        aria-hidden
-        className="nv-bf-glow absolute -right-24 -top-24 -z-10 size-[28rem] rounded-full blur-3xl"
-        style={{ background: `${campaign.theme.accent}33` }}
-      />
-      {xmas &&
-        Array.from({ length: 14 }, (_, i) => (
-          <Snowflake
-            key={i}
-            aria-hidden
-            size={10 + (i % 4) * 4}
-            className="nv-snow absolute -top-6 text-white/40"
-            style={{
-              left: `${(i * 7.3) % 100}%`,
-              animationDelay: `${i * 0.7}s`,
-              animationDuration: `${8 + (i % 5)}s`,
-            }}
-          />
-        ))}
-      <div className="grid items-center gap-6 p-6 sm:p-9 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-        <div className="min-w-0">
-          <span
-            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-extrabold uppercase tracking-widest"
-            style={{ background: campaign.theme.accent, color: campaign.theme.ink }}
-          >
-            {bf ? <Zap size={13} /> : xmas ? <Gift size={13} /> : <Tag size={13} />} {campaign.name}
-          </span>
-          {bf ? (
-            <h2
-              id="campanha-title"
-              className="mt-4 font-display text-5xl font-black uppercase leading-[.9] tracking-tight sm:text-7xl"
-            >
-              <span className="nv-bf-shine block bg-[linear-gradient(110deg,#fff_40%,#facc15_50%,#fff_60%)] bg-[length:250%_100%] bg-clip-text text-transparent">
-                Black
-              </span>
-              <span className="block text-yellow-300">Friday</span>
-            </h2>
-          ) : (
-            <h2
-              id="campanha-title"
-              className="mt-4 text-balance font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl"
-            >
-              {campaign.headline}
-            </h2>
-          )}
-          <p className="mt-3 max-w-xl text-base text-white/80">
-            {bf ? `${campaign.headline} ${campaign.sub}` : campaign.sub}
-          </p>
-          <p className="mt-5 text-xs font-bold uppercase tracking-widest text-white/60">
-            {campaign.untilLabel}
-          </p>
-          <div className="mt-2">
-            <Countdown until={campaign.until} light={!bf} />
-          </div>
-          <div className="mt-6 flex flex-wrap gap-2">
-            <a
-              href="#relampago"
-              className="nv-cta-pulse inline-flex h-12 items-center gap-2 rounded-xl px-6 text-base font-extrabold shadow-lg transition hover:brightness-110 active:scale-[.98]"
-              style={{ background: campaign.theme.accent, color: campaign.theme.ink }}
-            >
-              Ver ofertas <ArrowRight size={18} />
-            </a>
-            <a
-              href="#ofertas"
-              className="inline-flex h-12 items-center gap-2 rounded-xl border border-white/25 bg-white/5 px-5 text-base font-bold text-white backdrop-blur transition hover:bg-white/15"
-            >
-              Mais vendidos
-            </a>
-          </div>
-        </div>
-        <div aria-hidden className="relative hidden h-80 lg:block">
-          {stars.map((p, i) => {
-            const off = Math.round((1 - p.priceCents / p.oldPriceCents!) * 100);
-            const pos = [
-              ["left-[8%] top-6 w-52 -rotate-6", "0s"],
-              ["right-[6%] top-0 w-48 rotate-6", "1.1s"],
-              ["left-[34%] bottom-0 w-56 rotate-[-2deg]", "2.2s"],
-            ][i];
-            return (
-              <div
-                key={p.id}
-                className={`nv-float absolute overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-white/20 transition-transform duration-500 hover:z-10 hover:scale-105 ${pos[0]}`}
-                style={{ animationDelay: pos[1] }}
-              >
-                <img src={p.img} alt="" className="aspect-square w-full object-cover" />
-                <span className="absolute right-2 top-2 rounded-full bg-rose-600 px-2 py-0.5 text-xs font-extrabold text-white">
-                  -{off}%
-                </span>
-                <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-2 text-xs font-bold text-white">
-                  {money(p.priceCents)}
-                </span>
-              </div>
-            );
-          })}
-          {bf && (
-            <span className="nv-spin-slow absolute -right-2 bottom-6 grid size-24 place-items-center rounded-full bg-yellow-300 text-center text-[11px] font-black uppercase leading-tight text-black shadow-xl">
-              até
-              <br />
-              <span className="text-2xl">-{maxOff}%</span>
-            </span>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 
 /** Faixa rolante com os avisos da campanha. */
 export function CampaignTicker({ campaign }: { campaign: Campaign }) {

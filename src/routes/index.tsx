@@ -14,8 +14,10 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { useAccess } from "@/lib/use-access";
-import { HomeBenefits, HomeHero, HomeMarketplace } from "@/components/vigia/HomeMarketplace";
-import { AppShowcase } from "@/components/vigia/AppShowcase";
+import { HomeMarketplace } from "@/components/vigia/HomeMarketplace";
+import { HomeStage } from "@/components/vigia/HomeStage";
+import { HomeToolAds } from "@/components/vigia/HomeToolAds";
+import { SmartBanner } from "@/components/vigia/SmartBanner";
 import { QrEnlarge } from "@/components/vigia/QrEnlarge";
 import { InstallAppButton } from "@/components/vigia/InstallApp";
 import { LogoMark } from "@/components/vigia/Logo";
@@ -170,15 +172,17 @@ function Homepage() {
           </p>
         )}
 
-        <HomeHero client={client} panel={panel} firstName={firstName} />
-
-        <HomeBenefits />
+        <HomeStage client={client} panel={panel} firstName={firstName} />
 
         {client && (
           <div className="rounded-2xl bg-gradient-to-br from-indigo-950 to-slate-900 p-1">
             <HomeNextCareCard panel="/cliente" />
           </div>
         )}
+
+        <SmartBanner variant="home" className="max-sm:-mx-5 max-sm:!rounded-none" />
+
+        <HomeToolAds client={client} />
 
         <HomeMarketplace />
 
@@ -188,10 +192,10 @@ function Homepage() {
               id="tools-title"
               className="font-display text-xl font-extrabold tracking-tight sm:text-2xl"
             >
-              Seu app de rotina, grátis
+              Todas as áreas do app
             </h2>
             <p className="mt-0.5 text-[13px] text-muted-foreground sm:text-sm">
-              Lembretes, registros e gráficos para o dia a dia de saúde.
+              Atalhos para cada ferramenta: lembretes, registros e gráficos do dia a dia.
             </p>
           </div>
           <nav
@@ -235,8 +239,6 @@ function Homepage() {
             ))}
           </nav>
         </section>
-
-        {!client && <AppShowcase />}
 
         <PartnerCommercial />
 

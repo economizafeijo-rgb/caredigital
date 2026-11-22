@@ -2,26 +2,18 @@ import { useMemo, useRef, useState, type CSSProperties, type ReactNode } from "r
 import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
-  BadgeCheck,
   Check,
   ChevronLeft,
   ChevronRight,
-  CreditCard,
   Gem,
-  Gift,
-  LayoutDashboard,
   Leaf,
-  MapPin,
   Minus,
-  Percent,
   Pill,
   Plus,
   Shirt,
   ShoppingCart,
   Sparkles,
-  Star,
   Store,
-  Truck,
   Utensils,
   type LucideIcon,
 } from "lucide-react";
@@ -37,12 +29,10 @@ import {
   type StoreCategory,
 } from "@/lib/store";
 import { productStatus, segmentLabel } from "@/lib/marketplace";
-import { LiveModeLauncher } from "./LiveMode";
-import { StoreLed } from "./store/StoreLed";
 import { useLiveStores } from "./LiveStores";
 import { openProduct } from "./StoreViews";
 import { CartDrawer, Checkout } from "./StorePage";
-import { CampaignHero, CampaignTeaser, CampaignTicker, FlashDeals } from "./store/StorePromos";
+import { CampaignTeaser, CampaignTicker, FlashDeals } from "./store/StorePromos";
 import { currentCampaign } from "@/lib/store-promos";
 
 type Filter = StoreCategory | "todos";
@@ -95,170 +85,6 @@ function SectionHead({
         </Link>
       )}
     </header>
-  );
-}
-
-/* ---------------------------------------------------------------- Hero */
-
-const heroIds = ["whey-900", "conjunto-fem-1", "oleo-copaiba"];
-
-export function HomeHero({
-  client,
-  panel,
-  firstName,
-}: {
-  client: boolean;
-  panel: string | null;
-  firstName: string;
-}) {
-  const picks = heroIds
-    .map((id) => products.find((p) => p.id === id))
-    .filter((p): p is Product => !!p);
-  return (
-    <section
-      aria-labelledby="home-title"
-      className="nv-dark relative isolate overflow-hidden rounded-3xl bg-[#05110e] text-white shadow-card"
-    >
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-[radial-gradient(60%_90%_at_88%_10%,rgba(16,185,129,.30),transparent_65%),radial-gradient(45%_70%_at_0%_100%,rgba(20,184,166,.18),transparent_65%)]"
-      />
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 -z-10 opacity-[.07] [background-image:radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px]"
-      />
-      <div className="grid items-center gap-6 p-5 sm:p-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-10 lg:p-10 xl:p-12">
-        <div className="min-w-0">
-          <p
-            style={{ animationDelay: "40ms" }}
-            className="nv-rise inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-[13px] font-semibold text-emerald-100 ring-1 ring-white/15"
-          >
-            <span className="relative flex size-2">
-              <span className="absolute inline-flex size-full rounded-full bg-emerald-400/70 motion-safe:animate-ping" />
-              <span className="relative inline-flex size-2 rounded-full bg-emerald-400" />
-            </span>
-            Lojas de Feijó, Acre, no seu celular
-          </p>
-          <h1
-            id="home-title"
-            style={{ animationDelay: "120ms" }}
-            className="nv-rise mt-4 text-balance font-display text-[1.95rem] font-extrabold leading-[1.05] tracking-tight min-[400px]:text-[2.2rem] sm:text-[2.7rem] xl:text-[3.2rem]"
-          >
-            {client
-              ? `Olá, ${firstName}. Sua rotina em dia e as melhores ofertas de Feijó.`
-              : "Compre de quem é daqui e cuide da sua rotina no mesmo lugar."}
-          </h1>
-          <p
-            style={{ animationDelay: "220ms" }}
-            className="nv-rise mt-3 max-w-[52ch] text-[15px] leading-relaxed text-slate-300 sm:text-base"
-          >
-            Suplementos, moda, beleza e bijuterias de lojas locais, com 5% de desconto no Pix. E um
-            app gratuito para organizar água, doses, treinos e sono.
-          </p>
-          <div
-            style={{ animationDelay: "320ms" }}
-            className="nv-rise mt-5 flex flex-wrap items-center gap-2.5"
-          >
-            <Link
-              to="/loja"
-              className="inline-flex h-12 items-center gap-2 rounded-xl bg-emerald-400 px-6 text-[15px] font-extrabold text-slate-950 shadow-[0_12px_30px_-12px_rgba(52,211,153,.9)] transition hover:bg-emerald-300 active:scale-[.98] motion-reduce:active:scale-100"
-            >
-              <ShoppingCart size={18} aria-hidden="true" /> Ver ofertas da loja
-            </Link>
-            {panel ? (
-              <>
-                <Link
-                  to={panel}
-                  className="inline-flex h-12 items-center gap-2 rounded-xl border border-white/30 bg-white/5 px-5 text-[15px] font-semibold text-white backdrop-blur transition hover:bg-white/15"
-                >
-                  <LayoutDashboard size={17} aria-hidden="true" /> Abrir meu painel
-                </Link>
-                {client && <LiveModeLauncher className="!h-12 !px-4 !text-sm" />}
-              </>
-            ) : (
-              <a
-                href="/entrar?mode=signup"
-                className="inline-flex h-12 items-center gap-2 rounded-xl border border-white/30 bg-white/5 px-5 text-[15px] font-semibold text-white backdrop-blur transition hover:bg-white/15"
-              >
-                <Gift size={17} aria-hidden="true" /> Criar conta grátis
-              </a>
-            )}
-          </div>
-        </div>
-
-        <div
-          style={{ animationDelay: "260ms" }}
-          className="nv-rise grid grid-cols-3 gap-2.5 sm:gap-3 lg:grid-cols-2 lg:grid-rows-2"
-        >
-          {picks.map((p, i) => {
-            const off = offOf(p.priceCents, p.oldPriceCents);
-            return (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => openProduct(p.id)}
-                aria-label={`Ver ${p.name}, ${money(p.priceCents)}`}
-                className={`group relative overflow-hidden rounded-2xl bg-[#e9ebee] text-left ring-1 ring-white/20 transition-transform duration-200 [@media(hover:hover)]:hover:-translate-y-1 ${i === 0 ? "aspect-[3/4] lg:row-span-2 lg:aspect-auto" : "aspect-[3/4] lg:aspect-[4/3]"}`}
-              >
-                <img
-                  src={p.img}
-                  alt=""
-                  width={480}
-                  height={480}
-                  loading={i === 0 ? "eager" : "lazy"}
-                  decoding="async"
-                  className="size-full object-cover motion-safe:transition motion-safe:duration-500 [@media(hover:hover)]:group-hover:scale-105"
-                />
-                {off > 0 && (
-                  <span className="absolute right-1.5 top-1.5 rounded-full bg-amber-400 px-2 py-0.5 text-[11px] font-extrabold text-slate-950 sm:right-2.5 sm:top-2.5">
-                    −{off}%
-                  </span>
-                )}
-                <span className="absolute inset-x-1.5 bottom-1.5 rounded-xl bg-white/95 px-2 py-1.5 text-slate-900 shadow sm:inset-x-2.5 sm:bottom-2.5 sm:px-3 sm:py-2">
-                  <span className="hidden line-clamp-1 text-[13px] font-semibold leading-tight sm:block">
-                    {p.name}
-                  </span>
-                  <strong className="block text-[13px] font-extrabold tabular-nums text-emerald-700 sm:text-base">
-                    {money(p.priceCents)}
-                  </strong>
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ----------------------------------------------------------- Benefícios */
-
-export function HomeBenefits() {
-  const items: { icon: LucideIcon; title: string; text: string }[] = [
-    { icon: Percent, title: "5% off no Pix", text: "Desconto automático no pagamento" },
-    { icon: CreditCard, title: "Até 3x no cartão", text: "Parcele suas compras" },
-    { icon: Truck, title: "Entrega ou retirada", text: "Receba em casa ou busque na loja" },
-    { icon: MapPin, title: "Lojas de Feijó", text: "Compre local e fortaleça a cidade" },
-  ];
-  return (
-    <ul className="grid grid-cols-2 gap-2 lg:grid-cols-4 lg:gap-3">
-      {items.map((b) => (
-        <li
-          key={b.title}
-          className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 sm:p-3.5"
-        >
-          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/12 text-primary">
-            <b.icon size={19} aria-hidden="true" />
-          </span>
-          <span className="min-w-0 leading-tight">
-            <strong className="block text-[13.5px] font-bold sm:text-sm">{b.title}</strong>
-            <span className="mt-0.5 line-clamp-2 block text-[11.5px] text-muted-foreground sm:text-xs">
-              {b.text}
-            </span>
-          </span>
-        </li>
-      ))}
-    </ul>
   );
 }
 
@@ -764,7 +590,6 @@ export function HomeMarketplace() {
         {announcement}
       </p>
 
-      <CampaignHero campaign={campaign} />
       <CampaignTicker campaign={campaign} />
 
       <section aria-labelledby="cats-title" className="grid grid-cols-[minmax(0,1fr)] gap-3">
