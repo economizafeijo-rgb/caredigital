@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
 import { ArrowRight, MapPin, Megaphone, Sparkles, Store } from "lucide-react";
 
 const kessiaProducts = [
@@ -160,11 +161,87 @@ const lines: Record<string, string[]> = {
   ],
 };
 
+type AdRow = {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  cta_label: string | null;
+  link_url: string | null;
+  image_url: string | null;
+  starts_on: string | null;
+  ends_on: string | null;
+  active: boolean;
+};
+
+const safeHref = (u: string | null) =>
+  u && (/^https?:\/\//i.test(u) || (u.startsWith("/") && !u.startsWith("//"))) ? u : "/loja";
+
+/** Anúncio cadastrado pelo administrador (care_ads, local "inicio") como destaque patrocinado. */
+function adSlide(a: AdRow): Slide {
+  return {
+    id: `ad-${a.id}`,
+    bg: a.image_url || "/images/hero-alimentacao.webp",
+    tint: "from-[#0a1226]/95 via-[#0a1226]/80 to-[#0a1226]/50",
+    render: () => (
+      <div className="max-w-2xl">
+        <Tag>
+          <Megaphone size={13} aria-hidden="true" /> Patrocinado
+        </Tag>
+        <h2 className="mt-4 text-balance font-display text-2xl font-extrabold leading-tight tracking-tight sm:text-[2rem]">
+          {a.title}
+        </h2>
+        {a.subtitle && <p className="mt-3 text-lg text-white/85">{a.subtitle}</p>}
+        <a
+          href={safeHref(a.link_url)}
+          rel="sponsored noopener"
+          className="mt-5 inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-slate-900 transition hover:bg-slate-100"
+        >
+          {a.cta_label || "Saiba mais"} <ArrowRight size={15} aria-hidden="true" />
+        </a>
+      </div>
+    ),
+  };
+}
+
 /** Destaques premium da home: carrossel com textos que alternam. A Kessia abre a sequência. */
 export function HomeKessiaAd() {
   const [i, setI] = useState(0);
   const [tick, setTick] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [ads, setAds] = useState<AdRow[]>([]);
+  useEffect(() => {
+    let alive = true;
+    const today = new Date().toISOString().slice(0, 10);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      void (supabase as any)
+        .from("care_ads")
+        .select("id,title,subtitle,cta_label,link_url,image_url,starts_on,ends_on,active")
+        .eq("placement", "inicio")
+        .order("priority", { ascending: false })
+        .limit(5)
+        .then(
+          (r: { data: AdRow[] | null }) => {
+            if (!alive) return;
+            setAds(
+              (r?.data ?? []).filter(
+                (a) =>
+                  a.active !== false &&
+                  (!a.starts_on || a.starts_on <= today) &&
+                  (!a.ends_on || a.ends_on >= today),
+              ),
+            );
+          },
+          () => undefined,
+        );
+    } catch {
+      /* sem cliente de dados */
+    }
+    return () => {
+      alive = false;
+    };
+  }, []);
+  const all = [...slides.slice(0, 1), ...ads.map(adSlide), ...slides.slice(1)];
   useEffect(() => {
     if (paused || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const t = window.setInterval(() => setTick((n) => n + 1), 3200);
@@ -172,10 +249,10 @@ export function HomeKessiaAd() {
   }, [paused]);
   // A cada 4 trocas de frase passa para o próximo destaque.
   useEffect(() => {
-    if (tick > 0 && tick % 4 === 0) setI((n) => (n + 1) % slides.length);
-  }, [tick]);
-  const slide = slides[i];
-  const set = lines[slide.id];
+    if (tick > 0 && tick % 4 === 0) setI((n) => (n + 1) % all.length);
+  }, [tick, all.length]);
+  const slide = all[i % all.length];
+  const set = lines[slide.id] ?? [""];
   const line = set[tick % set.length];
   return (
     <section
@@ -187,7 +264,7 @@ export function HomeKessiaAd() {
       onBlur={() => setPaused(false)}
       className="nv-dark relative isolate overflow-hidden rounded-3xl bg-[#2a0a22] p-5 text-white sm:p-8"
     >
-      {slides.map((s, k) => (
+      {all.map((s, k) => (
         <img
           key={s.id}
           src={s.bg}
@@ -205,13 +282,13 @@ export function HomeKessiaAd() {
         {slide.render(line)}
       </div>
       <div className="mt-5 flex items-center gap-2" role="tablist" aria-label="Escolher destaque">
-        {slides.map((s, k) => (
+        {all.map((s, k) => (
           <button
             key={s.id}
             type="button"
             role="tab"
             aria-selected={k === i}
-            aria-label={s.id === "kessia" ? "Kessia' Digital Store" : "Para empreendedores"}
+            aria-label={`Destaque ${k + 1}`}
             onClick={() => {
               setI(k);
               setTick(0);
