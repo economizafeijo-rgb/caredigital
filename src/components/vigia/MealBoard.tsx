@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Check, Eraser, Info, Save, Search, X } from "lucide-react";
+import { useMemo, useState, type ReactNode } from "react";
+import { Check, Info, Search } from "lucide-react";
 import { HowItWorks, foodHowTo } from "./HowItWorks";
 import { CareIntakeIcon } from "./CareIntakePicker";
 import { FoodThumb, foodVisual } from "./FoodArt";
 import { NutritionInfoCard } from "./MealSuggestions";
 import { PlateBuilder, PlateRows } from "./PlateBuilder";
+import { KindRail, NutritionSummary, SidePanel } from "./IntakeParts";
 import { foodKinds, mealCombos, typicalFoods, type FoodKind } from "@/lib/care-intake-categories";
 import { measureUnit, parseFoodText, sumNutrients } from "@/lib/food-parser";
 import { foodsForKind, isRegionalFood, searchFoods } from "@/lib/food-search";
@@ -78,32 +79,6 @@ function statsOf(text: string) {
   return hit;
 }
 
-function useCountUp(target: number) {
-  const [value, setValue] = useState(target);
-  const from = useRef(target);
-  useEffect(() => {
-    if (typeof requestAnimationFrame === "undefined") {
-      setValue(target);
-      from.current = target;
-      return;
-    }
-    const start = performance.now(),
-      begin = from.current;
-    let raf = 0;
-    const step = (now: number) => {
-      const p = Math.min(1, (now - start) / 450),
-        eased = 1 - Math.pow(1 - p, 3);
-      const current = begin + (target - begin) * eased;
-      from.current = current;
-      setValue(current);
-      if (p < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [target]);
-  return value;
-}
-
 type Props = {
   kind: FoodKind;
   onKind: (kind: FoodKind) => void;
@@ -175,13 +150,6 @@ export function MealBoard({
 
   const foods = useMemo(() => parseFoodText(`${portion} ${description}`), [portion, description]);
   const total = useMemo(() => sumNutrients(foods.map((f) => f.nutrients)), [foods]);
-  const kcal = useCountUp(Math.round(total.kcal));
-  const macros = [
-    { label: "Proteínas", value: total.protein, color: "#f43f5e" },
-    { label: "Carboidratos", value: total.carbs, color: "#f59e0b" },
-    { label: "Gorduras", value: total.fat, color: "#8b5cf6" },
-    { label: "Fibras", value: total.fiber, color: "#22c55e" },
-  ];
 
   const card = (item: Item, index: number, prefix: string) => {
     const on = isOn(item.text),
@@ -267,279 +235,209 @@ export function MealBoard({
       </section>
     ) : null;
 
+  const counts = useMemo(
+    () => Object.fromEntries(foodKinds.map((c) => [c.value, foodsForKind(c.value).length])),
+    [],
+  );
+  const plateCount = description.split(/\s*,\s*/).filter((p) => p.trim()).length;
+
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3">
-      <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
-        {topSlot}
-        <fieldset className="min-w-0 flex-1">
-          <legend className="sr-only">Qual refeição?</legend>
-          <div className="care-intake-choices flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none]">
-            {foodKinds.map((c) => {
-              const on = c.value === kind,
-                color = mealTone[c.value],
-                suggested = suggestedKind === c.value;
-              return (
-                <button
-                  key={c.value}
-                  type="button"
-                  aria-pressed={on}
-                  data-intake-kind={c.value}
-                  data-intake-group="food"
-                  title={suggested && !on ? `${c.hint} · sugerida para esta busca` : c.hint}
-                  onClick={() => onKind(c.value)}
-                  className={
-                    "inline-flex h-8 shrink-0 items-center gap-1.5 border px-3 text-xs font-semibold transition duration-150 active:scale-95 " +
-                    (on
-                      ? "border-foreground bg-foreground text-background"
-                      : suggested
-                        ? "border-primary bg-primary/10 text-foreground ring-2 ring-primary/30 hover:bg-primary/15"
-                        : "border-border text-muted-foreground hover:bg-muted hover:text-foreground")
+    <div className="flex min-h-0 flex-1 flex-col gap-3 lg:grid lg:grid-cols-[11.5rem_minmax(0,1fr)_22rem] lg:overflow-hidden">
+      <KindRail
+        legend="Qual refeição?"
+        group="food"
+        items={foodKinds.map((c) => ({
+          value: c.value,
+          label: c.label,
+          hint: c.hint,
+          color: mealTone[c.value],
+          count: counts[c.value],
+        }))}
+        active={kind}
+        suggested={suggestedKind}
+        onPick={(value) => onKind(value as FoodKind)}
+        topSlot={topSlot}
+      />
+
+      <div className="min-w-0 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
+        <div className="sticky top-0 z-10 -mt-px bg-card/95 pb-2 backdrop-blur">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span
+              className="grid size-9 shrink-0 place-items-center text-white"
+              style={{ background: tone }}
+            >
+              <CareIntakeIcon kind={kind} size={18} />
+            </span>
+            <div className="min-w-0 leading-tight">
+              <h2 className="text-sm font-bold">{category.label}</h2>
+              <p className="truncate text-[11px] text-muted-foreground">
+                {category.hint} · toque nos alimentos para montar o prato
+              </p>
+            </div>
+            <label className="relative ml-auto block w-full min-w-[12rem] max-w-[18rem] flex-1">
+              <span className="sr-only">Buscar alimento</span>
+              <Search
+                size={14}
+                className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+              />
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addTyped();
                   }
-                >
-                  <span className="size-2" style={{ background: color }} />
-                  {c.label}
-                </button>
-              );
-            })}
-          </div>
-        </fieldset>
-      </div>
-
-      <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_21rem] lg:overflow-hidden">
-        <div className="min-w-0 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
-          <div className="sticky top-0 z-10 -mt-px bg-card/95 pb-2 backdrop-blur">
-            <div className="flex items-center gap-2.5">
-              <span
-                className="grid size-8 shrink-0 place-items-center text-white"
-                style={{ background: tone }}
-              >
-                <CareIntakeIcon kind={kind} size={16} />
-              </span>
-              <div className="min-w-0 leading-tight">
-                <h2 className="text-sm font-bold">{category.label}</h2>
-                <p className="truncate text-[11px] text-muted-foreground">
-                  {category.hint} · toque nos alimentos para montar o prato
-                </p>
-              </div>
-              <label className="relative ml-auto block w-full max-w-[16rem]">
-                <span className="sr-only">Buscar alimento</span>
-                <Search
-                  size={14}
-                  className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
-                />
-                <input
-                  type="search"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      addTyped();
-                    }
-                  }}
-                  placeholder="Digite um alimento (Enter adiciona)…"
-                  className="h-9 w-full border border-border bg-background/60 pl-8 pr-2 text-xs outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                />
-              </label>
-            </div>
-          </div>
-
-          {info && (
-            <div className="mb-3">
-              <NutritionInfoCard item={info} onClose={() => setInfo(null)} />
-            </div>
-          )}
-
-          <div className="grid gap-4">
-            {q.length >= 2 && typed.length > 0 && (
-              <button
-                type="button"
-                onClick={addTyped}
-                className="flex items-center justify-between gap-2 border border-primary/40 bg-primary/10 px-3 py-2 text-left text-xs font-semibold hover:bg-primary/15 active:scale-[.99]"
-              >
-                <span>
-                  Adicionar “{q}” ao prato
-                  <span className="ml-1 font-normal text-muted-foreground">
-                    · reconhecido como {typed.map((f) => f.name.split(",")[0]).join(" + ")}
-                  </span>
-                </span>
-                <Check size={14} />
-              </button>
-            )}
-            {q.length >= 2 ? (
-              found.length ? (
-                section(
-                  `Resultados para “${query.trim()}”`,
-                  `${found.length} alimento${found.length === 1 ? "" : "s"}`,
-                  found,
-                  "busca",
-                )
-              ) : (
-                <p className=" border border-dashed border-border p-4 text-sm text-muted-foreground">
-                  Nenhum alimento com esse nome. Descreva no campo “O que você comeu?”. Para
-                  bebidas, use a aba Bebidas.
-                </p>
-              )
-            ) : (
-              <>
-                {section("Refeições prontas", "combinações comuns", combos, "combo")}
-                {section(
-                  kind === "fruta"
-                    ? "Todas as frutas"
-                    : `Alimentos típicos de ${category.label.toLowerCase()}`,
-                  "toque para adicionar ou remover",
-                  typical,
-                  "tipico",
-                )}
-              </>
-            )}
+                }}
+                placeholder="Digite um alimento (Enter adiciona)…"
+                className="h-9 w-full border border-border bg-background/60 pl-8 pr-2 text-xs outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+              />
+            </label>
           </div>
         </div>
 
-        <aside aria-label="Seu prato" className="min-w-0 lg:min-h-0 lg:overflow-y-auto">
-          <div className="flex min-h-full flex-col gap-3 border border-border bg-card p-3">
-            <div className="flex items-center justify-between gap-2">
-              <h3 className="text-sm font-bold">Seu prato</h3>
-              {description.trim() && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onDescription("");
-                    onPortion("");
-                    setInfo(null);
-                  }}
-                  className="inline-flex h-7 items-center gap-1 px-2 text-[11px] font-semibold text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
-                >
-                  <Eraser size={12} /> Limpar
-                </button>
-              )}
-            </div>
-
-            <PlateBuilder description={description} onDescription={onDescription} tone={tone} />
-
-            <label className="block text-xs font-semibold">
-              <span className="block">O que você comeu?</span>
-              <textarea
-                rows={2}
-                required
-                maxLength={1000}
-                value={description}
-                onChange={(e) => onDescription(e.target.value)}
-                placeholder={category.example}
-                className="field mt-1 block min-h-[60px] w-full resize-y text-sm"
-              />
-            </label>
-
-            {foods.length > 0 ? (
-              <div aria-live="polite" className=" border border-border/70 bg-card/70 p-2.5">
-                <PlateRows
-                  description={description}
-                  onDescription={onDescription}
-                  fallback={
-                    <ul className="grid gap-1">
-                      {foods.map((f, i) => (
-                        <li key={`${f.id}-${i}`} className="flex items-center gap-2 text-xs">
-                          <FoodThumb text={f.name} className="size-7" />
-                          <span className="min-w-0 flex-1 truncate font-medium">
-                            {f.name.split(",")[0]}
-                          </span>
-                          <span className="shrink-0 tabular-nums text-muted-foreground">
-                            {nf(f.grams)} {measureUnit(f.id)}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  }
-                />
-                <p className="mt-2.5 flex items-baseline gap-1.5 border-t border-border/60 pt-2">
-                  <strong className="text-2xl font-extrabold tabular-nums" style={{ color: tone }}>
-                    {nf(kcal)}
-                  </strong>
-                  <span className="text-[11px] font-semibold text-muted-foreground">
-                    kcal no prato
-                  </span>
-                </p>
-                <ul className="mt-2 grid grid-cols-4 gap-px bg-border text-center">
-                  {macros.map((m) => (
-                    <li key={m.label} className="bg-card py-1.5">
-                      <strong className="block text-sm tabular-nums" style={{ color: m.color }}>
-                        {nf(m.value, 1)}
-                        <span className="text-[10px] font-semibold text-muted-foreground"> g</span>
-                      </strong>
-                      <span className="block text-[10px] text-muted-foreground">{m.label}</span>
-                    </li>
-                  ))}
-                </ul>
-                <p className="mt-2 text-[10px] leading-snug text-muted-foreground">
-                  Cálculo automático com porções usuais; valores aproximados.
-                </p>
-              </div>
-            ) : (
-              <p className=" border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
-                O prato está vazio. Escolha alimentos ao lado ou escreva acima: o cálculo aparece
-                aqui.
-              </p>
-            )}
-
-            <HowItWorks>{foodHowTo}</HowItWorks>
-
-            <label className="block text-xs font-semibold">
-              <span className="block">Quantidade ou porção (opcional)</span>
-              <input
-                type="text"
-                className="field mt-1 block min-h-[38px] w-full text-sm"
-                maxLength={100}
-                value={portion}
-                onChange={(e) => onPortion(e.target.value)}
-                placeholder="Ex.: 1 unidade, 100 g, 1 prato"
-              />
-            </label>
-
-            <label className="block min-w-0 text-xs font-semibold">
-              Data e hora · horário do Acre (UTC−5)
-              <input
-                type="datetime-local"
-                required
-                value={consumedAt}
-                onChange={(e) => onConsumedAt(e.target.value)}
-                className="field care-intake-datetime mt-1 block w-full min-w-0 text-sm"
-                style={{ boxSizing: "border-box" }}
-              />
-            </label>
-
-            {error && (
-              <p
-                role="alert"
-                className=" border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive"
-              >
-                {error}
-              </p>
-            )}
-
-            <div
-              data-intake-actions
-              className="sticky bottom-0 z-10 -mx-1 mt-auto grid grid-cols-[auto_1fr] gap-2 border-t border-border bg-card px-1 pb-1 pt-2.5"
-            >
-              <button
-                type="button"
-                disabled={saving}
-                onClick={onCancel}
-                className="nv-btn nv-btn-ghost px-3.5"
-              >
-                <X size={14} /> Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={saving}
-                className="nv-btn"
-                style={{ ["--btn" as string]: tone }}
-              >
-                <Save size={15} /> {saving ? "Salvando..." : "Registrar agora"}
-              </button>
-            </div>
+        {info && (
+          <div className="mb-3">
+            <NutritionInfoCard item={info} onClose={() => setInfo(null)} />
           </div>
-        </aside>
+        )}
+
+        <div className="grid gap-4">
+          {q.length >= 2 && typed.length > 0 && (
+            <button
+              type="button"
+              onClick={addTyped}
+              className="flex items-center justify-between gap-2 border border-primary/40 bg-primary/10 px-3 py-2 text-left text-xs font-semibold hover:bg-primary/15 active:scale-[.99]"
+            >
+              <span>
+                Adicionar “{q}” ao prato
+                <span className="ml-1 font-normal text-muted-foreground">
+                  · reconhecido como {typed.map((f) => f.name.split(",")[0]).join(" + ")}
+                </span>
+              </span>
+              <Check size={14} />
+            </button>
+          )}
+          {q.length >= 2 ? (
+            found.length ? (
+              section(
+                `Resultados para “${query.trim()}”`,
+                `${found.length} alimento${found.length === 1 ? "" : "s"}`,
+                found,
+                "busca",
+              )
+            ) : (
+              <p className="border border-dashed border-border p-4 text-sm text-muted-foreground">
+                Nenhum alimento com esse nome. Descreva no campo “O que você comeu?”. Para bebidas,
+                use a aba Bebidas.
+              </p>
+            )
+          ) : (
+            <>
+              {section("Refeições prontas", "combinações comuns", combos, "combo")}
+              {section(
+                kind === "fruta"
+                  ? "Todas as frutas"
+                  : `Alimentos típicos de ${category.label.toLowerCase()}`,
+                "toque para adicionar ou remover",
+                typical,
+                "tipico",
+              )}
+            </>
+          )}
+        </div>
       </div>
+
+      <SidePanel
+        label="Seu prato"
+        title="Seu prato"
+        count={plateCount}
+        tone={tone}
+        onClear={
+          description.trim()
+            ? () => {
+                onDescription("");
+                onPortion("");
+                setInfo(null);
+              }
+            : undefined
+        }
+        consumedAt={consumedAt}
+        onConsumedAt={onConsumedAt}
+        error={error}
+        saving={saving}
+        onCancel={onCancel}
+      >
+        <PlateBuilder description={description} onDescription={onDescription} tone={tone} />
+
+        <label className="block text-xs font-semibold">
+          <span className="block">O que você comeu?</span>
+          <textarea
+            rows={2}
+            required
+            maxLength={1000}
+            value={description}
+            onChange={(e) => onDescription(e.target.value)}
+            placeholder={category.example}
+            className="field mt-1 block min-h-[54px] w-full resize-y text-sm"
+          />
+        </label>
+
+        {foods.length > 0 ? (
+          <>
+            <div className="border border-border/70 bg-card/70 p-2.5">
+              <PlateRows
+                description={description}
+                onDescription={onDescription}
+                fallback={
+                  <ul className="grid gap-1">
+                    {foods.map((f, i) => (
+                      <li key={`${f.id}-${i}`} className="flex items-center gap-2 text-xs">
+                        <FoodThumb text={f.name} className="size-7" />
+                        <span className="min-w-0 flex-1 truncate font-medium">
+                          {f.name.split(",")[0]}
+                        </span>
+                        <span className="shrink-0 tabular-nums text-muted-foreground">
+                          {nf(f.grams)} {measureUnit(f.id)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                }
+              />
+            </div>
+            <NutritionSummary
+              kcal={total.kcal}
+              protein={total.protein}
+              carbs={total.carbs}
+              fat={total.fat}
+              fiber={total.fiber}
+              tone={tone}
+              caption="kcal no prato"
+              note="Cálculo automático com porções usuais; valores aproximados."
+            />
+          </>
+        ) : (
+          <p className="border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
+            O prato está vazio. Escolha alimentos ao lado ou escreva acima: o cálculo aparece aqui.
+          </p>
+        )}
+
+        <label className="block text-xs font-semibold">
+          <span className="block">Quantidade ou porção (opcional)</span>
+          <input
+            type="text"
+            className="field mt-1 block min-h-[36px] w-full text-sm"
+            maxLength={100}
+            value={portion}
+            onChange={(e) => onPortion(e.target.value)}
+            placeholder="Ex.: 1 unidade, 100 g, 1 prato"
+          />
+        </label>
+
+        <HowItWorks>{foodHowTo}</HowItWorks>
+      </SidePanel>
     </div>
   );
 }

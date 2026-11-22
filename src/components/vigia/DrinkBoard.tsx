@@ -1,9 +1,10 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { Check, Eraser, Info, Minus, Plus, Save, Search, X } from "lucide-react";
+import { Check, Info, Minus, Plus, Search } from "lucide-react";
 import { HowItWorks, drinkHowTo } from "./HowItWorks";
 import { CareIntakeIcon } from "./CareIntakePicker";
 import { FoodThumb, foodVisual } from "./FoodArt";
 import { NutritionInfoCard } from "./MealSuggestions";
+import { KindRail, NutritionSummary, SidePanel } from "./IntakeParts";
 import { beverageKinds, type BeverageKind } from "@/lib/care-intake-categories";
 import { drinkPresets, type DrinkPreset } from "@/lib/drink-presets";
 import { checkIntake } from "@/lib/hydration-need";
@@ -191,326 +192,241 @@ export function DrinkBoard({
 
   const others = useMemo(() => allCards.filter((c) => c.kind !== kind), [kind]);
 
+  const counts = useMemo(() => {
+    const out: Record<string, number> = {};
+    for (const c of allCards) out[c.kind] = (out[c.kind] ?? 0) + 1;
+    return out;
+  }, []);
+
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3">
-      <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
-        {topSlot}
-        <fieldset className="min-w-0 flex-1">
-          <legend className="sr-only">Qual bebida?</legend>
-          <div className="care-intake-choices flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none]">
-            {beverageKinds.map((c) => {
-              const on = c.value === kind;
-              const suggested = suggestedKind === c.value;
-              return (
-                <button
-                  key={c.value}
-                  type="button"
-                  aria-pressed={on}
-                  data-intake-kind={c.value}
-                  data-intake-group="beverage"
-                  title={c.hint}
-                  onClick={() => {
-                    onKind(c.value);
-                    onDescription("");
-                    onAmount(String(c.amount ?? 200));
-                  }}
-                  className={
-                    "inline-flex h-8 shrink-0 items-center gap-1.5 border px-3 text-xs font-semibold transition duration-150 active:scale-95 " +
-                    (on
-                      ? "border-foreground bg-foreground text-background"
-                      : suggested
-                        ? "border-primary bg-primary/10 text-foreground ring-2 ring-primary/30"
-                        : "border-border text-muted-foreground hover:bg-muted hover:text-foreground")
-                  }
-                >
-                  <span className="size-2" style={{ background: drinkTone[c.value] }} />
-                  {c.label}
-                </button>
-              );
-            })}
-          </div>
-        </fieldset>
-      </div>
+    <div className="flex min-h-0 flex-1 flex-col gap-3 lg:grid lg:grid-cols-[11.5rem_minmax(0,1fr)_22rem] lg:overflow-hidden">
+      <KindRail
+        legend="Qual bebida?"
+        group="beverage"
+        items={beverageKinds.map((c) => ({
+          value: c.value,
+          label: c.label,
+          hint: c.hint,
+          color: drinkTone[c.value],
+          count: counts[c.value],
+        }))}
+        active={kind}
+        suggested={suggestedKind}
+        onPick={(value) => {
+          const c = beverageKinds.find((b) => b.value === value)!;
+          onKind(c.value);
+          onDescription("");
+          onAmount(String(c.amount ?? 200));
+        }}
+        topSlot={topSlot}
+      />
 
-      <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_21rem] lg:overflow-hidden">
-        <div className="min-w-0 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
-          <div className="sticky top-0 z-10 -mt-px bg-card/95 pb-2 backdrop-blur">
-            <div className="flex items-center gap-2.5">
-              <span
-                className="grid size-8 shrink-0 place-items-center text-white"
-                style={{ background: tone }}
-              >
-                <CareIntakeIcon kind={kind} size={16} />
-              </span>
-              <div className="min-w-0 leading-tight">
-                <h2 className="text-sm font-bold">{category.label}</h2>
-                <p className="truncate text-[11px] text-muted-foreground">
-                  {category.hint} · toque na bebida para escolher
-                </p>
-              </div>
-              <label className="relative ml-auto block w-full max-w-[16rem]">
-                <span className="sr-only">Buscar bebida</span>
-                <Search
-                  size={14}
-                  className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
-                />
-                <input
-                  type="search"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Buscar bebida…"
-                  className="h-9 w-full border border-border bg-background/60 pl-8 pr-2 text-xs outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                />
-              </label>
+      <div className="min-w-0 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
+        <div className="sticky top-0 z-10 -mt-px bg-card/95 pb-2 backdrop-blur">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span
+              className="grid size-9 shrink-0 place-items-center text-white"
+              style={{ background: tone }}
+            >
+              <CareIntakeIcon kind={kind} size={18} />
+            </span>
+            <div className="min-w-0 leading-tight">
+              <h2 className="text-sm font-bold">{category.label}</h2>
+              <p className="truncate text-[11px] text-muted-foreground">
+                {category.hint} · toque na bebida para escolher
+              </p>
             </div>
-          </div>
-
-          {info && (
-            <div className="mb-3">
-              <NutritionInfoCard
-                item={{ label: info.label, text: info.text }}
-                onClose={() => setInfo(null)}
+            <label className="relative ml-auto block w-full min-w-[12rem] max-w-[18rem] flex-1">
+              <span className="sr-only">Buscar bebida</span>
+              <Search
+                size={14}
+                className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
               />
-            </div>
-          )}
-
-          <div className="grid gap-4">
-            {q.length >= 2 ? (
-              found.length ? (
-                section(
-                  `Resultados para “${query.trim()}”`,
-                  `${found.length} bebida${found.length === 1 ? "" : "s"}`,
-                  found,
-                  "busca",
-                )
-              ) : (
-                <p className="border border-dashed border-border p-4 text-sm text-muted-foreground">
-                  Nenhuma bebida da lista com esse nome. Escreva o nome no campo “Nome da bebida”
-                  ao lado: o sistema calcula pelo que reconhecer.
-                </p>
-              )
-            ) : (
-              <>
-                {section(
-                  `Opções de ${category.label.toLowerCase()}`,
-                  "toque para escolher",
-                  own,
-                  "tipo",
-                )}
-                {!own.length && (
-                  <p className="border border-dashed border-border p-4 text-sm text-muted-foreground">
-                    Sem opções prontas para este tipo. Escreva o nome da bebida ao lado ou veja as
-                    outras bebidas abaixo.
-                  </p>
-                )}
-                {section("Outras bebidas", "de qualquer tipo", others, "outras")}
-              </>
-            )}
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Buscar bebida…"
+                className="h-9 w-full border border-border bg-background/60 pl-8 pr-2 text-xs outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+              />
+            </label>
           </div>
         </div>
 
-        <aside aria-label="Sua bebida" className="min-w-0 lg:min-h-0 lg:overflow-y-auto">
-          <div className="flex min-h-full flex-col gap-3 border border-border bg-card p-3">
-            <div className="flex items-center justify-between gap-2">
-              <h3 className="text-sm font-bold">Sua bebida</h3>
-              {description.trim() && !isWater && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onDescription("");
-                    setInfo(null);
-                  }}
-                  className="inline-flex h-7 items-center gap-1 px-2 text-[11px] font-semibold text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
-                >
-                  <Eraser size={12} /> Limpar
-                </button>
+        {info && (
+          <div className="mb-3">
+            <NutritionInfoCard
+              item={{ label: info.label, text: info.text }}
+              onClose={() => setInfo(null)}
+            />
+          </div>
+        )}
+
+        <div className="grid gap-4">
+          {q.length >= 2 ? (
+            found.length ? (
+              section(
+                `Resultados para “${query.trim()}”`,
+                `${found.length} bebida${found.length === 1 ? "" : "s"}`,
+                found,
+                "busca",
+              )
+            ) : (
+              <p className="border border-dashed border-border p-4 text-sm text-muted-foreground">
+                Nenhuma bebida da lista com esse nome. Escreva o nome no campo “Nome da bebida” ao
+                lado: o sistema calcula pelo que reconhecer.
+              </p>
+            )
+          ) : (
+            <>
+              {section(`Opções de ${category.label.toLowerCase()}`, "toque para escolher", own, "tipo")}
+              {!own.length && (
+                <p className="border border-dashed border-border p-4 text-sm text-muted-foreground">
+                  Sem opções prontas para este tipo. Escreva o nome da bebida ao lado ou veja as
+                  outras bebidas abaixo.
+                </p>
               )}
-            </div>
+              {section("Outras bebidas", "de qualquer tipo", others, "outras")}
+            </>
+          )}
+        </div>
+      </div>
 
-            {!isWater && (
-              <label className="block text-xs font-semibold">
-                <span className="block">Nome da bebida</span>
-                <input
-                  type="text"
-                  required
-                  maxLength={100}
-                  value={description}
-                  onChange={(e) => onDescription(e.target.value)}
-                  placeholder={category.example ?? "Descreva a bebida"}
-                  className="field mt-1 block min-h-[38px] w-full text-sm"
-                />
-              </label>
-            )}
+      <SidePanel
+        label="Sua bebida"
+        title="Sua bebida"
+        tone={tone}
+        onClear={
+          description.trim() && !isWater
+            ? () => {
+                onDescription("");
+                setInfo(null);
+              }
+            : undefined
+        }
+        consumedAt={consumedAt}
+        onConsumedAt={onConsumedAt}
+        error={error}
+        saving={saving}
+        onCancel={onCancel}
+      >
+        {!isWater && (
+          <label className="block text-xs font-semibold">
+            <span className="block">Nome da bebida</span>
+            <input
+              type="text"
+              required
+              maxLength={100}
+              value={description}
+              onChange={(e) => onDescription(e.target.value)}
+              placeholder={category.example ?? "Descreva a bebida"}
+              className="field mt-1 block min-h-[38px] w-full text-sm"
+            />
+          </label>
+        )}
 
-            <div>
-              <span className="block text-xs font-semibold">Quantidade</span>
-              <div className="mt-1 flex items-center justify-center gap-3 bg-muted/40 p-2.5">
-                <button
-                  type="button"
-                  aria-label="Menos 50 ml"
-                  onClick={() => onAmount(String(Math.max(10, ml - 50)))}
-                  className="grid size-10 place-items-center border border-border bg-card font-bold transition hover:bg-muted active:scale-90"
-                >
-                  <Minus size={16} />
-                </button>
-                <label className="flex items-baseline gap-1">
-                  <span className="sr-only">Quantidade consumida em ml</span>
-                  <input
-                    type="number"
-                    min={10}
-                    max={1500}
-                    step={10}
-                    required
-                    value={amount}
-                    onChange={(e) => onAmount(e.target.value)}
-                    className="w-24 bg-transparent text-center text-3xl font-extrabold tabular-nums outline-none"
-                  />
-                  <span className="text-base font-semibold text-muted-foreground">ml</span>
-                </label>
-                <button
-                  type="button"
-                  aria-label="Mais 50 ml"
-                  onClick={() => onAmount(String(Math.min(1500, ml + 50)))}
-                  className="grid size-10 place-items-center border border-border bg-card font-bold transition hover:bg-muted active:scale-90"
-                >
-                  <Plus size={16} />
-                </button>
-              </div>
-              <div aria-label="Volumes sugeridos" className="mt-2 grid grid-cols-4 gap-1.5">
-                {[100, 200, 300, 500].map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => onAmount(String(value))}
-                    aria-pressed={ml === value}
-                    className={
-                      "border px-2 py-1.5 text-xs font-bold transition " +
-                      (ml === value
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border hover:bg-muted")
-                    }
-                  >
-                    {value} ml
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {check.message && (
-              <p
-                role="status"
+        <div>
+          <span className="block text-xs font-semibold">Quantidade</span>
+          <div className="mt-1 flex items-center justify-center gap-3 bg-muted/40 p-2">
+            <button
+              type="button"
+              aria-label="Menos 50 ml"
+              onClick={() => onAmount(String(Math.max(10, ml - 50)))}
+              className="grid size-10 place-items-center border border-border bg-card font-bold transition hover:bg-muted active:scale-90"
+            >
+              <Minus size={16} />
+            </button>
+            <label className="flex items-baseline gap-1">
+              <span className="sr-only">Quantidade consumida em ml</span>
+              <input
+                type="number"
+                min={10}
+                max={1500}
+                step={10}
+                required
+                value={amount}
+                onChange={(e) => onAmount(e.target.value)}
+                className="w-24 bg-transparent text-center text-3xl font-extrabold tabular-nums outline-none"
+              />
+              <span className="text-base font-semibold text-muted-foreground">ml</span>
+            </label>
+            <button
+              type="button"
+              aria-label="Mais 50 ml"
+              onClick={() => onAmount(String(Math.min(1500, ml + 50)))}
+              className="grid size-10 place-items-center border border-border bg-card font-bold transition hover:bg-muted active:scale-90"
+            >
+              <Plus size={16} />
+            </button>
+          </div>
+          <div aria-label="Volumes sugeridos" className="mt-2 grid grid-cols-4 gap-1.5">
+            {[100, 200, 300, 500].map((value) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => onAmount(String(value))}
+                aria-pressed={ml === value}
                 className={
-                  "border p-2 text-xs " +
-                  (check.level === "excess"
-                    ? "border-destructive/40 bg-destructive/5 text-destructive"
-                    : "border-amber-500/30 bg-amber-500/[.07]")
+                  "border px-2 py-1.5 text-xs font-bold transition " +
+                  (ml === value
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border hover:bg-muted")
                 }
               >
-                {check.message}
-              </p>
-            )}
-
-            {parsed.length > 0 ? (
-              <div aria-live="polite" className="border border-border/70 bg-card/70 p-2.5">
-                <ul className="grid gap-1">
-                  {parsed.map((f, i) => (
-                    <li key={`${f.id}-${i}`} className="flex items-center gap-2 text-xs">
-                      <FoodThumb text={f.name} className="size-7" />
-                      <span className="min-w-0 flex-1 truncate font-medium">
-                        {f.name.split(",")[0]}
-                      </span>
-                      <span className="shrink-0 tabular-nums text-muted-foreground">
-                        {nf(f.grams)} {measureUnit(f.id)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                <p className="mt-2.5 flex items-baseline gap-1.5 border-t border-border/60 pt-2">
-                  <strong className="text-2xl font-extrabold tabular-nums" style={{ color: tone }}>
-                    {nf(Math.round(total.kcal))}
-                  </strong>
-                  <span className="text-[11px] font-semibold text-muted-foreground">kcal</span>
-                </p>
-                <ul className="mt-2 grid grid-cols-4 gap-px bg-border text-center">
-                  {[
-                    ["Proteínas", total.protein, "#f43f5e"],
-                    ["Carboidratos", total.carbs, "#f59e0b"],
-                    ["Gorduras", total.fat, "#8b5cf6"],
-                    ["Fibras", total.fiber, "#22c55e"],
-                  ].map(([label, value, color]) => (
-                    <li key={label as string} className="bg-card py-1.5">
-                      <strong
-                        className="block text-sm tabular-nums"
-                        style={{ color: color as string }}
-                      >
-                        {nf(value as number, 1)}
-                        <span className="text-[10px] font-semibold text-muted-foreground"> g</span>
-                      </strong>
-                      <span className="block text-[10px] text-muted-foreground">
-                        {label as string}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                <p className="mt-2 text-[10px] leading-snug text-muted-foreground">
-                  Cálculo automático pelo volume; valores aproximados.
-                </p>
-              </div>
-            ) : (
-              <p className="border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
-                {isWater
-                  ? "Água não tem calorias. Escolha o volume e registre."
-                  : "Escolha uma bebida ao lado ou escreva o nome acima: o cálculo aparece aqui."}
-              </p>
-            )}
-
-            <HowItWorks>{drinkHowTo}</HowItWorks>
-
-            <label className="block min-w-0 text-xs font-semibold">
-              Data e hora · horário do Acre (UTC−5)
-              <input
-                type="datetime-local"
-                required
-                value={consumedAt}
-                onChange={(e) => onConsumedAt(e.target.value)}
-                className="field care-intake-datetime mt-1 block w-full min-w-0 text-sm"
-                style={{ boxSizing: "border-box" }}
-              />
-            </label>
-
-            {error && (
-              <p
-                role="alert"
-                className="border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive"
-              >
-                {error}
-              </p>
-            )}
-
-            <div
-              data-intake-actions
-              className="sticky bottom-0 z-10 -mx-1 mt-auto grid grid-cols-[auto_1fr] gap-2 border-t border-border bg-card px-1 pb-1 pt-2.5"
-            >
-              <button
-                type="button"
-                disabled={saving}
-                onClick={onCancel}
-                className="nv-btn nv-btn-ghost px-3.5"
-              >
-                <X size={14} /> Cancelar
+                {value} ml
               </button>
-              <button
-                type="submit"
-                disabled={saving}
-                className="nv-btn"
-                style={{ ["--btn" as string]: tone }}
-              >
-                <Save size={15} /> {saving ? "Salvando..." : "Registrar agora"}
-              </button>
-            </div>
+            ))}
           </div>
-        </aside>
-      </div>
+        </div>
+
+        {check.message && (
+          <p
+            role="status"
+            className={
+              "border p-2 text-xs " +
+              (check.level === "excess"
+                ? "border-destructive/40 bg-destructive/5 text-destructive"
+                : "border-amber-500/30 bg-amber-500/[.07]")
+            }
+          >
+            {check.message}
+          </p>
+        )}
+
+        {parsed.length > 0 ? (
+          <>
+            <ul className="grid gap-1 border border-border/70 bg-card/70 p-2.5">
+              {parsed.map((f, i) => (
+                <li key={`${f.id}-${i}`} className="flex items-center gap-2 text-xs">
+                  <FoodThumb text={f.name} className="size-7" />
+                  <span className="min-w-0 flex-1 truncate font-medium">{f.name.split(",")[0]}</span>
+                  <span className="shrink-0 tabular-nums text-muted-foreground">
+                    {nf(f.grams)} {measureUnit(f.id)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <NutritionSummary
+              kcal={total.kcal}
+              protein={total.protein}
+              carbs={total.carbs}
+              fat={total.fat}
+              fiber={total.fiber}
+              tone={tone}
+              caption="kcal"
+              note="Cálculo automático pelo volume; valores aproximados."
+            />
+          </>
+        ) : (
+          <p className="border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
+            {isWater
+              ? "Água não tem calorias. Escolha o volume e registre."
+              : "Escolha uma bebida ao lado ou escreva o nome acima: o cálculo aparece aqui."}
+          </p>
+        )}
+
+        <HowItWorks>{drinkHowTo}</HowItWorks>
+      </SidePanel>
     </div>
   );
 }
