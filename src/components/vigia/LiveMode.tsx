@@ -240,7 +240,8 @@ const tileArea: Partial<Record<MetricKey, ClientSection>> = {
 let openArea: ((area: ClientSection) => void) | null = null;
 /** Foto de cada cartão: preenche o espaço livre no canto inferior, tingida pela cor da área. */
 const tileImage: Partial<Record<MetricKey, string>> = {
-  // "Dia em dia" (score) fica sem foto: só o anel de metas.
+  // "Dia em dia": agenda com café (sem pessoas), combina com metas do dia.
+  score: "/images/painel-agenda.webp",
   agua: "/images/hero-hidratacao.webp",
   peso: "/images/hero-peso.webp",
   imc: "/images/show-peso.webp",
