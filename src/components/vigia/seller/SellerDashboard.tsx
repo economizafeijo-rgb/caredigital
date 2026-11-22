@@ -462,18 +462,25 @@ export function SellerDashboard({
           className="relative isolate flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-background p-4 sm:p-6"
           style={{ minHeight: "calc(100dvh - 5.5rem)" }}
         >
+          {/* Uma só foto: a mesma imagem, na mesma escala, passa por trás do cabeçalho e continua abaixo dele */}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 -z-10 bg-cover bg-[position:center_20%] opacity-50"
+            className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[30rem]"
             style={{
               backgroundImage: `url(${vendor.banner_url || "/loja/bela-vista/banner.jpg"})`,
+              backgroundSize: "100% auto",
+              backgroundPosition: "center top",
+              backgroundRepeat: "no-repeat",
+              opacity: 0.85,
+              WebkitMaskImage: "linear-gradient(180deg, #000 0%, #000 55%, transparent 100%)",
+              maskImage: "linear-gradient(180deg, #000 0%, #000 55%, transparent 100%)",
             }}
           />
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 -z-10"
             style={{
-              backgroundImage: `linear-gradient(180deg, color-mix(in srgb, var(--background) 25%, transparent) 0%, color-mix(in srgb, var(--background) 62%, transparent) 40%, color-mix(in srgb, var(--background) 80%, transparent) 100%), radial-gradient(60rem 24rem at 100% 0%, color-mix(in srgb, ${accent} 22%, transparent), transparent 70%)`,
+              backgroundImage: `linear-gradient(180deg, transparent 0px, color-mix(in srgb, var(--background) 70%, transparent) 420px, color-mix(in srgb, var(--background) 92%, transparent) 100%)`,
             }}
           />
           {error && (
@@ -494,11 +501,9 @@ export function SellerDashboard({
             </p>
           )}
           <div
-            className="nv-dark relative -mx-4 -mt-4 mb-5 flex min-h-[8.5rem] items-end overflow-hidden rounded-t-2xl p-4 text-white sm:-mx-6 sm:-mt-6 sm:min-h-[10rem] sm:p-6"
+            className="nv-dark relative -mx-4 -mt-4 mb-5 flex min-h-[9rem] items-end overflow-hidden rounded-t-2xl p-4 text-white sm:-mx-6 sm:-mt-6 sm:min-h-[10rem] sm:p-6"
             style={{
-              backgroundImage: `linear-gradient(100deg, color-mix(in srgb, ${accent} 92%, #000) 0%, color-mix(in srgb, ${accent} 70%, #fff 0%) 38%, rgba(15,23,42,.35) 100%), url(${vendor.banner_url || "/loja/bela-vista/banner.jpg"})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center 30%",
+              backgroundImage: `linear-gradient(90deg, color-mix(in srgb, ${accent} 88%, transparent) 0%, color-mix(in srgb, ${accent} 45%, transparent) 42%, transparent 100%)`,
             }}
           >
             <span
