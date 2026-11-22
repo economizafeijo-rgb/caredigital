@@ -207,7 +207,7 @@ export function SidePanel({
       <div className="grid content-start gap-3 p-3 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
         {children}
       </div>
-      <footer className="grid gap-2 border-t border-border bg-card p-3" data-intake-actions>
+      <footer className="sticky bottom-0 z-10 grid gap-2 border-t border-border bg-card p-3" data-intake-actions>
         <label className="grid min-w-0 grid-cols-[auto_1fr] items-center gap-2 text-[11px] font-semibold text-muted-foreground">
           Quando · Acre (UTC−5)
           <input
