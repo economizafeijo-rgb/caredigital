@@ -7,6 +7,7 @@ import { HomeToolAds } from "@/components/vigia/HomeToolAds";
 import { QrEnlarge } from "@/components/vigia/QrEnlarge";
 import { InstallAppButton } from "@/components/vigia/InstallApp";
 import { LogoMark } from "@/components/vigia/Logo";
+import { HomeKessiaAd } from "@/components/vigia/HomeKessiaAd";
 import { HomePartnerBand } from "@/components/vigia/HomePartnerBand";
 import { HomeNextCareCard } from "@/components/vigia/CareTimer";
 import { HomeModalityTimers } from "@/components/vigia/HomeModalityTimers";
@@ -78,6 +79,8 @@ function Homepage() {
             <HomeNextCareCard panel="/cliente" />
           </div>
         )}
+
+        <HomeKessiaAd />
 
         <HomeMarketplace middle={<HomeToolAds client={client} />} />
 

@@ -34,11 +34,11 @@ export function HomePartnerBand() {
           id="partner-band-title"
           className="font-display text-xl font-extrabold tracking-tight sm:text-2xl"
         >
-          Venda e anuncie na NextVita
+          Empreendedor de Feijó: coloque seu negócio na vitrine
         </h2>
         <p className="mt-1.5 max-w-[46ch] text-[13.5px] leading-relaxed text-white/75 sm:text-sm">
-          Apareça para quem acompanha alimentação, treinos e saúde todos os dias. O plano inicial
-          não tem mensalidade.
+          Seus produtos aparecem para quem acompanha alimentação, treinos e saúde todos os dias.
+          Cadastro simples e plano inicial sem mensalidade.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <Link
