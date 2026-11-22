@@ -198,6 +198,7 @@ export const typicalFoods: Record<FoodKind, { label: string; text: string }[]> =
     { label: "Maionese", text: "15 g de maionese" },
   ],
   almoco: [
+    { label: "Cozido de carne com legumes", text: "cozido de carne" },
     { label: "Arroz", text: "4 colheres de sopa de arroz" },
     { label: "Feijão", text: "1 concha de feijão" },
     { label: "Frango", text: "1 filé de frango" },
@@ -251,6 +252,7 @@ export const typicalFoods: Record<FoodKind, { label: string; text: string }[]> =
     { label: "Manteiga", text: "10 g de manteiga" },
   ],
   lanche: [
+    { label: "Barra de chocolate", text: "barra de chocolate" },
     { label: "Fruta", text: "1 banana" },
     { label: "Pão com queijo", text: "1 pão francês com queijo" },
     { label: "Iogurte", text: "1 iogurte" },

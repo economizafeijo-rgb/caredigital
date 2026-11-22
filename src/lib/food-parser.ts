@@ -251,6 +251,9 @@ const aliases: Array<[RegExp, string]> = [
   [/bolo de milho|bolo de fub[aá]/, "bolo_milho"],
   [/bolo de cenoura/, "bolo_cenoura"],
   [/bolo de leite/, "bolo_leite"],
+  [/chocolate meio amargo|chocolate amargo|chocolate 70/, "chocolate_meio_amargo"],
+  [/chocolate ao leite/, "chocolate_leite"],
+  [/barra de chocolate/, "barra_chocolate"],
   [/sorvete|picol[eé] de creme|sundae/, "sorvete"],
   [/iogurte grego|yogurte grego/, "iogurte_grego"],
   [
@@ -405,6 +408,12 @@ const aliases: Array<[RegExp, string]> = [
   [/suco( natural)? de goiaba/, "suco_goiaba"],
   [/quinari_zero/, "quinari_zero"],
   [/refrigerante_zero/, "refrigerante_zero"],
+  [/refrigerante (tipo |de )?laranja|fanta laranja/, "refrigerante_laranja"],
+  [/[aá]gua t[oô]nica/, "agua_tonica"],
+  [/cerveja|chope/, "cerveja"],
+  [/caldo de cana|garapa/, "caldo_cana"],
+  [/ch[aá] preto|ch[aá] mate|\bmate\b/, "cha_preto"],
+  [/suco de uva/, "suco_uva"],
   [/peixe (frito )?empanado|peixe frito (na|com) farinha|pescada empanada/, "peixe_frito_empanado"],
   [/peixe frito (sem farinha|sem empanar|puro|simples)/, "peixe_frito_simples"],
   [/carne de porco assada|porco assado|pernil/, "pernil_assado"],
@@ -554,6 +563,7 @@ const aliases: Array<[RegExp, string]> = [
   [/amendoim/, "amendoim"],
   [/castanha/, "castanha_para"],
   [/azeite/, "azeite"],
+  [/\bchocolate\b/, "barra_chocolate"],
 ];
 
 /** Porção padrão em gramas/ml quando o usuário não informa a quantidade. */
@@ -618,6 +628,9 @@ const defaultPortion: Record<string, number> = {
   bolo_cenoura: 80,
   bolo_leite: 60,
   sorvete: 60,
+  barra_chocolate: 30,
+  chocolate_leite: 30,
+  chocolate_meio_amargo: 30,
   iogurte_grego: 170,
   queijo_regional: 40,
   pao_queijo: 25,
@@ -722,6 +735,12 @@ const defaultPortion: Record<string, number> = {
   peixe_frito_empanado: 120,
   peixe_frito_simples: 120,
   refrigerante_zero: 350,
+  refrigerante_laranja: 350,
+  agua_tonica: 250,
+  cerveja: 350,
+  caldo_cana: 300,
+  cha_preto: 200,
+  suco_uva: 250,
   quinari_zero: 350,
   frango_assado: 150,
   calabresa: 60,
@@ -884,6 +903,10 @@ export function parseFoodText(text: string, liquidMl?: number | null): ParsedFoo
     .replace(/tapioca com ovos?/g, "crepioca")
     .replace(/p[aã]o com ovos?/g, "pão_com_ovo")
     .replace(/sopa de carne com legumes/g, "sopa de carne")
+    .replace(/coz(ido|id[aã]o) de carne( com legumes)?/g, "100 g de carne, 100 g de batata, 60 g de cenoura, 60 g de chuchu")
+    .replace(/pimenta de panela/g, "pimenta da terra")
+    .replace(/meio amargo/g, "amargo")
+    .replace(/leite com chocolate/g, "achocolatado")
     .replace(/macarr[aã]o com (molho e )?carne mo[ií]da/g, "macarronada");
   const segments = source
     .split(/,|;|\+|\be\b|\bcom\b/)
@@ -1024,7 +1047,13 @@ export function goalAdvice(
 /** Porção usual (g ou ml) de um alimento, usada como "1 unidade/porção" na calculadora. */
 export const typicalPortion = (id: string) => defaultPortion[id] ?? 100;
 
-const liquidIds = new Set(["leite", "caldo_piranha", "tacaca", "iogurte", "sopa_carne_legumes"]);
+const liquidIds = new Set([
+  "refrigerante_laranja",
+  "agua_tonica",
+  "cerveja",
+  "caldo_cana",
+  "cha_preto",
+  "suco_uva","leite", "caldo_piranha", "tacaca", "iogurte", "sopa_carne_legumes"]);
 /** Líquidos são medidos em ml (densidade ≈ 1 g/ml); sólidos em g. */
 export function isLiquid(id: string): boolean {
   return liquidIds.has(id) || ingredientById.get(id)?.group === "bebidas";

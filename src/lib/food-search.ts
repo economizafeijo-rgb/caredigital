@@ -39,6 +39,13 @@ const synonyms: Record<string, string[]> = {
   presunto: ["apresuntado"],
   mussarela: ["mucarela", "queijo"],
   queijo: ["mussarela", "coalho"],
+  file: ["peito"],
+  peito: ["file"],
+  pimenta: ["panela", "cheiro", "malagueta"],
+  cebola: ["cabeca"],
+  sorvete: ["pote", "massa"],
+  chocolate: ["barra"],
+  cozido: ["cozidao"],
 };
 
 const groupKind: Record<string, FoodKind> = {
@@ -48,7 +55,18 @@ const groupKind: Record<string, FoodKind> = {
   cereais: "almoco",
 };
 
+const STOPWORDS = new Set(["de", "da", "do", "das", "dos", "em", "com", "e", "a", "o", "as", "os", "no", "na"]);
+const DESCRIPTORS = new Set([
+  "cru", "crua", "cozido", "cozida", "fuji", "formosa", "tommy", "italia", "vermelha", "caseiro",
+  "caseira", "simples", "integral", "natural", "lisa", "tipo", "taiti", "industrializada", "magra", "oliva",
+  "carioca", "tradicional",
+]);
 const words = (text: string) => normalize(text).split(" ").filter(Boolean);
+const queryWords = (text: string) => {
+  const all = words(text);
+  const useful = all.filter((w) => !STOPWORDS.has(w));
+  return useful.length ? useful : all;
+};
 
 /** Distância de edição limitada (tolera um erro de digitação). */
 function withinOneEdit(a: string, b: string) {
@@ -73,7 +91,12 @@ function withinOneEdit(a: string, b: string) {
   return edits + (a.length - i) + (b.length - j) <= 1;
 }
 
-type Entry = SearchItem & { hay: string[]; kinds: Set<FoodKind>; fromCatalog: boolean };
+type Entry = SearchItem & {
+  hay: string[];
+  kinds: Set<FoodKind>;
+  fromCatalog: boolean;
+  id: string | null;
+};
 let indexCache: Entry[] | null = null;
 
 function catalogText(item: { id: string; name: string }): string | null {
@@ -93,7 +116,15 @@ function buildIndex(): Entry[] {
     const key = normalize(text);
     let entry = byText.get(key);
     if (!entry) {
-      entry = { label, text, hay: [], kinds: new Set(), fromCatalog };
+      const parsed = parseFoodText(text);
+      entry = {
+        label,
+        text,
+        hay: [],
+        kinds: new Set(),
+        fromCatalog,
+        id: parsed.length === 1 ? parsed[0].id : null,
+      };
       byText.set(key, entry);
     }
     if (kind) entry.kinds.add(kind);
@@ -115,7 +146,20 @@ function buildIndex(): Entry[] {
     const extra = entry.hay.flatMap((w) => synonyms[w] ?? []);
     if (extra.length) entry.hay = [...new Set([...entry.hay, ...extra.flatMap(words)])];
   }
-  indexCache = [...byText.values()];
+  // Redundância: "Maçã Fuji crua" (catálogo) repete "Maçã" (lista) — fica só o nome simples.
+  const entries = [...byText.values()];
+  const simple = entries.filter((e) => !e.fromCatalog && e.id);
+  indexCache = entries.filter((e) => {
+    if (!e.fromCatalog || !e.id) return true;
+    const own = words(e.label);
+    return !simple.some((o) => {
+      if (o.id !== e.id || o.label === e.label) return false;
+      const short = words(o.label);
+      if (!short.every((w) => own.includes(w))) return false;
+      // só some quando o que sobra é mero descritor (crua, cozido, Fuji…), não outro preparo/variedade
+      return own.filter((w) => !short.includes(w)).every((w) => DESCRIPTORS.has(w) || STOPWORDS.has(w));
+    });
+  });
   return indexCache;
 }
 
@@ -143,7 +187,7 @@ function score(entry: Entry, tokens: string[]): number {
 }
 
 export function searchFoods(query: string, limit = 36): SearchResult {
-  const tokens = words(query);
+  const tokens = queryWords(query);
   if (!tokens.length || normalize(query).length < 2) return { items: [], suggestedKind: null };
   const index = buildIndex();
 

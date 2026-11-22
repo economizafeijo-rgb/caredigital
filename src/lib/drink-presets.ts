@@ -50,6 +50,8 @@ export const drinkPresets: DrinkPreset[] = [
   d("suco", "Sucos naturais", "Suco de maçã", 250, "suco de maçã"),
   d("suco", "Sucos naturais", "Limonada sem açúcar", 250, "limonada"),
   d("suco", "Sucos naturais", "Suco de caixinha / néctar", 200, "néctar de caixinha"),
+  d("suco", "Sucos naturais", "Suco de uva (envasado)", 200, "suco de uva"),
+  d("suco", "Sucos naturais", "Caldo de cana (garapa)", 300, "caldo de cana"),
   d("vitamina", "Vitaminas", "Vitamina de banana com leite", 300, "vitamina de banana"),
   d("vitamina", "Vitaminas", "Vitamina de mamão com leite", 300, "vitamina de mamão"),
   d("vitamina", "Vitaminas", "Abacatada", 250, "abacatada"),
@@ -59,8 +61,14 @@ export const drinkPresets: DrinkPreset[] = [
   d("cha", "Chás", "Chá de boldo", 150, "chá de boldo"),
   d("cha", "Chás", "Chá de hortelã", 200, "chá de hortelã"),
   d("cha", "Chás", "Chá verde", 200, "chá verde"),
+  d("cha", "Chás", "Chá preto ou mate", 200, "chá preto"),
   d("agua_coco", "Água de coco", "Água de coco", 250, "água de coco"),
   d("refrigerante", "Refrigerante", "Refrigerante tipo cola", 250, "refrigerante"),
+  d("refrigerante", "Refrigerante", "Refrigerante zero açúcar", 350, "refrigerante zero"),
+  d("refrigerante", "Refrigerante", "Guaraná Quinari Zero", 350, "guaraná quinari zero"),
+  d("refrigerante", "Refrigerante", "Refrigerante tipo laranja", 350, "refrigerante de laranja"),
+  d("refrigerante", "Refrigerante", "Água tônica", 250, "água tônica"),
+  d("outra", "Outras", "Cerveja (contém álcool)", 350, "cerveja"),
 ];
 
 export const drinkGroups = Array.from(new Set(drinkPresets.map((p) => p.group)));
