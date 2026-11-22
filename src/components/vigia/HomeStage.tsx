@@ -365,7 +365,7 @@ export function HomeStage({
           </div>
           <a
             href={client ? goal.toolClient : goal.toolTo}
-            className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[.04] px-4 py-3 text-sm transition hover:bg-white/[.08]"
+            className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[.04] px-4 py-3 text-sm max-sm:hidden transition hover:bg-white/[.08]"
           >
             <span className="min-w-0">
               <span className="block text-[11.5px] font-semibold text-white/55">
@@ -378,7 +378,7 @@ export function HomeStage({
         </div>
       </div>
 
-      <ul className="grid grid-cols-2 border-t border-white/10 sm:grid-cols-4">
+      <ul className="grid grid-cols-2 border-t border-white/10 max-sm:hidden sm:grid-cols-4">
         {trust.map((b, i) => (
           <li
             key={b.title}

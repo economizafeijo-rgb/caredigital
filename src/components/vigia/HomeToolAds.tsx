@@ -142,9 +142,9 @@ export function HomeToolAds({ client }: { client: boolean }) {
         </div>
       </header>
 
-      <ul className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
+      <ul className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-5 [&::-webkit-scrollbar]:hidden">
         {tools.map((t) => (
-          <li key={t.id}>
+          <li key={t.id} className="w-[15.5rem] shrink-0 snap-start sm:w-auto">
             <a
               href={client ? t.client : t.to}
               className="group flex h-full flex-col gap-2 rounded-2xl border border-white/10 bg-black/40 p-3.5 backdrop-blur transition-colors hover:border-white/30 hover:bg-black/55"
@@ -178,7 +178,7 @@ export function HomeToolAds({ client }: { client: boolean }) {
 
       <nav
         aria-label="Todas as áreas do app"
-        className="flex flex-wrap items-center gap-x-1 gap-y-1.5 border-t border-white/10 pt-3"
+        className="flex flex-wrap items-center gap-x-1 gap-y-1.5 border-t border-white/10 pt-3 max-sm:hidden"
       >
         <span className="mr-2 text-[13px] font-semibold text-white">Todas as áreas:</span>
         {areas.map((a) => (

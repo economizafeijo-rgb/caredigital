@@ -116,7 +116,7 @@ function Homepage() {
                   Bem-estar organizado: rotina, lembretes e loja no mesmo app.
                 </span>
               </div>
-              <div className="flex min-w-0 flex-1 flex-wrap items-start gap-x-8 gap-y-2">
+              <div className="grid min-w-0 flex-1 max-sm:basis-full grid-cols-2 items-start gap-x-6 gap-y-4 sm:flex sm:flex-wrap sm:gap-x-8 sm:gap-y-2">
                 {(
                   [
                     [
@@ -151,7 +151,7 @@ function Homepage() {
                 ).map(([title, links]) => (
                   <nav key={title} aria-label={title} className="min-w-0">
                     <p className="text-[11px] font-bold text-foreground">{title}</p>
-                    <ul className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs">
+                    <ul className="mt-1.5 flex flex-col gap-1.5 text-[13px] sm:flex-row sm:flex-wrap sm:gap-x-3 sm:gap-y-0.5 sm:text-xs">
                       {links.map(([to, label]) => (
                         <li key={to}>
                           <a

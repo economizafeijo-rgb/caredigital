@@ -55,13 +55,15 @@ export function HomePartnerBand() {
           </Link>
         </div>
       </div>
-      <ul className="grid gap-px overflow-hidden rounded-xl border border-white/15 bg-white/15 backdrop-blur sm:grid-cols-2">
+      <ul className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-white/15 bg-white/15 backdrop-blur">
         {audiences.map((a) => (
-          <li key={a.title} className="flex items-start gap-3 bg-black/35 p-3.5 sm:p-4">
+          <li key={a.title} className="flex items-start gap-2 bg-black/35 p-2.5 sm:gap-3 sm:p-4">
             <a.icon size={18} className="mt-0.5 shrink-0 text-[#3fe0c8]" aria-hidden="true" />
             <span className="min-w-0 leading-tight">
               <strong className="block text-sm font-semibold">{a.title}</strong>
-              <span className="mt-0.5 block text-[12.5px] text-white/75">{a.text}</span>
+              <span className="mt-0.5 block text-[12.5px] text-white/75 max-sm:hidden">
+                {a.text}
+              </span>
             </span>
           </li>
         ))}

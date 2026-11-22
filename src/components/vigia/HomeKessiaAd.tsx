@@ -43,49 +43,72 @@ function ProductPages({ cards, tick }: Ctx) {
   for (let i = 0; i < cards.length; i += 4) pages.push(cards.slice(i, i + 4));
   const page = pages.length ? Math.floor(tick / 2) % pages.length : 0;
   return (
-    <div className="grid">
-      {pages.map((pg, k) => (
-        <ul
-          key={k}
-          aria-hidden={k !== page}
-          className={`col-start-1 row-start-1 grid grid-cols-2 gap-2.5 transition-opacity duration-700 sm:grid-cols-4 ${k === page ? "opacity-100" : "pointer-events-none opacity-0"}`}
-        >
-          {pg.map((p) => (
-            <li key={p.key} className="min-w-0">
-              <a
-                href={p.href}
-                tabIndex={k === page ? 0 : -1}
-                className="group relative block overflow-hidden rounded-xl bg-white text-slate-900 shadow-lg"
-              >
-                <img
-                  src={p.img}
-                  alt=""
-                  loading="lazy"
-                  className="aspect-square w-full object-cover transition duration-500 group-hover:scale-105"
-                />
-                {p.off > 0 && (
-                  <span className="absolute left-2 top-2 rounded-full bg-[#c81d6b] px-2 py-0.5 text-[11px] font-extrabold text-white">
-                    −{p.off}%
-                  </span>
-                )}
-                {p.note && (
-                  <span className="absolute right-2 top-2 rounded-full bg-amber-400 px-2 py-0.5 text-[11px] font-bold text-slate-900">
-                    {p.note}
-                  </span>
-                )}
-                <div className="p-2.5">
-                  <p className="truncate text-[12.5px] font-semibold">{p.name}</p>
-                  <p className="mt-0.5 flex items-baseline gap-1.5">
-                    <span className="text-sm font-extrabold text-[#8a1459]">{p.price}</span>
-                    {p.old && <s className="text-[11px] text-slate-400">{p.old}</s>}
-                  </p>
-                </div>
-              </a>
-            </li>
-          ))}
-        </ul>
-      ))}
-    </div>
+    <>
+      <ul className="-mx-5 flex snap-x snap-mandatory scroll-px-5 gap-2.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:hidden [&::-webkit-scrollbar]:hidden">
+        {cards.map((p) => (
+          <li key={p.key} className="w-[9.5rem] shrink-0 snap-start">
+            <a
+              href={p.href}
+              className="relative block overflow-hidden rounded-xl bg-white text-slate-900 shadow-lg"
+            >
+              <img src={p.img} alt="" loading="lazy" className="aspect-[4/5] w-full object-cover" />
+              {p.off > 0 && (
+                <span className="absolute left-1.5 top-1.5 rounded-full bg-[#c81d6b] px-1.5 py-0.5 text-[10.5px] font-extrabold text-white">
+                  −{p.off}%
+                </span>
+              )}
+              <div className="p-2">
+                <p className="truncate text-[12px] font-semibold">{p.name}</p>
+                <p className="text-[13px] font-extrabold text-[#8a1459]">{p.price}</p>
+              </div>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <div className="grid max-sm:hidden">
+        {pages.map((pg, k) => (
+          <ul
+            key={k}
+            aria-hidden={k !== page}
+            className={`col-start-1 row-start-1 grid grid-cols-2 gap-2.5 transition-opacity duration-700 sm:grid-cols-4 ${k === page ? "opacity-100" : "pointer-events-none opacity-0"}`}
+          >
+            {pg.map((p) => (
+              <li key={p.key} className="min-w-0">
+                <a
+                  href={p.href}
+                  tabIndex={k === page ? 0 : -1}
+                  className="group relative block overflow-hidden rounded-xl bg-white text-slate-900 shadow-lg"
+                >
+                  <img
+                    src={p.img}
+                    alt=""
+                    loading="lazy"
+                    className="aspect-square w-full object-cover transition duration-500 group-hover:scale-105"
+                  />
+                  {p.off > 0 && (
+                    <span className="absolute left-2 top-2 rounded-full bg-[#c81d6b] px-2 py-0.5 text-[11px] font-extrabold text-white">
+                      −{p.off}%
+                    </span>
+                  )}
+                  {p.note && (
+                    <span className="absolute right-2 top-2 rounded-full bg-amber-400 px-2 py-0.5 text-[11px] font-bold text-slate-900">
+                      {p.note}
+                    </span>
+                  )}
+                  <div className="p-2.5">
+                    <p className="truncate text-[12.5px] font-semibold">{p.name}</p>
+                    <p className="mt-0.5 flex items-baseline gap-1.5">
+                      <span className="text-sm font-extrabold text-[#8a1459]">{p.price}</span>
+                      {p.old && <s className="text-[11px] text-slate-400">{p.old}</s>}
+                    </p>
+                  </div>
+                </a>
+              </li>
+            ))}
+          </ul>
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -120,7 +143,7 @@ const slides: Slide[] = [
               <MapPin size={13} aria-hidden="true" /> Inauguração · Feijó, Acre
             </Tag>
           </div>
-          <div className="mt-4 flex items-center gap-3">
+          <div className="mt-3 flex items-center gap-3">
             <img
               src="/loja/kessia/logo.svg"
               alt=""
@@ -357,7 +380,7 @@ export function HomeKessiaAd() {
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
-      className="nv-dark relative isolate overflow-hidden rounded-3xl bg-[#2a0a22] p-5 text-white sm:p-8"
+      className="nv-dark relative isolate overflow-hidden bg-[#2a0a22] p-5 text-white max-sm:-mx-3 max-sm:rounded-none sm:rounded-3xl sm:p-8"
     >
       {all.map((s, k) => (
         <img
