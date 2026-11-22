@@ -4,7 +4,7 @@ import { HowItWorks, drinkHowTo } from "./HowItWorks";
 import { CareIntakeIcon } from "./CareIntakePicker";
 import { FoodThumb } from "./FoodArt";
 import { NutritionInfoCard } from "./MealSuggestions";
-import { KindRail, NutritionSummary, SidePanel } from "./IntakeParts";
+import { EditingHeader, KindRail, NutritionSummary, SidePanel } from "./IntakeParts";
 import { beverageKinds, type BeverageKind } from "@/lib/care-intake-categories";
 import { drinkPresets, type DrinkPreset } from "@/lib/drink-presets";
 import { checkIntake } from "@/lib/hydration-need";
@@ -307,12 +307,12 @@ export function DrinkBoard({
 
       <SidePanel
         label="Sua bebida"
-        title="Sua bebida"
+        title="Seu registro"
         tone={tone}
         pinned={overview}
         registerNote={registerNote}
         summary={
-          totals || parsed.length > 0 ? (
+          overview ? undefined : totals || parsed.length > 0 ? (
             <NutritionSummary
               kcal={(totals ?? total).kcal}
               protein={(totals ?? total).protein}
@@ -339,6 +339,8 @@ export function DrinkBoard({
         saving={saving}
         onCancel={onCancel}
       >
+        <EditingHeader title={`Sua bebida · ${category.label}`} tone={tone} />
+
         {!isWater && (
           <label className="block text-xs font-semibold">
             <span className="block">Nome da bebida</span>

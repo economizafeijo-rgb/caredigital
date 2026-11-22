@@ -5,7 +5,7 @@ import { CareIntakeIcon } from "./CareIntakePicker";
 import { FoodThumb, foodVisual } from "./FoodArt";
 import { NutritionInfoCard } from "./MealSuggestions";
 import { PlateBuilder, PlateRows } from "./PlateBuilder";
-import { KindRail, NutritionSummary, SidePanel } from "./IntakeParts";
+import { EditingHeader, KindRail, NutritionSummary, SidePanel } from "./IntakeParts";
 import { foodKinds, mealCombos, typicalFoods, type FoodKind } from "@/lib/care-intake-categories";
 import { measureUnit, parseFoodText, sumNutrients } from "@/lib/food-parser";
 import { foodsForKind, isRegionalFood, searchFoods } from "@/lib/food-search";
@@ -247,7 +247,6 @@ export function MealBoard({
     () => Object.fromEntries(foodKinds.map((c) => [c.value, foodsForKind(c.value).length])),
     [],
   );
-  const plateCount = description.split(/\s*,\s*/).filter((p) => p.trim()).length;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3 lg:grid lg:grid-cols-[10.5rem_minmax(0,1fr)_24rem] lg:overflow-hidden">
@@ -359,13 +358,12 @@ export function MealBoard({
 
       <SidePanel
         label="Seu prato"
-        title="Seu prato"
-        count={plateCount}
+        title="Seu registro"
         tone={tone}
         pinned={overview}
         registerNote={registerNote}
         summary={
-          totals || foods.length > 0 ? (
+          overview ? undefined : totals || foods.length > 0 ? (
             <NutritionSummary
               kcal={(totals ?? total).kcal}
               protein={(totals ?? total).protein}
@@ -393,6 +391,8 @@ export function MealBoard({
         saving={saving}
         onCancel={onCancel}
       >
+        <EditingHeader title={`Seu prato · ${category.label}`} tone={tone} />
+
         <PlateBuilder description={description} onDescription={onDescription} tone={tone} />
 
         <label className="block text-xs font-semibold">

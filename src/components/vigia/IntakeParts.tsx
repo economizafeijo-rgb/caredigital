@@ -288,11 +288,9 @@ export function RecordOverview({
       aria-label="Resumo do registro"
       className="border-b border-amber-400/30 border-l-[3px] border-l-amber-400 bg-amber-400/[.07]"
     >
-      <p className="flex items-center justify-between gap-2 px-3 pt-2 text-[10px] font-bold text-amber-300">
-        <span>
-          Registro em andamento · {items.length} {items.length === 1 ? "item" : "itens"}
-        </span>
-        <span className="tabular-nums">{nf(kcal)} kcal</span>
+      <p className="px-3 pt-2 text-[10px] font-bold text-amber-300">
+        Tudo o que entra neste registro · {items.length} {items.length === 1 ? "item" : "itens"}
+        <span className="ml-1 font-normal text-muted-foreground">(kcal por item)</span>
       </p>
       <ul className="grid max-h-[7.5rem] grid-cols-[minmax(0,1fr)] overflow-y-auto px-1.5 py-1">
         {items.map((item) => (
@@ -300,21 +298,25 @@ export function RecordOverview({
             <button
               type="button"
               onClick={() => onOpen(item.group)}
-              title={item.group === active ? "Editar" : "Voltar para editar"}
-              className="flex w-full min-w-0 items-center gap-2 px-1.5 py-1 text-left text-xs transition hover:bg-amber-400/10"
+              aria-current={item.group === active ? "true" : undefined}
+              title={item.group === active ? "Em edição agora" : "Toque para voltar e editar"}
+              className={
+                "flex w-full min-w-0 items-center gap-2 border-l-2 px-1.5 py-1 text-left text-xs transition hover:bg-amber-400/10 " +
+                (item.group === active ? "border-l-amber-300 bg-white/[.06]" : "border-l-transparent")
+              }
             >
               <span
                 aria-hidden="true"
                 className={
-                  "grid size-5 shrink-0 place-items-center text-[9px] font-bold " +
+                  "w-11 shrink-0 text-center text-[9px] font-bold " +
                   (item.group === "food" ? "bg-emerald-500/20 text-emerald-300" : "bg-sky-500/20 text-sky-300")
                 }
               >
-                {item.group === "food" ? "A" : "B"}
+                {item.group === "food" ? "Prato" : "Bebida"}
               </span>
               <span className="min-w-0 flex-1 truncate font-semibold">{item.name}</span>
               <span className="shrink-0 tabular-nums text-[11px] text-muted-foreground">{item.detail}</span>
-              <span className="w-12 shrink-0 text-right tabular-nums text-[11px] font-bold">
+              <span className="w-10 shrink-0 text-right tabular-nums text-[11px] font-bold">
                 {nf(item.kcal)}
               </span>
             </button>
@@ -348,5 +350,15 @@ export function RecordOverview({
         )}
       </div>
     </section>
+  );
+}
+
+/** Cabeçalho da área de edição: deixa claro QUAL item está sendo editado agora (separado do resumo). */
+export function EditingHeader({ title, tone }: { title: string; tone: string }) {
+  return (
+    <div className="border-l-[3px] pl-2 leading-tight" style={{ borderColor: tone }}>
+      <span className="block text-[10px] font-bold text-muted-foreground">Editando agora</span>
+      <strong className="block truncate text-sm">{title}</strong>
+    </div>
   );
 }
