@@ -83,7 +83,6 @@ const contentGroup: NavGroup = {
     { to: "/dietas", label: "Dietas", icon: Utensils },
     { to: "/nutricao-esportiva", label: "Nutrição esportiva", icon: Dumbbell },
     { to: "/biblioteca-alimentar", label: "Biblioteca alimentar", icon: Apple },
-    { to: "/loja", label: "Loja", icon: ShoppingBag },
     { to: "/lojista", label: "Seja lojista", icon: Store },
   ],
 };
@@ -104,7 +103,7 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
         { to: "/sono", label: "Sono", icon: BedDouble },
         { to: "/treinos", label: "Treinos", icon: Activity },
         { to: "/metricas", label: "Métricas", icon: BarChart3 },
-        { to: "/loja", label: "Loja", icon: ShoppingBag },
+        { to: "/", hash: "ofertas", label: "Loja", icon: ShoppingBag },
         { to: "/nossos-parceiros", label: "Parceiros", icon: Store },
         { to: "/lojista", label: "Seja lojista", icon: Store },
         { to: "/sobre", label: "Sobre", icon: Info },
@@ -148,11 +147,8 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
       ],
     },
     {
-      title: "Loja",
-      items: [
-        { to: "/loja", label: "Loja", icon: ShoppingBag },
-        { to: "/lojista", label: "Seja lojista", icon: Store },
-      ],
+      title: "Para lojistas",
+      items: [{ to: "/lojista", label: "Seja lojista", icon: Store }],
     },
   ],
   admin: [
@@ -298,7 +294,7 @@ function PublicTopNav({ pathname }: { pathname: string }) {
           </div>
         )}
       </div>
-      <Link to="/loja" className={`${linkCls} !text-foreground`} activeProps={activeCls}>
+      <Link to="/" hash="ofertas" className={`${linkCls} !text-foreground`}>
         <ShoppingBag size={18} aria-hidden="true" className="text-amber-400" /> Loja
       </Link>
       <Link to="/nossos-parceiros" className={linkCls} activeProps={activeCls}>
@@ -401,7 +397,8 @@ function HeaderCart() {
               </p>
             )}
             <Link
-              to="/loja"
+              to="/"
+              hash="ofertas"
               onClick={() => setOpen(false)}
               className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-sm font-bold text-slate-950 transition hover:brightness-110"
             >
@@ -910,7 +907,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 {[
                   { key: "home", label: "Início", icon: Home, to: "/" },
                   { key: "menu", label: "Recursos", icon: LayoutDashboard },
-                  { key: "loja", label: "Loja", icon: ShoppingBag, to: "/loja" },
+                  { key: "loja", label: "Loja", icon: ShoppingBag, to: "/", hash: "ofertas" },
                   {
                     key: "conta",
                     label: signedIn ? "Painel" : "Entrar",
@@ -918,7 +915,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                     to: panelHome ?? "/entrar",
                   },
                 ].map((it) => {
-                  const active = it.to
+                  const active = it.hash
+                    ? false
+                    : it.to
                     ? it.to === "/"
                       ? location.pathname === "/"
                       : location.pathname.startsWith(it.to)
@@ -940,6 +939,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     <Link
                       key={it.key}
                       to={it.to}
+                      hash={it.hash}
                       className={cls}
                       aria-current={active ? "page" : undefined}
                     >
@@ -1015,14 +1015,15 @@ export function AppShell({ children }: { children: ReactNode }) {
                         {[
                           { to: "/", label: "Início", icon: Home },
                           { to: "/protocolos", label: "Como funciona", icon: HeartPulse },
-                          { to: "/loja", label: "Loja NextVita", icon: ShoppingBag },
+                          { to: "/", hash: "ofertas", label: "Loja NextVita", icon: ShoppingBag },
                           { to: "/lojista", label: "Seja lojista", icon: Store },
                           { to: "/sobre", label: "Sobre", icon: Info },
                         ].map((it) => (
                           <Link
-                            key={it.to}
+                            key={it.label}
                             to={it.to}
-                            activeOptions={{ exact: it.to === "/" }}
+                            hash={it.hash}
+                            activeOptions={{ exact: it.to === "/", includeHash: Boolean(it.hash) }}
                             className="flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-slate-200 hover:bg-white/10"
                             activeProps={{ className: "!bg-white/10 !text-white" }}
                           >

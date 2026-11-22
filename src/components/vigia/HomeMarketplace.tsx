@@ -41,6 +41,9 @@ import { LiveModeLauncher } from "./LiveMode";
 import { StoreLed } from "./store/StoreLed";
 import { useLiveStores } from "./LiveStores";
 import { openProduct } from "./StoreViews";
+import { CartDrawer, Checkout } from "./StorePage";
+import { CampaignHero, CampaignTeaser, CampaignTicker, FlashDeals } from "./store/StorePromos";
+import { currentCampaign } from "@/lib/store-promos";
 
 type Filter = StoreCategory | "todos";
 
@@ -730,6 +733,9 @@ function PartnerStores() {
 export function HomeMarketplace() {
   const [filter, setFilter] = useState<Filter>("todos");
   const [announcement, setAnnouncement] = useState("");
+  const [cartOpen, setCartOpen] = useState(false);
+  const [checkout, setCheckout] = useState(false);
+  const campaign = useMemo(() => currentCampaign(), []);
   const { lines, count } = useCart();
   const qtyOf = (id: string) => lines.find((l) => l.id === id)?.qty ?? 0;
   const shown = useMemo(() => {
@@ -758,6 +764,9 @@ export function HomeMarketplace() {
         {announcement}
       </p>
 
+      <CampaignHero campaign={campaign} />
+      <CampaignTicker campaign={campaign} />
+
       <section aria-labelledby="cats-title" className="grid grid-cols-[minmax(0,1fr)] gap-3">
         <SectionHead
           title="Compre por categoria"
@@ -772,6 +781,8 @@ export function HomeMarketplace() {
       <LiveNews />
 
       <FeaturedStore />
+
+      <FlashDeals campaign={campaign} />
 
       <section
         id="ofertas"
@@ -790,12 +801,13 @@ export function HomeMarketplace() {
               5% de desconto no Pix, cartão em até 3x e entrega ou retirada.
             </p>
           </div>
-          <Link
-            to="/loja"
+          <button
+            type="button"
+            onClick={() => setCartOpen(true)}
             aria-label={
               count > 0
-                ? `Ir para a loja: ${count} ${count === 1 ? "item" : "itens"} no carrinho`
-                : "Ir para a loja"
+                ? `Abrir o carrinho: ${count} ${count === 1 ? "item" : "itens"}`
+                : "Abrir o carrinho"
             }
             className="relative inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-[13px] font-bold transition-colors hover:border-primary/50 hover:text-primary"
           >
@@ -809,7 +821,7 @@ export function HomeMarketplace() {
                 {count}
               </span>
             )}
-          </Link>
+          </button>
         </div>
         <div
           role="group"
@@ -839,6 +851,34 @@ export function HomeMarketplace() {
       </section>
 
       <PartnerStores />
+
+      <CampaignTeaser />
+
+      {count > 0 && (
+        <button
+          type="button"
+          onClick={() => setCartOpen(true)}
+          aria-label={`Abrir carrinho, ${count} ${count === 1 ? "item" : "itens"}`}
+          className="nv-fab fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-[90] inline-flex h-14 items-center gap-2 rounded-full bg-slate-950 px-5 text-sm font-extrabold text-white shadow-xl ring-4 ring-white/70 lg:bottom-6 dark:ring-slate-900/70"
+        >
+          <ShoppingCart size={22} /> Carrinho
+          <span
+            key={count}
+            className="nv-heart-pop grid size-6 place-items-center rounded-full bg-emerald-400 text-xs text-slate-950"
+          >
+            {count}
+          </span>
+        </button>
+      )}
+      <CartDrawer
+        open={cartOpen}
+        onClose={() => setCartOpen(false)}
+        onCheckout={() => {
+          setCartOpen(false);
+          setCheckout(true);
+        }}
+      />
+      {checkout && <Checkout onClose={() => setCheckout(false)} />}
     </>
   );
 }
