@@ -238,6 +238,25 @@ const tileArea: Partial<Record<MetricKey, ClientSection>> = {
   streak: "historico",
 } as Partial<Record<MetricKey, ClientSection>>;
 let openArea: ((area: ClientSection) => void) | null = null;
+let openDetail: ((k: MetricKey) => void) | null = null;
+
+const TILE_META: Record<MetricKey, { icon: LucideIcon; tone: string; title: string }> = {
+  score: { icon: Target, tone: "linear-gradient(135deg,#10b981,#06b6d4)", title: "Dia em dia" },
+  agua: { icon: Droplets, tone: "linear-gradient(135deg,#0ea5e9,#22d3ee)", title: "Hidratação" },
+  peso: { icon: Scale, tone: "linear-gradient(135deg,#d946ef,#ec4899)", title: "Peso" },
+  imc: { icon: Zap, tone: "linear-gradient(135deg,#10b981,#84cc16)", title: "IMC" },
+  metapeso: { icon: Trophy, tone: "linear-gradient(135deg,#ec4899,#f59e0b)", title: "Meta de peso" },
+  sono: { icon: BedDouble, tone: "linear-gradient(135deg,#6366f1,#8b5cf6)", title: "Sono" },
+  exercicio: { icon: Activity, tone: "linear-gradient(135deg,#f97316,#f59e0b)", title: "Exercício hoje" },
+  semana: { icon: Dumbbell, tone: "linear-gradient(135deg,#ef4444,#f97316)", title: "Exercício na semana" },
+  calorias: { icon: Flame, tone: "linear-gradient(135deg,#f59e0b,#ef4444)", title: "Calorias" },
+  proteina: { icon: Egg, tone: "linear-gradient(135deg,#22c55e,#14b8a6)", title: "Proteína" },
+  carbs: { icon: Wheat, tone: "linear-gradient(135deg,#eab308,#f59e0b)", title: "Carboidratos" },
+  gordura: { icon: Sparkles, tone: "linear-gradient(135deg,#fb923c,#e11d48)", title: "Gorduras" },
+  med: { icon: Pill, tone: "linear-gradient(135deg,#f43f5e,#fb7185)", title: "Medicação" },
+  supl: { icon: Sparkles, tone: "linear-gradient(135deg,#a855f7,#6366f1)", title: "Suplementos" },
+  streak: { icon: Flame, tone: "linear-gradient(135deg,#fbbf24,#f97316)", title: "Sequência" },
+};
 /** Foto de cada cartão: preenche o espaço livre no canto inferior, tingida pela cor da área. */
 const tileImage: Partial<Record<MetricKey, string>> = {
   // "Dia em dia": agenda com café (sem pessoas), combina com metas do dia.
@@ -275,15 +294,14 @@ function Tile({
   title: string;
   children: ReactNode;
 }) {
-  const area = tileArea[k];
-  // O cartão inteiro abre a área; botões e campos dentro dele mantêm a própria ação.
+  // O cartão inteiro abre os detalhes; botões e campos dentro dele mantêm a própria ação.
   const go = (e: { target: EventTarget | null }) => {
-    if (!area || !openArea) return;
+    if (!openDetail) return;
     if (
       (e.target as HTMLElement | null)?.closest("button, input, select, textarea, a, [role=slider]")
     )
       return;
-    openArea(area);
+    openDetail(k);
   };
   return (
     <section
@@ -295,9 +313,9 @@ function Tile({
           go(e);
         }
       }}
-      tabIndex={area ? 0 : undefined}
-      title={area ? `Abrir ${title}` : undefined}
-      className={`group relative isolate min-w-0 overflow-hidden rounded-[26px] p-4 ring-1 transition-[box-shadow,background-color,--tw-ring-color] duration-300 ${area ? "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70" : ""} ${on ? "bg-slate-900/70 ring-white/45 shadow-[0_0_44px_-10px_var(--tile)]" : "bg-slate-900/55 ring-white/10 hover:ring-white/30 hover:shadow-[0_18px_40px_-20px_rgba(0,0,0,.8)]"}`}
+      tabIndex={0}
+      title={`Ver detalhes de ${title}`}
+      className={`group relative isolate min-w-0 overflow-hidden rounded-[26px] p-4 ring-1 transition-[box-shadow,background-color,--tw-ring-color] duration-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${on ? "bg-slate-900/70 ring-white/45 shadow-[0_0_44px_-10px_var(--tile)]" : "bg-slate-900/55 ring-white/10 hover:ring-white/30 hover:shadow-[0_18px_40px_-20px_rgba(0,0,0,.8)]"}`}
       style={{ ["--tile" as string]: tone }}
     >
       {tileImage[k] && (
@@ -334,21 +352,24 @@ function Tile({
         <strong className="flex-1 text-sm font-bold tracking-wide text-white/95">{title}</strong>
         <button
           type="button"
-          onClick={() => onPick(k)}
+          onClick={() => {
+            onPick(k);
+            openDetail?.(k);
+          }}
           aria-pressed={on}
-          aria-label={`Ver gráfico de ${title}`}
+          aria-label={`Ver detalhes e gráfico de ${title}`}
           className={`inline-flex cursor-pointer items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-bold transition ${on ? "bg-white/25 text-white" : "bg-white/10 text-white/60 hover:bg-white/20 hover:text-white"}`}
         >
           Gráfico <ChevronRight size={11} />
         </button>
       </div>
       <div className="mt-3">{children}</div>
-      {area && (
+      {(
         <span
           aria-hidden="true"
           className="pointer-events-none absolute bottom-3 right-3 inline-flex translate-y-1 items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[11px] font-bold text-white opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100"
         >
-          Abrir área <ChevronRight size={11} />
+          Ver detalhes <ChevronRight size={11} />
         </span>
       )}
     </section>
@@ -501,6 +522,13 @@ function LiveDashboard({
   } | null>(null);
   const [error, setError] = useState(false);
   const [selected, setSelected] = useState<MetricKey>("agua");
+  const [detail, setDetail] = useState<MetricKey | null>(null);
+  const detailRef = useRef<MetricKey | null>(null);
+  detailRef.current = detail;
+  openDetail = (k) => {
+    setSelected(k);
+    setDetail(k);
+  };
   const [waterView, setWaterView] = useState<"dias" | "hoje">("dias");
   const [now, setNow] = useState(Date.now());
   const [full, setFull] = useState(isFullscreen());
@@ -575,6 +603,10 @@ function LiveDashboard({
   useEffect(() => {
     const sync = () => setFull(isFullscreen());
     const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && detailRef.current) {
+        setDetail(null);
+        return;
+      }
       if (e.key === "Escape" && !isFullscreen() && !pendingRef.current) closeRef.current();
     };
     document.addEventListener("fullscreenchange", sync);
@@ -897,6 +929,229 @@ function LiveDashboard({
     itemStyle: { color: "#fff" },
     labelStyle: { color: "rgba(255,255,255,.75)" },
   } as const;
+
+  const chartEl = (
+                <ResponsiveContainer width="100%" height="100%">
+                  {chart.kind === "bar" ? (
+                    <BarChart data={chartData} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        stroke="rgba(255,255,255,.1)"
+                      />
+                      <XAxis
+                        dataKey="label"
+                        tick={{ fontSize: 11, fill: "rgba(255,255,255,.6)" }}
+                        interval="preserveStartEnd"
+                      />
+                      <YAxis tick={{ fontSize: 10, fill: "rgba(255,255,255,.6)" }} width={44} />
+                      <Tooltip
+                        cursor={{ fill: "rgba(255,255,255,.08)" }}
+                        contentStyle={tip}
+                        {...tipText}
+                        formatter={(v: number) => [
+                          `${nf(v, chart.unit === "h" ? 1 : 0)} ${chart.unit}`.trim(),
+                          chart.title,
+                        ]}
+                      />
+                      {chart.goal ? (
+                        <ReferenceLine
+                          y={chart.goal}
+                          stroke="#34d399"
+                          strokeDasharray="5 4"
+                          label={{
+                            value: "Meta",
+                            fill: "#34d399",
+                            fontSize: 11,
+                            position: "insideTopRight",
+                          }}
+                        />
+                      ) : null}
+                      <Bar
+                        dataKey="v"
+                        radius={[8, 8, 0, 0]}
+                        maxBarSize={36}
+                        animationDuration={800}
+                      >
+                        {chartData.map((d, i) => (
+                          <Cell
+                            key={i}
+                            fill={
+                              chart.goal && d.v != null && d.v >= chart.goal
+                                ? "#34d399"
+                                : chart.color
+                            }
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  ) : (
+                    <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="liveArea" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={chart.color} stopOpacity={0.55} />
+                          <stop offset="100%" stopColor={chart.color} stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        stroke="rgba(255,255,255,.1)"
+                      />
+                      <XAxis
+                        dataKey="label"
+                        tick={{ fontSize: 11, fill: "rgba(255,255,255,.6)" }}
+                        interval="preserveStartEnd"
+                      />
+                      <YAxis
+                        tick={{ fontSize: 10, fill: "rgba(255,255,255,.6)" }}
+                        width={44}
+                        domain={["auto", "auto"]}
+                      />
+                      <Tooltip
+                        contentStyle={tip}
+                        {...tipText}
+                        formatter={(v: number) => [`${nf(v, 1)} ${chart.unit}`.trim(), chart.title]}
+                      />
+                      {chart.goal ? (
+                        <ReferenceLine
+                          y={chart.goal}
+                          stroke="#34d399"
+                          strokeDasharray="5 4"
+                          label={{
+                            value: "Meta",
+                            fill: "#34d399",
+                            fontSize: 11,
+                            position: "insideTopRight",
+                          }}
+                        />
+                      ) : null}
+                      <Area
+                        type="monotone"
+                        dataKey="v"
+                        stroke={chart.color}
+                        strokeWidth={3}
+                        fill="url(#liveArea)"
+                        dot={{ r: 3, fill: chart.color }}
+                        activeDot={{ r: 7 }}
+                        animationDuration={900}
+                      />
+                    </AreaChart>
+                  )}
+                </ResponsiveContainer>
+  );
+
+  type Fact = { label: string; value: string };
+  const detailView = (() => {
+    if (!detail || !data) return null;
+    const meta = TILE_META[detail];
+    const cfg = CHART[detail];
+    const rows = (series[cfg.src] as { label: string; v: number | null }[]) ?? [];
+    const vals = rows.map((r) => r.v).filter((v): v is number => v != null);
+    const dec = cfg.unit === "h" || cfg.unit === "kg" || detail === "imc" ? 1 : 0;
+    const fmt = (v: number | null | undefined) =>
+      v == null ? "—" : `${nf(v, dec)}${cfg.unit ? ` ${cfg.unit}` : ""}`;
+    const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+    const best = vals.length ? Math.max(...vals) : null;
+    const low = vals.length ? Math.min(...vals) : null;
+    const goal = cfg.goal ?? null;
+    const hit = goal ? vals.filter((v) => v >= goal).length : null;
+    let value = "—";
+    let sub = "";
+    let accent: string | undefined;
+    const facts: Fact[] = [];
+    const t = today;
+    switch (detail) {
+      case "score":
+        value = `${t?.score ?? 0}%`;
+        sub = "das metas de hoje atingidas";
+        break;
+      case "agua":
+        value = `${nf(t?.waterMl ?? 0)} ml`;
+        sub = waterTarget
+          ? `${Math.round(waterPct)}% de ${nf(waterTarget)} ml`
+          : "Defina a meta de hidratação na área de água";
+        if (waterTarget) facts.push({ label: "Falta para a meta", value: `${nf(Math.max(0, waterTarget - (t?.waterMl ?? 0)))} ml` });
+        break;
+      case "peso":
+        value = lastWeight ? `${nf(lastWeight.kg, 1)} kg` : "—";
+        sub = lastWeight
+          ? prevWeight
+            ? `${nf(lastWeight.kg - prevWeight.kg, 1)} kg desde a medida anterior`
+            : "Primeira medida registrada"
+          : "Nenhum peso registrado";
+        if (firstWeight && lastWeight)
+          facts.push({ label: "Desde a primeira medida", value: `${nf(lastWeight.kg - firstWeight.kg, 1)} kg` });
+        break;
+      case "imc":
+        value = bmi ? nf(bmi, 1) : "—";
+        sub = cat?.label ?? (h ? "Sem peso registrado" : "Informe sua altura");
+        accent = cat?.color;
+        if (h) facts.push({ label: "Altura", value: `${nf(h)} cm` });
+        break;
+      case "metapeso":
+        value = toGo != null ? `${nf(Math.abs(toGo), 1)} kg` : "—";
+        sub = targetKg ? (toGo != null && toGo <= 0 ? `Meta de ${nf(targetKg, 1)} kg alcançada` : `para chegar a ${nf(targetKg, 1)} kg`) : "Defina a meta de peso";
+        facts.push({ label: "Progresso", value: `${Math.round(Math.max(0, Math.min(100, goalPct)))}%` });
+        if (firstWeight) facts.push({ label: "Peso inicial", value: `${nf(firstWeight.kg, 1)} kg` });
+        break;
+      case "sono":
+        value = sleep ? `${nf(sleep.hours, 1)} h` : "—";
+        sub = sleep ? "na última noite registrada" : "Sem noite registrada";
+        if (sleepAvg != null) facts.push({ label: "Média de 7 noites", value: `${nf(sleepAvg, 1)} h` });
+        break;
+      case "exercicio":
+        value = `${nf(t?.activityMinutes ?? 0)} min`;
+        sub = `meta diária de ${EXERCISE_GOAL} min`;
+        if (t && t.activityKm > 0) facts.push({ label: "Distância hoje", value: `${nf(t.activityKm, 1)} km` });
+        break;
+      case "semana":
+        value = `${nf(weekMin)} min`;
+        sub = `de ${WEEK_GOAL} min na semana`;
+        facts.push({ label: "Falta para a meta", value: `${nf(Math.max(0, WEEK_GOAL - weekMin))} min` });
+        if (weekKm > 0) facts.push({ label: "Distância na semana", value: `${nf(weekKm, 1)} km` });
+        break;
+      case "calorias":
+        value = `${nf(t?.kcal ?? 0)} kcal`;
+        sub = kcalTarget ? `meta de ${nf(kcalTarget)} kcal` : "Sem meta definida";
+        break;
+      case "proteina":
+        value = `${nf(t?.protein ?? 0)} g`;
+        sub = proteinTarget ? `meta de ${nf(proteinTarget)} g` : "Sem meta definida";
+        break;
+      case "carbs":
+        value = `${nf(t?.carbs ?? 0)} g`;
+        sub = carbsTarget ? `meta de ${nf(carbsTarget)} g` : "Sem meta definida";
+        break;
+      case "gordura":
+        value = `${nf(t?.fat ?? 0)} g`;
+        sub = fatTarget ? `meta de ${nf(fatTarget)} g` : "Sem meta definida";
+        break;
+      case "supl":
+        value = `${t?.supplements.taken ?? 0}/${t?.supplements.planned ?? 0}`;
+        sub = "doses de suplementos tomadas hoje";
+        break;
+      case "med":
+        value = `${t?.medication.taken ?? 0}/${t?.medication.planned ?? 0}`;
+        sub = "doses de medicação tomadas hoje";
+        break;
+      case "streak":
+        value = `${streak}`;
+        sub = streak === 1 ? "dia seguido com registros" : "dias seguidos com registros";
+        break;
+    }
+    const stats: Fact[] = [
+      ...facts,
+      ...(detail === "streak" ? [] : [{ label: "Média no período", value: fmt(avg) }]),
+      ...(detail === "streak" ? [] : [{ label: "Melhor valor", value: fmt(best) }]),
+      ...(detail === "streak" || detail === "imc" ? [] : [{ label: "Menor valor", value: fmt(low) }]),
+      ...(hit != null && detail !== "streak"
+        ? [{ label: "Dias na meta", value: `${hit} de ${vals.length}` }]
+        : []),
+    ];
+    const recent = rows.slice(-7).reverse();
+    return { meta, cfg, value, sub, accent, stats, recent, fmt, goal };
+  })();
 
   const ui = (
     <div
@@ -1576,114 +1831,7 @@ function LiveDashboard({
                 )}
               </div>
               <div className="mt-3 h-64 sm:h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  {chart.kind === "bar" ? (
-                    <BarChart data={chartData} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        vertical={false}
-                        stroke="rgba(255,255,255,.1)"
-                      />
-                      <XAxis
-                        dataKey="label"
-                        tick={{ fontSize: 11, fill: "rgba(255,255,255,.6)" }}
-                        interval="preserveStartEnd"
-                      />
-                      <YAxis tick={{ fontSize: 10, fill: "rgba(255,255,255,.6)" }} width={44} />
-                      <Tooltip
-                        cursor={{ fill: "rgba(255,255,255,.08)" }}
-                        contentStyle={tip}
-                        {...tipText}
-                        formatter={(v: number) => [
-                          `${nf(v, chart.unit === "h" ? 1 : 0)} ${chart.unit}`.trim(),
-                          chart.title,
-                        ]}
-                      />
-                      {chart.goal ? (
-                        <ReferenceLine
-                          y={chart.goal}
-                          stroke="#34d399"
-                          strokeDasharray="5 4"
-                          label={{
-                            value: "Meta",
-                            fill: "#34d399",
-                            fontSize: 11,
-                            position: "insideTopRight",
-                          }}
-                        />
-                      ) : null}
-                      <Bar
-                        dataKey="v"
-                        radius={[8, 8, 0, 0]}
-                        maxBarSize={36}
-                        animationDuration={800}
-                      >
-                        {chartData.map((d, i) => (
-                          <Cell
-                            key={i}
-                            fill={
-                              chart.goal && d.v != null && d.v >= chart.goal
-                                ? "#34d399"
-                                : chart.color
-                            }
-                          />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  ) : (
-                    <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="liveArea" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor={chart.color} stopOpacity={0.55} />
-                          <stop offset="100%" stopColor={chart.color} stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        vertical={false}
-                        stroke="rgba(255,255,255,.1)"
-                      />
-                      <XAxis
-                        dataKey="label"
-                        tick={{ fontSize: 11, fill: "rgba(255,255,255,.6)" }}
-                        interval="preserveStartEnd"
-                      />
-                      <YAxis
-                        tick={{ fontSize: 10, fill: "rgba(255,255,255,.6)" }}
-                        width={44}
-                        domain={["auto", "auto"]}
-                      />
-                      <Tooltip
-                        contentStyle={tip}
-                        {...tipText}
-                        formatter={(v: number) => [`${nf(v, 1)} ${chart.unit}`.trim(), chart.title]}
-                      />
-                      {chart.goal ? (
-                        <ReferenceLine
-                          y={chart.goal}
-                          stroke="#34d399"
-                          strokeDasharray="5 4"
-                          label={{
-                            value: "Meta",
-                            fill: "#34d399",
-                            fontSize: 11,
-                            position: "insideTopRight",
-                          }}
-                        />
-                      ) : null}
-                      <Area
-                        type="monotone"
-                        dataKey="v"
-                        stroke={chart.color}
-                        strokeWidth={3}
-                        fill="url(#liveArea)"
-                        dot={{ r: 3, fill: chart.color }}
-                        activeDot={{ r: 7 }}
-                        animationDuration={900}
-                      />
-                    </AreaChart>
-                  )}
-                </ResponsiveContainer>
+                {chartEl}
               </div>
             </section>
             <QrShareCard variant="live" dark className="mx-auto w-full max-w-3xl" />
@@ -1694,6 +1842,138 @@ function LiveDashboard({
           </>
         )}
       </div>
+      {detailView && detail && (
+        <div
+          className="fixed inset-0 z-[505] grid place-items-end bg-slate-950/70 p-0 backdrop-blur-sm sm:place-items-center sm:p-6"
+          onClick={() => setDetail(null)}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Detalhes de ${detailView.meta.title}`}
+            onClick={(e) => e.stopPropagation()}
+            className="relative flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-3xl bg-slate-900 text-white shadow-2xl ring-1 ring-white/15 sm:rounded-3xl"
+          >
+            <span
+              aria-hidden="true"
+              className="absolute inset-x-0 top-0 h-1"
+              style={{ background: detailView.meta.tone }}
+            />
+            <header className="flex items-center gap-3 px-5 pb-3 pt-5">
+              <span
+                className="grid size-11 place-items-center rounded-2xl text-white shadow-lg ring-1 ring-white/25"
+                style={{ background: detailView.meta.tone }}
+              >
+                <detailView.meta.icon size={21} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <h2 className="truncate text-lg font-extrabold">{detailView.meta.title}</h2>
+                <p className="text-xs text-white/55">Detalhes e histórico recente</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDetail(null)}
+                aria-label="Fechar detalhes"
+                className="grid size-10 place-items-center rounded-full bg-white/10 text-white/80 transition hover:bg-white/20 hover:text-white"
+              >
+                <X size={18} />
+              </button>
+            </header>
+            <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-5">
+              <div className="flex flex-wrap items-end gap-x-4 gap-y-1">
+                <p
+                  className="text-5xl font-extrabold tabular-nums"
+                  style={{ color: detailView.accent }}
+                >
+                  {detailView.value}
+                </p>
+                <p className="pb-1.5 text-sm font-semibold text-white/70">{detailView.sub}</p>
+              </div>
+              <dl className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {detailView.stats.map((f) => (
+                  <div key={f.label} className="rounded-2xl bg-white/[.06] px-3 py-2.5 ring-1 ring-white/10">
+                    <dt className="text-[11px] font-semibold text-white/55">{f.label}</dt>
+                    <dd className="mt-0.5 text-base font-extrabold tabular-nums">{f.value}</dd>
+                  </div>
+                ))}
+              </dl>
+              <div className="mt-4 rounded-2xl bg-white/[.04] p-3 ring-1 ring-white/10">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-sm font-bold">{detailView.cfg.title}</h3>
+                  {detail === "agua" && (
+                    <div
+                      role="group"
+                      aria-label="Período do gráfico de água"
+                      className="inline-flex rounded-xl bg-white/10 p-1 text-xs font-bold"
+                    >
+                      {(["dias", "hoje"] as const).map((v) => (
+                        <button
+                          key={v}
+                          type="button"
+                          onClick={() => setWaterView(v)}
+                          aria-pressed={waterView === v}
+                          className={`h-7 rounded-lg px-3 transition ${waterView === v ? "bg-white text-slate-900" : "text-white/70"}`}
+                        >
+                          {v === "dias" ? "14 dias" : "Hoje por hora"}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="mt-2 h-56">{chartEl}</div>
+              </div>
+              {detailView.recent.length > 0 && (
+                <div className="mt-4 overflow-hidden rounded-2xl ring-1 ring-white/10">
+                  <table className="w-full text-sm">
+                    <caption className="bg-white/[.06] px-3 py-2 text-left text-xs font-bold text-white/70">
+                      Últimos registros
+                    </caption>
+                    <tbody>
+                      {detailView.recent.map((r) => {
+                        const ok = detailView.goal != null && r.v != null && r.v >= detailView.goal;
+                        return (
+                          <tr key={r.label} className="border-t border-white/10">
+                            <td className="px-3 py-2 text-white/70">{r.label}</td>
+                            <td className="px-3 py-2 text-right font-bold tabular-nums">
+                              {detailView.fmt(r.v)}
+                            </td>
+                            <td className="w-24 px-3 py-2 text-right text-xs font-bold">
+                              {detailView.goal != null && r.v != null ? (
+                                <span className={ok ? "text-emerald-300" : "text-white/40"}>
+                                  {ok ? "Meta atingida" : "Abaixo da meta"}
+                                </span>
+                              ) : null}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+            <footer className="flex flex-wrap items-center justify-end gap-2 border-t border-white/10 bg-slate-950/40 px-5 py-3">
+              <button
+                type="button"
+                onClick={() => setDetail(null)}
+                className="h-10 rounded-xl bg-white/10 px-4 text-sm font-bold text-white/85 transition hover:bg-white/20"
+              >
+                Voltar ao painel
+              </button>
+              {tileArea[detail] && (
+                <button
+                  type="button"
+                  onClick={() => openArea?.(tileArea[detail] as ClientSection)}
+                  className="inline-flex h-10 items-center gap-1.5 rounded-xl px-4 text-sm font-extrabold text-white shadow-lg transition hover:brightness-110"
+                  style={{ background: detailView.meta.tone }}
+                >
+                  Abrir área completa <ChevronRight size={15} />
+                </button>
+              )}
+            </footer>
+          </section>
+        </div>
+      )}
       {toast && (
         <div
           role="status"

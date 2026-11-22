@@ -115,3 +115,17 @@ describe("modo ao vivo: nada é gravado sem confirmação", () => {
     );
   });
 });
+
+describe("modo ao vivo: detalhes do cartão", () => {
+  it("clicar no cartão abre os detalhes e fecha sem sair do painel", async () => {
+    await openLive();
+    fireEvent.click(screen.getByRole("region", { name: "Hidratação" }));
+    const dialog = await screen.findByRole("dialog", { name: "Detalhes de Hidratação" });
+    expect(dialog).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Voltar ao painel" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog", { name: "Detalhes de Hidratação" })).toBeNull(),
+    );
+    expect(screen.getByRole("button", { name: "Registrar 250 ml de água" })).toBeTruthy();
+  });
+});
