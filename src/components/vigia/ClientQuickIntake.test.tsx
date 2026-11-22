@@ -110,12 +110,6 @@ describe("registro de consumo por área", () => {
     // troca de refeição: mantém o prato
     fireEvent.click(document.querySelector('[data-intake-kind="jantar"]') as HTMLElement);
     expect((screen.getByLabelText(/O que você comeu/) as HTMLTextAreaElement).value).toBe("Arroz 100 g");
-    // o tipo da refeição é explícito e segue a escolha do usuário
-    const chooser = screen.getByRole("group", { name: "Tipo da refeição" });
-    expect(chooser.textContent).toContain("Almoço");
-    expect(
-      Array.from(chooser.querySelectorAll("button")).find((b) => b.textContent === "Jantar")?.getAttribute("aria-pressed"),
-    ).toBe("true");
     // vai para bebidas, escolhe uma e volta: prato continua lá
     fireEvent.click(screen.getByRole("button", { name: /Bebidas/ }));
     fireEvent.click(screen.getByRole("button", { name: "Escolher Suco de graviola" }));
@@ -129,5 +123,24 @@ describe("registro de consumo por área", () => {
     expect((screen.getByLabelText(/O que você comeu/) as HTMLTextAreaElement).value).toBe("Arroz 100 g");
     fireEvent.click(screen.getByRole("button", { name: /Bebidas/ }));
     expect((screen.getByLabelText("Nome da bebida") as HTMLInputElement).value).toMatch(/graviola/i);
+  });
+
+  it("pergunta qual refeição é na confirmação, já sugerida", async () => {
+    render(
+      <DialogProvider>
+        <ClientQuickIntake patientId="p1" mode="all" />
+      </DialogProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Registrar/ }));
+    fireEvent.change(screen.getByLabelText(/O que você comeu/), { target: { value: "Arroz 100 g" } });
+    fireEvent.click(document.querySelector('[data-intake-kind="jantar"]') as HTMLElement);
+    fireEvent.click(screen.getByRole("button", { name: /Registrar agora/ }));
+    expect(await screen.findByText("Confirmar registro?")).toBeTruthy();
+    const chooser = screen.getByRole("group", { name: "Qual refeição é esta?" });
+    const pressed = Array.from(chooser.querySelectorAll("button")).find(
+      (b) => b.getAttribute("aria-pressed") === "true",
+    );
+    expect(pressed?.textContent).toBe("Jantar");
+    expect(chooser.textContent).toContain("Café da manhã");
   });
 });

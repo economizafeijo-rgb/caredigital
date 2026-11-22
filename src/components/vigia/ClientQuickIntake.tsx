@@ -21,7 +21,6 @@ import {
 import { parseFoodText, sumNutrients, measureUnit } from "@/lib/food-parser";
 import { drinkGroups, drinkPresetFor, drinkPresets } from "@/lib/drink-presets";
 import { supabase } from "@/integrations/supabase/client";
-import { useDialog } from "@/lib/dialog";
 
 const mealTimes: { value: FoodKind; label: string }[] = [
   { value: "cafe_manha", label: "Café da manhã" },
@@ -40,6 +39,103 @@ function suggestMealType(wallTime: string): FoodKind {
   if (minutes >= 900 && minutes < 1080) return "lanche";
   if (minutes >= 1080 && minutes < 1260) return "jantar";
   return "ceia";
+}
+
+type AskRequest = {
+  lines: string[];
+  when: string;
+  needsMeal: boolean;
+  initial: FoodKind;
+  suggested: boolean;
+};
+
+/** Confirmação final: resume o registro e pergunta QUAL refeição é (sugerida pelo horário). */
+function MealConfirm({
+  request,
+  onClose,
+}: {
+  request: AskRequest;
+  onClose: (value: FoodKind | "ok" | null) => void;
+}) {
+  const [meal, setMeal] = useState<FoodKind>(request.initial);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return (
+    <div
+      className="fixed inset-0 z-[200] grid place-items-center bg-slate-950/70 p-3 backdrop-blur-sm"
+      onClick={(e) => e.target === e.currentTarget && onClose(null)}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="meal-confirm-title"
+        className="nv-pop w-full max-w-md border border-border bg-card p-4 text-card-foreground shadow-2xl"
+      >
+        <h2 id="meal-confirm-title" className="text-base font-bold">
+          Confirmar registro?
+        </h2>
+        <ul className="mt-2 grid gap-1 text-sm">
+          {request.lines.map((line) => (
+            <li key={line} className="border-l-2 border-l-primary pl-2">
+              {line}
+            </li>
+          ))}
+        </ul>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {request.when} · horário do Acre
+        </p>
+        {request.needsMeal && (
+          <div className="mt-3" role="group" aria-label="Qual refeição é esta?">
+            <p className="text-xs font-bold">
+              Qual refeição é esta?
+              {request.suggested && (
+                <span className="ml-1 font-normal text-muted-foreground">
+                  (sugerida pelo horário)
+                </span>
+              )}
+            </p>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {mealTimes.map((m) => (
+                <button
+                  key={m.value}
+                  type="button"
+                  aria-pressed={m.value === meal}
+                  onClick={() => setMeal(m.value)}
+                  className={
+                    "h-9 border px-3 text-xs font-semibold transition active:scale-95 " +
+                    (m.value === meal
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border text-muted-foreground hover:bg-muted hover:text-foreground")
+                  }
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        <div className="mt-4 grid grid-cols-[auto_1fr] gap-2">
+          <button type="button" className="nv-btn nv-btn-ghost px-4" onClick={() => onClose(null)}>
+            Cancelar
+          </button>
+          <button
+            type="button"
+            className="nv-btn"
+            autoFocus
+            onClick={() => onClose(request.needsMeal ? meal : "ok")}
+          >
+            Confirmar registro
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 type Draft = { kind: IntakeKind; description: string; portion: string; amount: string };
@@ -84,7 +180,6 @@ export function ClientQuickIntake({
   mode = "all",
   openSignal = 0,
 }: Props) {
-  const dialog = useDialog();
   const [open, setOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [kind, setKind] = useState<IntakeKind>("lanche");
@@ -101,6 +196,16 @@ export function ClientQuickIntake({
   const drinkRequestId = useRef<string | null>(null);
   // Tipo da refeição escolhido pelo usuário; enquanto null, vale a sugestão pelo horário.
   const [mealChoice, setMealChoice] = useState<FoodKind | null>(null);
+  const [ask, setAsk] = useState<{
+    lines: string[];
+    when: string;
+    needsMeal: boolean;
+    initial: FoodKind;
+    suggested: boolean;
+    resolve: (value: FoodKind | "ok" | null) => void;
+  } | null>(null);
+  const askConfirmation = (request: Omit<NonNullable<typeof ask>, "resolve">) =>
+    new Promise<FoodKind | "ok" | null>((resolve) => setAsk({ ...request, resolve }));
   // Rascunho do outro grupo: trocar entre Alimentos e Bebidas nunca apaga o que já foi escolhido.
   const [stash, setStash] = useState<{ food?: Draft; beverage?: Draft }>({});
   const openedBySignal = useRef(0);
@@ -193,16 +298,6 @@ export function ClientQuickIntake({
       active={group}
       onOpen={switchGroup}
       totals={combined}
-      mealType={
-        allItems.some((i) => i.group === "food")
-          ? {
-              value: mealType,
-              options: mealTimes,
-              suggested: mealChoice === null,
-              onChange: (value) => setMealChoice(value as FoodKind),
-            }
-          : undefined
-      }
     />
   ) : undefined;
   const totals = allItems.length ? combined : undefined;
@@ -289,16 +384,21 @@ export function ClientQuickIntake({
     }
     setError("");
     const when = manualTime ? `em ${consumedAt.replace("T", " às ")}` : "agora";
-    const summary = `${entries.map((e) => e.summary).join(" + ")} ${when}`;
-    if (
-      !(await dialog.confirm(
-        "Confirmar registro?",
-        `Registrar ${summary} (horário do Acre)?`,
-        false,
-        "Confirmar registro",
-      ))
-    )
-      return;
+    const hasFood = entries.some((e) => e.id === requestId.current);
+    const chosen = await askConfirmation({
+      lines: entries.map((e) => e.summary),
+      when,
+      needsMeal: hasFood,
+      initial: mealChoice ?? suggestMealType(consumedAt || acreInputValue()),
+      suggested: mealChoice === null,
+    });
+    if (chosen === null) return;
+    // O tipo da refeição é definido AQUI, na confirmação.
+    if (hasFood && chosen !== "ok") {
+      const food = entries.find((e) => e.id === requestId.current)!;
+      food.kind = chosen;
+      setMealChoice(chosen);
+    }
     setSaving(true);
     try {
       let data: unknown = null;
@@ -454,6 +554,18 @@ export function ClientQuickIntake({
               <X size={16} />
             </button>
           </div>,
+          document.body,
+        )}
+      {ask &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <MealConfirm
+            request={ask}
+            onClose={(value) => {
+              ask.resolve(value);
+              setAsk(null);
+            }}
+          />,
           document.body,
         )}
       {open &&
