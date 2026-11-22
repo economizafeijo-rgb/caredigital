@@ -238,3 +238,16 @@ export function foodsForKind(kind: FoodKind): SearchItem[] {
   }
   return out;
 }
+
+/** Frutas e alimentos de origem regional (Norte/Nordeste/Cerrado) — recebem selo na tela. */
+export const regionalIds = new Set([
+  "acai", "acai_acucar", "buriti", "tucuma", "bacuri", "cupuacu", "graviola", "biriba", "inga",
+  "sapoti", "camu_camu", "araca_boi", "mangaba", "pitaia", "pequi", "umbu", "tapereba",
+  "cajamanga", "castanha_para", "suco_graviola", "suco_cupuacu",
+]);
+
+/** True quando o texto do item corresponde a um alimento regional. */
+export function isRegionalFood(text: string): boolean {
+  const parsed = parseFoodText(text);
+  return parsed.length > 0 && parsed.every((f) => regionalIds.has(f.id));
+}

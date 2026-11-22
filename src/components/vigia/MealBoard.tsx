@@ -7,7 +7,7 @@ import { NutritionInfoCard } from "./MealSuggestions";
 import { PlateBuilder, PlateRows } from "./PlateBuilder";
 import { foodKinds, mealCombos, typicalFoods, type FoodKind } from "@/lib/care-intake-categories";
 import { measureUnit, parseFoodText, sumNutrients } from "@/lib/food-parser";
-import { foodsForKind, searchFoods } from "@/lib/food-search";
+import { foodsForKind, isRegionalFood, searchFoods } from "@/lib/food-search";
 
 /** Cor de cada tipo de refeição, usada nos setores, no cabeçalho e no prato. */
 export const mealTone: Record<FoodKind, string> = {
@@ -217,6 +217,11 @@ export function MealBoard({
               <span className="line-clamp-2 block text-[13px] font-semibold leading-tight">
                 {item.label}
               </span>
+              {isRegionalFood(item.text) && (
+                <span className="mt-0.5 inline-block rounded-sm bg-emerald-600/15 px-1.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
+                  Regional
+                </span>
+              )}
               <span className="block text-[11px] tabular-nums text-muted-foreground">
                 {s.kcal > 0 ? `${s.kcal} kcal · ${s.grams} g` : "porção usual"}
               </span>

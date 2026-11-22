@@ -62,3 +62,12 @@ describe("bolacha e biscoito", () => {
     expect(parseFoodText("2 bolas de sorvete")[0].grams).toBe(120);
   });
 });
+
+import { isRegionalFood } from "./food-search";
+describe("selo regional", () => {
+  it("marca frutas regionais e não marca comuns", () => {
+    expect(isRegionalFood("1 porção de buriti")).toBe(true);
+    expect(isRegionalFood("100 g de graviola")).toBe(true);
+    expect(isRegionalFood("1 banana prata")).toBe(false);
+  });
+});
