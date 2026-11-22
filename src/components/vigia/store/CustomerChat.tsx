@@ -217,7 +217,7 @@ export function CustomerChat({
 
   async function send(e: FormEvent) {
     e.preventDefault();
-    if (!user || !text.trim()) return;
+    if (!user || !text.trim() || storeAvailability === "offline") return;
     const bad = validateChatText(text);
     if (bad) return setErr(bad);
     // Moderação no servidor antes de salvar. Em caso de recusa, o rascunho fica no campo para editar.
@@ -229,14 +229,11 @@ export function CustomerChat({
         e instanceof Error ? e.message : "Não foi possível enviar agora. Tente de novo.",
       );
     }
-    // Entra na fila no servidor (ou é atendido na hora, se houver vaga). Sem atendente, não entra.
-    // Sem atendente online a mensagem fica registrada e a loja responde depois: não bloqueia o envio.
-    if (storeAvailability !== "offline") {
-      try {
-        setMyQueue(await joinStoreQueue(vendor.id));
-      } catch {
-        /* segue: a mensagem é salva mesmo sem vaga na fila agora */
-      }
+    // Entra na fila no servidor (ou é atendido na hora, se houver vaga).
+    try {
+      setMyQueue(await joinStoreQueue(vendor.id));
+    } catch {
+      /* segue: a mensagem é salva mesmo sem vaga na fila agora */
     }
     const { error } = await (supabase as any).from("care_store_messages").insert({
       vendor_id: vendor.id,
@@ -404,14 +401,18 @@ export function CustomerChat({
                   liveRef.current?.typing();
                 }}
                 maxLength={500}
-                placeholder="Escreva sua mensagem"
+                placeholder={
+                  storeAvailability === "offline"
+                    ? "Chat inativo: loja offline"
+                    : "Escreva sua mensagem"
+                }
                 aria-label="Mensagem"
                 className="h-10 min-w-0 flex-1 rounded-full border border-border bg-surface px-4 text-sm"
-                disabled={!user}
+                disabled={!user || storeAvailability === "offline"}
               />
               <button
                 type="submit"
-                disabled={!text.trim() || !user}
+                disabled={!text.trim() || !user || storeAvailability === "offline"}
                 aria-label="Enviar"
                 className="grid size-10 place-items-center rounded-full text-white disabled:opacity-40"
                 style={{ background: accent }}
@@ -486,8 +487,8 @@ function StoreAvailabilityLine({
         role="status"
         className="border-b border-border bg-muted px-4 py-2 text-xs text-muted-foreground"
       >
-        Nenhum atendente online agora. Envie sua mensagem: ela fica registrada e a loja responde
-        assim que possível.
+        A loja está offline no momento e o chat está inativo. Volte mais tarde ou veja o horário de
+        atendimento na página da loja.
       </p>
     );
   if (availability === "ocupado")

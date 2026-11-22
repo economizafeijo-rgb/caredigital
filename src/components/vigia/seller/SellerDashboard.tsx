@@ -22,6 +22,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { PLANS, money, segmentLabel, type Vendor } from "@/lib/marketplace";
 import { ChatToastHost, pushChatToast } from "../chat/ChatToasts";
+import { sendHeartbeat } from "@/lib/store-presence";
 import { useSellerData } from "./useSellerData";
 import { SellerOverview } from "./SellerOverview";
 import { SellerOrders } from "./SellerOrders";
@@ -171,6 +172,14 @@ export function SellerDashboard({
     }),
     [data],
   );
+  // Mantém o atendente online em qualquer aba do painel (o servidor só conta quem dá sinal a cada 20 s).
+  useEffect(() => {
+    const beat = () => void sendHeartbeat(vendor.id).catch(() => undefined);
+    beat();
+    const t = window.setInterval(beat, 20000);
+    return () => window.clearInterval(t);
+  }, [vendor.id]);
+
   // Título da aba do navegador avisa mensagem pendente mesmo com outra aba em primeiro plano.
   useEffect(() => {
     if (!badges.mensagens) return;

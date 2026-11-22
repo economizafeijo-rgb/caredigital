@@ -3,6 +3,7 @@ import { Loader2, Power } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useDialog } from "@/lib/dialog";
 import type { Vendor } from "@/lib/marketplace";
+import { setAgentOnline } from "@/lib/store-presence";
 
 const hora = (iso?: string | null) =>
   iso
@@ -54,6 +55,12 @@ export function SellerOpenToggle({
           : "Não foi possível abrir a loja. Confira se ela já foi aprovada.",
       );
       return;
+    }
+    // Abrir a loja já coloca o atendente online (chat ativo); fechar coloca offline.
+    try {
+      await setAgentOnline(vendor.id, !open);
+    } catch {
+      /* o lojista ainda pode ajustar em Mensagens > Atendimento */
     }
     onChanged();
   }
