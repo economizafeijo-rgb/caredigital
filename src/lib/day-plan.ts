@@ -103,7 +103,10 @@ export function mealSlotStatus(meals: LoggedMeal[], day: string) {
 /** Próxima refeição sugerida (a que ainda não foi registrada) e a última refeição de fato registrada. */
 export function nextMealSuggestion(meals: LoggedMeal[], day: string, now: number) {
   const slots = mealSlotStatus(meals, day);
-  const next = slots.find((s) => s.doneAt === null && s.at > now - 45 * 60_000) ?? null;
+  // Refeição registrada a até 90 min do horário cobre o slot, qualquer que seja o tipo
+  const covered = (at: number) => meals.some((m) => Math.abs(m.t - at) <= 90 * 60_000);
+  const next =
+    slots.find((s) => s.doneAt === null && s.at > now - 45 * 60_000 && !covered(s.at)) ?? null;
   const last = [...meals].sort((a, b) => a.t - b.t).at(-1) ?? null;
   return { next, last, slots };
 }

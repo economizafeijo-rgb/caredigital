@@ -260,7 +260,7 @@ export function NextUpClock({
   return (
     <div className="@container min-w-0">
       <div
-        className={`${compact ? "flex items-center gap-3 rounded-2xl bg-gradient-to-br from-white/[.09] to-white/[.02] p-2.5" : "grid grid-cols-1 gap-x-3 gap-y-2 bg-gradient-to-br from-white/[.10] to-white/[.03] p-2 pb-2.5 @[46rem]:grid-cols-[minmax(0,1fr)_auto] @[46rem]:items-center"} relative overflow-hidden border backdrop-blur transition-colors duration-500 ${due ? "nv-due border-white/15 border-l-[3px] !border-l-amber-300" : "border-white/15"} ${className}`}
+        className={`${compact ? "flex items-center gap-2 rounded-xl bg-gradient-to-br from-white/[.09] to-white/[.02] p-1.5" : "grid grid-cols-1 gap-x-3 gap-y-2 bg-gradient-to-br from-white/[.10] to-white/[.03] p-2 pb-2.5 @[46rem]:grid-cols-[minmax(0,1fr)_auto] @[46rem]:items-center"} relative overflow-hidden border backdrop-blur transition-colors duration-500 ${due ? "nv-due border-white/15 border-l-[3px] !border-l-amber-300" : "border-white/15"} ${className}`}
         style={{ ["--due" as string]: PEND }}
       >
         {!compact && when !== null && (
@@ -277,7 +277,7 @@ export function NextUpClock({
         )}
         <div className={`flex min-w-0 items-center gap-3 ${compact ? "" : "flex-1"}`}>
           <div
-            className={`relative shrink-0 ${compact ? "size-[60px]" : "size-[62px]"}`}
+            className={`relative shrink-0 ${compact ? "size-[42px]" : "size-[62px]"}`}
             aria-hidden="true"
           >
             <svg viewBox="0 0 100 100" className="size-full">
@@ -320,7 +320,7 @@ export function NextUpClock({
             <span className="absolute inset-0 grid place-items-center">
               {due ? (
                 <span
-                  className={`relative grid place-items-center ${compact ? "size-8" : "size-8"}`}
+                  className={`relative grid place-items-center ${compact ? "size-6" : "size-8"}`}
                 >
                   <svg viewBox="0 0 48 48" className="absolute inset-0 size-full">
                     <circle cx="24" cy="24" r="20" fill="#fbbf24" fillOpacity=".14" />
@@ -396,7 +396,7 @@ export function NextUpClock({
               </p>
             ) : (
               <p
-                className={`mt-0.5 whitespace-nowrap font-mono text-2xl font-bold leading-none tabular-nums tracking-tight`}
+                className={`mt-0 whitespace-nowrap font-mono ${compact ? "text-base" : "text-2xl"} font-bold leading-none tabular-nums tracking-tight`}
                 style={compact ? undefined : { textShadow: `0 0 10px ${ink}66` }}
               >
                 {countdown(when - now)}
@@ -404,7 +404,7 @@ export function NextUpClock({
             )}
             {when !== null && (
               <p
-                className="mt-1 truncate text-[10.5px] leading-snug text-white/60"
+                className="mt-0.5 truncate text-[10px] leading-snug text-white/60"
                 title={detail ?? undefined}
               >
                 às {clockTime(when)}

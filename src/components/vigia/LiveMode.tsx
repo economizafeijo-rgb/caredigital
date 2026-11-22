@@ -1360,7 +1360,7 @@ function LiveDashboard({
               return (
                 <>
                   <SectionTitle>Agora e a seguir</SectionTitle>
-                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid grid-cols-2 gap-1.5 lg:grid-cols-3 xl:grid-cols-6">
                     {ups.map((u, i) => (
                       <div key={u.key} className="lv-in" style={{ ["--i" as string]: i }}>
                         <NextUpClock

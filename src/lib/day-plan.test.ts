@@ -80,3 +80,12 @@ describe("refeições previstas × registradas", () => {
     expect(slots.find((s) => s.label === "Lanche da tarde")?.doneAt).toBeNull();
   });
 });
+
+describe("nextMealSuggestion cobertura", () => {
+  it("lanche adiantado a menos de 90 min cobre o slot da tarde", () => {
+    const day = "2026-11-22";
+    const t = Date.parse(`${day}T15:25:00-05:00`);
+    const r = nextMealSuggestion([{ t, kind: null } as any], day, Date.parse(`${day}T16:10:00-05:00`));
+    expect(r.next?.label).not.toMatch(/tarde/i);
+  });
+});
