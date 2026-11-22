@@ -1,12 +1,20 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   ArrowRight,
   BadgeCheck,
   Boxes,
   CircleDollarSign,
+  BarChart3,
+  BookUser,
   Clock3,
+  Crown,
   MessageCircle,
+  Pencil,
+  Store as StoreIcon,
+  Tag,
+  UserRound,
+  Wallet,
   Package,
   Plus,
   Receipt,
@@ -21,6 +29,8 @@ import type { SellerTab } from "./SellerDashboard";
 
 const TZ = "America/Rio_Branco";
 const dayKey = (d: Date | string) => new Date(d).toLocaleDateString("sv-SE", { timeZone: TZ });
+
+const last14Of = (series: { v: number }[]) => series.reduce((a, x) => a + x.v, 0);
 
 const greetingFor = (date: Date) => {
   const hour = Number(
@@ -83,7 +93,24 @@ export function SellerOverview({
         .filter((o) => dayKey(o.paid_at ?? o.created_at) === d)
         .reduce((a, o) => a + o.total_cents, 0),
     }));
+    const tops = new Map<string, { name: string; qty: number; value: number }>();
+    monthOrders.forEach((o) =>
+      (o.items ?? []).forEach((it) => {
+        const t = tops.get(it.id) ?? { name: it.name, qty: 0, value: 0 };
+        t.qty += it.qty;
+        t.value += it.qty * it.price_cents;
+        tops.set(it.id, t);
+      }),
+    );
+    const prev14 = Array.from({ length: 14 }, (_, k) =>
+      dayKey(new Date(Date.now() - (27 - k) * 86_400_000)),
+    );
+    const prevTotal = counted
+      .filter((o) => prev14.includes(dayKey(o.paid_at ?? o.created_at)))
+      .reduce((a, o) => a + o.total_cents, 0);
     return {
+      top: [...tops.values()].sort((a, b) => b.value - a.value).slice(0, 5),
+      prevTotal,
       todayValue: todayOrders.reduce((a, o) => a + o.total_cents, 0),
       todayCount: todayOrders.length,
       gross,
@@ -97,6 +124,34 @@ export function SellerOverview({
       series,
     };
   }, [data, now]);
+  const goalKey = `nv-seller-goal-${vendor.id}`;
+  const [goal, setGoal] = useState(0);
+  useEffect(() => {
+    try {
+      setGoal(Number(localStorage.getItem(goalKey)) || 0);
+    } catch {
+      /* sem armazenamento */
+    }
+  }, [goalKey]);
+  const editGoal = () => {
+    const v = window.prompt(
+      "Meta de vendas do mês, em reais (ex.: 5000)",
+      goal ? String(goal / 100) : "",
+    );
+    if (v === null) return;
+    const cents = Math.round(Number(v.replace(",", ".")) * 100);
+    if (!Number.isFinite(cents) || cents < 0) return;
+    setGoal(cents);
+    try {
+      localStorage.setItem(goalKey, String(cents));
+    } catch {
+      /* sem armazenamento */
+    }
+  };
+  const goalPct = goal ? Math.min(100, Math.round((s.gross / goal) * 100)) : 0;
+  const delta = s.prevTotal
+    ? Math.round(((last14Of(s.series) - s.prevTotal) / s.prevTotal) * 100)
+    : null;
   const max = Math.max(1, ...s.series.map((x) => x.v));
   const last14 = s.series.reduce((a, x) => a + x.v, 0);
   const current = new Date(now);
@@ -136,7 +191,7 @@ export function SellerOverview({
   ];
 
   return (
-    <div className="grid gap-5">
+    <div className="mx-auto grid w-full max-w-[88rem] gap-6">
       <SellerOpenToggle vendor={vendor} onChanged={onChanged} />
 
       {/* Cabeçalho da visão geral */}
@@ -200,6 +255,117 @@ export function SellerOverview({
             </p>
           </div>
         ))}
+      </div>
+
+      {/* Central de ferramentas */}
+      <nav
+        aria-label="Ferramentas da loja"
+        className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-8"
+      >
+        {(
+          [
+            ["produtos", Package, "Estoque"],
+            ["pedidos", ShoppingBag, "Pedidos"],
+            ["caixa", Wallet, "Caixa"],
+            ["relatorios", BarChart3, "Relatórios"],
+            ["promocoes", Tag, "Promoções"],
+            ["clientes", UserRound, "Clientes"],
+            ["cadastros", BookUser, "Cadastros"],
+            ["loja", StoreIcon, "Minha loja"],
+          ] as const
+        ).map(([key, Icon, label]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => go(key)}
+            className="flex flex-col items-center gap-1.5 rounded-xl border border-border bg-card px-2 py-3 text-[12.5px] font-semibold transition hover:border-[var(--accent-store)]"
+          >
+            <Icon size={18} style={{ color: "var(--accent-store)" }} aria-hidden />
+            {label}
+          </button>
+        ))}
+      </nav>
+
+      {/* Meta do mês e mais vendidos */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Panel
+          title="Meta do mês"
+          action={
+            <button
+              type="button"
+              onClick={editGoal}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+            >
+              <Pencil size={12} /> {goal ? "Alterar" : "Definir"}
+            </button>
+          }
+        >
+          <div className="p-4">
+            {goal ? (
+              <>
+                <p className="flex items-baseline justify-between gap-2">
+                  <strong className="font-display text-2xl font-extrabold tabular-nums">
+                    {money(s.gross)}
+                  </strong>
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    de {money(goal)}
+                  </span>
+                </p>
+                <div
+                  className="mt-3 h-2.5 overflow-hidden rounded-full bg-muted"
+                  role="progressbar"
+                  aria-valuenow={goalPct}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label="Progresso da meta do mês"
+                >
+                  <span
+                    className="block h-full rounded-full transition-[width] duration-700"
+                    style={{ width: `${goalPct}%`, background: "var(--accent-store)" }}
+                  />
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {goalPct >= 100
+                    ? "Meta batida. Parabéns!"
+                    : `${goalPct}% da meta. Faltam ${money(Math.max(0, goal - s.gross))}.`}
+                  {delta !== null &&
+                    ` Últimos 14 dias ${delta >= 0 ? "+" : ""}${delta}% sobre os 14 anteriores.`}
+                </p>
+              </>
+            ) : (
+              <p className="py-3 text-sm text-muted-foreground">
+                Defina uma meta de vendas para acompanhar o progresso do mês aqui.
+              </p>
+            )}
+          </div>
+        </Panel>
+        <Panel
+          title={
+            <span className="flex items-center gap-2">
+              <Crown size={15} className="text-amber-500" /> Mais vendidos do mês
+            </span>
+          }
+        >
+          <ol className="divide-y divide-border">
+            {s.top.map((t, i) => (
+              <li key={t.name} className="flex items-center gap-3 px-4 py-2.5">
+                <span className="w-5 text-center text-xs font-bold text-muted-foreground">
+                  {i + 1}
+                </span>
+                <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{t.name}</span>
+                <span className="text-xs text-muted-foreground tabular-nums">{t.qty} un</span>
+                <span className="w-24 text-right text-[13px] font-bold tabular-nums">
+                  {money(t.value)}
+                </span>
+              </li>
+            ))}
+            {!s.top.length && (
+              <li className="px-4 py-8 text-center text-sm text-muted-foreground">
+                As vendas confirmadas do mês aparecem aqui.
+              </li>
+            )}
+          </ol>
+        </Panel>
       </div>
 
       {/* Vendas e pendências */}

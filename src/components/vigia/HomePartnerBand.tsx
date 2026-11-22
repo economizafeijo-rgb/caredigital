@@ -16,8 +16,19 @@ export function HomePartnerBand() {
   return (
     <section
       aria-labelledby="partner-band-title"
-      className="grid gap-6 rounded-2xl border border-border bg-card p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:items-center lg:gap-10"
+      className="nv-dark relative isolate grid gap-6 overflow-hidden rounded-3xl bg-[#0b2b29] p-5 text-white sm:p-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:items-center lg:gap-10"
     >
+      <img
+        src="/images/hero-metricas.webp"
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        className="absolute inset-0 -z-20 size-full object-cover opacity-30"
+      />
+      <span
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 bg-gradient-to-r from-[#062321]/95 to-[#0c8063]/55"
+      />
       <div className="min-w-0">
         <h2
           id="partner-band-title"
@@ -25,32 +36,32 @@ export function HomePartnerBand() {
         >
           Venda e anuncie na NextVita
         </h2>
-        <p className="mt-1.5 max-w-[46ch] text-[13.5px] leading-relaxed text-muted-foreground sm:text-sm">
+        <p className="mt-1.5 max-w-[46ch] text-[13.5px] leading-relaxed text-white/75 sm:text-sm">
           Apareça para quem acompanha alimentação, treinos e saúde todos os dias. O plano inicial
           não tem mensalidade.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <Link
             to="/parceiros"
-            className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-[13px] font-bold text-primary-foreground transition hover:brightness-110"
+            className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-[13px] font-bold text-[#3fe0c8]-foreground transition hover:brightness-110"
           >
             Quero vender aqui <ArrowRight size={15} aria-hidden="true" />
           </Link>
           <Link
             to="/lojista"
-            className="inline-flex h-10 items-center rounded-xl border border-border px-4 text-[13px] font-semibold transition-colors hover:border-primary/60 hover:text-primary"
+            className="inline-flex h-10 items-center rounded-xl border border-white/30 px-4 text-[13px] font-semibold transition-colors hover:bg-white/10"
           >
             Ver como funciona
           </Link>
         </div>
       </div>
-      <ul className="grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2">
+      <ul className="grid gap-px overflow-hidden rounded-xl border border-white/15 bg-white/15 backdrop-blur sm:grid-cols-2">
         {audiences.map((a) => (
-          <li key={a.title} className="flex items-start gap-3 bg-card p-3.5 sm:p-4">
-            <a.icon size={18} className="mt-0.5 shrink-0 text-primary" aria-hidden="true" />
+          <li key={a.title} className="flex items-start gap-3 bg-black/35 p-3.5 sm:p-4">
+            <a.icon size={18} className="mt-0.5 shrink-0 text-[#3fe0c8]" aria-hidden="true" />
             <span className="min-w-0 leading-tight">
               <strong className="block text-sm font-semibold">{a.title}</strong>
-              <span className="mt-0.5 block text-[12.5px] text-muted-foreground">{a.text}</span>
+              <span className="mt-0.5 block text-[12.5px] text-white/75">{a.text}</span>
             </span>
           </li>
         ))}

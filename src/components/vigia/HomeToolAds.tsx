@@ -19,6 +19,7 @@ import { InstallAppButton } from "./InstallApp";
 
 type Tool = {
   id: string;
+  color: string;
   icon: LucideIcon;
   title: string;
   text: string;
@@ -42,7 +43,7 @@ function Screen({
   return (
     <div className="w-full max-w-[15.5rem] rounded-xl bg-card p-3 shadow-[0_14px_30px_-20px_rgba(0,0,0,.6)] ring-1 ring-border">
       <p className="flex items-center gap-1.5 text-[11.5px] font-semibold text-muted-foreground">
-        <Icon size={13} className="text-primary" aria-hidden="true" /> {title}
+        <Icon size={13} aria-hidden="true" /> {title}
       </p>
       <div className="mt-2">{children}</div>
     </div>
@@ -52,6 +53,7 @@ function Screen({
 const tools: Tool[] = [
   {
     id: "agua",
+    color: "#38bdf8",
     icon: Droplets,
     title: "Meta de água calculada para você",
     text: "Calcula quanto beber pelo seu peso e avisa a hora do próximo copo.",
@@ -89,6 +91,7 @@ const tools: Tool[] = [
   },
   {
     id: "med",
+    color: "#fb7185",
     icon: Pill,
     title: "Nenhuma dose esquecida",
     text: "Horários de remédios e suplementos, com confirmação e histórico de cada dose.",
@@ -120,6 +123,7 @@ const tools: Tool[] = [
   },
   {
     id: "medidas",
+    color: "#fbbf24",
     icon: Ruler,
     title: "Medidas do corpo com gráfico",
     text: "Cintura, braços e quadril, com relação cintura-quadril e gordura estimada.",
@@ -149,6 +153,7 @@ const tools: Tool[] = [
   },
   {
     id: "sono",
+    color: "#a78bfa",
     icon: BedDouble,
     title: "Sono e batimentos ao vivo",
     text: "Conecte uma cinta ou relógio Bluetooth e veja a nota de cada noite.",
@@ -175,6 +180,7 @@ const tools: Tool[] = [
   },
   {
     id: "metricas",
+    color: "#34d399",
     icon: BarChart3,
     title: "Sua evolução em gráficos",
     text: "Água, alimentação, peso e atividade no dia, no mês e no ano.",
@@ -220,8 +226,19 @@ export function HomeToolAds({ client }: { client: boolean }) {
   return (
     <section
       aria-labelledby="tool-ads-title"
-      className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4"
+      className="nv-dark relative isolate grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4 overflow-hidden rounded-3xl bg-[#0c1a3a] p-4 text-white max-sm:-mx-3 max-sm:rounded-none sm:p-7"
     >
+      <img
+        src="/images/caredigital-care-hero.webp"
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        className="absolute inset-0 -z-20 size-full object-cover opacity-25"
+      />
+      <span
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 bg-gradient-to-br from-[#0c1a3a]/95 via-[#0c1a3a]/85 to-[#0b3b3a]/80"
+      />
       <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-1">
         <div className="min-w-0">
           <h2
@@ -230,7 +247,7 @@ export function HomeToolAds({ client }: { client: boolean }) {
           >
             Ferramentas grátis do app
           </h2>
-          <p className="mt-0.5 max-w-[60ch] text-[13px] text-muted-foreground sm:text-sm">
+          <p className="mt-0.5 max-w-[60ch] text-[13px] text-white/75 sm:text-sm">
             Para organizar água, remédios, medidas, sono e treinos. Sem custo, no celular ou no
             computador.
           </p>
@@ -246,23 +263,31 @@ export function HomeToolAds({ client }: { client: boolean }) {
         {tools.map((t) => (
           <article
             key={t.id}
-            className="flex w-[78vw] max-w-[21rem] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-border bg-card sm:w-auto sm:max-w-none"
+            className="flex w-[78vw] max-w-[21rem] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-white/10 bg-black/30 backdrop-blur sm:w-auto sm:max-w-none"
           >
             <div
-              className="grid h-40 place-items-center border-b border-border bg-muted/50 px-5"
+              className="grid h-40 place-items-center border-b border-white/10 px-5"
+              style={{
+                background: `linear-gradient(135deg, color-mix(in srgb, ${t.color} 38%, #0c1a3a), color-mix(in srgb, ${t.color} 10%, #0c1a3a))`,
+              }}
               aria-hidden="true"
             >
               {t.preview}
             </div>
             <div className="flex flex-1 flex-col p-4 sm:p-5">
               <h3 className="flex items-center gap-2 font-display text-[1.05rem] font-bold leading-snug">
-                <t.icon size={17} className="shrink-0 text-primary" aria-hidden="true" />
+                <t.icon
+                  size={17}
+                  className="shrink-0"
+                  style={{ color: t.color }}
+                  aria-hidden="true"
+                />
                 {t.title}
               </h3>
-              <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted-foreground">{t.text}</p>
+              <p className="mt-1.5 text-[13.5px] leading-relaxed text-white/75">{t.text}</p>
               <a
                 href={client ? t.client : t.to}
-                className="mt-4 inline-flex h-10 w-fit items-center gap-2 rounded-xl border border-border px-4 text-[13px] font-semibold transition-colors hover:border-primary/60 hover:text-primary sm:mt-auto"
+                className="mt-4 inline-flex h-10 w-fit items-center gap-2 rounded-xl border border-white/30 px-4 text-[13px] font-semibold transition-colors hover:bg-white/10 sm:mt-auto"
               >
                 {client ? t.clientCta : t.cta}
                 <ArrowRight size={15} aria-hidden="true" />
@@ -271,9 +296,9 @@ export function HomeToolAds({ client }: { client: boolean }) {
           </article>
         ))}
 
-        <article className="flex w-[78vw] max-w-[21rem] shrink-0 snap-start flex-col justify-between gap-5 rounded-2xl border border-primary/30 bg-primary/[.07] p-4 sm:w-auto sm:max-w-none sm:p-5">
+        <article className="flex w-[78vw] max-w-[21rem] shrink-0 snap-start flex-col justify-between gap-5 rounded-2xl border border-[#3fe0c8]/30 bg-[#3fe0c8]/10 p-4 sm:w-auto sm:max-w-none sm:p-5">
           <div>
-            <span className="grid size-10 place-items-center rounded-xl bg-primary/15 text-primary">
+            <span className="grid size-10 place-items-center rounded-xl bg-[#3fe0c8]/15 text-[#3fe0c8]">
               <Smartphone size={20} aria-hidden="true" />
             </span>
             <h3 className="mt-3 font-display text-[1.05rem] font-bold leading-snug">
@@ -288,7 +313,7 @@ export function HomeToolAds({ client }: { client: boolean }) {
             {!client && (
               <a
                 href="/entrar?mode=signup"
-                className="inline-flex h-10 items-center rounded-xl bg-primary px-4 text-[13px] font-bold text-primary-foreground transition hover:brightness-110"
+                className="inline-flex h-10 items-center rounded-xl bg-[#3fe0c8] px-4 text-[13px] font-bold text-slate-950 transition hover:brightness-110"
               >
                 Criar conta grátis
               </a>
@@ -301,12 +326,12 @@ export function HomeToolAds({ client }: { client: boolean }) {
         aria-label="Todas as áreas do app"
         className="flex flex-wrap items-center gap-x-1 gap-y-1.5"
       >
-        <span className="mr-2 text-[13px] font-semibold">Todas as áreas:</span>
+        <span className="mr-2 text-[13px] font-semibold text-white">Todas as áreas:</span>
         {areas.map((a) => (
           <a
             key={a.to}
             href={client ? a.client : a.to}
-            className="inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] text-white/70 transition-colors hover:bg-white/10 hover:text-white"
           >
             <a.icon size={14} aria-hidden="true" />
             {a.label}

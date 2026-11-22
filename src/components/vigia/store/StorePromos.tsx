@@ -29,13 +29,13 @@ export function Countdown({ until }: { until: number }) {
       className="flex items-center gap-1 font-mono text-sm font-semibold tabular-nums"
       aria-label={`Termina em ${c.h} horas, ${c.m} minutos e ${c.s} segundos`}
     >
-      <span className="text-[12px] font-sans font-medium text-muted-foreground">Termina em</span>
+      <span className="text-[12px] font-sans font-medium text-white/75">Termina em</span>
       {([c.d ? c.d * 24 + c.h : c.h, c.m, c.s] as const).map((v, i) => (
         <span key={i} className="flex items-center gap-1">
-          <span className="grid min-w-[2.1rem] place-items-center rounded-md bg-muted px-1.5 py-1 ring-1 ring-border">
+          <span className="grid min-w-[2.1rem] place-items-center rounded-md bg-black/40 px-1.5 py-1 ring-1 ring-white/20">
             {String(v).padStart(2, "0")}
           </span>
-          {i < 2 && <span className="text-muted-foreground">:</span>}
+          {i < 2 && <span className="text-white/60">:</span>}
         </span>
       ))}
     </p>
@@ -60,7 +60,7 @@ export function FlashDeals({ campaign }: { campaign: Campaign }) {
     <section
       id="relampago"
       aria-labelledby="relampago-title"
-      className="grid scroll-mt-20 grid-cols-[minmax(0,1fr)] gap-4"
+      className="nv-dark grid scroll-mt-20 grid-cols-[minmax(0,1fr)] gap-4 rounded-3xl bg-gradient-to-br from-[#3a1208] via-[#6b1d10] to-[#7c2d12] p-4 text-white max-sm:-mx-3 max-sm:rounded-none sm:p-7"
     >
       <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
         <div className="min-w-0">
@@ -71,7 +71,7 @@ export function FlashDeals({ campaign }: { campaign: Campaign }) {
             <Zap size={20} className="shrink-0 text-amber-400" aria-hidden="true" />
             Ofertas relâmpago
           </h2>
-          <p className="mt-0.5 text-[13px] text-muted-foreground sm:text-sm">
+          <p className="mt-0.5 text-[13px] text-white/75 sm:text-sm">
             Preço especial só hoje, até a meia-noite.
           </p>
         </div>
@@ -138,14 +138,14 @@ export function CampaignTeaser() {
   const teaser = nextCampaignTeaser();
   if (!teaser) return null;
   return (
-    <aside className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border border-border bg-card p-4 sm:p-5">
-      <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-muted text-foreground ring-1 ring-border">
+    <aside className="nv-dark flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl bg-gradient-to-r from-[#2a0508] via-[#5b0a12] to-[#0d3b26] p-4 text-white sm:p-5">
+      <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-white/15 text-white">
         <Gift size={20} aria-hidden="true" />
       </span>
       <div className="min-w-[12rem] flex-1">
-        <p className="text-[12px] font-medium text-muted-foreground">{teaser.when}</p>
+        <p className="text-[12px] font-medium text-white/70">{teaser.when}</p>
         <h2 className="font-display text-lg font-bold leading-tight">{teaser.name}</h2>
-        <p className="mt-0.5 text-[13px] text-muted-foreground">{teaser.text}</p>
+        <p className="mt-0.5 text-[13px] text-white/80">{teaser.text}</p>
       </div>
       <Link
         to="/"

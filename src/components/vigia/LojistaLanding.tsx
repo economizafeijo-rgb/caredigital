@@ -3,6 +3,8 @@ import {
   ArrowRight,
   BadgeCheck,
   Calculator,
+  Camera,
+  TrendingUp,
   CheckCircle2,
   CreditCard,
   HeartPulse,
@@ -25,9 +27,7 @@ import {
   type PlanKey,
 } from "@/lib/marketplace";
 import { money as brl, products, vendorById, type VendorId } from "@/lib/store";
-import { useFitWindow } from "@/lib/use-fit-window";
 
-type Tab = "quem" | "planos" | "simulador";
 const segmentIcon = {
   roupas: ShoppingBag,
   suplementos: HeartPulse,
@@ -107,262 +107,261 @@ function StorefrontPreview({ segment }: { segment: string }) {
   );
 }
 
-/** Página de captação de lojistas em tela fixa: proposta, vitrine de exemplo, planos e simulador. */
-/** fit=false quando o formulário de cadastro aparece abaixo (a página precisa rolar até ele). */
-export function LojistaLanding({ onStart, fit = true }: { onStart: () => void; fit?: boolean }) {
-  const fitRef = useFitWindow<HTMLDivElement>();
-  const [tab, setTab] = useState<Tab>("quem");
+/** Página de captação de lojistas: proposta, como funciona, vitrine de exemplo, planos e simulador. */
+export function LojistaLanding({ onStart }: { onStart: () => void; fit?: boolean }) {
   const [segment, setSegment] = useState<string>("suplementos");
-  const [plan, setPlan] = useState<PlanKey>("vitrine");
   const [sales, setSales] = useState(3000);
   const best = useMemo(() => bestPlanFor(sales * 100), [sales]);
-  const tabs: { key: Tab; label: string; icon: typeof Store }[] = [
-    { key: "quem", label: "Quem vende", icon: Store },
-    { key: "planos", label: "Planos", icon: Sparkles },
-    { key: "simulador", label: "Simulador", icon: Calculator },
-  ];
+  const cta =
+    "inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#3fe0c8] px-6 text-sm font-extrabold text-slate-950 transition hover:bg-[#6ae9d6] active:scale-[.98]";
+  const h2 = "font-display text-2xl font-extrabold tracking-tight sm:text-3xl";
 
   return (
-    <div
-      ref={fit ? fitRef : undefined}
-      className="mx-auto flex w-full max-w-[1680px] flex-col gap-3"
-    >
-      <div className="nv-dark relative isolate grid min-h-0 flex-1 gap-4 overflow-hidden rounded-2xl bg-gradient-to-br from-[#0b1022] via-[#141a3a] to-[#2a1d0b] p-5 text-white lg:grid-cols-[0.9fr_1.1fr] lg:p-8">
-        <div
+    <div className="mx-auto flex w-full max-w-[84rem] flex-col gap-10 lg:gap-14">
+      <section
+        aria-labelledby="loj-title"
+        className="nv-dark relative isolate overflow-hidden rounded-3xl bg-[#0a1226] p-6 text-white ring-1 ring-white/10 sm:p-10 lg:p-14"
+      >
+        <img
+          src="/loja/v2/conjunto-preto.webp"
+          alt=""
           aria-hidden="true"
-          className="pointer-events-none absolute -right-24 -top-24 size-96 rounded-full bg-amber-400/20 blur-3xl"
+          className="absolute inset-0 -z-20 size-full object-cover opacity-30"
         />
-        <div
+        <span
           aria-hidden="true"
-          className="pointer-events-none absolute -bottom-32 left-10 size-96 rounded-full bg-indigo-500/20 blur-3xl"
+          className="absolute inset-0 -z-10 bg-gradient-to-r from-[#0a1226] via-[#0a1226]/85 to-[#0a1226]/40"
         />
-
-        <section aria-labelledby="loj-title" className="flex min-h-0 flex-col justify-center gap-4">
-          <span className="nv-rise inline-flex w-fit items-center gap-2 rounded-full border border-amber-300/40 bg-amber-300/10 px-3 py-1 text-xs font-semibold text-amber-200">
-            <Store size={14} aria-hidden="true" /> Para lojas, marcas e autônomos
-          </span>
-          <h1
-            id="loj-title"
-            className="nv-rise text-balance font-display text-3xl font-extrabold leading-[1.06] tracking-tight xl:text-5xl"
-            style={{ animationDelay: "60ms" }}
-          >
-            Sua loja diante de quem já cuida da saúde todos os dias.
-          </h1>
-          <p
-            className="nv-rise max-w-[52ch] text-[15px] leading-relaxed text-white/80"
-            style={{ animationDelay: "120ms" }}
-          >
-            Vitrine própria, selo da loja, avaliações do público e painel de vendas para
-            suplementos, moda fitness, farmácias e produtos naturais.
-          </p>
-          <div className="nv-rise flex flex-wrap gap-2" style={{ animationDelay: "180ms" }}>
-            <button
-              type="button"
-              onClick={onStart}
-              className="nv-cta inline-flex h-12 items-center gap-2 rounded-xl bg-amber-400 px-6 text-sm font-bold text-slate-950"
-              style={{ ["--area" as string]: "#f59e0b" }}
+        <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-12">
+          <div className="min-w-0">
+            <p className="inline-flex items-center gap-2 text-[13px] font-semibold text-[#3fe0c8]">
+              <Store size={15} aria-hidden="true" /> Para lojas, marcas e autônomos de Feijó
+            </p>
+            <h1
+              id="loj-title"
+              className="mt-3 text-balance font-display text-[2.2rem] font-extrabold leading-[1.05] tracking-tight sm:text-5xl"
             >
-              Quero vender na NextVita{" "}
-              <ArrowRight size={17} aria-hidden="true" className="nv-cta-arrow" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab("simulador")}
-              className="inline-flex h-12 items-center gap-2 rounded-xl border border-white/30 px-5 text-sm font-semibold hover:bg-white/10"
-            >
-              <Calculator size={16} aria-hidden="true" /> Simular meus custos
-            </button>
-          </div>
-          <ol className="mt-1 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {steps.map((s, i) => (
-              <li
-                key={s.title}
-                className="nv-rise rounded-xl border border-white/10 bg-white/[.05] p-3"
-                style={{ animationDelay: `${260 + i * 80}ms` }}
-              >
-                <span className="flex items-center gap-2 text-xs font-semibold text-amber-200">
-                  <s.icon size={14} aria-hidden="true" /> Etapa {i + 1}
-                </span>
-                <strong className="mt-1 block text-sm">{s.title}</strong>
-                <span className="text-xs text-white/65">{s.text}</span>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <section aria-label="Explore" className="flex min-h-0 flex-col gap-3">
-          <div
-            role="tablist"
-            aria-label="Seções"
-            className="inline-flex w-fit gap-1 rounded-xl bg-white/10 p-1"
-          >
-            {tabs.map((t) => (
-              <button
-                key={t.key}
-                role="tab"
-                aria-selected={tab === t.key}
-                type="button"
-                onClick={() => setTab(t.key)}
-                className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-3.5 text-sm font-semibold transition-colors ${tab === t.key ? "bg-white text-slate-950" : "text-white/75 hover:text-white"}`}
-              >
-                <t.icon size={15} aria-hidden="true" /> {t.label}
+              Sua loja diante de quem já cuida da saúde todos os dias.
+            </h1>
+            <p className="mt-4 max-w-[52ch] text-[15px] leading-relaxed text-white/80 sm:text-base">
+              Vitrine própria, selo da loja, avaliações do público e painel de vendas com pedidos,
+              estoque, caixa e relatórios. Comece grátis.
+            </p>
+            <div className="mt-6 flex flex-col gap-2.5 sm:flex-row">
+              <button type="button" onClick={onStart} className={cta}>
+                Quero vender na NextVita <ArrowRight size={17} aria-hidden="true" />
               </button>
-            ))}
+              <a
+                href="#simulador"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/30 px-5 text-sm font-semibold transition-colors hover:bg-white/10"
+              >
+                <Calculator size={16} aria-hidden="true" /> Simular meus custos
+              </a>
+            </div>
           </div>
+          <ul className="grid grid-cols-2 gap-3">
+            {[
+              [Camera, "Vitrine própria", "Fotos, preços e estoque"],
+              [BadgeCheck, "Selo de loja", "Confiança para comprar"],
+              [TrendingUp, "Relatórios", "Vendas, margem e metas"],
+              [CreditCard, "Caixa e pedidos", "Tudo no mesmo painel"],
+            ].map(([I, t, d]) => {
+              const Icon = I as typeof Store;
+              return (
+                <li
+                  key={t as string}
+                  className="rounded-2xl border border-white/10 bg-black/35 p-4 backdrop-blur"
+                >
+                  <Icon size={20} className="text-[#3fe0c8]" aria-hidden="true" />
+                  <strong className="mt-2 block text-sm">{t as string}</strong>
+                  <span className="text-[12.5px] text-white/65">{d as string}</span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </section>
 
-          <div role="tabpanel" key={tab} className="nv-fade-in flex min-h-0 flex-1 flex-col gap-3">
-            {tab === "quem" && (
-              <div className="grid min-h-0 flex-1 gap-3 xl:grid-cols-[0.9fr_1.1fr]">
-                <ul className="grid content-start gap-2">
-                  {SEGMENTS.map((s) => {
-                    const Icon = segmentIcon[s.key as keyof typeof segmentIcon];
-                    const on = segment === s.key;
-                    return (
-                      <li key={s.key}>
-                        <button
-                          type="button"
-                          aria-pressed={on}
-                          onClick={() => setSegment(s.key)}
-                          onFocus={() => setSegment(s.key)}
-                          className={`nv-tile flex w-full items-center gap-3 rounded-xl border p-2.5 text-left ${on ? "border-amber-300/70 bg-amber-300/10" : "border-white/10 bg-white/[.04]"}`}
-                          style={{ ["--tile" as string]: "#f59e0b" }}
-                        >
-                          <span className="nv-tile-icon grid size-9 shrink-0 place-items-center rounded-lg bg-amber-300/15 text-amber-200">
-                            <Icon size={18} aria-hidden="true" />
-                          </span>
-                          <span className="min-w-0">
-                            <strong className="block text-sm">{s.label}</strong>
-                            <span className="block truncate text-xs text-white/60">{s.hint}</span>
-                          </span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-                <div className="flex flex-col justify-center gap-2">
-                  <StorefrontPreview segment={segment} />
-                  <p className="text-center text-xs text-white/60">
-                    Assim a sua vitrine aparece para o público. Loja e produtos ilustrativos.
-                  </p>
-                </div>
-              </div>
-            )}
+      <section aria-labelledby="loj-steps" className="grid gap-5">
+        <h2 id="loj-steps" className={h2}>
+          Comece a vender em 4 passos
+        </h2>
+        <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {steps.map((st, i) => (
+            <li key={st.title} className="rounded-2xl border border-border bg-card p-5">
+              <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary">
+                <st.icon size={20} aria-hidden="true" />
+              </span>
+              <p className="mt-3 text-xs font-semibold text-muted-foreground">Passo {i + 1}</p>
+              <strong className="block font-display text-lg">{st.title}</strong>
+              <span className="text-sm text-muted-foreground">{st.text}</span>
+            </li>
+          ))}
+        </ol>
+      </section>
 
-            {tab === "planos" && (
-              <div className="grid min-h-0 flex-1 content-center gap-3 md:grid-cols-3">
-                {(Object.keys(PLANS) as PlanKey[]).map((key) => {
-                  const p = PLANS[key];
-                  const on = plan === key;
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      aria-pressed={on}
-                      onClick={() => setPlan(key)}
-                      className={`nv-tile flex h-full flex-col rounded-2xl border p-5 text-left ${on ? "border-amber-300 bg-white text-slate-950" : "border-white/15 bg-white/[.05]"}`}
-                      style={{ ["--tile" as string]: "#f59e0b" }}
-                    >
-                      {key === "vitrine" && (
-                        <span
-                          className={`mb-2 w-fit rounded-full px-2 py-0.5 text-[11px] font-bold ${on ? "bg-amber-400 text-slate-950" : "bg-amber-300/20 text-amber-200"}`}
-                        >
-                          Mais escolhido
-                        </span>
-                      )}
-                      <strong className="font-display text-xl font-extrabold">{p.label}</strong>
-                      <span className={`text-xs ${on ? "text-slate-500" : "text-white/60"}`}>
-                        {p.tagline}
+      <section aria-labelledby="loj-quem" className="grid gap-5">
+        <div>
+          <h2 id="loj-quem" className={h2}>
+            Quem vende na NextVita
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Escolha o seu tipo de negócio e veja como a vitrine aparece para o público.
+          </p>
+        </div>
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
+            {SEGMENTS.map((sg) => {
+              const Icon = segmentIcon[sg.key as keyof typeof segmentIcon];
+              const on = segment === sg.key;
+              return (
+                <li key={sg.key}>
+                  <button
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => setSegment(sg.key)}
+                    className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-colors ${on ? "border-primary bg-primary/10" : "border-border bg-card hover:border-foreground/30"}`}
+                  >
+                    <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+                      <Icon size={19} aria-hidden="true" />
+                    </span>
+                    <span className="min-w-0">
+                      <strong className="block text-sm">{sg.label}</strong>
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {sg.hint}
                       </span>
-                      <span className="mt-3">
-                        <strong className="text-3xl font-extrabold">
-                          {p.feeCents ? money(p.feeCents) : "R$ 0"}
-                        </strong>
-                        <span className={`text-sm ${on ? "text-slate-500" : "text-white/60"}`}>
-                          {" "}
-                          /mês
-                        </span>
-                      </span>
-                      <span
-                        className={`text-sm font-semibold ${on ? "text-amber-700" : "text-amber-200"}`}
-                      >
-                        + {pct(p.bps)} por venda
-                      </span>
-                      <ul className="mt-3 grid gap-1.5 text-sm">
-                        {p.perks.map((t) => (
-                          <li key={t} className="flex items-start gap-2">
-                            <CheckCircle2
-                              size={15}
-                              className={`mt-0.5 shrink-0 ${on ? "text-emerald-600" : "text-emerald-300"}`}
-                              aria-hidden="true"
-                            />
-                            {t}
-                          </li>
-                        ))}
-                      </ul>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="flex flex-col justify-center gap-2 rounded-2xl bg-muted/60 p-4 sm:p-6">
+            <StorefrontPreview segment={segment} />
+            <p className="text-center text-xs text-muted-foreground">
+              Loja e produtos ilustrativos.
+            </p>
+          </div>
+        </div>
+      </section>
 
-            {tab === "simulador" && (
-              <div className="flex min-h-0 flex-1 flex-col justify-center gap-4 rounded-2xl border border-white/10 bg-white/[.04] p-5">
-                <label className="block text-sm font-semibold">
-                  Quanto você vende por mês:{" "}
-                  <strong className="text-2xl font-extrabold text-amber-300 tabular-nums">
-                    {money(sales * 100)}
+      <section aria-labelledby="loj-planos" className="grid gap-5">
+        <div>
+          <h2 id="loj-planos" className={h2}>
+            Planos simples, sem surpresa
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Mensalidade e uma pequena comissão apenas sobre vendas confirmadas.
+          </p>
+        </div>
+        <div className="grid gap-3 md:grid-cols-3">
+          {(Object.keys(PLANS) as PlanKey[]).map((key) => {
+            const p = PLANS[key];
+            const star = key === "vitrine";
+            return (
+              <article
+                key={key}
+                className={`flex flex-col rounded-2xl border p-6 ${star ? "border-primary bg-primary/[.07]" : "border-border bg-card"}`}
+              >
+                {star && (
+                  <span className="mb-2 w-fit rounded-full bg-primary px-2.5 py-0.5 text-[11px] font-bold text-primary-foreground">
+                    Mais escolhido
+                  </span>
+                )}
+                <strong className="font-display text-xl font-extrabold">{p.label}</strong>
+                <span className="text-xs text-muted-foreground">{p.tagline}</span>
+                <p className="mt-4">
+                  <strong className="text-3xl font-extrabold tabular-nums">
+                    {p.feeCents ? money(p.feeCents) : "R$ 0"}
                   </strong>
-                  <input
-                    type="range"
-                    min={500}
-                    max={20000}
-                    step={100}
-                    value={sales}
-                    onChange={(e) => setSales(Number(e.target.value))}
-                    aria-label="Vendas por mês"
-                    className="mt-3 w-full accent-amber-400"
-                  />
-                </label>
-                <div className="grid gap-3 sm:grid-cols-3">
-                  {(Object.keys(PLANS) as PlanKey[]).map((key) => {
-                    const r = platformRevenue(sales * 100, key);
-                    const isBest = key === best;
-                    return (
-                      <div
-                        key={key}
-                        className={`rounded-xl border p-4 transition-colors ${isBest ? "border-amber-300 bg-amber-300/10" : "border-white/10"}`}
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <strong>{PLANS[key].label}</strong>
-                          {isBest && (
-                            <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold text-slate-950">
-                              Melhor para você
-                            </span>
-                          )}
-                        </div>
-                        <p className="mt-2 text-xs text-white/60">
-                          Mensalidade {money(r.fee)} + comissão {money(r.commission)}
-                        </p>
-                        <p className="text-xl font-extrabold tabular-nums">{money(r.total)}</p>
-                        <p className="text-xs text-white/70">
-                          Você fica com{" "}
-                          <strong className="text-white tabular-nums">
-                            {money(r.vendorKeeps)}
-                          </strong>
-                        </p>
-                      </div>
-                    );
-                  })}
+                  <span className="text-sm text-muted-foreground"> /mês</span>
+                </p>
+                <p className="text-sm font-semibold text-primary">+ {pct(p.bps)} por venda</p>
+                <ul className="mt-4 grid gap-2 text-sm">
+                  {p.perks.map((t) => (
+                    <li key={t} className="flex items-start gap-2">
+                      <CheckCircle2
+                        size={16}
+                        className="mt-0.5 shrink-0 text-primary"
+                        aria-hidden="true"
+                      />
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  type="button"
+                  onClick={onStart}
+                  className="mt-5 inline-flex h-10 items-center justify-center rounded-xl border border-border text-sm font-semibold transition-colors hover:border-primary/60 hover:text-primary md:mt-auto"
+                >
+                  Começar com este plano
+                </button>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section
+        id="simulador"
+        aria-labelledby="loj-sim"
+        className="nv-dark scroll-mt-20 rounded-3xl bg-gradient-to-br from-[#0b2b29] to-[#0a1226] p-6 text-white sm:p-10"
+      >
+        <h2 id="loj-sim" className={h2}>
+          Simule quanto custa para você
+        </h2>
+        <label className="mt-5 block text-sm font-semibold">
+          Quanto você vende por mês:{" "}
+          <strong className="text-2xl font-extrabold text-[#3fe0c8] tabular-nums">
+            {money(sales * 100)}
+          </strong>
+          <input
+            type="range"
+            min={500}
+            max={20000}
+            step={100}
+            value={sales}
+            onChange={(e) => setSales(Number(e.target.value))}
+            aria-label="Vendas por mês"
+            className="mt-3 w-full accent-[#3fe0c8]"
+          />
+        </label>
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          {(Object.keys(PLANS) as PlanKey[]).map((key) => {
+            const r = platformRevenue(sales * 100, key);
+            const isBest = key === best;
+            return (
+              <div
+                key={key}
+                className={`rounded-xl border p-4 ${isBest ? "border-[#3fe0c8] bg-[#3fe0c8]/10" : "border-white/15 bg-black/25"}`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <strong>{PLANS[key].label}</strong>
+                  {isBest && (
+                    <span className="rounded-full bg-[#3fe0c8] px-2 py-0.5 text-[10px] font-bold text-slate-950">
+                      Melhor para você
+                    </span>
+                  )}
                 </div>
-                <p className="text-xs text-white/60">
-                  O pagamento é combinado direto entre você e o cliente. A NextVita emite uma fatura
-                  mensal com a mensalidade e a comissão das vendas confirmadas.
+                <p className="mt-2 text-xs text-white/65">
+                  Mensalidade {money(r.fee)} + comissão {money(r.commission)}
+                </p>
+                <p className="text-xl font-extrabold tabular-nums">{money(r.total)}</p>
+                <p className="text-xs text-white/75">
+                  Você fica com <strong className="tabular-nums">{money(r.vendorKeeps)}</strong>
                 </p>
               </div>
-            )}
-          </div>
-        </section>
-      </div>
+            );
+          })}
+        </div>
+        <p className="mt-4 text-xs text-white/65">
+          O pagamento é combinado direto entre você e o cliente. A NextVita emite uma fatura mensal
+          com a mensalidade e a comissão das vendas confirmadas.
+        </p>
+        <button type="button" onClick={onStart} className={`${cta} mt-6`}>
+          Quero vender na NextVita <ArrowRight size={17} aria-hidden="true" />
+        </button>
+      </section>
     </div>
   );
 }

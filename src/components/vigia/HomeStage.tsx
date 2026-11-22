@@ -32,6 +32,7 @@ type Goal = {
   tool: string;
   toolTo: string;
   toolClient: string;
+  bg: string;
 };
 
 /** Objetivos que o visitante escolhe: cada um muda a vitrine, o texto e a ferramenta sugerida. */
@@ -42,6 +43,7 @@ const goals: Goal[] = [
     icon: Dumbbell,
     ids: ["whey-900", "pre-treino", "coqueteleira"],
     line: "Proteína e pré-treino, com o diário de alimentação para acompanhar a sua meta de proteína.",
+    bg: "/images/hero-treinos.webp",
     tool: "Alimentação e treinos",
     toolTo: "/dietas",
     toolClient: "/cliente#alimentacao",
@@ -52,6 +54,7 @@ const goals: Goal[] = [
     icon: HeartPulse,
     ids: ["multivitaminico", "vitamina-d", "oleo-copaiba"],
     line: "Vitaminas e fitoterápicos com lembrete no horário, para não esquecer nenhuma dose.",
+    bg: "/images/hero-suplementos.webp",
     tool: "Medicação e suplementos",
     toolTo: "/medicamentos",
     toolClient: "/cliente#medicacao",
@@ -62,6 +65,7 @@ const goals: Goal[] = [
     icon: Scale,
     ids: ["proteina-vegetal", "cha-camomila", "tapete"],
     line: "Registre peso e medidas, veja a evolução em gráficos e monte a rotina que combina com você.",
+    bg: "/images/hero-peso.webp",
     tool: "Peso e medidas",
     toolTo: "/peso",
     toolClient: "/cliente#peso",
@@ -72,6 +76,7 @@ const goals: Goal[] = [
     icon: Shirt,
     ids: ["conjunto-fem-1", "camiseta-regata", "legging"],
     line: "Conjuntos, leggings e camisetas de lojas de Feijó, com 5% de desconto no Pix.",
+    bg: "/images/caredigital-esporte.webp",
     tool: "Treinos",
     toolTo: "/treinos",
     toolClient: "/cliente#atividade",
@@ -82,6 +87,7 @@ const goals: Goal[] = [
     icon: HomeIcon,
     ids: ["halteres", "kit-barra", "tapete"],
     line: "Halteres, barra e tapete para montar o seu espaço, e o app para registrar cada treino.",
+    bg: "/images/hero-alimentacao.webp",
     tool: "Registro de treinos",
     toolTo: "/treinos",
     toolClient: "/cliente#atividade",
@@ -175,6 +181,20 @@ export function HomeStage({
       aria-labelledby="home-title"
       className="nv-dark relative isolate overflow-hidden bg-[#0a1226] text-white ring-1 ring-white/10 max-sm:-mx-5 sm:rounded-3xl"
     >
+      {goals.map((g, i) => (
+        <img
+          key={g.key}
+          src={g.bg}
+          alt=""
+          aria-hidden="true"
+          loading={i === 0 ? "eager" : "lazy"}
+          className={`absolute inset-0 -z-20 size-full object-cover transition-opacity duration-1000 ${i === idx ? "opacity-40" : "opacity-0"}`}
+        />
+      ))}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 bg-gradient-to-r from-[#0a1226] via-[#0a1226]/80 to-[#0a1226]/30"
+      />
       <div
         aria-hidden="true"
         className="absolute inset-0 -z-10"
@@ -216,7 +236,7 @@ export function HomeStage({
           <p
             key={goal.key}
             aria-live="polite"
-            className="nv-rise mt-3 min-h-[3.4rem] text-[15.5px] leading-relaxed text-slate-300 sm:max-w-[54ch] sm:text-base"
+            className="nv-rise mt-3 min-h-[3.4rem] text-[15.5px] leading-relaxed text-slate-100 sm:max-w-[54ch] sm:text-base"
           >
             {goal.line}
           </p>
