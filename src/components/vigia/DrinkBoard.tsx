@@ -120,7 +120,9 @@ export function DrinkBoard({
   const total = useMemo(() => sumNutrients(parsed.map((f) => f.nutrients)), [parsed]);
   const check = checkIntake(ml);
   const picked = (c: Card) =>
-    c.kind === kind && c.ml === ml && (isWater || c.text.toLowerCase() === description.trim().toLowerCase());
+    c.kind === kind &&
+    c.ml === ml &&
+    (isWater || c.text.toLowerCase() === description.trim().toLowerCase());
 
   const card = (item: Card, index: number, prefix: string) => {
     const on = picked(item);
@@ -133,7 +135,10 @@ export function DrinkBoard({
         style={{ animationDelay: `${Math.min(index, 12) * 18}ms` }}
       >
         <div
-          className={"flex items-center border border-l-[3px] transition-colors duration-200 " + (on ? "border-border" : "border-border bg-card")}
+          className={
+            "flex items-center border border-l-[3px] transition-colors duration-200 " +
+            (on ? "border-border" : "border-border bg-card")
+          }
           style={
             on
               ? { borderLeftColor: tint, background: `color-mix(in srgb, ${tint} 8%, var(--card))` }
@@ -206,7 +211,7 @@ export function DrinkBoard({
         <h3 className="flex flex-wrap items-baseline gap-2 text-[13px] font-bold">
           {title} <span className="text-[11px] font-normal text-muted-foreground">{hint}</span>
         </h3>
-        <ul className="mt-2 grid grid-cols-[repeat(auto-fill,minmax(13.5rem,1fr))] gap-2">
+        <ul className="mt-2 grid grid-cols-[repeat(auto-fill,minmax(min(13.5rem,100%),1fr))] gap-2">
           {items.map((item, i) => card(item, i, prefix))}
         </ul>
       </section>
@@ -319,7 +324,12 @@ export function DrinkBoard({
             )
           ) : (
             <>
-              {section(`Opções de ${category.label.toLowerCase()}`, "toque para escolher", own, "tipo")}
+              {section(
+                `Opções de ${category.label.toLowerCase()}`,
+                "toque para escolher",
+                own,
+                "tipo",
+              )}
               {!own.length && (
                 <p className="border border-dashed border-border p-4 text-sm text-muted-foreground">
                   Sem opções prontas para este tipo. Escreva o nome da bebida ao lado ou veja as
@@ -457,7 +467,9 @@ export function DrinkBoard({
               {parsed.map((f, i) => (
                 <li key={`${f.id}-${i}`} className="flex items-center gap-2 text-xs">
                   <FoodThumb text={f.name} className="size-7" />
-                  <span className="min-w-0 flex-1 truncate font-medium">{f.name.split(",")[0]}</span>
+                  <span className="min-w-0 flex-1 truncate font-medium">
+                    {f.name.split(",")[0]}
+                  </span>
                   <span className="shrink-0 tabular-nums text-muted-foreground">
                     {nf(f.grams)} {measureUnit(f.id)}
                   </span>

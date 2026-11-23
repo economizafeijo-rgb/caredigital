@@ -28,6 +28,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { PatientActivityHistory } from "./PatientActivityHistory";
 import { ClientHydrationTab } from "./ClientHydrationTab";
+import { ClientMobileNav } from "./ClientMobileNav";
 import { SectionInsights, isInsightSection } from "./SectionInsights";
 import { ClientSleepPage } from "./ClientSleepPage";
 import { WeightExplorer } from "./WeightExplorer";
@@ -823,6 +824,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
         aria-label="Painel de acompanhamento individual"
         className="flex min-h-full w-full flex-col gap-3"
       >
+        {!loading && owner && <ClientMobileNav active={activeTab} onOpen={openSection} />}
         {loading ? (
           <p role="status" className="grid flex-1 place-items-center text-sm text-muted-foreground">
             Verificando acesso seguro…

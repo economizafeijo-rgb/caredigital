@@ -205,7 +205,9 @@ export function ClientBeverageTracker({
               <Droplets size={18} />
             </span>
             <div className="min-w-0 leading-tight">
-              <h3 className="text-sm font-bold text-foreground">Chás, bebidas, shakes e suplementos</h3>
+              <h3 className="text-sm font-bold text-foreground">
+                Chás, bebidas, shakes e suplementos
+              </h3>
               <p className="text-[11px] text-muted-foreground">
                 Busque ou toque numa bebida e registre o consumo real (Acre).
               </p>
@@ -227,7 +229,14 @@ export function ClientBeverageTracker({
           </div>
 
           <div className="care-intake-choices flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none]">
-            {[{ value: "todas" as const, label: "Todas", count: drinkCards.length }, ...beverageKinds.map((c) => ({ value: c.value, label: c.label, count: counts[c.value] ?? 0 }))].map((c) => {
+            {[
+              { value: "todas" as const, label: "Todas", count: drinkCards.length },
+              ...beverageKinds.map((c) => ({
+                value: c.value,
+                label: c.label,
+                count: counts[c.value] ?? 0,
+              })),
+            ].map((c) => {
               const on = q.length < 2 && chip === c.value;
               return (
                 <button
@@ -256,7 +265,7 @@ export function ClientBeverageTracker({
           </div>
 
           {shown.length ? (
-            <ul className="grid max-h-[22rem] grid-cols-[repeat(auto-fill,minmax(12.5rem,1fr))] gap-2 overflow-y-auto overscroll-contain pr-1">
+            <ul className="grid max-h-[22rem] grid-cols-[repeat(auto-fill,minmax(min(12.5rem,100%),1fr))] gap-2 overflow-y-auto overscroll-contain pr-1">
               {shown.map((card) => {
                 const on = pickedKey === card.key;
                 const tint = drinkTone[card.kind];
@@ -273,14 +282,20 @@ export function ClientBeverageTracker({
                       }
                       style={
                         on
-                          ? { borderLeftColor: tint, background: `color-mix(in srgb, ${tint} 10%, var(--card))` }
+                          ? {
+                              borderLeftColor: tint,
+                              background: `color-mix(in srgb, ${tint} 10%, var(--card))`,
+                            }
                           : undefined
                       }
                     >
                       <span
                         aria-hidden="true"
                         className="grid size-9 shrink-0 place-items-center"
-                        style={{ background: `color-mix(in srgb, ${tint} 16%, transparent)`, color: tint }}
+                        style={{
+                          background: `color-mix(in srgb, ${tint} 16%, transparent)`,
+                          color: tint,
+                        }}
                       >
                         <CareIntakeIcon kind={card.kind} size={18} />
                       </span>
@@ -327,7 +342,10 @@ export function ClientBeverageTracker({
         >
           <div className="flex items-center justify-between gap-2">
             <h4 className="flex items-center gap-2 text-sm font-bold">
-              <span className="grid size-7 place-items-center text-white" style={{ background: tone }}>
+              <span
+                className="grid size-7 place-items-center text-white"
+                style={{ background: tone }}
+              >
                 <CareIntakeIcon kind={kind} size={15} />
               </span>
               Sua bebida
@@ -435,21 +453,29 @@ export function ClientBeverageTracker({
               </>
             ) : kcal !== null ? (
               <>
-                <strong style={{ color: tone }}>{Math.round(kcal)} kcal</strong> estimadas para {ml} ml
-                (valor aproximado).
+                <strong style={{ color: tone }}>{Math.round(kcal)} kcal</strong> estimadas para {ml}{" "}
+                ml (valor aproximado).
               </>
             ) : (
-              <span className="text-muted-foreground">Escolha uma bebida para ver as calorias.</span>
+              <span className="text-muted-foreground">
+                Escolha uma bebida para ver as calorias.
+              </span>
             )}
           </p>
 
           {error && (
-            <p role="alert" className="border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive">
+            <p
+              role="alert"
+              className="border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive"
+            >
               {error}
             </p>
           )}
           {notice && (
-            <p role="status" className="flex items-start gap-2 border border-success/30 bg-success/10 p-2 text-xs text-foreground">
+            <p
+              role="status"
+              className="flex items-start gap-2 border border-success/30 bg-success/10 p-2 text-xs text-foreground"
+            >
               <CheckCircle2 size={15} className="shrink-0 text-success" />
               {notice}
             </p>
@@ -490,12 +516,13 @@ export function ClientBeverageTracker({
         </div>
         {loading ? (
           <p className="text-xs text-muted-foreground">Carregando bebidas…</p>
-        ) : items.filter((item) => historyKind === "todos" || item.kind === historyKind).length === 0 ? (
+        ) : items.filter((item) => historyKind === "todos" || item.kind === historyKind).length ===
+          0 ? (
           <p className="border border-border p-3 text-xs text-muted-foreground">
             Nenhuma bebida nesta categoria. A água também aparece na aba Minha meta de água.
           </p>
         ) : (
-          <ul className="grid max-h-[16rem] grid-cols-[repeat(auto-fill,minmax(17rem,1fr))] gap-1.5 overflow-y-auto overscroll-contain pr-1">
+          <ul className="grid max-h-[16rem] grid-cols-[repeat(auto-fill,minmax(min(17rem,100%),1fr))] gap-1.5 overflow-y-auto overscroll-contain pr-1">
             {items
               .filter((item) => historyKind === "todos" || item.kind === historyKind)
               .map((item) => (

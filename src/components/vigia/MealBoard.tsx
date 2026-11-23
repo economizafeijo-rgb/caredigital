@@ -252,7 +252,7 @@ export function MealBoard({
         <h3 className="flex flex-wrap items-baseline gap-2 text-[13px] font-bold">
           {title} <span className="text-[11px] font-normal text-muted-foreground">{hint}</span>
         </h3>
-        <ul className="mt-2 grid grid-cols-[repeat(auto-fill,minmax(13.5rem,1fr))] gap-2">
+        <ul className="mt-2 grid grid-cols-[repeat(auto-fill,minmax(min(13.5rem,100%),1fr))] gap-2">
           {items.map((item, i) => card(item, i, prefix))}
         </ul>
       </section>
@@ -474,17 +474,17 @@ export function MealBoard({
 
         {/* Com alimentos reconhecidos, a quantidade já é editada em cada linha: o campo seria redundante. */}
         {foods.length === 0 && (
-        <label className="block text-xs font-semibold">
-          <span className="block">Quantidade ou porção (opcional)</span>
-          <input
-            type="text"
-            className="field mt-1 block min-h-[36px] w-full text-sm"
-            maxLength={100}
-            value={portion}
-            onChange={(e) => onPortion(e.target.value)}
-            placeholder="Ex.: 1 unidade, 100 g, 1 prato"
-          />
-        </label>
+          <label className="block text-xs font-semibold">
+            <span className="block">Quantidade ou porção (opcional)</span>
+            <input
+              type="text"
+              className="field mt-1 block min-h-[36px] w-full text-sm"
+              maxLength={100}
+              value={portion}
+              onChange={(e) => onPortion(e.target.value)}
+              placeholder="Ex.: 1 unidade, 100 g, 1 prato"
+            />
+          </label>
         )}
 
         <HowItWorks>{foodHowTo}</HowItWorks>

@@ -656,7 +656,7 @@ export function ClientQuickIntake({
               </div>
               <form
                 className={
-                  "care-intake-oneview-form mt-2 grid min-h-0 flex-1 content-start gap-3 overflow-y-auto overscroll-contain pr-1 " +
+                  "care-intake-oneview-form mt-2 grid min-h-0 flex-1 content-start gap-3 overflow-y-auto overflow-x-hidden overscroll-contain pr-1 [&_*]:min-w-0 " +
                   (mode === "water" ? "" : "")
                 }
                 onSubmit={(event) => void save(event)}
