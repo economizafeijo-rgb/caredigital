@@ -4785,3 +4785,14 @@ svg {
     transform: none;
   }
 }
+
+/* Tela cheia no celular/webapp: o app ocupa também a área do indicador inferior (sem faixa vazia
+   abaixo da barra) e respeita o recorte do topo. Requer viewport-fit=cover. */
+html,
+body {
+  min-height: 100%;
+  background-color: var(--background);
+}
+.care-shell {
+  padding-top: env(safe-area-inset-top);
+}
