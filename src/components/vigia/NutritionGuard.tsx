@@ -4,6 +4,7 @@ import {
   evaluateRisks,
   hazardsFor,
   levelColor,
+  levelInk,
   levelRank,
   levelText,
   type RiskInfo,
@@ -61,12 +62,12 @@ export function NutritionGuardPanel({ data }: { data: DailyNutrition }) {
           {worst === "ok" ? (
             <ShieldCheck size={16} className="text-emerald-500" />
           ) : (
-            <AlertTriangle size={16} style={{ color: levelColor[worst] }} />
+            <AlertTriangle size={16} style={{ color: levelInk[worst] }} />
           )}
           <strong className="text-sm font-bold">Limites de saúde de hoje</strong>
         </span>
         <span
-          className="px-2 py-0.5 text-[11px] font-bold text-white"
+          className={`px-2 py-0.5 text-[11px] font-bold ${worst === "near" || worst === "ok" ? "text-slate-950" : "text-white"}`}
           style={{ background: levelColor[worst] }}
         >
           {worst === "ok" ? "Tudo dentro do limite" : levelText[worst]}
@@ -80,12 +81,19 @@ export function NutritionGuardPanel({ data }: { data: DailyNutrition }) {
           return (
             <article
               key={r.key}
-              className={`border border-border bg-muted/30 p-2.5 ${r.level === "severe" ? "nv-due" : ""}`}
-              style={{ boxShadow: `inset 3px 0 0 ${col}`, ["--due" as string]: col }}
+              className={`border border-border p-2.5 ${r.level === "severe" ? "nv-due" : ""}`}
+              style={{
+                boxShadow: `inset 3px 0 0 ${col}`,
+                background:
+                  r.level === "ok"
+                    ? "rgb(255 255 255 / .04)"
+                    : `color-mix(in srgb, ${col} ${r.level === "severe" ? 16 : 11}%, #12151c)`,
+                ["--due" as string]: col,
+              }}
             >
               <div className="flex items-center justify-between gap-2 text-xs">
                 <span className="flex items-center gap-1.5 font-semibold">
-                  <Icon size={14} style={{ color: col }} /> {r.label}
+                  <Icon size={14} style={{ color: levelInk[r.level] }} /> {r.label}
                 </span>
                 <span className="tabular-nums">
                   <b className="text-sm">{Math.round(r.value).toLocaleString("pt-BR")}</b>
@@ -120,12 +128,12 @@ export function NutritionGuardPanel({ data }: { data: DailyNutrition }) {
                 />
               </div>
               <p className="mt-1.5 flex items-center justify-between text-[11px]">
-                <b style={{ color: col }}>{levelText[r.level]}</b>
+                <b style={{ color: levelInk[r.level] }}>{levelText[r.level]}</b>
                 <span className="tabular-nums text-muted-foreground">
                   {Math.round(r.pct * 100)}% do limite
                 </span>
               </p>
-              <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{advice(r)}</p>
+              <p className="mt-1 text-xs leading-snug text-foreground/90">{advice(r)}</p>
               {r.culprits.length > 0 && r.value > 0 && (
                 <ul className="mt-1.5 flex flex-wrap gap-1">
                   {r.culprits.map((c) => (
@@ -162,9 +170,9 @@ export function NutritionGuardPanel({ data }: { data: DailyNutrition }) {
         Limites: sódio abaixo de 2.000 mg/dia e açúcar livre abaixo de 10% das calorias (OMS);
         gordura pela sua meta. Açúcar livre inclui o açúcar adicionado, o mel, os xaropes e os
         sucos. Valores estimados (TACO/TBCA e rótulos) a partir do que você registrou; sal de mesa,
-        açúcar de colher e molhos só entram se forem registrados. Limonada sem a indicação "sem açúcar" é
-        contada como adoçada (estimativa de 10 g a cada 200 ml). Não substitui orientação de médico ou
-        nutricionista.
+        açúcar de colher e molhos só entram se forem registrados. Limonada sem a indicação "sem
+        açúcar" é contada como adoçada (estimativa de 10 g a cada 200 ml). Não substitui orientação
+        de médico ou nutricionista.
       </p>
     </section>
   );
@@ -274,7 +282,7 @@ export function NutritionGuardWatcher({
           <div
             key={t.id}
             role="alert"
-            className="nv-fade-in nv-due pointer-events-auto relative overflow-hidden border border-white/15 bg-[#0b1230] p-3 text-white shadow-2xl"
+            className="nv-fade-in nv-due pointer-events-auto relative overflow-hidden border border-white/15 bg-[#14171f] p-3 text-white shadow-2xl"
             style={{ borderLeft: `4px solid ${col}`, ["--due" as string]: col }}
           >
             <button
@@ -287,7 +295,7 @@ export function NutritionGuardWatcher({
             </button>
             <p
               className="flex items-center gap-2 pr-6 text-sm font-extrabold"
-              style={{ color: col }}
+              style={{ color: levelInk[t.risk.level] }}
             >
               <Icon size={16} /> {levelText[t.risk.level]}: {t.risk.label}
             </p>

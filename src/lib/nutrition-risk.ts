@@ -338,6 +338,14 @@ export const levelText: Record<RiskLevel, string> = {
   over: "Limite excedido",
   severe: "Muito acima do limite",
 };
+/** Tons claros para TEXTO sobre fundo escuro (contraste mínimo 4,5:1); levelColor serve para barras e ícones. */
+export const levelInk: Record<RiskLevel, string> = {
+  ok: "#6ee7b7",
+  near: "#fcd34d",
+  over: "#fda4af",
+  severe: "#ffb4b4",
+};
+
 export const levelColor: Record<RiskLevel, string> = {
   ok: "#10b981",
   near: "#f59e0b",

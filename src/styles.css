@@ -4357,8 +4357,17 @@ body {
 
 /* Cartões do dia (pontuação, água, refeições, coração, atividade) */
 .nv-scan {
-  background-image: linear-gradient(135deg, #0d1538 0%, #0a1a33 55%, #0b2a35 100%) !important;
-  border-color: rgba(129, 140, 248, 0.28) !important;
+  /* Grafite neutro (sem azul): deixa as cores dos dados — vermelho, âmbar, verde — se destacarem.
+     As variáveis abaixo valem também no tema claro, porque o cartão é sempre escuro. */
+  --foreground: #f1f4fa;
+  --muted-foreground: #b4bdd0;
+  --card: #1c2029;
+  --muted: #262b36;
+  --border: rgba(255, 255, 255, 0.14);
+  color: var(--foreground);
+  background-color: #12151c !important;
+  background-image: linear-gradient(160deg, #181c25 0%, #12151c 60%, #0f1217 100%) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
 }
 .nv-scan :is(button, div)[style*="--c"] {
   background-image: linear-gradient(
