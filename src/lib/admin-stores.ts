@@ -22,6 +22,21 @@ export type SellerRequest = {
   vendor_id: string | null;
   created_at: string;
   reviewed_at: string | null;
+  archived_at: string | null;
+};
+
+export type RequestLogEntry = {
+  id: string;
+  created_at: string;
+  action: string;
+  actor_email: string;
+  details: {
+    request_id?: string;
+    business_name?: string;
+    status_anterior?: string;
+    status_novo?: string;
+    nota?: string | null;
+  } | null;
 };
 
 export type TimelineItem = {
@@ -125,6 +140,23 @@ export const listSellerRequests = () =>
 
 export const updateSellerRequest = (id: string, status: string, notes: string) =>
   call<void>("care_store_admin_update_request", { p_id: id, p_status: status, p_notes: notes });
+
+export const archiveSellerRequest = (id: string, archive: boolean) =>
+  call<void>("care_store_admin_archive_request", { p_id: id, p_archive: archive });
+
+export const deleteSellerRequest = (id: string, confirmName: string) =>
+  call<void>("care_store_admin_delete_request", { p_id: id, p_confirm: confirmName });
+
+/** Histórico das solicitações (de um pedido, ou de todos). */
+export const listSellerRequestLog = (requestId: string | null = null) =>
+  call<RequestLogEntry[]>("care_store_admin_request_log", { p_request: requestId, p_limit: 500 });
+
+export const REQUEST_ACTION_LABEL: Record<string, string> = {
+  solicitacao_atualizada: "Situação ou resposta",
+  solicitacao_arquivada: "Arquivada",
+  solicitacao_desarquivada: "Desarquivada",
+  solicitacao_excluida: "Excluída definitivamente",
+};
 
 export const submitSellerRequest = (r: {
   businessName: string;
