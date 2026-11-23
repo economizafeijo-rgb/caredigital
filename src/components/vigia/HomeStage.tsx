@@ -168,77 +168,152 @@ function MobileHero({
       aria-labelledby="home-title-m"
       className="nv-dark relative isolate -mx-5 -mt-2 overflow-hidden bg-[#0a1226] text-white sm:hidden"
     >
-      {goals.map((g, i) => (
-        <img
-          key={g.key}
-          src={heroBg[g.key]}
-          alt=""
-          aria-hidden="true"
-          loading={i === idx ? "eager" : "lazy"}
-          className={`absolute inset-0 -z-20 size-full object-cover object-[60%_20%] transition-opacity duration-700 ${i === idx ? "opacity-90" : "opacity-0"}`}
-        />
-      ))}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-gradient-to-b from-[#0a1226]/55 via-[#0a1226]/45 to-[#0a1226]"
-      />
       <div
         aria-hidden="true"
         className="absolute inset-0 -z-10"
         style={{
           background:
-            "radial-gradient(70% 45% at 100% 0%, rgba(63,224,200,.22), transparent 70%), radial-gradient(60% 40% at 0% 55%, rgba(200,29,107,.18), transparent 70%)",
+            "radial-gradient(75% 40% at 90% 0%, rgba(99,102,241,.35), transparent 70%), radial-gradient(70% 38% at 0% 62%, rgba(63,224,200,.20), transparent 70%), radial-gradient(60% 30% at 100% 100%, rgba(232,54,143,.16), transparent 70%)",
         }}
       />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 opacity-60 [background-image:linear-gradient(rgba(255,255,255,.045)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.045)_1px,transparent_1px)] [background-size:44px_44px] [mask-image:linear-gradient(to_bottom,#000,transparent_70%)]"
+      />
 
-      <div className="flex min-h-[min(44rem,calc(100svh-8rem))] flex-col justify-between px-5 pb-5 pt-5">
-        <div className="flex flex-wrap items-center gap-2">
-          <CampaignPill />
+      <div className="px-5 pb-6 pt-5">
+        <CampaignPill />
+
+        <p className="nv-rise mt-6 inline-flex items-center gap-2 text-[12.5px] font-semibold text-[#3fe0c8]">
+          <span className="relative flex size-2">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-[#3fe0c8] opacity-60" />
+            <span className="relative inline-flex size-2 rounded-full bg-[#3fe0c8]" />
+          </span>
+          Feijó, Acre · marketplace local e bem-estar
+        </p>
+        <h1
+          id="home-title-m"
+          style={{ animationDelay: "100ms" }}
+          className="nv-rise mt-3 text-balance font-display text-[2.45rem] font-extrabold leading-[1.02] tracking-[-0.03em]"
+        >
+          {client ? (
+            `${greet}, ${firstName}.`
+          ) : (
+            <>
+              Compre de quem é <span className="text-[#3fe0c8]">daqui.</span> Cuide de você todo
+              dia.
+            </>
+          )}
+        </h1>
+        <p
+          style={{ animationDelay: "180ms" }}
+          className="nv-rise mt-3 max-w-[36ch] text-[15.5px] leading-relaxed text-white/75"
+        >
+          {client
+            ? "Sua rotina em dia e as melhores ofertas de Feijó."
+            : "As lojas da sua cidade, com Pix e entrega, e a sua rotina de saúde no mesmo aplicativo."}
+        </p>
+
+        <div
+          style={{ animationDelay: "260ms" }}
+          className="nv-rise mt-5 grid grid-cols-[1fr_auto] gap-2.5"
+        >
+          <a
+            href="#ofertas"
+            className="inline-flex h-[3.25rem] items-center justify-center gap-2 rounded-2xl bg-[#3fe0c8] px-5 text-[15px] font-extrabold text-slate-950 shadow-[0_12px_32px_-12px_rgba(63,224,200,.8)] transition active:scale-[.98]"
+          >
+            <ShoppingCart size={18} aria-hidden="true" /> Ver ofertas
+          </a>
+          {panel ? (
+            <Link
+              to={panel}
+              aria-label="Abrir meu painel"
+              className="inline-flex h-[3.25rem] items-center justify-center gap-2 rounded-2xl border border-white/25 bg-white/10 px-4 text-[14px] font-semibold backdrop-blur transition active:scale-[.98]"
+            >
+              <LayoutDashboard size={17} aria-hidden="true" /> Meu painel
+            </Link>
+          ) : (
+            <a
+              href="/entrar?mode=signup"
+              className="inline-flex h-[3.25rem] items-center justify-center gap-2 rounded-2xl border border-white/25 bg-white/10 px-4 text-[14px] font-semibold backdrop-blur transition active:scale-[.98]"
+            >
+              <Gift size={17} aria-hidden="true" /> Criar conta
+            </a>
+          )}
         </div>
 
-        <div className="mt-24">
-          <p className="nv-rise inline-flex items-center gap-1.5 text-[13px] font-semibold text-white/80">
-            <MapPin size={14} aria-hidden="true" className="text-[#3fe0c8]" />
-            Feijó, Acre
-          </p>
-          <h1
-            id="home-title-m"
-            style={{ animationDelay: "120ms" }}
-            className="nv-rise mt-2 text-balance font-display text-[2.7rem] font-extrabold leading-[1] tracking-tight"
-          >
-            {client ? `${greet}, ${firstName}.` : "Compre de quem é daqui."}
-          </h1>
-          <p
-            style={{ animationDelay: "200ms" }}
-            className="nv-rise mt-3 max-w-[34ch] text-[16px] leading-snug text-white/90"
-          >
-            {client
-              ? "Sua rotina em dia e as melhores ofertas de Feijó."
-              : "As lojas da cidade e a sua rotina de bem-estar no mesmo aplicativo."}
-          </p>
+        {/* Vitrine: foto enquadrada com cartões de vidro sobrepostos */}
+        <div style={{ animationDelay: "340ms" }} className="nv-rise relative mt-7 pb-9">
+          <div className="relative aspect-[4/3] overflow-hidden rounded-3xl ring-1 ring-white/15 shadow-[0_30px_60px_-25px_rgba(0,0,0,.8)]">
+            {goals.map((g, i) => (
+              <img
+                key={g.key}
+                src={heroBg[g.key]}
+                alt=""
+                aria-hidden="true"
+                loading={i === idx ? "eager" : "lazy"}
+                className={`absolute inset-0 size-full object-cover transition-opacity duration-700 ${i === idx ? "opacity-100" : "opacity-0"}`}
+              />
+            ))}
+            <span
+              aria-hidden="true"
+              className="absolute inset-0 bg-gradient-to-t from-[#0a1226]/70 via-transparent to-transparent"
+            />
+            <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-black/45 px-2.5 py-1 text-[11.5px] font-semibold backdrop-blur">
+              <goal.icon size={13} aria-hidden="true" className="text-[#3fe0c8]" />
+              {goal.label}
+            </span>
+          </div>
 
-          <div style={{ animationDelay: "280ms" }} className="nv-rise mt-5 grid gap-2.5">
-            <a
-              href="#ofertas"
-              className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-[#3fe0c8] px-5 text-base font-extrabold text-slate-950 shadow-[0_10px_30px_-10px_rgba(63,224,200,.7)] transition active:scale-[.98]"
+          {picks[0] && (
+            <button
+              type="button"
+              onClick={() => openProduct(picks[0].id)}
+              aria-label={`Ver ${picks[0].name}, ${money(picks[0].priceCents)}`}
+              className="absolute -bottom-0 right-3 flex w-[11.75rem] items-center gap-2.5 rounded-2xl border border-white/20 bg-[#0a1226]/80 p-2 text-left shadow-2xl backdrop-blur-xl transition active:scale-[.97]"
             >
-              <ShoppingCart size={19} aria-hidden="true" /> Ver ofertas da loja
-            </a>
-            {panel ? (
-              <Link
-                to={panel}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-white/30 bg-white/10 px-5 text-[15px] font-semibold backdrop-blur transition active:scale-[.98]"
-              >
-                <LayoutDashboard size={17} aria-hidden="true" /> Abrir meu painel
-              </Link>
-            ) : (
-              <a
-                href="/entrar?mode=signup"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-white/30 bg-white/10 px-5 text-[15px] font-semibold backdrop-blur transition active:scale-[.98]"
-              >
-                <Gift size={17} aria-hidden="true" /> Criar conta grátis
-              </a>
-            )}
+              <img
+                src={picks[0].img}
+                alt=""
+                width={96}
+                height={96}
+                className="size-12 shrink-0 rounded-xl bg-[#e9ebee] object-cover"
+              />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[12.5px] font-semibold">{picks[0].name}</span>
+                <span className="mt-0.5 block text-[15px] font-extrabold text-[#3fe0c8]">
+                  {money(picks[0].priceCents)}
+                </span>
+              </span>
+            </button>
+          )}
+          <div className="absolute bottom-0 left-3 flex items-center gap-2 rounded-2xl border border-white/20 bg-[#0a1226]/80 p-2 pr-3 shadow-2xl backdrop-blur-xl">
+            <svg viewBox="0 0 44 44" className="size-9 -rotate-90" aria-hidden="true">
+              <circle
+                cx="22"
+                cy="22"
+                r="18"
+                fill="none"
+                stroke="rgba(255,255,255,.14)"
+                strokeWidth="5"
+              />
+              <circle
+                cx="22"
+                cy="22"
+                r="18"
+                fill="none"
+                stroke="#3fe0c8"
+                strokeWidth="5"
+                strokeLinecap="round"
+                pathLength={1}
+                strokeDasharray="1"
+                strokeDashoffset=".28"
+              />
+            </svg>
+            <span className="leading-tight">
+              <b className="block text-[13px] font-bold">72%</b>
+              <span className="text-[11px] text-white/60">meta de água</span>
+            </span>
           </div>
         </div>
       </div>
