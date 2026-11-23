@@ -19,8 +19,11 @@ where id like 'plano-%';
 update public.diet_plans set variant = 1, variant_label = 'Cardápio A'
 where id like 'plano-%';
 
+-- Só para planos com condição específica: os planos gerais (condition_key = 'geral')
+-- podem repetir a variante, como já acontecia no seed inicial.
 create unique index if not exists diet_plans_active_condition_variant_idx
-  on public.diet_plans (condition_key, variant) where is_active = true;
+  on public.diet_plans (condition_key, variant)
+  where is_active = true and condition_key <> 'geral';
 
 insert into public.diet_plans (id, name, goal, category, summary, caution, sources, kcal, water, meals, condition_key, variant, variant_label, is_active)
 values
