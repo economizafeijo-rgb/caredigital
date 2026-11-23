@@ -94,6 +94,12 @@ function Entrar() {
       setNotice({ type: "error", message: storeBlockMessage("limit") ?? "" });
     if (reason === "expediente")
       setNotice({ type: "error", message: storeBlockMessage("expediente") ?? "" });
+    if (reason === "inactivity")
+      setNotice({
+        type: "error",
+        message:
+          "Sua sessão foi encerrada por inatividade (1 hora sem uso). Entre novamente para continuar.",
+      });
   }, []);
   const configurationIssue = getSupabaseConfigurationIssue();
 

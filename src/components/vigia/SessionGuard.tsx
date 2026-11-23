@@ -6,6 +6,11 @@ import { checkStoreDevice, releaseStoreDevice, type StoreDeviceState } from "@/l
 export const MANUAL_SIGNOUT_KEY = "nv-manual-signout";
 export const OTHER_DEVICE_PATH = "/entrar?reason=other-device";
 const CHECK_EVERY_MS = 30_000;
+/** Sem nenhuma interação por este tempo, a sessão é encerrada neste aparelho. */
+export const INACTIVITY_LIMIT_MS = 60 * 60 * 1000;
+export const LAST_ACTIVITY_KEY = "nv-last-activity";
+export const INACTIVITY_PATH = "/entrar?reason=inactivity";
+const ACTIVITY_WRITE_EVERY_MS = 30_000;
 
 const storage = {
   get(key: string) {
@@ -30,6 +35,38 @@ const storage = {
     }
   },
 };
+
+/** Hora da última interação, compartilhada entre as abas deste navegador (localStorage). */
+const activityStore = {
+  get(): number {
+    try {
+      return Number(window.localStorage.getItem(LAST_ACTIVITY_KEY) ?? 0);
+    } catch {
+      return 0;
+    }
+  },
+  set(value: number) {
+    try {
+      window.localStorage.setItem(LAST_ACTIVITY_KEY, String(value));
+    } catch {
+      /* sem armazenamento */
+    }
+  },
+  clear() {
+    try {
+      window.localStorage.removeItem(LAST_ACTIVITY_KEY);
+    } catch {
+      /* sem armazenamento */
+    }
+  },
+};
+
+function touchActivity(lastWrite: { at: number }) {
+  const now = Date.now();
+  if (now - lastWrite.at < ACTIVITY_WRITE_EVERY_MS) return;
+  lastWrite.at = now;
+  activityStore.set(now);
+}
 
 /** Erro que significa "esta sessão não existe mais" (e não uma falha de rede). */
 export function isSessionGone(
@@ -90,12 +127,38 @@ export function SessionGuard() {
       storeKind.current = "store";
       if (state !== "ok") await endStoreSession(state);
     };
+    const logoutInactive = async () => {
+      if (stopped) return;
+      stopped = true;
+      storage.set(MANUAL_SIGNOUT_KEY, "1");
+      activityStore.clear();
+      try {
+        await supabase.auth.signOut({ scope: "local" });
+      } catch {
+        /* já encerrada */
+      }
+      window.location.assign(INACTIVITY_PATH);
+    };
     const check = async () => {
-      if (stopped || document.visibilityState === "hidden") return;
+      if (stopped) return;
       try {
         const { data } = await supabase.auth.getSession();
         if (!data.session) return;
         hadSession.current = true;
+        // Inatividade: confere mesmo com a aba escondida, para o logout acontecer ao voltar.
+        const last = activityStore.get();
+        if (!last) activityStore.set(Date.now());
+        else if (Date.now() - last > INACTIVITY_LIMIT_MS) {
+          await logoutInactive();
+          return;
+        }
+      } catch {
+        /* sem rede: tenta de novo no próximo ciclo */
+      }
+      if (document.visibilityState === "hidden") return;
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (!data.session) return;
         const { error } = await supabase.auth.getUser();
         if (isSessionGone(error)) {
           await kicked();
@@ -107,7 +170,10 @@ export function SessionGuard() {
       }
     };
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN") storeKind.current = "unknown";
+      if (event === "SIGNED_IN") {
+        storeKind.current = "unknown";
+        activityStore.set(Date.now());
+      }
       if (session) hadSession.current = true;
       if (event === "SIGNED_OUT" && hadSession.current) {
         if (storage.get(MANUAL_SIGNOUT_KEY)) {
@@ -118,6 +184,11 @@ export function SessionGuard() {
         void kicked();
       }
     });
+    const lastWrite = { at: 0 };
+    const onActivity = () => touchActivity(lastWrite);
+    const activityEvents = ["pointerdown", "keydown", "scroll", "touchstart", "mousemove"] as const;
+    for (const ev of activityEvents) window.addEventListener(ev, onActivity, { passive: true });
+    onActivity();
     void check();
     const timer = window.setInterval(() => void check(), CHECK_EVERY_MS);
     const onWake = () => void check();
@@ -128,6 +199,7 @@ export function SessionGuard() {
       stopped = true;
       listener.subscription.unsubscribe();
       window.clearInterval(timer);
+      for (const ev of activityEvents) window.removeEventListener(ev, onActivity);
       window.removeEventListener("focus", onWake);
       window.removeEventListener("online", onWake);
       document.removeEventListener("visibilitychange", onWake);
