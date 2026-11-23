@@ -243,14 +243,17 @@ function PublicStore({
             src={vendor.banner_url || bannerFor(vendor.segment)}
             alt=""
 
-            className="absolute inset-y-0 right-0 h-full w-full object-cover opacity-55 lg:w-2/3"
+            className="absolute inset-y-0 right-0 h-full w-full object-cover opacity-90 lg:w-2/3"
           />
+          {/* Gradiente forte só onde fica o texto; à direita o banner aparece nítido. */}
           <div
             className="absolute inset-0"
             style={{
-              background: `linear-gradient(90deg, ${tint(78, "#070b14")} 0%, ${tint(62, "#070b14")} 40%, transparent 100%)`,
+              background: `linear-gradient(90deg, ${tint(80, "#070b14")} 0%, ${tint(66, "#070b14")} 36%, color-mix(in srgb, ${tint(62, "#070b14")} 40%, transparent) 60%, transparent 100%)`,
             }}
           />
+          {/* No celular o texto ocupa toda a largura: véu extra para manter a leitura. */}
+          <div className="absolute inset-0 bg-black/35 lg:hidden" />
         </div>
         <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-4 sm:px-5">
           <div className="flex min-w-0 flex-1 basis-[22rem] items-center gap-3.5">
