@@ -48,10 +48,10 @@ describe("NextVita nutrition safety and planning", () => {
     expect(chicken.fat).toBe(3.2);
     expect(chicken.kcal).toBe(163);
     expect(chicken.provenance).toBe("TACO");
-    expect(ingredients).toHaveLength(290);
+    expect(ingredients).toHaveLength(292);
     expect(
       ingredients.filter((x) => x.protein !== null && x.carbs !== null && x.fat !== null).length,
-    ).toBe(287);
+    ).toBe(289);
   });
   it("converts 100g and calculated portions without pretending labels are verified", () => {
     const chicken = ingredients.find((x) => x.id === "frango")!;
