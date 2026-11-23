@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { LogIn, Send, Trash2, X } from "lucide-react";
+import { LogIn, Maximize2, MessageCircle, Minimize2, Minus, Send, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { ChatMessage } from "@/lib/marketplace";
 import {
@@ -48,7 +48,7 @@ export function CustomerChat({
   orderId,
   initialText,
 }: {
-  vendor: { id: string; name: string; accent_hex?: string | null };
+  vendor: { id: string; name: string; accent_hex?: string | null; logo_url?: string | null };
   onClose: () => void;
   orderId?: string;
   /** Texto inicial do campo, ex.: pergunta sobre um produto. Fica no campo até o cliente enviar. */
@@ -67,6 +67,15 @@ export function CustomerChat({
   const storeAvailability = availabilityOf(storeStatus);
   const [myQueue, setMyQueue] = useState<QueuePosition | null>(null);
   const [queueBusy, setQueueBusy] = useState(false);
+  const [view, setView] = useState<"normal" | "max" | "min">("normal");
+  // Mensagens da loja que chegaram com o chat minimizado.
+  const seenAtMin = useRef(0);
+  useEffect(() => {
+    if (view === "min") seenAtMin.current = msgs.filter((m) => m.from_vendor).length;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view]);
+  const unreadMin =
+    view === "min" ? Math.max(0, msgs.filter((m) => m.from_vendor).length - seenAtMin.current) : 0;
 
   // Posição do cliente na fila: lida ao abrir (preserva a vez ao recarregar) e atualizada a cada 15 s.
   useEffect(() => {
@@ -269,99 +278,245 @@ export function CustomerChat({
     window.location.assign("/entrar");
   };
 
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={`Conversa com ${vendor.name}`}
-      className="fixed inset-0 z-[95] flex items-end justify-end bg-black/40 backdrop-blur-[2px] sm:p-4"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
+  const statusLabel =
+    storeAvailability === "offline"
+      ? "Offline"
+      : storeAvailability === "ocupado"
+        ? "Atendentes ocupados"
+        : "Online agora";
+  const statusDot =
+    storeAvailability === "offline"
+      ? "bg-slate-400"
+      : storeAvailability === "ocupado"
+        ? "bg-amber-400"
+        : "bg-emerald-400";
+  const avatar = (size: string) => (
+    <span
+      className={`relative grid ${size} shrink-0 place-items-center overflow-hidden rounded-full bg-white text-sm font-extrabold shadow-sm ring-2 ring-white/40`}
+      style={{ color: accent }}
     >
-      <ChatToastHost />
-      <div className="nv-fade-in flex h-[min(36rem,92dvh)] w-full flex-col overflow-hidden rounded-t-3xl bg-card shadow-2xl sm:w-[24rem] sm:rounded-3xl">
-        <header
-          className="flex items-center gap-3 px-4 py-3 text-white"
-          style={{ background: accent }}
+      {vendor.logo_url ? (
+        <img src={vendor.logo_url} alt="" className="size-full object-cover" />
+      ) : (
+        vendor.name.slice(0, 1).toUpperCase()
+      )}
+    </span>
+  );
+
+  if (view === "min")
+    return (
+      <div className="fixed bottom-[calc(8.5rem+env(safe-area-inset-bottom))] right-3 z-[95] sm:bottom-24 sm:right-5">
+        <ChatToastHost />
+        <div
+          className="nv-fade-in flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-2 text-white shadow-2xl ring-1 ring-white/20"
+          style={{
+            background: `linear-gradient(135deg, ${accent}, color-mix(in srgb, ${accent} 60%, #0b1220))`,
+          }}
         >
-          <span className="grid size-9 place-items-center rounded-full bg-white/20 text-sm font-extrabold">
-            {vendor.name.slice(0, 1)}
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold">{vendor.name}</p>
-            <p className="text-[11px] text-white/75">Responde pelo chat da NextVita</p>
-          </div>
-          <SoundToggle className="!border-white/30 text-white hover:!bg-white/15" />
+          <button
+            type="button"
+            onClick={() => setView("normal")}
+            aria-label={`Abrir conversa com ${vendor.name}`}
+            className="flex min-w-0 items-center gap-2.5 rounded-full pr-1 text-left"
+          >
+            <span className="relative">
+              {avatar("size-9")}
+              <span
+                className={`absolute bottom-0 right-0 size-2.5 rounded-full ring-2 ring-white ${statusDot}`}
+                aria-hidden="true"
+              />
+            </span>
+            <span className="min-w-0">
+              <span className="block max-w-[11rem] truncate text-[13px] font-bold">
+                {vendor.name}
+              </span>
+              <span className="block text-[11px] text-white/80">
+                {unreadMin > 0
+                  ? `${unreadMin} nova${unreadMin > 1 ? "s" : ""} mensage${unreadMin > 1 ? "ns" : "m"}`
+                  : statusLabel}
+              </span>
+            </span>
+            {unreadMin > 0 && (
+              <span
+                className="nv-msg-pulse grid min-w-5 place-items-center rounded-full bg-white px-1.5 text-[11px] font-extrabold"
+                style={{ color: accent }}
+              >
+                {unreadMin}
+              </span>
+            )}
+          </button>
           <button
             type="button"
             onClick={onClose}
             aria-label="Fechar conversa"
             className="grid size-8 place-items-center rounded-full hover:bg-white/15"
           >
-            <X size={17} />
+            <X size={16} />
           </button>
-        </header>
-        {user === null ? (
-          <div className="grid flex-1 place-items-center gap-3 p-8 text-center">
-            <p className="text-sm text-muted-foreground">
-              Entre na sua conta para conversar com a loja. Assim ela sabe quem é você e pode
-              acompanhar seu pedido.
+        </div>
+      </div>
+    );
+
+  const max = view === "max";
+  return (
+    <div
+      className={`fixed z-[95] ${max ? "inset-0 grid place-items-center bg-slate-950/60 p-0 backdrop-blur-sm sm:p-6" : "inset-0 sm:inset-auto sm:bottom-24 sm:right-5"}`}
+      onClick={(e) => max && e.target === e.currentTarget && setView("normal")}
+    >
+      <ChatToastHost />
+      <div
+        role="dialog"
+        aria-modal={max ? "true" : "false"}
+        aria-label={`Conversa com ${vendor.name}`}
+        className={`nv-fade-in flex flex-col overflow-hidden bg-card shadow-2xl ring-1 ring-black/5 dark:ring-white/10 ${
+          max
+            ? "h-full w-full sm:h-[min(52rem,92dvh)] sm:w-[min(56rem,96vw)] sm:rounded-3xl"
+            : "h-full w-full sm:h-[min(36rem,calc(100dvh-8rem))] sm:w-[25rem] sm:rounded-3xl"
+        }`}
+      >
+        <header
+          className="relative flex items-center gap-3 px-4 py-3.5 text-white"
+          style={{
+            background: `linear-gradient(135deg, ${accent}, color-mix(in srgb, ${accent} 55%, #0b1220))`,
+          }}
+        >
+          <span className="relative">
+            {avatar("size-10")}
+            <span
+              className={`absolute bottom-0 right-0 size-3 rounded-full ring-2 ring-white ${statusDot}`}
+              aria-hidden="true"
+            />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[15px] font-extrabold leading-tight">{vendor.name}</p>
+            <p className="mt-0.5 text-[11.5px] text-white/85">
+              {peerTyping ? "Digitando…" : statusLabel}
             </p>
+          </div>
+          <div className="flex items-center gap-0.5">
+            <SoundToggle className="!size-8 !border-0 text-white hover:!bg-white/15" />
             <button
               type="button"
-              onClick={login}
-              className="inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-bold text-white"
-              style={{ background: accent }}
+              onClick={() => setView("min")}
+              aria-label="Minimizar conversa"
+              title="Minimizar"
+              className="grid size-8 place-items-center rounded-full transition hover:bg-white/15"
             >
-              <LogIn size={16} /> Entrar
+              <Minus size={17} />
             </button>
+            <button
+              type="button"
+              onClick={() => setView(max ? "normal" : "max")}
+              aria-label={max ? "Restaurar tamanho" : "Maximizar conversa"}
+              title={max ? "Restaurar" : "Maximizar"}
+              className="hidden size-8 place-items-center rounded-full transition hover:bg-white/15 sm:grid"
+            >
+              {max ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Fechar conversa"
+              title="Fechar"
+              className="grid size-8 place-items-center rounded-full transition hover:bg-white/15"
+            >
+              <X size={17} />
+            </button>
+          </div>
+        </header>
+        {user === null ? (
+          <div className="grid flex-1 place-items-center p-8 text-center">
+            <div className="max-w-xs">
+              <span
+                className="mx-auto grid size-14 place-items-center rounded-2xl bg-muted"
+                style={{ color: accent }}
+              >
+                <MessageCircle size={26} />
+              </span>
+              <p className="mt-4 text-base font-bold">Entre para conversar com a loja</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Assim a loja sabe quem é você e pode acompanhar seu pedido.
+              </p>
+              <button
+                type="button"
+                onClick={login}
+                className="mt-5 inline-flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold text-white shadow-md transition hover:brightness-110"
+                style={{ background: accent }}
+              >
+                <LogIn size={16} /> Entrar na minha conta
+              </button>
+            </div>
           </div>
         ) : (
           <>
-            <StoreAvailabilityLine
-              availability={storeAvailability}
-              agents={storeStatus?.agents_online ?? null}
-            />
+            {storeAvailability !== "livre" && (
+              <StoreAvailabilityLine
+                availability={storeAvailability}
+                agents={storeStatus?.agents_online ?? null}
+              />
+            )}
             <QueueCard
               queue={myQueue ?? { state: "none" }}
               onLeave={() => void leaveQueue()}
               busy={queueBusy}
             />
-            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto bg-muted/40 px-3 py-3">
-              {!msgs.length && (
-                <p className="mx-auto mt-6 max-w-[16rem] text-center text-xs text-muted-foreground">
-                  Mande sua dúvida sobre produtos, prazos ou retirada. A loja recebe na hora.
-                </p>
-              )}
-              {msgs.map((m) => (
-                <div
-                  key={m.id}
-                  className={`group flex items-center gap-1 ${m.from_vendor ? "justify-start" : "justify-end"}`}
-                >
-                  {!m.from_vendor && !m.deleted_at && (
-                    <button
-                      type="button"
-                      onClick={() => void remove(m.id)}
-                      aria-label="Apagar mensagem"
-                      title="Apagar mensagem"
-                      className="grid size-7 place-items-center rounded-full text-muted-foreground opacity-0 transition hover:bg-muted hover:text-rose-500 focus:opacity-100 group-hover:opacity-100"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  )}
-                  <p
-                    className={`max-w-[80%] rounded-2xl px-3 py-2 text-[13.5px] shadow-sm ${m.deleted_at ? "border border-dashed border-border bg-transparent italic text-muted-foreground" : m.from_vendor ? "rounded-bl-md bg-card" : "rounded-br-md text-white"}`}
-                    style={m.from_vendor || m.deleted_at ? undefined : { background: accent }}
-                  >
-                    {m.deleted_at ? "Mensagem apagada" : m.body}
+            <div className="min-h-0 flex-1 overflow-y-auto bg-[color-mix(in_srgb,var(--muted)_55%,transparent)] px-3 py-4 sm:px-4">
+              <div className={`mx-auto flex flex-col gap-2 ${max ? "max-w-3xl" : ""}`}>
+                {!msgs.length && (
+                  <div className="mx-auto mt-8 max-w-[17rem] text-center">
                     <span
-                      className={`mt-0.5 block text-right text-[10px] ${m.from_vendor || m.deleted_at ? "text-muted-foreground" : "text-white/70"}`}
+                      className="mx-auto grid size-12 place-items-center rounded-2xl bg-card shadow-sm"
+                      style={{ color: accent }}
                     >
-                      {time(m.created_at)}
+                      <MessageCircle size={22} />
                     </span>
-                  </p>
-                </div>
-              ))}
-              <div ref={end} />
+                    <p className="mt-3 text-sm font-bold">Como podemos ajudar?</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Pergunte sobre produtos, prazos, entrega ou retirada. A loja recebe na hora.
+                    </p>
+                  </div>
+                )}
+                {msgs.map((m) =>
+                  m.is_system ? (
+                    <p
+                      key={m.id}
+                      className="mx-auto my-1 w-fit max-w-[90%] rounded-full bg-card px-3 py-1 text-center text-[11.5px] text-muted-foreground shadow-sm"
+                    >
+                      {m.body}
+                    </p>
+                  ) : (
+                    <div
+                      key={m.id}
+                      className={`group flex items-end gap-1.5 ${m.from_vendor ? "justify-start" : "justify-end"}`}
+                    >
+                      {m.from_vendor && avatar("size-6")}
+                      {!m.from_vendor && !m.deleted_at && (
+                        <button
+                          type="button"
+                          onClick={() => void remove(m.id)}
+                          aria-label="Apagar mensagem"
+                          title="Apagar mensagem"
+                          className="grid size-7 place-items-center rounded-full text-muted-foreground opacity-0 transition hover:bg-muted hover:text-rose-500 focus:opacity-100 group-hover:opacity-100"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )}
+                      <p
+                        className={`max-w-[78%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-[13.5px] leading-snug shadow-sm ${m.deleted_at ? "border border-dashed border-border bg-transparent italic text-muted-foreground" : m.from_vendor ? "rounded-bl-md bg-card" : "rounded-br-md text-white"}`}
+                        style={m.from_vendor || m.deleted_at ? undefined : { background: accent }}
+                      >
+                        {m.deleted_at ? "Mensagem apagada" : m.body}
+                        <span
+                          className={`mt-0.5 block text-right text-[10.5px] ${m.from_vendor || m.deleted_at ? "text-muted-foreground" : "text-white/75"}`}
+                        >
+                          {time(m.created_at)}
+                        </span>
+                      </p>
+                    </div>
+                  ),
+                )}
+                <div ref={end} />
+              </div>
             </div>
             {(() => {
               const last = msgs[msgs.length - 1];
@@ -381,53 +536,55 @@ export function CustomerChat({
                           setErr(e instanceof Error ? e.message : "Não foi possível continuar."),
                         )
                     }
-                    className="shrink-0 rounded-md bg-slate-950 px-3 py-1.5 font-bold text-white"
+                    className="shrink-0 rounded-lg bg-slate-950 px-3 py-1.5 font-bold text-white"
                   >
                     Continuar atendimento
                   </button>
                 </div>
               );
             })()}
-            {peerTyping && (
-              <p role="status" className="px-3 pt-2 text-xs text-muted-foreground">
-                Atendente digitando…
-              </p>
-            )}
-            <form onSubmit={send} className="flex gap-2 border-t border-border p-3">
-              <input
-                value={text}
-                onChange={(e) => {
-                  setText(e.target.value);
-                  liveRef.current?.typing();
-                }}
-                maxLength={500}
-                placeholder={
-                  storeAvailability === "offline"
-                    ? "Chat inativo: loja offline"
-                    : "Escreva sua mensagem"
-                }
-                aria-label="Mensagem"
-                className="h-10 min-w-0 flex-1 rounded-full border border-border bg-surface px-4 text-sm"
-                disabled={!user || storeAvailability === "offline"}
-              />
-              <button
-                type="submit"
-                disabled={!text.trim() || !user || storeAvailability === "offline"}
-                aria-label="Enviar"
-                className="grid size-10 place-items-center rounded-full text-white disabled:opacity-40"
-                style={{ background: accent }}
+            <form onSubmit={send} className="border-t border-border bg-card p-3">
+              <div
+                className={`mx-auto flex items-center gap-2 rounded-2xl border border-border bg-surface p-1.5 pl-4 focus-within:ring-2 focus-within:ring-[color-mix(in_srgb,var(--v,#888)_40%,transparent)] ${max ? "max-w-3xl" : ""}`}
               >
-                <Send size={16} />
-              </button>
-            </form>
-            <p className="px-4 pb-2 text-[11px] text-muted-foreground">
-              {CHAT_RULE_NOTE} {CHAT_RETENTION_NOTE}
-            </p>
-            {err && (
-              <p role="alert" className="px-4 pb-2 text-xs text-rose-600">
-                {err}
+                <input
+                  value={text}
+                  onChange={(e) => {
+                    setText(e.target.value);
+                    liveRef.current?.typing();
+                  }}
+                  maxLength={500}
+                  placeholder={
+                    storeAvailability === "offline"
+                      ? "Chat inativo: loja offline"
+                      : "Escreva sua mensagem…"
+                  }
+                  aria-label="Mensagem"
+                  className="h-9 min-w-0 flex-1 bg-transparent text-sm outline-none"
+                  disabled={!user || storeAvailability === "offline"}
+                />
+                <button
+                  type="submit"
+                  disabled={!text.trim() || !user || storeAvailability === "offline"}
+                  aria-label="Enviar"
+                  className="grid size-9 shrink-0 place-items-center rounded-xl text-white shadow-sm transition hover:brightness-110 disabled:opacity-40"
+                  style={{ background: accent }}
+                >
+                  <Send size={15} />
+                </button>
+              </div>
+              {err && (
+                <p
+                  role="alert"
+                  className="mt-2 text-xs font-semibold text-rose-600 dark:text-rose-300"
+                >
+                  {err}
+                </p>
+              )}
+              <p className="mt-2 text-center text-[10.5px] leading-snug text-muted-foreground">
+                {CHAT_RULE_NOTE} {CHAT_RETENTION_NOTE}
               </p>
-            )}
+            </form>
           </>
         )}
       </div>

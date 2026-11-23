@@ -6,6 +6,7 @@ type RealtimeChannel = {
   subscribe: () => RealtimeChannel;
 };
 import {
+  Archive,
   ArrowLeft,
   CheckSquare,
   ChevronDown,
@@ -16,7 +17,6 @@ import {
   Square,
   Trash2,
 } from "lucide-react";
-import { useDialog } from "@/lib/dialog";
 import {
   CHAT_RETENTION_NOTE,
   CHAT_RULE_NOTE,
@@ -31,6 +31,9 @@ import { AvailabilityToggle } from "./AvailabilityToggle";
 import { ProductLookup } from "./ProductLookup";
 import { ChatTimer } from "./ChatTimer";
 import { precheckMessage } from "@/lib/store-moderation";
+import { deleteThreadsWithPass, deleteVendorMessage } from "@/lib/chat-history";
+import { ChatHistoryPanel } from "./ChatHistoryPanel";
+import { useOwnerPasswordPrompt } from "./OwnerPasswordPrompt";
 import { supabase } from "@/integrations/supabase/client";
 import type { ChatMessage, Vendor } from "@/lib/marketplace";
 
@@ -150,26 +153,24 @@ export function SellerChat({
     () => computeQueue(messages, now, vendor.chat_capacity ?? 3),
     [messages, now, vendor.chat_capacity],
   );
+  const [view, setView] = useState<"live" | "history">("live");
   const [quickOpen, setQuickOpen] = useState(false);
   const [selecting, setSelecting] = useState(false);
   const [picked, setPicked] = useState<Set<string>>(new Set());
+  const { ask: askPassword, element: passwordPrompt } = useOwnerPasswordPrompt();
   async function deleteThreads(ids: string[]) {
     if (!ids.length) return;
-    if (
-      !(await confirm(
-        ids.length === 1 ? "Apagar esta conversa?" : `Apagar ${ids.length} conversas?`,
-        "Todas as mensagens somem para você e para o cliente. Não dá para desfazer.",
-        true,
-        "Apagar tudo",
-      ))
-    )
-      return;
-    const { error } = await (supabase as any).rpc("care_store_delete_threads", {
-      p_vendor: vendor.id,
-      p_customers: ids,
+    const ok = await askPassword({
+      title: ids.length === 1 ? "Apagar esta conversa?" : `Apagar ${ids.length} conversas?`,
+      description:
+        "As mensagens somem para a loja e para o cliente. A plataforma guarda uma cópia de segurança por 6 meses.",
+      confirmLabel: "Apagar tudo",
+      danger: true,
+      action: async (pw) => {
+        await deleteThreadsWithPass(vendor.id, ids, pw);
+      },
     });
-    if (error)
-      return setErr("Não foi possível apagar. Aplique a migração mais recente e tente de novo.");
+    if (!ok) return;
     setErr("");
     setPicked(new Set());
     setSelecting(false);
@@ -183,20 +184,17 @@ export function SellerChat({
       else n.add(id);
       return n;
     });
-  const { confirm } = useDialog();
   async function remove(id: string) {
-    if (
-      !(await confirm(
-        "Apagar esta mensagem?",
-        "Ela some para você e para o cliente, ficando só o aviso “Mensagem apagada”.",
-        true,
-        "Apagar",
-      ))
-    )
-      return;
-    const { error } = await (supabase as any).rpc("care_store_delete_message", { p_message: id });
-    if (error) setErr("Não foi possível apagar a mensagem.");
-    else onChanged();
+    const ok = await askPassword({
+      title: "Apagar esta mensagem?",
+      description: "Ela some para você e para o cliente, ficando só o aviso “Mensagem apagada”.",
+      confirmLabel: "Apagar",
+      danger: true,
+      action: async (pw) => {
+        await deleteVendorMessage(id, pw);
+      },
+    });
+    if (ok) onChanged();
   }
 
   useEffect(() => {
@@ -241,311 +239,354 @@ export function SellerChat({
     onChanged();
   }
 
+  const tabs = (
+    <div
+      role="tablist"
+      aria-label="Chat da loja"
+      className="flex w-fit gap-1 rounded-xl border border-border bg-card p-1 text-[13px] font-semibold"
+    >
+      {(
+        [
+          ["live", "Conversas ao vivo", MessageCircle],
+          ["history", "Histórico", Archive],
+        ] as const
+      ).map(([k, label, Icon]) => (
+        <button
+          key={k}
+          type="button"
+          role="tab"
+          aria-selected={view === k}
+          onClick={() => setView(k)}
+          className={`inline-flex h-8 items-center gap-1.5 rounded-lg px-3 transition ${view === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}
+        >
+          <Icon size={14} /> {label}
+        </button>
+      ))}
+    </div>
+  );
+
+  if (view === "history")
+    return (
+      <div className="flex min-h-0 flex-1 flex-col gap-2">
+        {tabs}
+        <ChatHistoryPanel vendorId={vendor.id} mode="vendor" owner={!staff} />
+      </div>
+    );
+
   return (
-    <div className="grid min-h-[30rem] flex-1 overflow-hidden rounded-2xl border border-border bg-card lg:grid-cols-[18rem_minmax(0,1fr)]">
-      <aside
-        className={`min-h-0 flex-col border-r border-border ${active ? "hidden lg:flex" : "flex"}`}
-      >
-        <AvailabilityToggle vendorId={vendor.id} />
-        <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-2.5">
-          <p className="text-sm font-bold">
-            Conversas <span className="font-normal text-muted-foreground">· {threads.length}</span>
-          </p>
-          {threads.length > 0 && !staff && (
-            <button
-              type="button"
-              onClick={() => {
-                setSelecting((v) => !v);
-                setPicked(new Set());
-              }}
-              className="text-xs font-semibold text-primary hover:underline"
-            >
-              {selecting ? "Cancelar" : "Selecionar"}
-            </button>
-          )}
-        </div>
-        {selecting && (
-          <div className="flex flex-wrap items-center gap-2 border-b border-border bg-muted/40 px-4 py-2 text-xs">
-            <button
-              type="button"
-              onClick={() =>
-                setPicked(
-                  picked.size === threads.length ? new Set() : new Set(threads.map((t) => t.id)),
-                )
-              }
-              className="inline-flex items-center gap-1.5 font-semibold"
-            >
-              {picked.size === threads.length ? <CheckSquare size={14} /> : <Square size={14} />}
-              {picked.size === threads.length ? "Desmarcar todas" : "Marcar todas"}
-            </button>
-            <button
-              type="button"
-              disabled={!picked.size}
-              onClick={() => void deleteThreads([...picked])}
-              className="ml-auto inline-flex items-center gap-1.5 bg-rose-600 px-2.5 py-1.5 font-bold text-white disabled:opacity-40"
-            >
-              <Trash2 size={13} /> Apagar{picked.size ? ` (${picked.size})` : ""}
-            </button>
+    <div className="flex min-h-0 flex-1 flex-col gap-2">
+      {tabs}
+      {passwordPrompt}
+      <div className="grid min-h-[30rem] flex-1 overflow-hidden rounded-2xl border border-border bg-card lg:grid-cols-[18rem_minmax(0,1fr)]">
+        <aside
+          className={`min-h-0 flex-col border-r border-border ${active ? "hidden lg:flex" : "flex"}`}
+        >
+          <AvailabilityToggle vendorId={vendor.id} />
+          <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-2.5">
+            <p className="text-sm font-bold">
+              Conversas{" "}
+              <span className="font-normal text-muted-foreground">· {threads.length}</span>
+            </p>
+            {threads.length > 0 && !staff && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelecting((v) => !v);
+                  setPicked(new Set());
+                }}
+                className="text-xs font-semibold text-primary hover:underline"
+              >
+                {selecting ? "Cancelar" : "Selecionar"}
+              </button>
+            )}
           </div>
-        )}
-        <div className="grid gap-1.5 border-b border-border bg-muted/30 px-4 py-2.5 text-xs">
-          <p className="flex items-center justify-between font-semibold">
-            <span>Em atendimento</span>
-            <span className="tabular-nums">
-              {queue.active.length}/{queue.capacity}
-            </span>
-          </p>
-          <div className="flex h-1.5 gap-0.5" aria-hidden="true">
-            {Array.from({ length: queue.capacity }, (_, i) => (
-              <span
-                key={i}
-                className={`flex-1 ${i < queue.active.length ? "bg-emerald-500" : "bg-border"}`}
-              />
+          {selecting && (
+            <div className="flex flex-wrap items-center gap-2 border-b border-border bg-muted/40 px-4 py-2 text-xs">
+              <button
+                type="button"
+                onClick={() =>
+                  setPicked(
+                    picked.size === threads.length ? new Set() : new Set(threads.map((t) => t.id)),
+                  )
+                }
+                className="inline-flex items-center gap-1.5 font-semibold"
+              >
+                {picked.size === threads.length ? <CheckSquare size={14} /> : <Square size={14} />}
+                {picked.size === threads.length ? "Desmarcar todas" : "Marcar todas"}
+              </button>
+              <button
+                type="button"
+                disabled={!picked.size}
+                onClick={() => void deleteThreads([...picked])}
+                className="ml-auto inline-flex items-center gap-1.5 bg-rose-600 px-2.5 py-1.5 font-bold text-white disabled:opacity-40"
+              >
+                <Trash2 size={13} /> Apagar{picked.size ? ` (${picked.size})` : ""}
+              </button>
+            </div>
+          )}
+          <div className="grid gap-1.5 border-b border-border bg-muted/30 px-4 py-2.5 text-xs">
+            <p className="flex items-center justify-between font-semibold">
+              <span>Em atendimento</span>
+              <span className="tabular-nums">
+                {queue.active.length}/{queue.capacity}
+              </span>
+            </p>
+            <div className="flex h-1.5 gap-0.5" aria-hidden="true">
+              {Array.from({ length: queue.capacity }, (_, i) => (
+                <span
+                  key={i}
+                  className={`flex-1 ${i < queue.active.length ? "bg-emerald-500" : "bg-border"}`}
+                />
+              ))}
+            </div>
+            <p className="flex items-center justify-between text-muted-foreground">
+              <span className="inline-flex items-center gap-1">
+                <Clock3 size={12} /> Na fila de espera
+              </span>
+              <strong className={queue.waiting.length ? "text-amber-600 dark:text-amber-300" : ""}>
+                {queue.waiting.length}
+              </strong>
+            </p>
+            {queue.waiting.slice(0, 4).map((w) => (
+              <button
+                key={w.id}
+                type="button"
+                onClick={() => {
+                  setSelecting(false);
+                  setSel(w.id);
+                }}
+                className="flex items-center justify-between gap-2 border border-border bg-card px-2 py-1 text-left hover:bg-muted"
+              >
+                <span className="truncate">
+                  {w.position}º · {w.name}
+                </span>
+                <span className="shrink-0 font-bold tabular-nums text-amber-600 dark:text-amber-300">
+                  {fmtWait((now - w.since) / 1000)}
+                </span>
+              </button>
             ))}
           </div>
-          <p className="flex items-center justify-between text-muted-foreground">
-            <span className="inline-flex items-center gap-1">
-              <Clock3 size={12} /> Na fila de espera
-            </span>
-            <strong className={queue.waiting.length ? "text-amber-600 dark:text-amber-300" : ""}>
-              {queue.waiting.length}
-            </strong>
-          </p>
-          {queue.waiting.slice(0, 4).map((w) => (
-            <button
-              key={w.id}
-              type="button"
-              onClick={() => {
-                setSelecting(false);
-                setSel(w.id);
-              }}
-              className="flex items-center justify-between gap-2 border border-border bg-card px-2 py-1 text-left hover:bg-muted"
-            >
-              <span className="truncate">
-                {w.position}º · {w.name}
-              </span>
-              <span className="shrink-0 font-bold tabular-nums text-amber-600 dark:text-amber-300">
-                {fmtWait((now - w.since) / 1000)}
-              </span>
-            </button>
-          ))}
-        </div>
-        <ul className="min-h-0 flex-1 overflow-y-auto">
-          {threads.map((t) => (
-            <li key={t.id}>
-              <button
-                type="button"
-                onClick={() => (selecting ? toggle(t.id) : setSel(t.id))}
-                aria-current={t.id === active ? "true" : undefined}
-                className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors ${t.id === active ? "bg-[color-mix(in_srgb,var(--accent-store)_10%,transparent)]" : "hover:bg-muted/50"}`}
-              >
-                {selecting && (
-                  <span aria-hidden="true" className="shrink-0 text-primary">
-                    {picked.has(t.id) ? <CheckSquare size={17} /> : <Square size={17} />}
-                  </span>
-                )}
-                <span
-                  className="grid size-9 shrink-0 place-items-center rounded-full text-sm font-bold text-white"
-                  style={{ background: "var(--accent-store)" }}
-                >
-                  {t.name.slice(0, 1).toUpperCase()}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="flex justify-between gap-2">
-                    <strong className="truncate text-[13px]">{t.name}</strong>
-                    <span className="shrink-0 text-[11px] text-muted-foreground">
-                      {time(t.last.created_at).slice(6)}
-                    </span>
-                  </span>
-                  <span className="block truncate text-xs text-muted-foreground">
-                    {t.last.deleted_at
-                      ? "Mensagem apagada"
-                      : `${t.last.from_vendor ? "Você: " : ""}${t.last.body}`}
-                  </span>
-                </span>
-                {t.unread > 0 && (
-                  <span className="grid min-w-5 place-items-center rounded-full bg-sky-500 px-1.5 text-[11px] font-bold text-white">
-                    {t.unread}
-                  </span>
-                )}
-              </button>
-            </li>
-          ))}
-          {!threads.length && (
-            <li className="grid place-items-center gap-2 px-6 py-16 text-center text-sm text-muted-foreground">
-              <MessageCircle size={22} />
-              Quando um cliente escrever pela página da loja, a conversa aparece aqui.
-            </li>
-          )}
-        </ul>
-      </aside>
-      <section
-        className={`min-h-0 flex-col ${active ? "flex" : "hidden lg:flex"}`}
-        aria-label={active ? `Conversa com ${name}` : "Conversa"}
-      >
-        {active ? (
-          <>
-            <header className="flex items-center gap-3 border-b border-border px-4 py-3">
-              <button
-                type="button"
-                onClick={() => setSel(null)}
-                aria-label="Voltar às conversas"
-                className="grid size-8 place-items-center rounded-lg hover:bg-muted lg:hidden"
-              >
-                <ArrowLeft size={16} />
-              </button>
-              <span
-                className="grid size-8 place-items-center rounded-full text-sm font-bold text-white"
-                style={{ background: "var(--accent-store)" }}
-              >
-                {name.slice(0, 1)}
-              </span>
-              <SoundToggle />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold">{name}</p>
-                <p className="text-[11px] text-muted-foreground">Cliente cadastrado na NextVita</p>
-              </div>
-              {!staff && (
+          <ul className="min-h-0 flex-1 overflow-y-auto">
+            {threads.map((t) => (
+              <li key={t.id}>
                 <button
                   type="button"
-                  onClick={() => void deleteThreads([active])}
-                  className="inline-flex items-center gap-1.5 border border-border px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-500/10 dark:text-rose-300"
+                  onClick={() => (selecting ? toggle(t.id) : setSel(t.id))}
+                  aria-current={t.id === active ? "true" : undefined}
+                  className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors ${t.id === active ? "bg-[color-mix(in_srgb,var(--accent-store)_10%,transparent)]" : "hover:bg-muted/50"}`}
                 >
-                  <Trash2 size={13} /> Limpar conversa
-                </button>
-              )}
-            </header>
-            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto bg-[radial-gradient(circle_at_1px_1px,color-mix(in_srgb,currentColor_6%,transparent)_1px,transparent_0)] [background-size:18px_18px] px-4 py-4">
-              {convo.map((m) => (
-                <div
-                  key={m.id}
-                  className={`group flex items-center gap-1 ${m.from_vendor ? "justify-end" : "justify-start"}`}
-                >
-                  {m.from_vendor && !m.deleted_at && !staff && (
-                    <button
-                      type="button"
-                      onClick={() => void remove(m.id)}
-                      aria-label="Apagar mensagem"
-                      title="Apagar mensagem"
-                      className="grid size-7 place-items-center rounded-full text-muted-foreground opacity-0 transition hover:bg-muted hover:text-rose-500 focus:opacity-100 group-hover:opacity-100"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  )}
-                  <p
-                    className={`nv-fade-in max-w-[78%] rounded-2xl px-3.5 py-2 text-[13.5px] leading-snug shadow-sm ${m.deleted_at ? "border border-dashed border-border bg-transparent italic text-muted-foreground" : m.from_vendor ? "rounded-br-md text-white" : "rounded-bl-md bg-muted"}`}
-                    style={
-                      m.from_vendor && !m.deleted_at
-                        ? { background: "var(--accent-store)" }
-                        : undefined
-                    }
-                  >
-                    {m.deleted_at ? "Mensagem apagada" : m.body}
-                    <span
-                      className={`mt-0.5 block text-right text-[11px] ${m.from_vendor && !m.deleted_at ? "text-white/70" : "text-muted-foreground"}`}
-                    >
-                      {time(m.created_at)}
-                      {m.from_vendor && m.read_at && !m.deleted_at ? " · lida" : ""}
+                  {selecting && (
+                    <span aria-hidden="true" className="shrink-0 text-primary">
+                      {picked.has(t.id) ? <CheckSquare size={17} /> : <Square size={17} />}
                     </span>
+                  )}
+                  <span
+                    className="grid size-9 shrink-0 place-items-center rounded-full text-sm font-bold text-white"
+                    style={{ background: "var(--accent-store)" }}
+                  >
+                    {t.name.slice(0, 1).toUpperCase()}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex justify-between gap-2">
+                      <strong className="truncate text-[13px]">{t.name}</strong>
+                      <span className="shrink-0 text-[11px] text-muted-foreground">
+                        {time(t.last.created_at).slice(6)}
+                      </span>
+                    </span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {t.last.deleted_at
+                        ? "Mensagem apagada"
+                        : `${t.last.from_vendor ? "Você: " : ""}${t.last.body}`}
+                    </span>
+                  </span>
+                  {t.unread > 0 && (
+                    <span className="grid min-w-5 place-items-center rounded-full bg-sky-500 px-1.5 text-[11px] font-bold text-white">
+                      {t.unread}
+                    </span>
+                  )}
+                </button>
+              </li>
+            ))}
+            {!threads.length && (
+              <li className="grid place-items-center gap-2 px-6 py-16 text-center text-sm text-muted-foreground">
+                <MessageCircle size={22} />
+                Quando um cliente escrever pela página da loja, a conversa aparece aqui.
+              </li>
+            )}
+          </ul>
+        </aside>
+        <section
+          className={`min-h-0 flex-col ${active ? "flex" : "hidden lg:flex"}`}
+          aria-label={active ? `Conversa com ${name}` : "Conversa"}
+        >
+          {active ? (
+            <>
+              <header className="flex items-center gap-3 border-b border-border px-4 py-3">
+                <button
+                  type="button"
+                  onClick={() => setSel(null)}
+                  aria-label="Voltar às conversas"
+                  className="grid size-8 place-items-center rounded-lg hover:bg-muted lg:hidden"
+                >
+                  <ArrowLeft size={16} />
+                </button>
+                <span
+                  className="grid size-8 place-items-center rounded-full text-sm font-bold text-white"
+                  style={{ background: "var(--accent-store)" }}
+                >
+                  {name.slice(0, 1)}
+                </span>
+                <SoundToggle />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold">{name}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    Cliente cadastrado na NextVita
                   </p>
                 </div>
-              ))}
-              <div ref={end} />
-            </div>
-            <div className="border-t border-border px-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setQuickOpen((v) => !v)}
-                aria-expanded={quickOpen}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary"
-              >
-                <Zap size={13} /> Respostas prontas
-                <ChevronDown size={13} className={quickOpen ? "rotate-180" : ""} />
-              </button>
-              {quickOpen && (
-                <div className="mt-2 grid max-h-44 gap-2 overflow-y-auto border border-border bg-card p-2">
-                  {QUICK_GROUPS.map((g) => (
-                    <div key={g.title}>
-                      <p className="mb-1 text-[11px] font-bold text-muted-foreground">{g.title}</p>
-                      <div className="flex flex-wrap gap-1">
-                        {g.items.map((qk) => (
-                          <button
-                            key={qk}
-                            type="button"
-                            onClick={() => {
-                              setText(qk);
-                              setQuickOpen(false);
-                            }}
-                            className="border border-border px-2 py-1 text-left text-[11.5px] hover:bg-muted"
-                          >
-                            {qk}
-                          </button>
-                        ))}
+                {!staff && (
+                  <button
+                    type="button"
+                    onClick={() => void deleteThreads([active])}
+                    className="inline-flex items-center gap-1.5 border border-border px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-500/10 dark:text-rose-300"
+                  >
+                    <Trash2 size={13} /> Limpar conversa
+                  </button>
+                )}
+              </header>
+              <div className="min-h-0 flex-1 space-y-2 overflow-y-auto bg-[radial-gradient(circle_at_1px_1px,color-mix(in_srgb,currentColor_6%,transparent)_1px,transparent_0)] [background-size:18px_18px] px-4 py-4">
+                {convo.map((m) => (
+                  <div
+                    key={m.id}
+                    className={`group flex items-center gap-1 ${m.from_vendor ? "justify-end" : "justify-start"}`}
+                  >
+                    {m.from_vendor && !m.deleted_at && !staff && (
+                      <button
+                        type="button"
+                        onClick={() => void remove(m.id)}
+                        aria-label="Apagar mensagem"
+                        title="Apagar mensagem"
+                        className="grid size-7 place-items-center rounded-full text-muted-foreground opacity-0 transition hover:bg-muted hover:text-rose-500 focus:opacity-100 group-hover:opacity-100"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    )}
+                    <p
+                      className={`nv-fade-in max-w-[78%] rounded-2xl px-3.5 py-2 text-[13.5px] leading-snug shadow-sm ${m.deleted_at ? "border border-dashed border-border bg-transparent italic text-muted-foreground" : m.from_vendor ? "rounded-br-md text-white" : "rounded-bl-md bg-muted"}`}
+                      style={
+                        m.from_vendor && !m.deleted_at
+                          ? { background: "var(--accent-store)" }
+                          : undefined
+                      }
+                    >
+                      {m.deleted_at ? "Mensagem apagada" : m.body}
+                      <span
+                        className={`mt-0.5 block text-right text-[11px] ${m.from_vendor && !m.deleted_at ? "text-white/70" : "text-muted-foreground"}`}
+                      >
+                        {time(m.created_at)}
+                        {m.from_vendor && m.read_at && !m.deleted_at ? " · lida" : ""}
+                      </span>
+                    </p>
+                  </div>
+                ))}
+                <div ref={end} />
+              </div>
+              <div className="border-t border-border px-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setQuickOpen((v) => !v)}
+                  aria-expanded={quickOpen}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary"
+                >
+                  <Zap size={13} /> Respostas prontas
+                  <ChevronDown size={13} className={quickOpen ? "rotate-180" : ""} />
+                </button>
+                {quickOpen && (
+                  <div className="mt-2 grid max-h-44 gap-2 overflow-y-auto border border-border bg-card p-2">
+                    {QUICK_GROUPS.map((g) => (
+                      <div key={g.title}>
+                        <p className="mb-1 text-[11px] font-bold text-muted-foreground">
+                          {g.title}
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {g.items.map((qk) => (
+                            <button
+                              key={qk}
+                              type="button"
+                              onClick={() => {
+                                setText(qk);
+                                setQuickOpen(false);
+                              }}
+                              className="border border-border px-2 py-1 text-left text-[11.5px] hover:bg-muted"
+                            >
+                              {qk}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {active && (
+                <p role="status" className="mx-3 mt-2 text-xs text-muted-foreground">
+                  {custTyping
+                    ? "Cliente digitando…"
+                    : custOnline
+                      ? "Cliente conectado agora"
+                      : "Cliente fora do chat"}
+                </p>
               )}
-            </div>
-            {active && (
-              <p role="status" className="mx-3 mt-2 text-xs text-muted-foreground">
-                {custTyping
-                  ? "Cliente digitando…"
-                  : custOnline
-                    ? "Cliente conectado agora"
-                    : "Cliente fora do chat"}
-              </p>
-            )}
-            {active && (
-              <ChatTimer
-                key={active}
+              {active && (
+                <ChatTimer
+                  key={active}
+                  vendorId={vendor.id}
+                  customerId={active}
+                  onClosed={onChanged}
+                />
+              )}
+              <ProductLookup
                 vendorId={vendor.id}
-                customerId={active}
-                onClosed={onChanged}
+                disabled={!active}
+                onSend={(body) => void send(undefined, body)}
               />
-            )}
-            <ProductLookup
-              vendorId={vendor.id}
-              disabled={!active}
-              onSend={(body) => void send(undefined, body)}
-            />
-            <form onSubmit={send} className="flex gap-2 p-3">
-              <input
-                value={text}
-                onChange={(e) => {
-                  setText(e.target.value);
-                  liveRef.current?.typing();
-                }}
-                maxLength={500}
-                placeholder="Escreva uma resposta"
-                aria-label="Mensagem"
-                className="h-10 min-w-0 flex-1 rounded-full border border-border bg-surface px-4 text-sm"
-              />
-              <button
-                type="submit"
-                disabled={!text.trim()}
-                aria-label="Enviar"
-                className="grid size-10 place-items-center rounded-full text-white transition disabled:opacity-40"
-                style={{ background: "var(--accent-store)" }}
-              >
-                <Send size={16} />
-              </button>
-            </form>
-            <p className="px-4 pb-2 text-[11px] text-muted-foreground">
-              {CHAT_RULE_NOTE} {CHAT_RETENTION_NOTE}
-            </p>
-            {err && (
-              <p role="alert" className="px-4 pb-3 text-xs text-rose-600">
-                {err}
+              <form onSubmit={send} className="flex gap-2 p-3">
+                <input
+                  value={text}
+                  onChange={(e) => {
+                    setText(e.target.value);
+                    liveRef.current?.typing();
+                  }}
+                  maxLength={500}
+                  placeholder="Escreva uma resposta"
+                  aria-label="Mensagem"
+                  className="h-10 min-w-0 flex-1 rounded-full border border-border bg-surface px-4 text-sm"
+                />
+                <button
+                  type="submit"
+                  disabled={!text.trim()}
+                  aria-label="Enviar"
+                  className="grid size-10 place-items-center rounded-full text-white transition disabled:opacity-40"
+                  style={{ background: "var(--accent-store)" }}
+                >
+                  <Send size={16} />
+                </button>
+              </form>
+              <p className="px-4 pb-2 text-[11px] text-muted-foreground">
+                {CHAT_RULE_NOTE} {CHAT_RETENTION_NOTE}
               </p>
-            )}
-          </>
-        ) : (
-          <div className="grid flex-1 place-items-center text-sm text-muted-foreground">
-            Escolha uma conversa.
-          </div>
-        )}
-      </section>
+              {err && (
+                <p role="alert" className="px-4 pb-3 text-xs text-rose-600">
+                  {err}
+                </p>
+              )}
+            </>
+          ) : (
+            <div className="grid flex-1 place-items-center text-sm text-muted-foreground">
+              Escolha uma conversa.
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

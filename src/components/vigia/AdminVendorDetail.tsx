@@ -32,6 +32,8 @@ import {
 import { StatusBadge } from "./seller/shared";
 import { disputeReasonLabel, disputeStatusLabel, type Dispute } from "@/lib/disputes";
 import { uploadStoreImage } from "./seller/SellerProducts";
+import { ChatHistoryPanel } from "./seller/ChatHistoryPanel";
+import { adminResetOwnerPass } from "@/lib/chat-history";
 
 type Owner = {
   user_id?: string;
@@ -836,6 +838,50 @@ export function AdminVendorDetail({ vendor, onClose }: { vendor: Vendor; onClose
               </div>
             </section>
           </div>
+
+          <section
+            aria-label="Conversas da loja"
+            className="rounded-2xl border border-border bg-card p-4"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 className="text-sm font-bold">Conversas da loja (backup de 6 meses)</h3>
+                <p className="text-xs text-muted-foreground">
+                  Inclui as conversas que a loja apagou ou que saíram do histórico dela após 30
+                  dias.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (
+                    !(await confirm(
+                      "Resetar a senha de exclusão?",
+                      `A senha de exclusão de ${vendor.name} volta para 000000 e o dono poderá trocá-la mais uma vez.`,
+                      false,
+                      "Resetar senha",
+                    ))
+                  )
+                    return;
+                  try {
+                    await adminResetOwnerPass(vendor.id);
+                    setMsg({ ok: true, text: "Senha de exclusão resetada para 000000." });
+                  } catch (e) {
+                    setMsg({
+                      ok: false,
+                      text: e instanceof Error ? e.message : "Não foi possível resetar.",
+                    });
+                  }
+                }}
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-border px-3 text-xs font-semibold hover:bg-muted"
+              >
+                Resetar senha de exclusão
+              </button>
+            </div>
+            <div className="mt-3 flex h-[32rem]">
+              <ChatHistoryPanel vendorId={vendor.id} mode="admin" />
+            </div>
+          </section>
 
           <div className="grid gap-4 md:grid-cols-2">
             <section

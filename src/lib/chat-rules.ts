@@ -5,7 +5,7 @@ export const CHAT_RULE_NOTE =
   "Canal só para compra, confirmação e dúvidas. Links, telefones, WhatsApp, imagens e áudios não são permitidos.";
 
 export const CHAT_RETENTION_NOTE =
-  "O histórico fica guardado por até 12 meses e é apagado na virada do ano.";
+  "Conversas encerradas ficam no histórico da loja por 30 dias e depois são limpas automaticamente.";
 
 const URL_RE =
   /(https?:\/\/|www\.|\b[a-z0-9-]{2,}\.(com|br|net|org|io|me|app|link|ly|gg|co|info|site|xyz|shop|store|online|dev|ac)\b)/i;

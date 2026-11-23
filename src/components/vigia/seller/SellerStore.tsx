@@ -297,8 +297,11 @@ export function SellerStore({
                 value={f.fee}
                 onChange={(e) => setF({ ...f, fee: e.target.value })}
                 disabled={!f.delivery}
-                placeholder="0,00"
+                placeholder="10,00"
               />
+              <span className="mt-1 block text-[11.5px] font-normal text-muted-foreground">
+                Mínimo de R$ 10,00 por entrega, já com a distância.
+              </span>
             </label>
             <label className="text-[13px] font-semibold">
               Entrega grátis a partir de

@@ -79,6 +79,8 @@ const bannerFor = (segment?: string | null) =>
     : /suplement|farm|natural|saude|saúde/i.test(segment ?? "")
       ? "/images/hero-suplementos.webp"
       : "/images/hero-alimentacao.webp";
+/** Taxa mínima de entrega cobrada pelo servidor (R$ 10), exceto frete grátis. */
+const MIN_DELIVERY_FEE_CENTS = 1000;
 const initialsOf = (name: string) =>
   name
     .split(/\s+/)
@@ -386,9 +388,7 @@ function PublicStore({
             [
               Truck,
               vendor.offers_delivery
-                ? vendor.delivery_fee_cents
-                  ? `${money(vendor.delivery_fee_cents)}${vendor.free_delivery_from_cents ? ` · grátis acima de ${money(vendor.free_delivery_from_cents)}` : ""}`
-                  : "Grátis"
+                ? `A partir de ${money(Math.max(MIN_DELIVERY_FEE_CENTS, vendor.delivery_fee_cents))}${vendor.free_delivery_from_cents ? ` · grátis acima de ${money(vendor.free_delivery_from_cents)}` : ""}`
                 : "Só retirada",
               "Entrega",
             ],
@@ -972,7 +972,7 @@ function VendorCheckout({
     mode === "entrega"
       ? vendor.free_delivery_from_cents && subtotal >= vendor.free_delivery_from_cents
         ? 0
-        : vendor.delivery_fee_cents
+        : Math.max(MIN_DELIVERY_FEE_CENTS, vendor.delivery_fee_cents)
       : 0;
   const [couponInput, setCouponInput] = useState("");
   const [coupon, setCoupon] = useState<string | null>(null);
@@ -1343,9 +1343,7 @@ function VendorCheckout({
                         {m === "retirada"
                           ? `Pronto em ~${vendor.prep_minutes ?? 30} min · grátis`
                           : ok
-                            ? vendor.delivery_fee_cents
-                              ? `Taxa ${money(vendor.delivery_fee_cents)}`
-                              : "Grátis"
+                            ? `Taxa a partir de ${money(Math.max(MIN_DELIVERY_FEE_CENTS, vendor.delivery_fee_cents))}`
                             : "Indisponível"}
                       </p>
                     </button>

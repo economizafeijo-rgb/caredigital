@@ -43,7 +43,7 @@ export function HomePartnerBand() {
         <div className="mt-4 flex flex-wrap gap-2">
           <Link
             to="/parceiros"
-            className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-[13px] font-bold text-[#3fe0c8]-foreground transition hover:brightness-110"
+            className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-[13px] font-bold text-primary-foreground transition hover:brightness-110"
           >
             Quero vender aqui <ArrowRight size={15} aria-hidden="true" />
           </Link>
