@@ -3,7 +3,16 @@ import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useLiveStores } from "./LiveStores";
 import { money } from "@/lib/marketplace";
-import { ArrowRight, MapPin, Megaphone, Sparkles, Store } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeDollarSign,
+  MapPin,
+  Megaphone,
+  MessageCircle,
+  Sparkles,
+  Store,
+  Truck,
+} from "lucide-react";
 
 const KESSIA = "kessia-digital-store";
 
@@ -151,30 +160,56 @@ const slides: Slide[] = [
           >
             {line}
           </p>
-          <div className="mt-5 flex flex-wrap gap-2.5">
+          <p className="mt-2 inline-flex items-baseline gap-2 bg-white/10 px-3 py-1.5 ring-1 ring-white/15">
+            <strong className="font-display text-2xl font-extrabold text-white tabular-nums">
+              R$ 0
+            </strong>
+            <span className="text-[13px] font-semibold text-white/80">
+              de mensalidade no plano inicial
+            </span>
+          </p>
+          <div className="mt-5 grid gap-2.5 max-sm:[&>*]:w-full sm:flex sm:flex-wrap">
             <Link
               to="/parceiros"
-              className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#3fe0c8] px-5 text-sm font-bold text-slate-950 transition hover:brightness-110"
+              className="inline-flex h-12 items-center justify-center gap-2 bg-[#3fe0c8] px-6 text-[15px] font-extrabold text-slate-950 shadow-[0_10px_30px_-10px_rgba(63,224,200,.8)] transition hover:brightness-110 active:scale-[.98]"
             >
-              Quero vender aqui <ArrowRight size={15} aria-hidden="true" />
+              <Store size={17} aria-hidden="true" /> Quero vender aqui
+              <ArrowRight size={16} aria-hidden="true" />
             </Link>
             <Link
               to="/lojista"
-              className="inline-flex h-11 items-center rounded-xl border border-white/30 px-4 text-sm font-semibold transition hover:bg-white/10"
+              className="inline-flex h-12 items-center justify-center gap-2 bg-white/5 px-5 text-sm font-semibold ring-1 ring-white/30 backdrop-blur transition hover:bg-white/10"
             >
               Ver como funciona
             </Link>
           </div>
         </div>
-        <ul className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-white/15 bg-white/15 text-sm">
-          {[
-            "Vitrine própria",
-            "Pedidos e entrega",
-            "Chat com o cliente",
-            "Sem mensalidade no início",
-          ].map((t) => (
-            <li key={t} className="bg-black/35 p-4 font-semibold backdrop-blur">
-              {t}
+        <ul className="grid grid-cols-2 gap-2 text-sm">
+          {(
+            [
+              [Store, "Vitrine própria", "Sua marca e seus preços", "#3fe0c8"],
+              [Truck, "Pedidos e entrega", "Retirada ou em casa", "#fbbf24"],
+              [MessageCircle, "Chat com o cliente", "Responda na hora", "#60a5fa"],
+              [BadgeDollarSign, "Pix no seu bolso", "Valor líquido rápido", "#f472b6"],
+            ] as const
+          ).map(([Icon, t, s, c]) => (
+            <li
+              key={t}
+              className="relative overflow-hidden bg-black/40 p-3.5 ring-1 ring-white/10 backdrop-blur"
+            >
+              <span
+                aria-hidden="true"
+                className="absolute inset-x-0 top-0 h-[3px]"
+                style={{ background: c }}
+              />
+              <span
+                className="grid size-9 place-items-center"
+                style={{ background: `${c}26`, color: c }}
+              >
+                <Icon size={18} aria-hidden="true" />
+              </span>
+              <strong className="mt-2.5 block text-[14px] font-extrabold leading-tight">{t}</strong>
+              <span className="mt-0.5 block text-[12px] leading-snug text-white/65">{s}</span>
             </li>
           ))}
         </ul>

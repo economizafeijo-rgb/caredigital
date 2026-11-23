@@ -903,11 +903,12 @@ export function AppShell({ children }: { children: ReactNode }) {
               aria-label="Navegação rápida"
               className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
             >
-              <div className="mx-auto grid max-w-md grid-cols-4">
+              <div className="mx-auto grid max-w-md grid-cols-5">
                 {[
                   { key: "home", label: "Início", icon: Home, to: "/" },
                   { key: "menu", label: "Recursos", icon: LayoutDashboard },
-                  { key: "loja", label: "Loja", icon: ShoppingBag, to: "/", hash: "ofertas" },
+                  { key: "loja", label: "Ofertas", icon: ShoppingBag, to: "/", hash: "ofertas" },
+                  { key: "lojas", label: "Lojas", icon: Store, to: "/nossos-parceiros" },
                   {
                     key: "conta",
                     label: signedIn ? "Painel" : "Entrar",

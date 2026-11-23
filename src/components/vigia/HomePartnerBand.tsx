@@ -77,7 +77,7 @@ export function HomePartnerBand() {
             ))}
           </ul>
 
-          <div className="mt-7 flex flex-wrap items-center gap-3">
+          <div className="mt-7 grid gap-3 max-sm:[&>*]:w-full max-sm:[&>*]:justify-center sm:flex sm:flex-wrap sm:items-center">
             <Link
               to="/lojista"
               hash="cadastro"

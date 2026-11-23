@@ -110,7 +110,7 @@ export function PartnersShowcase() {
       </section>
 
       {/* Comercial */}
-      <section aria-labelledby="porque-titulo">
+      <section aria-labelledby="porque-titulo" className="max-md:order-3">
         <h2
           id="porque-titulo"
           className="max-w-[28ch] font-display text-2xl font-extrabold tracking-tight sm:text-4xl"
@@ -128,7 +128,7 @@ export function PartnersShowcase() {
       </section>
 
       {/* Parceiros */}
-      <section id="lojas" aria-labelledby="lojas-titulo" className="scroll-mt-24">
+      <section id="lojas" aria-labelledby="lojas-titulo" className="scroll-mt-24 max-md:order-2">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2
@@ -234,7 +234,7 @@ export function PartnersShowcase() {
       {/* Propaganda para lojistas */}
       <section
         aria-labelledby="venda-titulo"
-        className="grid gap-6 rounded-3xl border border-border bg-card p-6 sm:p-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
+        className="grid gap-6 rounded-3xl border border-border bg-card p-6 max-md:order-4 sm:p-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
       >
         <div>
           <h2
@@ -274,7 +274,7 @@ export function PartnersShowcase() {
 
       {/* Fechamento */}
       <section
-        className="rounded-3xl p-8 text-center text-white sm:p-12"
+        className="rounded-3xl p-8 text-center text-white max-md:order-5 sm:p-12"
         style={{ background: FOREST }}
       >
         <p className="font-display text-3xl font-extrabold tracking-tight sm:text-5xl">

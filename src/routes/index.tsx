@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight, Store } from "lucide-react";
 import { useAccess } from "@/lib/use-access";
 import { HomeMarketplace } from "@/components/vigia/HomeMarketplace";
 import { HomeStage } from "@/components/vigia/HomeStage";
@@ -97,30 +98,57 @@ function Homepage() {
 
           {client && <HomeModalityTimers />}
 
-          <footer
-            className="nv-dark overflow-hidden rounded-2xl border border-white/10 bg-[#0a1226] bg-cover bg-center text-white"
-            style={{
-              backgroundImage:
-                "linear-gradient(180deg, rgba(10,18,38,.86), rgba(10,18,38,.94)), url(/images/caredigital-care-hero.webp)",
-            }}
-          >
-            <div className="flex flex-wrap items-center gap-x-8 gap-y-3 px-4 py-3 lg:px-5">
-              <div className="flex min-w-0 items-center gap-3">
-                <Link to="/" className="inline-flex items-center gap-2">
-                  <LogoMark size={26} />
-                  <span className="font-display text-base font-extrabold">
-                    Next<span className="text-primary">Vita</span>
+          <footer className="nv-dark relative isolate overflow-hidden rounded-2xl bg-[#070d1d] text-white max-sm:-mx-3 max-sm:rounded-none">
+            <img
+              src="/images/caredigital-care-hero.webp"
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              className="absolute inset-0 -z-20 size-full object-cover opacity-[.12]"
+            />
+            <span
+              aria-hidden="true"
+              className="absolute inset-0 -z-10 bg-[radial-gradient(80%_60%_at_0%_0%,rgba(63,224,200,.18),transparent_60%),radial-gradient(70%_60%_at_100%_100%,rgba(99,102,241,.16),transparent_60%)]"
+            />
+            <span
+              aria-hidden="true"
+              className="block h-[3px] w-full bg-gradient-to-r from-[#3fe0c8] via-[#6366f1] to-[#e8368f]"
+            />
+
+            <div className="grid gap-6 px-4 pb-5 pt-6 sm:px-6 lg:grid-cols-[minmax(0,17rem)_minmax(0,1fr)_auto] lg:items-start lg:gap-10 lg:py-7">
+              {/* Marca + app */}
+              <div className="min-w-0">
+                <Link to="/" className="inline-flex items-center gap-2.5">
+                  <LogoMark size={34} />
+                  <span className="font-display text-xl font-extrabold">
+                    Next<span className="text-[#3fe0c8]">Vita</span>
                   </span>
                 </Link>
-                <span className="hidden max-w-[16rem] text-xs leading-snug text-muted-foreground xl:block">
-                  Bem-estar organizado: rotina, lembretes e loja no mesmo app.
-                </span>
+                <p className="mt-2 max-w-[30ch] text-[13px] leading-relaxed text-white/65">
+                  Bem-estar organizado: rotina, lembretes e as lojas de Feijó no mesmo app.
+                </p>
+                <a
+                  href="/nossos-parceiros"
+                  className="mt-4 flex items-center gap-3 bg-white/[.06] p-3 ring-1 ring-white/10 transition hover:bg-white/10"
+                >
+                  <span className="grid size-10 shrink-0 place-items-center bg-[#3fe0c8] text-slate-950">
+                    <Store size={19} aria-hidden="true" />
+                  </span>
+                  <span className="min-w-0 flex-1 leading-tight">
+                    <strong className="block text-[14px] font-extrabold">Lojas parceiras</strong>
+                    <span className="block text-[12px] text-white/60">Compre de quem é daqui</span>
+                  </span>
+                  <ArrowRight size={16} aria-hidden="true" className="shrink-0 text-[#3fe0c8]" />
+                </a>
               </div>
-              <div className="grid min-w-0 flex-1 max-sm:basis-full grid-cols-2 items-start gap-x-6 gap-y-4 sm:flex sm:flex-wrap sm:gap-x-8 sm:gap-y-2">
+
+              {/* Links */}
+              <div className="grid min-w-0 gap-5 sm:grid-cols-3 sm:gap-6">
                 {(
                   [
                     [
                       "Ferramentas",
+                      "#3fe0c8",
                       [
                         ["/hidratacao", "Hidratação"],
                         ["/medicamentos", "Medicação"],
@@ -131,8 +159,10 @@ function Homepage() {
                     ],
                     [
                       "Plataforma",
+                      "#fbbf24",
                       [
                         ["/loja", "Loja"],
+                        ["/nossos-parceiros", "Lojas parceiras"],
                         ["/lojista", "Seja lojista"],
                         ["/metricas", "Métricas"],
                         ["/protocolos", "Como funciona"],
@@ -140,6 +170,7 @@ function Homepage() {
                     ],
                     [
                       "Empresa",
+                      "#a5b4fc",
                       [
                         ["/sobre", "Sobre"],
                         ["/entrar?mode=signup", "Criar conta"],
@@ -148,15 +179,22 @@ function Homepage() {
                       ],
                     ],
                   ] as const
-                ).map(([title, links]) => (
+                ).map(([title, color, links]) => (
                   <nav key={title} aria-label={title} className="min-w-0">
-                    <p className="text-[11px] font-bold text-foreground">{title}</p>
-                    <ul className="mt-1.5 flex flex-col gap-1.5 text-[13px] sm:flex-row sm:flex-wrap sm:gap-x-3 sm:gap-y-0.5 sm:text-xs">
+                    <p className="flex items-center gap-2 text-[12px] font-extrabold uppercase tracking-[0.14em] text-white">
+                      <span
+                        aria-hidden="true"
+                        className="h-3.5 w-1"
+                        style={{ background: color }}
+                      />
+                      {title}
+                    </p>
+                    <ul className="mt-2.5 flex flex-wrap gap-1.5 sm:flex-col sm:gap-1">
                       {links.map(([to, label]) => (
                         <li key={to}>
                           <a
                             href={to}
-                            className="text-muted-foreground transition-colors hover:text-foreground"
+                            className="inline-flex h-9 items-center bg-white/[.06] px-3 text-[13px] font-semibold text-white/80 ring-1 ring-white/10 transition-colors hover:bg-white/10 hover:text-white sm:h-auto sm:bg-transparent sm:px-0 sm:py-0.5 sm:font-medium sm:text-white/65 sm:ring-0"
                           >
                             {label}
                           </a>
@@ -166,28 +204,34 @@ function Homepage() {
                   </nav>
                 ))}
               </div>
-              <div className="flex shrink-0 items-center gap-2.5">
-                <span className="hidden overflow-hidden rounded-[3px] bg-white sm:block">
+
+              {/* Instalar */}
+              <div className="flex items-center gap-3 bg-gradient-to-r from-[#3fe0c8]/15 to-transparent p-3 ring-1 ring-[#3fe0c8]/25 lg:flex-col lg:items-start lg:bg-none lg:p-0 lg:ring-0">
+                <span className="hidden overflow-hidden bg-white sm:block">
                   <QrEnlarge
                     variant="footer"
-                    thumb={52}
+                    thumb={64}
                     big={280}
                     label="Abra o NextVita no celular"
                   />
                 </span>
-                <div className="min-w-0">
-                  <p className="hidden text-[11px] font-semibold sm:block">Abra no celular</p>
-                  <div className="sm:mt-1 [&_button]:!h-7 [&_button]:!px-2.5 [&_button]:!text-xs">
-                    <InstallAppButton />
-                  </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[13px] font-extrabold leading-tight">Leve o app no bolso</p>
+                  <p className="text-[12px] text-white/60 lg:hidden">
+                    Grátis, direto na tela inicial.
+                  </p>
+                </div>
+                <div className="shrink-0 [&_button]:!h-10 [&_button]:!px-4 [&_button]:!text-[13px] [&_button]:!font-bold">
+                  <InstallAppButton />
                 </div>
               </div>
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-0.5 border-t border-border px-4 py-1.5 text-[11px] text-muted-foreground lg:px-5">
+
+            <div className="flex flex-col gap-1 border-t border-white/10 bg-black/30 px-4 py-3 text-[12px] text-white/55 sm:flex-row sm:items-center sm:justify-between sm:px-6">
               <span>© {new Date().getFullYear()} NextVita. Todos os direitos reservados.</span>
               <span>
                 Desenvolvido por{" "}
-                <Link to="/sobre" className="font-semibold text-foreground hover:underline">
+                <Link to="/sobre" className="font-bold text-white hover:underline">
                   Franc D&apos;nis
                 </Link>{" "}
                 · Feijó, Acre

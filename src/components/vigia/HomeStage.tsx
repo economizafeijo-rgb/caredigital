@@ -204,16 +204,18 @@ export function HomeStage({
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <CampaignPill />
-            <p
+            <Link
+              to="/nossos-parceiros"
               style={{ animationDelay: "120ms" }}
-              className="nv-rise inline-flex items-center gap-2 rounded-full px-1 py-1.5 text-[12.5px] font-medium text-white/70"
+              className="nv-rise inline-flex items-center gap-2 rounded-full bg-white/[.06] px-2.5 py-1.5 text-[12.5px] font-semibold text-white/85 ring-1 ring-white/15 transition hover:bg-white/10 hover:text-white"
             >
               <span className="relative flex size-2">
                 <span className="absolute inline-flex size-full rounded-full bg-[#3fe0c8]/70 motion-safe:animate-ping" />
                 <span className="relative inline-flex size-2 rounded-full bg-[#3fe0c8]" />
               </span>
               Lojas de Feijó, Acre
-            </p>
+              <ArrowRight size={13} aria-hidden="true" className="text-[#3fe0c8]" />
+            </Link>
           </div>
 
           <h1
