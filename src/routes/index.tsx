@@ -52,7 +52,13 @@ function Homepage() {
 
   // Sem tela de espera: a página pública já aparece enquanto a sessão é conferida.
   const client = status === "client";
-  const panel = client ? "/cliente" : status === "admin" ? "/admin" : null;
+  const panel = client
+    ? "/cliente"
+    : status === "admin"
+      ? "/admin"
+      : status === "vendor"
+        ? "/lojista"
+        : null;
   const firstName = (name || "usuário").split(" ")[0];
 
   return (

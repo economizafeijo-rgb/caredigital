@@ -587,16 +587,19 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigateTo = useNavigate();
   const searchParams = (location.search ?? {}) as Record<string, unknown>;
   const previewStore = location.pathname === "/loja" && typeof searchParams.loja === "string"; // pré-visualizar a página pública da loja
+  // Abrir o site ou o app sempre mostra a homepage; a página inicial tem o botão para voltar ao painel.
   const staffBlocked =
-    access.status === "admin"
-      ? !(
-          location.pathname.startsWith("/admin") ||
-          location.pathname.startsWith("/lojista") ||
-          previewStore
-        )
-      : access.status === "vendor"
-        ? !(location.pathname.startsWith("/lojista") || previewStore)
-        : false;
+    location.pathname === "/"
+      ? false
+      : access.status === "admin"
+        ? !(
+            location.pathname.startsWith("/admin") ||
+            location.pathname.startsWith("/lojista") ||
+            previewStore
+          )
+        : access.status === "vendor"
+          ? !(location.pathname.startsWith("/lojista") || previewStore)
+          : false;
   useEffect(() => {
     if (staffBlocked)
       void navigateTo({ to: access.status === "admin" ? "/admin" : "/lojista", replace: true });
