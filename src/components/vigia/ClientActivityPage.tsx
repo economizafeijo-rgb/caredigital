@@ -25,6 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useDialog } from "@/lib/dialog";
 import {
   formatPace,
+  metersBetween,
   ingest,
   initialTracker,
   isStopped,
@@ -206,6 +207,9 @@ export function ClientActivityPage({
   const [gpsLost, setGpsLost] = useState(false);
   const [locked, setLocked] = useState(false);
   const [stillPrompt, setStillPrompt] = useState<number | null>(null);
+  const [gapPrompt, setGapPrompt] = useState<number | null>(null);
+  const heartbeatRef = useRef(0);
+  const gapRef = useRef<{ ms: number; anchor: TrackerState["anchor"] } | null>(null);
   const [recovered, setRecovered] = useState<SavedSession | null>(null);
   const lastFixAtRef = useRef(0);
   const haltedSinceRef = useRef(0);
@@ -456,6 +460,59 @@ export function ClientActivityPage({
     const t = window.setTimeout(() => setStillPrompt((v) => (v === null ? v : v - 1)), 1000);
     return () => window.clearTimeout(t);
   }, [stillPrompt]);
+
+  // Saiu da tela (app em segundo plano, tela desligada): o navegador congela a página e o GPS para.
+  // Ao voltar, o tempo fora NÃO conta, a menos que a pessoa confirme que continuou treinando.
+  useEffect(() => {
+    if (!tracking) return;
+    heartbeatRef.current = Date.now();
+    const check = () => {
+      const now = Date.now();
+      const gap = now - heartbeatRef.current;
+      heartbeatRef.current = now;
+      if (gap < 15_000 || document.visibilityState !== "visible") return;
+      // Parado/pausado: o tempo já não está contando, nada a descontar.
+      if (pausedRef.current || autoPausedRef.current) return;
+      startedRef.current += gap;
+      setElapsed(Math.floor((now - startedRef.current) / 1000));
+      gapRef.current = { ms: gap, anchor: trackerRef.current.anchor };
+      trackerRef.current = { ...trackerRef.current, anchor: null };
+      setGapPrompt(Math.round(gap / 60_000) || 1);
+    };
+    const beat = window.setInterval(check, 1000);
+    const onVis = () => {
+      if (document.visibilityState === "visible") check();
+      else heartbeatRef.current = Date.now();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("pageshow", onVis);
+    return () => {
+      window.clearInterval(beat);
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("pageshow", onVis);
+    };
+  }, [tracking]);
+  function answerGap(kept: boolean) {
+    const g = gapRef.current;
+    gapRef.current = null;
+    setGapPrompt(null);
+    if (!kept || !g) return;
+    // Continuou treinando: devolve o tempo e soma a distância em linha reta entre os pontos (estimativa mínima).
+    startedRef.current -= g.ms;
+    setElapsed(Math.floor((Date.now() - startedRef.current) / 1000));
+    const now = trackerRef.current.anchor;
+    if (g.anchor && now) {
+      const m = metersBetween(g.anchor, now);
+      if (m / (g.ms / 1000) <= trackerConfig(typeRef.current).maxSpeed) {
+        trackerRef.current = {
+          ...trackerRef.current,
+          distanceKm: trackerRef.current.distanceKm + m / 1000,
+        };
+        setGpsDistance(trackerRef.current.distanceKm);
+        setRoute((r) => [...r]);
+      }
+    }
+  }
 
   /** Abre a tela de preparação (confirmação antes de começar). */
   function startGps() {
@@ -787,6 +844,8 @@ export function ClientActivityPage({
             onTogglePause={() => setPaused((v) => !v)}
             onStop={() => void stopGps()}
             stillPrompt={stillPrompt}
+            gapPrompt={gapPrompt}
+            onGap={answerGap}
             onStillHere={() => {
               setStillPrompt(null);
               haltedSinceRef.current = Date.now();

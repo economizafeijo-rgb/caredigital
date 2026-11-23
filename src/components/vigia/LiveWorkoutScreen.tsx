@@ -348,6 +348,8 @@ export function WorkoutLive({
   onStillHere,
   onFinishNow,
   maxMinutes,
+  gapPrompt = null,
+  onGap,
 }: {
   type: string;
   status: LiveStatus;
@@ -363,6 +365,8 @@ export function WorkoutLive({
   onStillHere: () => void;
   onFinishNow: () => void;
   maxMinutes: number;
+  gapPrompt?: number | null;
+  onGap?: (kept: boolean) => void;
 }) {
   const t = WORKOUT_TYPES.find((x) => x.value === type) ?? WORKOUT_TYPES[0];
   const Icon = t.icon;
@@ -633,6 +637,41 @@ export function WorkoutLive({
             <LockOpen size={26} />
           </HoldButton>
           <p className="mt-4 text-xs text-white/60">Segure para desbloquear</p>
+        </div>
+      )}
+
+      {/* Voltou depois de sair da tela */}
+      {gapPrompt !== null && stillPrompt === null && (
+        <div className="absolute inset-0 z-20 grid place-items-center bg-black/70 p-5 backdrop-blur-sm">
+          <div className="nvw-in w-full max-w-sm rounded-3xl bg-[#0d1626] p-5 text-center ring-1 ring-white/15">
+            <span className="mx-auto grid size-14 place-items-center rounded-full bg-sky-400/15 text-sky-300">
+              <Satellite size={26} />
+            </span>
+            <h3 className="mt-3 text-xl font-extrabold">Você saiu da tela</h3>
+            <p className="mt-1 text-sm text-white/70">
+              Ficou cerca de <strong className="text-white">{gapPrompt} min</strong> fora do app.
+              Com a tela desligada o GPS não registra o percurso. Continuou treinando nesse tempo?
+            </p>
+            <div className="mt-5 grid gap-2">
+              <button
+                type="button"
+                onClick={() => onGap?.(true)}
+                className="nvw-btn h-12 rounded-2xl bg-emerald-400 font-extrabold text-emerald-950"
+              >
+                Sim, contar esse tempo
+              </button>
+              <button
+                type="button"
+                onClick={() => onGap?.(false)}
+                className="nvw-btn h-11 rounded-2xl bg-white/10 font-semibold"
+              >
+                Não, descontar
+              </button>
+            </div>
+            <p className="mt-3 text-[11px] text-white/50">
+              Dica: deixe a tela ligada e use o cadeado para não tocar sem querer.
+            </p>
+          </div>
         </div>
       )}
 

@@ -184,6 +184,7 @@ const swaps: Record<string, string[]> = {
   batata_doce_frita: ["batata_doce_assada"],
   mandioca_frita: ["macaxeira_assada", "macaxeira"],
   banana_frita: ["banana_cozida"],
+  banana_verde_frita: ["banana_cozida"],
   jaraqui: ["tambaqui", "pirarucu"],
   quibe_arroz: ["cuscuz", "baixaria"],
   ovo_frito: ["ovo"],

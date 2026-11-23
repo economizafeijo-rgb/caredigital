@@ -187,7 +187,7 @@ const extra = new Map<string, NutrientKey[]>([
     ["K", "B9", "magnesio"],
   ),
   ...G(
-    "banana_prata banana_nanica banana_maca banana_comprida banana_pacova banana_ouro banana_cozida banana_frita mingau_banana",
+    "banana_prata banana_nanica banana_maca banana_comprida banana_pacova banana_ouro banana_cozida banana_frita banana_verde_frita doce_banana mingau_banana",
     ["B6", "potassio", "magnesio"],
   ),
   ...G("batata_doce batata_doce_assada", ["A", "B6"]),

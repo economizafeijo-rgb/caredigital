@@ -98,6 +98,7 @@ export const sodiumPer100: Record<string, number> = {
   mandioca_frita: 150,
   batata_frita: 250,
   banana_frita: 5,
+  banana_verde_frita: 5,
   tapioca: 5,
   beiju: 50,
   leite: 50,
