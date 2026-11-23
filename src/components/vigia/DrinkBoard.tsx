@@ -263,7 +263,7 @@ export function DrinkBoard({
                 {category.hint} · toque na bebida para escolher
               </p>
             </div>
-            <label className="relative ml-auto block w-full min-w-[12rem] max-w-[18rem] flex-1">
+            <label className="relative order-last block w-full basis-full sm:order-none sm:ml-auto sm:min-w-[12rem] sm:max-w-[18rem] sm:flex-1 sm:basis-auto">
               <span className="sr-only">Buscar bebida</span>
               <Search
                 size={14}

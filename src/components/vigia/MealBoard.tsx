@@ -290,13 +290,13 @@ export function MealBoard({
             >
               <CareIntakeIcon kind={kind} size={18} />
             </span>
-            <div className="min-w-0 leading-tight">
+            <div className="min-w-0 flex-1 leading-tight">
               <h2 className="text-sm font-bold">{category.label}</h2>
               <p className="truncate text-[11px] text-muted-foreground">
                 {category.hint} · toque nos alimentos para montar o prato
               </p>
             </div>
-            <label className="relative ml-auto block w-full min-w-[12rem] max-w-[18rem] flex-1">
+            <label className="relative order-last block w-full basis-full sm:order-none sm:ml-auto sm:min-w-[12rem] sm:max-w-[18rem] sm:flex-1 sm:basis-auto">
               <span className="sr-only">Buscar alimento</span>
               <Search
                 size={14}
