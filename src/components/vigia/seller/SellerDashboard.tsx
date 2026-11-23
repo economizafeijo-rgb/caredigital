@@ -433,10 +433,10 @@ export function SellerDashboard({
 
           <nav
             aria-label="Painel da loja"
-            className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] lg:mx-0 lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-y-auto lg:overflow-x-visible lg:px-0"
+            className="flex flex-wrap gap-1.5 lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-y-auto lg:px-0"
           >
             {groups.map((g) => (
-              <div key={g.title} className="flex gap-1 lg:flex-col">
+              <div key={g.title} className="flex flex-wrap gap-1.5 lg:flex-col">
                 <p className="hidden px-3 pb-1 pt-2 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground lg:block">
                   {g.title}
                 </p>

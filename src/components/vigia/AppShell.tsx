@@ -781,7 +781,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     onClick={() => setMenuOpen(true)}
                     aria-label="Abrir menu"
                     aria-expanded={menuOpen}
-                    className={`${iconButton} ${lojistaArea ? "hidden" : "xl:hidden"}`}
+                    className={`${iconButton} xl:hidden`}
                   >
                     <Menu size={18} />
                   </button>
