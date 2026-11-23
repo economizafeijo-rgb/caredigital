@@ -1,6 +1,6 @@
 import { TapGuard } from "./TapGuard";
 import { ImageGuard } from "./ImageGuard";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { MANUAL_SIGNOUT_KEY } from "./SessionGuard";
 import { releaseStoreDevice } from "@/lib/store-devices";
@@ -90,6 +90,9 @@ const contentGroup: NavGroup = {
 };
 
 // Um mapa de navegação por perfil: cada área aparece uma única vez.
+/** Uma cor por aba da barra inferior (a última é o botão "Mais"). */
+const tabColors = ["#2dd4bf", "#38bdf8", "#fbbf24", "#a78bfa", "#fb7185"];
+
 const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
   public: [
     {
@@ -896,7 +899,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             )}
             <main
               id="care-content"
-              className={`min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-2 sm:p-3 lg:p-4 ${showAppTabs ? "max-xl:pb-[calc(4.75rem+env(safe-area-inset-bottom))]" : ""}`}
+              className={`min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-2 sm:p-3 lg:p-4 ${showAppTabs ? "max-xl:pb-[calc(5rem+env(safe-area-inset-bottom))]" : ""}`}
             >
               {staffBlocked ? (
                 <p role="status" className="py-24 text-center text-sm text-muted-foreground">
@@ -926,7 +929,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               className="nv-apptabs fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_-12px_rgba(0,0,0,.35)] backdrop-blur xl:hidden"
             >
               <div className="mx-auto grid max-w-xl grid-cols-5">
-                {appTabs.map((it) => {
+                {appTabs.map((it, i) => {
                   const on = isActive(it);
                   return (
                     <Link
@@ -934,16 +937,14 @@ export function AppShell({ children }: { children: ReactNode }) {
                       to={it.to}
                       {...(it.hash ? { hash: it.hash } : {})}
                       aria-current={on ? "page" : undefined}
-                      className={`relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-semibold transition-colors active:scale-95 ${on ? "text-primary" : "text-muted-foreground"}`}
+                      style={{ "--tc": tabColors[i % tabColors.length] } as CSSProperties}
+                      className={`relative flex h-[4.25rem] flex-col items-center justify-center gap-1 text-[11px] font-bold transition-colors active:scale-95 ${on ? "text-[var(--tc)]" : "text-foreground/75"}`}
                     >
-                      {on && (
-                        <span className="absolute inset-x-3 top-0 h-[3px] rounded-b-full bg-primary" />
-                      )}
-                      <it.icon
-                        size={22}
-                        strokeWidth={on ? 2.4 : 1.9}
-                        className={`transition-transform ${on ? "-translate-y-0.5" : ""}`}
-                      />
+                      <span
+                        className={`grid size-9 place-items-center rounded-lg border transition-all duration-200 ${on ? "-translate-y-0.5 border-transparent bg-[var(--tc)] text-slate-950 shadow-[0_6px_16px_-4px_var(--tc)]" : "border-[color-mix(in_srgb,var(--tc)_30%,transparent)] bg-[color-mix(in_srgb,var(--tc)_16%,transparent)] text-[var(--tc)]"}`}
+                      >
+                        <it.icon size={21} strokeWidth={on ? 2.5 : 2.1} />
+                      </span>
                       <span className="max-w-full truncate px-1">{it.label}</span>
                     </Link>
                   );
@@ -953,9 +954,12 @@ export function AppShell({ children }: { children: ReactNode }) {
                   onClick={() => setMenuOpen(true)}
                   aria-label="Abrir menu completo"
                   aria-expanded={menuOpen}
-                  className="flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-semibold text-muted-foreground transition-colors active:scale-95"
+                  style={{ "--tc": tabColors[4] } as CSSProperties}
+                  className="flex h-[4.25rem] flex-col items-center justify-center gap-1 text-[11px] font-bold text-foreground/75 transition-colors active:scale-95"
                 >
-                  <Menu size={22} strokeWidth={1.9} />
+                  <span className="grid size-9 place-items-center rounded-lg border border-[color-mix(in_srgb,var(--tc)_30%,transparent)] bg-[color-mix(in_srgb,var(--tc)_16%,transparent)] text-[var(--tc)]">
+                    <Menu size={21} strokeWidth={2.1} />
+                  </span>
                   Mais
                 </button>
               </div>
