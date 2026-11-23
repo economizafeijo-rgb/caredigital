@@ -15,6 +15,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppShell } from "@/components/vigia/AppShell";
 import { SessionGuard } from "@/components/vigia/SessionGuard";
+import { OfflineSync } from "@/components/vigia/OfflineSync";
 
 function NotFoundComponent() {
   return (
@@ -146,6 +147,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <SessionGuard />
+      <OfflineSync />
       <SiteIntro />
       <AppShell>
         <Outlet />

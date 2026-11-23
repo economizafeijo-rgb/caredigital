@@ -417,7 +417,7 @@ function HeaderCart() {
 }
 
 const iconButton =
-  "grid size-9 shrink-0 place-items-center rounded-full border border-border/70 bg-muted/30 text-muted-foreground transition-[color,background-color,border-color,transform] duration-200 hover:border-border hover:bg-muted hover:text-foreground active:scale-90";
+  "grid size-11 shrink-0 place-items-center rounded-full sm:size-9 border border-border/70 bg-muted/30 text-muted-foreground transition-[color,background-color,border-color,transform] duration-200 hover:border-border hover:bg-muted hover:text-foreground active:scale-90";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const now = useNow(30000);
@@ -631,7 +631,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         title={darkMode ? "Tema claro" : "Tema escuro"}
         className={iconButton}
       >
-        {darkMode ? <Sun size={17} /> : <Moon size={17} />}
+        {darkMode ? (
+          <Sun className="size-[22px] sm:size-[18px]" strokeWidth={2.1} />
+        ) : (
+          <Moon className="size-[22px] sm:size-[18px]" strokeWidth={2.1} />
+        )}
       </button>
     </>
   );
@@ -811,14 +815,14 @@ export function AppShell({ children }: { children: ReactNode }) {
                     aria-expanded={menuOpen}
                     className={`${iconButton} xl:hidden`}
                   >
-                    <Menu size={18} />
+                    <Menu className="size-[22px] sm:size-[18px]" strokeWidth={2.1} />
                   </button>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-display text-[15px] font-bold leading-tight">
+                    <p className="truncate font-display text-[17px] font-bold leading-tight sm:text-[15px]">
                       {current?.label ??
                         (location.pathname === "/" ? "Página inicial" : "NextVita")}
                     </p>
-                    <p className="truncate text-[11px] text-muted-foreground">
+                    <p className="truncate text-[12px] text-muted-foreground sm:text-[11px]">
                       {fmtClock(now)} · horário do Acre
                     </p>
                   </div>
@@ -837,20 +841,20 @@ export function AppShell({ children }: { children: ReactNode }) {
                     panelHome && (
                       <Link
                         to={panelHome}
-                        className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110"
+                        className="inline-flex h-11 min-w-11 justify-center items-center gap-2 rounded-lg bg-primary px-3 sm:h-9 sm:min-w-0 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110"
                         title="Voltar ao meu painel"
                       >
-                        <LayoutDashboard size={16} />
+                        <LayoutDashboard className="size-[22px] sm:size-[18px]" strokeWidth={2.1} />
                         <span className="hidden sm:inline">Meu painel</span>
                       </Link>
                     )
                   ) : (
                     <Link
                       to="/"
-                      className="inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm font-semibold text-foreground transition hover:border-primary/40"
+                      className="inline-flex h-11 min-w-11 justify-center items-center gap-2 rounded-lg border border-border bg-surface px-3 sm:h-9 sm:min-w-0 text-sm font-semibold text-foreground transition hover:border-primary/40"
                       title="Ir à página inicial sem sair da conta"
                     >
-                      <Home size={16} />
+                      <Home className="size-[22px] sm:size-[18px]" strokeWidth={2.1} />
                       <span className="hidden 2xl:inline">Página inicial</span>
                     </Link>
                   ))}
@@ -871,9 +875,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                     disabled={signingOut}
                     aria-label="Sair da conta"
                     title="Sair da conta"
-                    className="inline-flex h-9 items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 text-sm font-semibold text-destructive transition hover:bg-destructive/20 disabled:opacity-50"
+                    className="inline-flex h-11 min-w-11 justify-center items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 sm:h-9 sm:min-w-0 text-sm font-semibold text-destructive transition hover:bg-destructive/20 disabled:opacity-50"
                   >
-                    <LogOut size={15} />
+                    <LogOut className="size-[22px] sm:size-[18px]" strokeWidth={2.1} />
                     <span className="hidden 2xl:inline">{signingOut ? "Saindo…" : "Sair"}</span>
                   </button>
                 )}
@@ -886,7 +890,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     aria-expanded={menuOpen}
                     className={`${iconButton} lg:hidden`}
                   >
-                    <Menu size={18} />
+                    <Menu className="size-[22px] sm:size-[18px]" strokeWidth={2.1} />
                   </button>
                 )}
               </div>

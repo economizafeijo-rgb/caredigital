@@ -256,6 +256,7 @@ export const typicalFoods: Record<FoodKind, { label: string; text: string }[]> =
     { label: "Manteiga", text: "10 g de manteiga" },
   ],
   lanche: [
+    { label: "Abacatada", text: "1 copo de abacatada" },
     { label: "Barra de chocolate", text: "barra de chocolate" },
     { label: "Fruta", text: "1 banana" },
     { label: "Pão com queijo", text: "1 pão francês com queijo" },
@@ -457,6 +458,7 @@ export const typicalDrinks: Record<FoodKind, { label: string; text: string }[]> 
       ["Café com leite em pó", "1 xícara de café com leite em pó"],
       ["Achocolatado", "1 copo de achocolatado"],
       ["Vitamina de banana", "1 copo de vitamina de banana"],
+      ["Abacatada", "1 copo de abacatada"],
       ["Iogurte líquido", "1 copo de iogurte"],
     ),
     ...juices.slice(0, 3),
