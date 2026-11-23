@@ -506,21 +506,45 @@ export function HomeKessiaAd() {
           );
         })}
       </div>
-      <div className="mt-5 flex items-center gap-2" role="tablist" aria-label="Escolher destaque">
-        {all.map((s, k) => (
-          <button
-            key={s.id}
-            type="button"
-            role="tab"
-            aria-selected={k === i}
-            aria-label={`Destaque ${k + 1}`}
-            onClick={() => {
-              setI(k);
-              setTick(0);
-            }}
-            className={`h-1.5 rounded-full transition-all ${k === i ? "w-8 bg-white" : "w-4 bg-white/40 hover:bg-white/70"}`}
-          />
-        ))}
+      <div className="mt-4 flex items-center gap-3" role="tablist" aria-label="Escolher destaque">
+        <span
+          className="w-10 text-[11px] font-semibold tabular-nums text-white/85"
+          aria-hidden="true"
+        >
+          {String((i % all.length) + 1).padStart(2, "0")}
+          <span className="text-white/45"> / {String(all.length).padStart(2, "0")}</span>
+        </span>
+        <div className="flex items-center">
+          {all.map((s, k) => {
+            const on = k === i % all.length;
+            return (
+              <button
+                key={s.id}
+                type="button"
+                role="tab"
+                aria-selected={on}
+                aria-label={`Destaque ${k + 1}`}
+                onClick={() => {
+                  setI(k);
+                  setTick(0);
+                }}
+                style={{ minHeight: 0, minWidth: 0 }}
+                className="group grid h-8 place-items-center px-[3px]"
+              >
+                <span
+                  className={`nv-round relative block h-[3px] overflow-hidden rounded-full transition-all duration-500 ${on ? "w-9 bg-white/25 sm:w-12" : "w-3 bg-white/35 group-hover:bg-white/70 sm:w-3.5"}`}
+                >
+                  {on && (
+                    <span
+                      className="absolute inset-y-0 left-0 rounded-full bg-white transition-[width] duration-[3200ms] ease-linear"
+                      style={{ width: `${(((tick % 6) + 1) / 6) * 100}%` }}
+                    />
+                  )}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </section>
   );

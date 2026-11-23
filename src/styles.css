@@ -4742,7 +4742,7 @@ label[for] {
 @media (pointer: coarse) {
   button:not(.nv-tiny),
   [role="button"],
-  [role="tab"] {
+  [role="tab"]:not(.nv-tiny) {
     min-height: 40px;
   }
 }
