@@ -1039,7 +1039,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           {menuOpen && (
             <div
-              className={`fixed inset-0 z-50 ${signedIn ? "xl:hidden" : "lg:hidden"}`}
+              className={`fixed inset-0 z-50 !max-h-none ${signedIn ? "xl:hidden" : "lg:hidden"}`}
               role="dialog"
               aria-modal="true"
               aria-label="Menu"
@@ -1051,9 +1051,24 @@ export function AppShell({ children }: { children: ReactNode }) {
                 onClick={() => setMenuOpen(false)}
               />
               <div
-                className={`nv-drawer absolute inset-y-0 left-0 flex flex-col bg-sidebar shadow-2xl ${internalPage ? "w-[min(18rem,85vw)]" : "w-[min(22rem,90vw)]"}`}
+                className={`nv-drawer absolute inset-y-0 left-0 flex flex-col overflow-hidden bg-sidebar pb-[env(safe-area-inset-bottom)] shadow-2xl ${internalPage ? "w-[min(18rem,85vw)]" : "w-[min(22rem,90vw)]"}`}
               >
-                <div className="flex h-14 shrink-0 items-center justify-between border-b border-white/10 px-4">
+                {!internalPage && (
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-x-0 top-0 h-72 [mask-image:linear-gradient(to_bottom,#000_35%,transparent)]"
+                  >
+                    <img
+                      src="/images/caredigital-care-hero.webp"
+                      alt=""
+                      decoding="async"
+                      className="size-full object-cover object-[30%_25%] opacity-55 saturate-[.85]"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/35 to-black/10" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/30 to-transparent" />
+                  </div>
+                )}
+                <div className="relative flex h-14 shrink-0 items-center justify-between border-b border-white/10 px-4">
                   <Brand onDark />
                   <button
                     type="button"
@@ -1068,7 +1083,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   sidebarBody
                 ) : (
                   <nav
-                    className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4 text-white"
+                    className="relative flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4 text-white"
                     aria-label="Navegação principal"
                   >
                     <div className="grid grid-cols-2 gap-2">
