@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Flame, Gauge, MapPin, Timer } from "lucide-react";
+import { Flame, MapPin, Timer } from "lucide-react";
 
 export type LivePoint = {
   latitude: number;
@@ -84,24 +84,125 @@ function routePath(route: LivePoint[], w: number, h: number, pad = 14) {
   };
 }
 
+export type LiveStatus = "searching" | "moving" | "auto" | "manual";
+
+const GAUGE_MAX: Record<string, number> = { caminhada: 10, corrida: 20, ciclismo: 40 };
+
+/** Medidor semicircular de velocidade (km/h) com ponteiro e arco animados. */
+function SpeedGauge({ speed, max, active }: { speed: number; max: number; active: boolean }) {
+  const frac = Math.max(0, Math.min(1, speed / max));
+  const R = 78;
+  const C = Math.PI * R;
+  const angle = Math.PI * (1 - frac);
+  const px = 100 + R * Math.cos(angle);
+  const py = 100 - R * Math.sin(angle);
+  const arc = `M ${100 - R} 100 A ${R} ${R} 0 0 1 ${100 + R} 100`;
+  return (
+    <svg
+      viewBox="0 0 200 118"
+      className="w-full"
+      role="img"
+      aria-label={`Velocidade ${speed.toFixed(1)} km/h`}
+    >
+      <defs>
+        <linearGradient id="nvGauge" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#34d399" />
+          <stop offset=".6" stopColor="#38bdf8" />
+          <stop offset="1" stopColor="#a78bfa" />
+        </linearGradient>
+      </defs>
+      <path
+        d={arc}
+        fill="none"
+        stroke="#fff"
+        strokeOpacity=".1"
+        strokeWidth="10"
+        strokeLinecap="round"
+      />
+      <path
+        d={arc}
+        fill="none"
+        stroke="url(#nvGauge)"
+        strokeWidth="10"
+        strokeLinecap="round"
+        strokeDasharray={C}
+        strokeDashoffset={C * (1 - frac)}
+        style={{ transition: "stroke-dashoffset .9s cubic-bezier(.2,.8,.2,1)" }}
+      />
+      {Array.from({ length: 11 }, (_, i) => {
+        const a = Math.PI * (1 - i / 10);
+        const r1 = R - 12;
+        const r2 = R - (i % 5 === 0 ? 20 : 16);
+        return (
+          <line
+            key={i}
+            x1={100 + r1 * Math.cos(a)}
+            y1={100 - r1 * Math.sin(a)}
+            x2={100 + r2 * Math.cos(a)}
+            y2={100 - r2 * Math.sin(a)}
+            stroke="#fff"
+            strokeOpacity={i % 5 === 0 ? 0.45 : 0.2}
+            strokeWidth="1.4"
+          />
+        );
+      })}
+      {active && (
+        <circle
+          className="nv-anim"
+          cx={px}
+          cy={py}
+          r="9"
+          fill="#38bdf8"
+          opacity=".35"
+          style={{
+            transformOrigin: `${px}px ${py}px`,
+            animation: "nv-pulse 1.8s ease-out infinite",
+          }}
+        />
+      )}
+      <circle
+        cx={px}
+        cy={py}
+        r="6"
+        fill="#fff"
+        stroke="#38bdf8"
+        strokeWidth="3"
+        style={{ transition: "all .9s cubic-bezier(.2,.8,.2,1)" }}
+      />
+      <text x={100 - R} y="116" textAnchor="middle" fill="#fff" fillOpacity=".45" fontSize="9">
+        0
+      </text>
+      <text x={100 + R} y="116" textAnchor="middle" fill="#fff" fillOpacity=".45" fontSize="9">
+        {max}
+      </text>
+    </svg>
+  );
+}
+
+const STATUS_COPY: Record<LiveStatus, { label: string; tone: string }> = {
+  searching: { label: "Buscando sinal do GPS…", tone: "text-sky-200" },
+  moving: { label: "Registrando seu movimento", tone: "text-emerald-200" },
+  auto: { label: "Você parou · tempo pausado", tone: "text-amber-200" },
+  manual: { label: "Pausado por você", tone: "text-amber-200" },
+};
+
 export function LiveWorkoutVisual({
   route,
   elapsed,
-  paused,
+  status,
   type,
   distanceKm,
   weightKg,
 }: {
   route: LivePoint[];
   elapsed: number;
-  paused: boolean;
+  status: LiveStatus;
   type: string;
   distanceKm: number;
   weightKg?: number | null;
 }) {
-  const speed = paused ? 0 : currentSpeedKmh(route);
-  const running = type === "corrida";
-  const stride = speed < 0.8 ? 0 : Math.max(0.28, Math.min(1.1, 4.2 / Math.max(speed, 1)));
+  const live = status === "moving";
+  const speed = live ? currentSpeedKmh(route) : 0;
   const path = useMemo(() => routePath(route, 320, 190), [route]);
   const splits = useMemo(() => kmSplits(route), [route]);
   const spark = useMemo(() => {
@@ -114,107 +215,54 @@ export function LiveWorkoutVisual({
   }, [route]);
   const sparkMax = Math.max(3, ...spark);
   const accuracy = route.at(-1)?.accuracy;
-  const state = paused ? "paused" : "running";
+  const paused = status === "auto" || status === "manual";
+  const copy = STATUS_COPY[status];
   return (
     <div className="mt-6 grid gap-3 md:grid-cols-2">
-      <div className="relative h-[210px] overflow-hidden rounded-2xl bg-gradient-to-b from-sky-900/60 via-indigo-950/60 to-slate-950/80">
-        <style>{`
-        @keyframes nv-road{to{background-position:-160px 0}} @keyframes nv-hill{to{background-position:-640px 0}}
-        @keyframes nv-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
-        @keyframes nv-legA{0%,100%{transform:rotate(34deg)}50%{transform:rotate(-34deg)}} @keyframes nv-legB{0%,100%{transform:rotate(-34deg)}50%{transform:rotate(34deg)}}
+      <style>{`
         @keyframes nv-pulse{0%{transform:scale(.6);opacity:.9}100%{transform:scale(2.4);opacity:0}}
         @media (prefers-reduced-motion: reduce){.nv-anim{animation:none!important}}
       `}</style>
-        <div
-          className="nv-anim absolute inset-x-0 bottom-9 h-24 opacity-50"
-          style={{
-            backgroundImage:
-              "radial-gradient(60px 46px at 80px 100%, #34d399 98%, transparent), radial-gradient(90px 60px at 240px 100%, #059669 98%, transparent), radial-gradient(70px 40px at 430px 100%, #10b981 98%, transparent), radial-gradient(100px 66px at 580px 100%, #047857 98%, transparent)",
-            backgroundSize: "640px 100%",
-            animation: stride ? `nv-hill ${stride * 22}s linear infinite` : "none",
-            animationPlayState: state,
-          }}
-        />
-        <div className="absolute inset-x-0 bottom-0 h-9 bg-slate-800" />
-        <div
-          className="nv-anim absolute inset-x-0 bottom-4 h-1"
-          style={{
-            backgroundImage: "linear-gradient(90deg,#fde68a 50%,transparent 50%)",
-            backgroundSize: "80px 100%",
-            animation: stride ? `nv-road ${stride * 1.6}s linear infinite` : "none",
-            animationPlayState: state,
-          }}
-        />
-        <svg
-          viewBox="0 0 80 110"
-          className="nv-anim absolute bottom-5 left-1/2 h-[104px] -translate-x-1/2"
-          style={{
-            animation: stride ? `nv-bob ${stride}s ease-in-out infinite` : "none",
-            animationPlayState: state,
-          }}
-          aria-hidden="true"
-        >
-          <g stroke="#fff" strokeWidth="7" strokeLinecap="round" fill="none">
-            <circle cx="42" cy="16" r="10" fill="#fff" stroke="none" />
-            <path d={running ? "M40 30 L34 62" : "M40 30 L38 62"} />
-            <path
-              className="nv-anim"
-              d="M39 38 L54 52"
-              style={{
-                transformOrigin: "39px 38px",
-                animation: stride ? `nv-legB ${stride}s ease-in-out infinite` : "none",
-                animationPlayState: state,
-              }}
-            />
-            <path
-              className="nv-anim"
-              d="M39 38 L24 52"
-              style={{
-                transformOrigin: "39px 38px",
-                animation: stride ? `nv-legA ${stride}s ease-in-out infinite` : "none",
-                animationPlayState: state,
-              }}
-            />
-            <path
-              className="nv-anim"
-              d="M35 62 L35 98"
-              stroke="#fdba74"
-              style={{
-                transformOrigin: "35px 62px",
-                animation: stride ? `nv-legA ${stride}s ease-in-out infinite` : "none",
-                animationPlayState: state,
-              }}
-            />
-            <path
-              className="nv-anim"
-              d="M35 62 L35 98"
-              stroke="#5eead4"
-              style={{
-                transformOrigin: "35px 62px",
-                animation: stride ? `nv-legB ${stride}s ease-in-out infinite` : "none",
-                animationPlayState: state,
-              }}
-            />
-          </g>
-        </svg>
-        <div className="absolute left-3 top-3 rounded-xl bg-black/35 px-3 py-2 backdrop-blur">
-          <span className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-white/70">
-            <Gauge size={12} /> Velocidade agora
-          </span>
-          <strong className="text-3xl font-extrabold tabular-nums">{speed.toFixed(1)}</strong>
-          <span className="ml-1 text-sm text-white/70">km/h</span>
+      <div className="nv-round relative overflow-hidden rounded-2xl bg-gradient-to-b from-slate-900/70 to-slate-950/80 px-4 pb-4 pt-3 ring-1 ring-white/10">
+        <p className={`flex items-center gap-2 text-[12px] font-semibold ${copy.tone}`}>
+          <span
+            className={`size-2 rounded-full ${live ? "animate-pulse bg-emerald-300" : status === "searching" ? "animate-pulse bg-sky-300" : "bg-amber-300"}`}
+          />
+          {copy.label}
+        </p>
+        <div className="relative mx-auto mt-1 max-w-[280px]">
+          <SpeedGauge speed={speed} max={GAUGE_MAX[type] ?? 10} active={live} />
+          <div className="absolute inset-x-0 bottom-3 text-center">
+            <strong className="text-4xl font-extrabold tabular-nums leading-none">
+              {speed.toFixed(1)}
+            </strong>
+            <span className="ml-1 text-xs font-semibold text-white/60">km/h</span>
+          </div>
         </div>
-        <div className="absolute right-3 top-3 rounded-xl bg-black/35 px-3 py-2 text-right backdrop-blur">
-          <span className="flex items-center justify-end gap-1 text-[11px] font-semibold uppercase tracking-wider text-white/70">
-            <Timer size={12} /> Ritmo agora
-          </span>
-          <strong className="text-3xl font-extrabold tabular-nums">{paceLabel(speed)}</strong>
-          <span className="ml-1 text-sm text-white/70">min/km</span>
+        <div className="mt-2 grid grid-cols-2 divide-x divide-white/10 rounded-xl bg-black/25 py-2 text-center">
+          <div>
+            <span className="flex items-center justify-center gap-1 text-[10.5px] font-semibold uppercase tracking-wider text-white/55">
+              <Timer size={11} /> Ritmo agora
+            </span>
+            <strong className="text-lg font-extrabold tabular-nums">{paceLabel(speed)}</strong>
+            <span className="ml-1 text-[11px] text-white/55">min/km</span>
+          </div>
+          <div>
+            <span className="flex items-center justify-center gap-1 text-[10.5px] font-semibold uppercase tracking-wider text-white/55">
+              <Flame size={11} className="text-orange-300" /> Gasto estimado
+            </span>
+            <strong className="text-lg font-extrabold tabular-nums">
+              {estimateKcal(type, elapsed / 60, weightKg ?? 70)}
+            </strong>
+            <span className="ml-1 text-[11px] text-white/55">kcal</span>
+          </div>
         </div>
         {paused && (
-          <span className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-lg font-extrabold uppercase tracking-[.3em] text-amber-300">
-            Pausado
-          </span>
+          <p className="mt-2 text-center text-[11px] text-white/55">
+            {status === "auto"
+              ? "Volte a andar que o tempo e a distância continuam sozinhos."
+              : "Toque em Retomar para continuar."}
+          </p>
         )}
       </div>
 
@@ -271,7 +319,7 @@ export function LiveWorkoutVisual({
                 opacity=".6"
                 style={{
                   transformOrigin: `${path.end![0]}px ${path.end![1]}px`,
-                  animation: paused ? "none" : "nv-pulse 1.6s ease-out infinite",
+                  animation: live ? "nv-pulse 1.6s ease-out infinite" : "none",
                 }}
               />
               <circle
@@ -292,10 +340,6 @@ export function LiveWorkoutVisual({
         <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-1 text-[11px] font-semibold">
           <MapPin size={12} /> Percurso ao vivo
           {accuracy ? ` · precisão ±${Math.round(accuracy)} m` : ""}
-        </span>
-        <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-1 text-[11px] font-semibold">
-          <Flame size={12} className="text-orange-300" /> ~
-          {estimateKcal(type, elapsed / 60, weightKg ?? 70)} kcal
         </span>
       </div>
 

@@ -17,9 +17,19 @@ import {
   Pause,
   Play,
   Square,
+  Trash2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useDialog } from "@/lib/dialog";
+import {
+  formatPace,
+  ingest,
+  initialTracker,
+  isStopped,
+  trackerConfig,
+  type TrackerState,
+} from "@/lib/gps-tracker";
+import { buildMetrics, hms, mmss, type WorkoutMetrics } from "@/lib/workout-metrics";
 
 type GpsPoint = LivePoint;
 type ActivityEntry = {
@@ -32,6 +42,8 @@ type ActivityEntry = {
     distance_km?: number | null;
     intensity?: string;
     notes?: string;
+    started_at?: string | null;
+    metrics?: Partial<WorkoutMetrics> | null;
   } | null;
 };
 
@@ -52,6 +64,80 @@ const formatDate = (value: string) =>
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(value));
+
+/** Mini mapa do percurso guardado no registro. */
+function RouteMini({ route, className = "" }: { route: [number, number][]; className?: string }) {
+  if (route.length < 2) return null;
+  const lat = route.map((r) => r[0]);
+  const lon = route.map((r) => r[1]);
+  const minLat = Math.min(...lat);
+  const maxLat = Math.max(...lat);
+  const minLon = Math.min(...lon);
+  const maxLon = Math.max(...lon);
+  const k = Math.cos((((minLat + maxLat) / 2) * Math.PI) / 180);
+  const sx = Math.max((maxLon - minLon) * k, 1e-6);
+  const sy = Math.max(maxLat - minLat, 1e-6);
+  const W = 160;
+  const H = 96;
+  const pad = 10;
+  const sc = Math.min((W - pad * 2) / sx, (H - pad * 2) / sy);
+  const ox = (W - sx * sc) / 2;
+  const oy = (H - sy * sc) / 2;
+  const pts = route.map(
+    (r) => [ox + (r[1] - minLon) * k * sc, H - (oy + (r[0] - minLat) * sc)] as [number, number],
+  );
+  const d = pts.map((q, i) => `${i ? "L" : "M"}${q[0].toFixed(1)} ${q[1].toFixed(1)}`).join(" ");
+  return (
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      className={className}
+      role="img"
+      aria-label="Percurso da atividade"
+    >
+      <rect width={W} height={H} rx="10" className="fill-muted/40" />
+      <path
+        d={d}
+        fill="none"
+        stroke="#0d9488"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx={pts[0][0]} cy={pts[0][1]} r="3.5" fill="#fff" stroke="#0d9488" strokeWidth="2" />
+      <circle
+        cx={pts.at(-1)![0]}
+        cy={pts.at(-1)![1]}
+        r="4"
+        fill="#0ea5e9"
+        stroke="#fff"
+        strokeWidth="1.5"
+      />
+    </svg>
+  );
+}
+
+/** Linhas de métricas estimadas para exibir (resumo e histórico). */
+function metricRows(m: Partial<WorkoutMetrics>, distanceKm?: number | null): [string, string][] {
+  const rows: [string, string][] = [];
+  if (m.kcal_est) rows.push(["Gasto estimado", `${m.kcal_est} kcal`]);
+  if (m.avg_pace_s_km) rows.push(["Ritmo médio", `${mmss(m.avg_pace_s_km)} min/km`]);
+  if (m.avg_speed_kmh)
+    rows.push(["Velocidade média", `${m.avg_speed_kmh.toLocaleString("pt-BR")} km/h`]);
+  if (m.max_speed_kmh)
+    rows.push(["Velocidade máxima", `${m.max_speed_kmh.toLocaleString("pt-BR")} km/h`]);
+  if (m.avg_bpm)
+    rows.push(["Batimento médio", `${m.avg_bpm} bpm${m.max_bpm ? ` · pico ${m.max_bpm}` : ""}`]);
+  if (m.steps_est) rows.push(["Passos (estimado)", m.steps_est.toLocaleString("pt-BR")]);
+  if (m.moving_seconds && m.total_seconds && m.total_seconds - m.moving_seconds > 30)
+    rows.push(["Tempo parado", hms(m.total_seconds - m.moving_seconds)]);
+  if (m.effort)
+    rows.push([
+      "Esforço",
+      m.effort === "intensa" ? "Intenso" : m.effort === "moderada" ? "Moderado" : "Leve",
+    ]);
+  void distanceKm;
+  return rows;
+}
 
 export function ClientActivityPage({
   patientId,
@@ -77,6 +163,13 @@ export function ClientActivityPage({
   const [notice, setNotice] = useState("");
   const [tracking, setTracking] = useState(false);
   const [paused, setPaused] = useState(false);
+  const [autoPaused, setAutoPaused] = useState(false);
+  const [metrics, setMetrics] = useState<WorkoutMetrics | null>(null);
+  const [startedAt, setStartedAt] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const autoPausesRef = useRef(0);
+  const [gpsDistance, setGpsDistance] = useState(0);
+  const [gpsState, setGpsState] = useState<"searching" | "ok" | "denied">("searching");
   const [elapsed, setElapsed] = useState(0);
   const [route, setRoute] = useState<GpsPoint[]>([]);
   const [summary, setSummary] = useState<{
@@ -90,6 +183,15 @@ export function ClientActivityPage({
   const pausedRef = useRef(false);
   const pauseAtRef = useRef(0);
   pausedRef.current = paused;
+  const trackerRef = useRef<TrackerState>(initialTracker());
+  const autoPausedRef = useRef(false);
+  const motionAtRef = useRef(0);
+  const wakeRef = useRef<{ release: () => Promise<void> } | null>(null);
+  const prevHaltedRef = useRef(false);
+  const typeRef = useRef(type);
+  typeRef.current = type;
+  autoPausedRef.current = autoPaused;
+  const halted = paused || autoPaused;
   const { confirm } = useDialog();
 
   useEffect(() => {
@@ -127,30 +229,108 @@ export function ClientActivityPage({
     () => items.filter((item) => filter === "todos" || item.details?.activity_type === filter),
     [items, filter],
   );
-  const routeDistance = useMemo(
-    () =>
-      route.slice(1).reduce((sum, point, index) => sum + distanceBetween(route[index], point), 0),
-    [route],
-  );
-  function distanceBetween(a: GpsPoint, b: GpsPoint) {
-    const r = 6371;
-    const dLat = ((b.latitude - a.latitude) * Math.PI) / 180;
-    const dLon = ((b.longitude - a.longitude) * Math.PI) / 180;
-    const x =
-      Math.sin(dLat / 2) ** 2 +
-      Math.cos((a.latitude * Math.PI) / 180) *
-        Math.cos((b.latitude * Math.PI) / 180) *
-        Math.sin(dLon / 2) ** 2;
-    return r * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
-  }
+  const routeDistance = gpsDistance;
+  const liveStatus: "searching" | "moving" | "auto" | "manual" = paused
+    ? "manual"
+    : autoPaused
+      ? "auto"
+      : trackerRef.current.anchor
+        ? "moving"
+        : "searching";
+  // Tempo em movimento: pausa (manual ou automática) não conta; ao retomar, o início é deslocado.
   useEffect(() => {
-    if (!tracking || paused) return;
+    if (!tracking) {
+      prevHaltedRef.current = false;
+      return;
+    }
+    if (halted && !prevHaltedRef.current) pauseAtRef.current = Date.now();
+    if (!halted && prevHaltedRef.current && pauseAtRef.current) {
+      startedRef.current += Date.now() - pauseAtRef.current;
+      // Depois de uma pausa manual, recomeça a medir do ponto atual (sem somar o deslocamento parado).
+      if (!autoPausedRef.current) trackerRef.current = { ...trackerRef.current, anchor: null };
+    }
+    prevHaltedRef.current = halted;
+  }, [halted, tracking]);
+  useEffect(() => {
+    if (!tracking || halted) return;
     const timer = window.setInterval(
       () => setElapsed(Math.floor((Date.now() - startedRef.current) / 1000)),
       1000,
     );
     return () => window.clearInterval(timer);
-  }, [tracking, paused]);
+  }, [tracking, halted]);
+  // Pausa automática: sem deslocamento no GPS e sem movimento do corpo → pausa; voltou a se mover → continua.
+  useEffect(() => {
+    if (!tracking) return;
+    const timer = window.setInterval(() => {
+      if (pausedRef.current) return;
+      const stopped = isStopped(trackerRef.current, Date.now(), motionAtRef.current);
+      if (stopped && !autoPausedRef.current) {
+        autoPausesRef.current += 1;
+        setAutoPaused(true);
+      } else if (
+        !stopped &&
+        autoPausedRef.current &&
+        Date.now() - trackerRef.current.lastMoveAt < 3000
+      )
+        setAutoPaused(false);
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [tracking]);
+  // Sensor de movimento do aparelho (acelerômetro): reforça a detecção quando o GPS oscila.
+  useEffect(() => {
+    if (!tracking) return;
+    const onMotion = (e: DeviceMotionEvent) => {
+      const a = e.acceleration;
+      const g = e.accelerationIncludingGravity;
+      const mag =
+        a && a.x !== null
+          ? Math.hypot(a.x ?? 0, a.y ?? 0, a.z ?? 0)
+          : g && g.x !== null
+            ? Math.abs(Math.hypot(g.x ?? 0, g.y ?? 0, g.z ?? 0) - 9.81)
+            : 0;
+      if (mag > 1.6) {
+        motionAtRef.current = Date.now();
+        // Movimento do corpo retoma a contagem de tempo mesmo antes do GPS confirmar.
+        if (
+          autoPausedRef.current &&
+          !pausedRef.current &&
+          Date.now() - trackerRef.current.lastMoveAt < 20000
+        )
+          setAutoPaused(false);
+      }
+    };
+    window.addEventListener("devicemotion", onMotion);
+    return () => window.removeEventListener("devicemotion", onMotion);
+  }, [tracking]);
+  // Mantém a tela ligada durante a atividade, para o GPS não ser suspenso.
+  useEffect(() => {
+    if (!tracking) return;
+    let alive = true;
+    const lock = async () => {
+      try {
+        const nav = navigator as Navigator & {
+          wakeLock?: { request: (t: "screen") => Promise<{ release: () => Promise<void> }> };
+        };
+        if (nav.wakeLock && document.visibilityState === "visible") {
+          const l = await nav.wakeLock.request("screen");
+          if (alive) wakeRef.current = l;
+          else void l.release();
+        }
+      } catch {
+        /* sem suporte: segue sem manter a tela ligada */
+      }
+    };
+    void lock();
+    const onVis = () => void lock();
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      alive = false;
+      document.removeEventListener("visibilitychange", onVis);
+      void wakeRef.current?.release().catch(() => undefined);
+      wakeRef.current = null;
+    };
+  }, [tracking]);
   useEffect(
     () => () => {
       if (watchRef.current !== null) navigator.geolocation.clearWatch(watchRef.current);
@@ -165,16 +345,34 @@ export function ClientActivityPage({
     setError("");
     setRoute([]);
     setElapsed(0);
+    setGpsDistance(0);
+    setGpsState("searching");
+    setAutoPaused(false);
+    setMetrics(null);
+    autoPausesRef.current = 0;
+    setStartedAt(new Date().toISOString());
+    trackerRef.current = initialTracker();
+    motionAtRef.current = Date.now();
     startedRef.current = Date.now();
+    pauseAtRef.current = 0;
     setTracking(true);
     setPaused(false);
+    // iOS exige permissão explícita (dada por este toque) para o sensor de movimento.
+    const DME = (
+      window as unknown as {
+        DeviceMotionEvent?: { requestPermission?: () => Promise<string> };
+      }
+    ).DeviceMotionEvent;
+    if (DME?.requestPermission) void DME.requestPermission().catch(() => undefined);
+    const cfg = trackerConfig(typeRef.current);
+    if (watchRef.current !== null) navigator.geolocation.clearWatch(watchRef.current);
     watchRef.current = navigator.geolocation.watchPosition(
       (position) => {
-        // Ignora leituras imprecisas e não soma distância enquanto estiver pausado.
         const c = position.coords;
-        if (pausedRef.current || (c.accuracy && c.accuracy > 40)) return;
-        setRoute((current) => [
-          ...current,
+        setGpsState("ok");
+        if (pausedRef.current) return;
+        const { state, accepted } = ingest(
+          trackerRef.current,
           {
             latitude: c.latitude,
             longitude: c.longitude,
@@ -182,10 +380,32 @@ export function ClientActivityPage({
             speed: c.speed,
             t: position.timestamp,
           },
+          cfg,
+        );
+        trackerRef.current = state;
+        if (!accepted) return;
+        setGpsDistance(state.distanceKm);
+        if (state.moving && autoPausedRef.current) setAutoPaused(false);
+        setRoute((current) => [
+          ...current,
+          {
+            latitude: c.latitude,
+            longitude: c.longitude,
+            accuracy: c.accuracy,
+            speed: state.moving ? c.speed : 0,
+            t: position.timestamp,
+          },
         ]);
       },
-      () => setError("Permita o acesso à localização para registrar o percurso."),
-      { enableHighAccuracy: true, maximumAge: 1000, timeout: 15000 },
+      (err) => {
+        if (err.code === 1) {
+          setGpsState("denied");
+          setError("Permita o acesso à localização para registrar o percurso.");
+        } else {
+          setError("Sem sinal de GPS no momento. Vá para um local aberto.");
+        }
+      },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 },
     );
   }
   async function stopGps() {
@@ -199,13 +419,52 @@ export function ClientActivityPage({
       return;
     if (watchRef.current !== null) navigator.geolocation.clearWatch(watchRef.current);
     const minutes = Math.max(1, Math.round(elapsed / 60));
-    const pace =
-      routeDistance > 0
-        ? `${Math.floor(minutes / routeDistance)}:${String(Math.round(((minutes / routeDistance) % 1) * 60)).padStart(2, "0")} min/km`
-        : "—";
-    setSummary({ duration: minutes, distance: routeDistance, pace, points: route.length });
+    const pace = formatPace(routeDistance, elapsed);
+    // Se houver sessão de batimentos no mesmo período, usa para estimar o esforço e o gasto.
+    let avgBpm: number | undefined;
+    let maxBpm: number | undefined;
+    try {
+      const from = new Date(
+        Date.parse(startedAt ?? new Date().toISOString()) - 10 * 60000,
+      ).toISOString();
+      const { data } = await (supabase as any)
+        .from("care_heart_rate_sessions")
+        .select("avg_bpm,max_bpm,started_at")
+        .eq("patient_id", patientId)
+        .gte("started_at", from)
+        .order("started_at", { ascending: false })
+        .limit(1);
+      const hr = data?.[0];
+      if (hr?.avg_bpm) {
+        avgBpm = Number(hr.avg_bpm);
+        maxBpm = Number(hr.max_bpm) || undefined;
+      }
+    } catch {
+      /* sem batimentos: segue só com tempo e percurso */
+    }
+    const built = buildMetrics({
+      type,
+      route,
+      distanceKm: routeDistance,
+      movingSeconds: elapsed,
+      totalSeconds: startedAt
+        ? Math.max(elapsed, (Date.now() - Date.parse(startedAt)) / 1000)
+        : elapsed,
+      autoPauses: autoPausesRef.current,
+      avgBpm,
+      maxBpm,
+    });
+    setMetrics(built);
+    setIntensity(built.effort);
+    setSummary({
+      duration: minutes,
+      distance: routeDistance,
+      pace: pace === "—" ? pace : `${pace} min/km`,
+      points: route.length,
+    });
     setTracking(false);
     setPaused(false);
+    setAutoPaused(false);
     setDistance(routeDistance.toFixed(2));
     setDuration(String(Math.max(1, Math.round(elapsed / 60))));
     const points = route.slice(-30);
@@ -219,6 +478,35 @@ export function ClientActivityPage({
         .join("|");
       const url = `https://www.google.com/maps/dir/?api=1&origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}${waypoints ? `&waypoints=${waypoints}` : ""}`;
       setNotes(`Percurso GPS: ${url}`);
+    }
+  }
+
+  async function removeItem(item: ActivityEntry) {
+    const title = item.details?.title ?? "atividade";
+    if (
+      !(await confirm(
+        "Excluir este registro?",
+        `A ${title.toLowerCase()} de ${formatDate(item.happened_at)} será apagada do seu prontuário. Isso não pode ser desfeito.`,
+        true,
+        "Excluir",
+      ))
+    )
+      return;
+    setDeleting(item.id);
+    setError("");
+    try {
+      const { error: err } = await (supabase as any).rpc("care_delete_client_activity", {
+        p_patient_id: patientId,
+        p_id: item.id,
+      });
+      if (err) throw err;
+      setItems((cur) => cur.filter((x) => x.id !== item.id));
+      setNotice("Registro excluído.");
+      onRecorded();
+    } catch {
+      setError("Não foi possível excluir agora. Tente novamente.");
+    } finally {
+      setDeleting(null);
     }
   }
 
@@ -250,13 +538,15 @@ export function ClientActivityPage({
     setError("");
     setNotice("");
     try {
-      const result = await (supabase as any).rpc("care_log_client_activity", {
+      const result = await (supabase as any).rpc("care_log_client_activity_v2", {
         p_patient_id: patientId,
         p_activity_type: type,
         p_duration_minutes: minutes,
         p_distance_km: km,
         p_intensity: intensity,
         p_notes: notes.trim(),
+        p_metrics: metrics ?? {},
+        p_started_at: metrics ? startedAt : null,
       });
       if (result.error) throw result.error;
       setNotice("Atividade registrada no seu prontuário.");
@@ -264,6 +554,8 @@ export function ClientActivityPage({
       setDistance("");
       setIntensity("moderada");
       setNotes("");
+      setMetrics(null);
+      setSummary(null);
       onRecorded();
     } catch {
       setError("Não foi possível registrar. Confira sua conexão e o acesso ao prontuário.");
@@ -279,12 +571,12 @@ export function ClientActivityPage({
     >
       {(tracking || summary) && (
         <div
-          className="fixed inset-0 z-[180] grid place-items-center bg-[#071a1d]/95 p-5 text-white backdrop-blur-xl"
+          className="fixed inset-0 z-[180] flex overflow-y-auto overscroll-contain bg-[#071a1d]/95 p-3 text-white backdrop-blur-xl sm:p-5"
           role="dialog"
           aria-modal="true"
           aria-label={summary ? "Resumo da atividade" : "Atividade em andamento"}
         >
-          <div className="w-full max-w-3xl rounded-[28px] border border-white/15 bg-white/10 p-5 shadow-2xl sm:p-8">
+          <div className="nv-round m-auto w-full max-w-3xl rounded-[28px] border border-white/15 bg-white/10 p-4 shadow-2xl sm:p-8">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[.2em] text-emerald-200">
@@ -299,13 +591,35 @@ export function ClientActivityPage({
                 </h2>
               </div>
               {!summary && (
-                <span className="inline-flex items-center gap-2 rounded-full bg-emerald-400/15 px-3 py-1.5 text-xs font-bold text-emerald-200">
-                  <span className="size-2 animate-pulse rounded-full bg-emerald-300" />
-                  GPS ativo
+                <span
+                  className={`inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold ${
+                    liveStatus === "moving"
+                      ? "bg-emerald-400/15 text-emerald-200"
+                      : liveStatus === "searching"
+                        ? "bg-sky-400/15 text-sky-200"
+                        : "bg-amber-400/15 text-amber-200"
+                  }`}
+                >
+                  <span
+                    className={`size-2 rounded-full ${
+                      liveStatus === "moving"
+                        ? "animate-pulse bg-emerald-300"
+                        : liveStatus === "searching"
+                          ? "animate-pulse bg-sky-300"
+                          : "bg-amber-300"
+                    }`}
+                  />
+                  {liveStatus === "moving"
+                    ? "Em movimento"
+                    : liveStatus === "searching"
+                      ? "Buscando GPS"
+                      : liveStatus === "auto"
+                        ? "Parado · pausa automática"
+                        : "Pausado"}
                 </span>
               )}
             </div>
-            <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="mt-5 grid grid-cols-2 gap-2.5 sm:mt-8 sm:grid-cols-4 sm:gap-3">
               {[
                 [
                   "Tempo",
@@ -317,9 +631,9 @@ export function ClientActivityPage({
                 [
                   "Ritmo médio",
                   summary?.pace ??
-                    (routeDistance > 0
-                      ? `${Math.floor(elapsed / 60 / routeDistance)} min/km`
-                      : "—"),
+                    (formatPace(routeDistance, elapsed) === "—"
+                      ? "—"
+                      : `${formatPace(routeDistance, elapsed)} min/km`),
                 ],
                 ["Pontos GPS", String(summary?.points ?? route.length)],
               ].map(([label, value]) => (
@@ -331,16 +645,29 @@ export function ClientActivityPage({
                 </div>
               ))}
             </div>
-            {!summary && (
-              <LiveWorkoutVisual
-                route={route}
-                elapsed={elapsed}
-                paused={paused}
-                type={type}
-                distanceKm={routeDistance}
-              />
+            {summary && metrics && (
+              <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_170px]">
+                <dl className="grid grid-cols-2 gap-2">
+                  {metricRows(metrics).map(([k, v]) => (
+                    <div key={k} className="rounded-xl bg-black/20 px-3 py-2">
+                      <dt className="text-[11px] text-white/60">{k}</dt>
+                      <dd className="text-sm font-bold tabular-nums">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <RouteMini route={metrics.route} className="w-full self-start rounded-xl" />
+              </div>
             )}
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
+            {summary && (
+              <p className="mt-3 text-center text-[11px] text-white/55">
+                Valores de gasto, passos e esforço são estimativas calculadas pelo tempo, percurso
+                {metrics?.avg_bpm
+                  ? " e batimentos"
+                  : " (conecte o monitor de batimentos para estimar melhor)"}
+                .
+              </p>
+            )}
+            <div className="mt-5 flex flex-wrap justify-center gap-3">
               {summary ? (
                 <>
                   <button
@@ -348,7 +675,15 @@ export function ClientActivityPage({
                     onClick={() => setSummary(null)}
                     className="rounded-xl bg-primary px-6 py-3 text-sm font-bold"
                   >
-                    Voltar ao registro
+                    Revisar antes de salvar
+                  </button>
+                  <button
+                    type="button"
+                    disabled={saving}
+                    onClick={() => void save()}
+                    className="rounded-xl bg-emerald-500 px-6 py-3 text-sm font-bold text-emerald-950 disabled:opacity-50"
+                  >
+                    {saving ? "Salvando…" : "Salvar no prontuário"}
                   </button>
                   {notes.startsWith("Percurso GPS:") && (
                     <a
@@ -365,12 +700,7 @@ export function ClientActivityPage({
                 <>
                   <button
                     type="button"
-                    onClick={() => {
-                      // O tempo pausado não conta: ao retomar, o início é deslocado.
-                      if (paused) startedRef.current += Date.now() - pauseAtRef.current;
-                      else pauseAtRef.current = Date.now();
-                      setPaused((value) => !value);
-                    }}
+                    onClick={() => setPaused((value) => !value)}
                     className="inline-flex items-center gap-2 rounded-xl border border-white/20 px-6 py-3 text-sm font-bold"
                   >
                     {paused ? <Play size={17} /> : <Pause size={17} />}{" "}
@@ -386,6 +716,15 @@ export function ClientActivityPage({
                 </>
               )}
             </div>
+            {!summary && (
+              <LiveWorkoutVisual
+                route={route}
+                elapsed={elapsed}
+                status={liveStatus}
+                type={type}
+                distanceKm={routeDistance}
+              />
+            )}
           </div>
         </div>
       )}
@@ -653,7 +992,50 @@ export function ClientActivityPage({
                             : ""}{" "}
                           · Intensidade {detail.intensity ?? "não informada"}
                         </p>
-                        {detail.notes && <p className="mt-1 text-xs">{detail.notes}</p>}
+                        {detail.metrics && Object.keys(detail.metrics).length > 0 && (
+                          <div className="mt-2 flex items-start gap-3">
+                            <dl className="grid min-w-0 flex-1 grid-cols-2 gap-x-3 gap-y-1 sm:grid-cols-3">
+                              {metricRows(detail.metrics).map(([k, v]) => (
+                                <div key={k} className="min-w-0">
+                                  <dt className="truncate text-[10.5px] text-muted-foreground">
+                                    {k}
+                                  </dt>
+                                  <dd className="truncate text-xs font-bold tabular-nums">{v}</dd>
+                                </div>
+                              ))}
+                            </dl>
+                            {detail.metrics.route && detail.metrics.route.length > 1 && (
+                              <RouteMini
+                                route={detail.metrics.route}
+                                className="hidden w-28 shrink-0 sm:block"
+                              />
+                            )}
+                          </div>
+                        )}
+                        {detail.notes && !detail.notes.startsWith("Percurso GPS:") && (
+                          <p className="mt-1 text-xs">{detail.notes}</p>
+                        )}
+                        {detail.notes?.startsWith("Percurso GPS:") && (
+                          <a
+                            href={detail.notes.replace("Percurso GPS: ", "")}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-1 inline-block text-[11px] font-semibold text-primary underline"
+                          >
+                            Abrir percurso no Google Maps
+                          </a>
+                        )}
+                        <div className="mt-2 flex justify-end">
+                          <button
+                            type="button"
+                            disabled={deleting === item.id}
+                            onClick={() => void removeItem(item)}
+                            aria-label={`Excluir registro de ${detail.title ?? "atividade"}`}
+                            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-2.5 text-[11px] font-semibold text-destructive transition hover:bg-destructive/10 disabled:opacity-50"
+                          >
+                            <Trash2 size={13} /> {deleting === item.id ? "Excluindo…" : "Excluir"}
+                          </button>
+                        </div>
                       </div>
                     </article>
                   );
