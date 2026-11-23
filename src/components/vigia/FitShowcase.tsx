@@ -21,14 +21,14 @@ const areaStyle: Record<
 > = {
   protocols: { layout: "steps", color: "#0c8063" },
   medication: { layout: "split", color: "#e11d48", demo: "medicacao" },
-  hydration: { layout: "stage", color: "#0284c7", demo: "agua" },
-  diet: { layout: "bento", color: "#059669" },
-  sports: { layout: "mirror", color: "#d97706" },
+  hydration: { layout: "stage", color: "#0369a1", demo: "agua" },
+  diet: { layout: "bento", color: "#047857" },
+  sports: { layout: "mirror", color: "#b45309" },
   supplements: { layout: "mirror", color: "#7c3aed" },
-  weight: { layout: "steps", color: "#c026d3" },
+  weight: { layout: "steps", color: "#a21caf" },
   sleep: { layout: "stage", color: "#4f46e5", demo: "sono" },
-  training: { layout: "bento", color: "#ea580c" },
-  metrics: { layout: "split", color: "#0d9488", demo: "metricas" },
+  training: { layout: "bento", color: "#c2410c" },
+  metrics: { layout: "split", color: "#0f766e", demo: "metricas" },
 };
 
 const menuOrder: ShowcaseKind[] = [

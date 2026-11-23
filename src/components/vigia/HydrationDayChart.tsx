@@ -167,7 +167,7 @@ export function HydrationDayChart({
             <div>
               <dt className="text-muted-foreground">Frente ao ritmo ideal</dt>
               <dd
-                className={`text-base font-extrabold tabular-nums leading-tight ${diff >= 0 ? "text-emerald-500" : "text-amber-500"}`}
+                className={`text-base font-extrabold tabular-nums leading-tight ${diff >= 0 ? "text-emerald-700 dark:text-emerald-400" : "text-amber-700 dark:text-amber-400"}`}
               >
                 {diff >= 0 ? "+" : "−"}
                 {fmt(Math.abs(diff))}
@@ -488,7 +488,10 @@ export function HydrationDayChart({
           className={`mt-2 flex items-start gap-1.5 border-l-2 px-2 py-1.5 text-[11px] leading-snug ${note.kind === "met" ? "border-emerald-500 bg-emerald-500/[.06]" : note.kind === "missed" ? "border-amber-500 bg-amber-500/[.05]" : "border-border bg-muted/30"}`}
         >
           {note.kind === "met" ? (
-            <CheckCircle2 size={13} className="mt-0.5 shrink-0 text-emerald-500" />
+            <CheckCircle2
+              size={13}
+              className="mt-0.5 shrink-0 text-emerald-700 dark:text-emerald-400"
+            />
           ) : (
             <Info size={13} className="mt-0.5 shrink-0 text-muted-foreground" />
           )}

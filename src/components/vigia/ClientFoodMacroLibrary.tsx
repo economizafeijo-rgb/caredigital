@@ -634,7 +634,7 @@ export function ClientFoodMacroLibrary({
                     setMealBasket((items) => items.filter((_, i) => i !== index));
                     mealRequestIds.current = [];
                   }}
-                  className="font-bold text-red-500"
+                  className="font-bold text-red-600 dark:text-red-400"
                   aria-label={"Remover " + item.name}
                 >
                   Remover
@@ -687,7 +687,7 @@ export function ClientFoodMacroLibrary({
                       type="button"
                       disabled={saving}
                       onClick={() => void deleteMeal(group)}
-                      className="font-bold text-red-500"
+                      className="font-bold text-red-600 dark:text-red-400"
                     >
                       Excluir
                     </button>

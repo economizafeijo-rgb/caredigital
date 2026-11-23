@@ -75,7 +75,7 @@ export function QrShareCard({
         <QrCode variant={variant} size={compact ? 92 : dark ? 168 : 132} />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[.13em] text-emerald-500">
+        <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[.13em] text-emerald-700 dark:text-emerald-400">
           <Smartphone size={12} /> Leve o NextVita com você
         </p>
         <h3
@@ -125,7 +125,7 @@ export function QrShareCard({
           >
             {copied ? (
               <>
-                <Check size={14} className="text-emerald-500" /> Link copiado
+                <Check size={14} className="text-emerald-700 dark:text-emerald-400" /> Link copiado
               </>
             ) : (
               <>

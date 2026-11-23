@@ -147,7 +147,14 @@ export function HydrationDaysChart({
                 />
               )}
               {water > 0 && (
-                <rect x={x0} y={y(water + drinks)} width={bw} height="1.5" fill="#fff" fillOpacity=".55" />
+                <rect
+                  x={x0}
+                  y={y(water + drinks)}
+                  width={bw}
+                  height="1.5"
+                  fill="#fff"
+                  fillOpacity=".55"
+                />
               )}
               {hit && (
                 <g transform={`translate(${cx(i)} ${padT - 10})`}>
@@ -271,7 +278,7 @@ export function HydrationDaysChart({
           )}
           {goal ? (
             <p
-              className={`mt-1 flex items-center gap-1 border-t border-border pt-1 font-semibold ${hv.a >= goal ? "text-emerald-500" : "text-muted-foreground"}`}
+              className={`mt-1 flex items-center gap-1 border-t border-border pt-1 font-semibold ${hv.a >= goal ? "text-emerald-700 dark:text-emerald-400" : "text-muted-foreground"}`}
             >
               {hv.a >= goal && <Check size={11} />} {Math.round((hv.a / goal) * 100)}% da meta
             </p>

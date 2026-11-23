@@ -217,7 +217,7 @@ export function PortionPanel({
           </div>
         </div>
         <p
-          className={`mt-1.5 text-xs ${valid ? "text-muted-foreground" : "font-semibold text-red-500"}`}
+          className={`mt-1.5 text-xs ${valid ? "text-muted-foreground" : "font-semibold text-red-600 dark:text-red-400"}`}
         >
           {valid ? `Equivale a ${fmt(amount, 0)} ${base}` : `Informe entre 1 e ${MAX} ${base}.`}
         </p>
