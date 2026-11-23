@@ -20,7 +20,6 @@ import {
 } from "@/lib/care-intake-categories";
 import { parseFoodText, sumNutrients, measureUnit } from "@/lib/food-parser";
 
-/** Bebidas que fazem parte de uma refeição e podem ser registradas no prato. */
 import { drinkGroups, drinkPresetFor, drinkPresets } from "@/lib/drink-presets";
 import { supabase } from "@/integrations/supabase/client";
 
