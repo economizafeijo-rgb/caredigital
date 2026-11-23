@@ -1,3 +1,4 @@
+import { TapGuard } from "./TapGuard";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { MANUAL_SIGNOUT_KEY } from "./SessionGuard";
@@ -722,6 +723,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <DialogProvider>
       <HydrationProvider>
         <ProductQuickViewHost />
+        <TapGuard />
         <div className="care-shell flex h-dvh min-h-0 overflow-hidden bg-background text-foreground">
           {internalPage && !fullScreen && !lojistaArea && (
             <div

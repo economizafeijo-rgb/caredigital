@@ -191,7 +191,7 @@ function MobileHero({
         }}
       />
 
-      <div className="flex min-h-[min(44rem,calc(100dvh-8rem))] flex-col justify-between px-5 pb-5 pt-5">
+      <div className="flex min-h-[min(44rem,calc(100svh-8rem))] flex-col justify-between px-5 pb-5 pt-5">
         <div className="flex flex-wrap items-center gap-2">
           <CampaignPill />
         </div>
@@ -359,7 +359,12 @@ export function HomeStage({
     setHour(h);
     // Manhã combina com saúde; o resto do dia, com treino.
     setIdx(h >= 5 && h < 12 ? 1 : 0);
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) setAuto(false);
+    // No celular o destaque não troca sozinho: a página não pode mudar de tamanho enquanto se lê.
+    if (
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      window.matchMedia("(max-width: 639px)").matches
+    )
+      setAuto(false);
   }, []);
   useEffect(() => {
     if (!auto || touched) return;

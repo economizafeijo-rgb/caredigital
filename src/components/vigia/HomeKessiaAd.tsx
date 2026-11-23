@@ -489,8 +489,22 @@ export function HomeKessiaAd() {
         aria-hidden="true"
         className={`absolute inset-0 -z-10 bg-gradient-to-r ${slide.tint}`}
       />
-      <div key={slide.id} className="nv-rise">
-        {slide.render(line, { cards: slide.cards ?? [], tick })}
+      {/* Todos os destaques ocupam a mesma célula: a altura é a do maior e nunca muda na troca. */}
+      <div className="grid">
+        {all.map((s, k) => {
+          const on = k === i % all.length;
+          const sl = s.lines ?? lines[s.id] ?? [""];
+          return (
+            <div
+              key={s.id}
+              aria-hidden={!on}
+              inert={!on}
+              className={`col-start-1 row-start-1 transition-opacity duration-500 ${on ? "opacity-100" : "pointer-events-none opacity-0"}`}
+            >
+              {s.render(on ? line : sl[0], { cards: s.cards ?? [], tick })}
+            </div>
+          );
+        })}
       </div>
       <div className="mt-5 flex items-center gap-2" role="tablist" aria-label="Escolher destaque">
         {all.map((s, k) => (
