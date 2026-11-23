@@ -547,6 +547,7 @@ export function ClientHeartRate({
             ariaLabel="Frequência cardíaca nos últimos 5 minutos"
             height={170}
             yAuto
+            persistTip
             series={[
               {
                 id: "bpm",

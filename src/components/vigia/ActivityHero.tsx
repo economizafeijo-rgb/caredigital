@@ -246,6 +246,7 @@ export function ActivityDaysChart({ items }: { items: Item[] }) {
       </figcaption>
       <EvoChart
         height={200}
+        persistTip
         ariaLabel={`Minutos de atividade nos últimos 14 dias; ${week} nos últimos 7`}
         xMin={-0.6}
         xMax={13.6}

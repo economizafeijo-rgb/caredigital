@@ -135,6 +135,7 @@ export function WeightEvolutionChart({
       <EvoChart
         height={320}
         yAuto
+        persistTip
         ariaLabel={`Evolução do peso em ${rows.length} medidas`}
         xMin={X(rows[0].date) - pad}
         xMax={X(last.date) + pad}

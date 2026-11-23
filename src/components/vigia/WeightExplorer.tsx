@@ -186,6 +186,7 @@ export function WeightExplorer({
           <EvoChart
             height={210}
             yAuto
+            persistTip
             ariaLabel={`Peso: ${view.length} medidas`}
             xMin={x0 - padX}
             xMax={x1 + padX}
