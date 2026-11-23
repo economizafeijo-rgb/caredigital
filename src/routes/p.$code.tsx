@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { products as catalog, vendorById } from "@/lib/store";
+import { openProduct, PENDING_PRODUCT_KEY } from "@/components/vigia/StoreViews";
 
 const SITE_URL = "https://www.nextvita.life";
 const PLATFORM_IMAGE = `${SITE_URL}/share-card-v3.jpg`;
@@ -18,6 +20,20 @@ const absUrl = (u: string | null | undefined) =>
 const brl = (c: number) =>
   (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+/** Produtos do catálogo de Ofertas (lojas parceiras de exemplo) usam o próprio id no link. */
+function catalogProduct(code: string): ShareProduct | null {
+  const c = catalog.find((x) => x.id === code);
+  if (!c) return null;
+  const v = vendorById(c.vendorId);
+  return {
+    name: c.name,
+    price_cents: c.priceCents,
+    image_url: c.img,
+    description: c.text,
+    vendor: v ? { name: v.name, logo_url: null } : null,
+  };
+}
+
 // Link curto de produto: nextvita.life/p/<código> leva à loja com o produto aberto.
 // O loader busca os dados públicos do produto para que a prévia (WhatsApp, Instagram, Facebook...)
 // mostre a foto, o nome e o preço, já que os robôs das redes não executam JavaScript.
@@ -30,10 +46,11 @@ export const Route = createFileRoute("/p/$code")({
         .eq("share_code", params.code.toLowerCase())
         .eq("active", true)
         .maybeSingle();
-      return { product: (data as ShareProduct | null) ?? null };
+      if (data) return { product: data as ShareProduct };
     } catch {
-      return { product: null };
+      /* tenta o catálogo abaixo */
     }
+    return { product: catalogProduct(params.code) };
   },
   head: ({ params, loaderData }) => {
     const p = loaderData?.product;
@@ -85,6 +102,18 @@ function ProductShortLink() {
 
   useEffect(() => {
     let alive = true;
+    const local = catalog.find((x) => x.id === code);
+    if (local) {
+      try {
+        sessionStorage.setItem(PENDING_PRODUCT_KEY, local.id);
+      } catch {
+        /* sem sessionStorage */
+      }
+      void navigate({ to: "/loja", search: { loja: local.vendorId } as never, replace: true }).then(
+        () => openProduct(local.id),
+      );
+      return;
+    }
     void (async () => {
       const db = supabase as any;
       const { data: p } = await db

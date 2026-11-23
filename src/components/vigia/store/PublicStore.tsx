@@ -46,6 +46,7 @@ import {
   shortStoreUrl,
   socialLinks,
 } from "../seller/shared";
+import { shareProductLink } from "@/lib/share-product";
 import { CustomerChat } from "./CustomerChat";
 import { useVendorReplies } from "./useVendorReplies";
 import { ChatToastHost } from "../chat/ChatToasts";
@@ -918,7 +919,7 @@ function PublicStore({
             role="dialog"
             aria-modal="true"
             aria-label={`Foto de ${detail.name}`}
-            className="nv-dark fixed inset-0 z-[2147483000] flex flex-col bg-black/95 text-white"
+            className="nv-dark fixed inset-0 z-[2147483000] flex !max-h-none flex-col bg-black/95 text-white"
             onKeyDown={(e) => {
               if (e.key === "Escape") setZoomImg(false);
             }}
@@ -982,11 +983,8 @@ function PublicStore({
   );
 }
 
-/**
- * Compartilha um produto com a foto anexada, quando o navegador aceitar arquivos
- * (celular e alguns navegadores de computador). Sem a Web Share API, copia o link.
- */
-async function shareProduct(
+/** Compartilha um produto da loja (link curto /p/<código> com prévia e foto anexada). */
+function shareProduct(
   detail: {
     name: string;
     price_cents: number;
@@ -994,44 +992,15 @@ async function shareProduct(
     image_url: string | null;
   },
   vendorName: string,
-): Promise<"shared" | "cancel" | "copied" | "failed"> {
-  if (!detail.share_code) return "failed";
-  const url = `${window.location.origin}/p/${detail.share_code}`;
-  const title = `${detail.name} · ${money(detail.price_cents)}`;
-  const text = `${detail.name} por ${money(detail.price_cents)} na ${vendorName}`;
-  if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
-    let files: File[] | undefined;
-    if (detail.image_url) {
-      try {
-        const blob = await fetch(detail.image_url).then((r) => r.blob());
-        const ext = blob.type.split("/")[1]?.replace("jpeg", "jpg") || "jpg";
-        const file = new File([blob], `${detail.name.slice(0, 40)}.${ext}`, {
-          type: blob.type || "image/jpeg",
-        });
-        if (navigator.canShare?.({ files: [file] })) files = [file];
-      } catch {
-        files = undefined;
-      }
-    }
-    try {
-      await navigator.share(files ? { title, text, url, files } : { title, text, url });
-      return "shared";
-    } catch (err) {
-      if (err instanceof DOMException && err.name === "AbortError") return "cancel";
-      try {
-        await navigator.share({ title, text, url });
-        return "shared";
-      } catch {
-        // cai para a cópia do link abaixo
-      }
-    }
-  }
-  try {
-    await navigator.clipboard.writeText(url);
-    return "copied";
-  } catch {
-    return "failed";
-  }
+) {
+  if (!detail.share_code) return Promise.resolve("failed" as const);
+  return shareProductLink({
+    url: `${window.location.origin}/p/${detail.share_code}`,
+    title: `${detail.name} · ${money(detail.price_cents)}`,
+    text: `${detail.name} por ${money(detail.price_cents)} na ${vendorName}`,
+    image: detail.image_url,
+    fileName: detail.name,
+  });
 }
 
 function ShareSheet({ vendor, onClose }: { vendor: Vendor; onClose: () => void }) {
@@ -1043,7 +1012,7 @@ function ShareSheet({ vendor, onClose }: { vendor: Vendor; onClose: () => void }
       role="dialog"
       aria-modal="true"
       aria-label="Compartilhar loja"
-      className="fixed inset-0 z-[95] grid place-items-center bg-black/50 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[95] grid !max-h-none place-items-center bg-black/50 p-4 backdrop-blur-sm"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="nv-fade-in w-full max-w-sm rounded-3xl bg-card p-5 text-center shadow-2xl">
@@ -1366,7 +1335,7 @@ function VendorCheckout({
       role="dialog"
       aria-modal="true"
       aria-label="Carrinho da loja"
-      className="fixed inset-0 z-[95] flex justify-end bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-[95] flex !max-h-none justify-end bg-black/50 backdrop-blur-sm"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="nv-fade-in flex h-full w-full max-w-md flex-col bg-card shadow-2xl">

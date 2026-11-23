@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
+import { shareProductLink } from "@/lib/share-product";
 import type React from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
@@ -9,6 +11,8 @@ import {
   Clock,
   MapPin,
   MessageCircle,
+  Check,
+  Share2,
   Minus,
   Plus,
   ShieldCheck,
@@ -35,6 +39,7 @@ const EVT = "nv-open-product";
 export const openProduct = (id: string) => {
   if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent(EVT, { detail: id }));
 };
+export const PENDING_PRODUCT_KEY = EVT;
 export const productByImage = (src: string) => products.find((p) => p.img === src);
 
 const vendorAbout: Record<VendorId, { about: string; hours: string; delivery: string }> = {
@@ -90,9 +95,27 @@ export function ProductQuickViewHost() {
   const [id, setId] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
+  const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
+  // Link compartilhado (/p/<id>) guarda o produto para abrir assim que a página carrega.
+  useEffect(() => {
+    try {
+      const pending = sessionStorage.getItem(EVT);
+      if (pending) {
+        sessionStorage.removeItem(EVT);
+        if (products.some((x) => x.id === pending)) setId(pending);
+      }
+    } catch {
+      /* sem sessionStorage */
+    }
+  }, []);
   useEffect(() => {
     const on = (e: Event) => {
+      try {
+        sessionStorage.removeItem(EVT);
+      } catch {
+        /* sem sessionStorage */
+      }
       setId(String((e as CustomEvent).detail));
       setQty(1);
       setAdded(false);
@@ -118,14 +141,29 @@ export function ProductQuickViewHost() {
   const v = vendorById(p.vendorId);
   const off = p.oldPriceCents ? Math.round((1 - p.priceCents / p.oldPriceCents) * 100) : 0;
   const more = products.filter((x) => x.vendorId === p.vendorId && x.id !== p.id).slice(0, 4);
+  const share = () => {
+    void shareProductLink({
+      url: `${window.location.origin}/p/${p.id}`,
+      title: `${p.name} · ${money(p.priceCents)}`,
+      text: `${p.name} por ${money(p.priceCents)}${v ? ` na ${v.name}` : ""}`,
+      image: p.img,
+      fileName: p.name,
+    }).then((how) => {
+      if (how === "copied") {
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), 2000);
+      }
+    });
+  };
   const goStore = () => {
     setId(null);
     void navigate({ to: "/loja", search: { loja: p.vendorId } as never });
     window.scrollTo?.({ top: 0 });
   };
-  return (
+  if (typeof document === "undefined") return null;
+  return createPortal(
     <div
-      className="fixed inset-0 z-[11500] grid place-items-end bg-slate-950/70 backdrop-blur-sm sm:place-items-center sm:p-4"
+      className="fixed inset-0 z-[11500] grid !max-h-none place-items-end bg-slate-950/70 backdrop-blur-sm sm:place-items-center sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-label={p.name}
@@ -133,31 +171,52 @@ export function ProductQuickViewHost() {
         if (e.target === e.currentTarget) setId(null);
       }}
     >
-      <div className="nv-pop grid max-h-[92dvh] w-full max-w-4xl overflow-y-auto rounded-t-3xl border border-border bg-card shadow-2xl sm:rounded-3xl md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <div className="relative bg-[#e9eaec]">
-          <img src={p.img} alt={p.name} className="aspect-square w-full object-cover" />
+      <div className="nv-pop grid !max-h-[calc(100dvh-env(safe-area-inset-top)-1rem)] w-full max-w-4xl overflow-y-auto overscroll-contain rounded-t-3xl pb-[env(safe-area-inset-bottom)] sm:pb-0 border border-border bg-card shadow-2xl sm:rounded-3xl md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="relative overflow-hidden bg-[#e9eaec]">
+          <img
+            src={p.img}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 size-full scale-125 object-cover opacity-70 blur-2xl md:hidden"
+          />
+          <img
+            src={p.img}
+            alt={p.name}
+            className="relative h-60 w-full object-contain min-[420px]:h-64 md:aspect-square md:h-auto md:object-cover"
+          />
           {off > 0 && (
             <span className="absolute left-3 top-3 rounded-full bg-rose-600 px-3 py-1 text-sm font-extrabold text-white shadow">
               -{off}%
             </span>
           )}
-          <button
-            type="button"
-            onClick={() => setId(null)}
-            aria-label="Fechar"
-            className="absolute right-3 top-3 grid size-10 place-items-center rounded-full bg-white/90 text-slate-900 shadow transition hover:bg-white md:hidden"
-          >
-            <X size={18} />
-          </button>
+          <div className="absolute right-3 top-3 flex gap-2">
+            <button
+              type="button"
+              onClick={share}
+              aria-label={copied ? "Link copiado" : `Compartilhar ${p.name}`}
+              title={copied ? "Link copiado" : "Compartilhar"}
+              className="nv-tiny grid size-9 place-items-center rounded-full bg-white/90 text-slate-900 shadow transition hover:bg-white"
+            >
+              {copied ? <Check size={16} /> : <Share2 size={16} />}
+            </button>
+            <button
+              type="button"
+              onClick={() => setId(null)}
+              aria-label="Fechar"
+              className="nv-tiny grid size-9 place-items-center rounded-full bg-white/90 text-slate-900 shadow transition hover:bg-white md:hidden"
+            >
+              <X size={17} />
+            </button>
+          </div>
         </div>
-        <div className="flex min-w-0 flex-col p-5 sm:p-6">
+        <div className="flex min-w-0 flex-col p-4 sm:p-6">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[11px] font-bold uppercase tracking-widest text-primary">
                 {categoryLabel[p.category]}
                 {p.tag ? ` · ${p.tag}` : ""}
               </p>
-              <h2 className="mt-1 text-2xl font-extrabold leading-tight">{p.name}</h2>
+              <h2 className="mt-1 text-xl font-extrabold leading-tight sm:text-2xl">{p.name}</h2>
             </div>
             <button
               type="button"
@@ -169,7 +228,7 @@ export function ProductQuickViewHost() {
             </button>
           </div>
           <p className="mt-2 text-sm text-muted-foreground">{p.text}</p>
-          <div className="mt-4 rounded-2xl bg-muted/50 p-3">
+          <div className="mt-3 rounded-2xl bg-muted/50 p-3">
             {p.oldPriceCents && (
               <p className="text-sm">
                 <span className="text-muted-foreground line-through">{money(p.oldPriceCents)}</span>{" "}
@@ -178,7 +237,9 @@ export function ProductQuickViewHost() {
                 </span>
               </p>
             )}
-            <p className="text-3xl font-extrabold tabular-nums">{money(p.priceCents)}</p>
+            <p className="text-2xl font-extrabold tabular-nums sm:text-3xl">
+              {money(p.priceCents)}
+            </p>
             <p className="text-xs text-muted-foreground">
               ou 3x de {money(Math.round(p.priceCents / 3))} sem juros ·{" "}
               <strong className="text-emerald-700 dark:text-emerald-300">
@@ -289,7 +350,8 @@ export function ProductQuickViewHost() {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
