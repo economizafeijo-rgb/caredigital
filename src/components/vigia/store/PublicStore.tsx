@@ -804,7 +804,7 @@ function PublicStore({
                 >
                   <ShoppingCart size={18} /> Adicionar ao carrinho
                 </button>
-                <div className="mt-2 grid grid-cols-3 gap-2">
+                <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
                   <button
                     type="button"
                     onClick={() => {
@@ -847,6 +847,23 @@ function PublicStore({
                         {linkCopied ? <Check size={15} /> : <Copy size={15} />}
                         {linkCopied ? "Copiado" : "Copiar link"}
                       </button>
+                      {typeof navigator !== "undefined" && "share" in navigator && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            void navigator
+                              .share({
+                                title: `${detail.name} · ${money(detail.price_cents)}`,
+                                text: `${detail.name} por ${money(detail.price_cents)} na ${vendor.name}`,
+                                url: `${window.location.origin}/p/${detail.share_code}`,
+                              })
+                              .catch(() => undefined);
+                          }}
+                          className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-border text-xs font-semibold transition hover:bg-muted"
+                        >
+                          <Share2 size={15} /> Compartilhar
+                        </button>
+                      )}
                     </>
                   ) : null}
                 </div>
