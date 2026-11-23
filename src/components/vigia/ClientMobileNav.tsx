@@ -52,9 +52,9 @@ export function ClientMobileNav({
     <nav
       ref={ref}
       aria-label="Seções do meu acompanhamento"
-      className="sticky top-0 z-30 -mx-3 border-b border-border bg-background/95 backdrop-blur lg:hidden"
+      className="sticky -top-2 z-30 -mx-2 -mt-2 border-b border-border bg-background pt-2 sm:-top-3 sm:-mx-3 sm:-mt-3 sm:pt-3 lg:hidden"
     >
-      <ul className="flex gap-2 overflow-x-auto px-3 py-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <ul className="flex gap-2 overflow-x-auto px-2 py-2.5 sm:px-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {ITEMS.map(([key, label, Icon]) => {
           const on = key === active;
           return (
