@@ -256,7 +256,7 @@ export function SmartMetricsDashboard() {
         eyebrow="Peso e IMC"
         icon={Scale}
         color="#2dd4bf"
-        kind="area"
+        kind="line"
         unit="kg"
         decimals={1}
         domain={["dataMin - 2", "dataMax + 2"]}
@@ -269,7 +269,7 @@ export function SmartMetricsDashboard() {
         eyebrow="Calorias · registros e resumos históricos"
         icon={UtensilsCrossed}
         color="#fb923c"
-        kind="area"
+        kind="bars"
         unit="kcal"
         data={metrics.energy}
         series={[{ key: "value", name: "Energia", color: "#fb923c" }]}
@@ -280,8 +280,7 @@ export function SmartMetricsDashboard() {
         eyebrow="Nutrição"
         icon={UtensilsCrossed}
         color="#2dd4bf"
-        kind="bar"
-        stacked={hasCarbsFat}
+        kind={hasCarbsFat ? "stacked" : "bars"}
         unit="g"
         data={metrics.macros}
         series={
@@ -300,7 +299,9 @@ export function SmartMetricsDashboard() {
         eyebrow="Sono · últimos 30 dias"
         icon={BedDouble}
         color="#a78bfa"
-        kind="area"
+        kind="ring"
+        goal={8}
+        goalLabel="Meta"
         unit="h"
         decimals={1}
         data={metrics.hasSleepData ? metrics.sleep : []}
@@ -312,7 +313,7 @@ export function SmartMetricsDashboard() {
         eyebrow="Movimento · últimos 30 dias"
         icon={Activity}
         color="#f97316"
-        kind="bar"
+        kind="lollipop"
         unit="min"
         data={metrics.hasActivityData ? metrics.activity : []}
         series={[{ key: "value", name: "Atividade", color: "#f97316" }]}
