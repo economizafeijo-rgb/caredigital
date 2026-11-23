@@ -10,6 +10,7 @@ import {
   type RiskInfo,
   type RiskLevel,
 } from "@/lib/nutrition-risk";
+import { NutrientArt, NUTRIENT_COLOR, NUTRIENT_INK } from "./NutrientArt";
 import { alertSoundOn, playWarning } from "./NextUpClock";
 import { useDailyNutrition, type DailyNutrition } from "./DailyNutritionPanel";
 
@@ -77,23 +78,32 @@ export function NutritionGuardPanel({ data }: { data: DailyNutrition }) {
         {risks.map((r) => {
           const Icon = ICONS[r.key];
           const col = levelColor[r.level];
+          const nc = NUTRIENT_COLOR[r.key];
           const fill = Math.min(1.3, r.pct) / 1.3;
           return (
             <article
               key={r.key}
-              className={`border border-border p-2.5 ${r.level === "severe" ? "nv-due" : ""}`}
+              className={`relative overflow-hidden border p-2.5 pr-[4.75rem] ${r.level === "severe" ? "nv-due" : ""}`}
               style={{
-                boxShadow: `inset 3px 0 0 ${col}`,
-                background:
-                  r.level === "ok"
-                    ? "rgb(255 255 255 / .04)"
-                    : `color-mix(in srgb, ${col} ${r.level === "severe" ? 16 : 11}%, #12151c)`,
+                borderColor: `color-mix(in srgb, ${nc} 55%, transparent)`,
+                boxShadow: `inset 0 3px 0 ${nc}`,
+                background: `linear-gradient(135deg, color-mix(in srgb, ${nc} ${r.level === "ok" ? 20 : 26}%, #12151c), color-mix(in srgb, ${nc} 6%, #12151c) 70%)`,
                 ["--due" as string]: col,
               }}
             >
+              <NutrientArt
+                kind={r.key}
+                className="pointer-events-none absolute -bottom-1 right-1 size-[4.5rem] opacity-95"
+              />
               <div className="flex items-center justify-between gap-2 text-xs">
                 <span className="flex items-center gap-1.5 font-semibold">
-                  <Icon size={14} style={{ color: levelInk[r.level] }} /> {r.label}
+                  <span
+                    className="grid size-6 place-items-center rounded-md"
+                    style={{ background: `${nc}33`, color: NUTRIENT_INK[r.key] }}
+                  >
+                    <Icon size={14} />
+                  </span>{" "}
+                  {r.label}
                 </span>
                 <span className="tabular-nums">
                   <b className="text-sm">{Math.round(r.value).toLocaleString("pt-BR")}</b>

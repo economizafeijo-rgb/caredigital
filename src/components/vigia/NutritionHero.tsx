@@ -5,6 +5,7 @@ import { sumNutrients, type Nutrients } from "@/lib/food-parser";
 import { objectiveLabel } from "@/lib/objective-nutrition";
 import type { DailyNutrition } from "./DailyNutritionPanel";
 import { NextUpClock } from "./NextUpClock";
+import { NutrientArt, NUTRIENT_INK } from "./NutrientArt";
 import { MACRO_COLORS, MacroBreakdown } from "./MacroBreakdown";
 
 const tz = "America/Rio_Branco";
@@ -176,10 +177,22 @@ export function NutritionHero({
               return (
                 <li
                   key={m.key}
-                  className="min-w-0 rounded-lg border border-white/12 bg-white/[.07] px-2 py-1.5 backdrop-blur transition-colors hover:bg-white/[.12] sm:px-2.5"
+                  className="relative min-w-0 overflow-hidden rounded-lg border px-2 py-1.5 pr-9 transition-[filter] hover:brightness-110 sm:px-2.5 sm:pr-12"
+                  style={{
+                    borderColor: `color-mix(in srgb, ${m.color} 60%, transparent)`,
+                    background: `linear-gradient(135deg, color-mix(in srgb, ${m.color} 30%, #10141c), color-mix(in srgb, ${m.color} 8%, #10141c))`,
+                    boxShadow: `inset 0 2px 0 ${m.color}`,
+                  }}
                 >
-                  <span className="flex items-center gap-1 text-[11px] font-semibold text-white/75">
-                    <m.icon size={12} className="shrink-0" style={{ color: m.color }} />
+                  <NutrientArt
+                    kind={m.key}
+                    className="pointer-events-none absolute -bottom-1 -right-0.5 size-9 sm:size-11"
+                  />
+                  <span
+                    className="flex items-center gap-1 text-[11px] font-bold"
+                    style={{ color: NUTRIENT_INK[m.key] }}
+                  >
+                    <m.icon size={12} className="shrink-0" />
                     <span className="truncate sm:hidden">{m.short}</span>
                     <span className="hidden truncate sm:inline">{m.label}</span>
                   </span>
