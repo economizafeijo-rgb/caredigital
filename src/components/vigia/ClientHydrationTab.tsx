@@ -699,6 +699,7 @@ export function ClientHydrationTab({
             <NextUpClock
               compact
               alertKey="agua"
+              silent
               title="Próximo copo"
               color="#22d3ee"
               target={

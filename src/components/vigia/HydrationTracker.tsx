@@ -65,6 +65,15 @@ function nextReminder(from: Date, wakeTime: string, sleepTime: string, intervalM
   return due <= sleep ? due.getTime() : acreDateAtTime(acreAddDays(today, 1), wakeTime).getTime();
 }
 
+const OPT_IN_KEY = "nv-water-reminders";
+function remindersOptedIn() {
+  try {
+    return localStorage.getItem(OPT_IN_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
 function defaults(now = new Date()): HydrationData {
   return {
     day: dayKey(now),
@@ -170,7 +179,12 @@ export function HydrationProvider({ children }: { children: ReactNode }) {
         if (previous.nextReminderAt > current.getTime()) return previous;
         if (alertedAt.current !== previous.nextReminderAt) {
           alertedAt.current = previous.nextReminderAt;
-          if ("Notification" in window && Notification.permission === "granted") {
+          // Só avisa se a pessoa ligou o lembrete de água de propósito; sem agenda, sem alerta.
+          if (
+            remindersOptedIn() &&
+            "Notification" in window &&
+            Notification.permission === "granted"
+          ) {
             new Notification("Hora de se hidratar", {
               body: `Pausa para beber água. Registro de hoje: ${previous.intakeMl} de ${previous.targetMl} ml.`,
             });
@@ -231,7 +245,13 @@ export function HydrationProvider({ children }: { children: ReactNode }) {
         setData((previous) => ({ ...previous, nextReminderAt: Date.now() + 15 * 60_000 })),
       enableNotifications: async () => {
         if (!("Notification" in window)) return false;
-        return (await Notification.requestPermission()) === "granted";
+        const granted = (await Notification.requestPermission()) === "granted";
+        try {
+          localStorage.setItem(OPT_IN_KEY, granted ? "1" : "0");
+        } catch {
+          /* ok */
+        }
+        return granted;
       },
     }),
     [data, ready, now],

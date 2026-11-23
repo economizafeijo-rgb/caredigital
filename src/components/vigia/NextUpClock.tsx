@@ -150,6 +150,8 @@ type Props = {
   /** Identifica o tipo de lembrete para não repetir o alerta do mesmo horário. */
   alertKey: string;
   className?: string;
+  /** Sugestão calculada pelo app (não é horário programado): mostra o relógio, mas não toca nem notifica. */
+  silent?: boolean;
   /** Versão menor para caber dentro de cartões (ex.: painel ao vivo). */
   compact?: boolean;
 };
@@ -172,6 +174,7 @@ export function NextUpClock({
   onCancel,
   alertKey,
   className = "",
+  silent = false,
   compact = false,
 }: Props) {
   const [now, setNow] = useState(() => Date.now());
@@ -206,7 +209,7 @@ export function NextUpClock({
   const when = snooze ?? latched ?? target;
   const due = when !== null && when <= now + 1000;
   useEffect(() => {
-    if (!due || when === null) return;
+    if (silent || !due || when === null) return;
     const id = `${alertKey}:${Math.round(when / 60000)}`;
     let seen = fired.current === id;
     try {
@@ -244,14 +247,14 @@ export function NextUpClock({
     } catch {
       /* ok */
     }
-  }, [due, when, alertKey, sound.on, title, detail, now]);
+  }, [silent, due, when, alertKey, sound.on, title, detail, now]);
 
   const start = from ?? (when ? when - 60 * 60_000 : now);
   const span = when ? Math.max(60_000, when - start) : 1;
   const progress = when ? Math.min(1, Math.max(0, (now - start) / span)) : 0;
   const R = 40,
     C = 2 * Math.PI * R;
-    // Vencido: o relógio para de "correr" e assume a cor âmbar de pendência, com um brilho lento.
+  // Vencido: o relógio para de "correr" e assume a cor âmbar de pendência, com um brilho lento.
   const PEND = "#fbbf24";
   const idle = when === null;
   const ink = due ? PEND : idle ? "#34d399" : color;
@@ -349,15 +352,13 @@ export function NextUpClock({
                     style={{ color: PEND }}
                   />
                 </span>
+              ) : idle ? (
+                <Check size={compact ? 18 : 20} strokeWidth={3} style={{ color: ink }} />
               ) : (
-                idle ? (
-                  <Check size={compact ? 18 : 20} strokeWidth={3} style={{ color: ink }} />
-                ) : (
-                  <span className="text-[13px] font-extrabold tabular-nums text-white/90">
-                    {Math.round(progress * 100)}
-                    <span className="text-[8px] font-bold text-white/50">%</span>
-                  </span>
-                )
+                <span className="text-[13px] font-extrabold tabular-nums text-white/90">
+                  {Math.round(progress * 100)}
+                  <span className="text-[8px] font-bold text-white/50">%</span>
+                </span>
               )}
             </span>
           </div>
@@ -378,7 +379,9 @@ export function NextUpClock({
               </button>
             </p>
             {when === null ? (
-              <p className="mt-1 truncate text-[15px] font-bold leading-tight text-white">{emptyText}</p>
+              <p className="mt-1 truncate text-[15px] font-bold leading-tight text-white">
+                {emptyText}
+              </p>
             ) : due ? (
               <p
                 className={`mt-0.5 flex items-baseline gap-2 whitespace-nowrap text-lg font-extrabold leading-none`}
