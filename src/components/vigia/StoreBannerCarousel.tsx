@@ -314,18 +314,51 @@ export function StoreBannerCarousel({ className = "" }: { className?: string }) 
       </div>
 
       <div className="absolute inset-x-0 bottom-0 z-20 flex items-center gap-3 px-4 pb-3 sm:px-8">
-        <div className="flex items-center gap-1.5" role="tablist" aria-label="Escolher anúncio">
-          {slides.map((s, i) => (
-            <button
-              key={s.id}
-              type="button"
-              role="tab"
-              aria-selected={i === index}
-              aria-label={`Anúncio ${i + 1}: ${s.badge}`}
-              onClick={() => setIndex(i)}
-              className={`h-2.5 rounded-full transition-all ${i === index ? "w-7 bg-white" : "w-2.5 bg-white/40 hover:bg-white/70"}`}
-            />
-          ))}
+        <div
+          className="nv-round flex items-center gap-3 rounded-full bg-black/35 py-1 pl-3.5 pr-2 ring-1 ring-white/15 backdrop-blur-md"
+          role="tablist"
+          aria-label="Escolher anúncio"
+        >
+          <span className="w-9 text-[11px] font-bold tabular-nums text-white/90" aria-hidden="true">
+            {String(index + 1).padStart(2, "0")}
+            <span className="text-white/45"> / {String(slides.length).padStart(2, "0")}</span>
+          </span>
+          <div className="flex items-center">
+            {slides.map((s, i) => {
+              const on = i === index;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={on}
+                  aria-label={`Anúncio ${i + 1}: ${s.badge}`}
+                  onClick={() => setIndex(i)}
+                  style={{ minHeight: 0, minWidth: 0 }}
+                  className="group grid h-8 place-items-center px-[3px]"
+                >
+                  <span
+                    className={`nv-round relative block h-1 overflow-hidden rounded-full transition-all duration-500 ease-out ${on ? "w-10 bg-white/30 sm:w-14" : "w-3.5 bg-white/35 group-hover:bg-white/70 sm:w-4"}`}
+                  >
+                    {on && (
+                      <span
+                        key={index}
+                        className="nv-progress absolute inset-0 origin-left rounded-full bg-amber-300"
+                        style={
+                          reduce
+                            ? { animation: "none", width: "100%" }
+                            : {
+                                animation: `nv-progress ${DURATION}ms linear forwards`,
+                                animationPlayState: playing ? "running" : "paused",
+                              }
+                        }
+                      />
+                    )}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
         <span className="ml-1 hidden rounded-full bg-black/30 px-2.5 py-1 text-[10px] font-semibold text-white/80 backdrop-blur md:inline">
           Loja em desenvolvimento · preços de demonstração
@@ -357,17 +390,6 @@ export function StoreBannerCarousel({ className = "" }: { className?: string }) 
           </button>
         </div>
       </div>
-      {!reduce && (
-        <span
-          aria-hidden="true"
-          key={index}
-          className="nv-progress absolute inset-x-0 bottom-0 z-20 h-1 origin-left bg-amber-300"
-          style={{
-            animation: `nv-progress ${DURATION}ms linear forwards`,
-            animationPlayState: playing ? "running" : "paused",
-          }}
-        />
-      )}
     </section>
   );
 }

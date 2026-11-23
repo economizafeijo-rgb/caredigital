@@ -241,144 +241,111 @@ function PublicStore({
       style={{ "--v": accent } as CSSProperties}
     >
       <section
-        className="nv-dark relative isolate rounded-3xl text-white shadow-pop"
+        className="nv-dark nv-round relative isolate overflow-visible rounded-2xl text-white shadow-pop"
         style={{
-          background: `radial-gradient(120% 140% at 0% 0%, ${tint(70)} 0%, ${tint(32)} 45%, ${tint(12, "#070b14")} 100%)`,
+          background: `linear-gradient(135deg, ${tint(58, "#0a0f1a")} 0%, ${tint(24, "#080c15")} 62%, #080c15 100%)`,
         }}
       >
+        <div aria-hidden className="absolute inset-0 -z-10 overflow-hidden rounded-2xl">
+          <img
+            src={vendor.banner_url || bannerFor(vendor.segment)}
+            alt=""
+            className="absolute inset-y-0 right-0 h-full w-full object-cover opacity-60 lg:w-1/2"
+          />
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `linear-gradient(90deg, ${tint(62, "#080c15")} 0%, ${tint(44, "#080c15")} 45%, color-mix(in srgb, ${tint(30, "#080c15")} 55%, transparent) 75%, transparent 100%)`,
+            }}
+          />
+          <div className="absolute inset-0 bg-black/30 lg:hidden" />
+          <div
+            className="absolute inset-x-0 top-0 h-[3px]"
+            style={{
+              background: `linear-gradient(90deg, ${accent}, color-mix(in srgb, ${accent} 30%, white))`,
+            }}
+          />
+        </div>
+
         <nav
           aria-label="Caminho"
-          className="relative flex flex-wrap items-center gap-1.5 px-4 pt-3 text-[13px] text-white/75 sm:px-5"
+          className="flex items-center gap-2 px-3 pt-3 text-[12.5px] text-white/75 sm:px-4"
         >
           <button
             type="button"
             onClick={() => void navigate({ to: "/loja" })}
-            className="inline-flex items-center gap-1.5 rounded-lg px-1.5 py-1 font-semibold text-white/85 transition hover:bg-white/10 hover:text-white"
+            className="inline-flex h-7 items-center gap-1.5 rounded-full bg-white/10 px-2.5 font-semibold text-white/90 ring-1 ring-white/15 transition hover:bg-white/20 hover:text-white"
           >
-            <ArrowLeft size={15} /> Loja NextVita
+            <ArrowLeft size={14} /> Loja NextVita
           </button>
-          <span aria-hidden>/</span>
-          <span className="truncate font-semibold text-white">{vendor.name}</span>
           {vendor.is_demo && (
-            <span className="ml-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10.5px] font-semibold text-amber-700 dark:text-amber-300">
+            <span className="rounded-full bg-amber-400/15 px-2 py-0.5 text-[10.5px] font-bold text-amber-200 ring-1 ring-amber-300/30">
               loja de teste
             </span>
           )}
-          <PilotNotice className="ml-auto" />
+          <PilotNotice className="ml-auto !gap-1.5 !px-2.5 !py-1 !text-[11px] max-sm:[&>span:nth-last-child(-n+2)]:hidden" />
         </nav>
-        <div aria-hidden className="absolute inset-0 -z-10 overflow-hidden rounded-3xl">
-          <img
-            src={vendor.banner_url || bannerFor(vendor.segment)}
-            alt=""
 
-            className="absolute inset-y-0 right-0 h-full w-full object-cover opacity-90 lg:w-2/3"
-          />
-          {/* Gradiente forte só onde fica o texto; à direita o banner aparece nítido. */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background: `linear-gradient(90deg, ${tint(80, "#070b14")} 0%, ${tint(66, "#070b14")} 36%, color-mix(in srgb, ${tint(62, "#070b14")} 40%, transparent) 60%, transparent 100%)`,
-            }}
-          />
-          {/* No celular o texto ocupa toda a largura: véu extra para manter a leitura. */}
-          <div className="absolute inset-0 bg-black/35 lg:hidden" />
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-4 sm:px-5">
-          <div className="flex min-w-0 flex-1 basis-[22rem] items-center gap-3.5">
-            <span
-              className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white text-lg font-black shadow-xl ring-2 ring-white/30"
-              style={{ color: accent }}
-            >
-              {vendor.logo_url ? (
-                <img
-                  src={vendor.logo_url}
-                  alt={`Logo ${vendor.name}`}
-                  className="size-full object-cover"
+        <div className="flex items-center gap-3 px-3 pb-3 pt-2.5 sm:gap-4 sm:px-4">
+          <span
+            className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white text-lg font-black shadow-xl ring-2 ring-white/35 sm:size-16"
+            style={{ color: accent }}
+          >
+            {vendor.logo_url ? (
+              <img
+                src={vendor.logo_url}
+                alt={`Logo ${vendor.name}`}
+                className="size-full object-cover"
+              />
+            ) : (
+              initialsOf(vendor.name)
+            )}
+          </span>
+          <div className="min-w-0 flex-1">
+            <h1 className="flex flex-wrap items-center gap-x-2 gap-y-0.5 font-display text-xl font-extrabold leading-tight tracking-tight sm:text-[1.6rem]">
+              <span className="truncate">{vendor.name}</span>
+              {vendor.verified && (
+                <BadgeCheck
+                  size={20}
+                  className="shrink-0 text-emerald-300"
+                  aria-label="Loja verificada"
                 />
-              ) : (
-                initialsOf(vendor.name)
               )}
-            </span>
-            <div className="min-w-0">
-              <p className="text-[11.5px] font-semibold text-white/75">
-                Loja parceira NextVita · {vendor.city}
-              </p>
-              <h1 className="flex flex-wrap items-center gap-x-2 gap-y-1 font-display text-xl font-extrabold leading-tight tracking-tight sm:text-2xl">
-                {vendor.name}
-                {vendor.verified && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-700 px-2.5 py-1 text-[11px] font-extrabold text-white shadow-[0_0_0_3px_rgba(16,185,129,.25)]">
-                    <BadgeCheck size={14} aria-hidden="true" /> Loja verificada
-                  </span>
-                )}
-              </h1>
-              {vendor.description && (
-                <p className="mt-1 line-clamp-1 max-w-[56ch] text-[13px] text-white/85 max-sm:hidden">
-                  {vendor.description}
-                </p>
-              )}
-              <dl className="mt-3 grid max-w-[40rem] gap-2 sm:grid-cols-2">
-                <div
-                  className={`flex items-center gap-2.5 rounded-xl px-3 py-2 ring-1 ${
-                    vendor.is_open && vendor.status === "ativo"
-                      ? "bg-emerald-400/20 ring-emerald-300/50"
-                      : "bg-amber-400/20 ring-amber-300/50"
-                  }`}
-                >
-                  <span
-                    aria-hidden="true"
-                    className={`size-2.5 shrink-0 rounded-full ${
-                      vendor.is_open && vendor.status === "ativo"
-                        ? "bg-emerald-300"
-                        : "bg-amber-300"
-                    }`}
-                  />
-                  <div className="min-w-0">
-                    <dt className="text-[12px] font-extrabold text-white">
-                      {vendor.is_open && vendor.status === "ativo"
-                        ? "Aberta agora"
-                        : "Fechada no momento"}
-                    </dt>
-                    <dd className="truncate text-[11.5px] text-white/85">
-                      {vendor.opening_hours || "Horário a confirmar"}
-                    </dd>
-                  </div>
-                </div>
-                {vendor.address && (
-                  <div className="flex items-start gap-2.5 rounded-xl bg-white/10 px-3 py-2 ring-1 ring-white/20 max-sm:hidden">
-                    <MapPin size={15} className="mt-0.5 shrink-0 text-sky-200" aria-hidden="true" />
-                    <dd className="min-w-0 text-[12px] leading-snug text-white/90">
-                      {vendor.address}
-                    </dd>
-                  </div>
-                )}
-              </dl>
-            </div>
+            </h1>
+            <p className="mt-0.5 truncate text-[12.5px] text-white/80">
+              Loja parceira NextVita · {vendor.city}
+              {vendor.description && <span className="max-md:hidden"> · {vendor.description}</span>}
+            </p>
           </div>
-          <div className="relative flex shrink-0 flex-wrap items-center gap-2 max-sm:w-full [&>button]:max-sm:flex-1 [&>button]:max-sm:justify-center">
+          <div className="relative flex shrink-0 items-center gap-1.5 sm:gap-2">
             <button
               type="button"
               onClick={() => {
                 setChatDraft(undefined);
                 setChat(true);
               }}
-              className="inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-[13px] font-bold text-slate-950 transition hover:bg-white/90 active:scale-[.98]"
+              className="inline-flex h-10 items-center gap-2 rounded-xl bg-white px-3.5 text-[13px] font-bold text-slate-950 shadow-lg transition hover:bg-white/90 active:scale-[.98] sm:px-4"
             >
-              <MessageCircle size={15} /> Conversar
+              <MessageCircle size={16} /> <span className="max-[380px]:hidden">Conversar</span>
             </button>
             <button
               type="button"
               onClick={() => setShare(true)}
-              className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/30 bg-black/20 px-3.5 text-[13px] font-semibold backdrop-blur transition hover:bg-white/15"
+              aria-label="Compartilhar loja"
+              title="Compartilhar"
+              className="grid size-10 place-items-center rounded-xl border border-white/30 bg-black/25 backdrop-blur transition hover:bg-white/15"
             >
-              <Share2 size={14} /> Compartilhar
+              <Share2 size={16} />
             </button>
             <button
               type="button"
               aria-expanded={qrOpen}
+              aria-label="QR Code da loja"
+              title="QR Code"
               onClick={() => setQrOpen((v) => !v)}
-              className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/30 bg-black/20 px-3.5 text-[13px] font-semibold backdrop-blur transition hover:bg-white/15"
+              className="grid size-10 place-items-center rounded-xl border border-white/30 bg-black/25 backdrop-blur transition hover:bg-white/15"
             >
-              <QrCode size={14} /> QR Code
+              <QrCode size={16} />
             </button>
             {qrOpen && (
               <div className="absolute right-0 top-12 z-20 w-60 overflow-hidden rounded-2xl bg-white text-slate-900 shadow-2xl ring-1 ring-black/10">
@@ -404,44 +371,57 @@ function PublicStore({
             )}
           </div>
         </div>
-        <ul className="rounded-b-3xl border-t border-white/10 bg-black/25 max-sm:hidden sm:grid sm:grid-cols-4">
-          {[
-            [
-              Store,
-              vendor.offers_pickup ? `Pronto em ~${vendor.prep_minutes ?? 30} min` : "Sem retirada",
-              "Retirada na loja",
-            ],
-            [
-              Truck,
-              vendor.offers_delivery
-                ? `A partir de ${money(Math.max(MIN_DELIVERY_FEE_CENTS, vendor.delivery_fee_cents))}${vendor.free_delivery_from_cents ? ` · grátis acima de ${money(vendor.free_delivery_from_cents)}` : ""}`
-                : "Só retirada",
-              "Entrega",
-            ],
-            [CheckCircle2, "Código de retirada", "Retire com o código"],
-            [MessageCircle, "Chat com a loja", "Atendimento"],
-          ].map(([I, value, label], i) => {
-            const Icon = I as typeof Store;
+
+        <ul className="flex snap-x gap-2 overflow-x-auto border-t border-white/10 bg-black/30 px-3 py-2 [scrollbar-width:none] sm:px-4 [&>li]:shrink-0 [&>li]:snap-start [&::-webkit-scrollbar]:hidden">
+          {(() => {
+            const open = vendor.is_open && vendor.status === "ativo";
+            const chips: [typeof Store, string, string][] = [
+              [
+                Store,
+                vendor.offers_pickup
+                  ? `Retirada · ~${vendor.prep_minutes ?? 30} min`
+                  : "Sem retirada",
+                "",
+              ],
+              [
+                Truck,
+                vendor.offers_delivery
+                  ? `Entrega desde ${money(Math.max(MIN_DELIVERY_FEE_CENTS, vendor.delivery_fee_cents))}${vendor.free_delivery_from_cents ? ` · grátis acima de ${money(vendor.free_delivery_from_cents)}` : ""}`
+                  : "Só retirada",
+                "",
+              ],
+            ];
             return (
-              <li
-                key={label as string}
-                className={`flex min-w-0 items-center gap-2.5 px-4 py-3 sm:px-5 ${i % 2 ? "border-l border-white/10" : ""} ${i > 1 ? "border-t border-white/10 sm:border-t-0" : ""} sm:border-l sm:first:border-l-0`}
-              >
-                <span
-                  className="grid size-8 shrink-0 place-items-center rounded-lg"
-                  style={{ background: tint(35, "transparent") }}
+              <>
+                <li
+                  className={`inline-flex h-8 items-center gap-2 rounded-full px-3 text-[12.5px] font-bold ring-1 ${open ? "bg-emerald-400/20 text-emerald-100 ring-emerald-300/50" : "bg-amber-400/20 text-amber-100 ring-amber-300/50"}`}
                 >
-                  <Icon size={15} />
-                </span>
-                <span className="min-w-0 leading-tight">
-                  <span className="block text-[10.5px] text-white/55">{label as string}</span>
-                  <strong className="block truncate text-[12.5px] font-semibold">
-                    {value as string}
-                  </strong>
-                </span>
-              </li>
+                  <span
+                    aria-hidden="true"
+                    className={`size-2 rounded-full ${open ? "bg-emerald-300" : "bg-amber-300"}`}
+                  />
+                  {open ? "Aberta agora" : "Fechada no momento"}
+                  <span className="font-medium opacity-80">
+                    · {vendor.opening_hours || "Horário a confirmar"}
+                  </span>
+                </li>
+                {chips.map(([Icon, text]) => (
+                  <li
+                    key={text}
+                    className="inline-flex h-8 items-center gap-2 rounded-full bg-white/10 px-3 text-[12.5px] font-semibold text-white/90 ring-1 ring-white/15"
+                  >
+                    <Icon size={14} className="shrink-0 opacity-80" aria-hidden="true" /> {text}
+                  </li>
+                ))}
+                {vendor.address && (
+                  <li className="inline-flex h-8 max-w-[22rem] items-center gap-2 rounded-full bg-white/10 px-3 text-[12.5px] font-semibold text-white/90 ring-1 ring-white/15">
+                    <MapPin size={14} className="shrink-0 opacity-80" aria-hidden="true" />
+                    <span className="truncate">{vendor.address}</span>
+                  </li>
+                )}
+              </>
             );
-          })}
+          })()}
         </ul>
       </section>
 
