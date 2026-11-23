@@ -665,7 +665,10 @@ function PublicStore({
       )}
       {detail && (
         <div
-          className="fixed inset-0 z-[120] flex items-end justify-center bg-slate-950/60 sm:items-center sm:p-6"
+          className="fixed inset-0 z-[120] flex items-end justify-center bg-slate-950/70 backdrop-blur-sm sm:items-center sm:p-6"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setDetail(null);
+          }}
           onKeyDown={(e) => {
             if (e.key === "Escape") setDetail(null);
           }}
@@ -674,137 +677,163 @@ function PublicStore({
             role="dialog"
             aria-modal="true"
             aria-labelledby="product-detail-title"
-            className="max-h-[90vh] w-full overflow-y-auto rounded-t-3xl bg-card p-4 shadow-xl sm:max-w-md sm:rounded-3xl sm:p-5"
+            className="relative max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-card shadow-2xl ring-1 ring-white/10 sm:grid sm:max-w-3xl sm:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] sm:overflow-hidden sm:rounded-3xl"
           >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-xs text-muted-foreground">
-                  {categoryName(detail.category)}
-                  {detail.code ? ` · Código ${detail.code}` : ""}
-                </p>
-                <h2 id="product-detail-title" className="text-lg font-extrabold leading-tight">
-                  {detail.name}
-                </h2>
-              </div>
-              <button
-                type="button"
-                autoFocus
-                onClick={() => setDetail(null)}
-                aria-label="Fechar"
-                className="shrink-0 rounded-full p-2 hover:bg-muted"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            {detail.image_url && (
-              <img
-                src={detail.image_url}
-                alt={detail.name}
-                className="mt-3 h-52 w-full rounded-2xl bg-slate-100 object-contain p-2 sm:h-60"
-              />
-            )}
-            <p className="mt-3 flex flex-wrap items-baseline gap-2">
-              <strong className="text-xl font-extrabold tabular-nums">
-                {money(detail.price_cents)}
-              </strong>
-              {detail.old_price_cents ? (
-                <span className="text-sm text-muted-foreground line-through tabular-nums">
-                  {money(detail.old_price_cents)}
-                </span>
-              ) : null}
+            <button
+              type="button"
+              autoFocus
+              onClick={() => setDetail(null)}
+              aria-label="Fechar"
+              className="absolute right-3 top-3 z-10 grid size-9 place-items-center rounded-full bg-black/45 text-white backdrop-blur transition hover:bg-black/65"
+            >
+              <X size={18} />
+            </button>
+            <div className="relative bg-white sm:min-h-full">
+              {detail.image_url ? (
+                <img
+                  src={detail.image_url}
+                  alt={detail.name}
+                  className="aspect-[4/3] w-full object-cover sm:aspect-square sm:h-full"
+                />
+              ) : (
+                <div className="grid aspect-[4/3] place-items-center text-4xl font-black text-slate-300 sm:aspect-square">
+                  {initialsOf(detail.name)}
+                </div>
+              )}
               {detail.promo_percent ? (
-                <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">
-                  Promoção −{detail.promo_percent}%
+                <span className="absolute left-3 top-3 rounded-full bg-rose-600 px-2.5 py-1 text-xs font-extrabold text-white shadow">
+                  −{detail.promo_percent}%
                 </span>
               ) : null}
-            </p>
-            <p className="mt-1 text-sm font-semibold">
-              {productStatus(detail).label}
-              {productStatus(detail).buyable && detail.stock <= 3
-                ? ` · últimas ${detail.stock}`
-                : ""}
-            </p>
-            {!!detail.colors?.length && (
-              <div className="mt-3">
-                <p className="text-xs font-semibold">Cores</p>
-                <ul className="mt-1 flex flex-wrap gap-2">
-                  {detail.colors.map((c) => (
-                    <li
-                      key={c.name}
-                      className={`flex items-center gap-1.5 text-xs ${c.stock <= 0 ? "opacity-50 line-through" : ""}`}
-                    >
-                      <span
-                        className="size-4 rounded-full border border-border"
-                        style={{ background: c.hex }}
-                        aria-hidden="true"
-                      />
-                      {c.name}
-                      {c.stock <= 0 ? " (esgotada)" : ""}
-                    </li>
-                  ))}
-                </ul>
+            </div>
+            <div className="flex min-w-0 flex-col p-5 sm:max-h-[min(92vh,40rem)] sm:overflow-y-auto sm:p-6">
+              <p
+                className="text-[11.5px] font-semibold uppercase tracking-wide"
+                style={{ color: accent }}
+              >
+                {categoryName(detail.category)}
+              </p>
+              <h2
+                id="product-detail-title"
+                className="mt-1 pr-8 font-display text-xl font-extrabold leading-snug sm:text-2xl"
+              >
+                {detail.name}
+              </h2>
+              {detail.code && (
+                <p className="mt-1 text-xs text-muted-foreground">Código {detail.code}</p>
+              )}
+              <div className="mt-4 flex flex-wrap items-baseline gap-2">
+                <strong className="text-2xl font-extrabold tabular-nums">
+                  {money(detail.price_cents)}
+                </strong>
+                {detail.old_price_cents ? (
+                  <span className="text-sm text-muted-foreground line-through tabular-nums">
+                    {money(detail.old_price_cents)}
+                  </span>
+                ) : null}
               </div>
-            )}
-            {detail.description && (
-              <p className="mt-3 text-sm text-muted-foreground">{detail.description}</p>
-            )}
-            {detail.share_code && (
-              <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                <a
-                  href={`https://wa.me/?text=${encodeURIComponent(
-                    `${detail.name} por ${money(detail.price_cents)} na ${vendor.name}:\n${window.location.origin}/p/${detail.share_code}`,
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#25D366] text-sm font-bold text-white"
-                >
-                  <Share2 size={16} /> Enviar no WhatsApp
-                </a>
+              <p
+                className={`mt-2 inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${
+                  productStatus(detail).buyable
+                    ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
+                <span
+                  aria-hidden="true"
+                  className={`size-1.5 rounded-full ${productStatus(detail).buyable ? "bg-emerald-500" : "bg-slate-400"}`}
+                />
+                {productStatus(detail).label}
+                {productStatus(detail).buyable && detail.stock <= 3
+                  ? ` · últimas ${detail.stock}`
+                  : ""}
+              </p>
+              {detail.description && (
+                <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                  {detail.description}
+                </p>
+              )}
+              {!!detail.colors?.length && (
+                <div className="mt-4">
+                  <p className="text-xs font-semibold">Cores</p>
+                  <ul className="mt-1.5 flex flex-wrap gap-2">
+                    {detail.colors.map((c) => (
+                      <li
+                        key={c.name}
+                        className={`flex items-center gap-1.5 rounded-full border border-border px-2 py-1 text-xs ${c.stock <= 0 ? "opacity-50 line-through" : ""}`}
+                      >
+                        <span
+                          className="size-3.5 rounded-full border border-border"
+                          style={{ background: c.hex }}
+                          aria-hidden="true"
+                        />
+                        {c.name}
+                        {c.stock <= 0 ? " (esgotada)" : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <div className="mt-auto pt-5">
                 <button
                   type="button"
+                  disabled={!productStatus(detail).buyable}
                   onClick={() => {
-                    void navigator.clipboard
-                      ?.writeText(`${window.location.origin}/p/${detail.share_code}`)
-                      .then(() => {
-                        setLinkCopied(true);
-                        setTimeout(() => setLinkCopied(false), 2000);
-                      });
+                    vcart.add(vendor.id, detail.id, productStatus(detail).max);
+                    setAdded(detail.id);
                   }}
-                  className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border text-sm font-semibold hover:bg-muted"
+                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-[15px] font-bold text-white shadow-lg transition hover:brightness-110 disabled:opacity-45"
+                  style={{ background: accent }}
                 >
-                  {linkCopied ? <Check size={16} /> : <Copy size={16} />}
-                  {linkCopied ? "Link copiado" : "Copiar link do produto"}
+                  <ShoppingCart size={18} /> Adicionar ao carrinho
                 </button>
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setChatDraft(
+                        detail.code
+                          ? `Tenho uma dúvida sobre o produto ${detail.code} (${detail.name}).`
+                          : `Tenho uma dúvida sobre o produto ${detail.name}.`,
+                      );
+                      setDetail(null);
+                      setChat(true);
+                    }}
+                    className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-border text-xs font-semibold transition hover:bg-muted"
+                  >
+                    <MessageCircle size={15} /> Perguntar
+                  </button>
+                  {detail.share_code ? (
+                    <>
+                      <a
+                        href={`https://wa.me/?text=${encodeURIComponent(
+                          `${detail.name} por ${money(detail.price_cents)} na ${vendor.name}:\n${window.location.origin}/p/${detail.share_code}`,
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-border text-xs font-semibold transition hover:bg-muted"
+                      >
+                        <Share2 size={15} className="text-[#25D366]" /> WhatsApp
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void navigator.clipboard
+                            ?.writeText(`${window.location.origin}/p/${detail.share_code}`)
+                            .then(() => {
+                              setLinkCopied(true);
+                              setTimeout(() => setLinkCopied(false), 2000);
+                            });
+                        }}
+                        className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-border text-xs font-semibold transition hover:bg-muted"
+                      >
+                        {linkCopied ? <Check size={15} /> : <Copy size={15} />}
+                        {linkCopied ? "Copiado" : "Copiar link"}
+                      </button>
+                    </>
+                  ) : null}
+                </div>
               </div>
-            )}
-            <div className="mt-5 grid gap-2 sm:grid-cols-2">
-              <button
-                type="button"
-                disabled={!productStatus(detail).buyable}
-                onClick={() => {
-                  vcart.add(vendor.id, detail.id, productStatus(detail).max);
-                  setAdded(detail.id);
-                }}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl text-sm font-bold text-white disabled:opacity-45"
-                style={{ background: accent }}
-              >
-                <ShoppingCart size={16} /> Adicionar ao carrinho
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setChatDraft(
-                    detail.code
-                      ? `Tenho uma dúvida sobre o produto ${detail.code} (${detail.name}).`
-                      : `Tenho uma dúvida sobre o produto ${detail.name}.`,
-                  );
-                  setDetail(null);
-                  setChat(true);
-                }}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border text-sm font-semibold hover:bg-muted"
-              >
-                <MessageCircle size={16} /> Perguntar sobre este produto
-              </button>
             </div>
           </div>
         </div>
