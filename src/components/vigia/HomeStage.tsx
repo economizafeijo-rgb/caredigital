@@ -44,6 +44,15 @@ const heroBg: Record<string, string> = {
   casa: "/images/caredigital-care-hero.webp",
 };
 
+/** Ponto de foco de cada foto: mantém rosto e corpo dentro do quadro em qualquer proporção. */
+const heroFocus: Record<string, string> = {
+  massa: "72% 45%",
+  saude: "70% 22%",
+  peso: "50% 50%",
+  moda: "60% 40%",
+  casa: "70% 22%",
+};
+
 /** Objetivos que o visitante escolhe: cada um muda a vitrine, o texto e a ferramenta sugerida. */
 const goals: Goal[] = [
   {
@@ -476,7 +485,8 @@ export function HomeStage({
             alt=""
             aria-hidden="true"
             loading={i === 0 ? "eager" : "lazy"}
-            className={`absolute inset-0 -z-20 size-full object-cover transition-opacity duration-1000 ${i === idx ? "opacity-60" : "opacity-0"}`}
+            style={{ objectPosition: heroFocus[g.key] }}
+            className={`absolute inset-0 -z-20 size-full object-cover transition-opacity duration-1000 lg:hidden ${i === idx ? "opacity-60" : "opacity-0"}`}
           />
         ))}
         <div
@@ -610,48 +620,128 @@ export function HomeStage({
                   <div
                     key={g.key}
                     aria-hidden={!on}
-                    className={`col-start-1 row-start-1 grid grid-cols-3 gap-2 transition-opacity duration-700 ease-in-out sm:gap-3 lg:grid-cols-2 lg:grid-rows-2 ${on ? "opacity-100" : "pointer-events-none opacity-0"}`}
+                    className={`col-start-1 row-start-1 transition-opacity duration-700 ease-in-out ${on ? "opacity-100" : "pointer-events-none opacity-0"}`}
                   >
-                    {gp.map((p, i) => {
-                      const off = offOf(p.priceCents, p.oldPriceCents);
-                      const pix = Math.round(p.priceCents * (1 - PIX_DISCOUNT));
-                      return (
+                    {/* Tablet: vitrine em 3 colunas. */}
+                    <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:hidden">
+                      {gp.map((p, i) => {
+                        const off = offOf(p.priceCents, p.oldPriceCents);
+                        const pix = Math.round(p.priceCents * (1 - PIX_DISCOUNT));
+                        return (
+                          <button
+                            key={p.id}
+                            type="button"
+                            tabIndex={on ? 0 : -1}
+                            onClick={() => openProduct(p.id)}
+                            aria-label={`Ver ${p.name}, ${money(p.priceCents)}`}
+                            className={`group relative overflow-hidden rounded-2xl bg-[#e9ebee] text-left ring-1 ring-white/20 transition-transform duration-200 [@media(hover:hover)]:hover:-translate-y-1 ${i === 0 ? "aspect-[3/4] " : "aspect-[3/4]"}`}
+                          >
+                            <img
+                              src={p.img}
+                              alt=""
+                              width={480}
+                              height={480}
+                              loading="eager"
+                              decoding="async"
+                              className="size-full object-cover motion-safe:transition motion-safe:duration-500 [@media(hover:hover)]:group-hover:scale-105"
+                            />
+                            {off > 0 && (
+                              <span className="absolute right-1.5 top-1.5 rounded-full bg-amber-400 px-2 py-0.5 text-[11px] font-extrabold text-slate-950 sm:right-2.5 sm:top-2.5">
+                                −{off}%
+                              </span>
+                            )}
+                            <span className="absolute inset-x-1.5 bottom-1.5 rounded-xl bg-white/95 px-2 py-1.5 text-slate-900 shadow sm:inset-x-2.5 sm:bottom-2.5 sm:px-3 sm:py-2">
+                              <span className="line-clamp-1 hidden text-[13px] font-semibold leading-tight sm:block">
+                                {p.name}
+                              </span>
+                              <strong className="block text-[13px] font-extrabold tabular-nums text-slate-900 sm:text-base">
+                                {money(p.priceCents)}
+                              </strong>
+                              <span className="hidden text-[11px] font-semibold tabular-nums text-slate-500 sm:block">
+                                {money(pix)} no Pix
+                              </span>
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {/* Computador: foto da cena em moldura, com os produtos flutuando por cima. */}
+                    <div className="relative hidden h-[27rem] lg:block xl:h-[29rem]">
+                      <div className="absolute inset-0 overflow-hidden rounded-[1.75rem] ring-1 ring-white/15">
+                        <img
+                          src={heroBg[g.key]}
+                          alt=""
+                          aria-hidden="true"
+                          loading={gi === 0 ? "eager" : "lazy"}
+                          decoding="async"
+                          style={{ objectPosition: heroFocus[g.key] }}
+                          className={`size-full object-cover transition-transform duration-[6000ms] ease-out ${on ? "scale-105" : "scale-100"}`}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#0a1226]/85 via-transparent to-[#0a1226]/10" />
+                      </div>
+                      {gp[0] && (
                         <button
-                          key={p.id}
                           type="button"
                           tabIndex={on ? 0 : -1}
-                          onClick={() => openProduct(p.id)}
-                          aria-label={`Ver ${p.name}, ${money(p.priceCents)}`}
-                          className={`group relative overflow-hidden rounded-2xl bg-[#e9ebee] text-left ring-1 ring-white/20 transition-transform duration-200 [@media(hover:hover)]:hover:-translate-y-1 ${i === 0 ? "aspect-[3/4] lg:row-span-2 lg:aspect-auto lg:min-h-[21rem]" : "aspect-[3/4] lg:aspect-[4/3]"}`}
+                          onClick={() => openProduct(gp[0].id)}
+                          aria-label={`Ver ${gp[0].name}, ${money(gp[0].priceCents)}`}
+                          className="group absolute -left-5 bottom-6 flex w-[17rem] items-center gap-3 rounded-2xl bg-white p-2.5 pr-3.5 text-left text-slate-900 shadow-[0_24px_50px_-18px_rgba(0,0,0,.75)] transition-transform duration-200 hover:-translate-y-1"
                         >
                           <img
-                            src={p.img}
+                            src={gp[0].img}
                             alt=""
-                            width={480}
-                            height={480}
-                            loading="eager"
-                            decoding="async"
-                            className="size-full object-cover motion-safe:transition motion-safe:duration-500 [@media(hover:hover)]:group-hover:scale-105"
+                            width={96}
+                            height={96}
+                            className="size-[4.5rem] shrink-0 rounded-xl bg-[#e9ebee] object-cover"
                           />
-                          {off > 0 && (
-                            <span className="absolute right-1.5 top-1.5 rounded-full bg-amber-400 px-2 py-0.5 text-[11px] font-extrabold text-slate-950 sm:right-2.5 sm:top-2.5">
-                              −{off}%
+                          <span className="min-w-0">
+                            <span className="block truncate text-[13px] font-semibold">
+                              {gp[0].name}
                             </span>
-                          )}
-                          <span className="absolute inset-x-1.5 bottom-1.5 rounded-xl bg-white/95 px-2 py-1.5 text-slate-900 shadow sm:inset-x-2.5 sm:bottom-2.5 sm:px-3 sm:py-2">
-                            <span className="line-clamp-1 hidden text-[13px] font-semibold leading-tight sm:block">
-                              {p.name}
-                            </span>
-                            <strong className="block text-[13px] font-extrabold tabular-nums text-slate-900 sm:text-base">
-                              {money(p.priceCents)}
+                            <strong className="block text-lg font-extrabold tabular-nums">
+                              {money(gp[0].priceCents)}
                             </strong>
-                            <span className="hidden text-[11px] font-semibold tabular-nums text-slate-500 sm:block">
-                              {money(pix)} no Pix
+                            <span className="block text-[11.5px] font-semibold tabular-nums text-emerald-700">
+                              {money(Math.round(gp[0].priceCents * (1 - PIX_DISCOUNT)))} no Pix
                             </span>
                           </span>
+                          {offOf(gp[0].priceCents, gp[0].oldPriceCents) > 0 && (
+                            <span className="absolute -right-2 -top-2 rounded-full bg-amber-400 px-2 py-0.5 text-[11px] font-extrabold text-slate-950 shadow">
+                              −{offOf(gp[0].priceCents, gp[0].oldPriceCents)}%
+                            </span>
+                          )}
                         </button>
-                      );
-                    })}
+                      )}
+                      <ul className="absolute -right-4 top-6 grid w-[13.5rem] gap-2">
+                        {gp.slice(1).map((p) => (
+                          <li key={p.id}>
+                            <button
+                              type="button"
+                              tabIndex={on ? 0 : -1}
+                              onClick={() => openProduct(p.id)}
+                              aria-label={`Ver ${p.name}, ${money(p.priceCents)}`}
+                              className="flex w-full items-center gap-2.5 rounded-xl bg-white/90 p-1.5 pr-3 text-left text-slate-900 shadow-[0_16px_36px_-16px_rgba(0,0,0,.7)] backdrop-blur transition-transform duration-200 hover:-translate-x-1"
+                            >
+                              <img
+                                src={p.img}
+                                alt=""
+                                width={64}
+                                height={64}
+                                className="size-12 shrink-0 rounded-lg bg-[#e9ebee] object-cover"
+                              />
+                              <span className="min-w-0">
+                                <span className="block truncate text-[12px] font-semibold">
+                                  {p.name}
+                                </span>
+                                <strong className="block text-sm font-extrabold tabular-nums">
+                                  {money(p.priceCents)}
+                                </strong>
+                              </span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
                 );
               })}

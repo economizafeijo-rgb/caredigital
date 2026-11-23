@@ -2609,10 +2609,10 @@ button:disabled,
   cursor: not-allowed;
 }
 
-/* Estabilidade de layout: a barra de rolagem reserva espaço sempre (evita a tela "pular" de largura) */
-html,
+/* Estabilidade de layout: a área que rola reserva o espaço da barra dos dois lados (margens iguais).
+   O documento em si não rola (o painel tem altura fixa), então não reserva nada. */
 #care-content {
-  scrollbar-gutter: stable;
+  scrollbar-gutter: stable both-edges;
 }
 /* Gráficos responsivos não podem empurrar a largura da grade (evita redimensionamento em ciclo) */
 .recharts-responsive-container {
@@ -3727,9 +3727,9 @@ html,
 
 /* Visual reto e técnico em todos os menus e painéis: cantos vivos, bordas finas, sem sombras pesadas,
    números tabulares. Chaves, controles deslizantes e animações de progresso circulares ficam de fora. */
-#care-content *,
-#care-content *::before,
-#care-content *::after {
+#care-content *:not(:where(.nv-round, .nv-round *)),
+#care-content *:not(:where(.nv-round, .nv-round *))::before,
+#care-content *:not(:where(.nv-round, .nv-round *))::after {
   border-radius: 0 !important;
 }
 #care-content

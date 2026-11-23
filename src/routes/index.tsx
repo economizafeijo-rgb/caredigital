@@ -66,7 +66,7 @@ function Homepage() {
               "radial-gradient(60rem 32rem at 0% 4%, rgba(63,224,200,.10), transparent 70%), radial-gradient(56rem 30rem at 100% 24%, rgba(200,29,107,.10), transparent 70%), radial-gradient(60rem 32rem at 0% 52%, rgba(99,102,241,.10), transparent 70%), radial-gradient(56rem 30rem at 100% 78%, rgba(63,224,200,.08), transparent 70%)",
           }}
         />
-        <div className="relative z-10 mx-auto flex w-full max-w-[96rem] flex-col gap-5 max-sm:px-3 sm:max-lg:px-4 lg:gap-7 min-[1280px]:px-8">
+        <div className="nv-round relative z-10 mx-auto flex w-full max-w-[112rem] flex-col gap-5 max-sm:px-3 sm:max-lg:px-2 lg:gap-6 min-[1280px]:px-2">
           {status === "unlinked" && (
             <p
               role="status"
