@@ -616,62 +616,66 @@ export function ClientHydrationTab({
             fill="#38bdf8"
           />
         </svg>
-        <div className="grid items-center gap-3 lg:grid-cols-[auto_minmax(0,1fr)_auto]">
-          <div className="flex items-center gap-3">
-            <WaterGauge percent={percent} className="size-[4.5rem] shrink-0 sm:size-20" />
-            <div className="min-w-0 lg:hidden">
-              <p className="text-2xl font-extrabold tabular-nums">
+        {/* Celular: copo + litros lado a lado, atalhos de volume em 3 colunas, depois os outros registros.
+            Computador: copo | números e atalhos | próximo copo. */}
+        <div className="grid gap-3 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center lg:gap-x-4">
+          <div className="flex items-center gap-3.5 lg:contents">
+            <WaterGauge
+              percent={percent}
+              className="size-[5.5rem] shrink-0 sm:size-20 lg:row-span-2"
+            />
+            <div className="min-w-0 flex-1 lg:col-start-2 lg:row-start-1 lg:self-end">
+              <p className="text-[1.75rem] font-extrabold leading-none tabular-nums sm:text-3xl">
                 {(intake / 1000).toFixed(2).replace(".", ",")} L
+                <span className="ml-1.5 text-sm font-semibold text-white/65 sm:text-base">
+                  {goal ? `de ${(goal / 1000).toFixed(1).replace(".", ",")} L` : "meta a definir"}
+                </span>
               </p>
-              <p className="text-sm text-white/75">
-                {goal ? `de ${(goal / 1000).toFixed(1).replace(".", ",")} L` : "meta a definir"}
+              <p className="mt-1 text-[0.8125rem] leading-snug text-white/80">
+                {remaining === 0 && goal
+                  ? "Meta de hoje atingida. Ótimo trabalho!"
+                  : goal
+                    ? `Faltam ${remaining.toLocaleString("pt-BR")} ml para a meta de hoje.`
+                    : "Defina sua meta para receber sugestões de horário."}
               </p>
             </div>
           </div>
 
-          <div className="min-w-0">
-            <p className="hidden text-2xl font-extrabold tabular-nums lg:block">
-              {(intake / 1000).toFixed(2).replace(".", ",")} L
-              <span className="ml-2 text-base font-semibold text-white/65">
-                {goal ? `de ${(goal / 1000).toFixed(1).replace(".", ",")} L` : "meta a definir"}
-              </span>
-            </p>
-            <p className="text-[13px] text-white/80">
-              {remaining === 0 && goal
-                ? "Meta de hoje atingida. Ótimo trabalho!"
-                : goal
-                  ? `Faltam ${remaining.toLocaleString("pt-BR")} ml para a meta de hoje.`
-                  : "Defina sua meta para receber sugestões de horário."}
-            </p>
-            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <div className="grid min-w-0 gap-1.5 lg:col-start-2 lg:row-start-2 lg:self-start">
+            <div className="grid grid-cols-3 gap-1.5 sm:flex sm:flex-wrap">
               {[150, 250, 500].map((ml) => (
                 <button
                   key={ml}
                   type="button"
                   disabled={Boolean(action)}
                   onClick={() => void quickDrink(ml)}
-                  className="nv-water-chip group relative inline-flex h-8 items-center gap-1.5 overflow-hidden rounded-lg bg-white px-2.5 text-xs font-bold text-sky-900 shadow-lg shadow-sky-950/30 transition active:scale-95 disabled:opacity-60"
+                  aria-label={`Registrar ${ml} ml de água`}
+                  className="nv-water-chip group relative inline-flex h-10 items-center justify-center gap-1.5 overflow-hidden rounded-lg bg-white px-2.5 text-[13px] font-bold text-sky-900 shadow-lg shadow-sky-950/30 transition active:scale-95 disabled:opacity-60 sm:h-9"
                 >
                   <span className="grid size-5 place-items-center rounded-full bg-sky-100 text-sky-600 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-110">
-                    <Droplets size={14} />
+                    <Droplets size={13} />
                   </span>
                   +{ml} ml
                 </button>
               ))}
-              <span className="[&_button]:!h-8 [&_button]:!rounded-lg [&_button]:!border [&_button]:!border-white/25 [&_button]:!bg-white/10 [&_button]:!px-2.5 [&_button]:!text-xs [&_button]:!text-white [&_button]:!shadow-none [&_button]:backdrop-blur hover:[&_button]:!bg-white/20">
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="min-w-0 flex-1 sm:flex-none [&_button]:!h-10 [&_button]:!w-full [&_button]:!justify-center [&_button]:!rounded-lg [&_button]:!border [&_button]:!border-white/25 [&_button]:!bg-white/10 [&_button]:!px-2 [&_button]:!text-xs [&_button]:!whitespace-nowrap [&_button]:!text-white [&_button]:!shadow-none [&_button]:backdrop-blur hover:[&_button]:!bg-white/20 sm:[&_button]:!h-9 sm:[&_button]:!w-auto">
                 <ClientQuickIntake
                   patientId={patientId}
                   mode="water"
+                  label="Outra quantidade"
                   onRecorded={() => {
                     setReload((n) => n + 1);
                     onRecorded();
                   }}
                 />
               </span>
-              <span className="[&_button]:!h-8 [&_button]:!rounded-lg [&_button]:!border [&_button]:!border-white/25 [&_button]:!bg-white/10 [&_button]:!px-2.5 [&_button]:!text-xs [&_button]:!text-white [&_button]:!shadow-none [&_button]:backdrop-blur hover:[&_button]:!bg-white/20">
+              <span className="min-w-0 flex-1 sm:flex-none [&_button]:!h-10 [&_button]:!w-full [&_button]:!justify-center [&_button]:!rounded-lg [&_button]:!border [&_button]:!border-white/25 [&_button]:!bg-white/10 [&_button]:!px-2 [&_button]:!text-xs [&_button]:!whitespace-nowrap [&_button]:!text-white [&_button]:!shadow-none [&_button]:backdrop-blur hover:[&_button]:!bg-white/20 sm:[&_button]:!h-9 sm:[&_button]:!w-auto">
                 <ClientQuickIntake
                   patientId={patientId}
                   mode="drink"
+                  label="Outra bebida"
                   onRecorded={() => {
                     setReload((n) => n + 1);
                     onRecorded();
@@ -684,17 +688,16 @@ export function ClientHydrationTab({
                 aria-label={editing ? "Fechar ajuste da meta" : "Ajustar meta"}
                 title={editing ? "Fechar ajuste da meta" : "Ajustar meta"}
                 onClick={() => setEditing((value) => !value)}
-                className={`grid size-8 place-items-center rounded-lg border border-white/25 backdrop-blur transition hover:bg-white/20 ${editing ? "bg-white text-sky-900" : "bg-white/10 text-white"}`}
+                className={`grid size-10 shrink-0 place-items-center rounded-lg border border-white/25 backdrop-blur transition hover:bg-white/20 sm:size-9 ${editing ? "bg-white text-sky-900" : "bg-white/10 text-white"}`}
               >
                 <SlidersHorizontal size={17} />
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-1.5 lg:w-60 lg:grid-cols-1">
+          <div className="lg:col-start-3 lg:row-span-2 lg:row-start-1 lg:w-60">
             <NextUpClock
               compact
-              className="col-span-2 lg:col-span-1"
               alertKey="agua"
               title="Próximo copo"
               color="#22d3ee"

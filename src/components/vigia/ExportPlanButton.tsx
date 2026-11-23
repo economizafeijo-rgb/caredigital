@@ -19,11 +19,14 @@ export function ExportPlanButton({
   ownerId,
   className = "",
   label = "Exportar PDF",
+  labelClassName = "",
 }: {
   patientId: string;
   ownerId: string;
   className?: string;
   label?: string;
+  /** Classes do texto (ex.: "max-sm:sr-only" para só ícone no celular). */
+  labelClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -69,7 +72,7 @@ export function ExportPlanButton({
           "inline-flex h-10 items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20 active:scale-[.97]"
         }
       >
-        <FileDown size={16} /> {label}
+        <FileDown size={16} /> <span className={labelClassName}>{label}</span>
       </button>
       {open &&
         typeof document !== "undefined" &&

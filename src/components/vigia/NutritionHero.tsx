@@ -25,9 +25,9 @@ const entryNutrients = (e: DailyNutrition["entries"][number]): Nutrients =>
   e.direct ?? sumNutrients(e.foods.map((f) => f.nutrients));
 
 const macros = [
-  { key: "protein", label: "Proteína", icon: Beef, color: "#fb7185" },
-  { key: "carbs", label: "Carboidrato", icon: Wheat, color: "#fbbf24" },
-  { key: "fat", label: "Gordura", icon: Droplet, color: "#a78bfa" },
+  { key: "protein", label: "Proteína", short: "Proteína", icon: Beef, color: "#fb7185" },
+  { key: "carbs", label: "Carboidrato", short: "Carbos", icon: Wheat, color: "#fbbf24" },
+  { key: "fat", label: "Gordura", short: "Gordura", icon: Droplet, color: "#a78bfa" },
 ] as const;
 
 const mealSlots: [number, string][] = [
@@ -89,76 +89,86 @@ export function NutritionHero({
         aria-hidden="true"
         className="pointer-events-none absolute -bottom-10 left-1/3 -z-10 size-56 rounded-full bg-emerald-300/10 blur-3xl"
       />
-      <div className="grid items-center gap-3.5 lg:grid-cols-[auto_minmax(0,1fr)_minmax(16rem,20rem)]">
-        <div
-          className="relative mx-auto size-24 shrink-0 lg:mx-0"
-          role="img"
-          aria-label={`${n0(total.kcal)} de ${n0(target.kcal)} kcal hoje`}
-        >
-          <svg viewBox="0 0 120 120" className="absolute inset-0 -rotate-90">
-            <circle cx="60" cy="60" r="54" fill="none" stroke="#ffffff1c" strokeWidth="8" />
-            <circle
-              cx="60"
-              cy="60"
-              r="54"
-              fill="none"
-              stroke="#fb923c"
-              strokeWidth="8"
-              strokeLinecap="round"
-              pathLength={100}
-              strokeDasharray={`${pct} 100`}
-              className="nv-ring-draw"
-            />
-            {macros.map((m) => {
-              const v = ((total[m.key] * (m.key === "fat" ? 9 : 4)) / mTotal) * 100;
-              const el = (
-                <circle
-                  key={m.key}
-                  cx="60"
-                  cy="60"
-                  r="42"
-                  fill="none"
-                  stroke={m.color}
-                  strokeWidth="6"
-                  pathLength={100}
-                  strokeDasharray={`${Math.max(0, v - 1.5)} 100`}
-                  strokeDashoffset={-acc}
-                  style={{ transition: "stroke-dasharray .8s, stroke-dashoffset .8s" }}
-                />
-              );
-              acc += v;
-              return el;
-            })}
-          </svg>
-          <div className="absolute inset-[22px] grid place-items-center rounded-full bg-black/20 text-center shadow-inner">
-            <span className="leading-none">
-              <strong className="block text-lg font-extrabold tabular-nums">{pct}%</strong>
-              <span className="text-[10px] font-semibold text-white/70">da meta</span>
+      {/* Celular: anel + números lado a lado, botão de registro em largura total, macros em 3 colunas.
+          Computador: anel | números e macros | próxima refeição. */}
+      <div className="grid gap-3 lg:grid-cols-[auto_minmax(0,1fr)_minmax(16rem,20rem)] lg:items-center lg:gap-x-4">
+        <div className="flex items-center gap-3.5 lg:contents">
+          <div
+            className="relative size-24 shrink-0 lg:row-span-2"
+            role="img"
+            aria-label={`${n0(total.kcal)} de ${n0(target.kcal)} kcal hoje`}
+          >
+            <svg viewBox="0 0 120 120" className="absolute inset-0 -rotate-90">
+              <circle cx="60" cy="60" r="54" fill="none" stroke="#ffffff1c" strokeWidth="8" />
+              <circle
+                cx="60"
+                cy="60"
+                r="54"
+                fill="none"
+                stroke="#fb923c"
+                strokeWidth="8"
+                strokeLinecap="round"
+                pathLength={100}
+                strokeDasharray={`${pct} 100`}
+                className="nv-ring-draw"
+              />
+              {macros.map((m) => {
+                const v = ((total[m.key] * (m.key === "fat" ? 9 : 4)) / mTotal) * 100;
+                const el = (
+                  <circle
+                    key={m.key}
+                    cx="60"
+                    cy="60"
+                    r="42"
+                    fill="none"
+                    stroke={m.color}
+                    strokeWidth="6"
+                    pathLength={100}
+                    strokeDasharray={`${Math.max(0, v - 1.5)} 100`}
+                    strokeDashoffset={-acc}
+                    style={{ transition: "stroke-dasharray .8s, stroke-dashoffset .8s" }}
+                  />
+                );
+                acc += v;
+                return el;
+              })}
+            </svg>
+            <div className="absolute inset-[19%] grid place-items-center rounded-full bg-black/25 text-center shadow-inner">
+              <span className="leading-none">
+                <strong className="block text-lg font-extrabold tabular-nums">{pct}%</strong>
+                <span className="text-[10px] font-semibold text-white/70">da meta</span>
+              </span>
+            </div>
+          </div>
+
+          <div className="min-w-0 flex-1 lg:col-start-2 lg:row-start-1 lg:self-end">
+            <p className="text-[1.75rem] font-extrabold leading-none tabular-nums sm:text-3xl">
+              {loaded ? n0(total.kcal) : "…"}
+              <span className="ml-1.5 text-sm font-semibold text-white/65 sm:text-base">
+                de {n0(target.kcal)} kcal
+              </span>
+            </p>
+            <p className="mt-1 text-[0.8125rem] leading-snug text-white/80">
+              {!entries.length
+                ? "Registre o que comer e o NextVita calcula os nutrientes."
+                : left > 0
+                  ? `Faltam ${n0(left)} kcal para a referência de hoje.`
+                  : "Referência de calorias de hoje alcançada."}
+            </p>
+            <span className="mt-1.5 inline-flex max-w-full items-center gap-1.5 rounded-md border border-white/15 bg-white/10 px-2 py-0.5 text-[11px] font-semibold text-lime-100">
+              <Target size={12} className="shrink-0" />
+              <span className="truncate">{objectiveLabel(objective)}</span>
             </span>
           </div>
         </div>
 
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <p className="text-2xl font-extrabold tabular-nums sm:text-3xl">
-              {loaded ? n0(total.kcal) : "…"}{" "}
-              <span className="text-base font-semibold text-white/65">
-                de {n0(target.kcal)} kcal
-              </span>
-            </p>
-            <span className="inline-flex items-center gap-1.5 border border-white/15 bg-white/10 px-2 py-0.5 text-[11px] font-semibold text-lime-100">
-              <Target size={12} /> {objectiveLabel(objective)}
-            </span>
-            {actions && <div className="ml-auto flex flex-wrap gap-2">{actions}</div>}
-          </div>
-          <p className="mt-0.5 text-sm text-white/80">
-            {!entries.length
-              ? "Registre o que comer e o NextVita calcula os nutrientes."
-              : left > 0
-                ? `Faltam ${n0(left)} kcal para a referência de hoje.`
-                : "Referência de calorias de hoje alcançada."}
-          </p>
-          <ul className="mt-2 grid gap-2 sm:grid-cols-3">
+        <div className="grid min-w-0 gap-2.5 lg:col-start-2 lg:row-start-2 lg:self-start">
+          {actions && (
+            <div className="flex [&>*]:w-full [&_button]:w-full [&_button]:justify-center sm:[&>*]:w-auto sm:[&_button]:w-auto">
+              {actions}
+            </div>
+          )}
+          <ul className="grid grid-cols-3 gap-1.5 sm:gap-2">
             {macros.map((m, i) => {
               const v = total[m.key],
                 t = target[m.key] || 1;
@@ -166,21 +176,20 @@ export function NutritionHero({
               return (
                 <li
                   key={m.key}
-                  className="border border-white/12 bg-white/[.07] px-2.5 py-1.5 backdrop-blur transition-colors hover:bg-white/[.12]"
-                  style={{ boxShadow: `inset 2px 0 0 ${m.color}` }}
+                  className="min-w-0 rounded-lg border border-white/12 bg-white/[.07] px-2 py-1.5 backdrop-blur transition-colors hover:bg-white/[.12] sm:px-2.5"
                 >
-                  <div className="flex items-center justify-between gap-2 text-[11px] font-semibold text-white/75">
-                    <span className="flex items-center gap-1.5">
-                      <m.icon size={13} style={{ color: m.color }} /> {m.label}
-                    </span>
-                    <span className="tabular-nums text-white">
-                      {n0(v)}
-                      <span className="text-white/55">/{n0(t)} g</span>
-                    </span>
-                  </div>
-                  <div className="mt-1 h-1 overflow-hidden bg-white/15">
+                  <span className="flex items-center gap-1 text-[11px] font-semibold text-white/75">
+                    <m.icon size={12} className="shrink-0" style={{ color: m.color }} />
+                    <span className="truncate sm:hidden">{m.short}</span>
+                    <span className="hidden truncate sm:inline">{m.label}</span>
+                  </span>
+                  <span className="mt-0.5 block truncate text-sm font-bold tabular-nums text-white">
+                    {n0(v)}
+                    <span className="text-[11px] font-medium text-white/55">/{n0(t)} g</span>
+                  </span>
+                  <div className="mt-1 h-1 overflow-hidden rounded-full bg-white/15">
                     <i
-                      className="block h-full transition-[width] duration-700 ease-out"
+                      className="block h-full rounded-full transition-[width] duration-700 ease-out"
                       style={{
                         width: `${p}%`,
                         background: m.color,
@@ -202,8 +211,10 @@ export function NutritionHero({
           from={plan?.from ?? null}
           detail={plan?.name}
           emptyText="Refeições do dia encerradas"
-          actionLabel="Registrar refeição"
-          onAction={onRegister}
+          compact
+          actionLabel={actions ? undefined : "Registrar refeição"}
+          onAction={actions ? undefined : onRegister}
+          className="lg:col-start-3 lg:row-span-2 lg:row-start-1"
         />
       </div>
     </header>

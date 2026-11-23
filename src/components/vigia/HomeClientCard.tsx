@@ -46,7 +46,7 @@ import {
 } from "@/lib/client-pages";
 import { ClientBeverageTracker } from "./ClientBeverageTracker";
 import { ClientQuickIntake } from "./ClientQuickIntake";
-import { LiveModeButton } from "./LiveMode";
+import { ClientSectionHeader } from "./ClientSectionHeader";
 import { AnimatedLock } from "./AnimatedLock";
 import { QuickRegisterFab } from "./QuickRegisterFab";
 import { CareTaskRecordModal } from "./CareTaskRecordModal";
@@ -856,121 +856,31 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
           </p>
         ) : (
           <>
-            <header className="relative isolate flex min-h-0 shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 overflow-hidden rounded-xl bg-slate-950 px-3 py-2 text-white shadow-card [&_p]:!text-slate-200">
-              <img
-                key={activeTab}
-                src={clientSectionTheme[activeTab].image}
-                alt=""
-                aria-hidden="true"
-                width={1400}
-                height={600}
-                decoding="async"
-                style={{ objectPosition: clientSectionTheme[activeTab].position }}
-                className="absolute inset-y-0 right-0 -z-20 h-full w-full object-cover sm:w-3/5"
-              />
-              <div
-                aria-hidden="true"
-                className={`absolute inset-0 -z-10 bg-gradient-to-r from-35% via-60% ${clientSectionTheme[activeTab].overlay}`}
-              />
-              <div className="flex min-w-0 items-center gap-3">
-                {(() => {
-                  const HeaderIcon = clientSectionTheme[activeTab].icon;
-                  return (
-                    <span
-                      aria-hidden="true"
-                      className={`hidden size-10 shrink-0 place-items-center rounded-xl text-white shadow-lg ring-1 ring-white/25 sm:grid ${clientSectionTheme[activeTab].pill}`}
-                    >
-                      <HeaderIcon size={20} />
-                    </span>
-                  );
-                })()}
-                <div className="min-w-0">
-                  <p className="sr-only">{clientSectionLabels[activeTab].tagline}</p>
-                  <h1 className="truncate text-lg font-bold tracking-tight sm:text-xl">
-                    {activeTab === "hoje"
-                      ? `Olá, ${(patientName || client.full_name).split(" ")[0]}`
-                      : clientSectionLabels[activeTab].title}
-                  </h1>
-                  <p className="truncate text-xs text-muted-foreground first-letter:uppercase">
-                    {activeTab === "hoje"
-                      ? tasks.length
-                        ? `${today} · ${completed} de ${tasks.length} cuidados concluídos`
-                        : today
-                      : clientSectionLabels[activeTab].subtitle}
-
-                    {birthSummary && activeTab === "hoje" && <BirthChips summary={birthSummary} />}
-                  </p>
-                </div>
-              </div>
-              <ExportPlanButton
-                patientId={client.id}
-                ownerId={client.owner_id}
-                label="PDF"
-                className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-white/30 bg-white/15 px-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/25"
-              />
-              <fieldset
-                disabled={profileLocked}
-                title={profileLocked ? "Complete o cadastro para registrar" : undefined}
-                className="nv-day-actions m-0 flex min-w-0 flex-wrap items-center gap-2.5 border-0 p-0 disabled:opacity-60"
-              >
-                {/* Cada área mostra só o registro da sua área, direto no formulário certo (sem painel de escolha).
-                  Hidratação e Alimentação já têm o próprio botão dentro da página; as demais áreas têm o formulário próprio. */}
-                {activeTab === "hoje" && (
-                  <ClientQuickIntake
-                    patientId={client.id}
-                    mode="water"
-                    onRecorded={() => setTick((value) => value + 1)}
-                  />
-                )}
-                {(activeTab === "hoje" || activeTab === "cardapios") && (
-                  <ClientQuickIntake
-                    patientId={client.id}
-                    mode="food"
-                    onRecorded={() => setTick((value) => value + 1)}
-                  />
-                )}
-                {activeTab === "hoje" && (
-                  <ClientQuickIntake
-                    patientId={client.id}
-                    mode="drink"
-                    onRecorded={() => setTick((value) => value + 1)}
-                  />
-                )}
-                {profileLocked && (
-                  <span className="inline-flex h-9 items-center gap-1.5 border border-white/20 px-2.5 text-xs font-semibold text-white/80">
-                    <AnimatedLock
-                      size={15}
-                      label="Registros bloqueados até completar o cadastro"
-                      className="!text-amber-300"
-                    />
-                    Registros bloqueados
-                  </span>
-                )}
-                {!profileLocked && (
-                  <QuickRegisterFab
-                    patientId={client.id}
-                    area={activeTab}
-                    onRecorded={() => setTick((value) => value + 1)}
-                  />
-                )}
-                <LiveModeButton
-                  className="!h-10 !rounded-xl !px-4 !text-[13px]"
-                  patientId={client.id}
-                  ownerId={client.owner_id}
-                  heightCm={client.height_cm}
-                  name={patientName || client.full_name}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowHealthProfile(true)}
-                  aria-label="Meu perfil"
-                  title="Meu perfil"
-                  className="grid size-10 shrink-0 place-items-center rounded-full border border-white/30 bg-white/15 text-white backdrop-blur transition hover:bg-white/25"
-                >
-                  <UserRound size={17} />
-                </button>
-              </fieldset>
-            </header>
+            <ClientSectionHeader
+              area={activeTab}
+              patientId={client.id}
+              ownerId={client.owner_id}
+              heightCm={client.height_cm}
+              name={patientName || client.full_name}
+              profileLocked={profileLocked}
+              onRecorded={() => setTick((value) => value + 1)}
+              onProfile={() => setShowHealthProfile(true)}
+              title={
+                activeTab === "hoje"
+                  ? `Olá, ${(patientName || client.full_name).split(" ")[0]}`
+                  : clientSectionLabels[activeTab].title
+              }
+              subtitle={
+                <>
+                  {activeTab === "hoje"
+                    ? tasks.length
+                      ? `${today} · ${completed} de ${tasks.length} cuidados concluídos`
+                      : today
+                    : clientSectionLabels[activeTab].subtitle}
+                  {birthSummary && activeTab === "hoje" && <BirthChips summary={birthSummary} />}
+                </>
+              }
+            />
 
             <div className="shrink-0 empty:hidden">
               <CareReminderBeacon
@@ -1289,7 +1199,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                     {activeTab === "hidratacao" && (
                       <div className="flex h-full min-h-0 flex-col gap-3">
                         <div
-                          className="grid shrink-0 grid-cols-2 gap-0.5 rounded-lg bg-muted p-0.5 sm:max-w-xs"
+                          className="grid shrink-0 grid-cols-2 gap-0.5 rounded-xl bg-muted p-1 sm:max-w-sm"
                           role="group"
                           aria-label="Bebidas e hidratação"
                         >
@@ -1304,7 +1214,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                               type="button"
                               aria-pressed={hydrationView === key}
                               onClick={() => setHydrationView(key)}
-                              className={`h-7 rounded-md px-3 text-xs font-semibold transition-colors ${hydrationView === key ? "bg-surface text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                              className={`h-9 rounded-lg px-3 text-[13px] font-semibold transition-colors ${hydrationView === key ? "bg-surface text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
                             >
                               {label}
                             </button>

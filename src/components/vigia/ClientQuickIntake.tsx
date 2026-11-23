@@ -196,7 +196,8 @@ export function ClientQuickIntake({
   variant = "panel",
   mode = "all",
   openSignal = 0,
-}: Props) {
+  label: triggerLabel,
+}: Props & { label?: string }) {
   const [open, setOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [kind, setKind] = useState<IntakeKind>("lanche");
@@ -554,13 +555,14 @@ export function ClientQuickIntake({
         ) : (
           <Plus size={16} />
         )}{" "}
-        {mode === "water"
-          ? "Registrar água"
-          : mode === "food"
-            ? "Registrar refeição"
-            : mode === "drink"
-              ? "Registrar bebida"
-              : "Registrar consumo"}
+        {triggerLabel ??
+          (mode === "water"
+            ? "Registrar água"
+            : mode === "food"
+              ? "Registrar refeição"
+              : mode === "drink"
+                ? "Registrar bebida"
+                : "Registrar consumo")}
       </button>
       {notice &&
         typeof document !== "undefined" &&
