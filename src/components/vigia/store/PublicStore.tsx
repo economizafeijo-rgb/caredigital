@@ -26,6 +26,7 @@ import {
   Store,
   Truck,
   X,
+  Trash2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -49,7 +50,8 @@ import { ChatToastHost } from "../chat/ChatToasts";
 import { PilotNotice } from "./PilotNotice";
 import { StoreStatusChip } from "./StoreLed";
 import { useLiveVendor } from "../LiveStores";
-import { useVCart, vcart } from "./vendorCart";
+import { GUEST_MAX_ITEMS, useSignedIn, useVCart, vcart } from "./vendorCart";
+import { useLiveProducts } from "./useLiveProducts";
 import { couponErrorMessage, normalizeCode } from "@/lib/coupons";
 
 /** Cotação devolvida pelo servidor (care_store_quote_order). O navegador só mostra; quem calcula é o banco. */
@@ -154,12 +156,36 @@ export function PublicStoreGate({ slug, fallback }: { slug: string; fallback: Re
 
 function PublicStore({
   vendor: initialVendor,
-  products,
+  products: initialProducts,
 }: {
   vendor: Vendor;
   products: VendorProduct[];
 }) {
   const vendor = useLiveVendor(initialVendor);
+  const products = useLiveProducts(initialVendor.id, initialProducts);
+  const signedIn = useSignedIn();
+  const [cartNotice, setCartNotice] = useState("");
+  useEffect(() => {
+    if (!cartNotice) return;
+    const t = window.setTimeout(() => setCartNotice(""), 3500);
+    return () => window.clearTimeout(t);
+  }, [cartNotice]);
+  /** Adiciona respeitando estoque e as regras de visitante; explica quando não dá. */
+  const addToCart = (p: VendorProduct) => {
+    const r = vcart.add(vendor.id, p.id, productStatus(p).max);
+    if (r === "added") setAdded(p.id);
+    else if (r === "max")
+      setCartNotice(`Você já tem no carrinho todas as unidades disponíveis de ${p.name}.`);
+    else if (r === "guest-unit")
+      setCartNotice(
+        "Este produto já está no carrinho. Entre na sua conta para escolher mais unidades.",
+      );
+    else if (r === "guest-items")
+      setCartNotice(
+        `Sem login, o carrinho aceita até ${GUEST_MAX_ITEMS} produtos. Entre na sua conta para continuar.`,
+      );
+    else setCartNotice(`${p.name} está esgotado.`);
+  };
   const navigate = useNavigate();
   const accent = vendor.accent_hex ?? "#0e7a5f";
   const [cat, setCat] = useState("todos");
@@ -573,13 +599,15 @@ function PublicStore({
                 {!STORE_LIVE && (
                   <p className="text-[11px] text-muted-foreground">Vendas em breve</p>
                 )}
+                {!out && p.stock <= 5 && (
+                  <p className="mt-1 text-[11.5px] font-bold text-rose-600 dark:text-rose-400">
+                    {p.stock === 1 ? "Última unidade!" : `Restam só ${p.stock} unidades`}
+                  </p>
+                )}
                 <button
                   type="button"
-                  disabled={out || inCart >= st.max}
-                  onClick={() => {
-                    vcart.add(vendor.id, p.id, st.max);
-                    setAdded(p.id);
-                  }}
+                  disabled={out || inCart >= (signedIn ? st.max : 1)}
+                  onClick={() => addToCart(p)}
                   className="mt-2.5 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg text-[13px] font-bold text-white transition hover:brightness-110 active:scale-[.97] disabled:opacity-45"
                   style={{ background: added === p.id ? "#059669" : accent }}
                 >
@@ -589,9 +617,13 @@ function PublicStore({
                     </>
                   ) : out ? (
                     st.label
+                  ) : inCart >= (signedIn ? st.max : 1) ? (
+                    <>
+                      <CheckCircle2 size={15} /> No carrinho
+                    </>
                   ) : (
                     <>
-                      <ShoppingCart size={15} /> Adicionar{inCart ? ` (${inCart})` : ""}
+                      <ShoppingCart size={15} /> Adicionar
                     </>
                   )}
                 </button>
@@ -630,6 +662,14 @@ function PublicStore({
           <MessageCircle size={18} aria-hidden="true" /> {replies} nova{replies > 1 ? "s" : ""}{" "}
           resposta{replies > 1 ? "s" : ""}
         </button>
+      )}
+      {cartNotice && !cartOpen && (
+        <p
+          role="status"
+          className="nv-fade-in fixed bottom-[calc(8.5rem+env(safe-area-inset-bottom))] right-3 z-[96] max-w-xs rounded-2xl bg-slate-950 px-4 py-3 text-[13px] font-semibold text-white shadow-2xl ring-1 ring-white/15 sm:bottom-24"
+        >
+          {cartNotice}
+        </p>
       )}
       <button
         type="button"
@@ -778,10 +818,7 @@ function PublicStore({
                 <button
                   type="button"
                   disabled={!productStatus(detail).buyable}
-                  onClick={() => {
-                    vcart.add(vendor.id, detail.id, productStatus(detail).max);
-                    setAdded(detail.id);
-                  }}
+                  onClick={() => addToCart(detail)}
                   className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-[15px] font-bold text-white shadow-lg transition hover:brightness-110 disabled:opacity-45"
                   style={{ background: accent }}
                 >
@@ -947,11 +984,30 @@ function VendorCheckout({
 }) {
   const navigate = useNavigate();
   const lines = useVCart(vendor.id);
+  const isLogged = useSignedIn();
   const accent = vendor.accent_hex ?? "#0e7a5f";
-  const items = lines
+  // Todos os itens guardados (inclusive esgotados, que aparecem riscados).
+  const allItems = lines
     .map((l) => ({ ...l, p: products.find((p) => p.id === l.product_id) }))
     .filter((x) => x.p) as { product_id: string; qty: number; p: VendorProduct }[];
+  // Só entram no pedido os que ainda têm estoque.
+  const items = allItems.filter((i) => productStatus(i.p).buyable);
   const subtotal = items.reduce((a, i) => a + i.p.price_cents * i.qty, 0);
+  // Estoque baixou: ajusta a quantidade guardada para o que ainda existe.
+  const [stockNote, setStockNote] = useState("");
+  useEffect(() => {
+    const over = allItems.filter((i) => {
+      const st = productStatus(i.p);
+      return st.buyable && i.qty > (isLogged ? st.max : 1);
+    });
+    if (!over.length) return;
+    over.forEach((i) => vcart.setQty(vendor.id, i.p.id, i.qty, productStatus(i.p).max));
+    if (isLogged)
+      setStockNote(
+        `O estoque mudou: ajustamos ${over.map((i) => i.p.name).join(", ")} para as unidades disponíveis.`,
+      );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(allItems.map((i) => [i.p.id, i.qty, i.p.stock, i.p.availability])), isLogged]);
   const [step, setStep] = useState<"cart" | "dados">("cart");
   const [mode, setMode] = useState<"retirada" | "entrega">(
     vendor.offers_pickup ? "retirada" : "entrega",
@@ -1188,43 +1244,118 @@ function VendorCheckout({
         </header>
         {step === "cart" ? (
           <>
+            {(allItems.length > 0 || stockNote) && (
+              <div className="flex items-center justify-between gap-2 border-b border-border px-5 py-2 text-xs">
+                <span className="text-muted-foreground">
+                  {allItems.length} produto{allItems.length === 1 ? "" : "s"}
+                  {!isLogged ? " · sem login: 1 unidade de cada" : ""}
+                </span>
+                {allItems.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      vcart.clear(vendor.id);
+                      setStockNote("");
+                    }}
+                    className="inline-flex items-center gap-1 font-semibold text-rose-600 hover:underline dark:text-rose-300"
+                  >
+                    <Trash2 size={13} /> Limpar carrinho
+                  </button>
+                )}
+              </div>
+            )}
+            {stockNote && (
+              <p
+                role="status"
+                className="border-b border-border bg-amber-500/10 px-5 py-2 text-xs font-semibold text-amber-800 dark:text-amber-200"
+              >
+                {stockNote}
+              </p>
+            )}
             <ul className="min-h-0 flex-1 divide-y divide-border overflow-y-auto">
-              {items.map(({ p, qty }) => (
-                <li key={p.id} className="flex items-center gap-3 px-5 py-3">
-                  {p.image_url && (
-                    <img
-                      src={p.image_url}
-                      alt=""
-                      className="size-14 rounded-xl bg-muted object-cover"
-                    />
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="line-clamp-2 text-[13px] font-semibold">{p.name}</p>
-                    <p className="text-sm font-bold tabular-nums">{money(p.price_cents * qty)}</p>
-                  </div>
-                  <div className="inline-flex items-center rounded-lg border border-border">
-                    <button
-                      type="button"
-                      onClick={() => vcart.setQty(vendor.id, p.id, qty - 1)}
-                      aria-label={`Diminuir ${p.name}`}
-                      className="grid size-8 place-items-center hover:bg-muted"
-                    >
-                      <Minus size={13} />
-                    </button>
-                    <span className="w-7 text-center text-sm font-bold tabular-nums">{qty}</span>
-                    <button
-                      type="button"
-                      disabled={qty >= productStatus(p).max}
-                      onClick={() => vcart.setQty(vendor.id, p.id, qty + 1)}
-                      aria-label={`Aumentar ${p.name}`}
-                      className="grid size-8 place-items-center hover:bg-muted disabled:opacity-40"
-                    >
-                      <Plus size={13} />
-                    </button>
-                  </div>
-                </li>
-              ))}
-              {!items.length && (
+              {allItems.map(({ p, qty }) => {
+                const st = productStatus(p);
+                const gone = !st.buyable;
+                const cap = isLogged ? st.max : 1;
+                return (
+                  <li
+                    key={p.id}
+                    className={`flex items-center gap-3 px-5 py-3 ${gone ? "bg-muted/40" : ""}`}
+                  >
+                    {p.image_url && (
+                      <img
+                        src={p.image_url}
+                        alt=""
+                        className={`size-14 rounded-xl bg-muted object-cover ${gone ? "opacity-40 grayscale" : ""}`}
+                      />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p
+                        className={`line-clamp-2 text-[13px] font-semibold ${gone ? "text-muted-foreground line-through" : ""}`}
+                      >
+                        {p.name}
+                      </p>
+                      {gone ? (
+                        <p className="text-xs font-bold text-rose-600 dark:text-rose-400">
+                          {st.label} · não entra no pedido
+                        </p>
+                      ) : (
+                        <>
+                          <p className="text-sm font-bold tabular-nums">
+                            {money(p.price_cents * qty)}
+                          </p>
+                          {p.stock <= 5 && (
+                            <p className="text-[11.5px] font-bold text-rose-600 dark:text-rose-400">
+                              {p.stock === 1 ? "Última unidade!" : `Restam só ${p.stock} unidades`}
+                            </p>
+                          )}
+                        </>
+                      )}
+                    </div>
+                    {gone ? (
+                      <button
+                        type="button"
+                        onClick={() => vcart.remove(vendor.id, p.id)}
+                        aria-label={`Remover ${p.name}`}
+                        className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-rose-500"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    ) : (
+                      <div className="inline-flex items-center rounded-lg border border-border">
+                        <button
+                          type="button"
+                          onClick={() => vcart.setQty(vendor.id, p.id, qty - 1, st.max)}
+                          aria-label={`Diminuir ${p.name}`}
+                          className="grid size-8 place-items-center hover:bg-muted"
+                        >
+                          <Minus size={13} />
+                        </button>
+                        <span className="w-7 text-center text-sm font-bold tabular-nums">
+                          {qty}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={qty >= cap}
+                          onClick={() => vcart.setQty(vendor.id, p.id, qty + 1, st.max)}
+                          aria-label={`Aumentar ${p.name}`}
+                          title={
+                            !isLogged
+                              ? "Entre na sua conta para escolher mais unidades"
+                              : qty >= st.max
+                                ? "Sem mais unidades em estoque"
+                                : undefined
+                          }
+                          className="grid size-8 place-items-center hover:bg-muted disabled:opacity-40"
+                        >
+                          <Plus size={13} />
+                        </button>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+              {!allItems.length && (
                 <li className="grid place-items-center gap-2 px-6 py-20 text-center text-sm text-muted-foreground">
                   <ShoppingCart size={24} />
                   Seu carrinho desta loja está vazio.
