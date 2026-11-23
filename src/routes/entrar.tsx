@@ -452,7 +452,7 @@ function Entrar() {
   return (
     <FitPage
       label="Acesso NextVita"
-      className="mx-auto grid w-full max-w-5xl items-stretch gap-5 py-1 lg:grid-cols-[1.05fr_1fr]"
+      className="mx-auto grid w-full max-w-5xl items-stretch gap-5 py-1 max-lg:gap-0 max-lg:py-0 lg:grid-cols-[1.05fr_1fr]"
     >
       <AuthStage
         mode={mode}
@@ -474,7 +474,7 @@ function Entrar() {
           );
         }}
         onBlurCapture={() => setFocus(null)}
-        className="relative flex min-h-0 flex-col justify-center-safe overflow-y-auto overflow-x-hidden rounded-3xl border border-border bg-card shadow-pop [scrollbar-width:thin]"
+        className="relative z-10 flex min-h-0 flex-col justify-center-safe overflow-y-auto overflow-x-hidden rounded-3xl border border-border bg-card shadow-pop [scrollbar-width:thin] max-lg:-mt-8 max-lg:rounded-b-none max-lg:border-x-0 max-lg:border-b-0 max-lg:pb-20"
       >
         <div
           aria-hidden="true"

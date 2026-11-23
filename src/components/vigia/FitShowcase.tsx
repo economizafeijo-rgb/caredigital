@@ -241,7 +241,7 @@ function AreaSwitcher({ kind }: { kind: ShowcaseKind }) {
   );
 }
 
-export function FitShowcase({ kind }: { kind: ShowcaseKind }) {
+function DesktopShowcase({ kind }: { kind: ShowcaseKind }) {
   const fitRef = useFitWindow<HTMLDivElement>();
   const c = copy[kind];
   const img = showcaseImage[kind];
@@ -435,5 +435,128 @@ export function FitShowcase({ kind }: { kind: ShowcaseKind }) {
       </div>
       <AreaSwitcher kind={kind} />
     </div>
+  );
+}
+
+/** Versão do celular: foto de abertura com título, demonstração, benefícios e etapas em linha do tempo. */
+function MobileShowcase({ kind }: { kind: ShowcaseKind }) {
+  const c = copy[kind];
+  const img = showcaseImage[kind];
+  const st = areaStyle[kind];
+  const Icon = c.icon;
+  const vars = { "--area": st.color } as CSSProperties;
+  return (
+    <div style={vars} className="-mx-3 -mt-3 flex flex-col gap-6 pb-6">
+      <section className="relative isolate overflow-hidden rounded-b-[2rem] bg-slate-950 text-white">
+        <img
+          src={img.src}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 -z-20 size-full object-cover"
+          style={{ objectPosition: img.position }}
+        />
+        <span
+          aria-hidden="true"
+          className="absolute inset-0 -z-10 bg-gradient-to-t from-slate-950 via-slate-950/55 to-[color-mix(in_srgb,var(--area)_30%,transparent)]"
+        />
+        <div className="flex min-h-[25rem] flex-col justify-between px-5 pb-7 pt-5">
+          <span className="inline-flex w-fit items-center gap-2 rounded-full bg-black/40 px-3 py-1.5 text-xs font-semibold backdrop-blur">
+            <span className="grid size-5 place-items-center rounded-full bg-[var(--area)]">
+              <Icon size={12} aria-hidden="true" />
+            </span>
+            {c.eyebrow}
+          </span>
+          <div>
+            <h1 className="nv-rise text-balance font-display text-[2rem] font-extrabold leading-[1.05] tracking-[-0.02em]">
+              {c.title}
+            </h1>
+            <p
+              className="nv-rise mt-3 text-[15px] leading-relaxed text-white/80"
+              style={{ animationDelay: "90ms" }}
+            >
+              {c.description}
+            </p>
+            <div className="mt-5 grid gap-2.5">
+              <a
+                href="/entrar?mode=signup"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-white text-[15px] font-bold text-slate-950 shadow-lg active:scale-[.98]"
+              >
+                <Gift size={17} aria-hidden="true" /> Criar conta grátis
+              </a>
+              <Link
+                to="/cliente"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-white/30 bg-white/10 text-[14px] font-semibold backdrop-blur active:scale-[.98]"
+              >
+                <LockKeyhole size={16} aria-hidden="true" /> {c.cta}
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {st.demo && (
+        <section className="flex justify-center px-4" aria-label="Experimente">
+          <AreaDemo kind={kind} />
+        </section>
+      )}
+
+      <section className="grid gap-2.5 px-4" aria-label="Benefícios">
+        {c.benefits.map((b) => (
+          <div
+            key={b.title}
+            className="flex items-start gap-3.5 rounded-2xl border border-border bg-card p-4"
+          >
+            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[color-mix(in_srgb,var(--area)_16%,transparent)] text-[var(--area)]">
+              <b.icon size={20} aria-hidden="true" />
+            </span>
+            <span className="min-w-0">
+              <strong className="block text-[15px] font-semibold">{b.title}</strong>
+              <span className="mt-0.5 block text-[13.5px] leading-snug text-muted-foreground">
+                {b.text}
+              </span>
+            </span>
+          </div>
+        ))}
+      </section>
+
+      <section className="px-4" aria-label="Como funciona">
+        <h2 className="px-1 font-display text-lg font-extrabold">Como funciona</h2>
+        <ol className="relative mt-4 grid gap-5 pl-1">
+          <span
+            aria-hidden="true"
+            className="absolute bottom-3 left-[1.05rem] top-3 w-px bg-gradient-to-b from-[var(--area)] to-transparent"
+          />
+          {c.steps.map((s, i) => (
+            <li key={s.name} className="relative flex items-center gap-4">
+              <span className="relative grid size-9 shrink-0 place-items-center rounded-full bg-[var(--area)] text-sm font-bold text-white shadow-[0_0_0_5px_color-mix(in_srgb,var(--area)_18%,transparent)]">
+                {i + 1}
+              </span>
+              <span>
+                <strong className="block text-[15px] font-semibold">{s.name}</strong>
+                <span className="text-[13px] text-muted-foreground">{s.detail}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <div className="grid gap-4 px-4">
+        <Privacy kind={kind} />
+        <AreaSwitcher kind={kind} />
+      </div>
+    </div>
+  );
+}
+
+export function FitShowcase({ kind }: { kind: ShowcaseKind }) {
+  return (
+    <>
+      <div className="max-lg:hidden">
+        <DesktopShowcase kind={kind} />
+      </div>
+      <div className="lg:hidden">
+        <MobileShowcase kind={kind} />
+      </div>
+    </>
   );
 }
