@@ -25,6 +25,8 @@ export const normalize = (value: string) =>
 const synonyms: Record<string, string[]> = {
   bolacha: ["biscoito", "cream", "cracker"],
   biscoito: ["bolacha"],
+  brigadeiro: ["doce", "docinho", "chocolate", "negrinho"],
+  cocada: ["doce", "coco"],
   macaxeira: ["mandioca", "aipim"],
   mandioca: ["macaxeira", "aipim"],
   aipim: ["macaxeira", "mandioca"],
@@ -50,7 +52,7 @@ const synonyms: Record<string, string[]> = {
 
 /** Itens que a pessoa espera achar na aba Frutas mesmo fora do grupo "frutas" do catálogo. */
 const alsoFruit = new Set(["castanha_caju", "castanha_para", "coco", "amendoim"]);
-const notFruit = new Set(["goiabada"]);
+const notFruit = new Set(["goiabada", "brigadeiro", "doce_coco", "doce_leite", "pe_moleque"]);
 
 const groupKind: Record<string, FoodKind> = {
   frutas: "fruta",
@@ -59,11 +61,46 @@ const groupKind: Record<string, FoodKind> = {
   cereais: "almoco",
 };
 
-const STOPWORDS = new Set(["de", "da", "do", "das", "dos", "em", "com", "e", "a", "o", "as", "os", "no", "na"]);
+const STOPWORDS = new Set([
+  "de",
+  "da",
+  "do",
+  "das",
+  "dos",
+  "em",
+  "com",
+  "e",
+  "a",
+  "o",
+  "as",
+  "os",
+  "no",
+  "na",
+]);
 const DESCRIPTORS = new Set([
-  "cru", "crua", "cozido", "cozida", "fuji", "formosa", "tommy", "italia", "vermelha", "caseiro",
-  "caseira", "simples", "integral", "natural", "lisa", "tipo", "taiti", "industrializada", "magra", "oliva",
-  "carioca", "bovina", "tradicional",
+  "cru",
+  "crua",
+  "cozido",
+  "cozida",
+  "fuji",
+  "formosa",
+  "tommy",
+  "italia",
+  "vermelha",
+  "caseiro",
+  "caseira",
+  "simples",
+  "integral",
+  "natural",
+  "lisa",
+  "tipo",
+  "taiti",
+  "industrializada",
+  "magra",
+  "oliva",
+  "carioca",
+  "bovina",
+  "tradicional",
 ]);
 const words = (text: string) => normalize(text).split(" ").filter(Boolean);
 const queryWords = (text: string) => {
@@ -104,8 +141,17 @@ type Entry = SearchItem & {
 let indexCache: Entry[] | null = null;
 
 function catalogText(item: { id: string; name: string }): string | null {
-  const base = item.name.split(",")[0].replace(/\s*\(.*$/, "").trim();
-  const candidates = [base, item.name.replace(/\s*\(.*?\)/g, "").replace(/,/g, "").trim()];
+  const base = item.name
+    .split(",")[0]
+    .replace(/\s*\(.*$/, "")
+    .trim();
+  const candidates = [
+    base,
+    item.name
+      .replace(/\s*\(.*?\)/g, "")
+      .replace(/,/g, "")
+      .trim(),
+  ];
   for (const text of candidates) {
     const parsed = parseFoodText(text);
     if (parsed.length === 1 && parsed[0].id === item.id) return text;
@@ -116,7 +162,13 @@ function catalogText(item: { id: string; name: string }): string | null {
 function buildIndex(): Entry[] {
   if (indexCache) return indexCache;
   const byText = new Map<string, Entry>();
-  const add = (label: string, text: string, kind: FoodKind | undefined, fromCatalog: boolean, extra = "") => {
+  const add = (
+    label: string,
+    text: string,
+    kind: FoodKind | undefined,
+    fromCatalog: boolean,
+    extra = "",
+  ) => {
     const key = normalize(text);
     let entry = byText.get(key);
     if (!entry) {
@@ -163,7 +215,9 @@ function buildIndex(): Entry[] {
       const short = words(o.label);
       if (!short.every((w) => own.includes(w))) return false;
       // só some quando o que sobra é mero descritor (crua, cozido, Fuji…), não outro preparo/variedade
-      return own.filter((w) => !short.includes(w)).every((w) => DESCRIPTORS.has(w) || STOPWORDS.has(w));
+      return own
+        .filter((w) => !short.includes(w))
+        .every((w) => DESCRIPTORS.has(w) || STOPWORDS.has(w));
     });
   });
   return indexCache;
@@ -241,9 +295,27 @@ export function foodsForKind(kind: FoodKind): SearchItem[] {
 
 /** Frutas e alimentos de origem regional (Norte/Nordeste/Cerrado) — recebem selo na tela. */
 export const regionalIds = new Set([
-  "acai", "acai_acucar", "buriti", "tucuma", "bacuri", "cupuacu", "graviola", "biriba", "inga",
-  "sapoti", "camu_camu", "araca_boi", "mangaba", "pitaia", "pequi", "umbu", "tapereba",
-  "cajamanga", "castanha_para", "suco_graviola", "suco_cupuacu",
+  "acai",
+  "acai_acucar",
+  "buriti",
+  "tucuma",
+  "bacuri",
+  "cupuacu",
+  "graviola",
+  "biriba",
+  "inga",
+  "sapoti",
+  "camu_camu",
+  "araca_boi",
+  "mangaba",
+  "pitaia",
+  "pequi",
+  "umbu",
+  "tapereba",
+  "cajamanga",
+  "castanha_para",
+  "suco_graviola",
+  "suco_cupuacu",
 ]);
 
 /** True quando o texto do item corresponde a um alimento regional. */

@@ -217,6 +217,7 @@ export type VendorProduct = {
   active: boolean;
   sku?: string | null;
   cost_cents?: number | null;
+  supplier_id?: string | null;
   min_stock?: number;
   unit?: string;
   ref?: string | null;

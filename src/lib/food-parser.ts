@@ -92,6 +92,8 @@ export const foodMicros: Record<string, [number, number, number, number, number]
   goiabada: [10, 10, 15, 0.4, 100],
   doce_leite: [1, 50, 200, 0.1, 300],
   pe_moleque: [0, 0, 40, 1.2, 300],
+  brigadeiro: [0.5, 40, 180, 1.4, 330],
+  doce_coco: [1, 0, 15, 1.5, 250],
   carne: [0, 0, 5, 2.4, 290],
   peixe: [0, 10, 20, 0.3, 300],
   tilapia: [0, 0, 10, 0.6, 350],
@@ -267,6 +269,8 @@ const aliases: Array<[RegExp, string]> = [
   [/creme de leite/, "creme_leite"],
   [/goiabada|doce de goiaba/, "goiabada"],
   [/doce de leite/, "doce_leite"],
+  [/brigadeiros?|negrinhos?/, "brigadeiro"],
+  [/doces? de coco|cocadas?/, "doce_coco"],
   [/p[eé]\s*-?de\s*-?moleque/, "pe_moleque"],
   [/miojo|macarr[aã]o instant[aâ]neo|lámen|lamen|nissin/, "macarrao_instantaneo"],
   [/catchup|ketchup/, "ketchup"],
@@ -489,9 +493,15 @@ const aliases: Array<[RegExp, string]> = [
   [/queijo|mu[cç]arela|mussarela/, "queijo_minas"],
   [/presunto|peito de peru/, "presunto"],
   [/bolo/, "bolo_simples"],
-  [/(biscoito|bolacha)s? (recheado|de chocolate|oreo|trakinas)|bolacha recheada|biscoito recheado|oreo|trakinas/, "biscoito_recheado"],
+  [
+    /(biscoito|bolacha)s? (recheado|de chocolate|oreo|trakinas)|bolacha recheada|biscoito recheado|oreo|trakinas/,
+    "biscoito_recheado",
+  ],
   [/(biscoito|bolacha)s? (doce|(de )?mai[sz]ena|de leite|maria)/, "biscoito_doce"],
-  [/cream cracker|biscoito salgado|bolacha salgada|[aá]gua e sal|biscoito|bolacha/, "biscoito_salgado"],
+  [
+    /cream cracker|biscoito salgado|bolacha salgada|[aá]gua e sal|biscoito|bolacha/,
+    "biscoito_salgado",
+  ],
   [/macarr[aã]o|espaguete|massa/, "macarrao"],
   [/baixaria/, "baixaria"],
   [/carne mo[ií]da/, "carne_moida"],
@@ -650,6 +660,8 @@ const defaultPortion: Record<string, number> = {
   goiabada: 30,
   doce_leite: 20,
   pe_moleque: 25,
+  brigadeiro: 20,
+  doce_coco: 40,
   carne: 120,
   peixe: 120,
   tilapia: 120,
@@ -906,13 +918,22 @@ export function parseFoodText(text: string, liquidMl?: number | null): ParsedFoo
     .toLowerCase()
     .normalize("NFC")
     .replace(/nescaf[eé] com leite (cremoso|\(?lata\)?)/g, "nescafe_leite_lata")
-    .replace(/(leite )?ninho (leite )?integral( preparado| dissolvido)?|leite ninho (preparado|dissolvido)|copo de leite ninho/g, "ninho_integral_preparado")
+    .replace(
+      /(leite )?ninho (leite )?integral( preparado| dissolvido)?|leite ninho (preparado|dissolvido)|copo de leite ninho/g,
+      "ninho_integral_preparado",
+    )
     .replace(/nescaf[eé] com leite em p[oó]/g, "café com leite em pó")
     .replace(/nescaf[eé] com leite desnatado/g, "café com leite desnatado")
     .replace(/nescaf[eé] com leite/g, "café com leite")
     .replace(/caf[eé] com leite/g, "café_com_leite")
-    .replace(/(guaran[aá] )?quinari( guaran[aá])?( zero| 0| diet| sem a[cç][uú]car)+/g, "quinari_zero")
-    .replace(/(refrigerante|refri|coca(-| )?cola|coca|guaran[aá])( zero| 0| diet| light| sem a[cç][uú]car| zero a[cç][uú]car| 0 a[cç][uú]car)+/g, "refrigerante_zero")
+    .replace(
+      /(guaran[aá] )?quinari( guaran[aá])?( zero| 0| diet| sem a[cç][uú]car)+/g,
+      "quinari_zero",
+    )
+    .replace(
+      /(refrigerante|refri|coca(-| )?cola|coca|guaran[aá])( zero| 0| diet| light| sem a[cç][uú]car| zero a[cç][uú]car| 0 a[cç][uú]car)+/g,
+      "refrigerante_zero",
+    )
     .replace(/(mingau de [a-zà-ú]+) com leite/g, "$1")
     .replace(
       /(cereal|sucrilhos|flocos de milho|corn ?flakes)( de milho)? com leite/g,
@@ -928,7 +949,10 @@ export function parseFoodText(text: string, liquidMl?: number | null): ParsedFoo
     .replace(/[aá]gua com lim[aã]o inteiro/g, "água, 60 g de limão-taiti")
     .replace(/[aá]gua com lim[aã]o/g, "água, 30 g de limão-taiti")
     .replace(/sopa de carne com legumes/g, "sopa de carne")
-    .replace(/coz(ido|id[aã]o) de carne( com legumes)?/g, "100 g de carne, 100 g de batata, 60 g de cenoura, 60 g de chuchu")
+    .replace(
+      /coz(ido|id[aã]o) de carne( com legumes)?/g,
+      "100 g de carne, 100 g de batata, 60 g de cenoura, 60 g de chuchu",
+    )
     .replace(/pimenta de panela/g, "pimenta da terra")
     .replace(/meio amargo/g, "amargo")
     .replace(/leite com chocolate/g, "achocolatado")
@@ -980,7 +1004,13 @@ export function parseFoodText(text: string, liquidMl?: number | null): ParsedFoo
     }
     if (liquidMl && !explicit && liquidSegments === 1 && !isAdditive(item.id)) grams = liquidMl;
     // Açúcar sem quantidade numa bebida: cerca de 10 g para cada 200 ml (estimativa).
-    else if (liquidMl && !explicit && isAdditive(item.id) && !/colher/.test(segment) && !/\d/.test(segment))
+    else if (
+      liquidMl &&
+      !explicit &&
+      isAdditive(item.id) &&
+      !/colher/.test(segment) &&
+      !/\d/.test(segment)
+    )
       grams = Math.max(5, Math.min(80, Math.round((10 * liquidMl) / 200)));
     if (!grams || grams <= 0 || grams > 3000) continue;
     found.push({
@@ -1107,7 +1137,13 @@ const liquidIds = new Set([
   "cerveja",
   "caldo_cana",
   "cha_preto",
-  "suco_uva","leite", "caldo_piranha", "tacaca", "iogurte", "sopa_carne_legumes"]);
+  "suco_uva",
+  "leite",
+  "caldo_piranha",
+  "tacaca",
+  "iogurte",
+  "sopa_carne_legumes",
+]);
 /** Líquidos são medidos em ml (densidade ≈ 1 g/ml); sólidos em g. */
 export function isLiquid(id: string): boolean {
   return liquidIds.has(id) || ingredientById.get(id)?.group === "bebidas";

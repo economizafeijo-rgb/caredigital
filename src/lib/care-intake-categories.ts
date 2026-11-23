@@ -340,6 +340,8 @@ export const typicalFoods: Record<FoodKind, { label: string; text: string }[]> =
     { label: "Goiabada", text: "1 fatia de goiabada" },
     { label: "Doce de leite", text: "1 colher de sopa de doce de leite" },
     { label: "Pé de moleque", text: "1 pé de moleque" },
+    { label: "Brigadeiro", text: "1 brigadeiro" },
+    { label: "Doce de coco", text: "1 pedaço de doce de coco" },
     { label: "Bolo", text: "1 fatia de bolo" },
     { label: "Açaí", text: "1 copo de açaí" },
     { label: "Iogurte", text: "1 iogurte" },

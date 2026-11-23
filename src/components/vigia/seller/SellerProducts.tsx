@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { History, ImagePlus, Minus, Package, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useDialog } from "@/lib/dialog";
@@ -57,6 +57,7 @@ type Draft = {
   limit: string;
   availability: "auto" | "indisponivel" | "esgotado";
   featured: boolean;
+  supplier: string;
 };
 const blank: Draft = {
   name: "",
@@ -75,6 +76,7 @@ const blank: Draft = {
   limit: "",
   availability: "auto",
   featured: false,
+  supplier: "",
 };
 
 export function SellerProducts({
@@ -96,6 +98,41 @@ export function SellerProducts({
   const [showMoves, setShowMoves] = useState(false);
   const [msg, setMsg] = useState("");
   const { confirm, prompt } = useDialog();
+  const [suppliers, setSuppliers] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    let alive = true;
+    void (
+      supabase as unknown as {
+        from: (t: string) => {
+          select: (c: string) => {
+            eq: (
+              k: string,
+              v: string,
+            ) => {
+              eq: (
+                k: string,
+                v: string,
+              ) => {
+                order: (k: string) => Promise<{ data: { id: string; name: string }[] | null }>;
+              };
+            };
+          };
+        };
+      }
+    )
+      .from("care_store_contacts")
+      .select("id,name")
+      .eq("vendor_id", vendor.id)
+      .eq("kind", "fornecedor")
+      .order("name")
+      .then(({ data }) => {
+        if (alive) setSuppliers(data ?? []);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [vendor.id]);
 
   const cats = useMemo(() => [...new Set(products.map((p) => p.category))], [products]);
   const shown = useMemo(
@@ -132,6 +169,7 @@ export function SellerProducts({
       limit: p.display_limit ? String(p.display_limit) : "",
       availability: p.availability ?? "auto",
       featured: !!p.featured,
+      supplier: p.supplier_id ?? "",
     });
 
   async function save(e: FormEvent) {
@@ -177,6 +215,7 @@ export function SellerProducts({
       display_limit: draft.limit.trim() ? Number(draft.limit) : null,
       availability: draft.availability,
       featured: draft.featured,
+      supplier_id: draft.supplier || null,
       updated_at: new Date().toISOString(),
     };
     const db = (supabase as any).from("care_store_products");
@@ -624,6 +663,26 @@ export function SellerProducts({
                   onChange={(e) => setDraft({ ...draft, cost: e.target.value })}
                   placeholder="Para calcular a margem"
                 />
+              </label>
+              <label className="text-[13px] font-semibold">
+                Fornecedor
+                <select
+                  className={inputCls}
+                  value={draft.supplier}
+                  onChange={(e) => setDraft({ ...draft, supplier: e.target.value })}
+                >
+                  <option value="">Sem fornecedor</option>
+                  {suppliers.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+                {!suppliers.length && (
+                  <span className="mt-1 block text-[11px] font-normal text-muted-foreground">
+                    Cadastre fornecedores em Cadastros para escolher aqui.
+                  </span>
+                )}
               </label>
               <label className="text-[13px] font-semibold">
                 Unidade
