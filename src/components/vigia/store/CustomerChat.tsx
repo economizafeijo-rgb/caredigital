@@ -21,6 +21,16 @@ import {
   type QueuePosition,
 } from "@/lib/store-presence";
 import { QueueCard } from "./QueueCard";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { precheckMessage } from "@/lib/store-moderation";
 import { joinStoreChat } from "@/lib/store-chat-live";
 
@@ -171,14 +181,10 @@ export function CustomerChat({
 
   // Limpa o chat do cliente. A loja mantém o histórico no arquivo.
   const [clearing, setClearing] = useState(false);
+  const [askClear, setAskClear] = useState(false);
   async function clearChat() {
     if (!user || clearing) return;
-    if (
-      !window.confirm(
-        "Limpar esta conversa? As mensagens saem do seu chat. A loja mantém o histórico.",
-      )
-    )
-      return;
+    setAskClear(false);
     setClearing(true);
     const client = supabase as unknown as {
       rpc: (
@@ -188,7 +194,8 @@ export function CustomerChat({
     };
     const { error } = await client.rpc("care_store_customer_clear_chat", { p_vendor: vendor.id });
     setClearing(false);
-    if (error) return window.alert("Não foi possível limpar a conversa agora. Tente de novo.");
+    if (error) return setErr("Não foi possível limpar a conversa agora. Tente de novo.");
+    setErr("");
     await load();
   }
 
@@ -418,9 +425,27 @@ export function CustomerChat({
           </div>
           <div className="flex items-center gap-0.5">
             {user && (
+              <AlertDialog open={askClear} onOpenChange={setAskClear}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Limpar esta conversa?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      As mensagens saem do seu chat. A loja mantém o histórico.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => void clearChat()}>
+                      Limpar conversa
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            {user && (
               <button
                 type="button"
-                onClick={() => void clearChat()}
+                onClick={() => setAskClear(true)}
                 disabled={clearing}
                 aria-label="Limpar conversa"
                 title="Limpar conversa"

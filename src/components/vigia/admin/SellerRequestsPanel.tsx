@@ -26,6 +26,20 @@ import {
   type SellerRequest,
 } from "@/lib/admin-stores";
 import { NewStoreModal } from "./NewStoreModal";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+
+/** Diálogo aberto para recusar (motivo) ou excluir (confirmação pelo nome). */
+type Dialogo = { kind: "recusar" | "excluir"; r: SellerRequest; text: string } | null;
 
 const TZ = "America/Rio_Branco";
 
@@ -127,6 +141,7 @@ export function SellerRequestsPanel({
   const [histOpen, setHistOpen] = useState<string | null>(null);
   const [histById, setHistById] = useState<Record<string, RequestLogEntry[]>>({});
   const [globalLog, setGlobalLog] = useState<RequestLogEntry[] | null>(null);
+  const [dlg, setDlg] = useState<Dialogo>(null);
 
   const load = useCallback(async () => {
     try {
@@ -205,13 +220,11 @@ export function SellerRequestsPanel({
     }
   }
 
-  async function setStatus(r: SellerRequest, status: SellerRequest["status"]) {
-    let notes = r.admin_notes ?? "";
-    if (status === "recusada") {
-      const reason = window.prompt("Motivo da recusa (fica só para a administração):", notes);
-      if (reason === null) return;
-      notes = reason;
+  async function setStatus(r: SellerRequest, status: SellerRequest["status"], reasonText?: string) {
+    if (status === "recusada" && reasonText === undefined) {
+      return setDlg({ kind: "recusar", r, text: r.admin_notes ?? "" });
     }
+    const notes = reasonText ?? r.admin_notes ?? "";
     setBusy(r.id);
     try {
       await updateSellerRequest(r.id, status, notes);
@@ -240,11 +253,7 @@ export function SellerRequestsPanel({
     }
   }
 
-  async function removeForever(r: SellerRequest) {
-    const typed = window.prompt(
-      `Excluir definitivamente "${r.business_name}"?\nEsta ação não pode ser desfeita. Para confirmar, digite o nome da empresa exatamente como aparece:`,
-    );
-    if (typed === null) return;
+  async function removeForever(r: SellerRequest, typed: string) {
     setBusy(r.id);
     try {
       await deleteSellerRequest(r.id, typed);
@@ -472,7 +481,7 @@ export function SellerRequestsPanel({
           <button
             type="button"
             disabled={busy === r.id}
-            onClick={() => void removeForever(r)}
+            onClick={() => setDlg({ kind: "excluir", r, text: "" })}
             className="inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-semibold text-rose-600 hover:bg-rose-500/10 disabled:opacity-50 dark:text-rose-300"
           >
             <Trash2 size={14} /> Excluir definitivamente
@@ -590,6 +599,81 @@ export function SellerRequestsPanel({
           ))}
         </div>
       )}
+      <Dialog open={dlg !== null} onOpenChange={(o) => !o && setDlg(null)}>
+        <DialogContent className="sm:max-w-md">
+          {dlg?.kind === "recusar" && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Recusar solicitação</DialogTitle>
+                <DialogDescription>
+                  {dlg.r.business_name}. O motivo fica registrado somente para a administração.
+                </DialogDescription>
+              </DialogHeader>
+              <Textarea
+                value={dlg.text}
+                onChange={(e) => setDlg({ ...dlg, text: e.target.value })}
+                rows={4}
+                maxLength={600}
+                placeholder="Ex.: endereço fora da área de atendimento"
+                aria-label="Motivo da recusa"
+              />
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setDlg(null)}>
+                  Cancelar
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    const { r, text } = dlg;
+                    setDlg(null);
+                    void setStatus(r, "recusada", text.trim());
+                  }}
+                >
+                  Recusar cadastro
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+          {dlg?.kind === "excluir" && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Excluir solicitação</DialogTitle>
+                <DialogDescription>
+                  A exclusão é definitiva e não pode ser desfeita. O registro continua no histórico.
+                </DialogDescription>
+              </DialogHeader>
+              <label className="grid gap-1.5 text-sm">
+                <span className="text-muted-foreground">
+                  Digite <strong className="text-foreground">{dlg.r.business_name}</strong> para
+                  confirmar
+                </span>
+                <Input
+                  value={dlg.text}
+                  onChange={(e) => setDlg({ ...dlg, text: e.target.value })}
+                  autoFocus
+                  autoComplete="off"
+                />
+              </label>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setDlg(null)}>
+                  Cancelar
+                </Button>
+                <Button
+                  variant="destructive"
+                  disabled={dlg.text.trim() !== dlg.r.business_name}
+                  onClick={() => {
+                    const { r, text } = dlg;
+                    setDlg(null);
+                    void removeForever(r, text.trim());
+                  }}
+                >
+                  Excluir definitivamente
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

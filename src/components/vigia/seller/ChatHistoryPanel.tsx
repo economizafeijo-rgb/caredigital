@@ -24,6 +24,16 @@ import {
   type OwnerPassStatus,
 } from "@/lib/chat-history";
 import { useOwnerPasswordPrompt } from "./OwnerPasswordPrompt";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const when = (iso: string) =>
   new Date(iso).toLocaleString("pt-BR", {
@@ -353,6 +363,7 @@ function OwnerPasswordCard({ vendorId }: { vendorId: string }) {
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
+  const [askTroca, setAskTroca] = useState(false);
   const refresh = useCallback(() => {
     void ownerPassStatus(vendorId).then(setSt, () => setSt(null));
   }, [vendorId]);
@@ -366,12 +377,11 @@ function OwnerPasswordCard({ vendorId }: { vendorId: string }) {
       return setMsg({ ok: false, text: "A nova senha precisa ter 6 números." });
     if (next !== again)
       return setMsg({ ok: false, text: "A confirmação não é igual à nova senha." });
-    if (
-      !window.confirm(
-        "Confirmar a troca? Você só pode trocar a senha de exclusão uma vez. Depois, apenas o administrador da plataforma pode resetar.",
-      )
-    )
-      return;
+    setAskTroca(true);
+  }
+
+  async function trocar() {
+    setAskTroca(false);
     setBusy(true);
     try {
       await changeOwnerPass(vendorId, cur, next);
@@ -459,6 +469,21 @@ function OwnerPasswordCard({ vendorId }: { vendorId: string }) {
             >
               {busy ? "Salvando…" : "Salvar"}
             </button>
+            <AlertDialog open={askTroca} onOpenChange={setAskTroca}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Trocar a senha de exclusão?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Você só pode trocar a senha uma vez. Depois disso, apenas o administrador da
+                    plataforma pode resetá-la.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => void trocar()}>Trocar senha</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       )}
