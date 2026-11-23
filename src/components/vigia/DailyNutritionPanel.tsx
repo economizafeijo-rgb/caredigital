@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Apple,
   Beef,
+  Check,
   Droplet,
   Flame,
   Leaf,
@@ -32,7 +33,10 @@ import { beverageNutrients } from "@/lib/beverage-nutrients";
 import { isBeverageKind } from "@/lib/care-intake-categories";
 import { ingredientById } from "@/lib/nutrition-catalog";
 import { useDialog } from "@/lib/dialog";
-import { MacroBreakdown } from "./MacroBreakdown";
+import { MACRO_COLORS, MacroBreakdown } from "./MacroBreakdown";
+
+/** Cor única dos micronutrientes (fibras, vitaminas e minerais), distinta das cores dos macros. */
+const MICRO_COLOR = "#14b8a6";
 
 type Entry = {
   at: string;
@@ -551,7 +555,7 @@ export function DailyNutritionPanel({
                 target={target.protein}
                 label="Proteínas"
                 unit="g"
-                color="#e11d48"
+                color={MACRO_COLORS.protein}
                 icon={Beef}
               />
               <Ring
@@ -559,7 +563,7 @@ export function DailyNutritionPanel({
                 target={target.carbs}
                 label="Carboidratos"
                 unit="g"
-                color="#f59e0b"
+                color={MACRO_COLORS.carbs}
                 icon={Wheat}
               />
               <Ring
@@ -567,7 +571,7 @@ export function DailyNutritionPanel({
                 target={target.fat}
                 label="Gorduras"
                 unit="g"
-                color="#8b5cf6"
+                color={MACRO_COLORS.fat}
                 icon={Droplet}
               />
             </div>
@@ -581,49 +585,64 @@ export function DailyNutritionPanel({
           {!compact && (
             <>
               <h4 className="mt-4 flex items-center gap-2 text-sm font-bold">
-                <Leaf size={16} className="text-lime-600" /> Fibras, vitaminas e minerais
+                <Leaf size={16} style={{ color: MICRO_COLOR }} /> Fibras, vitaminas e minerais
               </h4>
-              <div className="mt-2 grid gap-x-5 gap-y-1.5 border border-border bg-muted/30 p-2.5 sm:grid-cols-2">
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Do que mais falta para o que já foi atingido. A barra cheia é a referência do dia.
+              </p>
+              {/* Uma cor só para micronutrientes (verde-água): vermelho, âmbar e roxo ficam reservados
+                  para proteína, carboidrato e gordura. A situação vem escrita, não só na cor. */}
+              <ul className="mt-2 grid gap-x-6 gap-y-2 border border-border bg-muted/30 p-3 sm:grid-cols-2">
                 {[
                   { label: "Fibras", unit: "g", value: total.fiber, target: target.fiber },
                   ...(Object.keys(microTargets) as (keyof typeof microTargets)[]).map((key) => ({
                     ...microTargets[key],
                     value: total[key],
                   })),
-                ].map((item) => {
-                  const raw = (item.value / item.target) * 100;
-                  const pct = Math.min(100, Math.round(raw));
-                  const tone =
-                    raw >= 100
-                      ? "#10b981"
-                      : raw >= 50
-                        ? "#84cc16"
-                        : raw >= 25
-                          ? "#f59e0b"
-                          : "#f43f5e";
-                  return (
-                    <div
-                      key={item.label}
-                      title={`${item.label}: ${pct}% da referência diária`}
-                      className="grid grid-cols-[5.6rem_minmax(0,1fr)_auto] items-center gap-x-2 text-xs"
-                    >
-                      <span className="truncate font-semibold">{item.label}</span>
-                      <span className="relative h-1.5 overflow-hidden bg-black/10 dark:bg-white/10">
-                        <i
-                          className="absolute inset-y-0 left-0 transition-[width] duration-700"
-                          style={{ width: pct + "%", background: tone }}
-                        />
-                      </span>
-                      <span className="w-[6.6rem] text-right tabular-nums">
-                        <b>{item.value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}</b>{" "}
-                        <span className="text-muted-foreground">
-                          {item.unit} · {Math.round(raw)}%
+                ]
+                  .map((item) => ({ ...item, raw: (item.value / item.target) * 100 }))
+                  .sort((x, y) => x.raw - y.raw)
+                  .map((item) => {
+                    const raw = item.raw;
+                    const pct = Math.min(100, Math.round(raw));
+                    const status = raw >= 100 ? "Atingido" : raw >= 50 ? "Parcial" : "Baixo";
+                    return (
+                      <li
+                        key={item.label}
+                        title={`${item.label}: ${Math.round(raw)}% da referência diária`}
+                        className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-2 gap-y-1 text-xs"
+                      >
+                        <span className="truncate font-semibold">{item.label}</span>
+                        <span className="tabular-nums">
+                          <b>{item.value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}</b>{" "}
+                          <span className="text-muted-foreground">
+                            / {item.target.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}{" "}
+                            {item.unit}
+                          </span>
                         </span>
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
+                        <span className="relative col-span-2 h-2 overflow-hidden bg-black/10 dark:bg-white/10">
+                          <i
+                            className="absolute inset-y-0 left-0 transition-[width] duration-700"
+                            style={{
+                              width: pct + "%",
+                              background: MICRO_COLOR,
+                              opacity: raw >= 100 ? 1 : 0.75,
+                            }}
+                          />
+                        </span>
+                        <span
+                          className={`col-span-2 flex items-center justify-between text-[11px] ${status === "Baixo" ? "font-semibold text-foreground" : "text-muted-foreground"}`}
+                        >
+                          <span className="inline-flex items-center gap-1">
+                            {status === "Atingido" && <Check size={12} aria-hidden="true" />}
+                            {status}
+                          </span>
+                          <span className="tabular-nums">{Math.round(raw)}%</span>
+                        </span>
+                      </li>
+                    );
+                  })}
+              </ul>
               <h4 className="mt-4 text-sm font-bold">O que foi calculado hoje</h4>
               <ul className="mt-2 grid max-h-72 gap-1.5 overflow-y-auto pr-1 [scrollbar-width:thin]">
                 {entries.length === 0 && (

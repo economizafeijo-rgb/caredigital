@@ -5,7 +5,7 @@ import { sumNutrients, type Nutrients } from "@/lib/food-parser";
 import { objectiveLabel } from "@/lib/objective-nutrition";
 import type { DailyNutrition } from "./DailyNutritionPanel";
 import { NextUpClock } from "./NextUpClock";
-import { MacroBreakdown } from "./MacroBreakdown";
+import { MACRO_COLORS, MacroBreakdown } from "./MacroBreakdown";
 
 const tz = "America/Rio_Branco";
 const hourOf = (iso: string) => {
@@ -25,9 +25,9 @@ const entryNutrients = (e: DailyNutrition["entries"][number]): Nutrients =>
   e.direct ?? sumNutrients(e.foods.map((f) => f.nutrients));
 
 const macros = [
-  { key: "protein", label: "Proteína", short: "Proteína", icon: Beef, color: "#fb7185" },
-  { key: "carbs", label: "Carboidrato", short: "Carbos", icon: Wheat, color: "#fbbf24" },
-  { key: "fat", label: "Gordura", short: "Gordura", icon: Droplet, color: "#a78bfa" },
+  { key: "protein", label: "Proteína", short: "Proteína", icon: Beef, color: MACRO_COLORS.protein },
+  { key: "carbs", label: "Carboidrato", short: "Carbos", icon: Wheat, color: MACRO_COLORS.carbs },
+  { key: "fat", label: "Gordura", short: "Gordura", icon: Droplet, color: MACRO_COLORS.fat },
 ] as const;
 
 const mealSlots: [number, string][] = [
@@ -105,7 +105,7 @@ export function NutritionHero({
                 cy="60"
                 r="54"
                 fill="none"
-                stroke="#fb923c"
+                stroke="#f97316"
                 strokeWidth="8"
                 strokeLinecap="round"
                 pathLength={100}
@@ -295,9 +295,7 @@ export function NutritionDayChart({ data }: { data: DailyNutrition }) {
             id: "kcal",
             label: "Acumulado (kcal)",
             color: "#10b981",
-            points: line.map((p, i) =>
-              i > 0 && i <= points.length ? { ...p, color: "#f97316" } : p,
-            ),
+            points: line,
             area: true,
             dots: true,
             live: true,
@@ -323,7 +321,7 @@ export function NutritionDayChart({ data }: { data: DailyNutrition }) {
                 <div key={i}>
                   <p className="flex gap-2">
                     <span className="truncate font-semibold">{p.text || "Registro"}</span>
-                    <strong className="ml-auto shrink-0 tabular-nums text-orange-500">
+                    <strong className="ml-auto shrink-0 tabular-nums text-foreground">
                       +{n0(p.n.kcal)} kcal
                     </strong>
                   </p>
@@ -344,7 +342,7 @@ export function NutritionDayChart({ data }: { data: DailyNutrition }) {
   );
 }
 
-const MACRO = { protein: "#f43f5e", carbs: "#f59e0b", fat: "#8b5cf6" } as const;
+const MACRO = MACRO_COLORS;
 
 /** Calorias de cada registro do dia, divididas por macronutriente. Clique para ver o detalhe. */
 export function MealMacroBars({ data }: { data: DailyNutrition }) {
