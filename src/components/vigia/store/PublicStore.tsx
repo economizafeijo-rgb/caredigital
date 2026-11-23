@@ -897,7 +897,7 @@ function PublicStore({
           role="dialog"
           aria-modal="true"
           aria-label={`Foto de ${detail.name}`}
-          className="nv-dark fixed inset-0 z-[80] flex flex-col bg-black/95 text-white"
+          className="nv-dark fixed inset-0 z-[140] flex flex-col bg-black/95 text-white"
           onKeyDown={(e) => {
             if (e.key === "Escape") setZoomImg(false);
           }}
