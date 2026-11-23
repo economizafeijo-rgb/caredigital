@@ -110,7 +110,7 @@ export function HomePartnerBand() {
               <span className="absolute inset-0 bg-gradient-to-r from-[#701a75]/85 via-[#701a75]/40 to-transparent" />
               <div className="absolute inset-y-0 left-4 flex items-center gap-3">
                 <img
-                  src="/loja/sophia-store/logo-512.png"
+                  src="/loja/sophia-store/logo-512-v2.png"
                   alt=""
                   aria-hidden="true"
                   loading="lazy"

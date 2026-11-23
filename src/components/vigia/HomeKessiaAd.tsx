@@ -359,7 +359,7 @@ function buildStore(
   const cards: Card[] = sorted.slice(0, 12).map((p) => ({
     key: p.id,
     name: p.name,
-    img: p.image_url || "/loja/kessia/mark.svg",
+    img: p.image_url || "/loja/kessia/mark-v2.svg",
     price: money(p.price_cents),
     old: offOf(p) ? money(p.old_price_cents as number) : undefined,
     off: offOf(p),
@@ -407,7 +407,7 @@ export function HomeKessiaAd() {
           {
             id: isKessia ? "kessia" : `loja-${v.slug}`,
             name: isKessia ? "Kessia' Digital Store" : v.name,
-            logo: isKessia ? "/loja/kessia/logo.svg" : (v.logo_url ?? ""),
+            logo: isKessia ? "/loja/kessia/logo-v2.svg" : (v.logo_url ?? ""),
             bg: isKessia ? "/loja/bela-vista/banner.jpg" : `/loja/${v.slug}/banner-destaque.webp`,
             tint: TINTS[idx % TINTS.length],
             href: `/loja?loja=${v.slug}`,
