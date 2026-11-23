@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Inbox, Loader2, Mail, MapPin, MessageSquareText, Phone, Store } from "lucide-react";
+import { Inbox, Loader2, Mail, MapPin, MessageSquareText, Phone, Send, Store } from "lucide-react";
 import { segmentLabel } from "@/lib/marketplace";
 import {
   REQUEST_STATUS,
@@ -16,7 +16,33 @@ const when = (iso: string) =>
     timeStyle: "short",
   });
 
-/** Solicitações de quem quer vender na plataforma: avaliar, recusar ou criar a loja. */
+type ReplyKind = "aceitar" | "recusar" | "info";
+
+const REPLY_TEXT: Record<ReplyKind, { subject: string; body: (r: SellerRequest) => string }> = {
+  aceitar: {
+    subject: "Sua solicitação na NextVita foi aprovada",
+    body: (r) =>
+      `Olá, ${r.owner_name}! Recebemos o cadastro de ${r.business_name} e ele foi aprovado. Em instantes enviaremos o acesso ao painel da loja. Qualquer dúvida, é só responder esta mensagem.`,
+  },
+  recusar: {
+    subject: "Sobre sua solicitação na NextVita",
+    body: (r) =>
+      `Olá, ${r.owner_name}! Agradecemos o interesse em vender na NextVita. Neste momento não conseguimos aprovar o cadastro de ${r.business_name}. Se quiser, responda esta mensagem para entendermos o que podemos ajustar.`,
+  },
+  info: {
+    subject: "Precisamos de mais informações da sua loja",
+    body: (r) =>
+      `Olá, ${r.owner_name}! Estamos analisando o cadastro de ${r.business_name}. Para continuar, precisamos de mais informações: (descreva aqui o que falta). Pode responder esta mensagem.`,
+  },
+};
+
+const REPLY_LABEL: Record<ReplyKind, string> = {
+  aceitar: "Aceitar",
+  recusar: "Recusar",
+  info: "Pedir informações",
+};
+
+/** Solicitações de quem quer vender na plataforma: avaliar, responder, recusar ou criar a loja. */
 export function SellerRequestsPanel({
   onCount,
   onOpenVendor,
@@ -29,6 +55,9 @@ export function SellerRequestsPanel({
   const [creating, setCreating] = useState<SellerRequest | null>(null);
   const [filter, setFilter] = useState<"abertas" | "todas">("abertas");
   const [busy, setBusy] = useState("");
+  const [replyId, setReplyId] = useState<string | null>(null);
+  const [replyKind, setReplyKind] = useState<ReplyKind>("aceitar");
+  const [replyText, setReplyText] = useState("");
 
   const load = useCallback(async () => {
     try {
@@ -43,6 +72,34 @@ export function SellerRequestsPanel({
   useEffect(() => {
     void load();
   }, [load]);
+
+  function openReply(r: SellerRequest, kind: ReplyKind) {
+    setReplyId(r.id);
+    setReplyKind(kind);
+    setReplyText(REPLY_TEXT[kind].body(r));
+  }
+
+  async function registerReply(r: SellerRequest) {
+    const text = replyText.trim();
+    if (!text) return setErr("Escreva a resposta antes de registrar.");
+    const status: SellerRequest["status"] =
+      replyKind === "recusar" ? "recusada" : replyKind === "info" ? "em_analise" : r.status;
+    const stamp = new Date().toLocaleString("pt-BR", {
+      timeZone: "America/Rio_Branco",
+      dateStyle: "short",
+      timeStyle: "short",
+    });
+    setBusy(r.id);
+    try {
+      await updateSellerRequest(r.id, status, `[${stamp}] ${REPLY_LABEL[replyKind]}: ${text}`);
+      setReplyId(null);
+      await load();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Não foi possível registrar a resposta.");
+    } finally {
+      setBusy("");
+    }
+  }
 
   async function setStatus(r: SellerRequest, status: SellerRequest["status"]) {
     let notes = r.admin_notes ?? "";
@@ -195,7 +252,77 @@ export function SellerRequestsPanel({
                   </p>
                 )}
               </dl>
+              {replyId === r.id && (
+                <div className="grid gap-2 rounded-xl border border-border bg-muted/40 p-3">
+                  <div className="flex flex-wrap gap-1.5">
+                    {(Object.keys(REPLY_LABEL) as ReplyKind[]).map((k) => (
+                      <button
+                        key={k}
+                        type="button"
+                        onClick={() => openReply(r, k)}
+                        className={`h-8 rounded-lg px-2.5 text-xs font-semibold ${replyKind === k ? "bg-primary text-primary-foreground" : "border border-border hover:bg-muted"}`}
+                      >
+                        {REPLY_LABEL[k]}
+                      </button>
+                    ))}
+                  </div>
+                  <label className="grid gap-1 text-xs font-semibold">
+                    Mensagem para o interessado
+                    <textarea
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                      rows={4}
+                      maxLength={1200}
+                      className="rounded-lg border border-border bg-surface p-2 text-sm font-normal"
+                    />
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    <a
+                      href={`https://wa.me/55${r.phone.replace(/\D/g, "").replace(/^55/, "")}?text=${encodeURIComponent(replyText)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-emerald-600 px-3 text-xs font-bold text-white hover:bg-emerald-700"
+                    >
+                      <Send size={14} /> Enviar pelo WhatsApp
+                    </a>
+                    <a
+                      href={`mailto:${r.email}?subject=${encodeURIComponent(REPLY_TEXT[replyKind].subject)}&body=${encodeURIComponent(replyText)}`}
+                      className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-border px-3 text-xs font-semibold hover:bg-muted"
+                    >
+                      <Mail size={14} /> Enviar por e-mail
+                    </a>
+                    <button
+                      type="button"
+                      disabled={busy === r.id}
+                      onClick={() => void registerReply(r)}
+                      className="h-9 rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground disabled:opacity-50"
+                    >
+                      Registrar resposta
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setReplyId(null)}
+                      className="h-9 rounded-xl px-3 text-xs font-semibold text-muted-foreground hover:bg-muted"
+                    >
+                      Fechar
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    O envio acontece no seu WhatsApp ou e-mail. "Registrar resposta" guarda a
+                    mensagem no pedido e atualiza a situação.
+                  </p>
+                </div>
+              )}
               <div className="flex flex-wrap gap-2 border-t border-border pt-3">
+                {replyId !== r.id && (
+                  <button
+                    type="button"
+                    onClick={() => openReply(r, "aceitar")}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-border px-3 text-xs font-semibold hover:bg-muted"
+                  >
+                    <MessageSquareText size={14} /> Responder
+                  </button>
+                )}
                 {r.status === "aprovada" && r.vendor_id ? (
                   <button
                     type="button"
