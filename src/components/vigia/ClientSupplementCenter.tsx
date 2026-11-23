@@ -176,10 +176,10 @@ function ProductPage({
           >
             {item.category}
           </span>
-          <div className="absolute inset-x-6 bottom-16 top-12 grid place-items-center md:bottom-20 md:top-14">
+          <div className="absolute inset-x-6 bottom-16 top-12 flex items-center justify-center md:bottom-20 md:top-14">
             <PackArt
               item={item}
-              className={`nv-float w-auto max-w-[70%] object-contain drop-shadow-[0_16px_18px_rgba(0,0,0,.35)] ${item.photo ? "max-h-[min(100%,19rem)]" : "max-h-[min(100%,15rem)]"}`}
+              className={`nv-float h-auto w-auto min-h-0 max-w-[70%] shrink object-contain drop-shadow-[0_16px_18px_rgba(0,0,0,.35)] ${item.photo ? "max-h-[min(100%,19rem)]" : "max-h-[min(100%,15rem)]"}`}
             />
           </div>
           <span
