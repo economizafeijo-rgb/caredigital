@@ -120,7 +120,7 @@ export function FlashDeals({ campaign }: { campaign: Campaign }) {
                 <button
                   type="button"
                   onClick={() => cart.add(p.id)}
-                  className="mt-2 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-700 text-xs font-bold text-white transition hover:bg-emerald-600 active:scale-[.97] motion-reduce:active:scale-100"
+                  className="mt-2 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-700 text-xs font-bold text-white transition hover:bg-emerald-700 active:scale-[.97] motion-reduce:active:scale-100"
                 >
                   <ShoppingCart size={14} aria-hidden="true" /> Adicionar
                 </button>

@@ -49,7 +49,7 @@ export function ActivateTrialCard() {
   }
   return (
     <section className="mx-auto mt-8 w-full max-w-xl overflow-hidden rounded-3xl border border-border bg-card shadow-pop">
-      <div className="bg-gradient-to-br from-emerald-600 to-teal-500 p-6 text-white">
+      <div className="bg-gradient-to-br from-emerald-700 to-teal-700 p-6 text-white">
         <Gift size={34} />
         <h1 className="mt-3 text-2xl font-extrabold">O NextVita é gratuito para você</h1>
         <p className="mt-1 text-sm text-white/90">
@@ -62,7 +62,7 @@ export function ActivateTrialCard() {
           type="button"
           disabled={busy}
           onClick={() => void run()}
-          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-base font-bold text-white shadow-sm hover:brightness-110 disabled:opacity-60"
+          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 text-base font-bold text-white shadow-sm hover:brightness-110 disabled:opacity-60"
         >
           {busy ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />} Ativar
           meu acesso gratuito
@@ -175,7 +175,7 @@ export function TrialTour() {
       className="mb-3 overflow-hidden rounded-3xl border border-emerald-500/30 bg-card shadow-card"
       aria-label="Primeiros passos"
     >
-      <div className="flex flex-wrap items-center gap-3 bg-gradient-to-r from-emerald-600 to-teal-500 p-4 text-white">
+      <div className="flex flex-wrap items-center gap-3 bg-gradient-to-r from-emerald-700 to-teal-700 p-4 text-white">
         <Gift size={24} />
         <div className="min-w-0 flex-1">
           <h2 className="text-lg font-extrabold">Bem-vindo ao NextVita · acesso gratuito</h2>

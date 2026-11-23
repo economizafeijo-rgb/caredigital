@@ -662,7 +662,7 @@ export function ToolDemo({ kind }: { kind: NonNullable<Slide["tool"]> }) {
           {["08:00 · Vitamina D3", "12:00 · Ômega 3", "20:00 · Magnésio"].map((d, i) => (
             <li key={d} className="flex items-center gap-2 rounded-lg bg-slate-50 px-2 py-1.5">
               <span
-                className="nv-check grid size-5 place-items-center rounded-full bg-emerald-500 text-white"
+                className="nv-check grid size-5 place-items-center rounded-full bg-emerald-700 text-white"
                 style={{ animationDelay: `${500 + i * 700}ms` }}
               >
                 <Check size={12} />

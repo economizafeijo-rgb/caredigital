@@ -378,7 +378,7 @@ export function SellerRequestsPanel({
                 href={`https://wa.me/55${r.phone.replace(/\D/g, "").replace(/^55/, "")}?text=${encodeURIComponent(replyText)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-emerald-600 px-3 text-xs font-bold text-white hover:bg-emerald-700"
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-emerald-700 px-3 text-xs font-bold text-white hover:bg-emerald-700"
               >
                 <Send size={14} /> Enviar pelo WhatsApp
               </a>
@@ -443,7 +443,7 @@ export function SellerRequestsPanel({
               <button
                 type="button"
                 onClick={() => setCreating(r)}
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-emerald-600 px-3 text-xs font-bold text-white hover:bg-emerald-700"
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-emerald-700 px-3 text-xs font-bold text-white hover:bg-emerald-700"
               >
                 <Store size={14} /> Aprovar e criar loja
               </button>

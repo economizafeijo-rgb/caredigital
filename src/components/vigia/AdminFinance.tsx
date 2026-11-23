@@ -125,7 +125,7 @@ export function AdminFinance() {
     >
       <header className="flex flex-wrap items-end justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-emerald-600 to-teal-500 text-white">
+          <span className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-emerald-700 to-teal-700 text-white">
             <Landmark size={20} />
           </span>
           <div>

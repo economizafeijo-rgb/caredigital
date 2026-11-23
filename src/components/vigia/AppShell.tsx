@@ -688,7 +688,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="shrink-0 border-t border-white/[.07] px-2 pt-1.5">
         <div className="nv-rail-account flex items-center gap-2 p-0.5">
           <span
-            className="relative grid size-7 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 text-[11px] font-extrabold text-white shadow-[inset_0_1px_0_rgba(255,255,255,.35)]"
+            className="relative grid size-7 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-emerald-700 to-teal-700 text-[11px] font-extrabold text-white shadow-[inset_0_1px_0_rgba(255,255,255,.35)]"
             aria-hidden="true"
           >
             {(access.name || access.email || "C").slice(0, 1).toUpperCase()}

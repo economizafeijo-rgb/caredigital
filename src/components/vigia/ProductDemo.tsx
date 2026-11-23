@@ -160,7 +160,7 @@ const SCENES: Scene[] = [
                   <Before className="absolute inset-0 grid place-items-center">
                     <Pill size={13} />
                   </Before>
-                  <After className="absolute inset-0 grid place-items-center rounded-lg bg-emerald-500 text-white">
+                  <After className="absolute inset-0 grid place-items-center rounded-lg bg-emerald-700 text-white">
                     <Check size={14} />
                   </After>
                 </>

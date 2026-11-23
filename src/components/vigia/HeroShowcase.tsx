@@ -64,7 +64,7 @@ function Card({ id }: { id: string }) {
             setAdded(true);
             window.setTimeout(() => setAdded(false), 1200);
           }}
-          className={`mt-1.5 inline-flex h-9 items-center justify-center gap-1.5 rounded-xl text-xs font-extrabold text-white transition active:scale-95 ${added ? "bg-emerald-600" : "bg-gradient-to-r from-emerald-600 to-teal-500 hover:brightness-110"}`}
+          className={`mt-1.5 inline-flex h-9 items-center justify-center gap-1.5 rounded-xl text-xs font-extrabold text-white transition active:scale-95 ${added ? "bg-emerald-700" : "bg-gradient-to-r from-emerald-700 to-teal-700 hover:brightness-110"}`}
         >
           {added ? (
             <>

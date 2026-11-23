@@ -1305,7 +1305,7 @@ function Row({
         <span className={done ? "text-muted-foreground" : ""}>{hm(item.at)}</span>
       </span>
       <span
-        className={`grid size-[1.9rem] place-items-center ${done ? "bg-emerald-500 text-white" : k.soft}`}
+        className={`grid size-[1.9rem] place-items-center ${done ? "bg-emerald-700 text-white" : k.soft}`}
       >
         {done ? <Check size={15} className="nv-check" /> : <Icon size={15} />}
       </span>
@@ -1537,7 +1537,7 @@ function ResolveSheet({
                 }}
                 className="flex items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/[.07] p-3 text-left transition hover:bg-emerald-500/[.12] active:scale-[.99]"
               >
-                <span className="grid size-9 place-items-center rounded-xl bg-emerald-500 text-white">
+                <span className="grid size-9 place-items-center rounded-xl bg-emerald-700 text-white">
                   <Check size={17} />
                 </span>
                 <span className="min-w-0">

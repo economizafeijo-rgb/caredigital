@@ -98,7 +98,7 @@ export function QrShareCard({
             <button
               type="button"
               onClick={() => void install()}
-              className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-500 px-3 text-xs font-bold text-white shadow-sm transition hover:brightness-110 active:scale-95"
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-gradient-to-r from-emerald-700 to-teal-700 px-3 text-xs font-bold text-white shadow-sm transition hover:brightness-110 active:scale-95"
             >
               <Download size={14} /> Instalar app
             </button>

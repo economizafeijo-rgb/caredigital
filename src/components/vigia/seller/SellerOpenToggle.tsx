@@ -81,7 +81,7 @@ export function SellerOpenToggle({
           className={`inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-50 ${
             open
               ? "border border-rose-500/40 text-rose-600 hover:bg-rose-500/10 dark:text-rose-300"
-              : "bg-emerald-600 text-white hover:bg-emerald-700"
+              : "bg-emerald-700 text-white hover:bg-emerald-700"
           }`}
         >
           {busy ? <Loader2 size={13} className="animate-spin" /> : <Power size={13} />}
@@ -137,7 +137,7 @@ export function SellerOpenToggle({
         className={`inline-flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold transition active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-50 ${
           open
             ? "bg-rose-600 text-white hover:bg-rose-700"
-            : "bg-emerald-600 text-white hover:bg-emerald-700"
+            : "bg-emerald-700 text-white hover:bg-emerald-700"
         }`}
       >
         {busy ? <Loader2 size={16} className="animate-spin" /> : <Power size={16} />}

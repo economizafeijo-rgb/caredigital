@@ -306,7 +306,7 @@ function PublicStore({
               <h1 className="flex flex-wrap items-center gap-x-2 gap-y-1 font-display text-xl font-extrabold leading-tight tracking-tight sm:text-2xl">
                 {vendor.name}
                 {vendor.verified && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-2.5 py-1 text-[11px] font-extrabold text-white shadow-[0_0_0_3px_rgba(16,185,129,.25)]">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-700 px-2.5 py-1 text-[11px] font-extrabold text-white shadow-[0_0_0_3px_rgba(16,185,129,.25)]">
                     <BadgeCheck size={14} aria-hidden="true" /> Loja verificada
                   </span>
                 )}
@@ -657,7 +657,7 @@ function PublicStore({
         <button
           type="button"
           onClick={() => setChat(true)}
-          className="nv-msg-pulse fixed bottom-[calc(8.5rem+env(safe-area-inset-bottom))] right-3 z-[90] inline-flex h-11 items-center gap-2 rounded-full bg-emerald-600 px-4 text-sm font-extrabold text-white shadow-xl sm:bottom-[calc(5.5rem+env(safe-area-inset-bottom))]"
+          className="nv-msg-pulse fixed bottom-[calc(8.5rem+env(safe-area-inset-bottom))] right-3 z-[90] inline-flex h-11 items-center gap-2 rounded-full bg-emerald-700 px-4 text-sm font-extrabold text-white shadow-xl sm:bottom-[calc(5.5rem+env(safe-area-inset-bottom))]"
         >
           <MessageCircle size={18} aria-hidden="true" /> {replies} nova{replies > 1 ? "s" : ""}{" "}
           resposta{replies > 1 ? "s" : ""}

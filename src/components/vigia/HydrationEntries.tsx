@@ -244,7 +244,7 @@ export function HydrationEntries({
                     type="button"
                     disabled={busy}
                     onClick={() => void save(e)}
-                    className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 text-xs font-bold text-white disabled:opacity-60"
+                    className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-emerald-700 px-3 text-xs font-bold text-white disabled:opacity-60"
                   >
                     <Check size={15} /> {busy ? "Salvando…" : "Salvar"}
                   </button>

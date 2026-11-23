@@ -266,7 +266,7 @@ export function MealSuggestions({
           plus: "text-sky-600",
         }
       : {
-          on: "border-emerald-500 bg-emerald-500 text-white",
+          on: "border-emerald-700 bg-emerald-700 text-white",
           off: "border-border bg-card hover:border-emerald-500/50 hover:bg-emerald-500/[.06]",
           plus: "text-emerald-600",
         };

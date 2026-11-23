@@ -406,7 +406,7 @@ function DoseTimeline({
               onFocus={() => setHover(i)}
               onBlur={() => setHover(null)}
               aria-label={`${d.med.name} ${d.slot}: ${d.taken ? "tomada" : late ? "atrasada" : "a tomar"}`}
-              className={`nv-dot-in absolute grid size-8 -translate-x-1/2 place-items-center rounded-full border-2 border-card text-white shadow-md transition-transform hover:scale-125 focus-visible:scale-125 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 ${d.taken ? "bg-emerald-500" : late ? "bg-amber-500" : "bg-rose-500"}`}
+              className={`nv-dot-in absolute grid size-8 -translate-x-1/2 place-items-center rounded-full border-2 border-card text-white shadow-md transition-transform hover:scale-125 focus-visible:scale-125 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 ${d.taken ? "bg-emerald-700" : late ? "bg-amber-500" : "bg-rose-500"}`}
               style={{
                 left: `${pos(d.at)}%`,
                 top: `calc(50% - 16px + ${(lane % 2 ? 1 : -1) * Math.ceil(lane / 2) * 26}px)`,

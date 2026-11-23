@@ -140,7 +140,7 @@ export function CartDrawer({
               type="button"
               disabled={lines.length === 0}
               onClick={onCheckout}
-              className="mt-3 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-base font-extrabold text-white disabled:opacity-50"
+              className="mt-3 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 text-base font-extrabold text-white disabled:opacity-50"
             >
               Finalizar pedido <ArrowRight size={18} />
             </button>
@@ -264,7 +264,7 @@ export function Checkout({ onClose }: { onClose: () => void }) {
               href={`https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent(done.text)}`}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-emerald-600 text-base font-bold text-white"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-emerald-700 text-base font-bold text-white"
             >
               <MessageCircle size={18} /> Confirmar pelo WhatsApp
             </a>
@@ -337,7 +337,7 @@ export function Checkout({ onClose }: { onClose: () => void }) {
                       className={`flex items-center gap-3 rounded-xl border p-3 text-left transition ${on ? "border-emerald-500 bg-emerald-500/10 ring-2 ring-emerald-500/30" : "border-border bg-card"}`}
                     >
                       <span
-                        className={`grid size-10 place-items-center rounded-xl ${on ? "bg-emerald-600 text-white" : "bg-muted"}`}
+                        className={`grid size-10 place-items-center rounded-xl ${on ? "bg-emerald-700 text-white" : "bg-muted"}`}
                       >
                         <Icon size={20} />
                       </span>
@@ -389,7 +389,7 @@ export function Checkout({ onClose }: { onClose: () => void }) {
               <button
                 type="submit"
                 disabled={busy || lines.length === 0 || !signedIn}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-base font-extrabold text-white disabled:opacity-50"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 text-base font-extrabold text-white disabled:opacity-50"
               >
                 <ShieldCheck size={18} /> {busy ? "Registrando…" : "Confirmar pedido"}
               </button>

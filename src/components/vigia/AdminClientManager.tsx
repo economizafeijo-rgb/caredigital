@@ -576,7 +576,7 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
                             type="button"
                             title="Reativar licença"
                             onClick={() => void setLicense(c, "ativa")}
-                            className="inline-flex h-9 items-center gap-1 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-500 px-2.5 text-xs font-bold text-white"
+                            className="inline-flex h-9 items-center gap-1 rounded-lg bg-gradient-to-r from-emerald-700 to-teal-700 px-2.5 text-xs font-bold text-white"
                           >
                             <KeyRound size={14} /> Ativar
                           </button>
@@ -949,7 +949,7 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
                           <button
                             type="button"
                             onClick={() => void setLicense(c, "ativa")}
-                            className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-emerald-600 px-3 text-xs font-bold text-white hover:bg-emerald-700"
+                            className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-emerald-700 px-3 text-xs font-bold text-white hover:bg-emerald-700"
                           >
                             <KeyRound size={14} /> Ativar
                           </button>
@@ -1237,7 +1237,7 @@ export function LicenseKeyPanel({
           <button
             type="button"
             onClick={() => void generate()}
-            className="mt-3 inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 px-6 text-sm font-bold text-white shadow-sm hover:brightness-110"
+            className="mt-3 inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 px-6 text-sm font-bold text-white shadow-sm hover:brightness-110"
           >
             <KeyRound size={17} /> Gerar código{qty > 1 ? "s" : ""}
           </button>

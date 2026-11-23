@@ -531,7 +531,7 @@ export function DailyNutritionPanel({
               Calculado automaticamente a partir das refeições e líquidos que você registrou.
             </p>
           </div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-600 to-lime-500 px-3 py-1.5 text-xs font-bold text-white">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-700 to-lime-500 px-3 py-1.5 text-xs font-bold text-white">
             <Target size={14} /> {objectiveLabel(objective)}
           </span>
         </div>

@@ -60,7 +60,7 @@ function MedicationDemo() {
               className={`flex w-full items-center gap-2.5 rounded-xl border px-3 py-2 text-left text-sm transition-colors ${done[i] ? "border-emerald-200 bg-emerald-50" : "border-slate-200 hover:border-[var(--area)]"}`}
             >
               <span
-                className={`grid size-6 place-items-center rounded-full transition-all ${done[i] ? "nv-check bg-emerald-500 text-white" : "border-2 border-slate-300"}`}
+                className={`grid size-6 place-items-center rounded-full transition-all ${done[i] ? "nv-check bg-emerald-700 text-white" : "border-2 border-slate-300"}`}
               >
                 {done[i] && <Check size={14} />}
               </span>
@@ -287,7 +287,7 @@ function SupplementsDemo() {
               <button
                 type="button"
                 onClick={() => setTaken((v) => (on ? v.filter((x) => x !== i) : [...v, i]))}
-                className={`${btn} h-7 ${on ? "bg-emerald-500 text-white" : "bg-[var(--area)] text-white"}`}
+                className={`${btn} h-7 ${on ? "bg-emerald-700 text-white" : "bg-[var(--area)] text-white"}`}
               >
                 {on ? (
                   <>

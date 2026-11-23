@@ -134,7 +134,7 @@ export function LicenseGate({ children }: { children: ReactNode }) {
         type="button"
         onClick={() => void redeem()}
         disabled={busy}
-        className="inline-flex h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 px-6 text-sm font-bold text-white shadow-sm hover:brightness-110 disabled:opacity-60"
+        className="inline-flex h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 px-6 text-sm font-bold text-white shadow-sm hover:brightness-110 disabled:opacity-60"
       >
         {busy ? <Loader2 size={18} className="animate-spin" /> : <KeyRound size={18} />} Ativar
         licença

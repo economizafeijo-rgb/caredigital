@@ -155,7 +155,7 @@ export function AdminPayments() {
       className="grid gap-4 rounded-2xl border border-border bg-card p-4 shadow-card sm:p-5"
     >
       <header className="flex flex-wrap items-center gap-3">
-        <span className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-emerald-600 to-teal-500 text-white">
+        <span className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-emerald-700 to-teal-700 text-white">
           <Wallet size={19} />
         </span>
         <div className="min-w-0 flex-1">

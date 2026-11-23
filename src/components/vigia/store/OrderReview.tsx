@@ -108,7 +108,7 @@ export function OrderReview({
             type="button"
             disabled={busy}
             onClick={() => void send()}
-            className="mt-3 h-10 rounded-xl bg-emerald-600 px-4 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50"
+            className="mt-3 h-10 rounded-xl bg-emerald-700 px-4 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50"
           >
             {busy ? "Enviando…" : "Confirmar recebimento e avaliar"}
           </button>

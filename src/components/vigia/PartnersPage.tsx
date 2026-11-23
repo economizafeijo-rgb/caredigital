@@ -291,7 +291,7 @@ export function PartnersPage() {
               </ul>
             </div>
             <div className="nv-float absolute -bottom-4 -left-3 flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-slate-900 shadow-xl sm:-left-6">
-              <span className="grid size-7 place-items-center rounded-full bg-emerald-500 text-white">
+              <span className="grid size-7 place-items-center rounded-full bg-emerald-700 text-white">
                 <BadgeCheck size={15} />
               </span>
               <span className="leading-tight">
@@ -516,7 +516,7 @@ export function PartnersPage() {
           <div className="mt-1 flex flex-wrap gap-2 sm:col-span-2">
             <button
               type="submit"
-              className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 text-sm font-bold text-white transition hover:bg-emerald-500 active:scale-[.98]"
+              className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 text-sm font-bold text-white transition hover:bg-emerald-700 active:scale-[.98]"
             >
               <MessageCircle size={17} /> Enviar pelo WhatsApp
             </button>

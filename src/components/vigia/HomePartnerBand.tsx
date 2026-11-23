@@ -148,7 +148,7 @@ export function HomePartnerBand() {
             aria-hidden="true"
             className="absolute -top-5 right-4 hidden items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 text-slate-900 shadow-xl ring-1 ring-black/5 sm:flex"
           >
-            <span className="grid size-8 place-items-center rounded-full bg-emerald-500 text-white">
+            <span className="grid size-8 place-items-center rounded-full bg-emerald-700 text-white">
               <Check size={16} />
             </span>
             <span className="leading-tight">

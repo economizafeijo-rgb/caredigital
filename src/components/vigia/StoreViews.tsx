@@ -213,7 +213,7 @@ export function ProductQuickViewHost() {
                 setAdded(true);
                 window.setTimeout(() => setAdded(false), 1400);
               }}
-              className={`inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-bold text-white transition active:scale-[.98] ${added ? "nv-added bg-emerald-600" : "bg-gradient-to-r from-emerald-600 to-teal-500 hover:brightness-110"}`}
+              className={`inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-bold text-white transition active:scale-[.98] ${added ? "nv-added bg-emerald-700" : "bg-gradient-to-r from-emerald-700 to-teal-700 hover:brightness-110"}`}
             >
               {added ? (
                 <>
@@ -374,7 +374,7 @@ export function VendorStorePage({ vendorId, onBack }: { vendorId: VendorId; onBa
                 <h1 className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-display text-2xl font-extrabold leading-tight tracking-tight sm:text-[2rem]">
                   {v.name}
                   {v.sampleVerified && (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-2.5 py-1 text-[11px] font-extrabold text-white shadow-[0_0_0_3px_rgba(16,185,129,.25)]">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-700 px-2.5 py-1 text-[11px] font-extrabold text-white shadow-[0_0_0_3px_rgba(16,185,129,.25)]">
                       <BadgeCheck size={13} aria-hidden="true" /> Loja verificada
                     </span>
                   )}

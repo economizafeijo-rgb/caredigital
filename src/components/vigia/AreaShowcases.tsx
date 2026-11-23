@@ -1435,7 +1435,7 @@ function Journey() {
                 style={{ objectPosition: s.pos }}
                 className="absolute inset-0 size-full object-cover"
               />
-              <span className="absolute left-3 top-3 grid size-9 place-items-center rounded-xl bg-gradient-to-br from-emerald-600 to-teal-500 text-base font-extrabold text-white shadow-lg">
+              <span className="absolute left-3 top-3 grid size-9 place-items-center rounded-xl bg-gradient-to-br from-emerald-700 to-teal-700 text-base font-extrabold text-white shadow-lg">
                 {s.n}
               </span>
             </div>

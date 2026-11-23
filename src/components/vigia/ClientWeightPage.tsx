@@ -755,7 +755,7 @@ export function ClientWeightPage({
                                   type="button"
                                   disabled={busy}
                                   onClick={() => void saveEdit()}
-                                  className="inline-flex h-9 items-center gap-1 rounded-lg bg-emerald-600 px-3 text-xs font-bold text-white disabled:opacity-60"
+                                  className="inline-flex h-9 items-center gap-1 rounded-lg bg-emerald-700 px-3 text-xs font-bold text-white disabled:opacity-60"
                                 >
                                   <Check size={14} />
                                   {busy ? "Salvando…" : "Salvar alteração"}

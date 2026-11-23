@@ -208,7 +208,7 @@ export function LojistaDashboard({ vendor, onChanged }: { vendor: Vendor; onChan
             type="button"
             onClick={() => setTab(t.key)}
             aria-pressed={tab === t.key}
-            className={`inline-flex h-11 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-bold transition ${tab === t.key ? "border-transparent bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow" : "border-border bg-card text-muted-foreground"}`}
+            className={`inline-flex h-11 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-bold transition ${tab === t.key ? "border-transparent bg-gradient-to-r from-emerald-700 to-teal-700 text-white shadow" : "border-border bg-card text-muted-foreground"}`}
           >
             <t.icon size={16} />
             {t.label}
@@ -433,7 +433,7 @@ function ProductsTab({
             setError("");
             setDraft({ ...emptyDraft });
           }}
-          className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 px-4 text-sm font-bold text-white shadow"
+          className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 px-4 text-sm font-bold text-white shadow"
         >
           <Plus size={17} /> Novo produto
         </button>
@@ -552,7 +552,7 @@ function ProductsTab({
             <button
               type="submit"
               disabled={busy}
-              className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-600 px-5 text-sm font-bold text-white disabled:opacity-60"
+              className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-700 px-5 text-sm font-bold text-white disabled:opacity-60"
             >
               <Save size={16} /> {busy ? "Salvando…" : "Salvar produto"}
             </button>
@@ -715,7 +715,7 @@ function OrdersTab({ orders, onChanged }: { orders: VendorOrder[]; onChanged: ()
                     href={wa}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-emerald-600 px-3 text-xs font-bold text-white"
+                    className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-emerald-700 px-3 text-xs font-bold text-white"
                   >
                     <MessageCircle size={15} /> WhatsApp
                   </a>
@@ -918,7 +918,7 @@ function ShopTab({ vendor, onChanged }: { vendor: Vendor; onChanged: () => void 
       <button
         type="submit"
         disabled={busy}
-        className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-emerald-600 text-base font-bold text-white disabled:opacity-60"
+        className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-emerald-700 text-base font-bold text-white disabled:opacity-60"
       >
         <Save size={17} /> {busy ? "Salvando…" : "Salvar dados da loja"}
       </button>

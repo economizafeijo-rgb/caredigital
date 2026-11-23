@@ -1060,7 +1060,7 @@ export function AdminVendorDetail({
                         type="button"
                         disabled={busy === "status"}
                         onClick={() => void changeStatus("ativo")}
-                        className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-emerald-600 px-4 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
+                        className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-emerald-700 px-4 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
                       >
                         <Power size={15} /> Ativar e colocar no ar
                       </button>
@@ -1283,7 +1283,7 @@ export function AdminVendorDetail({
                           type="button"
                           disabled={busy === "confirm"}
                           onClick={() => void confirmEmail()}
-                          className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 text-xs font-bold text-white disabled:opacity-50"
+                          className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-emerald-700 text-xs font-bold text-white disabled:opacity-50"
                         >
                           <CheckCircle2 size={14} /> Confirmar e-mail agora
                         </button>

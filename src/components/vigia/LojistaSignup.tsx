@@ -100,7 +100,7 @@ export function LojistaSignup({ onCreated }: { onCreated: () => void }) {
       style={{ ["--ca" as string]: "#0a7f78" }}
     >
       <header className="flex items-center gap-2.5">
-        <span className="grid size-9 place-items-center bg-gradient-to-br from-emerald-500 to-teal-500 text-white">
+        <span className="grid size-9 place-items-center bg-gradient-to-br from-emerald-700 to-teal-700 text-white">
           <Store size={18} />
         </span>
         <div className="min-w-0">
@@ -254,7 +254,7 @@ export function LojistaSignup({ onCreated }: { onCreated: () => void }) {
         <button
           type="submit"
           disabled={busy}
-          className="inline-flex h-10 shrink-0 items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-500 px-5 text-sm font-bold text-white disabled:opacity-60"
+          className="inline-flex h-10 shrink-0 items-center justify-center gap-2 bg-gradient-to-r from-emerald-700 to-teal-700 px-5 text-sm font-bold text-white disabled:opacity-60"
         >
           {busy ? (
             <>

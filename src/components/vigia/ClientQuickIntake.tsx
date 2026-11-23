@@ -545,7 +545,7 @@ export function ClientQuickIntake({
               ? "inline-flex h-10 shrink-0 items-center justify-center gap-1.5 bg-sky-500 px-4 text-[13px] font-bold text-white shadow-lg shadow-sky-900/30 transition hover:bg-sky-400 active:scale-[.97] disabled:opacity-50"
               : mode === "drink"
                 ? "inline-flex h-10 shrink-0 items-center justify-center gap-1.5 bg-violet-500 px-4 text-[13px] font-bold text-white shadow-lg shadow-violet-900/30 transition hover:bg-violet-400 active:scale-[.97] disabled:opacity-50"
-                : "inline-flex h-10 shrink-0 items-center justify-center gap-1.5 bg-emerald-500 px-4 text-[13px] font-bold text-white shadow-lg shadow-emerald-900/30 transition hover:bg-emerald-400 active:scale-[.97] disabled:opacity-50"
+                : "inline-flex h-10 shrink-0 items-center justify-center gap-1.5 bg-emerald-700 px-4 text-[13px] font-bold text-white shadow-lg shadow-emerald-900/25 transition hover:bg-emerald-700 active:scale-[.97] disabled:opacity-50"
         }
       >
         {mode === "water" || mode === "drink" ? (

@@ -485,7 +485,7 @@ function Entrar() {
           className="pointer-events-none absolute -right-24 -top-24 size-64 rounded-full bg-primary/10 blur-3xl"
         />
         <div className="relative flex items-center gap-3 px-4 pb-1 pt-5 sm:px-6">
-          <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 text-white shadow-[0_8px_20px_-8px_rgba(16,185,129,.7)]">
+          <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-emerald-700 to-teal-700 text-white shadow-[0_8px_20px_-8px_rgba(16,185,129,.7)]">
             <LockKeyhole size={20} />
           </div>
           <div className="min-w-0">
