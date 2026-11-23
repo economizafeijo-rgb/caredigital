@@ -214,6 +214,7 @@ function PublicStore({
   }, [detail]);
   const deepLinked = useRef(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [cardCopied, setCardCopied] = useState<string | null>(null);
   // Link do produto (/p/<código>): abre o detalhe daquele produto uma única vez.
   useEffect(() => {
     if (deepLinked.current) return;
@@ -487,7 +488,7 @@ function PublicStore({
           return (
             <article
               key={p.id}
-              className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-[border-color,box-shadow] duration-300 hover:border-[color-mix(in_srgb,var(--v)_45%,transparent)] hover:shadow-pop"
+              className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-[border-color,box-shadow] duration-300 hover:border-[color-mix(in_srgb,var(--v)_45%,transparent)] hover:shadow-pop"
             >
               <button
                 type="button"
@@ -524,6 +525,24 @@ function PublicStore({
                   )}
                 </span>
               </button>
+              {p.share_code && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    void shareProduct(p, vendor.name).then((how) => {
+                      if (how === "copied") {
+                        setCardCopied(p.id);
+                        setTimeout(() => setCardCopied((c) => (c === p.id ? null : c)), 2000);
+                      }
+                    });
+                  }}
+                  aria-label={cardCopied === p.id ? "Link copiado" : `Compartilhar ${p.name}`}
+                  title={cardCopied === p.id ? "Link copiado" : "Compartilhar"}
+                  className="nv-tiny absolute right-2 top-2 z-[1] grid size-8 place-items-center rounded-full bg-black/45 text-white shadow backdrop-blur-sm transition hover:bg-black/65 focus-visible:outline-2 focus-visible:outline-white"
+                >
+                  {cardCopied === p.id ? <Check size={14} /> : <Share2 size={14} />}
+                </button>
+              )}
               <div className="flex flex-1 flex-col p-3">
                 <span className="text-[10.5px] font-medium text-muted-foreground">
                   {categoryName(p.category)}
@@ -825,7 +844,7 @@ function PublicStore({
                 >
                   <ShoppingCart size={18} /> Adicionar ao carrinho
                 </button>
-                <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <div className="mt-2 grid grid-cols-4 gap-1.5 sm:gap-2">
                   <button
                     type="button"
                     onClick={() => {
@@ -837,7 +856,7 @@ function PublicStore({
                       setDetail(null);
                       setChat(true);
                     }}
-                    className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-border text-xs font-semibold sm:h-10 transition hover:bg-muted"
+                    className="nv-tiny inline-flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl border border-border px-1 text-[10.5px] font-semibold leading-none transition hover:bg-muted sm:h-10 sm:flex-row sm:gap-1.5 sm:text-xs"
                   >
                     <MessageCircle size={15} /> Perguntar
                   </button>
@@ -849,7 +868,7 @@ function PublicStore({
                         )}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-border text-xs font-semibold sm:h-10 transition hover:bg-muted"
+                        className="nv-tiny inline-flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl border border-border px-1 text-[10.5px] font-semibold leading-none transition hover:bg-muted sm:h-10 sm:flex-row sm:gap-1.5 sm:text-xs"
                       >
                         <Share2 size={15} className="text-[#25D366]" /> WhatsApp
                       </a>
@@ -863,28 +882,25 @@ function PublicStore({
                               setTimeout(() => setLinkCopied(false), 2000);
                             });
                         }}
-                        className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-border text-xs font-semibold sm:h-10 transition hover:bg-muted"
+                        className="nv-tiny inline-flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl border border-border px-1 text-[10.5px] font-semibold leading-none transition hover:bg-muted sm:h-10 sm:flex-row sm:gap-1.5 sm:text-xs"
                       >
                         {linkCopied ? <Check size={15} /> : <Copy size={15} />}
                         {linkCopied ? "Copiado" : "Copiar link"}
                       </button>
-                      {typeof navigator !== "undefined" && "share" in navigator && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            void navigator
-                              .share({
-                                title: `${detail.name} · ${money(detail.price_cents)}`,
-                                text: `${detail.name} por ${money(detail.price_cents)} na ${vendor.name}`,
-                                url: `${window.location.origin}/p/${detail.share_code}`,
-                              })
-                              .catch(() => undefined);
-                          }}
-                          className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-border text-xs font-semibold sm:h-10 transition hover:bg-muted"
-                        >
-                          <Share2 size={15} /> Compartilhar
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void shareProduct(detail, vendor.name).then((how) => {
+                            if (how === "copied") {
+                              setLinkCopied(true);
+                              setTimeout(() => setLinkCopied(false), 2000);
+                            }
+                          });
+                        }}
+                        className="nv-tiny inline-flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl border border-border px-1 text-[10.5px] font-semibold leading-none transition hover:bg-muted sm:h-10 sm:flex-row sm:gap-1.5 sm:text-xs"
+                      >
+                        <Share2 size={15} /> Compartilhar
+                      </button>
                     </>
                   ) : null}
                 </div>
@@ -964,6 +980,58 @@ function PublicStore({
       {share && <ShareSheet vendor={vendor} onClose={() => setShare(false)} />}
     </div>
   );
+}
+
+/**
+ * Compartilha um produto com a foto anexada, quando o navegador aceitar arquivos
+ * (celular e alguns navegadores de computador). Sem a Web Share API, copia o link.
+ */
+async function shareProduct(
+  detail: {
+    name: string;
+    price_cents: number;
+    share_code?: string | null;
+    image_url: string | null;
+  },
+  vendorName: string,
+): Promise<"shared" | "cancel" | "copied" | "failed"> {
+  if (!detail.share_code) return "failed";
+  const url = `${window.location.origin}/p/${detail.share_code}`;
+  const title = `${detail.name} · ${money(detail.price_cents)}`;
+  const text = `${detail.name} por ${money(detail.price_cents)} na ${vendorName}`;
+  if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+    let files: File[] | undefined;
+    if (detail.image_url) {
+      try {
+        const blob = await fetch(detail.image_url).then((r) => r.blob());
+        const ext = blob.type.split("/")[1]?.replace("jpeg", "jpg") || "jpg";
+        const file = new File([blob], `${detail.name.slice(0, 40)}.${ext}`, {
+          type: blob.type || "image/jpeg",
+        });
+        if (navigator.canShare?.({ files: [file] })) files = [file];
+      } catch {
+        files = undefined;
+      }
+    }
+    try {
+      await navigator.share(files ? { title, text, url, files } : { title, text, url });
+      return "shared";
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return "cancel";
+      try {
+        await navigator.share({ title, text, url });
+        return "shared";
+      } catch {
+        // cai para a cópia do link abaixo
+      }
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    return "copied";
+  } catch {
+    return "failed";
+  }
 }
 
 function ShareSheet({ vendor, onClose }: { vendor: Vendor; onClose: () => void }) {
