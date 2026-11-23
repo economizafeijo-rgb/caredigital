@@ -117,6 +117,10 @@ type Slide = {
   bg: string;
   tint: string;
   render: (line: string, ctx: Ctx) => ReactNode;
+  /** Frases do destaque (lojas em destaque). */
+  lines?: string[];
+  /** Produtos do destaque. */
+  cards?: Card[];
 };
 
 function Tag({ children }: { children: ReactNode }) {
@@ -128,52 +132,6 @@ function Tag({ children }: { children: ReactNode }) {
 }
 
 const slides: Slide[] = [
-  {
-    id: "kessia",
-    bg: "/loja/bela-vista/banner.jpg",
-    tint: "from-[#2a0a22]/95 via-[#4a0f3a]/85 to-[#2a0a22]/60",
-    render: (line, ctx) => (
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,.9fr)_minmax(0,1.4fr)] lg:items-center lg:gap-10">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <Tag>
-              <Sparkles size={13} aria-hidden="true" /> Loja em destaque
-            </Tag>
-            <Tag>
-              <MapPin size={13} aria-hidden="true" /> Inauguração · Feijó, Acre
-            </Tag>
-          </div>
-          <div className="mt-3 flex items-center gap-3">
-            <img
-              src="/loja/kessia/logo.svg"
-              alt=""
-              aria-hidden="true"
-              className="size-12 rounded-full bg-white object-contain p-1 shadow-lg"
-            />
-            <h2 className="font-display text-2xl font-extrabold leading-tight tracking-tight sm:text-[1.9rem]">
-              Kessia' Digital Store
-            </h2>
-          </div>
-          <p
-            key={line}
-            aria-live="polite"
-            className="nv-rise mt-3 min-h-[3.25rem] max-w-[24ch] text-balance font-display text-xl font-bold leading-snug text-pink-100 sm:text-2xl"
-          >
-            {line}
-          </p>
-          <div className="mt-5 flex flex-wrap gap-2.5">
-            <a
-              href="/loja?loja=kessia-digital-store"
-              className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-[#6b1450] transition hover:bg-pink-50"
-            >
-              <Store size={16} aria-hidden="true" /> Entrar na loja
-            </a>
-          </div>
-        </div>
-        <ProductPages {...ctx} />
-      </div>
-    ),
-  },
   {
     id: "empreendedor",
     bg: "/images/hero-metricas.webp",
@@ -275,14 +233,82 @@ function adSlide(a: AdRow): Slide {
   };
 }
 
+type StoreSlideInput = {
+  id: string;
+  name: string;
+  logo: string;
+  bg: string;
+  tint: string;
+  href: string;
+  place: string;
+};
+
+/** Slide de loja em destaque: vitrine com os produtos reais e frases que alternam. */
+function storeSlide(st: StoreSlideInput, cards: Card[], lines: string[]): Slide {
+  return {
+    id: st.id,
+    bg: st.bg,
+    tint: st.tint,
+    lines,
+    cards,
+    render: (line, ctx) => (
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,.9fr)_minmax(0,1.4fr)] lg:items-center lg:gap-10">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <Tag>
+              <Sparkles size={13} aria-hidden="true" /> Loja em destaque
+            </Tag>
+            <Tag>
+              <MapPin size={13} aria-hidden="true" /> {st.place}
+            </Tag>
+          </div>
+          <div className="mt-3 flex items-center gap-3">
+            {st.logo && (
+              <img
+                src={st.logo}
+                alt=""
+                aria-hidden="true"
+                className="size-12 rounded-full bg-white object-contain p-1 shadow-lg"
+              />
+            )}
+            <h2 className="font-display text-2xl font-extrabold leading-tight tracking-tight sm:text-[1.9rem]">
+              {st.name}
+            </h2>
+          </div>
+          <p
+            key={line}
+            aria-live="polite"
+            className="nv-rise mt-3 min-h-[3.25rem] max-w-[24ch] text-balance font-display text-xl font-bold leading-snug text-pink-100 sm:text-2xl"
+          >
+            {line}
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2.5">
+            <a
+              href={st.href}
+              className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-[#6b1450] transition hover:bg-pink-50"
+            >
+              <Store size={16} aria-hidden="true" /> Entrar na loja
+            </a>
+          </div>
+        </div>
+        <ProductPages {...ctx} />
+      </div>
+    ),
+  };
+}
+
 type LiveList = ReturnType<typeof useLiveStores>;
 
-/** Monta a vitrine e as frases da Kessia a partir dos produtos reais (preços, promoções, estoque). */
-function buildKessia(live: LiveList["products"], vendors: LiveList["vendors"]) {
-  const mine = live.filter((p) => p.vendor.slug === KESSIA && p.stock > 0);
+/** Monta a vitrine e as frases de uma loja a partir dos produtos reais (preços, promoções, estoque). */
+function buildStore(
+  slug: string,
+  live: LiveList["products"],
+  vendors: LiveList["vendors"],
+): { cards: Card[]; lines: string[] } {
+  const mine = live.filter((p) => p.vendor.slug === slug && p.stock > 0);
   if (!mine.length) {
     return {
-      cards: fallbackCards,
+      cards: slug === KESSIA ? fallbackCards : [],
       lines: [
         "Moda feminina com a cara do Acre",
         "Bijuterias artesanais feitas em Feijó",
@@ -304,10 +330,10 @@ function buildKessia(live: LiveList["products"], vendors: LiveList["vendors"]) {
     old: offOf(p) ? money(p.old_price_cents as number) : undefined,
     off: offOf(p),
     note: p.stock <= 3 ? `Últimas ${p.stock}` : undefined,
-    href: p.share_code ? `/p/${p.share_code}` : `/loja?loja=${KESSIA}`,
+    href: p.share_code ? `/p/${p.share_code}` : `/loja?loja=${slug}`,
   }));
   const best = sorted[0];
-  const open = vendors.find((v) => v.slug === KESSIA)?.is_open;
+  const open = vendors.find((v) => v.slug === slug)?.is_open;
   const lines = [
     `${mine.length} produtos na vitrine online`,
     offOf(best)
@@ -319,6 +345,12 @@ function buildKessia(live: LiveList["products"], vendors: LiveList["vendors"]) {
   return { cards, lines };
 }
 
+const TINTS = [
+  "from-[#2a0a22]/95 via-[#4a0f3a]/85 to-[#2a0a22]/60",
+  "from-[#1e0b33]/95 via-[#3b1466]/85 to-[#1e0b33]/60",
+  "from-[#0a1f2e]/95 via-[#0f3a52]/85 to-[#0a1f2e]/60",
+];
+
 /** Destaques premium da home: carrossel com textos que alternam. A Kessia abre a sequência. */
 export function HomeKessiaAd() {
   const [i, setI] = useState(0);
@@ -326,7 +358,34 @@ export function HomeKessiaAd() {
   const [paused, setPaused] = useState(false);
   const [ads, setAds] = useState<AdRow[]>([]);
   const { products: live, vendors } = useLiveStores();
-  const kessia = useMemo(() => buildKessia(live, vendors), [live, vendors]);
+  // Lojas com o plano Destaque (banner e divulgação na home) entram no rodízio. A Kessia abre a sequência.
+  const storeSlides = useMemo(() => {
+    const order = [...vendors]
+      .filter((v) => v.slug === KESSIA || v.plan === "destaque")
+      .sort((a, b) => (a.slug === KESSIA ? -1 : b.slug === KESSIA ? 1 : 0));
+    const out: Slide[] = [];
+    order.forEach((v, idx) => {
+      const { cards, lines } = buildStore(v.slug, live, vendors);
+      if (!cards.length && v.slug !== KESSIA) return;
+      const isKessia = v.slug === KESSIA;
+      out.push(
+        storeSlide(
+          {
+            id: isKessia ? "kessia" : `loja-${v.slug}`,
+            name: isKessia ? "Kessia' Digital Store" : v.name,
+            logo: isKessia ? "/loja/kessia/logo.svg" : (v.logo_url ?? ""),
+            bg: isKessia ? "/loja/bela-vista/banner.jpg" : `/loja/${v.slug}/banner-destaque.webp`,
+            tint: TINTS[idx % TINTS.length],
+            href: `/loja?loja=${v.slug}`,
+            place: isKessia ? "Inauguração · Feijó, Acre" : `${v.city ?? "Feijó"} · Acre`,
+          },
+          cards,
+          lines,
+        ),
+      );
+    });
+    return out;
+  }, [live, vendors]);
   useEffect(() => {
     let alive = true;
     const today = new Date().toISOString().slice(0, 10);
@@ -359,7 +418,7 @@ export function HomeKessiaAd() {
       alive = false;
     };
   }, []);
-  const all = [...slides.slice(0, 1), ...ads.map(adSlide), ...slides.slice(1)];
+  const all = [...storeSlides, ...ads.map(adSlide), ...slides];
   useEffect(() => {
     if (paused || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const t = window.setInterval(() => setTick((n) => n + 1), 3200);
@@ -370,7 +429,7 @@ export function HomeKessiaAd() {
     if (tick > 0 && tick % 6 === 0) setI((n) => (n + 1) % all.length);
   }, [tick, all.length]);
   const slide = all[i % all.length];
-  const set = slide.id === "kessia" ? kessia.lines : (lines[slide.id] ?? [""]);
+  const set = slide.lines ?? lines[slide.id] ?? [""];
   const line = set[tick % set.length];
   return (
     <section
@@ -397,7 +456,7 @@ export function HomeKessiaAd() {
         className={`absolute inset-0 -z-10 bg-gradient-to-r ${slide.tint}`}
       />
       <div key={slide.id} className="nv-rise">
-        {slide.render(line, { cards: kessia.cards, tick })}
+        {slide.render(line, { cards: slide.cards ?? [], tick })}
       </div>
       <div className="mt-5 flex items-center gap-2" role="tablist" aria-label="Escolher destaque">
         {all.map((s, k) => (

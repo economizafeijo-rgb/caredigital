@@ -15,6 +15,7 @@ type LiveVendor = Pick<
   | "accent_hex"
   | "logo_url"
   | "verified"
+  | "plan"
   | "is_open"
   | "opening_hours"
 >;
@@ -61,7 +62,7 @@ export function useLiveStores() {
     void (async () => {
       const { data: vs } = await db
         .from("care_store_vendors")
-        .select("id,name,slug,segment,city,accent_hex,logo_url,verified,is_open,opening_hours")
+        .select("id,name,slug,segment,city,accent_hex,logo_url,verified,is_open,opening_hours,plan")
         .eq("status", "ativo")
         .order("name")
         .limit(100);
