@@ -2,15 +2,18 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   BadgeCheck,
   CalendarClock,
+  ChevronRight,
   CircleDollarSign,
+  Inbox,
   Percent,
+  Plus,
   ReceiptText,
   RefreshCw,
-  Save,
+  Search,
+  Settings2,
   Star,
   Store,
   TrendingUp,
-  Users,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -28,8 +31,11 @@ import {
 import { NiceSelect } from "./NiceSelect";
 import { AdminVendorDetail } from "./AdminVendorDetail";
 import { AdminModerationSettings } from "./AdminModerationSettings";
+import { AdminTestStores } from "./AdminTestStores";
+import { NewStoreModal } from "./admin/NewStoreModal";
+import { SellerRequestsPanel } from "./admin/SellerRequestsPanel";
+import { STATUS_LABEL } from "@/lib/admin-stores";
 
-const inputCls = "mt-1 block h-10 w-full rounded-lg border border-border bg-surface px-2 text-sm";
 const monthNow = () => new Date(Date.now() - 5 * 3_600_000).toISOString().slice(0, 7);
 const STATUS_TONE = {
   pendente: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
@@ -165,41 +171,72 @@ export function AdminMarketplace() {
   );
   const vendorName = (id: string) => vendors?.find((v) => v.id === id)?.name ?? "Loja";
 
+  const [section, setSection] = useState<"lojas" | "solicitacoes" | "cobrancas" | "config">(
+    "lojas",
+  );
+  const [q, setQ] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"todas" | VendorStatus>("todas");
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [requestCount, setRequestCount] = useState(0);
+  const onRequestCount = useCallback((n: number) => setRequestCount(n), []);
+  const openVendor = vendors?.find((v) => v.id === openId) ?? null;
+  const counts = useMemo(() => {
+    const list = vendors ?? [];
+    return {
+      todas: list.length,
+      ativo: list.filter((v) => v.status === "ativo").length,
+      pendente: list.filter((v) => v.status === "pendente").length,
+      suspenso: list.filter((v) => v.status === "suspenso").length,
+    };
+  }, [vendors]);
+  const shown = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    return (vendors ?? []).filter(
+      (v) =>
+        (statusFilter === "todas" || v.status === statusFilter) &&
+        (!term ||
+          v.name.toLowerCase().includes(term) ||
+          v.slug.includes(term) ||
+          (v.city ?? "").toLowerCase().includes(term) ||
+          (v.phone ?? "").includes(term)),
+    );
+  }, [vendors, q, statusFilter]);
+
+  async function openAfterCreate(id: string) {
+    setCreating(false);
+    await load();
+    setOpenId(id);
+  }
+
+  const SECTIONS = [
+    ["lojas", "Lojas", Store, counts.todas],
+    ["solicitacoes", "Solicitações", Inbox, requestCount],
+    ["cobrancas", "Cobranças", ReceiptText, null],
+    ["config", "Configurações", Settings2, null],
+  ] as const;
+
   return (
-    <section
-      aria-label="Marketplace"
-      className="grid gap-3 rounded-3xl border border-border bg-card/60 p-3 shadow-card sm:p-5"
-    >
-      <header className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-500 text-white">
-            <Users size={20} />
-          </span>
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-widest text-primary">
-              Marketplace
-            </p>
-            <h2 className="text-lg font-extrabold leading-tight">
-              Lojistas, vendas e receita da plataforma
-            </h2>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={() => void load()}
-          className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-border bg-surface px-3 text-xs font-bold"
-        >
-          <RefreshCw size={14} /> Atualizar
-        </button>
-      </header>
-      <AdminModerationSettings />
-      {error && (
-        <p
-          role="alert"
-          className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs"
-        >
-          {error}
-        </p>
+    <section aria-label="Lojas" className="grid gap-4">
+      {creating && (
+        <NewStoreModal
+          onClose={() => setCreating(false)}
+          onCreated={(id) => void openAfterCreate(id)}
+        />
+      )}
+      {openVendor && (
+        <AdminVendorDetail
+          vendor={openVendor}
+          onClose={() => {
+            setOpenId(null);
+            void load();
+          }}
+          onDeleted={() => {
+            setOpenId(null);
+            void load();
+          }}
+          onChanged={() => void load()}
+        />
       )}
 
       <div className="grid grid-cols-2 gap-2.5 xl:grid-cols-4">
@@ -227,297 +264,295 @@ export function AdminMarketplace() {
         )}
       </div>
 
-      {kpi.pending > 0 && (
-        <p className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm font-semibold">
-          {kpi.pending} loja(s) aguardando a sua aprovação.
-        </p>
-      )}
-
-      <div className="grid gap-2">
-        <h3 className="text-sm font-bold">Lojas cadastradas ({vendors?.length ?? 0})</h3>
-        {vendors === null ? (
-          <p className="text-xs text-muted-foreground">Carregando…</p>
-        ) : vendors.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-border p-5 text-center text-sm text-muted-foreground">
-            Nenhuma loja cadastrada ainda. Divulgue a página <strong>/lojista</strong> para os
-            comerciantes da cidade.
-          </p>
-        ) : (
-          vendors.map((v) => (
-            <VendorRow
-              key={v.id}
-              v={v}
-              stats={bySales.get(v.id)}
-              rating={ratings[v.id]}
-              onSaved={() => void load()}
-            />
-          ))
-        )}
-      </div>
-
-      <div className="rounded-2xl border border-border bg-card p-3 sm:p-4">
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <h3 className="flex items-center gap-2 text-sm font-bold">
-            <ReceiptText size={16} className="text-primary" /> Cobranças dos lojistas
-          </h3>
-          <div className="flex items-end gap-2">
-            <label className="text-[11px] font-semibold">
-              Mês
-              <input
-                type="month"
-                value={period}
-                onChange={(e) => setPeriod(e.target.value)}
-                className="mt-0.5 block h-10 rounded-lg border border-border bg-surface px-2 text-sm"
-              />
-            </label>
+      <div className="rounded-3xl border border-border bg-card shadow-card">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border p-2 sm:p-3">
+          <nav
+            aria-label="Seções de lojas"
+            className="flex gap-1 overflow-x-auto [scrollbar-width:none]"
+          >
+            {SECTIONS.map(([k, label, Icon, n]) => (
+              <button
+                key={k}
+                type="button"
+                aria-current={section === k ? "page" : undefined}
+                onClick={() => setSection(k)}
+                className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl px-3 text-[13px] font-bold transition ${section === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+              >
+                <Icon size={15} /> {label}
+                {n ? (
+                  <span
+                    className={`grid min-w-5 place-items-center rounded-full px-1.5 text-[11px] ${section === k ? "bg-black/15" : k === "solicitacoes" ? "bg-amber-500 text-slate-950" : "bg-muted"}`}
+                  >
+                    {n}
+                  </span>
+                ) : null}
+              </button>
+            ))}
+          </nav>
+          <div className="flex gap-2">
             <button
               type="button"
-              disabled={busy === "gen" || !period}
-              onClick={() => void generate()}
-              className="h-10 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-500 px-4 text-xs font-extrabold text-white disabled:opacity-50"
+              onClick={() => void load()}
+              aria-label="Atualizar"
+              title="Atualizar"
+              className="grid size-9 place-items-center rounded-xl border border-border hover:bg-muted"
             >
-              {busy === "gen" ? "Gerando…" : "Gerar cobranças do mês"}
+              <RefreshCw size={15} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setCreating(true)}
+              className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-primary px-3.5 text-[13px] font-bold text-primary-foreground hover:brightness-110"
+            >
+              <Plus size={16} /> Nova loja
             </button>
           </div>
         </div>
-        {notice && (
-          <p role="status" className="mt-2 rounded-lg bg-muted/60 p-2 text-xs">
-            {notice}
-          </p>
-        )}
-        {invoices.length === 0 ? (
-          <p className="mt-3 text-xs text-muted-foreground">Nenhuma cobrança gerada ainda.</p>
-        ) : (
-          <ul className="mt-3 grid gap-2">
-            {invoices.slice(0, 60).map((i) => (
-              <li
-                key={i.id}
-                className="grid gap-2 rounded-xl border border-border bg-surface p-3 text-sm sm:grid-cols-[1fr_auto] sm:items-center"
-              >
-                <div className="min-w-0">
-                  <strong>{vendorName(i.vendor_id)}</strong>{" "}
-                  <span className="text-xs text-muted-foreground">
-                    · {i.period.slice(5)}/{i.period.slice(0, 4)} · vence{" "}
-                    {i.due_date.split("-").reverse().join("/")}
-                  </span>
-                  <p className="text-xs text-muted-foreground">
-                    {i.orders_count} pedidos · vendas {money(i.gross_sales_cents)} · comissão{" "}
-                    {money(i.commission_cents)} + mensalidade {money(i.monthly_fee_cents)}
-                  </p>
+
+        <div className="p-3 sm:p-4">
+          {error && (
+            <p
+              role="alert"
+              className="mb-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs"
+            >
+              {error}
+            </p>
+          )}
+
+          {section === "lojas" && (
+            <div className="grid gap-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <label className="relative min-w-[14rem] flex-1">
+                  <Search
+                    size={15}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  />
+                  <input
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    placeholder="Buscar por nome, endereço, cidade ou telefone"
+                    aria-label="Buscar lojas"
+                    className="h-10 w-full rounded-xl border border-border bg-surface pl-9 pr-3 text-sm"
+                  />
+                </label>
+                <div className="flex flex-wrap gap-1">
+                  {(
+                    [
+                      ["todas", "Todas"],
+                      ["ativo", "Ativas"],
+                      ["pendente", "Pendentes"],
+                      ["suspenso", "Suspensas"],
+                    ] as const
+                  ).map(([k, l]) => (
+                    <button
+                      key={k}
+                      type="button"
+                      aria-pressed={statusFilter === k}
+                      onClick={() => setStatusFilter(k)}
+                      className={`h-9 rounded-xl border px-3 text-xs font-semibold transition ${statusFilter === k ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground hover:bg-muted"}`}
+                    >
+                      {l} <span className="tabular-nums opacity-70">{counts[k]}</span>
+                    </button>
+                  ))}
                 </div>
-                <div className="flex items-center gap-2">
-                  <strong>{money(i.total_due_cents)}</strong>
-                  <div className="w-36">
-                    <NiceSelect
-                      ariaLabel={`Situação da cobrança de ${vendorName(i.vendor_id)}`}
-                      value={i.status}
-                      disabled={busy === i.id}
-                      onChange={(v) =>
-                        void setInvoice(i.id, v as "pendente" | "pago" | "cancelado")
-                      }
-                      options={[
-                        { value: "pendente", label: "Pendente" },
-                        { value: "pago", label: "Paga" },
-                        { value: "cancelado", label: "Cancelada" },
-                      ]}
+              </div>
+
+              {vendors === null ? (
+                <p className="py-10 text-center text-sm text-muted-foreground">Carregando…</p>
+              ) : !shown.length ? (
+                <div className="grid place-items-center gap-2 rounded-2xl border border-dashed border-border py-14 text-center text-sm text-muted-foreground">
+                  <Store size={24} />
+                  {vendors.length
+                    ? "Nenhuma loja com esse filtro."
+                    : "Nenhuma loja cadastrada ainda."}
+                </div>
+              ) : (
+                <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border">
+                  {shown.map((v) => {
+                    const st = bySales.get(v.id);
+                    const r = ratings[v.id];
+                    const accent = v.accent_hex ?? "#0e7a5f";
+                    return (
+                      <li key={v.id}>
+                        <button
+                          type="button"
+                          onClick={() => setOpenId(v.id)}
+                          className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 bg-card px-3 py-3 text-left transition hover:bg-muted/50 sm:px-4 md:grid-cols-[auto_minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)_auto]"
+                        >
+                          <span
+                            className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-white text-sm font-black shadow-sm ring-1 ring-border"
+                            style={{ color: accent }}
+                          >
+                            {v.logo_url ? (
+                              <img src={v.logo_url} alt="" className="size-full object-cover" />
+                            ) : (
+                              v.name
+                                .split(/\s+/)
+                                .map((w) => w[0])
+                                .slice(0, 2)
+                                .join("")
+                                .toUpperCase()
+                            )}
+                          </span>
+                          <span className="min-w-0">
+                            <span className="flex items-center gap-1.5">
+                              <strong className="truncate text-[14px]">{v.name}</strong>
+                              {v.verified && (
+                                <BadgeCheck
+                                  size={15}
+                                  className="shrink-0 text-emerald-500"
+                                  aria-label="Verificada"
+                                />
+                              )}
+                              {v.is_demo && (
+                                <span className="rounded bg-muted px-1.5 text-[10px] font-bold text-muted-foreground">
+                                  teste
+                                </span>
+                              )}
+                            </span>
+                            <span className="block truncate text-xs text-muted-foreground">
+                              {segmentLabel(v.segment)} · {v.city} · /{v.slug}
+                            </span>
+                          </span>
+                          <span className="hidden min-w-0 md:block">
+                            <span className="block text-[11px] text-muted-foreground">
+                              Vendas confirmadas
+                            </span>
+                            <strong className="text-[13px] tabular-nums">
+                              {money(st?.gross ?? 0)}
+                            </strong>
+                            <span className="text-[11px] text-muted-foreground">
+                              {" "}
+                              · {st?.count ?? 0} ped.
+                            </span>
+                          </span>
+                          <span className="hidden min-w-0 md:block">
+                            <span className="block text-[11px] text-muted-foreground">
+                              {PLANS[v.plan].label} · {pct(v.commission_bps)}
+                            </span>
+                            <span className="flex items-center gap-1 text-[12px]">
+                              <Star size={12} className="fill-amber-400 text-amber-400" />
+                              {r
+                                ? `${Number(r.rating_avg).toLocaleString("pt-BR", { minimumFractionDigits: 1 })} (${r.rating_count})`
+                                : "sem avaliações"}
+                            </span>
+                          </span>
+                          <span className="flex items-center gap-2">
+                            <span
+                              className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${STATUS_TONE[v.status]}`}
+                            >
+                              {STATUS_LABEL[v.status]}
+                            </span>
+                            <ChevronRight size={16} className="text-muted-foreground" />
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {section === "solicitacoes" && (
+            <SellerRequestsPanel
+              onCount={onRequestCount}
+              onOpenVendor={(id) => {
+                void load().then(() => setOpenId(id));
+              }}
+            />
+          )}
+
+          {section === "cobrancas" && (
+            <div>
+              <div className="flex flex-wrap items-end justify-between gap-2">
+                <h3 className="flex items-center gap-2 text-sm font-bold">
+                  <ReceiptText size={16} className="text-primary" /> Cobranças dos lojistas
+                </h3>
+                <div className="flex items-end gap-2">
+                  <label className="text-[11px] font-semibold">
+                    Mês
+                    <input
+                      type="month"
+                      value={period}
+                      onChange={(e) => setPeriod(e.target.value)}
+                      className="mt-0.5 block h-10 rounded-xl border border-border bg-surface px-2 text-sm"
                     />
-                  </div>
+                  </label>
+                  <button
+                    type="button"
+                    disabled={busy === "gen" || !period}
+                    onClick={() => void generate()}
+                    className="h-10 rounded-xl bg-primary px-4 text-xs font-extrabold text-primary-foreground disabled:opacity-50"
+                  >
+                    {busy === "gen" ? "Gerando…" : "Gerar cobranças do mês"}
+                  </button>
                 </div>
-              </li>
-            ))}
-          </ul>
-        )}
+              </div>
+              {notice && (
+                <p role="status" className="mt-2 rounded-lg bg-muted/60 p-2 text-xs">
+                  {notice}
+                </p>
+              )}
+              {invoices.length === 0 ? (
+                <p className="mt-3 text-xs text-muted-foreground">Nenhuma cobrança gerada ainda.</p>
+              ) : (
+                <ul className="mt-3 grid gap-2">
+                  {invoices.slice(0, 60).map((i) => (
+                    <li
+                      key={i.id}
+                      className="grid gap-2 rounded-xl border border-border bg-surface p-3 text-sm sm:grid-cols-[1fr_auto] sm:items-center"
+                    >
+                      <div className="min-w-0">
+                        <button
+                          type="button"
+                          onClick={() => setOpenId(i.vendor_id)}
+                          className="font-bold hover:underline"
+                        >
+                          {vendorName(i.vendor_id)}
+                        </button>{" "}
+                        <span className="text-xs text-muted-foreground">
+                          · {i.period.slice(5)}/{i.period.slice(0, 4)} · vence{" "}
+                          {i.due_date.split("-").reverse().join("/")}
+                        </span>
+                        <p className="text-xs text-muted-foreground">
+                          {i.orders_count} pedidos · vendas {money(i.gross_sales_cents)} · comissão{" "}
+                          {money(i.commission_cents)} + mensalidade {money(i.monthly_fee_cents)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <strong>{money(i.total_due_cents)}</strong>
+                        <div className="w-36">
+                          <NiceSelect
+                            ariaLabel={`Situação da cobrança de ${vendorName(i.vendor_id)}`}
+                            value={i.status}
+                            disabled={busy === i.id}
+                            onChange={(v) =>
+                              void setInvoice(i.id, v as "pendente" | "pago" | "cancelado")
+                            }
+                            options={[
+                              { value: "pendente", label: "Pendente" },
+                              { value: "pago", label: "Paga" },
+                              { value: "cancelado", label: "Cancelada" },
+                            ]}
+                          />
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {section === "config" && (
+            <div className="grid gap-4">
+              <AdminModerationSettings />
+              <AdminTestStores />
+            </div>
+          )}
+        </div>
       </div>
     </section>
-  );
-}
-
-function VendorRow({
-  v,
-  stats,
-  rating,
-  onSaved,
-}: {
-  v: Vendor;
-  stats?: { gross: number; commission: number; count: number };
-  rating?: Rating;
-  onSaved: () => void;
-}) {
-  const [status, setStatus] = useState<VendorStatus>(v.status);
-  const [plan, setPlan] = useState<PlanKey>(v.plan);
-  const [fee, setFee] = useState((v.monthly_fee_cents / 100).toFixed(2).replace(".", ","));
-  const [bps, setBps] = useState(String(v.commission_bps / 100).replace(".", ","));
-  const [verified, setVerified] = useState(v.verified);
-  const [featured, setFeatured] = useState(v.featured_until ?? "");
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
-  const [detail, setDetail] = useState(false);
-
-  function pickPlan(next: PlanKey) {
-    setPlan(next);
-    setFee((PLANS[next].feeCents / 100).toFixed(2).replace(".", ","));
-    setBps(String(PLANS[next].bps / 100).replace(".", ","));
-  }
-  async function save() {
-    const feeCents = Math.round(Number(fee.replace(/\./g, "").replace(",", ".")) * 100);
-    const bp = Math.round(Number(bps.replace(",", ".")) * 100);
-    if (!Number.isFinite(feeCents) || feeCents < 0 || !Number.isFinite(bp) || bp < 0 || bp > 5000)
-      return setMsg({ ok: false, text: "Confira a mensalidade e a comissão (0 a 50%)." });
-    setBusy(true);
-    setMsg(null);
-    const { error } = await (supabase as any).rpc("care_store_admin_update_vendor", {
-      p_vendor: v.id,
-      p_status: status,
-      p_plan: plan,
-      p_monthly_fee_cents: feeCents,
-      p_commission_bps: bp,
-      p_verified: verified,
-      p_featured_until: featured || null,
-    });
-    setBusy(false);
-    if (error) return setMsg({ ok: false, text: "Não foi possível salvar." });
-    setMsg({ ok: true, text: "Alterações salvas." });
-    onSaved();
-  }
-  return (
-    <article className="grid gap-3 rounded-2xl border border-border bg-card p-3 shadow-card sm:p-4">
-      <header className="flex flex-wrap items-center gap-2">
-        <strong className="flex items-center gap-1.5 text-base">
-          {v.name}
-          {v.verified && (
-            <BadgeCheck size={17} className="text-emerald-500" aria-label="Verificada" />
-          )}
-        </strong>
-        <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${STATUS_TONE[v.status]}`}>
-          {v.status}
-        </span>
-        <span className="text-xs text-muted-foreground">
-          {segmentLabel(v.segment)} · {v.city} · {v.phone}
-        </span>
-        <span className="ml-auto flex items-center gap-1 text-xs font-semibold">
-          <Star size={14} className="fill-amber-400 text-amber-400" />
-          {rating
-            ? `${Number(rating.rating_avg).toLocaleString("pt-BR", { minimumFractionDigits: 1 })} (${rating.rating_count})`
-            : "sem avaliações"}
-        </span>
-        <span className="flex w-full gap-2 sm:w-auto">
-          <button
-            type="button"
-            onClick={() => setDetail(true)}
-            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-xs font-bold hover:border-primary/40"
-          >
-            Detalhes e acesso
-          </button>
-          <a
-            href={`/lojista?loja=${v.id}`}
-            className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-bold text-primary-foreground"
-          >
-            Abrir painel
-          </a>
-        </span>
-      </header>
-      {detail && (
-        <AdminVendorDetail
-          vendor={v}
-          onClose={() => {
-            setDetail(false);
-            onSaved();
-          }}
-        />
-      )}
-      <p className="text-xs text-muted-foreground">
-        Vendas confirmadas <strong className="text-foreground">{money(stats?.gross ?? 0)}</strong> ·{" "}
-        {stats?.count ?? 0} pedidos · comissão gerada{" "}
-        <strong className="text-foreground">{money(stats?.commission ?? 0)}</strong> · atual:{" "}
-        {PLANS[v.plan].label}, {pct(v.commission_bps)} + {money(v.monthly_fee_cents)}/mês ·{" "}
-        {v.offers_delivery ? "entrega" : ""}
-        {v.offers_delivery && v.offers_pickup ? " e " : ""}
-        {v.offers_pickup ? "retirada" : ""}
-      </p>
-      <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
-        <div className="text-[11px] font-semibold">
-          Situação
-          <NiceSelect
-            className="mt-1"
-            ariaLabel={`Situação de ${v.name}`}
-            value={status}
-            onChange={(x) => setStatus(x as VendorStatus)}
-            options={[
-              { value: "pendente", label: "Pendente" },
-              { value: "ativo", label: "Ativa" },
-              { value: "suspenso", label: "Suspensa" },
-            ]}
-          />
-        </div>
-        <div className="text-[11px] font-semibold">
-          Plano
-          <NiceSelect
-            className="mt-1"
-            ariaLabel={`Plano de ${v.name}`}
-            value={plan}
-            onChange={(x) => pickPlan(x as PlanKey)}
-            options={(Object.keys(PLANS) as PlanKey[]).map((k) => ({
-              value: k,
-              label: PLANS[k].label,
-              hint: `${money(PLANS[k].feeCents)}/mês + ${pct(PLANS[k].bps)}`,
-            }))}
-          />
-        </div>
-        <label className="text-[11px] font-semibold">
-          Mensalidade (R$)
-          <input
-            className={inputCls}
-            inputMode="decimal"
-            value={fee}
-            onChange={(e) => setFee(e.target.value)}
-          />
-        </label>
-        <label className="text-[11px] font-semibold">
-          Comissão (%)
-          <input
-            className={inputCls}
-            inputMode="decimal"
-            value={bps}
-            onChange={(e) => setBps(e.target.value)}
-          />
-        </label>
-        <label className="text-[11px] font-semibold">
-          Destaque até
-          <input
-            type="date"
-            className={inputCls}
-            value={featured}
-            onChange={(e) => setFeatured(e.target.value)}
-          />
-        </label>
-        <label className="flex items-end gap-2 pb-2 text-xs font-semibold">
-          <input
-            type="checkbox"
-            checked={verified}
-            onChange={(e) => setVerified(e.target.checked)}
-            className="size-5 accent-emerald-600"
-          />{" "}
-          Selo de loja verificada
-        </label>
-      </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => void save()}
-          className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-emerald-600 px-4 text-xs font-extrabold text-white disabled:opacity-60"
-        >
-          <Save size={14} /> {busy ? "Salvando…" : "Salvar"}
-        </button>
-        {msg && (
-          <span
-            role={msg.ok ? "status" : "alert"}
-            className={`text-xs font-semibold ${msg.ok ? "text-emerald-600" : "text-destructive"}`}
-          >
-            {msg.text}
-          </span>
-        )}
-      </div>
-    </article>
   );
 }

@@ -46,8 +46,8 @@ const segmentVendor: Record<string, VendorId> = {
   outros: "casa-do-treino",
 };
 const steps = [
-  { icon: Store, title: "Cadastre", text: "Nome, segmento e entrega" },
-  { icon: BadgeCheck, title: "Aprovação", text: "Vitrine e selo liberados" },
+  { icon: Store, title: "Solicite", text: "Conte sobre o seu negócio" },
+  { icon: BadgeCheck, title: "Aprovação", text: "Criamos sua loja e seu acesso" },
   { icon: LayoutGrid, title: "Publique", text: "Fotos, preços e estoque" },
   { icon: CreditCard, title: "Venda", text: "Pedidos no seu painel" },
 ] as const;

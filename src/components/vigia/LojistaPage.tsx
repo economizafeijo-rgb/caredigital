@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Vendor } from "@/lib/marketplace";
 import { SellerDashboard } from "./seller/SellerDashboard";
 import { LojistaLanding } from "./LojistaLanding";
-import { LojistaSignup } from "./LojistaSignup";
+import { SellerRequestForm } from "./SellerRequestForm";
 
 /** Área do lojista: apresenta a proposta, cadastra a loja e entrega o painel de vendas. */
 export function LojistaPage() {
@@ -58,16 +58,8 @@ export function LojistaPage() {
     void load();
   }, [load]);
 
+  // Novos lojistas não criam loja sozinhos: enviam uma solicitação para a administração.
   function start() {
-    if (state === "out") {
-      try {
-        window.sessionStorage.setItem("nv_after_login", "/lojista");
-      } catch {
-        /* ok */
-      }
-      window.location.assign("/entrar?mode=lojista");
-      return;
-    }
     form.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
@@ -106,9 +98,17 @@ export function LojistaPage() {
         </p>
       )}
       <LojistaLanding onStart={start} fit={state !== "none"} />
-      {state === "none" && (
-        <div ref={form} id="cadastro">
-          <LojistaSignup onCreated={() => void load()} />
+      {(state === "none" || state === "out") && (
+        <div ref={form} id="cadastro" className="scroll-mt-20">
+          <SellerRequestForm />
+          {state === "out" && (
+            <p className="mt-3 text-center text-sm text-muted-foreground">
+              Já tem uma loja aprovada?{" "}
+              <a href="/entrar?mode=lojista" className="font-semibold text-primary hover:underline">
+                Entrar no painel do lojista
+              </a>
+            </p>
+          )}
         </div>
       )}
     </div>
