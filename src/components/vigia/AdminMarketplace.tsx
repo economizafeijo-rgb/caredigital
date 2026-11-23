@@ -14,6 +14,7 @@ import {
   Star,
   Store,
   TrendingUp,
+  LayoutDashboard,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -34,6 +35,7 @@ import { AdminModerationSettings } from "./AdminModerationSettings";
 import { AdminTestStores } from "./AdminTestStores";
 import { NewStoreModal } from "./admin/NewStoreModal";
 import { SellerRequestsPanel } from "./admin/SellerRequestsPanel";
+import { StoreBoards } from "./admin/StoreBoards";
 import { STATUS_LABEL } from "@/lib/admin-stores";
 
 const monthNow = () => new Date(Date.now() - 5 * 3_600_000).toISOString().slice(0, 7);
@@ -171,9 +173,9 @@ export function AdminMarketplace() {
   );
   const vendorName = (id: string) => vendors?.find((v) => v.id === id)?.name ?? "Loja";
 
-  const [section, setSection] = useState<"lojas" | "solicitacoes" | "cobrancas" | "config">(
-    "lojas",
-  );
+  const [section, setSection] = useState<
+    "lojas" | "paineis" | "solicitacoes" | "cobrancas" | "config"
+  >("lojas");
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState<"todas" | VendorStatus>("todas");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -211,6 +213,7 @@ export function AdminMarketplace() {
 
   const SECTIONS = [
     ["lojas", "Lojas", Store, counts.todas],
+    ["paineis", "Painéis", LayoutDashboard, null],
     ["solicitacoes", "Solicitações", Inbox, requestCount],
     ["cobrancas", "Cobranças", ReceiptText, null],
     ["config", "Configurações", Settings2, null],
@@ -453,6 +456,8 @@ export function AdminMarketplace() {
               )}
             </div>
           )}
+
+          {section === "paineis" && <StoreBoards />}
 
           {section === "solicitacoes" && (
             <SellerRequestsPanel
