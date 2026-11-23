@@ -74,7 +74,9 @@ describe("registro de consumo por área", () => {
 
   it("Bebidas: a busca acha bebida de qualquer tipo", () => {
     open("drink");
-    fireEvent.change(screen.getByPlaceholderText("Buscar bebida…"), { target: { value: "cerveja" } });
+    fireEvent.change(screen.getByPlaceholderText("Buscar bebida…"), {
+      target: { value: "cerveja" },
+    });
     expect(screen.getByRole("button", { name: /Escolher Cerveja/ })).toBeTruthy();
   });
 
@@ -106,10 +108,14 @@ describe("registro de consumo por área", () => {
       </DialogProvider>,
     );
     fireEvent.click(screen.getByRole("button", { name: /Registrar/ }));
-    fireEvent.change(screen.getByLabelText(/O que você comeu/), { target: { value: "Arroz 100 g" } });
+    fireEvent.change(screen.getByLabelText(/O que você comeu/), {
+      target: { value: "Arroz 100 g" },
+    });
     // troca de refeição: mantém o prato
     fireEvent.click(document.querySelector('[data-intake-kind="jantar"]') as HTMLElement);
-    expect((screen.getByLabelText(/O que você comeu/) as HTMLTextAreaElement).value).toBe("Arroz 100 g");
+    expect((screen.getByLabelText(/O que você comeu/) as HTMLTextAreaElement).value).toBe(
+      "Arroz 100 g",
+    );
     // vai para bebidas, escolhe uma e volta: prato continua lá
     fireEvent.click(screen.getByRole("button", { name: /Bebidas/ }));
     fireEvent.click(screen.getByRole("button", { name: "Escolher Suco de graviola" }));
@@ -120,9 +126,13 @@ describe("registro de consumo por área", () => {
     expect(summary.textContent).toMatch(/Arroz/);
     expect(summary.textContent).toMatch(/graviola/i);
     fireEvent.click(screen.getByRole("button", { name: /Alimentos/ }));
-    expect((screen.getByLabelText(/O que você comeu/) as HTMLTextAreaElement).value).toBe("Arroz 100 g");
+    expect((screen.getByLabelText(/O que você comeu/) as HTMLTextAreaElement).value).toBe(
+      "Arroz 100 g",
+    );
     fireEvent.click(screen.getByRole("button", { name: /Bebidas/ }));
-    expect((screen.getByLabelText("Nome da bebida") as HTMLInputElement).value).toMatch(/graviola/i);
+    expect((screen.getByLabelText("Nome da bebida") as HTMLInputElement).value).toMatch(
+      /graviola/i,
+    );
   });
 
   it("pergunta qual refeição é na confirmação, já sugerida", async () => {
@@ -132,7 +142,9 @@ describe("registro de consumo por área", () => {
       </DialogProvider>,
     );
     fireEvent.click(screen.getByRole("button", { name: /Registrar/ }));
-    fireEvent.change(screen.getByLabelText(/O que você comeu/), { target: { value: "Arroz 100 g" } });
+    fireEvent.change(screen.getByLabelText(/O que você comeu/), {
+      target: { value: "Arroz 100 g" },
+    });
     fireEvent.click(document.querySelector('[data-intake-kind="jantar"]') as HTMLElement);
     fireEvent.click(screen.getByRole("button", { name: /Registrar agora/ }));
     expect(await screen.findByText("Confirmar registro?")).toBeTruthy();
@@ -142,6 +154,22 @@ describe("registro de consumo por área", () => {
     );
     expect(pressed?.textContent).toBe("Jantar");
     expect(chooser.textContent).toContain("Café da manhã");
+  });
+
+  it("aceita café com leite junto com a comida no prato do café da manhã", async () => {
+    render(
+      <DialogProvider>
+        <ClientQuickIntake patientId="p1" mode="all" />
+      </DialogProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Registrar/ }));
+    fireEvent.change(screen.getByLabelText(/O que você comeu/), {
+      target: {
+        value: "Café com leite (meio a meio) 70 ml, biscoito salgado tipo cream cracker 40 g",
+      },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Registrar agora/ }));
+    expect(await screen.findByText("Confirmar registro?")).toBeTruthy();
   });
 
   it("não deixa bebida entrar no prato: pede para registrar na aba Bebidas", async () => {

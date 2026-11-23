@@ -20,6 +20,9 @@ import {
 } from "@/lib/care-intake-categories";
 import { parseFoodText, sumNutrients, measureUnit } from "@/lib/food-parser";
 import { ingredientById } from "@/lib/nutrition-catalog";
+
+/** Bebidas que fazem parte de uma refeição e podem ser registradas no prato. */
+const MEAL_DRINK = /^(cafe|nescafe|nescau|achocolatado|ninho|leite|vitamina|cha_)/;
 import { drinkGroups, drinkPresetFor, drinkPresets } from "@/lib/drink-presets";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -88,9 +91,7 @@ function MealConfirm({
             </li>
           ))}
         </ul>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {request.when} · horário do Acre
-        </p>
+        <p className="mt-1 text-xs text-muted-foreground">{request.when} · horário do Acre</p>
         {request.needsMeal && (
           <div className="mt-3" role="group" aria-label="Qual refeição é esta?">
             <p className="text-xs font-bold">
@@ -287,23 +288,27 @@ export function ClientQuickIntake({
   ];
   // Itens escritos que o leitor não reconheceu ainda contam como item do registro.
   const unrecognized =
-    foodCount > 0 && foodParsed.length === 0 ? [{ key: "livre", group: "food" as const, name: foodDraft!.description.trim(), detail: "texto livre", kcal: 0 }] : [];
+    foodCount > 0 && foodParsed.length === 0
+      ? [
+          {
+            key: "livre",
+            group: "food" as const,
+            name: foodDraft!.description.trim(),
+            detail: "texto livre",
+            kcal: 0,
+          },
+        ]
+      : [];
   const allItems = [...overviewItems, ...unrecognized];
   const combined = sumNutrients([
     ...foodParsed.map((f) => f.nutrients),
     ...drinkParsed.map((f) => f.nutrients),
   ]);
   const overview = allItems.length ? (
-    <RecordOverview
-      items={allItems}
-      active={group}
-      onOpen={switchGroup}
-      totals={combined}
-    />
+    <RecordOverview items={allItems} active={group} onOpen={switchGroup} totals={combined} />
   ) : undefined;
   const totals = allItems.length ? combined : undefined;
-  const registerNote =
-    allItems.length > 1 ? `${allItems.length} itens` : undefined;
+  const registerNote = allItems.length > 1 ? `${allItems.length} itens` : undefined;
 
   function switchGroup(next: "food" | "beverage") {
     if (next === group) return;
@@ -338,8 +343,9 @@ export function ClientQuickIntake({
         return;
       }
       // Alimentos e bebidas não se misturam: bebida digitada no prato vai para a aba Bebidas.
+      // Exceção: café, leite, achocolatado, vitamina e chá acompanham a refeição (café da manhã, lanche).
       const stray = parseFoodText(foodDraft.description).filter(
-        (f) => ingredientById.get(f.id)?.group === "bebidas",
+        (f) => ingredientById.get(f.id)?.group === "bebidas" && !MEAL_DRINK.test(f.id),
       );
       if (stray.length) {
         setError(
