@@ -303,7 +303,7 @@ function storeSlide(st: StoreSlideInput, cards: Card[], lines: string[]): Slide 
                 src={st.logo}
                 alt=""
                 aria-hidden="true"
-                className="size-14 shrink-0 rounded-2xl bg-white object-contain p-1.5 shadow-lg ring-1 ring-white/30"
+                className="nv-round size-16 shrink-0 rounded-full object-cover shadow-xl ring-2 ring-white/40 sm:size-20"
               />
             )}
             <h2 className="min-w-0 text-balance font-display text-[1.65rem] font-extrabold leading-[1.05] tracking-tight sm:text-[1.9rem]">
@@ -407,7 +407,7 @@ export function HomeKessiaAd() {
           {
             id: isKessia ? "kessia" : `loja-${v.slug}`,
             name: isKessia ? "Kessia' Digital Store" : v.name,
-            logo: isKessia ? "/loja/kessia/logo-v2.svg" : (v.logo_url ?? ""),
+            logo: isKessia ? "/loja/kessia/mark-v2.svg" : (v.logo_url ?? ""),
             bg: isKessia ? "/loja/bela-vista/banner.jpg" : `/loja/${v.slug}/banner-destaque.webp`,
             tint: TINTS[idx % TINTS.length],
             href: `/loja?loja=${v.slug}`,

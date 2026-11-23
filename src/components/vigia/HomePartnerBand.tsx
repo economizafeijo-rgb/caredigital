@@ -114,7 +114,7 @@ export function HomePartnerBand() {
                   alt=""
                   aria-hidden="true"
                   loading="lazy"
-                  className="size-11 rounded-xl bg-white shadow-md"
+                  className="nv-round size-14 rounded-full shadow-lg ring-2 ring-white/40"
                 />
                 <span className="text-white">
                   <strong className="block text-[15px] leading-tight">Sophia Store</strong>
