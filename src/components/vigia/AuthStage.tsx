@@ -45,7 +45,6 @@ export function AuthStage({ mode, email, password, status }: Props) {
   const name = okEmail ? nameFrom(email) : "";
   const progress =
     status === "success" ? 1 : Math.min(1, (okEmail ? 0.5 : 0) + Math.min(password.length, 6) / 12);
-  const blur = Math.round((1 - progress) * 6);
   const caption =
     status === "success"
       ? "Acesso liberado. Abrindo o seu painel."
@@ -249,60 +248,42 @@ export function AuthStage({ mode, email, password, status }: Props) {
               ? "Seu painel está a um passo."
               : "Remédios, água, refeições, sono e movimento com lembretes no horário certo."}
           </p>
-          <div className="relative mt-4 overflow-hidden rounded-2xl border border-white/12 bg-black/35 p-4 shadow-2xl backdrop-blur-xl">
-            <div
-              className="transition-[filter,opacity] duration-500"
-              style={{ filter: `blur(${blur}px)`, opacity: 0.55 + progress * 0.45 }}
-            >
-              <div className="flex items-center justify-between text-xs text-white/60">
-                <span>Seu dia</span>
-                <span className="tabular-nums">66% concluído</span>
-              </div>
-              <ul className="mt-3 grid gap-3">
-                {rows.map((r) => (
-                  <li key={r.label} className="flex items-center gap-3">
-                    <span
-                      className="grid size-8 shrink-0 place-items-center rounded-lg"
-                      style={{ background: `${r.color}22`, color: r.color }}
-                    >
-                      <r.icon size={15} />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex justify-between text-xs">
-                        <span className="font-semibold">{r.label}</span>
-                        <span className="text-white/60 tabular-nums">{r.value}</span>
-                      </div>
-                      <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-white/10">
-                        <i
-                          className="block h-full rounded-full"
-                          style={{
-                            width: `${r.pct * Math.max(progress, 0.15)}%`,
-                            background: r.color,
-                            transition: "width .6s ease",
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            {status !== "success" && progress < 1 && (
-              <span
-                className="absolute inset-0 grid place-items-center transition-opacity duration-300"
-                style={{ opacity: 1 - progress }}
+          <ul className="mt-5 grid gap-2.5">
+            {rows.map((r) => (
+              <li
+                key={r.label}
+                className="flex items-center gap-3 rounded-2xl border border-white/12 bg-black/35 p-3 backdrop-blur-xl"
               >
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1 text-xs font-semibold text-white/85">
-                  <LockKeyhole size={13} /> Protegido
+                <span
+                  className="grid size-10 shrink-0 place-items-center rounded-xl"
+                  style={{ background: `${r.color}26`, color: r.color }}
+                >
+                  <r.icon size={18} />
                 </span>
-              </span>
-            )}
-            {status === "success" && (
-              <span className="nv-fade-in absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-emerald-400 px-2.5 py-1 text-xs font-bold text-slate-950">
-                <Check size={13} /> Acesso liberado
-              </span>
-            )}
-          </div>
+                <span className="min-w-0 flex-1">
+                  <span className="flex justify-between text-sm">
+                    <b className="font-semibold">{r.label}</b>
+                    <span className="tabular-nums text-white/65">{r.value}</span>
+                  </span>
+                  <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-white/10">
+                    <i
+                      className="block h-full rounded-full"
+                      style={{
+                        width: `${r.pct * Math.max(progress, 0.35)}%`,
+                        background: r.color,
+                        transition: "width .6s ease",
+                      }}
+                    />
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ul>
+          {status === "success" && (
+            <span className="nv-fade-in mt-3 inline-flex items-center gap-1 rounded-full bg-emerald-400 px-2.5 py-1 text-xs font-bold text-slate-950">
+              <Check size={13} /> Acesso liberado
+            </span>
+          )}
           <p
             key={caption}
             className={`nv-fade-in mt-3 text-sm ${status === "error" ? "text-rose-300" : "text-white/70"}`}

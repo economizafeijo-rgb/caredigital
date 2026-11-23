@@ -129,10 +129,12 @@ function BenefitPicker({
               aria-pressed={on}
               onFocus={() => setActive(i)}
               onClick={() => setActive(i)}
-              className={`nv-tile flex w-full items-start gap-3 rounded-xl border p-3 text-left ${dark ? "border-white/15 bg-white/[.06] text-white" : "border-border bg-card"} ${on ? "border-[var(--area)]" : ""}`}
+              className={`nv-tile flex w-full items-start gap-3 rounded-xl border p-3 text-left ${dark ? "border-white/15 bg-slate-950/70 text-white backdrop-blur-md" : "border-border bg-card"} ${on ? "border-[var(--area)]" : ""}`}
               style={{ "--tile": "var(--area)" } as CSSProperties}
             >
-              <span className="nv-tile-icon grid size-9 shrink-0 place-items-center rounded-lg bg-[color-mix(in_srgb,var(--area)_16%,transparent)] text-[var(--area)]">
+              <span
+                className={`nv-tile-icon grid size-9 shrink-0 place-items-center rounded-lg ${dark ? "bg-[var(--area)] text-white" : "bg-[color-mix(in_srgb,var(--area)_16%,transparent)] text-[var(--area)]"}`}
+              >
                 <b.icon size={18} aria-hidden="true" />
               </span>
               <span className="min-w-0">
@@ -180,7 +182,7 @@ function StepRail({ kind, dark = false }: { kind: ShowcaseKind; dark?: boolean }
                 setActive(i);
               }}
               aria-current={on ? "step" : undefined}
-              className={`relative w-full overflow-hidden rounded-xl border p-3 text-left transition-colors ${dark ? "border-white/15 text-white" : "border-border bg-card"} ${on ? "border-[var(--area)] bg-[color-mix(in_srgb,var(--area)_12%,transparent)]" : ""}`}
+              className={`relative w-full overflow-hidden rounded-xl border p-3 text-left transition-colors ${dark ? "border-white/15 bg-slate-950/60 text-white backdrop-blur-md" : "border-border bg-card"} ${on ? "border-[var(--area)] bg-[color-mix(in_srgb,var(--area)_30%,#020617)]" : ""}`}
             >
               <span
                 className={`grid size-7 place-items-center rounded-full text-xs font-bold transition-colors ${on || done ? "bg-[var(--area)] text-white" : dark ? "bg-white/10" : "bg-muted"}`}
