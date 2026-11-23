@@ -50,12 +50,7 @@ function Homepage() {
     window.scrollTo({ top: 0 });
   }, []);
 
-  if (status === "loading")
-    return (
-      <div role="status" className="grid h-full place-items-center text-sm text-muted-foreground">
-        Preparando sua página…
-      </div>
-    );
+  // Sem tela de espera: a página pública já aparece enquanto a sessão é conferida.
   const client = status === "client";
   const panel = client ? "/cliente" : status === "admin" ? "/admin" : null;
   const firstName = (name || "usuário").split(" ")[0];

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export type AccessStatus = "loading" | "public" | "client" | "admin" | "vendor" | "unlinked";
@@ -7,24 +7,61 @@ export type Access = { status: AccessStatus; name: string; email: string };
 // Somente apresentação: quem autoriza de fato é o RLS do banco.
 const ADMIN_EMAIL = "francdenisbr@gmail.com";
 const guest: Access = { status: "public", name: "", email: "" };
+const CACHE = "nv-access";
+const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
+/** Último perfil conhecido deste aparelho: evita esperar a rede para desenhar a página. */
+function readCache(): Access | null {
+  try {
+    const raw = localStorage.getItem(CACHE);
+    const v = raw ? (JSON.parse(raw) as Access) : null;
+    return v && v.status && v.status !== "loading" && v.status !== "public" ? v : null;
+  } catch {
+    return null;
+  }
+}
+function writeCache(a: Access | null) {
+  try {
+    if (a && a.status !== "public" && a.status !== "loading")
+      localStorage.setItem(CACHE, JSON.stringify(a));
+    else localStorage.removeItem(CACHE);
+  } catch {
+    /* sem storage */
+  }
+}
 
 /** Perfil da sessão atual, compartilhado por shell, homepage e área do cliente. */
 export function useAccess(): Access {
   const [access, setAccess] = useState<Access>({ status: "loading", name: "", email: "" });
+  useIsoLayoutEffect(() => {
+    const cached = readCache();
+    if (cached) setAccess(cached);
+  }, []);
   useEffect(() => {
     let active = true;
+    const set = (next: Access) => {
+      writeCache(next);
+      setAccess(next);
+    };
     const check = async () => {
       try {
+        // Sessão guardada no aparelho (sem rede): visitante sem login já vê a página na hora.
+        const local = await supabase.auth.getSession();
+        if (!active) return;
+        if (!local.data.session) {
+          set(guest);
+          return;
+        }
         const { data } = await supabase.auth.getUser();
         if (!active) return;
         const user = data.user;
         if (!user) {
-          setAccess(guest);
+          set(guest);
           return;
         }
         const email = (user.email ?? "").trim().toLowerCase();
         if (email === ADMIN_EMAIL) {
-          setAccess({ status: "admin", name: "Administrador", email });
+          set({ status: "admin", name: "Administrador", email });
           return;
         }
         const db = supabase as any;
@@ -45,10 +82,10 @@ export function useAccess(): Access {
             .limit(1);
           if (!active) return;
           if (store.data?.[0]) {
-            setAccess({ status: "vendor", name: store.data[0].name as string, email });
+            set({ status: "vendor", name: store.data[0].name as string, email });
             return;
           }
-          setAccess({ status: "unlinked", name: "", email });
+          set({ status: "unlinked", name: "", email });
           return;
         }
         const person = await db
@@ -57,13 +94,13 @@ export function useAccess(): Access {
           .eq("id", patientId)
           .limit(1);
         if (!active) return;
-        setAccess({
+        set({
           status: "client",
           name: person.data?.[0]?.full_name || "Meu acompanhamento",
           email,
         });
       } catch {
-        if (active) setAccess(guest);
+        if (active) set(guest);
       }
     };
     void check();
