@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { bootstrapPublicSignup } from "@/lib/public-signup-bootstrap";
-import { checkStoreDevice, storeBlockMessage } from "@/lib/store-devices";
+import { checkStoreDevice, claimSession, storeBlockMessage } from "@/lib/store-devices";
 import { getSupabaseConfigurationIssue } from "@/lib/supabase-session";
 import {
   formatBrazilPhone,
@@ -158,6 +158,17 @@ function Entrar() {
       await navigate({ to: "/lojista" });
       return;
     }
+    // Atendente ou funcionário de loja: vai direto para o painel de atendimento.
+    const { data: staffOf } = await (supabase as any)
+      .from("care_store_staff")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("active", true)
+      .limit(1);
+    if (current.user?.user_metadata?.store_attendant || staffOf?.length) {
+      await navigate({ to: "/lojista" });
+      return;
+    }
     const { data: grants, error } = await (supabase as any)
       .from("care_patient_access")
       .select("patient_id")
@@ -216,7 +227,8 @@ function Entrar() {
         fail();
         return;
       }
-      // Conta de loja: até 3 dispositivos e só no expediente. Conta comum: sessão única.
+      // Dono de loja: até 3 dispositivos. Qualquer outra conta (cliente, funcionário, atendente):
+      // sessão única, os outros aparelhos são desconectados na hora.
       const storeAccess = await checkStoreDevice();
       const blocked = storeBlockMessage(storeAccess);
       if (blocked) {
@@ -225,7 +237,10 @@ function Entrar() {
         fail();
         return;
       }
-      if (storeAccess === "not_store") await endOtherSessions();
+      if (storeAccess !== "ok") {
+        await claimSession();
+        await endOtherSessions();
+      }
       if (data.user.user_metadata?.nextvita_signup) await bootstrapPublicSignup(data.user);
       setAuthStatus("success");
       if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches)
@@ -415,6 +430,11 @@ function Entrar() {
       if (error) {
         setNotice({ type: "error", message: authErrorMessage(error) });
         return;
+      }
+      // Senha nova: este aparelho fica como a única sessão da conta.
+      if ((await checkStoreDevice()) !== "ok") {
+        await claimSession();
+        await endOtherSessions();
       }
       setNewPassword("");
       setConfirmPassword("");

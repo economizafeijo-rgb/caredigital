@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useDialog } from "@/lib/dialog";
 import type { Vendor } from "@/lib/marketplace";
 import { btn, inputCls, Panel } from "./shared";
+import { SellerAttendants } from "./SellerAttendants";
 
 type Role = "operador" | "visualizador";
 type Staff = {
@@ -11,7 +12,7 @@ type Staff = {
   name: string;
   email: string;
   active: boolean;
-  role: Role;
+  role: Role | "atendente";
   created_at: string;
 };
 
@@ -28,7 +29,9 @@ const ROLE_INFO: Record<Role, { label: string; hint: string }> = {
 
 /** Funcionários da loja e seus níveis de acesso. O banco aplica as permissões; a tela só reflete. */
 export function SellerStaff({ vendor }: { vendor: Vendor }) {
-  const [rows, setRows] = useState<Staff[]>([]);
+  const [all, setAll] = useState<Staff[]>([]);
+  const rows = all.filter((s) => s.role !== "atendente");
+  const attendants = all.filter((s) => s.role === "atendente");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<Role>("operador");
@@ -41,7 +44,7 @@ export function SellerStaff({ vendor }: { vendor: Vendor }) {
       .select("*")
       .eq("vendor_id", vendor.id)
       .order("created_at");
-    setRows(data ?? []);
+    setAll(data ?? []);
   }, [vendor.id]);
 
   useEffect(() => {
@@ -107,6 +110,7 @@ export function SellerStaff({ vendor }: { vendor: Vendor }) {
 
   return (
     <div className="grid gap-4">
+      <SellerAttendants vendor={vendor} rows={attendants} onChanged={() => void load()} />
       <p className="flex items-start gap-2 rounded-2xl border border-border bg-card p-4 text-sm">
         <ShieldCheck size={18} className="mt-0.5 shrink-0 text-primary" />
         <span>
@@ -116,7 +120,7 @@ export function SellerStaff({ vendor }: { vendor: Vendor }) {
         </span>
       </p>
 
-      <Panel title="Novo funcionário">
+      <Panel title="Outros funcionários (conta NextVita própria)">
         <form
           onSubmit={(e) => void add(e)}
           className="grid gap-4 p-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_16rem_auto] xl:items-end"
@@ -174,7 +178,7 @@ export function SellerStaff({ vendor }: { vendor: Vendor }) {
       <Panel title={`Equipe · ${rows.length}`}>
         <ul className="divide-y divide-border">
           {rows.map((s) => {
-            const info = ROLE_INFO[s.role] ?? ROLE_INFO.operador;
+            const info = ROLE_INFO[s.role as Role] ?? ROLE_INFO.operador;
             return (
               <li
                 key={s.id}

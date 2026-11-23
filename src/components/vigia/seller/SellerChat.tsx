@@ -28,6 +28,7 @@ import {
 import { playSound } from "@/lib/chat-sound";
 import { SoundToggle } from "../chat/ChatToasts";
 import { AvailabilityToggle } from "./AvailabilityToggle";
+import { WaitingList } from "./SellerAttendantHome";
 import { ProductLookup } from "./ProductLookup";
 import { ChatTimer } from "./ChatTimer";
 import { precheckMessage } from "@/lib/store-moderation";
@@ -53,8 +54,13 @@ export function SellerChat({
   onChanged,
   initial,
   staff = false,
+  attendant = false,
+  onTaken,
 }: {
   staff?: boolean;
+  /** Atendente: vê só os próprios clientes e assume os que estão aguardando. */
+  attendant?: boolean;
+  onTaken?: (customerId: string) => void;
   vendor: Vendor;
   messages: ChatMessage[];
   onChanged: () => void;
@@ -282,6 +288,16 @@ export function SellerChat({
           className={`min-h-0 flex-col border-r border-border ${active ? "hidden lg:flex" : "flex"}`}
         >
           <AvailabilityToggle vendorId={vendor.id} />
+          {attendant && (
+            <WaitingList
+              compact
+              vendorId={vendor.id}
+              onTaken={(id) => {
+                setSel(id);
+                onTaken?.(id);
+              }}
+            />
+          )}
           <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-2.5">
             <p className="text-sm font-bold">
               Conversas{" "}

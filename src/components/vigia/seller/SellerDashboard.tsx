@@ -24,6 +24,7 @@ import { PLANS, money, segmentLabel, type Vendor } from "@/lib/marketplace";
 import { ChatToastHost, pushChatToast } from "../chat/ChatToasts";
 import { sendHeartbeat } from "@/lib/store-presence";
 import { useSellerData } from "./useSellerData";
+import { SellerAttendantHome } from "./SellerAttendantHome";
 import { SellerOverview } from "./SellerOverview";
 import { SellerOrders } from "./SellerOrders";
 import { SellerProducts } from "./SellerProducts";
@@ -106,6 +107,24 @@ export function SellerDashboard({
     };
   }, [vendor.id]);
   const readOnly = isStaff && myRole === "visualizador";
+  const isAttendant = isStaff && myRole === "atendente";
+  // Nome definido pelo lojista para a atendente.
+  const [staffName, setStaffName] = useState("");
+  useEffect(() => {
+    if (!isStaff) return;
+    let alive = true;
+    void (async () => {
+      const { data } = await (supabase as any).rpc("care_store_my_staff", { p_vendor: vendor.id });
+      if (alive && data?.name) setStaffName(String(data.name));
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [isStaff, vendor.id]);
+  // A atendente começa na própria área de atendimento.
+  useEffect(() => {
+    if (isAttendant) setTab((t) => (t === "pedidos" ? "visao" : t));
+  }, [isAttendant]);
 
   // Avisos em tempo real: som e pop-up para mensagem nova do cliente e pedido novo.
   const seen = useRef<{ vendor: string; ids: Set<string> } | null>(null);
@@ -249,7 +268,9 @@ export function SellerDashboard({
     return () => window.removeEventListener("keydown", onKey);
   }, []);
   const allowed = (key: SellerTab) =>
-    !isStaff || ["pedidos", "mensagens", "clientes"].includes(key);
+    !isStaff ||
+    ["pedidos", "mensagens", "clientes"].includes(key) ||
+    (isAttendant && key === "visao");
   const groups = [
     {
       title: "Operação",
@@ -609,7 +630,20 @@ export function SellerDashboard({
                   </button>
                 </header>
               )}
-              {tab === "visao" && (
+              {tab === "visao" && isAttendant && (
+                <SellerAttendantHome
+                  vendor={vendor}
+                  data={data}
+                  name={staffName || "Atendente"}
+                  go={setTab}
+                  openChat={(id) => {
+                    void reload();
+                    setChatWith(id);
+                    setTab("mensagens");
+                  }}
+                />
+              )}
+              {tab === "visao" && !isStaff && (
                 <SellerOverview vendor={vendor} data={data} go={setTab} onChanged={refresh} />
               )}
               {tab === "disputas" && <SellerDisputes vendor={vendor} onChanged={refresh} />}
@@ -647,6 +681,11 @@ export function SellerDashboard({
                   onChanged={refresh}
                   initial={chatWith}
                   staff={isStaff}
+                  attendant={isAttendant}
+                  onTaken={(id) => {
+                    void reload();
+                    setChatWith(id);
+                  }}
                 />
               )}
               {tab === "loja" && (

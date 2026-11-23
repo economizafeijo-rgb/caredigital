@@ -6,11 +6,13 @@ const mocks = vi.hoisted(() => ({
   getSession: vi.fn(),
   getUser: vi.fn(),
   signOut: vi.fn(),
+  rpc: vi.fn(),
   unsubscribe: vi.fn(),
   listener: null as null | ((event: string, session: unknown) => void),
 }));
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
+    rpc: mocks.rpc,
     auth: {
       getSession: mocks.getSession,
       getUser: mocks.getUser,
@@ -31,6 +33,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   window.sessionStorage.clear();
   mocks.signOut.mockResolvedValue({ error: null });
+  mocks.rpc.mockResolvedValue({ data: "not_store", error: null });
   mocks.getSession.mockResolvedValue({ data: { session: { access_token: "t" } } });
 });
 afterEach(() => cleanup());
@@ -69,6 +72,28 @@ describe("sessão única por conta", () => {
     render(<SessionGuard />);
     await flush();
     window.dispatchEvent(new Event("focus"));
+    await flush();
+    expect(mocks.signOut).not.toHaveBeenCalled();
+  });
+
+  it("desconecta quando a conta entrou em outro aparelho (sessão registrada substituída)", async () => {
+    mocks.getUser.mockResolvedValue({ error: null });
+    mocks.rpc.mockImplementation(async (name: string) =>
+      name === "care_session_check"
+        ? { data: "replaced", error: null }
+        : { data: "not_store", error: null },
+    );
+    render(<SessionGuard />);
+    await flush();
+    expect(mocks.signOut).toHaveBeenCalledWith({ scope: "local" });
+  });
+
+  it("dono de loja não é desconectado pela sessão única (até 3 aparelhos)", async () => {
+    mocks.getUser.mockResolvedValue({ error: null });
+    mocks.rpc.mockImplementation(async (name: string) =>
+      name === "care_session_check" ? { data: "owner", error: null } : { data: "ok", error: null },
+    );
+    render(<SessionGuard />);
     await flush();
     expect(mocks.signOut).not.toHaveBeenCalled();
   });

@@ -1,15 +1,15 @@
 import { supabase } from "@/integrations/supabase/client";
 
-/** Dispositivos ao mesmo tempo em uma conta de loja. */
+/** Dispositivos ao mesmo tempo na conta do dono da loja. Funcionários e atendentes: um só. */
 export const STORE_DEVICE_LIMIT = 3;
 export const STORE_DEVICE_KEY = "nv-device-id";
 
-export type StoreDeviceState = "ok" | "limit" | "expediente" | "not_store" | "error";
+export type StoreDeviceState = "ok" | "limit" | "expediente" | "staff" | "not_store" | "error";
 
 /** Mensagem exibida quando a conta de loja não pode ficar conectada neste momento. */
 export function storeBlockMessage(state: StoreDeviceState): string | null {
   if (state === "limit") {
-    return `Esta conta de loja já está conectada em ${STORE_DEVICE_LIMIT} dispositivos. Para entrar aqui, saia da conta em um dos aparelhos conectados e tente novamente. Dispositivos sem uso por 24 horas são liberados automaticamente.`;
+    return `Esta conta de dono de loja já está conectada em ${STORE_DEVICE_LIMIT} dispositivos. Para entrar aqui, saia da conta em um dos aparelhos conectados e tente novamente. Dispositivos sem uso por 24 horas são liberados automaticamente.`;
   }
   if (state === "expediente") {
     return "O painel da loja está indisponível neste momento. Por segurança, a sessão foi encerrada. Entre novamente em instantes.";
@@ -38,6 +38,29 @@ export async function checkStoreDevice(): Promise<StoreDeviceState> {
     });
     if (error) return "error";
     return (data as StoreDeviceState) ?? "error";
+  } catch {
+    return "error";
+  }
+}
+
+/**
+ * Sessão única no servidor: o login registra esta sessão como a única válida da conta.
+ * Dono de loja não usa (tem até 3 dispositivos). Falhas não impedem o login.
+ */
+export async function claimSession(): Promise<void> {
+  try {
+    await (supabase as any).rpc("care_session_claim");
+  } catch {
+    /* banco sem a função ainda: segue com o encerramento das outras sessões */
+  }
+}
+
+/** 'replaced' quando a conta entrou em outro aparelho depois desta sessão. */
+export async function checkSession(): Promise<"ok" | "replaced" | "owner" | "error"> {
+  try {
+    const { data, error } = await (supabase as any).rpc("care_session_check");
+    if (error) return "error";
+    return data === "replaced" || data === "owner" ? data : "ok";
   } catch {
     return "error";
   }

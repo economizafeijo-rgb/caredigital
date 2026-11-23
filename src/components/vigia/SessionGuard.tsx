@@ -1,11 +1,16 @@
 import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { checkStoreDevice, releaseStoreDevice, type StoreDeviceState } from "@/lib/store-devices";
+import {
+  checkSession,
+  checkStoreDevice,
+  releaseStoreDevice,
+  type StoreDeviceState,
+} from "@/lib/store-devices";
 
 /** Marca que a saída foi pedida pelo próprio usuário (botão Sair), para não mostrar o aviso de "outro dispositivo". */
 export const MANUAL_SIGNOUT_KEY = "nv-manual-signout";
 export const OTHER_DEVICE_PATH = "/entrar?reason=other-device";
-const CHECK_EVERY_MS = 30_000;
+const CHECK_EVERY_MS = 15_000;
 /** Sem nenhuma interação por este tempo, a sessão é encerrada neste aparelho. */
 export const INACTIVITY_LIMIT_MS = 60 * 60 * 1000;
 export const LAST_ACTIVITY_KEY = "nv-last-activity";
@@ -119,7 +124,7 @@ export function SessionGuard() {
     const enforceStore = async () => {
       if (storeKind.current === "not") return;
       const state = await checkStoreDevice();
-      if (state === "not_store") {
+      if (state === "not_store" || state === "staff") {
         storeKind.current = "not";
         return;
       }
@@ -161,6 +166,11 @@ export function SessionGuard() {
         if (!data.session) return;
         const { error } = await supabase.auth.getUser();
         if (isSessionGone(error)) {
+          await kicked();
+          return;
+        }
+        // Sessão registrada no servidor: se a conta entrou em outro aparelho, sai deste.
+        if (storeKind.current !== "store" && (await checkSession()) === "replaced") {
           await kicked();
           return;
         }
