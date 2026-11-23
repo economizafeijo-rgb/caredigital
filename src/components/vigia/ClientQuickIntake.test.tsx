@@ -172,7 +172,7 @@ describe("registro de consumo por área", () => {
     expect(await screen.findByText("Confirmar registro?")).toBeTruthy();
   });
 
-  it("não deixa bebida entrar no prato: pede para registrar na aba Bebidas", async () => {
+  it("aceita qualquer bebida junto com a comida no prato", async () => {
     render(
       <DialogProvider>
         <ClientQuickIntake patientId="p1" mode="all" />
@@ -180,10 +180,9 @@ describe("registro de consumo por área", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: /Registrar/ }));
     fireEvent.change(screen.getByLabelText(/O que você comeu/), {
-      target: { value: "Arroz 100 g, cerveja 300 ml" },
+      target: { value: "Arroz 100 g, suco de laranja 300 ml" },
     });
     fireEvent.click(screen.getByRole("button", { name: /Registrar agora/ }));
-    expect((await screen.findByRole("alert")).textContent).toMatch(/é bebida.*aba Bebidas/);
-    expect(screen.queryByText("Confirmar registro?")).toBeNull();
+    expect(await screen.findByText("Confirmar registro?")).toBeTruthy();
   });
 });
