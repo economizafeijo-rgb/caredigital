@@ -477,7 +477,12 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
                 return (
                   <tr key={c.id} className="border-t border-border">
                     <td className="py-3">
-                      <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => void openReport(c)}
+                        title="Abrir ficha do cliente"
+                        className="flex w-full items-center gap-3 rounded-xl text-left transition hover:opacity-80"
+                      >
                         <span className="grid size-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-indigo-500 to-fuchsia-500 font-bold text-white">
                           {c.full_name.slice(0, 1).toUpperCase()}
                         </span>
@@ -495,7 +500,7 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
                             {c.phone ? ` · ${formatBrazilPhone(c.phone)}` : ""}
                           </span>
                         </span>
-                      </div>
+                      </button>
                     </td>
                     <td>{goals[c.care_goal ?? ""] ?? "—"}</td>
                     <td>
@@ -543,7 +548,7 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
                       <div className="flex justify-end gap-1.5">
                         <button
                           type="button"
-                          title="Relatório"
+                          title="Ficha do cliente"
                           onClick={() => void openReport(c)}
                           className="grid size-9 place-items-center rounded-lg border border-border hover:border-indigo-500 hover:text-indigo-600"
                         >
@@ -804,81 +809,266 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
         </div>
       )}
 
-      {report && (
-        <div
-          className="fixed inset-0 z-[90] grid place-items-center bg-slate-950/60 p-4 backdrop-blur-sm"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Relatório do cliente"
-        >
-          <div className="w-full max-w-lg rounded-3xl bg-card p-6 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <h3 className="flex items-center gap-2 text-xl font-bold">
-                <FileText size={20} className="text-indigo-500" /> Relatório · 30 dias
-              </h3>
-              <button
-                type="button"
-                onClick={() => setReport(null)}
-                aria-label="Fechar"
-                className="grid size-9 place-items-center rounded-lg hover:bg-muted"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <p className="mt-1 text-sm text-muted-foreground">{report.client.full_name}</p>
-            {!report.data ? (
-              <div className="mt-4 h-40 animate-pulse rounded-2xl bg-muted" />
-            ) : (
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                {[
-                  [
-                    "Cuidados concluídos",
-                    `${pct(report.data.done, report.data.total)}%`,
-                    `${report.data.done} de ${report.data.total}`,
-                    "from-indigo-600 to-blue-500",
-                  ],
-                  [
-                    "Adesão à medicação",
-                    `${pct(report.data.medsDone, report.data.meds)}%`,
-                    `${report.data.medsDone} de ${report.data.meds} doses`,
-                    "from-rose-600 to-pink-500",
-                  ],
-                  [
-                    "Água registrada",
-                    `${(report.data.waterMl / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} L`,
-                    `média ${Math.round(report.data.waterMl / 30)} ml/dia`,
-                    "from-sky-600 to-cyan-500",
-                  ],
-                  [
-                    "Último registro",
-                    report.data.last ? new Date(report.data.last).toLocaleDateString("pt-BR") : "—",
-                    report.data.last
-                      ? new Date(report.data.last).toLocaleTimeString("pt-BR", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : "sem atividade",
-                    "from-emerald-600 to-teal-500",
-                  ],
-                ].map(([l, v, n, g]) => (
-                  <div key={l} className="rounded-2xl bg-muted/50 p-4">
-                    <span className={`block h-1.5 w-10 rounded-full bg-gradient-to-r ${g}`} />
-                    <p className="mt-2 text-xs font-semibold text-muted-foreground">{l}</p>
-                    <p className="text-2xl font-extrabold">{v}</p>
-                    <p className="text-xs text-muted-foreground">{n}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-            <Link
-              to="/prontuario"
-              className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-500 text-sm font-bold text-white"
+      {report &&
+        (() => {
+          const c = clients.find((x) => x.id === report.client.id) ?? report.client;
+          const lic = effectiveLicense(c);
+          const age = c.birth_date
+            ? Math.floor(
+                (Date.now() - Date.parse(c.birth_date + "T12:00:00Z")) / (365.25 * 86_400_000),
+              )
+            : null;
+          const imc =
+            c.weight_kg && c.height_cm
+              ? Number(c.weight_kg) / Math.pow(Number(c.height_cm) / 100, 2)
+              : null;
+          const close = () => setReport(null);
+          return (
+            <div
+              className="fixed inset-0 z-[90] grid place-items-center bg-slate-950/70 p-0 backdrop-blur-sm sm:p-4"
+              onClick={(e) => e.target === e.currentTarget && close()}
+              onKeyDown={(e) => e.key === "Escape" && close()}
             >
-              Abrir prontuário completo
-            </Link>
-          </div>
-        </div>
-      )}
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-label={`Ficha de ${c.full_name}`}
+                className="nv-fade-in flex h-full w-full max-w-4xl flex-col overflow-hidden bg-background shadow-2xl ring-1 ring-white/10 sm:h-auto sm:max-h-[94dvh] sm:rounded-3xl"
+              >
+                <header className="nv-dark relative shrink-0 bg-[linear-gradient(120deg,#312e81,#0b1220_70%)] px-5 py-5 text-white sm:px-6">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <span className="grid size-16 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-2xl font-extrabold shadow-lg ring-2 ring-white/25">
+                      {c.full_name.slice(0, 1).toUpperCase()}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="truncate text-xl font-extrabold sm:text-2xl">
+                          {c.full_name}
+                        </h2>
+                        <span
+                          className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold capitalize ${statusStyle[lic] ?? "bg-white/15"}`}
+                        >
+                          {lic}
+                        </span>
+                        {c.license_plan && (
+                          <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-[11px] font-bold">
+                            Plano {plans[c.license_plan] ?? c.license_plan}
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-0.5 truncate text-[13px] text-white/75">
+                        {c.contact_email ?? "sem e-mail"}
+                        {c.phone ? ` · ${formatBrazilPhone(c.phone)}` : ""}
+                        {c.created_at
+                          ? ` · cliente desde ${new Date(c.created_at).toLocaleDateString("pt-BR")}`
+                          : ""}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={close}
+                      aria-label="Fechar"
+                      className="grid size-9 place-items-center rounded-xl hover:bg-white/15"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+                </header>
+                <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    <section
+                      className="rounded-2xl border border-border bg-card p-4"
+                      aria-label="Dados do cliente"
+                    >
+                      <h3 className="text-sm font-bold">Dados do cliente</h3>
+                      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2.5 text-[13px]">
+                        <div>
+                          <dt className="text-[11px] text-muted-foreground">Idade</dt>
+                          <dd className="font-semibold">{age != null ? `${age} anos` : "—"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-[11px] text-muted-foreground">Objetivo</dt>
+                          <dd className="font-semibold">{goals[c.care_goal ?? ""] ?? "—"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-[11px] text-muted-foreground">Peso</dt>
+                          <dd className="font-semibold">
+                            {c.weight_kg
+                              ? `${Number(c.weight_kg).toLocaleString("pt-BR")} kg`
+                              : "—"}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-[11px] text-muted-foreground">Altura</dt>
+                          <dd className="font-semibold">
+                            {c.height_cm ? `${c.height_cm} cm` : "—"}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-[11px] text-muted-foreground">IMC</dt>
+                          <dd className="font-semibold">
+                            {imc ? imc.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) : "—"}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-[11px] text-muted-foreground">Origem do cadastro</dt>
+                          <dd className="font-semibold">
+                            {c.signup_source === "teste_gratis" ? "Auto-cadastro" : "Administração"}
+                          </dd>
+                        </div>
+                      </dl>
+                      {c.condition_notes && (
+                        <p className="mt-3 rounded-xl bg-muted/60 p-3 text-xs text-muted-foreground">
+                          {c.condition_notes}
+                        </p>
+                      )}
+                    </section>
+                    <section
+                      className="rounded-2xl border border-border bg-card p-4"
+                      aria-label="Licença"
+                    >
+                      <h3 className="text-sm font-bold">Licença e acesso</h3>
+                      <p className="mt-2 text-[13px]">
+                        <span className="text-muted-foreground">Validade: </span>
+                        <strong>
+                          {c.license_expires_on
+                            ? c.license_expires_on.split("-").reverse().join("/")
+                            : "sem validade (gratuito)"}
+                        </strong>
+                      </p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {lic === "ativa" ? (
+                          <button
+                            type="button"
+                            onClick={() => void setLicense(c, "suspensa")}
+                            className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-amber-500/50 px-3 text-xs font-bold text-amber-700 hover:bg-amber-500/10 dark:text-amber-300"
+                          >
+                            <ShieldAlert size={14} /> Suspender
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => void setLicense(c, "ativa")}
+                            className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-emerald-600 px-3 text-xs font-bold text-white hover:bg-emerald-700"
+                          >
+                            <KeyRound size={14} /> Ativar
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => void extend(c, 30)}
+                          className="h-9 rounded-xl border border-border px-3 text-xs font-semibold hover:bg-muted"
+                        >
+                          +30 dias
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void extend(c, 365)}
+                          className="h-9 rounded-xl border border-border px-3 text-xs font-semibold hover:bg-muted"
+                        >
+                          +1 ano
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void setFree(c)}
+                          className="h-9 rounded-xl border border-border px-3 text-xs font-semibold hover:bg-muted"
+                        >
+                          Manter gratuito
+                        </button>
+                      </div>
+                    </section>
+                  </div>
+                  <section
+                    className="mt-4 rounded-2xl border border-border bg-card p-4"
+                    aria-label="Atividade"
+                  >
+                    <h3 className="flex items-center gap-2 text-sm font-bold">
+                      <FileText size={16} className="text-indigo-500" /> Atividade · últimos 30 dias
+                    </h3>
+                    {!report.data ? (
+                      <div className="mt-3 h-28 animate-pulse rounded-2xl bg-muted" />
+                    ) : (
+                      <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+                        {[
+                          [
+                            "Cuidados concluídos",
+                            `${pct(report.data.done, report.data.total)}%`,
+                            `${report.data.done} de ${report.data.total}`,
+                            "from-indigo-600 to-blue-500",
+                          ],
+                          [
+                            "Adesão à medicação",
+                            `${pct(report.data.medsDone, report.data.meds)}%`,
+                            `${report.data.medsDone} de ${report.data.meds} doses`,
+                            "from-rose-600 to-pink-500",
+                          ],
+                          [
+                            "Água registrada",
+                            `${(report.data.waterMl / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} L`,
+                            `média ${Math.round(report.data.waterMl / 30)} ml/dia`,
+                            "from-sky-600 to-cyan-500",
+                          ],
+                          [
+                            "Último registro",
+                            report.data.last
+                              ? new Date(report.data.last).toLocaleDateString("pt-BR")
+                              : "—",
+                            report.data.last
+                              ? new Date(report.data.last).toLocaleTimeString("pt-BR", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })
+                              : "sem atividade",
+                            "from-emerald-600 to-teal-500",
+                          ],
+                        ].map(([l, v, n, g]) => (
+                          <div key={l} className="rounded-2xl bg-muted/50 p-4">
+                            <span
+                              className={`block h-1.5 w-10 rounded-full bg-gradient-to-r ${g}`}
+                            />
+                            <p className="mt-2 text-xs font-semibold text-muted-foreground">{l}</p>
+                            <p className="text-2xl font-extrabold">{v}</p>
+                            <p className="text-xs text-muted-foreground">{n}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                </div>
+                <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-border bg-card px-4 py-3 sm:px-6">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      close();
+                      void remove(c);
+                    }}
+                    className="inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-sm font-semibold text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 size={15} /> Excluir cadastro
+                  </button>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        close();
+                        setEditing(c);
+                      }}
+                      className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-border px-4 text-sm font-semibold hover:bg-muted"
+                    >
+                      <Pencil size={15} /> Editar dados
+                    </button>
+                    <Link
+                      to="/prontuario"
+                      className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground hover:brightness-110"
+                    >
+                      Abrir prontuário completo
+                    </Link>
+                  </div>
+                </footer>
+              </div>
+            </div>
+          );
+        })()}
     </section>
   );
 }
