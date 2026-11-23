@@ -697,7 +697,7 @@ function PublicStore({
             role="dialog"
             aria-modal="true"
             aria-labelledby="product-detail-title"
-            className="relative max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-card shadow-2xl ring-1 ring-white/10 sm:grid sm:max-w-3xl sm:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] sm:overflow-hidden sm:rounded-3xl"
+            className="nv-round relative max-h-[88vh] w-full overflow-y-auto rounded-t-3xl bg-card shadow-2xl ring-1 ring-white/10 sm:grid sm:max-w-3xl sm:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] sm:overflow-hidden sm:rounded-3xl"
           >
             <button
               type="button"
@@ -713,10 +713,10 @@ function PublicStore({
                 <img
                   src={detail.image_url}
                   alt={detail.name}
-                  className="aspect-[4/3] w-full object-cover sm:aspect-square sm:h-full"
+                  className="h-44 w-full bg-gradient-to-b from-[#f2f3f5] to-[#dfe2e6] object-contain p-2 min-[420px]:h-52 sm:aspect-square sm:h-full sm:object-cover sm:p-0"
                 />
               ) : (
-                <div className="grid aspect-[4/3] place-items-center text-4xl font-black text-slate-300 sm:aspect-square">
+                <div className="grid h-36 place-items-center text-4xl font-black text-slate-300 sm:aspect-square sm:h-auto">
                   {initialsOf(detail.name)}
                 </div>
               )}
@@ -726,7 +726,7 @@ function PublicStore({
                 </span>
               ) : null}
             </div>
-            <div className="flex min-w-0 flex-col p-5 sm:max-h-[min(92vh,40rem)] sm:overflow-y-auto sm:p-6">
+            <div className="flex min-w-0 flex-col p-4 sm:max-h-[min(92vh,40rem)] sm:overflow-y-auto sm:p-6">
               <p
                 className="text-[11.5px] font-semibold uppercase tracking-wide"
                 style={{ color: accent }}
@@ -735,15 +735,15 @@ function PublicStore({
               </p>
               <h2
                 id="product-detail-title"
-                className="mt-1 pr-8 font-display text-xl font-extrabold leading-snug sm:text-2xl"
+                className="mt-1 pr-8 font-display text-lg font-extrabold leading-snug sm:text-2xl"
               >
                 {detail.name}
               </h2>
               {detail.code && (
                 <p className="mt-1 text-xs text-muted-foreground">Código {detail.code}</p>
               )}
-              <div className="mt-4 flex flex-wrap items-baseline gap-2">
-                <strong className="text-2xl font-extrabold tabular-nums">
+              <div className="mt-2.5 flex flex-wrap items-baseline gap-2">
+                <strong className="text-xl font-extrabold tabular-nums sm:text-2xl">
                   {money(detail.price_cents)}
                 </strong>
                 {detail.old_price_cents ? (
@@ -769,7 +769,7 @@ function PublicStore({
                   : ""}
               </p>
               {detail.description && (
-                <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground sm:text-sm">
                   {detail.description}
                 </p>
               )}
@@ -794,12 +794,12 @@ function PublicStore({
                   </ul>
                 </div>
               )}
-              <div className="mt-auto pt-5">
+              <div className="mt-auto pt-4">
                 <button
                   type="button"
                   disabled={!productStatus(detail).buyable}
                   onClick={() => addToCart(detail)}
-                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-[15px] font-bold text-white shadow-lg transition hover:brightness-110 disabled:opacity-45"
+                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl text-sm sm:h-12 sm:text-[15px] font-bold text-white shadow-lg transition hover:brightness-110 disabled:opacity-45"
                   style={{ background: accent }}
                 >
                   <ShoppingCart size={18} /> Adicionar ao carrinho
@@ -816,7 +816,7 @@ function PublicStore({
                       setDetail(null);
                       setChat(true);
                     }}
-                    className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-border text-xs font-semibold transition hover:bg-muted"
+                    className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-border text-xs font-semibold sm:h-10 transition hover:bg-muted"
                   >
                     <MessageCircle size={15} /> Perguntar
                   </button>
@@ -828,7 +828,7 @@ function PublicStore({
                         )}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-border text-xs font-semibold transition hover:bg-muted"
+                        className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-border text-xs font-semibold sm:h-10 transition hover:bg-muted"
                       >
                         <Share2 size={15} className="text-[#25D366]" /> WhatsApp
                       </a>
@@ -842,7 +842,7 @@ function PublicStore({
                               setTimeout(() => setLinkCopied(false), 2000);
                             });
                         }}
-                        className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-border text-xs font-semibold transition hover:bg-muted"
+                        className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-border text-xs font-semibold sm:h-10 transition hover:bg-muted"
                       >
                         {linkCopied ? <Check size={15} /> : <Copy size={15} />}
                         {linkCopied ? "Copiado" : "Copiar link"}
@@ -859,7 +859,7 @@ function PublicStore({
                               })
                               .catch(() => undefined);
                           }}
-                          className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-border text-xs font-semibold transition hover:bg-muted"
+                          className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-border text-xs font-semibold sm:h-10 transition hover:bg-muted"
                         >
                           <Share2 size={15} /> Compartilhar
                         </button>
