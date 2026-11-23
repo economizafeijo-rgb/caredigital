@@ -65,6 +65,11 @@ type Props = {
   onPick?: (x: number) => void;
   /** Linhas extras na dica para o ponto sob o cursor. */
   tip?: (x: number) => ReactNode;
+  /**
+   * Ao clicar num ponto, mantém a dica flutuante aberta sobre o gráfico (com botão de
+   * fechar) mesmo com o cursor fora dela, no lugar do painel fixado abaixo.
+   */
+  persistTip?: boolean;
   /** Botão extra no painel fixado (ex.: abrir os registros do dia). */
   detailAction?: (x: number) => { label: string; onClick: () => void } | null;
   ariaLabel: string;
@@ -147,6 +152,7 @@ export function EvoChart({
   selectedX = null,
   onPick,
   tip,
+  persistTip = false,
   detailAction,
   ariaLabel,
   className = "",
@@ -260,6 +266,9 @@ export function EvoChart({
     onPick?.(x);
   };
   const activeX = hoverX ?? pin?.x ?? selectedX;
+  // Com persistTip, a dica segue o cursor e, sem cursor sobre o gráfico, fica no ponto fixado.
+  const persistPinned = persistTip && hoverX === null && pin !== null;
+  const cardX = hoverX ?? (persistTip && pin ? pin.x : null);
   const reduced =
     typeof window !== "undefined" &&
     typeof window.matchMedia === "function" &&
@@ -755,23 +764,31 @@ export function EvoChart({
             )}
           </svg>
         )}
-        {hoverX !== null && w > 0 && (
+        {cardX !== null && w > 0 && (
           <div
             role="status"
-            className="nv-pop pointer-events-none absolute z-10 w-max min-w-48 max-w-[18rem] rounded-xl border border-border border-l-[3px] bg-popover/90 px-3.5 py-2.5 text-xs text-popover-foreground shadow-2xl backdrop-blur-xl"
+            className={`nv-pop absolute z-10 w-max min-w-48 max-w-[18rem] rounded-xl border border-border border-l-[3px] bg-popover/90 px-3.5 py-2.5 text-xs text-popover-foreground shadow-2xl backdrop-blur-xl ${persistPinned ? "pointer-events-auto pr-9" : "pointer-events-none"}`}
             style={{
               top: PAD.t,
               borderLeftColor: primary?.color,
-              ...(sx(hoverX) > w * 0.6
-                ? { right: w - sx(hoverX) + 12 }
-                : { left: sx(hoverX) + 12 }),
+              ...(sx(cardX) > w * 0.6 ? { right: w - sx(cardX) + 12 } : { left: sx(cardX) + 12 }),
             }}
           >
+            {persistPinned && (
+              <button
+                type="button"
+                aria-label="Fechar detalhes"
+                onClick={() => setPin(null)}
+                className="absolute right-1.5 top-1.5 grid size-6 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                <X size={14} />
+              </button>
+            )}
             <p className="mb-1.5 whitespace-nowrap border-b border-border pb-1.5 text-[13px] font-extrabold capitalize tracking-tight">
-              {formatX(hoverX)}
+              {formatX(cardX)}
             </p>
             {series.map((s) => {
-              const v = valueAt(s.points, hoverX);
+              const v = valueAt(s.points, cardX);
               return v === null ? null : (
                 <p
                   key={s.id}
@@ -791,7 +808,7 @@ export function EvoChart({
               );
             })}
             {bars
-              .filter((b) => b.x === hoverX)
+              .filter((b) => b.x === cardX)
               .flatMap((b) => b.parts.filter((p) => p.y > 0))
               .map((p) => (
                 <p
@@ -810,11 +827,12 @@ export function EvoChart({
                   </strong>
                 </p>
               ))}
-            {tip?.(hoverX)}
+            {tip?.(cardX)}
           </div>
         )}
       </div>
       {pin &&
+        !persistTip &&
         (() => {
           const bar = bars.find((b) => b.x === pin.x);
           const total = bar ? bar.parts.reduce((a, p) => a + p.y, 0) : 0;

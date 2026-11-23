@@ -303,6 +303,7 @@ export function NutritionDayChart({ data }: { data: DailyNutrition }) {
             : undefined
         }
         nowX={nowH}
+        persistTip
         series={[
           {
             id: "kcal",
