@@ -184,7 +184,7 @@ const slides: Slide[] = [
             </Link>
           </div>
         </div>
-        <ul className="grid grid-cols-2 gap-2 text-sm">
+        <ul className="grid grid-cols-2 gap-2 text-sm max-sm:hidden">
           {(
             [
               [Store, "Vitrine própria", "Sua marca e seus preços", "#3fe0c8"],
