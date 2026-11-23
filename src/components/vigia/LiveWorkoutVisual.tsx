@@ -55,7 +55,7 @@ export const estimateKcal = (type: string, minutes: number, weightKg = 70) =>
     (type === "corrida" ? 9.8 : type === "caminhada" ? 3.8 : 6) * weightKg * (minutes / 60),
   );
 
-function routePath(route: LivePoint[], w: number, h: number, pad = 14) {
+export function routePath(route: LivePoint[], w: number, h: number, pad = 14) {
   if (route.length < 2)
     return { d: "", end: null as null | [number, number], start: null as null | [number, number] };
   const lat = route.map((p) => p.latitude),

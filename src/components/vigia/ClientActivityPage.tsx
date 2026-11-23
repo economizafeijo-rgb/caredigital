@@ -1,7 +1,8 @@
-import { LiveWorkoutVisual, type LivePoint } from "./LiveWorkoutVisual";
+import { type LivePoint } from "./LiveWorkoutVisual";
 import { NiceSelect } from "./NiceSelect";
 import { ActivityDaysChart, ActivityHero } from "./ActivityHero";
 import { RecordInfo } from "./RecordInfo";
+import { WorkoutLive, WorkoutReady, WorkoutShell } from "./LiveWorkoutScreen";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity,
@@ -18,6 +19,7 @@ import {
   Play,
   Square,
   Trash2,
+  X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useDialog } from "@/lib/dialog";
@@ -64,6 +66,37 @@ const formatDate = (value: string) =>
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(value));
+
+const SESSION_KEY = "nv-live-workout";
+const MAX_MINUTES = 240; // treino encerra sozinho depois de 4 h em movimento
+const IDLE_PROMPT_MS = 5 * 60_000; // parado por 5 min → pergunta se ainda está treinando
+const PROMPT_SECONDS = 60;
+type SavedSession = {
+  type: string;
+  startedAt: string;
+  elapsed: number;
+  distanceKm: number;
+  route: GpsPoint[];
+  autoPauses: number;
+  savedAt: number;
+};
+const readSession = (): SavedSession | null => {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw) as SavedSession;
+    return Date.now() - s.savedAt < 6 * 3_600_000 ? s : null;
+  } catch {
+    return null;
+  }
+};
+const clearSession = () => {
+  try {
+    localStorage.removeItem(SESSION_KEY);
+  } catch {
+    /* ignore */
+  }
+};
 
 /** Mini mapa do percurso guardado no registro. */
 function RouteMini({ route, className = "" }: { route: [number, number][]; className?: string }) {
@@ -168,6 +201,15 @@ export function ClientActivityPage({
   const [startedAt, setStartedAt] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const autoPausesRef = useRef(0);
+  const [ready, setReady] = useState(false);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [gpsLost, setGpsLost] = useState(false);
+  const [locked, setLocked] = useState(false);
+  const [stillPrompt, setStillPrompt] = useState<number | null>(null);
+  const [recovered, setRecovered] = useState<SavedSession | null>(null);
+  const lastFixAtRef = useRef(0);
+  const haltedSinceRef = useRef(0);
+  const finishRef = useRef<(reason?: string) => void>(() => undefined);
   const [gpsDistance, setGpsDistance] = useState(0);
   const [gpsState, setGpsState] = useState<"searching" | "ok" | "denied">("searching");
   const [elapsed, setElapsed] = useState(0);
@@ -243,8 +285,14 @@ export function ClientActivityPage({
       prevHaltedRef.current = false;
       return;
     }
-    if (halted && !prevHaltedRef.current) pauseAtRef.current = Date.now();
+    if (halted && !prevHaltedRef.current) {
+      pauseAtRef.current = Date.now();
+      haltedSinceRef.current = Date.now();
+      navigator.vibrate?.([60, 60, 60]);
+    }
+    if (!halted) haltedSinceRef.current = 0;
     if (!halted && prevHaltedRef.current && pauseAtRef.current) {
+      navigator.vibrate?.(80);
       startedRef.current += Date.now() - pauseAtRef.current;
       // Depois de uma pausa manual, recomeça a medir do ponto atual (sem somar o deslocamento parado).
       if (!autoPausedRef.current) trackerRef.current = { ...trackerRef.current, anchor: null };
@@ -263,6 +311,25 @@ export function ClientActivityPage({
   useEffect(() => {
     if (!tracking) return;
     const timer = window.setInterval(() => {
+      const now = Date.now();
+      // Limite de duração: não deixa o treino ligado indefinidamente.
+      if (
+        (now - startedRef.current) / 1000 >= MAX_MINUTES * 60 &&
+        !pausedRef.current &&
+        !autoPausedRef.current
+      ) {
+        finishRef.current("Treino encerrado: atingiu o limite de 4 horas.");
+        return;
+      }
+      // Inatividade: parado (automático ou manual) há muito tempo → pergunta.
+      if (haltedSinceRef.current && now - haltedSinceRef.current > IDLE_PROMPT_MS) {
+        haltedSinceRef.current = now + 24 * 3_600_000; // só pergunta uma vez por parada
+        navigator.vibrate?.([200, 100, 200]);
+        setStillPrompt(PROMPT_SECONDS);
+      }
+      // Sinal do GPS: sem leitura há 20 s.
+      if (!pausedRef.current && lastFixAtRef.current)
+        setGpsLost(now - lastFixAtRef.current > 20_000);
       if (pausedRef.current) return;
       const stopped = isStopped(trackerRef.current, Date.now(), motionAtRef.current);
       if (stopped && !autoPausedRef.current) {
@@ -337,26 +404,70 @@ export function ClientActivityPage({
     },
     [],
   );
+  finishRef.current = (reason?: string) => void stopGps(reason);
+  function cancelReady() {
+    if (watchRef.current !== null) navigator.geolocation.clearWatch(watchRef.current);
+    watchRef.current = null;
+    setCountdown(null);
+    setReady(false);
+  }
+  // Treino interrompido (app fechado, tela travou): oferece retomar.
+  useEffect(() => {
+    setRecovered(readSession());
+  }, []);
+  // Guarda o treino em andamento a cada poucos segundos para não perder nada se o app fechar.
+  useEffect(() => {
+    if (!tracking || !startedAt) return;
+    if (elapsed % 5 !== 0 && route.length % 5 !== 0) return;
+    try {
+      localStorage.setItem(
+        SESSION_KEY,
+        JSON.stringify({
+          type,
+          startedAt,
+          elapsed,
+          distanceKm: gpsDistance,
+          route: route.slice(-500),
+          autoPauses: autoPausesRef.current,
+          savedAt: Date.now(),
+        } satisfies SavedSession),
+      );
+    } catch {
+      /* sem espaço: segue sem salvar */
+    }
+  }, [tracking, startedAt, elapsed, route, gpsDistance, type]);
+  // Proteção contra fechar a página sem querer durante o treino.
+  useEffect(() => {
+    if (!tracking) return;
+    const onBefore = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBefore);
+    return () => window.removeEventListener("beforeunload", onBefore);
+  }, [tracking]);
+  // Contagem da pergunta de inatividade; sem resposta, encerra o treino.
+  useEffect(() => {
+    if (stillPrompt === null) return;
+    if (stillPrompt <= 0) {
+      finishRef.current("Treino encerrado por inatividade. Revise e salve se quiser.");
+      return;
+    }
+    const t = window.setTimeout(() => setStillPrompt((v) => (v === null ? v : v - 1)), 1000);
+    return () => window.clearTimeout(t);
+  }, [stillPrompt]);
+
+  /** Abre a tela de preparação (confirmação antes de começar). */
   function startGps() {
     if (!navigator.geolocation) {
       setError("Este dispositivo não disponibilizou GPS.");
       return;
     }
     setError("");
-    setRoute([]);
-    setElapsed(0);
-    setGpsDistance(0);
-    setGpsState("searching");
-    setAutoPaused(false);
-    setMetrics(null);
-    autoPausesRef.current = 0;
-    setStartedAt(new Date().toISOString());
-    trackerRef.current = initialTracker();
-    motionAtRef.current = Date.now();
-    startedRef.current = Date.now();
-    pauseAtRef.current = 0;
-    setTracking(true);
-    setPaused(false);
+    setReady(true);
+    setCountdown(null);
+  }
+  function requestDeviceExtras() {
     // iOS exige permissão explícita (dada por este toque) para o sensor de movimento.
     const DME = (
       window as unknown as {
@@ -364,12 +475,74 @@ export function ClientActivityPage({
       }
     ).DeviceMotionEvent;
     if (DME?.requestPermission) void DME.requestPermission().catch(() => undefined);
+    // Tela cheia de verdade onde o navegador permite (Android / computador).
+    const el = document.documentElement as HTMLElement & {
+      webkitRequestFullscreen?: () => void;
+    };
+    try {
+      if (!document.fullscreenElement) {
+        if (el.requestFullscreen)
+          void el.requestFullscreen({ navigationUI: "hide" }).catch(() => undefined);
+        else el.webkitRequestFullscreen?.();
+      }
+    } catch {
+      /* sem suporte */
+    }
+  }
+  /** Toque em "Iniciar": contagem 3-2-1 enquanto o GPS já procura o sinal. */
+  function confirmStart() {
+    requestDeviceExtras();
+    beginWatch();
+    setCountdown(3);
+  }
+  useEffect(() => {
+    if (countdown === null) return;
+    const t = window.setTimeout(
+      () => {
+        if (countdown > 0) setCountdown(countdown - 1);
+        else {
+          setCountdown(null);
+          setReady(false);
+          beginTracking();
+        }
+      },
+      countdown > 0 ? 1000 : 600,
+    );
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countdown]);
+  function beginTracking(restore?: SavedSession) {
+    setRoute(restore?.route ?? []);
+    setElapsed(restore?.elapsed ?? 0);
+    setGpsDistance(restore?.distanceKm ?? 0);
+    setAutoPaused(false);
+    setMetrics(null);
+    setSummary(null);
+    setLocked(false);
+    setStillPrompt(null);
+    setGpsLost(false);
+    autoPausesRef.current = restore?.autoPauses ?? 0;
+    setStartedAt(restore?.startedAt ?? new Date().toISOString());
+    trackerRef.current = { ...initialTracker(), distanceKm: restore?.distanceKm ?? 0 };
+    motionAtRef.current = Date.now();
+    startedRef.current = Date.now() - (restore?.elapsed ?? 0) * 1000;
+    pauseAtRef.current = 0;
+    haltedSinceRef.current = 0;
+    lastFixAtRef.current = Date.now();
+    setTracking(true);
+    setPaused(false);
+  }
+  function beginWatch() {
+    setGpsState("searching");
+    trackerRef.current = { ...trackerRef.current, anchor: null };
     const cfg = trackerConfig(typeRef.current);
     if (watchRef.current !== null) navigator.geolocation.clearWatch(watchRef.current);
     watchRef.current = navigator.geolocation.watchPosition(
       (position) => {
         const c = position.coords;
         setGpsState("ok");
+        lastFixAtRef.current = Date.now();
+        setGpsLost(false);
         if (pausedRef.current) return;
         const { state, accepted } = ingest(
           trackerRef.current,
@@ -402,21 +575,41 @@ export function ClientActivityPage({
           setGpsState("denied");
           setError("Permita o acesso à localização para registrar o percurso.");
         } else {
-          setError("Sem sinal de GPS no momento. Vá para um local aberto.");
+          setGpsLost(true);
         }
       },
       { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 },
     );
   }
-  async function stopGps() {
+  function resumeRecovered() {
+    if (!recovered) return;
+    setType(recovered.type as typeof type);
+    typeRef.current = recovered.type as typeof type;
+    requestDeviceExtras();
+    beginTracking(recovered);
+    beginWatch();
+    setRecovered(null);
+  }
+  async function stopGps(reason?: string) {
     if (
+      !reason &&
       !(await confirm(
-        "Encerrar atividade?",
-        "O tempo, a distância e o percurso capturados serão preparados para registro.",
-        false,
+        "Encerrar o treino?",
+        `${routeDistance.toFixed(2)} km em ${Math.max(1, Math.round(elapsed / 60))} min. Você poderá revisar e salvar no prontuário em seguida.`,
+        true,
+        "Encerrar treino",
       ))
     )
       return;
+    if (reason) setNotice(reason);
+    setStillPrompt(null);
+    setLocked(false);
+    clearSession();
+    try {
+      if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
+    } catch {
+      /* ignore */
+    }
     if (watchRef.current !== null) navigator.geolocation.clearWatch(watchRef.current);
     const minutes = Math.max(1, Math.round(elapsed / 60));
     const pace = formatPace(routeDistance, elapsed);
@@ -569,163 +762,165 @@ export function ClientActivityPage({
       className="flex h-full min-h-0 flex-col gap-3 overflow-y-auto pb-2"
       aria-label="Atividade física"
     >
-      {(tracking || summary) && (
-        <div
-          className="fixed inset-0 z-[180] flex overflow-y-auto overscroll-contain bg-[#071a1d]/95 p-3 text-white backdrop-blur-xl sm:p-5"
-          role="dialog"
-          aria-modal="true"
-          aria-label={summary ? "Resumo da atividade" : "Atividade em andamento"}
-        >
-          <div className="nv-round m-auto w-full max-w-3xl rounded-[28px] border border-white/15 bg-white/10 p-4 shadow-2xl sm:p-8">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[.2em] text-emerald-200">
-                  NextVita · movimento e evolução
-                </p>
-                <h2 className="mt-1 text-2xl font-extrabold sm:text-4xl">
-                  {summary
-                    ? "Resumo da atividade"
-                    : type === "corrida"
-                      ? "Corrida em andamento"
-                      : "Caminhada em andamento"}
-                </h2>
-              </div>
-              {!summary && (
-                <span
-                  className={`inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold ${
-                    liveStatus === "moving"
-                      ? "bg-emerald-400/15 text-emerald-200"
-                      : liveStatus === "searching"
-                        ? "bg-sky-400/15 text-sky-200"
-                        : "bg-amber-400/15 text-amber-200"
-                  }`}
-                >
-                  <span
-                    className={`size-2 rounded-full ${
-                      liveStatus === "moving"
-                        ? "animate-pulse bg-emerald-300"
-                        : liveStatus === "searching"
-                          ? "animate-pulse bg-sky-300"
-                          : "bg-amber-300"
-                    }`}
-                  />
-                  {liveStatus === "moving"
-                    ? "Em movimento"
-                    : liveStatus === "searching"
-                      ? "Buscando GPS"
-                      : liveStatus === "auto"
-                        ? "Parado · pausa automática"
-                        : "Pausado"}
-                </span>
-              )}
+      {(ready || countdown !== null) && !tracking && (
+        <WorkoutShell label="Preparar treino">
+          <WorkoutReady
+            type={type}
+            onType={(t) => setType(t as typeof type)}
+            onStart={confirmStart}
+            onCancel={cancelReady}
+            countdown={countdown}
+          />
+        </WorkoutShell>
+      )}
+      {tracking && (
+        <WorkoutShell label="Treino em andamento" moving={liveStatus === "moving"}>
+          <WorkoutLive
+            type={type}
+            status={liveStatus}
+            elapsed={elapsed}
+            distanceKm={routeDistance}
+            route={route}
+            gpsLost={gpsLost}
+            locked={locked}
+            onLock={setLocked}
+            onTogglePause={() => setPaused((v) => !v)}
+            onStop={() => void stopGps()}
+            stillPrompt={stillPrompt}
+            onStillHere={() => {
+              setStillPrompt(null);
+              haltedSinceRef.current = Date.now();
+            }}
+            onFinishNow={() => finishRef.current("Treino encerrado.")}
+            maxMinutes={MAX_MINUTES}
+          />
+        </WorkoutShell>
+      )}
+      {summary && !tracking && (
+        <WorkoutShell label="Resumo do treino">
+          <div className="nvw-in mx-auto w-full max-w-lg px-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-bold uppercase tracking-[.22em] text-emerald-200">
+                Treino concluído
+              </p>
+              <button
+                type="button"
+                onClick={() => setSummary(null)}
+                aria-label="Fechar resumo"
+                className="grid size-10 place-items-center rounded-full bg-white/10 ring-1 ring-white/15"
+              >
+                <X size={18} />
+              </button>
             </div>
-            <div className="mt-5 grid grid-cols-2 gap-2.5 sm:mt-8 sm:grid-cols-4 sm:gap-3">
+            <h2 className="mt-2 font-display text-3xl font-extrabold">
+              {activityOptions.find((o) => o.value === type)?.label ?? "Atividade"} ·{" "}
+              {summary.distance.toFixed(2)} km
+            </h2>
+            <dl className="mt-4 grid grid-cols-3 divide-x divide-white/10 rounded-3xl bg-white/[.07] py-3 ring-1 ring-white/10 backdrop-blur-md">
               {[
-                [
-                  "Tempo",
-                  summary
-                    ? `${summary.duration} min`
-                    : `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`,
-                ],
-                ["Distância", `${(summary?.distance ?? routeDistance).toFixed(2)} km`],
-                [
-                  "Ritmo médio",
-                  summary?.pace ??
-                    (formatPace(routeDistance, elapsed) === "—"
-                      ? "—"
-                      : `${formatPace(routeDistance, elapsed)} min/km`),
-                ],
-                ["Pontos GPS", String(summary?.points ?? route.length)],
-              ].map(([label, value]) => (
-                <div key={label} className="rounded-2xl bg-black/20 p-4">
-                  <span className="text-xs text-white/60">{label}</span>
-                  <strong className="mt-1 block text-2xl font-extrabold tabular-nums sm:text-3xl">
-                    {value}
-                  </strong>
+                ["Tempo", `${summary.duration} min`],
+                ["Distância", `${summary.distance.toFixed(2)} km`],
+                ["Ritmo", summary.pace.replace(" min/km", "")],
+              ].map(([k, v]) => (
+                <div key={k} className="px-2 text-center">
+                  <dt className="text-[10.5px] font-semibold uppercase tracking-wider text-white/55">
+                    {k}
+                  </dt>
+                  <dd className="mt-0.5 text-xl font-extrabold tabular-nums">{v}</dd>
                 </div>
               ))}
-            </div>
-            {summary && metrics && (
-              <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_170px]">
+            </dl>
+            {metrics && (
+              <div className="mt-3 grid gap-3">
+                {metrics.route.length > 1 && (
+                  <RouteMini route={metrics.route} className="w-full rounded-2xl" />
+                )}
                 <dl className="grid grid-cols-2 gap-2">
                   {metricRows(metrics).map(([k, v]) => (
-                    <div key={k} className="rounded-xl bg-black/20 px-3 py-2">
+                    <div key={k} className="rounded-2xl bg-black/30 px-3 py-2 ring-1 ring-white/10">
                       <dt className="text-[11px] text-white/60">{k}</dt>
                       <dd className="text-sm font-bold tabular-nums">{v}</dd>
                     </div>
                   ))}
                 </dl>
-                <RouteMini route={metrics.route} className="w-full self-start rounded-xl" />
               </div>
             )}
-            {summary && (
-              <p className="mt-3 text-center text-[11px] text-white/55">
-                Valores de gasto, passos e esforço são estimativas calculadas pelo tempo, percurso
-                {metrics?.avg_bpm
-                  ? " e batimentos"
-                  : " (conecte o monitor de batimentos para estimar melhor)"}
-                .
-              </p>
+            <p className="mt-3 text-center text-[11px] text-white/55">
+              Gasto, passos e esforço são estimativas pelo tempo e percurso
+              {metrics?.avg_bpm ? " e batimentos" : ""}.
+            </p>
+            {notice && (
+              <p className="mt-2 text-center text-xs font-semibold text-amber-200">{notice}</p>
             )}
-            <div className="mt-5 flex flex-wrap justify-center gap-3">
-              {summary ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setSummary(null)}
-                    className="rounded-xl bg-primary px-6 py-3 text-sm font-bold"
-                  >
-                    Revisar antes de salvar
-                  </button>
-                  <button
-                    type="button"
-                    disabled={saving}
-                    onClick={() => void save()}
-                    className="rounded-xl bg-emerald-500 px-6 py-3 text-sm font-bold text-emerald-950 disabled:opacity-50"
-                  >
-                    {saving ? "Salvando…" : "Salvar no prontuário"}
-                  </button>
-                  {notes.startsWith("Percurso GPS:") && (
-                    <a
-                      href={notes.replace("Percurso GPS: ", "")}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="rounded-xl border border-white/20 px-6 py-3 text-sm font-bold"
-                    >
-                      Abrir percurso no Google Maps
-                    </a>
-                  )}
-                </>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setPaused((value) => !value)}
-                    className="inline-flex items-center gap-2 rounded-xl border border-white/20 px-6 py-3 text-sm font-bold"
-                  >
-                    {paused ? <Play size={17} /> : <Pause size={17} />}{" "}
-                    {paused ? "Retomar" : "Pausar"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void stopGps()}
-                    className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-6 py-3 text-sm font-bold"
-                  >
-                    <Square size={17} /> Parar atividade
-                  </button>
-                </>
-              )}
+            <div className="mt-4 grid gap-2 pb-2">
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => void save()}
+                className="h-13 min-h-12 rounded-2xl bg-emerald-400 text-base font-extrabold text-emerald-950 shadow-[0_12px_40px_-10px_rgba(52,211,153,.8)] disabled:opacity-50"
+              >
+                {saving ? "Salvando…" : "Salvar no prontuário"}
+              </button>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSummary(null)}
+                  className="h-11 rounded-2xl bg-white/10 text-sm font-semibold ring-1 ring-white/15"
+                >
+                  Editar antes
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (
+                      await confirm(
+                        "Descartar este treino?",
+                        "Os dados capturados não serão salvos.",
+                        true,
+                        "Descartar",
+                      )
+                    ) {
+                      setSummary(null);
+                      setMetrics(null);
+                      setNotes("");
+                      setDistance("");
+                    }
+                  }}
+                  className="h-11 rounded-2xl bg-white/10 text-sm font-semibold text-rose-200 ring-1 ring-white/15"
+                >
+                  Descartar
+                </button>
+              </div>
             </div>
-            {!summary && (
-              <LiveWorkoutVisual
-                route={route}
-                elapsed={elapsed}
-                status={liveStatus}
-                type={type}
-                distanceKm={routeDistance}
-              />
-            )}
           </div>
+        </WorkoutShell>
+      )}
+      {recovered && !tracking && !ready && (
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-amber-400/40 bg-amber-400/10 p-3 text-sm">
+          <p className="min-w-0 flex-1">
+            <strong>Treino interrompido.</strong> Você tinha uma{" "}
+            {activityOptions.find((o) => o.value === recovered.type)?.label.toLowerCase() ??
+              "atividade"}{" "}
+            em andamento ({recovered.distanceKm.toFixed(2)} km ·{" "}
+            {Math.round(recovered.elapsed / 60)} min).
+          </p>
+          <button
+            type="button"
+            onClick={resumeRecovered}
+            className="h-9 rounded-lg bg-primary px-3 text-xs font-bold text-primary-foreground"
+          >
+            Retomar
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              clearSession();
+              setRecovered(null);
+            }}
+            className="h-9 rounded-lg border border-border px-3 text-xs font-semibold"
+          >
+            Descartar
+          </button>
         </div>
       )}
       <ActivityHero
