@@ -65,7 +65,7 @@ export function useNextUps(
           .eq("taken_on", day),
         db
           .from("care_activity_log")
-          .select("category,happened_at,recorded_at,details,request_id")
+          .select("category,happened_at,recorded_at,details")
           .eq("patient_id", patientId)
           .in("category", ["refeicao", "atividade"])
           .in("event_type", ["confirmed", "logged"])
@@ -136,7 +136,9 @@ export function useNextUps(
           .filter(
             (r: any) =>
               r.category === "refeicao" &&
-              (!r.request_id || (!seen.has(r.request_id) && seen.add(r.request_id))),
+              (!(r.details?.request_id ?? r.request_id) ||
+                (!seen.has(r.details?.request_id ?? r.request_id) &&
+                  seen.add(r.details?.request_id ?? r.request_id))),
           )
           .map((r: any) => ({
             t: Date.parse(r.happened_at ?? r.recorded_at),

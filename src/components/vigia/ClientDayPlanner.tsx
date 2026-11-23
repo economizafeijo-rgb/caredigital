@@ -297,11 +297,14 @@ export function ClientDayPlanner({
         safe(
           db
             .from("care_activity_log")
-            .select("id,category,happened_at,recorded_at,details,request_id,source")
+            .select("id,category,happened_at,recorded_at,details,source")
             .eq("patient_id", patientId)
             .in("category", ["refeicao", "atividade"])
             .in("event_type", ["confirmed", "logged"])
             .gte("recorded_at", from),
+        ).then((rows: any[]) =>
+          // O identificador do pedido fica dentro de "details"; não existe coluna própria.
+          rows.map((r) => ({ ...r, request_id: r.request_id ?? r.details?.request_id ?? null })),
         ),
         safe(
           db

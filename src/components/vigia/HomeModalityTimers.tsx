@@ -128,7 +128,7 @@ export function HomeModalityTimers() {
             .limit(300),
           db
             .from("care_activity_log")
-            .select("happened_at,recorded_at,details,request_id")
+            .select("happened_at,recorded_at,details")
             .eq("patient_id", patientId)
             .eq("category", "refeicao")
             .in("event_type", ["confirmed", "logged"])
@@ -224,7 +224,10 @@ export function HomeModalityTimers() {
       // Refeições: as realmente registradas (agenda e Alimentação) definem qual horário falta.
       const seen = new Set<string>();
       const logged: LoggedMeal[] = (acts?.data ?? [])
-        .filter((r: any) => !r.request_id || (!seen.has(r.request_id) && seen.add(r.request_id)))
+        .filter((r: any) => {
+          const rid = r.details?.request_id ?? r.request_id;
+          return !rid || (!seen.has(rid) && seen.add(rid));
+        })
         .map((r: any) => ({
           t: Date.parse(r.happened_at ?? r.recorded_at),
           kind:
