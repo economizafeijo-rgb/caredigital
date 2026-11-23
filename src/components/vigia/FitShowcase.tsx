@@ -119,7 +119,7 @@ function BenefitPicker({
   const [active, setActive] = useState(0);
   const items = copy[kind].benefits;
   return (
-    <ul className={columns ? "grid gap-2 sm:grid-cols-3" : "grid gap-2"}>
+    <ul className={columns ? "grid gap-2 sm:grid-cols-3 [&>li>button]:h-full" : "grid gap-2"}>
       {items.map((b, i) => {
         const on = active === i;
         return (
@@ -133,7 +133,7 @@ function BenefitPicker({
               style={{ "--tile": "var(--area)" } as CSSProperties}
             >
               <span
-                className={`nv-tile-icon grid size-9 shrink-0 place-items-center rounded-lg ${dark ? "bg-[var(--area)] text-white" : "bg-[color-mix(in_srgb,var(--area)_16%,transparent)] text-[var(--area)]"}`}
+                className={`nv-tile-icon grid size-9 shrink-0 place-items-center rounded-lg ${dark ? "bg-[var(--area)] text-white" : "bg-[color-mix(in_srgb,var(--area)_16%,transparent)] text-[color-mix(in_srgb,var(--area)_55%,white)]"}`}
               >
                 <b.icon size={18} aria-hidden="true" />
               </span>
@@ -257,183 +257,93 @@ function DesktopShowcase({ kind }: { kind: ShowcaseKind }) {
   );
   const eyebrow = (dark: boolean) => (
     <span
-      className={`nv-rise inline-flex w-fit items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${dark ? "bg-white/15 text-white backdrop-blur" : "bg-[color-mix(in_srgb,var(--area)_12%,transparent)] text-[var(--area)]"}`}
+      className={`nv-rise inline-flex w-fit items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${dark ? "bg-white/15 text-white backdrop-blur" : "bg-[color-mix(in_srgb,var(--area)_12%,transparent)] text-[color-mix(in_srgb,var(--area)_55%,white)]"}`}
     >
       <Icon size={14} aria-hidden="true" /> {c.eyebrow}
     </span>
   );
   const shell = "mx-auto flex w-full max-w-[1680px] flex-col gap-3";
 
-  if (st.layout === "split")
-    return (
-      <div ref={fitRef} className={shell} style={vars}>
-        <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[0.95fr_1.05fr]">
-          <ParallaxPhoto
-            src={img.src}
-            position={img.position}
-            className="min-h-[16rem] rounded-2xl"
-          >
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-            <div className="absolute bottom-5 left-5 max-lg:static max-lg:p-4">
-              <AreaDemo kind={kind} />
-            </div>
-          </ParallaxPhoto>
-          <section className="flex min-h-0 flex-col justify-center gap-4 rounded-2xl border border-border bg-card p-5 lg:p-8">
-            {eyebrow(false)}
-            {title}
-            <p
-              className="nv-rise max-w-[60ch] text-[15px] leading-relaxed text-muted-foreground"
-              style={{ animationDelay: "80ms" }}
-            >
-              {c.description}
-            </p>
-            <BenefitPicker kind={kind} />
-            <Ctas cta={c.cta} />
-            <Privacy kind={kind} />
-          </section>
-        </div>
-        <AreaSwitcher kind={kind} />
-      </div>
-    );
-
-  if (st.layout === "stage")
-    return (
-      <div ref={fitRef} className={shell} style={vars}>
-        <ParallaxPhoto
-          src={img.src}
-          position={img.position}
-          className="min-h-0 flex-1 rounded-2xl bg-slate-950 text-white"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/70 to-[color-mix(in_srgb,var(--area)_35%,transparent)]" />
-          <div className="relative grid h-full gap-6 p-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:p-10">
-            <div className="flex flex-col gap-4">
-              {eyebrow(true)}
-              {title}
-              <p
-                className="nv-rise max-w-[54ch] text-[15px] leading-relaxed text-white/80"
-                style={{ animationDelay: "80ms" }}
-              >
-                {c.description}
-              </p>
-              <StepRail kind={kind} dark />
-              <Ctas cta={c.cta} light />
-              <Privacy kind={kind} dark />
-            </div>
-            <div className="hidden flex-col items-end gap-3 lg:flex">
-              <AreaDemo kind={kind} />
-              <div className="w-full max-w-sm">
-                <BenefitPicker kind={kind} dark />
-              </div>
-            </div>
-          </div>
-        </ParallaxPhoto>
-        <AreaSwitcher kind={kind} />
-      </div>
-    );
-
-  if (st.layout === "bento")
-    return (
-      <div ref={fitRef} className={shell} style={vars}>
-        <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-4 lg:grid-rows-[1fr_auto]">
-          <section className="flex flex-col justify-center gap-4 rounded-2xl border border-border bg-card p-5 lg:col-span-2 lg:p-8">
-            {eyebrow(false)}
-            {title}
-            <p
-              className="nv-rise max-w-[56ch] text-[15px] leading-relaxed text-muted-foreground"
-              style={{ animationDelay: "80ms" }}
-            >
-              {c.description}
-            </p>
-            <Ctas cta={c.cta} />
-          </section>
-          <ParallaxPhoto
-            src={img.src}
-            position={img.position}
-            className="min-h-[14rem] rounded-2xl lg:col-span-2"
-          >
-            <div className="absolute inset-0 bg-gradient-to-tr from-[color-mix(in_srgb,var(--area)_55%,transparent)] to-transparent mix-blend-multiply" />
-            <div className="absolute bottom-4 right-4 max-lg:static max-lg:p-4">
-              <AreaDemo kind={kind} />
-            </div>
-          </ParallaxPhoto>
-          <div className="lg:col-span-3">
-            <BenefitPicker kind={kind} columns />
-          </div>
-          <div className="flex items-center rounded-2xl border border-border bg-card p-4">
-            <Privacy kind={kind} />
-          </div>
-        </div>
-        <StepRail kind={kind} />
-        <AreaSwitcher kind={kind} />
-      </div>
-    );
-
-  if (st.layout === "steps")
-    return (
-      <div ref={fitRef} className={shell} style={vars}>
-        <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[1fr_1fr]">
-          <section className="flex min-h-0 flex-col justify-center gap-5 rounded-2xl border border-border bg-card p-5 lg:p-10">
-            {eyebrow(false)}
-            {title}
-            <p
-              className="nv-rise max-w-[60ch] text-[15px] leading-relaxed text-muted-foreground"
-              style={{ animationDelay: "80ms" }}
-            >
-              {c.description}
-            </p>
-            <div className="flex flex-col gap-2">
-              <h2 className="text-sm font-semibold">Como funciona, em 4 etapas</h2>
-              <StepRail kind={kind} />
-            </div>
-            <Ctas cta={c.cta} />
-            <Privacy kind={kind} />
-          </section>
-          <ParallaxPhoto
-            src={img.src}
-            position={img.position}
-            className="min-h-[20rem] rounded-2xl"
-          >
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent" />
-            <div className="absolute bottom-4 right-4 max-lg:static max-lg:p-4 lg:bottom-6 lg:right-6">
-              <AreaDemo kind={kind} />
-            </div>
-          </ParallaxPhoto>
-        </div>
-        <AreaSwitcher kind={kind} />
-      </div>
-    );
-
-  // mirror: foto alta à direita, texto e benefícios à esquerda, com faixa diagonal na cor da área
+  const flip = st.layout === "mirror" || st.layout === "stage";
   return (
     <div ref={fitRef} className={shell} style={vars}>
-      <div className="relative grid min-h-0 flex-1 gap-3 overflow-hidden rounded-2xl border border-border bg-card lg:grid-cols-[1fr_0.85fr]">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -left-24 -top-24 size-80 rounded-full bg-[color-mix(in_srgb,var(--area)_18%,transparent)] blur-3xl"
-        />
-        <section className="relative flex flex-col justify-center gap-4 p-5 lg:p-10">
-          {eyebrow(false)}
-          {title}
-          <p
-            className="nv-rise max-w-[56ch] text-[15px] leading-relaxed text-muted-foreground"
-            style={{ animationDelay: "80ms" }}
-          >
-            {c.description}
-          </p>
-          <BenefitPicker kind={kind} />
-          <Ctas cta={c.cta} />
-          <Privacy kind={kind} />
+      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[1fr_1.08fr]">
+        <section
+          className={`relative flex min-h-0 flex-col justify-center gap-5 overflow-hidden rounded-3xl border border-border bg-card p-8 xl:p-12 ${flip ? "lg:order-2" : ""}`}
+        >
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute -left-28 -top-28 size-96 rounded-full bg-[color-mix(in_srgb,var(--area)_22%,transparent)] blur-3xl"
+          />
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[var(--area)] to-transparent"
+          />
+          <div className="relative flex flex-col gap-5">
+            {eyebrow(false)}
+            {title}
+            <p
+              className="nv-rise max-w-[56ch] text-base leading-relaxed text-muted-foreground"
+              style={{ animationDelay: "80ms" }}
+            >
+              {c.description}
+            </p>
+            <ul className="flex flex-wrap gap-2" aria-label="O que você acompanha">
+              {c.preview.map((t) => (
+                <li
+                  key={t}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/60 px-3 py-1 text-xs font-semibold"
+                >
+                  <span className="size-1.5 rounded-full bg-[var(--area)]" aria-hidden="true" />
+                  {t}
+                </li>
+              ))}
+            </ul>
+            <Ctas cta={c.cta} />
+            <Privacy kind={kind} />
+          </div>
         </section>
+
         <ParallaxPhoto
           src={img.src}
           position={img.position}
-          className="min-h-[16rem] lg:[clip-path:polygon(14%_0,100%_0,100%_100%,0_100%)]"
+          className="min-h-[18rem] rounded-3xl bg-slate-950 shadow-[0_30px_80px_-30px_color-mix(in_srgb,var(--area)_60%,#000)] ring-1 ring-white/10"
         >
-          <div className="absolute inset-0 bg-gradient-to-l from-transparent to-[color-mix(in_srgb,var(--area)_40%,transparent)]" />
-          <div className="absolute bottom-5 right-5 max-lg:static max-lg:p-4">
-            <AreaDemo kind={kind} />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/20" />
+          <div className="absolute inset-0 bg-[color-mix(in_srgb,var(--area)_28%,transparent)] mix-blend-soft-light" />
+          <span className="absolute left-5 top-5 inline-flex items-center gap-2 rounded-full bg-black/45 px-3.5 py-1.5 text-xs font-semibold text-white backdrop-blur">
+            <span className="grid size-5 place-items-center rounded-full bg-[var(--area)]">
+              <Icon size={12} aria-hidden="true" />
+            </span>
+            {c.eyebrow}
+          </span>
+          <div
+            className={`absolute bottom-6 ${flip ? "left-6" : "right-6"} flex max-w-[calc(100%-3rem)] flex-col gap-3`}
+          >
+            {st.demo ? (
+              <AreaDemo kind={kind} />
+            ) : (
+              <div className="w-72 rounded-2xl border border-white/20 bg-slate-950/70 p-4 text-white shadow-2xl backdrop-blur-xl">
+                <p className="text-xs font-semibold text-white/60">No seu painel</p>
+                <ul className="mt-2 grid gap-2">
+                  {c.preview.map((t) => (
+                    <li key={t} className="flex items-center gap-2.5 text-sm font-semibold">
+                      <span className="grid size-7 place-items-center rounded-lg bg-[var(--area)]">
+                        <Icon size={14} aria-hidden="true" />
+                      </span>
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </ParallaxPhoto>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[1.35fr_1fr]">
+        <BenefitPicker kind={kind} columns />
+        <StepRail kind={kind} />
       </div>
       <AreaSwitcher kind={kind} />
     </div>
