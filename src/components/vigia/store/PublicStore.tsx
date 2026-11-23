@@ -286,7 +286,7 @@ function PublicStore({
           <PilotNotice className="ml-auto !gap-1.5 !px-2.5 !py-1 !text-[11px] max-sm:[&>span:nth-last-child(-n+2)]:hidden" />
         </nav>
 
-        <div className="flex items-center gap-3 px-3 pb-3 pt-2.5 sm:gap-4 sm:px-4">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2.5 px-3 pb-3 pt-2.5 sm:flex-nowrap sm:gap-4 sm:px-4">
           <span
             className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white text-lg font-black shadow-xl ring-2 ring-white/35 sm:size-16"
             style={{ color: accent }}
@@ -303,7 +303,7 @@ function PublicStore({
           </span>
           <div className="min-w-0 flex-1">
             <h1 className="flex flex-wrap items-center gap-x-2 gap-y-0.5 font-display text-xl font-extrabold leading-tight tracking-tight sm:text-[1.6rem]">
-              <span className="truncate">{vendor.name}</span>
+              <span className="text-balance break-words">{vendor.name}</span>
               {vendor.verified && (
                 <BadgeCheck
                   size={20}
@@ -312,21 +312,21 @@ function PublicStore({
                 />
               )}
             </h1>
-            <p className="mt-0.5 truncate text-[12.5px] text-white/80">
+            <p className="mt-0.5 line-clamp-2 text-[12.5px] text-white/80 sm:truncate">
               Loja parceira NextVita · {vendor.city}
               {vendor.description && <span className="max-md:hidden"> · {vendor.description}</span>}
             </p>
           </div>
-          <div className="relative flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <div className="relative flex w-full shrink-0 items-center gap-1.5 sm:w-auto sm:gap-2">
             <button
               type="button"
               onClick={() => {
                 setChatDraft(undefined);
                 setChat(true);
               }}
-              className="inline-flex h-10 items-center gap-2 rounded-xl bg-white px-3.5 text-[13px] font-bold text-slate-950 shadow-lg transition hover:bg-white/90 active:scale-[.98] sm:px-4"
+              className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl bg-white px-3.5 text-[13px] font-bold text-slate-950 shadow-lg transition hover:bg-white/90 active:scale-[.98] sm:flex-none sm:px-4"
             >
-              <MessageCircle size={16} /> <span className="max-[380px]:hidden">Conversar</span>
+              <MessageCircle size={16} /> <span>Conversar</span>
             </button>
             <button
               type="button"
