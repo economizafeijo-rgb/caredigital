@@ -7,6 +7,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "@tanstack/react-router";
 import {
   Download,
@@ -892,69 +893,74 @@ function PublicStore({
           </div>
         </div>
       )}
-      {detail && zoomImg && detail.image_url && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label={`Foto de ${detail.name}`}
-          className="nv-dark fixed inset-0 z-[140] flex flex-col bg-black/95 text-white"
-          onKeyDown={(e) => {
-            if (e.key === "Escape") setZoomImg(false);
-          }}
-        >
-          <div className="flex items-center gap-2 px-3 py-2.5">
-            <p className="min-w-0 flex-1 truncate text-sm font-semibold">{detail.name}</p>
-            <button
-              type="button"
-              aria-label="Diminuir zoom"
-              disabled={zoom <= 1}
-              onClick={() => setZoom((z) => Math.max(1, +(z - 0.75).toFixed(2)))}
-              className="nv-round grid size-10 place-items-center rounded-full bg-white/15 disabled:opacity-40"
-            >
-              <Minus size={18} />
-            </button>
-            <button
-              type="button"
-              aria-label="Aumentar zoom"
-              disabled={zoom >= 4}
-              onClick={() => setZoom((z) => Math.min(4, +(z + 0.75).toFixed(2)))}
-              className="nv-round grid size-10 place-items-center rounded-full bg-white/15 disabled:opacity-40"
-            >
-              <Plus size={18} />
-            </button>
-            <button
-              type="button"
-              aria-label="Fechar foto"
-              autoFocus
-              onClick={() => setZoomImg(false)}
-              className="nv-round grid size-10 place-items-center rounded-full bg-white/15"
-            >
-              <X size={18} />
-            </button>
-          </div>
+      {detail &&
+        zoomImg &&
+        detail.image_url &&
+        typeof document !== "undefined" &&
+        createPortal(
           <div
-            className="min-h-0 flex-1 overflow-auto overscroll-contain"
-            style={{ touchAction: "pan-x pan-y pinch-zoom" }}
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Foto de ${detail.name}`}
+            className="nv-dark fixed inset-0 z-[2147483000] flex flex-col bg-black/95 text-white"
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setZoomImg(false);
+            }}
           >
-            <div
-              className="grid min-h-full min-w-full place-items-center"
-              style={{ width: `${zoom * 100}%` }}
-            >
-              <img
-                src={detail.image_url}
-                alt={detail.name}
-                draggable={false}
-                onDoubleClick={() => setZoom((z) => (z > 1 ? 1 : 2.5))}
-                className="max-h-[calc(100dvh-4rem)] w-full select-none object-contain"
-                style={zoom > 1 ? { maxHeight: "none" } : undefined}
-              />
+            <div className="flex items-center gap-2 px-3 py-2.5">
+              <p className="min-w-0 flex-1 truncate text-sm font-semibold">{detail.name}</p>
+              <button
+                type="button"
+                aria-label="Diminuir zoom"
+                disabled={zoom <= 1}
+                onClick={() => setZoom((z) => Math.max(1, +(z - 0.75).toFixed(2)))}
+                className="nv-round grid size-10 place-items-center rounded-full bg-white/15 disabled:opacity-40"
+              >
+                <Minus size={18} />
+              </button>
+              <button
+                type="button"
+                aria-label="Aumentar zoom"
+                disabled={zoom >= 4}
+                onClick={() => setZoom((z) => Math.min(4, +(z + 0.75).toFixed(2)))}
+                className="nv-round grid size-10 place-items-center rounded-full bg-white/15 disabled:opacity-40"
+              >
+                <Plus size={18} />
+              </button>
+              <button
+                type="button"
+                aria-label="Fechar foto"
+                autoFocus
+                onClick={() => setZoomImg(false)}
+                className="nv-round grid size-10 place-items-center rounded-full bg-white/15"
+              >
+                <X size={18} />
+              </button>
             </div>
-          </div>
-          <p className="px-4 pb-3 text-center text-[11px] text-white/60">
-            Use + e − para ampliar, arraste para ver os detalhes ou toque duas vezes na foto.
-          </p>
-        </div>
-      )}
+            <div
+              className="min-h-0 flex-1 overflow-auto overscroll-contain"
+              style={{ touchAction: "pan-x pan-y pinch-zoom" }}
+            >
+              <div
+                className="grid min-h-full min-w-full place-items-center"
+                style={{ width: `${zoom * 100}%` }}
+              >
+                <img
+                  src={detail.image_url}
+                  alt={detail.name}
+                  draggable={false}
+                  onDoubleClick={() => setZoom((z) => (z > 1 ? 1 : 2.5))}
+                  className="max-h-[calc(100dvh-4rem)] w-full select-none object-contain"
+                  style={zoom > 1 ? { maxHeight: "none" } : undefined}
+                />
+              </div>
+            </div>
+            <p className="px-4 pb-3 text-center text-[11px] text-white/60">
+              Use + e − para ampliar, arraste para ver os detalhes ou toque duas vezes na foto.
+            </p>
+          </div>,
+          document.body,
+        )}
       {share && <ShareSheet vendor={vendor} onClose={() => setShare(false)} />}
     </div>
   );
