@@ -320,14 +320,21 @@ function GramsInput({
 const clampGrams = (g: number) => Math.round(Math.max(1, Math.min(5000, g)) * 10) / 10;
 type Parsed = ReturnType<typeof parseFoodText>[number];
 /** Texto com quantidade explícita que o leitor lê de volta como o MESMO alimento (ou null). */
-function explicit(food: Parsed, g: number): string | null {
+export function explicit(food: Parsed, g: number): string | null {
   const name = food.name.split(",")[0];
-  const words = name.replace(/\s*\(.*?\)/g, "").split(/\s+/);
+  const plain = name.replace(/\s*\(.*?\)/g, "").trim();
+  const words = plain.split(/\s+/);
+  // Do nome completo até palavras soltas: o primeiro que o leitor reconhece como o mesmo alimento vale.
   const candidates = [
-    name,
-    name.replace(/ de galinha/i, ""),
-    words.slice(0, 2).join(" "),
-    words[0],
+    ...new Set([
+      name,
+      plain,
+      plain.replace(/ de galinha/i, ""),
+      ...words.map((_, i) => words.slice(0, words.length - i).join(" ")),
+      ...words.map((_, i) => words.slice(i).join(" ")),
+      ...words,
+      ...words.flatMap((w) => w.split("-")),
+    ]),
   ];
   for (const c of candidates) {
     const text = `${c} ${clampGrams(g)} ${measureUnit(food.id)}`;
@@ -410,7 +417,9 @@ export function PlateRows({
             >
               <Plus size={12} />
             </button>
-            <span className="w-4 shrink-0 text-[10px] text-muted-foreground">{measureUnit(f.id)}</span>
+            <span className="w-4 shrink-0 text-[10px] text-muted-foreground">
+              {measureUnit(f.id)}
+            </span>
             <button
               type="button"
               aria-label={`Remover ${name}`}
