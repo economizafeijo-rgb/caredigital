@@ -35,6 +35,15 @@ type Goal = {
   bg: string;
 };
 
+/** Fotos de fundo do destaque principal: cenas reais de rotina, treino e alimentação. */
+const heroBg: Record<string, string> = {
+  massa: "/loja/gym.webp",
+  saude: "/images/caredigital-care-hero.webp",
+  peso: "/images/hero-alimentacao.webp",
+  moda: "/images/hero-treinos.webp",
+  casa: "/images/caredigital-care-hero.webp",
+};
+
 /** Objetivos que o visitante escolhe: cada um muda a vitrine, o texto e a ferramenta sugerida. */
 const goals: Goal[] = [
   {
@@ -162,16 +171,16 @@ function MobileHero({
       {goals.map((g, i) => (
         <img
           key={g.key}
-          src={g.bg}
+          src={heroBg[g.key]}
           alt=""
           aria-hidden="true"
           loading={i === idx ? "eager" : "lazy"}
-          className={`absolute inset-0 -z-20 size-full object-cover transition-opacity duration-700 ${i === idx ? "opacity-70" : "opacity-0"}`}
+          className={`absolute inset-0 -z-20 size-full object-cover object-[60%_20%] transition-opacity duration-700 ${i === idx ? "opacity-90" : "opacity-0"}`}
         />
       ))}
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-gradient-to-b from-[#0a1226]/70 via-[#0a1226]/25 to-[#0a1226]"
+        className="absolute inset-0 -z-10 bg-gradient-to-b from-[#0a1226]/55 via-[#0a1226]/45 to-[#0a1226]"
       />
       <div
         aria-hidden="true"
@@ -383,11 +392,11 @@ export function HomeStage({
         {goals.map((g, i) => (
           <img
             key={g.key}
-            src={g.bg}
+            src={heroBg[g.key]}
             alt=""
             aria-hidden="true"
             loading={i === 0 ? "eager" : "lazy"}
-            className={`absolute inset-0 -z-20 size-full object-cover transition-opacity duration-1000 ${i === idx ? "opacity-40" : "opacity-0"}`}
+            className={`absolute inset-0 -z-20 size-full object-cover transition-opacity duration-1000 ${i === idx ? "opacity-60" : "opacity-0"}`}
           />
         ))}
         <div

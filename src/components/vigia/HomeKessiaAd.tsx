@@ -289,42 +289,41 @@ function storeSlide(st: StoreSlideInput, cards: Card[], lines: string[]): Slide 
     render: (line, ctx) => (
       <div className="grid gap-6 lg:grid-cols-[minmax(0,.9fr)_minmax(0,1.4fr)] lg:items-center lg:gap-10">
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <Tag>
-              <Sparkles size={13} aria-hidden="true" /> Loja em destaque
-            </Tag>
-            <Tag>
-              <MapPin size={13} aria-hidden="true" /> {st.place}
-            </Tag>
-          </div>
+          <p className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-white/75">
+            <Sparkles size={13} aria-hidden="true" className="text-amber-300" />
+            Loja em destaque
+            <span aria-hidden="true" className="text-white/40">
+              |
+            </span>
+            <MapPin size={13} aria-hidden="true" /> {st.place}
+          </p>
           <div className="mt-3 flex items-center gap-3">
             {st.logo && (
               <img
                 src={st.logo}
                 alt=""
                 aria-hidden="true"
-                className="size-12 rounded-full bg-white object-contain p-1 shadow-lg"
+                className="size-14 shrink-0 rounded-2xl bg-white object-contain p-1.5 shadow-lg ring-1 ring-white/30"
               />
             )}
-            <h2 className="font-display text-2xl font-extrabold leading-tight tracking-tight sm:text-[1.9rem]">
+            <h2 className="min-w-0 text-balance font-display text-[1.65rem] font-extrabold leading-[1.05] tracking-tight sm:text-[1.9rem]">
               {st.name}
             </h2>
           </div>
           <p
             key={line}
             aria-live="polite"
-            className="nv-rise mt-3 min-h-[3.25rem] max-w-[24ch] text-balance font-display text-xl font-bold leading-snug text-pink-100 sm:text-2xl"
+            className="nv-rise mt-3 min-h-[2.75rem] max-w-[26ch] text-balance text-[15px] font-medium leading-snug text-white/85 sm:text-lg"
           >
             {line}
           </p>
-          <div className="mt-5 flex flex-wrap gap-2.5">
-            <a
-              href={st.href}
-              className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-[#6b1450] transition hover:bg-pink-50"
-            >
-              <Store size={16} aria-hidden="true" /> Entrar na loja
-            </a>
-          </div>
+          <a
+            href={st.href}
+            className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-[#6b1450] shadow-lg transition hover:bg-pink-50 active:scale-[.98] sm:w-auto"
+          >
+            <Store size={16} aria-hidden="true" /> Entrar na loja
+            <ArrowRight size={15} aria-hidden="true" />
+          </a>
         </div>
         <ProductPages {...ctx} />
       </div>
