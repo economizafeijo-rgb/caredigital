@@ -143,7 +143,7 @@ function Homepage() {
               </div>
 
               {/* Links */}
-              <div className="grid min-w-0 gap-5 sm:grid-cols-3 sm:gap-6">
+              <div className="grid min-w-0 gap-6 sm:grid-cols-3 sm:gap-6">
                 {(
                   [
                     [
@@ -181,7 +181,7 @@ function Homepage() {
                   ] as const
                 ).map(([title, color, links]) => (
                   <nav key={title} aria-label={title} className="min-w-0">
-                    <p className="flex items-center gap-2 text-[12px] font-extrabold uppercase tracking-[0.14em] text-white">
+                    <p className="flex items-center gap-2 text-[12px] font-extrabold uppercase tracking-[0.14em] text-white max-sm:border-b max-sm:border-white/15 max-sm:pb-2">
                       <span
                         aria-hidden="true"
                         className="h-3.5 w-1"
@@ -189,12 +189,12 @@ function Homepage() {
                       />
                       {title}
                     </p>
-                    <ul className="mt-2.5 flex flex-wrap gap-1.5 sm:flex-col sm:gap-1">
+                    <ul className="mt-1 grid grid-cols-2 gap-x-6 sm:mt-2.5 sm:flex sm:flex-col sm:gap-1">
                       {links.map(([to, label]) => (
                         <li key={to}>
                           <a
                             href={to}
-                            className="inline-flex h-9 items-center bg-white/[.06] px-3 text-[13px] font-semibold text-white/80 ring-1 ring-white/10 transition-colors hover:bg-white/10 hover:text-white sm:h-auto sm:bg-transparent sm:px-0 sm:py-0.5 sm:font-medium sm:text-white/65 sm:ring-0"
+                            className="flex h-11 items-center justify-between border-b border-white/[.07] text-[14px] font-medium text-white/80 transition-colors hover:text-white sm:inline-flex sm:h-auto sm:justify-start sm:border-0 sm:py-0.5 sm:text-[13px] sm:text-white/65"
                           >
                             {label}
                           </a>

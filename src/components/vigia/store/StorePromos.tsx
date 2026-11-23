@@ -139,27 +139,48 @@ export function CampaignTeaser() {
   if (!teaser) return null;
   return (
     <aside
-      className="nv-dark flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl bg-[#2a0508] bg-cover bg-center p-4 text-white sm:p-5"
-      style={{
-        backgroundImage:
-          "linear-gradient(90deg, rgba(42,5,8,.92), rgba(91,10,18,.82) 55%, rgba(13,59,38,.88)), url(/images/hero-alimentacao.webp)",
-      }}
+      aria-label={`Em breve: ${teaser.name}`}
+      className="nv-dark relative isolate overflow-hidden rounded-3xl bg-[#2a0508] p-5 text-white sm:p-6"
     >
-      <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-white/15 text-white">
-        <Gift size={20} aria-hidden="true" />
-      </span>
-      <div className="min-w-[12rem] flex-1">
-        <p className="text-[12px] font-medium text-white/70">{teaser.when}</p>
-        <h2 className="font-display text-lg font-bold leading-tight">{teaser.name}</h2>
-        <p className="mt-0.5 text-[13px] text-white/80">{teaser.text}</p>
+      <img
+        src="/images/hero-alimentacao.webp"
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        className="absolute inset-0 -z-20 size-full object-cover opacity-50"
+      />
+      <span
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 bg-[linear-gradient(135deg,rgba(42,5,8,.94)_0%,rgba(91,10,18,.82)_52%,rgba(13,59,38,.9)_100%)]"
+      />
+      <span
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 -z-10 h-[3px] bg-gradient-to-r from-[#e11d48] via-[#fbbf24] to-[#10b981]"
+      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+        <div className="flex min-w-0 flex-1 items-start gap-4">
+          <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#fb7185] to-[#be123c] shadow-[inset_0_1px_0_rgba(255,255,255,.4),0_10px_24px_-10px_#e11d48]">
+            <Gift size={26} strokeWidth={1.8} aria-hidden="true" />
+          </span>
+          <div className="min-w-0">
+            <p className="inline-flex items-center gap-1.5 rounded-full bg-white/12 px-2.5 py-0.5 text-[12px] font-semibold text-amber-200 ring-1 ring-white/15">
+              <span aria-hidden="true" className="size-1.5 rounded-full bg-amber-300" />
+              {teaser.when}
+            </p>
+            <h2 className="mt-1.5 font-display text-[1.6rem] font-extrabold leading-tight tracking-tight">
+              {teaser.name}
+            </h2>
+            <p className="mt-1 text-[14px] leading-snug text-white/85">{teaser.text}</p>
+          </div>
+        </div>
+        <Link
+          to="/"
+          hash="ofertas"
+          className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-6 text-[15px] font-bold text-slate-900 shadow-lg transition hover:bg-amber-100 active:scale-[.98] max-sm:w-full"
+        >
+          Ver presentes <ArrowRight size={16} aria-hidden="true" />
+        </Link>
       </div>
-      <Link
-        to="/"
-        hash="ofertas"
-        className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border max-sm:w-full border-border px-4 text-[13px] font-semibold transition-colors hover:border-primary/60 hover:text-primary"
-      >
-        Ver presentes <ArrowRight size={15} aria-hidden="true" />
-      </Link>
     </aside>
   );
 }

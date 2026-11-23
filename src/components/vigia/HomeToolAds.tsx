@@ -1,102 +1,110 @@
 import {
   Activity,
-  ArrowRight,
   BarChart3,
   BedDouble,
-  Check,
   Droplets,
-  HeartPulse,
   Pill,
   Ruler,
   Scale,
-  Smartphone,
   Sparkles,
   Utensils,
   type LucideIcon,
 } from "lucide-react";
 import { InstallAppButton } from "./InstallApp";
 
-type Tool = {
-  id: string;
-  color: string;
-  icon: LucideIcon;
-  title: string;
-  text: string;
-  cta: string;
+type Feature = {
   to: string;
   client: string;
-  clientCta: string;
+  label: string;
+  hint: string;
+  icon: LucideIcon;
+  from: string;
+  via: string;
 };
 
-const tools: Tool[] = [
+/** Funcionalidades do app, cada uma com o próprio ícone de aplicativo. */
+const features: Feature[] = [
   {
-    id: "agua",
-    color: "#38bdf8",
-    icon: Droplets,
-    title: "Meta de água calculada para você",
-    text: "Calcula quanto beber pelo seu peso e avisa a hora do próximo copo.",
-    cta: "Usar grátis",
     to: "/hidratacao",
     client: "/cliente#minha-hidratacao",
-    clientCta: "Registrar água",
+    label: "Hidratação",
+    hint: "Meta de água",
+    icon: Droplets,
+    from: "#38bdf8",
+    via: "#2563eb",
   },
   {
-    id: "med",
-    color: "#fb7185",
-    icon: Pill,
-    title: "Nenhuma dose esquecida",
-    text: "Horários de remédios e suplementos, com confirmação e histórico de cada dose.",
-    cta: "Usar grátis",
     to: "/medicamentos",
     client: "/cliente#medicacao",
-    clientCta: "Ver minhas doses",
+    label: "Medicação",
+    hint: "Doses e horários",
+    icon: Pill,
+    from: "#fb7185",
+    via: "#e11d48",
   },
   {
-    id: "medidas",
-    color: "#fbbf24",
-    icon: Ruler,
-    title: "Medidas do corpo com gráfico",
-    text: "Cintura, braços e quadril, com relação cintura-quadril e gordura estimada.",
-    cta: "Começar a medir",
+    to: "/dietas",
+    client: "/cliente#alimentacao",
+    label: "Alimentação",
+    hint: "Diário e cardápio",
+    icon: Utensils,
+    from: "#34d399",
+    via: "#059669",
+  },
+  {
+    to: "/suplementos",
+    client: "/suplementos",
+    label: "Suplementos",
+    hint: "Vitaminas",
+    icon: Sparkles,
+    from: "#a78bfa",
+    via: "#6d28d9",
+  },
+  {
+    to: "/peso",
+    client: "/peso",
+    label: "Peso",
+    hint: "Evolução",
+    icon: Scale,
+    from: "#e879f9",
+    via: "#a21caf",
+  },
+  {
     to: "/entrar?mode=signup",
     client: "/cliente#medidas",
-    clientCta: "Abrir minhas medidas",
+    label: "Medidas",
+    hint: "Corpo e gráfico",
+    icon: Ruler,
+    from: "#fbbf24",
+    via: "#d97706",
   },
   {
-    id: "sono",
-    color: "#a78bfa",
-    icon: BedDouble,
-    title: "Sono e batimentos ao vivo",
-    text: "Conecte uma cinta ou relógio Bluetooth e veja a nota de cada noite.",
-    cta: "Conhecer",
+    to: "/treinos",
+    client: "/treinos",
+    label: "Treinos",
+    hint: "Seus registros",
+    icon: Activity,
+    from: "#fb923c",
+    via: "#ea580c",
+  },
+  {
     to: "/sono",
     client: "/cliente#sono",
-    clientCta: "Ver meu sono",
+    label: "Sono",
+    hint: "Nota da noite",
+    icon: BedDouble,
+    from: "#818cf8",
+    via: "#4338ca",
   },
   {
-    id: "metricas",
-    color: "#34d399",
-    icon: BarChart3,
-    title: "Sua evolução em gráficos",
-    text: "Água, alimentação, peso e atividade no dia, no mês e no ano.",
-    cta: "Usar grátis",
     to: "/metricas",
-    client: "/cliente#indicadores",
-    clientCta: "Ver meus gráficos",
+    client: "/metricas",
+    label: "Métricas",
+    hint: "Seus gráficos",
+    icon: BarChart3,
+    from: "#2dd4bf",
+    via: "#0e7490",
   },
-];
-
-/** Todas as áreas do app, em atalhos discretos logo abaixo das ferramentas. */
-const areas: { to: string; client: string; label: string; icon: LucideIcon }[] = [
-  { to: "/medicamentos", client: "/cliente#medicacao", label: "Medicação", icon: Pill },
-  { to: "/hidratacao", client: "/cliente#minha-hidratacao", label: "Hidratação", icon: Droplets },
-  { to: "/dietas", client: "/cliente#alimentacao", label: "Alimentação", icon: Utensils },
-  { to: "/suplementos", client: "/suplementos", label: "Suplementos", icon: Sparkles },
-  { to: "/peso", client: "/peso", label: "Peso", icon: Scale },
-  { to: "/treinos", client: "/treinos", label: "Treinos", icon: Activity },
-  { to: "/sono", client: "/cliente#sono", label: "Sono", icon: BedDouble },
-  { to: "/metricas", client: "/metricas", label: "Métricas", icon: BarChart3 },
-  { to: "/protocolos", client: "/protocolos", label: "Como funciona", icon: HeartPulse },
 ];
 
 /** Ferramentas gratuitas do app: faixa compacta com uma linha por ferramenta e o convite para instalar. */
@@ -126,7 +134,7 @@ export function HomeToolAds({ client }: { client: boolean }) {
             Ferramentas grátis do app
           </h2>
           <p className="mt-0.5 text-[13px] text-white/80">
-            Água, remédios, medidas, sono e gráficos. Sem custo, no celular ou no computador.
+            Toque em uma funcionalidade para começar. Sem custo, no celular ou no computador.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -142,56 +150,39 @@ export function HomeToolAds({ client }: { client: boolean }) {
         </div>
       </header>
 
-      <ul className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-5 [&::-webkit-scrollbar]:hidden">
-        {tools.map((t) => (
-          <li key={t.id} className="w-[15.5rem] shrink-0 snap-start sm:w-auto">
+      <ul className="grid grid-cols-3 gap-x-3 gap-y-5 pt-1 md:grid-cols-9">
+        {features.map((f) => (
+          <li key={f.label}>
             <a
-              href={client ? t.client : t.to}
-              className="group flex h-full flex-col gap-2 rounded-2xl border border-white/10 bg-black/40 p-3.5 backdrop-blur transition-colors hover:border-white/30 hover:bg-black/55"
+              href={client ? f.client : f.to}
+              className="group flex flex-col items-center gap-2 text-center"
             >
               <span
-                className="grid size-9 place-items-center rounded-lg"
+                className="relative grid size-[4.25rem] place-items-center overflow-hidden rounded-[1.35rem] transition duration-200 group-hover:-translate-y-1 group-active:scale-95 motion-reduce:transition-none"
                 style={{
-                  color: t.color,
-                  background: `color-mix(in srgb, ${t.color} 18%, transparent)`,
+                  background: `linear-gradient(145deg, ${f.from} 0%, ${f.via} 100%)`,
+                  boxShadow: `inset 0 1px 0 rgba(255,255,255,.5), inset 0 -10px 18px rgba(0,0,0,.2), 0 12px 26px -10px ${f.via}, 0 0 0 1px rgba(255,255,255,.12)`,
                 }}
               >
-                <t.icon size={18} aria-hidden="true" />
-              </span>
-              <strong className="text-[13.5px] font-bold leading-snug">{t.title}</strong>
-              <span className="text-[12px] leading-snug text-white/70">{t.text}</span>
-              <span
-                className="mt-auto inline-flex items-center gap-1 pt-1 text-[12px] font-semibold"
-                style={{ color: t.color }}
-              >
-                {client ? t.clientCta : t.cta}
-                <ArrowRight
-                  size={13}
+                <span
                   aria-hidden="true"
-                  className="transition-transform group-hover:translate-x-0.5"
+                  className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/35 to-transparent"
                 />
+                <f.icon
+                  size={30}
+                  strokeWidth={1.8}
+                  aria-hidden="true"
+                  className="relative text-white drop-shadow-[0_2px_3px_rgba(0,0,0,.35)]"
+                />
+              </span>
+              <span className="min-w-0 leading-tight">
+                <strong className="block text-[13px] font-bold">{f.label}</strong>
+                <span className="block text-[11px] text-white/60">{f.hint}</span>
               </span>
             </a>
           </li>
         ))}
       </ul>
-
-      <nav
-        aria-label="Todas as áreas do app"
-        className="flex flex-wrap items-center gap-x-1 gap-y-1.5 border-t border-white/10 pt-3 max-sm:hidden"
-      >
-        <span className="mr-2 text-[13px] font-semibold text-white">Todas as áreas:</span>
-        {areas.map((a) => (
-          <a
-            key={a.to}
-            href={client ? a.client : a.to}
-            className="inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] text-white/75 transition-colors hover:bg-white/10 hover:text-white"
-          >
-            <a.icon size={14} aria-hidden="true" />
-            {a.label}
-          </a>
-        ))}
-      </nav>
     </section>
   );
 }
