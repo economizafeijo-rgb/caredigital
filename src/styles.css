@@ -515,6 +515,25 @@ iframe[title*="Lovable" i][title*="badge" i] {
   font-variant-numeric: tabular-nums;
   color: var(--muted-foreground);
 }
+/* Celular: título e detalhe ganham a linha toda; hora e ações descem para uma segunda linha. */
+@media (max-width: 639px) {
+  .care-history-entry {
+    flex-wrap: wrap;
+    row-gap: 0.35rem;
+    padding: 0.65rem 0.15rem;
+  }
+  .care-history-entry-copy {
+    flex: 1 1 calc(100% - 2.6rem);
+  }
+  .care-history-entry-copy strong {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .care-history-entry time {
+    margin-left: 2.35rem;
+    margin-right: auto;
+  }
+}
 .care-history-more {
   align-self: flex-start;
   font-size: 12px;
