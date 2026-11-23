@@ -23,6 +23,7 @@ import {
   QrCode,
   Share2,
   ShoppingCart,
+  ZoomIn,
   Store,
   Truck,
   X,
@@ -205,6 +206,11 @@ function PublicStore({
   }, [vendor.slug]);
   const [chatDraft, setChatDraft] = useState<string | undefined>(undefined);
   const [detail, setDetail] = useState<VendorProduct | null>(null);
+  const [zoomImg, setZoomImg] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  useEffect(() => {
+    setZoomImg(false);
+  }, [detail]);
   const deepLinked = useRef(false);
   const [linkCopied, setLinkCopied] = useState(false);
   // Link do produto (/p/<código>): abre o detalhe daquele produto uma única vez.
@@ -710,11 +716,25 @@ function PublicStore({
             </button>
             <div className="relative bg-white sm:min-h-full">
               {detail.image_url ? (
-                <img
-                  src={detail.image_url}
-                  alt={detail.name}
-                  className="h-44 w-full bg-gradient-to-b from-[#f2f3f5] to-[#dfe2e6] object-contain p-2 min-[420px]:h-52 sm:aspect-square sm:h-full sm:object-cover sm:p-0"
-                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setZoom(1);
+                    setZoomImg(true);
+                  }}
+                  aria-label="Ampliar foto do produto"
+                  className="group relative block w-full cursor-zoom-in sm:h-full"
+                  style={{ minHeight: 0 }}
+                >
+                  <img
+                    src={detail.image_url}
+                    alt={detail.name}
+                    className="h-44 w-full bg-gradient-to-b from-[#f2f3f5] to-[#dfe2e6] object-contain p-2 min-[420px]:h-52 sm:aspect-square sm:h-full sm:object-cover sm:p-0"
+                  />
+                  <span className="nv-round absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-slate-900/75 px-2.5 py-1 text-[11px] font-bold text-white shadow backdrop-blur">
+                    <ZoomIn size={13} aria-hidden="true" /> Ampliar
+                  </span>
+                </button>
               ) : (
                 <div className="grid h-36 place-items-center text-4xl font-black text-slate-300 sm:aspect-square sm:h-auto">
                   {initialsOf(detail.name)}
@@ -870,6 +890,69 @@ function PublicStore({
               </div>
             </div>
           </div>
+        </div>
+      )}
+      {detail && zoomImg && detail.image_url && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Foto de ${detail.name}`}
+          className="nv-dark fixed inset-0 z-[80] flex flex-col bg-black/95 text-white"
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setZoomImg(false);
+          }}
+        >
+          <div className="flex items-center gap-2 px-3 py-2.5">
+            <p className="min-w-0 flex-1 truncate text-sm font-semibold">{detail.name}</p>
+            <button
+              type="button"
+              aria-label="Diminuir zoom"
+              disabled={zoom <= 1}
+              onClick={() => setZoom((z) => Math.max(1, +(z - 0.75).toFixed(2)))}
+              className="nv-round grid size-10 place-items-center rounded-full bg-white/15 disabled:opacity-40"
+            >
+              <Minus size={18} />
+            </button>
+            <button
+              type="button"
+              aria-label="Aumentar zoom"
+              disabled={zoom >= 4}
+              onClick={() => setZoom((z) => Math.min(4, +(z + 0.75).toFixed(2)))}
+              className="nv-round grid size-10 place-items-center rounded-full bg-white/15 disabled:opacity-40"
+            >
+              <Plus size={18} />
+            </button>
+            <button
+              type="button"
+              aria-label="Fechar foto"
+              autoFocus
+              onClick={() => setZoomImg(false)}
+              className="nv-round grid size-10 place-items-center rounded-full bg-white/15"
+            >
+              <X size={18} />
+            </button>
+          </div>
+          <div
+            className="min-h-0 flex-1 overflow-auto overscroll-contain"
+            style={{ touchAction: "pan-x pan-y pinch-zoom" }}
+          >
+            <div
+              className="grid min-h-full min-w-full place-items-center"
+              style={{ width: `${zoom * 100}%` }}
+            >
+              <img
+                src={detail.image_url}
+                alt={detail.name}
+                draggable={false}
+                onDoubleClick={() => setZoom((z) => (z > 1 ? 1 : 2.5))}
+                className="max-h-[calc(100dvh-4rem)] w-full select-none object-contain"
+                style={zoom > 1 ? { maxHeight: "none" } : undefined}
+              />
+            </div>
+          </div>
+          <p className="px-4 pb-3 text-center text-[11px] text-white/60">
+            Use + e − para ampliar, arraste para ver os detalhes ou toque duas vezes na foto.
+          </p>
         </div>
       )}
       {share && <ShareSheet vendor={vendor} onClose={() => setShare(false)} />}
