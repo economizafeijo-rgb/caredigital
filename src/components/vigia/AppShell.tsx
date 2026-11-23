@@ -551,6 +551,24 @@ export function AppShell({ children }: { children: ReactNode }) {
   const isActive = (item: NavItem) =>
     item.to === location.pathname && (!item.hash || item.hash === currentHash);
   const current = items.find(isActive);
+  // Barra de abas fixa (estilo aplicativo) nas páginas internas do celular.
+  const appTabs: NavItem[] =
+    profile === "client"
+      ? [
+          section("hoje", "Hoje", LayoutDashboard),
+          section("agenda", "Meu dia", CalendarDays),
+          section("alimentacao", "Alimentação", Utensils),
+          section("peso", "Evolução", Scale),
+        ]
+      : profile === "admin"
+        ? [
+            { to: "/admin", hash: "visao", label: "Visão", icon: Settings2 },
+            { to: "/admin", hash: "clientes", label: "Clientes", icon: Users },
+            { to: "/admin", hash: "lojas", label: "Lojas", icon: Store },
+            { to: "/admin", hash: "vendas", label: "Vendas", icon: TrendingUp },
+          ]
+        : [];
+  const showAppTabs = internalPage && !lojistaArea && appTabs.length > 0;
   const panelHome =
     profile === "client"
       ? "/cliente"
@@ -874,7 +892,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             )}
             <main
               id="care-content"
-              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-2 sm:p-3 lg:p-4"
+              className={`min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-2 sm:p-3 lg:p-4 ${showAppTabs ? "max-xl:pb-[calc(4.75rem+env(safe-area-inset-bottom))]" : ""}`}
             >
               {staffBlocked ? (
                 <p role="status" className="py-24 text-center text-sm text-muted-foreground">
@@ -897,6 +915,48 @@ export function AppShell({ children }: { children: ReactNode }) {
               )}
             </main>
           </div>
+
+          {showAppTabs && (
+            <nav
+              aria-label="Navegação do painel"
+              className="nv-apptabs fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_-12px_rgba(0,0,0,.35)] backdrop-blur xl:hidden"
+            >
+              <div className="mx-auto grid max-w-xl grid-cols-5">
+                {appTabs.map((it) => {
+                  const on = isActive(it);
+                  return (
+                    <Link
+                      key={it.label}
+                      to={it.to}
+                      {...(it.hash ? { hash: it.hash } : {})}
+                      aria-current={on ? "page" : undefined}
+                      className={`relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-semibold transition-colors active:scale-95 ${on ? "text-primary" : "text-muted-foreground"}`}
+                    >
+                      {on && (
+                        <span className="absolute inset-x-3 top-0 h-[3px] rounded-b-full bg-primary" />
+                      )}
+                      <it.icon
+                        size={22}
+                        strokeWidth={on ? 2.4 : 1.9}
+                        className={`transition-transform ${on ? "-translate-y-0.5" : ""}`}
+                      />
+                      <span className="max-w-full truncate px-1">{it.label}</span>
+                    </Link>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen(true)}
+                  aria-label="Abrir menu completo"
+                  aria-expanded={menuOpen}
+                  className="flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-semibold text-muted-foreground transition-colors active:scale-95"
+                >
+                  <Menu size={22} strokeWidth={1.9} />
+                  Mais
+                </button>
+              </div>
+            </nav>
+          )}
 
           {!internalPage && (
             <nav

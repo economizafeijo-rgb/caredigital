@@ -1,7 +1,6 @@
 import { FitPage } from "@/components/vigia/FitPage";
 import { endOtherSessions } from "@/components/vigia/SessionGuard";
 import { AuthStage, type AuthStatus } from "@/components/vigia/AuthStage";
-import { PartnerSignup } from "@/components/vigia/PartnerSignup";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent, type InputHTMLAttributes } from "react";
 import {
@@ -41,7 +40,7 @@ export const Route = createFileRoute("/entrar")({
   component: Entrar,
 });
 
-type Mode = "login" | "signup" | "vendor" | "forgot" | "reset";
+type Mode = "login" | "signup" | "forgot" | "reset";
 type Notice = { type: "error" | "success"; message: string } | null;
 
 function authErrorMessage(error: { message?: string; code?: string; status?: number }): string {
@@ -125,7 +124,6 @@ function Entrar() {
     } else if (window.location.hash.includes("type=recovery") || params.get("type") === "recovery")
       setMode("reset");
     else if (params.get("mode") === "signup") setMode("signup");
-    else if (params.get("mode") === "lojista") setMode("vendor");
     return () => subscription.unsubscribe();
   }, []);
 
@@ -440,11 +438,9 @@ function Entrar() {
       ? "Acesse seu acompanhamento"
       : mode === "signup"
         ? "Crie sua conta grátis"
-        : mode === "vendor"
-          ? "Cadastro de parceiro"
-          : mode === "forgot"
-            ? "Recuperar acesso"
-            : "Criar nova senha";
+        : mode === "forgot"
+          ? "Recuperar acesso"
+          : "Criar nova senha";
   const field = "field mt-1.5";
   const iconField = (Icon: LucideIcon, props: InputHTMLAttributes<HTMLInputElement>) => (
     <span className="relative block">
@@ -507,11 +503,9 @@ function Entrar() {
               ? "Entre com o e-mail e a senha cadastrados."
               : mode === "signup"
                 ? "Grátis e sem prazo de validade. Leva menos de 1 minuto."
-                : mode === "vendor"
-                  ? "Duas etapas rápidas. Sem mensalidade para começar."
-                  : mode === "forgot"
-                    ? "Informe o e-mail da conta para solicitar um link seguro de recuperação."
-                    : "Defina uma senha nova e segura para sua conta."}
+                : mode === "forgot"
+                  ? "Informe o e-mail da conta para solicitar um link seguro de recuperação."
+                  : "Defina uma senha nova e segura para sua conta."}
           </p>
           {configurationIssue && (
             <div
@@ -543,36 +537,6 @@ function Entrar() {
             >
               {resendBusy ? "Reenviando link…" : "Reenviar e-mail de confirmação"}
             </button>
-          )}
-
-          {(mode === "signup" || mode === "vendor") && (
-            <div
-              role="tablist"
-              aria-label="Tipo de conta"
-              className="grid grid-cols-2 gap-1 rounded-xl bg-muted p-1"
-            >
-              {(
-                [
-                  ["signup", "Quero me cuidar", "Conta pessoal grátis"],
-                  ["vendor", "Sou parceiro", "Loja, academia, personal"],
-                ] as const
-              ).map(([m, t, h]) => (
-                <button
-                  key={m}
-                  role="tab"
-                  type="button"
-                  aria-selected={mode === m}
-                  onClick={() => {
-                    setMode(m);
-                    setNotice(null);
-                  }}
-                  title={h}
-                  className={`rounded-lg px-3 py-1.5 text-center transition-colors ${mode === m ? "bg-card shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-                >
-                  <strong className="block text-sm">{t}</strong>
-                </button>
-              ))}
-            </div>
           )}
 
           {mode === "login" && (
@@ -827,28 +791,6 @@ function Entrar() {
                 <ArrowLeft size={14} /> Já tenho uma conta
               </button>
             </form>
-          )}
-
-          {mode === "vendor" && (
-            <PartnerSignup
-              disabled={!!configurationIssue}
-              errorMessage={authErrorMessage}
-              onSignedIn={openAuthenticatedArea}
-              onBack={() => {
-                setMode("login");
-                setNotice(null);
-              }}
-              onNeedsConfirmation={(mail) => {
-                setEmail(mail);
-                setMode("login");
-                setNeedsConfirmation(true);
-                setNotice({
-                  type: "success",
-                  message:
-                    "Conta de parceiro criada. Confirme o e-mail que enviamos e depois entre para concluir o cadastro do seu negócio.",
-                });
-              }}
-            />
           )}
 
           {mode === "forgot" && (

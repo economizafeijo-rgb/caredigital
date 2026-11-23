@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { Search } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import {
   BadgeCheck,
   BookUser,
@@ -86,6 +86,7 @@ export function SellerDashboard({
       : "visao",
   );
   const [chatWith, setChatWith] = useState<string | null>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [switcher, setSwitcher] = useState(false);
   const { data, loaded, error, reload } = useSellerData(vendor.id);
   const accent = vendor.accent_hex ?? "#0e7a5f";
@@ -269,6 +270,13 @@ export function SellerDashboard({
   ]
     .map((g) => ({ ...g, keys: g.keys.filter(allowed) }))
     .filter((g) => g.keys.length);
+  // Barra de abas do celular: as quatro seções mais usadas; o restante fica em "Mais".
+  const allKeys = groups.flatMap((g) => g.keys);
+  const primaryTabs = (["visao", "pedidos", "mensagens", "produtos"] as SellerTab[]).filter((k) =>
+    allKeys.includes(k),
+  );
+  const moreKeys = allKeys.filter((k) => !primaryTabs.includes(k));
+  const moreActive = moreKeys.includes(tab);
   const refresh = () => {
     void reload();
     onChanged();
@@ -325,7 +333,7 @@ export function SellerDashboard({
         </div>
       )}
       <div
-        className="grid min-h-full w-full gap-4 lg:grid-cols-[16rem_minmax(0,1fr)]"
+        className="grid min-h-full w-full gap-4 max-lg:pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:grid-cols-[16rem_minmax(0,1fr)]"
         style={
           {
             "--accent-store": accent,
@@ -433,7 +441,7 @@ export function SellerDashboard({
 
           <nav
             aria-label="Painel da loja"
-            className="flex flex-wrap gap-1.5 lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-y-auto lg:px-0"
+            className="hidden gap-1.5 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-y-auto lg:px-0"
           >
             {groups.map((g) => (
               <div key={g.title} className="flex flex-wrap gap-1.5 lg:flex-col">
@@ -653,6 +661,113 @@ export function SellerDashboard({
           )}
         </main>
       </div>
+
+      <nav
+        aria-label="Seções da loja"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_-12px_rgba(0,0,0,.35)] backdrop-blur lg:hidden"
+      >
+        <div
+          className="mx-auto grid max-w-xl"
+          style={{
+            gridTemplateColumns: `repeat(${primaryTabs.length + (moreKeys.length ? 1 : 0)}, minmax(0, 1fr))`,
+          }}
+        >
+          {primaryTabs.map((key) => {
+            const n = allNav[key];
+            const on = tab === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setTab(key)}
+                aria-current={on ? "page" : undefined}
+                className={`relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-semibold transition-colors active:scale-95 ${on ? "" : "text-muted-foreground"}`}
+                style={on ? { color: accent } : undefined}
+              >
+                {on && (
+                  <span
+                    className="absolute inset-x-3 top-0 h-[3px] rounded-b-full"
+                    style={{ background: accent }}
+                  />
+                )}
+                <span className="relative">
+                  <n.icon size={22} strokeWidth={on ? 2.4 : 1.9} />
+                  {!!n.badge && (
+                    <span className="absolute -right-2.5 -top-1.5 grid min-w-4 place-items-center rounded-full bg-rose-600 px-1 text-[10px] font-bold leading-4 text-white">
+                      {n.badge}
+                    </span>
+                  )}
+                </span>
+                {n.label}
+              </button>
+            );
+          })}
+          {moreKeys.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setMoreOpen(true)}
+              aria-expanded={moreOpen}
+              className={`relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-semibold active:scale-95 ${moreActive ? "" : "text-muted-foreground"}`}
+              style={moreActive ? { color: accent } : undefined}
+            >
+              {moreActive && (
+                <span
+                  className="absolute inset-x-3 top-0 h-[3px] rounded-b-full"
+                  style={{ background: accent }}
+                />
+              )}
+              <Menu size={22} strokeWidth={moreActive ? 2.4 : 1.9} />
+              Mais
+            </button>
+          )}
+        </div>
+      </nav>
+
+      {moreOpen && (
+        <div
+          className="fixed inset-0 z-50 lg:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mais seções"
+        >
+          <button
+            type="button"
+            aria-label="Fechar"
+            className="absolute inset-0 cursor-default bg-slate-950/60 backdrop-blur-sm"
+            onClick={() => setMoreOpen(false)}
+          />
+          <div className="nv-drawer absolute inset-x-0 bottom-0 max-h-[75dvh] overflow-y-auto rounded-t-3xl border-t border-border bg-card p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-2xl">
+            <span className="mx-auto mb-3 block h-1.5 w-10 rounded-full bg-muted-foreground/30" />
+            <div className="grid grid-cols-3 gap-2">
+              {moreKeys.map((key) => {
+                const n = allNav[key];
+                const on = tab === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => {
+                      setTab(key);
+                      setMoreOpen(false);
+                    }}
+                    aria-current={on ? "page" : undefined}
+                    className={`relative flex flex-col items-center gap-1.5 rounded-2xl border p-3 text-xs font-semibold ${on ? "border-transparent text-white" : "border-border bg-background text-foreground"}`}
+                    style={on ? { background: accent } : undefined}
+                  >
+                    <n.icon size={22} />
+                    {n.label}
+                    {!!n.badge && (
+                      <span className="absolute right-2 top-2 grid min-w-4 place-items-center rounded-full bg-rose-600 px-1 text-[10px] font-bold leading-4 text-white">
+                        {n.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

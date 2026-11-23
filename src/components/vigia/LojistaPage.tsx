@@ -104,7 +104,7 @@ export function LojistaPage() {
           {state === "out" && (
             <p className="mt-3 text-center text-sm text-muted-foreground">
               Já tem uma loja aprovada?{" "}
-              <a href="/entrar?mode=lojista" className="font-semibold text-primary hover:underline">
+              <a href="/entrar" className="font-semibold text-primary hover:underline">
                 Entrar no painel do lojista
               </a>
             </p>
