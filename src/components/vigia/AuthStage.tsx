@@ -153,18 +153,10 @@ export function AuthStage({ mode, email, password, status }: Props) {
         }}
       />
       <div className="px-5 pt-5">
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2.5">
-            <LogoMark size={32} />
-            <span className="font-display text-lg font-extrabold">
-              Next<span className="text-[#3fe0c8]">Vita</span>
-            </span>
-          </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold backdrop-blur">
-            <ShieldCheck size={12} className="text-[#3fe0c8]" /> Conexão segura
-          </span>
-        </div>
-        <p className="mt-6 text-balance font-display text-[1.7rem] font-extrabold leading-[1.1] tracking-[-0.02em]">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold backdrop-blur">
+          <ShieldCheck size={12} className="text-[#3fe0c8]" /> Conexão segura
+        </span>
+        <p className="mt-4 text-balance font-display text-[1.7rem] font-extrabold leading-[1.1] tracking-[-0.02em]">
           {name
             ? `Olá, ${name}.`
             : mode === "signup"
