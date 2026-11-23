@@ -169,6 +169,29 @@ export function CustomerChat({
         .in("id", unread);
   }, [user, vendor.id, vendor.name]);
 
+  // Limpa o chat do cliente. A loja mantém o histórico no arquivo.
+  const [clearing, setClearing] = useState(false);
+  async function clearChat() {
+    if (!user || clearing) return;
+    if (
+      !window.confirm(
+        "Limpar esta conversa? As mensagens saem do seu chat. A loja mantém o histórico.",
+      )
+    )
+      return;
+    setClearing(true);
+    const client = supabase as unknown as {
+      rpc: (
+        n: string,
+        a: Record<string, unknown>,
+      ) => Promise<{ error: { message: string } | null }>;
+    };
+    const { error } = await client.rpc("care_store_customer_clear_chat", { p_vendor: vendor.id });
+    setClearing(false);
+    if (error) return window.alert("Não foi possível limpar a conversa agora. Tente de novo.");
+    await load();
+  }
+
   // Presença e "digitando" do atendente nesta conversa.
   const [peerTyping, setPeerTyping] = useState(false);
   const liveRef = useRef<{ leave: () => void; typing: () => void } | null>(null);
@@ -394,6 +417,18 @@ export function CustomerChat({
             </p>
           </div>
           <div className="flex items-center gap-0.5">
+            {user && (
+              <button
+                type="button"
+                onClick={() => void clearChat()}
+                disabled={clearing}
+                aria-label="Limpar conversa"
+                title="Limpar conversa"
+                className="grid size-8 place-items-center rounded-full transition hover:bg-white/15 disabled:opacity-50"
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
             <SoundToggle className="!size-8 !border-0 text-white hover:!bg-white/15" />
             <button
               type="button"
