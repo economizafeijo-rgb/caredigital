@@ -4577,3 +4577,73 @@ body {
     animation: none;
   }
 }
+
+/* ===== Abertura do site (SiteIntro) ===== */
+.nv-op {
+  animation: nv-op-in 0.35s ease both;
+  clip-path: circle(150% at 50% 50%);
+}
+.nv-op-out {
+  animation: nv-op-iris 0.8s cubic-bezier(0.7, 0, 0.2, 1) both;
+}
+@keyframes nv-op-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes nv-op-iris {
+  0% { clip-path: circle(150% at 50% 50%); }
+  100% { clip-path: circle(0% at 50% 50%); }
+}
+.nv-op-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  opacity: 0.55;
+  will-change: transform;
+}
+.nv-op-b1 { left: -10%; top: -10%; width: 55vmax; height: 55vmax; background: radial-gradient(circle, #0f766e, transparent 65%); animation: nv-op-drift1 9s ease-in-out infinite alternate; }
+.nv-op-b2 { right: -15%; top: 10%; width: 50vmax; height: 50vmax; background: radial-gradient(circle, #4338ca, transparent 65%); animation: nv-op-drift2 11s ease-in-out infinite alternate; }
+.nv-op-b3 { left: 20%; bottom: -25%; width: 45vmax; height: 45vmax; background: radial-gradient(circle, #be185d, transparent 65%); opacity: 0.35; animation: nv-op-drift3 10s ease-in-out infinite alternate; }
+@keyframes nv-op-drift1 { to { transform: translate(12%, 14%) scale(1.15); } }
+@keyframes nv-op-drift2 { to { transform: translate(-14%, 10%) scale(1.1); } }
+@keyframes nv-op-drift3 { to { transform: translate(10%, -12%) scale(1.2); } }
+.nv-op-pulse,
+.nv-op-pulse-glow {
+  animation: nv-op-draw 1.9s cubic-bezier(0.5, 0, 0.2, 1) 0.35s forwards;
+}
+.nv-op-pulse-glow { filter: blur(5px); opacity: 0.7; }
+@keyframes nv-op-draw { to { stroke-dashoffset: 0; } }
+.nv-op-logo { animation: nv-op-pop 0.9s cubic-bezier(0.2, 0.9, 0.2, 1.15) 0.15s both; }
+@keyframes nv-op-pop {
+  from { opacity: 0; transform: scale(0.6); filter: blur(8px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+.nv-op-letter { transform: translateY(110%); opacity: 0; animation: nv-op-letter 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+@keyframes nv-op-letter { to { transform: none; opacity: 1; } }
+.nv-op-tag { opacity: 0; animation: nv-op-rise 0.8s ease 1.5s forwards; }
+.nv-op-sign { opacity: 0; animation: nv-op-rise 0.8s ease 2s forwards; }
+@keyframes nv-op-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+.nv-op-card { opacity: 0; animation: nv-op-card 0.9s cubic-bezier(0.2, 0.9, 0.2, 1) forwards, nv-op-float 5s ease-in-out infinite; }
+.nv-op-c1 { animation-delay: 1.1s, 2s; }
+.nv-op-c2 { animation-delay: 1.35s, 2.3s; }
+.nv-op-c3 { animation-delay: 1.6s, 2.6s; }
+@keyframes nv-op-card {
+  from { opacity: 0; transform: translateY(24px) scale(0.94); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+@keyframes nv-op-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -6px; }
+}
+.nv-op-bar { transform-origin: bottom; transform: scaleY(0); animation: nv-op-bar 0.7s cubic-bezier(0.2, 0.9, 0.2, 1) forwards; }
+@keyframes nv-op-bar { to { transform: scaleY(1); } }
+.nv-op-mini-ring { animation: nv-op-mini 1.2s cubic-bezier(0.3, 0, 0.2, 1) 1.3s backwards; }
+@keyframes nv-op-mini { from { stroke-dashoffset: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .nv-op-blob, .nv-op-card { animation: none !important; opacity: 1; }
+  .nv-op-pulse, .nv-op-pulse-glow { animation-duration: 0.01s; animation-delay: 0s; }
+  .nv-op-letter, .nv-op-tag, .nv-op-sign, .nv-op-bar { animation-duration: 0.01s; animation-delay: 0s; }
+}
