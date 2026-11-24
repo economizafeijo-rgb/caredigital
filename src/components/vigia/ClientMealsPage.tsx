@@ -1,5 +1,6 @@
 import { DailyNutritionPanel, useDailyNutrition, type DailyNutrition } from "./DailyNutritionPanel";
-import { sumNutrients } from "@/lib/food-parser";
+import { measureUnit, sumNutrients, type Nutrients } from "@/lib/food-parser";
+import { createPortal } from "react-dom";
 import { NutritionGuardPanel } from "./NutritionGuard";
 import { Fold } from "./Fold";
 import { MealMacroBars, NutritionDayChart, NutritionHero } from "./NutritionHero";
@@ -16,6 +17,7 @@ import {
   Search,
   Trash2,
   UtensilsCrossed,
+  X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ClientQuickIntake } from "./ClientQuickIntake";
@@ -505,8 +507,19 @@ export function ClientMealsPage({
   );
 }
 
-/** Cartões das refeições realizadas hoje (sem bebidas), em ordem de horário. */
+type MealEntry = DailyNutrition["entries"][number];
+const g1 = (v: number) => (Math.round(v * 10) / 10).toLocaleString("pt-BR");
+const mealNutrients = (e: MealEntry): Nutrients =>
+  e.direct ?? sumNutrients(e.foods.map((f) => f.nutrients));
+const MACRO_ROWS = [
+  { key: "protein", label: "Proteína", color: "#ec4899" },
+  { key: "carbs", label: "Carboidrato", color: "#f59e0b" },
+  { key: "fat", label: "Gordura", color: "#8b5cf6" },
+] as const;
+
+/** Cartões das refeições realizadas hoje (sem bebidas): hover resume, clique detalha. */
 function MealsDoneToday({ data }: { data: DailyNutrition }) {
+  const [open, setOpen] = useState<MealEntry | null>(null);
   const meals = useMemo(
     () =>
       data.entries
@@ -515,6 +528,12 @@ function MealsDoneToday({ data }: { data: DailyNutrition }) {
         .sort((a, b) => a.at.localeCompare(b.at)),
     [data.entries],
   );
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (ev: KeyboardEvent) => ev.key === "Escape" && setOpen(null);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
   if (!meals.length) {
     return (
       <p className="border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
@@ -532,32 +551,195 @@ function MealsDoneToday({ data }: { data: DailyNutrition }) {
       </h3>
       <ul className="grid min-w-0 grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
         {meals.map((e) => {
-          const kcal = e.direct?.kcal ?? sumNutrients(e.foods.map((f) => f.nutrients)).kcal;
+          const n = mealNutrients(e);
           const Icon = foodIcon(e.text || e.source);
           const names = e.foods.map((f) => f.name.split(",")[0]).join(", ") || e.text || e.source;
           return (
-            <li
-              key={e.entryId ?? e.at + e.text}
-              className="flex min-w-0 items-center gap-2.5 border border-emerald-500/30 bg-emerald-500/[.07] px-2.5 py-2"
-            >
-              <span className="grid size-8 shrink-0 place-items-center bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
-                <Icon size={16} />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-semibold text-muted-foreground">
-                  {reminderClock(e.at)} · {e.source}
+            <li key={e.entryId ?? e.at + e.text} className="group relative min-w-0">
+              <button
+                type="button"
+                onClick={() => setOpen(e)}
+                aria-haspopup="dialog"
+                className="flex w-full min-w-0 items-center gap-2.5 border border-emerald-500/30 bg-emerald-500/[.07] px-2.5 py-2 text-left transition hover:border-emerald-400/60 hover:bg-emerald-500/[.12] focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-400"
+              >
+                <span className="grid size-8 shrink-0 place-items-center bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
+                  <Icon size={16} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[11px] font-semibold text-muted-foreground">
+                    {reminderClock(e.at)} · {e.source}
+                  </span>
+                  <span className="line-clamp-1 break-words text-[13px] font-bold text-foreground">
+                    {names}
+                  </span>
+                </span>
+                <span className="shrink-0 text-sm font-extrabold tabular-nums text-emerald-700 dark:text-emerald-300">
+                  {Math.round(n.kcal)} <span className="text-[10px] font-semibold">kcal</span>
+                </span>
+              </button>
+              {/* Resumo ao apontar o mouse (computador) ou focar com o teclado. */}
+              <div
+                role="tooltip"
+                className="pointer-events-none invisible absolute left-0 top-full z-30 mt-1 w-[min(22rem,92vw)] translate-y-1 border border-border bg-popover p-2.5 text-popover-foreground opacity-0 shadow-xl transition duration-150 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 max-md:hidden"
+              >
+                <p className="flex items-baseline justify-between gap-2 text-[11px] font-semibold text-muted-foreground">
+                  <span>
+                    {reminderClock(e.at)} · {e.source}
+                  </span>
+                  <span className="tabular-nums">
+                    <b className="text-sm text-foreground">{Math.round(n.kcal)}</b> kcal
+                  </span>
                 </p>
-                <p className="line-clamp-1 break-words text-[13px] font-bold text-foreground">
-                  {names}
+                <ul className="mt-1.5 grid gap-0.5 text-xs">
+                  {(e.foods.length ? e.foods : []).slice(0, 8).map((f, i) => (
+                    <li key={i} className="flex justify-between gap-3">
+                      <span className="min-w-0 truncate">{f.name.split(",")[0]}</span>
+                      <span className="shrink-0 tabular-nums text-muted-foreground">
+                        {Math.round(f.grams)} {measureUnit(f.id)} · {Math.round(f.nutrients.kcal)}{" "}
+                        kcal
+                      </span>
+                    </li>
+                  ))}
+                  {!e.foods.length && <li className="text-muted-foreground">{e.text}</li>}
+                  {e.foods.length > 8 && (
+                    <li className="text-muted-foreground">+{e.foods.length - 8} itens</li>
+                  )}
+                </ul>
+                <p className="mt-2 flex flex-wrap gap-x-3 gap-y-0.5 border-t border-border/60 pt-1.5 text-[11px] font-semibold tabular-nums">
+                  {MACRO_ROWS.map((m) => (
+                    <span key={m.key} style={{ color: m.color }}>
+                      {m.label.slice(0, 1)} {g1(n[m.key])} g
+                    </span>
+                  ))}
+                  <span className="text-muted-foreground">Fibras {g1(n.fiber)} g</span>
                 </p>
+                <p className="mt-1 text-[10px] text-muted-foreground">Clique para ver detalhes</p>
               </div>
-              <p className="shrink-0 text-sm font-extrabold tabular-nums text-emerald-700 dark:text-emerald-300">
-                {Math.round(kcal)} <span className="text-[10px] font-semibold">kcal</span>
-              </p>
             </li>
           );
         })}
       </ul>
+      {open && <MealDetailCard entry={open} onClose={() => setOpen(null)} />}
     </section>
+  );
+}
+
+/** Cartão detalhado e compacto de uma refeição: macros, micronutrientes e cada alimento. */
+function MealDetailCard({ entry, onClose }: { entry: MealEntry; onClose: () => void }) {
+  const n = mealNutrients(entry);
+  const Icon = foodIcon(entry.text || entry.source);
+  const macroKcal = n.protein * 4 + n.carbs * 4 + n.fat * 9 || 1;
+  const micros = [
+    ["Fibras", n.fiber, "g"],
+    ["Vit. C", n.vitC, "mg"],
+    ["Vit. A", n.vitA, "mcg"],
+    ["Cálcio", n.calcium, "mg"],
+    ["Ferro", n.iron, "mg"],
+    ["Potássio", n.potassium, "mg"],
+  ] as const;
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[90] grid place-items-center bg-black/60 p-3 backdrop-blur-[2px]"
+      onMouseDown={(ev) => ev.target === ev.currentTarget && onClose()}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Detalhes da refeição"
+        style={{ maxWidth: 440, width: "100%" }}
+        className="flex max-h-[88vh] min-w-0 flex-col overflow-hidden border border-border bg-card text-card-foreground shadow-2xl"
+      >
+        <header className="flex items-center gap-2.5 bg-gradient-to-br from-[#052e1f] to-[#0a4a33] p-3 text-white">
+          <span className="grid size-9 shrink-0 place-items-center bg-white/10">
+            <Icon size={18} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-semibold text-white/70">
+              {reminderClock(entry.at)} · {entry.source}
+            </p>
+            <p className="text-xl font-extrabold leading-tight tabular-nums">
+              {Math.round(n.kcal)} <span className="text-xs font-semibold text-white/70">kcal</span>
+            </p>
+          </div>
+          <button
+            type="button"
+            autoFocus
+            aria-label="Fechar"
+            onClick={onClose}
+            className="grid size-8 place-items-center border border-white/25 hover:bg-white/10"
+          >
+            <X size={16} />
+          </button>
+        </header>
+        <div className="grid min-h-0 gap-3 overflow-y-auto p-3">
+          <div>
+            <div className="flex h-2 overflow-hidden bg-muted">
+              {MACRO_ROWS.map((m) => (
+                <i
+                  key={m.key}
+                  style={{
+                    width: `${(n[m.key] * (m.key === "fat" ? 9 : 4) * 100) / macroKcal}%`,
+                    background: m.color,
+                  }}
+                />
+              ))}
+            </div>
+            <ul className="mt-2 grid grid-cols-3 gap-1.5">
+              {MACRO_ROWS.map((m) => (
+                <li
+                  key={m.key}
+                  className="border px-2 py-1.5"
+                  style={{ borderColor: `${m.color}66`, background: `${m.color}14` }}
+                >
+                  <span className="block text-[11px] font-bold" style={{ color: m.color }}>
+                    {m.label}
+                  </span>
+                  <b className="text-sm tabular-nums">{g1(n[m.key])} g</b>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <ul className="grid grid-cols-3 gap-px bg-border text-[11px]">
+            {micros.map(([label, v, unit]) => (
+              <li key={label} className="bg-card px-2 py-1">
+                <span className="block text-muted-foreground">{label}</span>
+                <b className="tabular-nums">
+                  {g1(v)} {unit}
+                </b>
+              </li>
+            ))}
+          </ul>
+          <div>
+            <h4 className="mb-1 text-xs font-bold">
+              {entry.foods.length || 1}{" "}
+              {entry.foods.length === 1 || !entry.foods.length ? "item" : "itens"} consumidos
+            </h4>
+            {entry.foods.length ? (
+              <ul className="divide-y divide-border/60 border border-border text-xs">
+                {entry.foods.map((f, i) => (
+                  <li key={i} className="flex items-center gap-2 px-2 py-1.5">
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-semibold">{f.name.split(",")[0]}</span>
+                      <span className="text-[11px] text-muted-foreground">
+                        {Math.round(f.grams)} {measureUnit(f.id)} · P {g1(f.nutrients.protein)} · C{" "}
+                        {g1(f.nutrients.carbs)} · G {g1(f.nutrients.fat)}
+                      </span>
+                    </span>
+                    <b className="shrink-0 tabular-nums">{Math.round(f.nutrients.kcal)} kcal</b>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="border border-border px-2 py-1.5 text-xs">{entry.text}</p>
+            )}
+          </div>
+          <p className="text-[10px] text-muted-foreground">
+            Valores estimados pela tabela nutricional do NextVita. Para editar ou excluir, use
+            “Detalhes nutricionais e registros do dia”.
+          </p>
+        </div>
+      </div>
+    </div>,
+    document.body,
   );
 }
