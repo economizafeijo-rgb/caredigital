@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CheckCircle2, Info } from "lucide-react";
+import { createPortal } from "react-dom";
+import { CheckCircle2, Info, X } from "lucide-react";
 
 type Entry = {
   amount_ml: number;
@@ -48,9 +49,8 @@ export function useBoxWidth(min = 280) {
 }
 
 /**
- * Linha do tempo do dia: acumulado em degraus, corredor do ritmo ideal, meta e previsão.
- * O cursor "gruda" no registro mais próximo; a lista ao lado e o gráfico se destacam mutuamente,
- * e um clique fixa o registro.
+ * Consumo por hora: colunas empilhadas (água + outras bebidas) com a média ideal por hora.
+ * Passar o cursor abre um cartão; clicar (ou tocar) abre uma janela com os registros daquela hora.
  */
 export function HydrationDayChart({
   entries,
@@ -67,8 +67,8 @@ export function HydrationDayChart({
   note?: { kind: string; title: string; message: string } | null;
 }) {
   const [boxRef, W] = useBoxWidth(260);
-  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
-  const [pinIdx, setPinIdx] = useState<number | null>(null);
+  const [hover, setHover] = useState<number | null>(null);
+  const [open, setOpen] = useState<number | null>(null);
   const nowH = hourOf(nowMs);
   const sorted = useMemo(
     () =>
@@ -82,86 +82,62 @@ export function HydrationDayChart({
     return sorted.map((e) => (acc += e.ml));
   }, [sorted]);
   const total = cum.at(-1) ?? 0;
-  const waterTotal = sorted.filter((e) => e.source !== "beverage").reduce((s, e) => s + e.ml, 0);
-  const drinkTotal = total - waterTotal;
   const idealAt = (h: number) =>
     goal > 0 ? goal * Math.min(1, Math.max(0, (h - 7) / (lastHour - 7))) : 0;
   const diff = total - idealAt(nowH);
-  const firstH = sorted[0]?.h ?? null;
-  const rate = firstH !== null && nowH - firstH > 0.5 ? total / (nowH - firstH) : 0;
-  const reachH = rate > 0 && goal > total ? nowH + (goal - total) / rate : null;
-  const showForecast = rate > 0 && nowH < lastHour && total < (goal || Infinity);
-
-  const padL = 44,
-    padR = 12,
-    padT = 22,
-    plotH = 150,
-    gap = 14,
-    stripH = 40,
-    axisH = 20;
-  const H = padT + plotH + gap + stripH + axisH;
-  const pw = W - padL - padR;
-  const x = (h: number) => padL + ((Math.min(H1, Math.max(H0, h)) - H0) / (H1 - H0)) * pw;
-  const yMax = Math.max(goal * 1.1, total * 1.08, 500);
-  const y = (v: number) => padT + plotH - (Math.min(v, yMax) / yMax) * plotH;
-
-  const step = useMemo(() => {
-    let acc = 0;
-    let d = `M${x(H0)},${y(0)}`;
-    for (const e of sorted) {
-      d += ` L${x(e.h)},${y(acc)}`;
-      acc += e.ml;
-      d += ` L${x(e.h)},${y(acc)}`;
-    }
-    const end = Math.min(Math.max(nowH, sorted.at(-1)?.h ?? H0), H1);
-    d += ` L${x(end)},${y(acc)}`;
-    return { line: d, area: `${d} L${x(end)},${y(0)} L${x(H0)},${y(0)}Z` };
-  }, [sorted, nowH, W, yMax]); // eslint-disable-line react-hooks/exhaustive-deps
-  const corridor = useMemo(() => {
-    if (goal <= 0) return "";
-    const hs = Array.from({ length: 19 }, (_, i) => 7 + ((lastHour - 7) * i) / 18);
-    const up = hs.map((h) => `${x(h)},${y(Math.min(goal, idealAt(h) + goal * 0.1))}`);
-    const lo = hs.map((h) => `${x(h)},${y(Math.max(0, idealAt(h) - goal * 0.1))}`).reverse();
-    return `M${up.join(" L")} L${lo.join(" L")}Z`;
-  }, [goal, lastHour, W, yMax]); // eslint-disable-line react-hooks/exhaustive-deps
-  const perHour = useMemo(() => {
-    const m = new Map<number, { w: number; d: number }>();
-    for (const e of sorted) {
-      const k = Math.floor(e.h);
-      const c = m.get(k) ?? { w: 0, d: 0 };
-      if (e.source === "beverage") c.d += e.ml;
-      else c.w += e.ml;
-      m.set(k, c);
-    }
-    return m;
-  }, [sorted]);
-  const hMax = Math.max(300, ...[...perHour.values()].map((v) => v.w + v.d));
-  const slot = pw / (H1 - H0);
-
-  const active = hoverIdx ?? pinIdx;
-  const act = active !== null ? sorted[active] : null;
-  const ticks = [6, 9, 12, 15, 18, 21];
-  const yTicks = goal > 0 ? [0, goal / 2, goal] : [0, yMax / 2];
-  const pick = (idx: number | null) => setPinIdx((p) => (idx === null || p === idx ? null : idx));
   const nameOf = (e: (typeof sorted)[number]) =>
     e.source === "beverage" ? e.name || "Bebida" : "Água";
 
-  // Chip de anotação do registro ativo, preso dentro da área do gráfico.
-  const chipW = 132;
-  const chipX = act ? Math.min(W - padR - chipW, Math.max(padL, x(act.h) - chipW / 2)) : 0;
-  const chipY = act ? Math.max(padT - 6, y(cum[active!]) - 38) : 0;
+  const hours = Array.from({ length: H1 - H0 }, (_, i) => H0 + i);
+  const perHour = useMemo(() => {
+    const m = new Map<number, { w: number; d: number; items: number[] }>();
+    sorted.forEach((e, i) => {
+      const k = Math.floor(e.h);
+      const c = m.get(k) ?? { w: 0, d: 0, items: [] };
+      if (e.source === "beverage") c.d += e.ml;
+      else c.w += e.ml;
+      c.items.push(i);
+      m.set(k, c);
+    });
+    return m;
+  }, [sorted]);
+  const ideal = goal > 0 ? goal / Math.max(1, lastHour - 7) : 0;
+  const yMax = Math.max(300, ideal * 1.3, ...[...perHour.values()].map((v) => (v.w + v.d) * 1.1));
+
+  const padL = 40,
+    padR = 8,
+    padT = 8,
+    plotH = 150,
+    axisH = 22;
+  const H = padT + plotH + axisH;
+  const pw = W - padL - padR;
+  const slot = pw / hours.length;
+  const bw = Math.min(30, slot * 0.7);
+  const cx = (h: number) => padL + (h - H0) * slot + slot / 2;
+  const y = (v: number) => padT + plotH - (Math.min(v, yMax) / yMax) * plotH;
+  const yTicks = [0, yMax / 2, yMax].map((v) => Math.round(v / 50) * 50);
+
+  const hv = hover !== null ? perHour.get(hover) : undefined;
+  const cumTo = (h: number) => sorted.filter((e) => e.h < h + 1).reduce((s, e) => s + e.ml, 0);
+  const tipLeft = hover === null ? 0 : Math.min(W - 176, Math.max(2, cx(hover) - 84));
+
+  useEffect(() => {
+    if (open === null) return;
+    const k = (e: KeyboardEvent) => e.key === "Escape" && setOpen(null);
+    window.addEventListener("keydown", k);
+    return () => window.removeEventListener("keydown", k);
+  }, [open]);
+  const openData = open !== null ? perHour.get(open) : undefined;
 
   return (
-    <figure className="min-w-0 rounded-xl border border-border bg-card p-4">
-      <figcaption className="mb-3 flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
-        <div>
-          <strong className="text-sm font-bold">Linha do tempo do dia</strong>
-        </div>
-        <dl className="flex flex-wrap items-stretch gap-2 text-[11px]">
-          <div className="rounded-lg bg-muted/50 px-3 py-1.5">
+    <figure className="min-w-0 rounded-xl border border-border bg-card p-3">
+      <figcaption className="mb-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <strong className="text-sm font-bold">Consumo por hora</strong>
+        <dl className="flex flex-wrap gap-2 text-[11px]">
+          <div className="rounded-lg bg-muted/50 px-2.5 py-1">
             <dt className="text-muted-foreground">Acumulado</dt>
             <dd
-              className="text-lg font-extrabold tabular-nums leading-tight"
+              className="text-base font-extrabold tabular-nums leading-tight"
               style={{ color: WATER }}
             >
               {fmt(total)}
@@ -173,388 +149,188 @@ export function HydrationDayChart({
             </dd>
           </div>
           {goal > 0 && nowH >= 7 && (
-            <div className="rounded-lg bg-muted/50 px-3 py-1.5">
-              <dt className="text-muted-foreground">Frente ao ritmo ideal</dt>
+            <div className="rounded-lg bg-muted/50 px-2.5 py-1">
+              <dt className="text-muted-foreground">Frente ao ritmo</dt>
               <dd
-                className={`text-lg font-extrabold tabular-nums leading-tight ${diff >= 0 ? "text-emerald-700 dark:text-emerald-400" : "text-amber-700 dark:text-amber-400"}`}
+                className={`text-base font-extrabold tabular-nums leading-tight ${diff >= 0 ? "text-emerald-700 dark:text-emerald-400" : "text-amber-700 dark:text-amber-400"}`}
               >
                 {diff >= 0 ? "+" : "−"}
                 {fmt(Math.abs(diff))}
               </dd>
             </div>
           )}
-          {showForecast && (
-            <div className="rounded-lg bg-muted/50 px-3 py-1.5">
-              <dt className="text-muted-foreground">No ritmo atual</dt>
-              <dd className="text-lg font-extrabold tabular-nums leading-tight">
-                {reachH !== null && reachH <= lastHour
-                  ? `meta às ${hm(reachH)}`
-                  : `~${fmt(Math.round(total + rate * (lastHour - nowH)))}`}
-              </dd>
-            </div>
-          )}
         </dl>
       </figcaption>
 
-      <div className="grid gap-3">
-        <div ref={boxRef} className="relative min-w-0">
-          <svg
-            width={W}
-            height={H}
-            viewBox={`0 0 ${W} ${H}`}
-            role="img"
-            aria-label={`Água hoje: ${fmt(total)}${goal ? ` de ${fmt(goal)}` : ""}`}
-            className="block touch-pan-y select-none text-muted-foreground"
-            style={{ cursor: sorted.length && hoverIdx !== null ? "pointer" : "default" }}
-            onClick={() => hoverIdx !== null && pick(hoverIdx)}
-            onPointerMove={(e) => {
-              if (!sorted.length) return;
-              const r = e.currentTarget.getBoundingClientRect();
-              const px = e.clientX - r.left;
-              let best = 0;
-              let bd = Infinity;
-              sorted.forEach((s, i) => {
-                const d = Math.abs(x(s.h) - px);
-                if (d < bd) {
-                  bd = d;
-                  best = i;
-                }
-              });
-              setHoverIdx(bd <= 40 ? best : null);
-            }}
-            onPointerLeave={() => setHoverIdx(null)}
-          >
-            <defs>
-              <linearGradient id="hdc-fill" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0" stopColor={WATER} stopOpacity=".38" />
-                <stop offset="1" stopColor={WATER} stopOpacity="0" />
-              </linearGradient>
-              <linearGradient id="hdc-bar-w" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0" stopColor="#38bdf8" />
-                <stop offset="1" stopColor="#0284c7" />
-              </linearGradient>
-              <linearGradient id="hdc-bar-d" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0" stopColor="#a78bfa" />
-                <stop offset="1" stopColor="#7c3aed" />
-              </linearGradient>
-              <pattern
-                id="hdc-hatch"
-                width="6"
-                height="6"
-                patternUnits="userSpaceOnUse"
-                patternTransform="rotate(45)"
-              >
-                <line
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="6"
-                  stroke="currentColor"
-                  strokeOpacity=".14"
-                  strokeWidth="1"
-                />
-              </pattern>
-              <clipPath id="hdc-plot">
-                <rect x={padL} y={padT - 2} width={pw} height={plotH + 4} />
-              </clipPath>
-            </defs>
-
-            {yTicks.map((v) => (
-              <g key={v}>
-                <line
-                  x1={padL}
-                  x2={W - padR}
-                  y1={y(v)}
-                  y2={y(v)}
-                  stroke="currentColor"
-                  strokeOpacity={v === 0 ? 0.3 : 0.1}
-                />
-                <text x={padL - 8} y={y(v) + 3} textAnchor="end" fontSize="10" fill="currentColor">
-                  {v === 0 ? "0" : fmt(v)}
-                </text>
-              </g>
-            ))}
-            {ticks.map((h) => (
-              <text
-                key={h}
-                x={x(h)}
-                y={H - 4}
-                textAnchor="middle"
-                fontSize="10"
-                fill="currentColor"
-              >
-                {String(h).padStart(2, "0")}h
-              </text>
-            ))}
-
-            <rect
-              x={x(lastHour)}
-              y={padT}
-              width={Math.max(0, x(H1) - x(lastHour))}
-              height={plotH + gap + stripH}
-              fill="url(#hdc-hatch)"
-            />
-            {x(H1) - x(lastHour) > 60 && (
-              <text
-                x={(x(lastHour) + x(H1)) / 2}
-                y={padT + 11}
-                textAnchor="middle"
-                fontSize="9"
-                fill="currentColor"
-                opacity=".6"
-              >
-                fora da janela
-              </text>
-            )}
-            {corridor && <path d={corridor} fill={IDEAL} fillOpacity=".1" />}
-            {goal > 0 && (
-              <>
-                <line
-                  x1={padL}
-                  x2={W - padR}
-                  y1={y(goal)}
-                  y2={y(goal)}
-                  stroke={IDEAL}
-                  strokeDasharray="5 4"
-                  strokeWidth="1.2"
-                />
-                <text x={padL + 4} y={y(goal) - 5} fontSize="10" fontWeight="700" fill={IDEAL}>
-                  Meta {fmt(goal)}
-                </text>
-              </>
-            )}
-
-            <g clipPath="url(#hdc-plot)">
-              <path d={step.area} fill="url(#hdc-fill)" />
-              <path
-                d={step.line}
-                fill="none"
-                stroke={WATER}
-                strokeWidth="2.2"
-                strokeLinejoin="round"
-                className="nv-draw-line"
+      <div ref={boxRef} className="relative min-w-0">
+        <svg
+          width={W}
+          height={H}
+          viewBox={`0 0 ${W} ${H}`}
+          role="img"
+          aria-label={`Consumo por hora, total ${fmt(total)}`}
+          className="block select-none text-muted-foreground"
+        >
+          <defs>
+            <linearGradient id="hdc-bar-w" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0" stopColor="#38bdf8" />
+              <stop offset="1" stopColor="#0284c7" />
+            </linearGradient>
+            <linearGradient id="hdc-bar-d" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0" stopColor="#a78bfa" />
+              <stop offset="1" stopColor="#7c3aed" />
+            </linearGradient>
+          </defs>
+          {yTicks.map((v, i) => (
+            <g key={i}>
+              <line
+                x1={padL}
+                x2={W - padR}
+                y1={y(v)}
+                y2={y(v)}
+                stroke="currentColor"
+                strokeOpacity={v === 0 ? 0.3 : 0.1}
               />
-              {showForecast && (
-                <line
-                  x1={x(nowH)}
-                  y1={y(total)}
-                  x2={x(reachH !== null && reachH <= lastHour ? reachH : lastHour)}
-                  y2={y(
-                    reachH !== null && reachH <= lastHour ? goal : total + rate * (lastHour - nowH),
-                  )}
-                  stroke="#7dd3fc"
-                  strokeDasharray="4 4"
-                  strokeWidth="1.6"
-                />
-              )}
+              <text x={padL - 6} y={y(v) + 3} textAnchor="end" fontSize="10" fill="currentColor">
+                {v === 0 ? "0" : fmt(v)}
+              </text>
             </g>
-
-            {nowH >= H0 && nowH <= H1 && (
-              <g pointerEvents="none">
-                <line
-                  x1={x(nowH)}
-                  x2={x(nowH)}
-                  y1={padT}
-                  y2={padT + plotH + gap + stripH}
-                  stroke="currentColor"
-                  strokeOpacity=".4"
-                  strokeDasharray="2 3"
+          ))}
+          {ideal > 0 && (
+            <g pointerEvents="none">
+              <line
+                x1={cx(7) - slot / 2}
+                x2={cx(lastHour - 1) + slot / 2}
+                y1={y(ideal)}
+                y2={y(ideal)}
+                stroke={IDEAL}
+                strokeDasharray="5 4"
+                strokeWidth="1.3"
+              />
+              <text
+                x={cx(lastHour - 1) + slot / 2}
+                y={y(ideal) - 4}
+                textAnchor="end"
+                fontSize="10"
+                fontWeight="700"
+                fill={IDEAL}
+              >
+                ideal {fmt(Math.round(ideal))}/h
+              </text>
+            </g>
+          )}
+          {hours.map((h) => {
+            const v = perHour.get(h);
+            const w = v?.w ?? 0;
+            const d = v?.d ?? 0;
+            const on = hover === h;
+            const empty = w + d === 0;
+            return (
+              <g
+                key={h}
+                style={{ cursor: empty ? "default" : "pointer" }}
+                onPointerEnter={() => setHover(h)}
+                onPointerLeave={() => setHover(null)}
+                onClick={() => !empty && setOpen(h)}
+              >
+                <rect
+                  x={cx(h) - slot / 2}
+                  y={padT}
+                  width={slot}
+                  height={plotH + axisH}
+                  fill={on ? WATER : "transparent"}
+                  fillOpacity=".08"
                 />
                 <rect
-                  x={x(nowH) - 17}
-                  y={padT - 15}
-                  width="34"
-                  height="13"
+                  x={cx(h) - bw / 2}
+                  y={padT}
+                  width={bw}
+                  height={plotH}
                   rx="3"
                   fill="currentColor"
-                  fillOpacity=".85"
+                  fillOpacity=".05"
                 />
-                <text
-                  x={x(nowH)}
-                  y={padT - 5.5}
-                  textAnchor="middle"
-                  fontSize="9"
-                  fontWeight="700"
-                  className="fill-card"
-                >
-                  agora
-                </text>
-              </g>
-            )}
-
-            {Array.from({ length: H1 - H0 }, (_, i) => H0 + i).map((h) => {
-              const v = perHour.get(h);
-              const bw = Math.max(4, slot - 4);
-              const base = padT + plotH + gap + stripH;
-              const wh = v ? (v.w / hMax) * stripH : 0;
-              const dh = v ? (v.d / hMax) * stripH : 0;
-              const isActive = act !== null && Math.floor(act.h) === h;
-              return (
-                <g key={h}>
-                  {isActive && (
-                    <rect
-                      x={x(h)}
-                      y={padT}
-                      width={slot}
-                      height={plotH + gap + stripH}
-                      fill={WATER}
-                      fillOpacity=".09"
-                    />
-                  )}
+                {w > 0 && (
                   <rect
-                    x={x(h) + 2}
-                    y={base - stripH}
+                    x={cx(h) - bw / 2}
+                    y={y(w)}
                     width={bw}
-                    height={stripH}
-                    rx="2"
-                    fill="currentColor"
-                    fillOpacity=".05"
+                    height={padT + plotH - y(w)}
+                    rx="3"
+                    fill="url(#hdc-bar-w)"
+                    className="nv-bar-in"
                   />
-                  {wh > 0 && (
-                    <rect
-                      x={x(h) + 2}
-                      y={base - wh}
-                      width={bw}
-                      height={wh}
-                      rx="2"
-                      fill="url(#hdc-bar-w)"
-                      className="nv-bar-in"
-                    />
-                  )}
-                  {dh > 0 && (
-                    <rect
-                      x={x(h) + 2}
-                      y={base - wh - dh - (wh > 0 ? 1.5 : 0)}
-                      width={bw}
-                      height={dh}
-                      rx="2"
-                      fill="url(#hdc-bar-d)"
-                      className="nv-bar-in"
-                    />
-                  )}
-                </g>
-              );
-            })}
-
-            {act && (
-              <g pointerEvents="none">
-                <line
-                  x1={x(act.h)}
-                  x2={x(act.h)}
-                  y1={y(cum[active!])}
-                  y2={padT + plotH + gap + stripH}
-                  stroke={act.source === "beverage" ? DRINK : WATER}
-                  strokeOpacity=".7"
-                  strokeDasharray="3 3"
-                />
-              </g>
-            )}
-            {sorted.map((e, i) => {
-              const on = active === i;
-              const c = e.source === "beverage" ? DRINK : WATER;
-              return (
-                <g key={i} pointerEvents="none">
-                  {on && <circle cx={x(e.h)} cy={y(cum[i])} r="11" fill={c} fillOpacity=".18" />}
-                  <circle
-                    cx={x(e.h)}
-                    cy={y(cum[i])}
-                    r={on ? 6 : 4}
-                    fill={c}
-                    className="stroke-card"
-                    strokeWidth="2.2"
-                  />
-                </g>
-              );
-            })}
-            {act && (
-              <g pointerEvents="none">
-                <rect
-                  x={chipX}
-                  y={chipY}
-                  width={chipW}
-                  height="30"
-                  rx="6"
-                  className="fill-popover stroke-border"
-                />
-                <text x={chipX + 9} y={chipY + 13} fontSize="10" className="fill-muted-foreground">
-                  {hm(act.h)} · {nameOf(act).slice(0, 14)}
-                </text>
-                <text
-                  x={chipX + 9}
-                  y={chipY + 25}
-                  fontSize="11"
-                  fontWeight="800"
-                  className="fill-popover-foreground"
-                >
-                  +{fmt(act.ml)} · {fmt(cum[active!])}
-                </text>
-              </g>
-            )}
-          </svg>
-          <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-muted-foreground">
-            <span className="inline-flex items-center gap-1.5">
-              <i className="h-0.5 w-3.5 rounded-full" style={{ background: WATER }} /> Acumulado
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <i className="size-2 rounded-[2px]" style={{ background: WATER }} /> Água
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <i className="size-2 rounded-[2px]" style={{ background: DRINK }} /> Outras bebidas
-            </span>
-            {goal > 0 && (
-              <span className="inline-flex items-center gap-1.5">
-                <i
-                  className="h-2 w-3.5 rounded-[2px]"
-                  style={{ background: IDEAL, opacity: 0.3 }}
-                />{" "}
-                Faixa do ritmo ideal
-              </span>
-            )}
-          </div>
-
-          <div
-            className="mt-2 flex h-11 items-center gap-3 rounded-lg border border-border bg-muted/30 px-3 text-xs"
-            aria-live="polite"
-          >
-            {act ? (
-              <>
-                <i
-                  className="h-6 w-1 shrink-0 rounded-full"
-                  style={{ background: act.source === "beverage" ? DRINK : WATER }}
-                />
-                <span className="min-w-0 flex-1 truncate">
-                  <strong>{nameOf(act)}</strong>
-                  <span className="ml-2 font-mono text-muted-foreground">{hm(act.h)}</span>
-                </span>
-                <strong className="shrink-0 tabular-nums">+{fmt(act.ml)}</strong>
-                <span className="hidden shrink-0 tabular-nums text-muted-foreground sm:inline">
-                  acumulado {fmt(cum[active!])}
-                  {goal > 0 && ` · ${Math.round((cum[active!] / goal) * 100)}% da meta`}
-                </span>
-                {pinIdx !== null && (
-                  <button
-                    type="button"
-                    onClick={() => setPinIdx(null)}
-                    className="shrink-0 rounded-md px-2 py-1 text-[11px] font-semibold text-muted-foreground hover:bg-muted"
-                  >
-                    Soltar
-                  </button>
                 )}
-              </>
-            ) : (
-              <span className="text-muted-foreground">
-                {sorted.length
-                  ? "Passe o cursor sobre um ponto para ver o registro; clique para fixar."
-                  : "Nada registrado hoje."}
+                {d > 0 && (
+                  <rect
+                    x={cx(h) - bw / 2}
+                    y={y(w + d)}
+                    width={bw}
+                    height={y(w) - y(w + d) - (w > 0 ? 1.5 : 0)}
+                    rx="3"
+                    fill="url(#hdc-bar-d)"
+                    className="nv-bar-in"
+                  />
+                )}
+                {(h - H0) % 3 === 0 && (
+                  <text x={cx(h)} y={H - 6} textAnchor="middle" fontSize="10" fill="currentColor">
+                    {String(h).padStart(2, "0")}h
+                  </text>
+                )}
+              </g>
+            );
+          })}
+          {nowH >= H0 && nowH < H1 && (
+            <line
+              pointerEvents="none"
+              x1={cx(Math.floor(nowH)) - slot / 2 + (nowH % 1) * slot}
+              x2={cx(Math.floor(nowH)) - slot / 2 + (nowH % 1) * slot}
+              y1={padT}
+              y2={padT + plotH}
+              stroke="currentColor"
+              strokeOpacity=".45"
+              strokeDasharray="2 3"
+            />
+          )}
+        </svg>
+        {hover !== null && hv && (
+          <div
+            className="pointer-events-none absolute z-10 w-44 rounded-lg border border-border bg-popover px-2.5 py-1.5 text-[11px] text-popover-foreground shadow-lg"
+            style={{ left: tipLeft, top: Math.max(0, y(hv.w + hv.d) - 70) }}
+          >
+            <p className="flex justify-between font-bold">
+              <span>
+                {String(hover).padStart(2, "0")}h–{String(hover + 1).padStart(2, "0")}h
               </span>
-            )}
+              <span className="tabular-nums">{fmt(hv.w + hv.d)}</span>
+            </p>
+            <p className="text-muted-foreground">
+              Água {fmt(hv.w)}
+              {hv.d > 0 && ` · Outras ${fmt(hv.d)}`}
+            </p>
+            <p className="mt-0.5 text-[10px] text-muted-foreground">Clique para ver os registros</p>
           </div>
+        )}
+        <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5">
+            <i className="size-2 rounded-[2px]" style={{ background: WATER }} /> Água
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <i className="size-2 rounded-[2px]" style={{ background: DRINK }} /> Outras bebidas
+          </span>
+          {ideal > 0 && (
+            <span className="inline-flex items-center gap-1.5">
+              <i className="h-0 w-3.5 border-t-2 border-dashed" style={{ borderColor: IDEAL }} />{" "}
+              Ritmo ideal por hora
+            </span>
+          )}
         </div>
       </div>
+
       {note && (
         <p
           role="status"
-          className={`mt-3 flex items-start gap-1.5 rounded-md border-l-2 px-2.5 py-2 text-[11px] leading-snug ${note.kind === "met" ? "border-emerald-500 bg-emerald-500/[.06]" : note.kind === "missed" ? "border-amber-500 bg-amber-500/[.05]" : "border-border bg-muted/30"}`}
+          className={`mt-2 flex items-start gap-1.5 rounded-md border-l-2 px-2.5 py-1.5 text-[11px] leading-snug ${note.kind === "met" ? "border-emerald-500 bg-emerald-500/[.06]" : note.kind === "missed" ? "border-amber-500 bg-amber-500/[.05]" : "border-border bg-muted/30"}`}
         >
           {note.kind === "met" ? (
             <CheckCircle2
@@ -570,6 +346,77 @@ export function HydrationDayChart({
           </span>
         </p>
       )}
+
+      {open !== null &&
+        openData &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[11600] grid !max-h-none place-items-center bg-slate-950/60 p-4 backdrop-blur-sm"
+            onClick={(e) => e.target === e.currentTarget && setOpen(null)}
+          >
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Registros da hora"
+              className="!max-h-[80vh] w-full max-w-sm overflow-y-auto rounded-2xl border border-border bg-card p-4 shadow-2xl"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs text-muted-foreground">Registros entre</p>
+                  <h3 className="text-lg font-extrabold">
+                    {String(open).padStart(2, "0")}h e {String(open + 1).padStart(2, "0")}h
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  autoFocus
+                  onClick={() => setOpen(null)}
+                  aria-label="Fechar"
+                  style={{ cursor: "pointer" }}
+                  className="grid size-8 place-items-center rounded-full bg-muted hover:bg-muted/70"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                <b style={{ color: WATER }}>{fmt(openData.w)}</b> água
+                {openData.d > 0 && (
+                  <>
+                    {" · "}
+                    <b style={{ color: DRINK }}>{fmt(openData.d)}</b> outras bebidas
+                  </>
+                )}
+                {goal > 0 &&
+                  ` · acumulado ${fmt(cumTo(open))} (${Math.round((cumTo(open) / goal) * 100)}% da meta)`}
+              </p>
+              <ul className="mt-3 grid gap-1.5">
+                {openData.items.map((i) => {
+                  const e = sorted[i];
+                  return (
+                    <li
+                      key={i}
+                      className="flex items-center gap-2.5 rounded-lg bg-muted/50 px-2.5 py-2 text-sm"
+                    >
+                      <i
+                        className="h-7 w-1 shrink-0 rounded-full"
+                        style={{ background: e.source === "beverage" ? DRINK : WATER }}
+                      />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-semibold">{nameOf(e)}</span>
+                        <span className="block font-mono text-[11px] text-muted-foreground">
+                          {hm(e.h)} · acumulado {fmt(cum[i])}
+                        </span>
+                      </span>
+                      <strong className="shrink-0 tabular-nums">+{fmt(e.ml)}</strong>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </div>,
+          document.body,
+        )}
     </figure>
   );
 }

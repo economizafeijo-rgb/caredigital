@@ -724,8 +724,8 @@ function PublicStore({
             role="dialog"
             aria-modal="true"
             aria-labelledby="product-detail-title"
-            className="nv-round relative !max-h-[88vh] w-full overflow-y-auto rounded-t-3xl bg-card shadow-2xl ring-1 ring-white/10 sm:grid sm:!max-h-[min(88vh,600px)] sm:max-w-[860px] sm:grid-cols-[minmax(0,420px)_minmax(0,1fr)] sm:overflow-hidden sm:rounded-2xl"
-            style={{ maxWidth: 860 }}
+            className="nv-round relative !max-h-[88vh] w-full overflow-y-auto rounded-t-3xl bg-card shadow-2xl ring-1 ring-white/10 sm:grid sm:!max-h-[min(86vh,480px)] sm:max-w-[720px] sm:grid-cols-[minmax(0,300px)_minmax(0,1fr)] sm:overflow-hidden sm:rounded-2xl"
+            style={{ maxWidth: 720 }}
           >
             <button
               type="button"
@@ -751,7 +751,7 @@ function PublicStore({
                   <img
                     src={detail.image_url}
                     alt={detail.name}
-                    className="h-44 w-full bg-gradient-to-b from-[#f2f3f5] to-[#dfe2e6] object-contain p-2 min-[420px]:h-52 sm:aspect-square sm:h-full sm:max-h-[600px] sm:object-contain sm:p-6"
+                    className="h-44 w-full bg-gradient-to-b from-[#f2f3f5] to-[#dfe2e6] object-contain p-2 min-[420px]:h-52 sm:aspect-square sm:h-full sm:max-h-[480px] sm:object-contain sm:p-4"
                   />
                   <span className="nv-round absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-slate-900/75 px-2.5 py-1 text-[11px] font-bold text-white shadow backdrop-blur">
                     <ZoomIn size={13} aria-hidden="true" /> Ampliar
@@ -768,7 +768,7 @@ function PublicStore({
                 </span>
               ) : null}
             </div>
-            <div className="flex min-w-0 flex-col p-4 sm:max-h-[min(88vh,600px)] sm:overflow-y-auto sm:p-7">
+            <div className="flex min-w-0 flex-col p-4 sm:max-h-[min(86vh,480px)] sm:overflow-y-auto sm:p-5">
               <p
                 className="text-[11.5px] font-semibold uppercase tracking-wide"
                 style={{ color: accent }}
