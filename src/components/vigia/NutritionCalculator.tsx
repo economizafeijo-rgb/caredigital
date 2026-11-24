@@ -707,10 +707,10 @@ export function NutritionCalculator({
         aria-label={`Valores de ${food.name}`}
       >
         <div className="border border-border bg-card p-4">
-          <div className="flex flex-wrap items-start gap-3">
+          <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-start gap-3 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
             <FoodBadge food={food} size={38} />
-            <div className="min-w-0 flex-1">
-              <h3 className="text-lg font-extrabold leading-tight">{food.name}</h3>
+            <div className="min-w-0">
+              <h3 className="break-words text-lg font-extrabold leading-tight">{food.name}</h3>
               <p className="mt-1 flex flex-wrap gap-1.5 text-[11px] font-semibold">
                 <span className="bg-muted px-2 py-0.5">{gm.label}</span>
                 {regionalFoodIds.has(food.id) && (
@@ -739,7 +739,7 @@ export function NutritionCalculator({
                 <HealthHint food={food} onPick={(id) => setFoodId(id)} />
               </div>
             </div>
-            <div className="text-right">
+            <div className="col-span-2 border-t border-border pt-2 text-left sm:col-span-1 sm:border-0 sm:pt-0 sm:text-right">
               <p className="font-display text-3xl font-extrabold leading-none tabular-nums">
                 {n(nut.kcal)}
                 <span className="ml-1 text-base font-semibold text-muted-foreground">kcal</span>
