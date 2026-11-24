@@ -4797,3 +4797,13 @@ body {
 .care-shell {
   padding-top: env(safe-area-inset-top);
 }
+
+/* Ao trocar mês, aba ou filtro, o navegador mantém a posição de leitura (sem subir a página). */
+#care-content,
+#care-client-tab-panel,
+main {
+  overflow-anchor: auto;
+}
+#care-content *:focus {
+  scroll-margin: 0;
+}

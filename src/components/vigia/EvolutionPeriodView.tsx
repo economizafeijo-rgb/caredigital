@@ -17,6 +17,7 @@ import {
   Cell,
   ComposedChart,
   Line,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -220,8 +221,10 @@ function PeriodChart({
       </p>
     );
   const hasTarget = rows.some((row) => row.target);
+  const vals = rows.map((r) => r.value).filter((v): v is number => v !== null);
+  const avg = vals.length > 1 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
   return (
-    <div className="h-64 w-full cursor-pointer">
+    <div className="h-64 w-full cursor-pointer sm:h-72">
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart
           data={rows}
@@ -231,10 +234,18 @@ function PeriodChart({
             if (day) onPick(day);
           }}
         >
+          <defs>
+            {Array.from(new Set(rows.map((r) => r.color))).map((c) => (
+              <linearGradient key={c} id={`bar-${c.replace("#", "")}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={c} stopOpacity={1} />
+                <stop offset="100%" stopColor={c} stopOpacity={0.55} />
+              </linearGradient>
+            ))}
+          </defs>
           <CartesianGrid
-            strokeDasharray="3 3"
+            strokeDasharray="2 6"
             stroke="currentColor"
-            className="text-border"
+            className="text-border/60"
             vertical={false}
           />
           <XAxis
@@ -308,13 +319,23 @@ function PeriodChart({
               dataKey="target"
               type="stepAfter"
               stroke="#10b981"
-              strokeWidth={2}
-              strokeDasharray="6 4"
+              strokeWidth={1.5}
+              strokeOpacity={0.8}
+              strokeDasharray="5 5"
               dot={false}
               isAnimationActive
               animationDuration={800}
               animationEasing="ease-out"
               connectNulls
+            />
+          )}
+          {avg !== null && !series.line && (
+            <ReferenceLine
+              yAxisId="left"
+              y={avg}
+              stroke="#94a3b8"
+              strokeDasharray="2 4"
+              label={{ value: `média ${nf(avg, series.digits)}`, position: "insideTopLeft", fill: "#94a3b8", fontSize: 10 }}
             />
           )}
           {series.line ? (
@@ -332,9 +353,9 @@ function PeriodChart({
               animationEasing="ease-out"
             />
           ) : (
-            <Bar yAxisId="left" dataKey="value" radius={[0, 0, 0, 0]} maxBarSize={yearly ? 40 : 22}>
+            <Bar yAxisId="left" dataKey="value" radius={[5, 5, 0, 0]} maxBarSize={yearly ? 40 : 22}>
               {rows.map((row) => (
-                <Cell key={row.day} fill={row.color} />
+                <Cell key={row.day} fill={`url(#bar-${row.color.replace("#", "")})`} />
               ))}
             </Bar>
           )}

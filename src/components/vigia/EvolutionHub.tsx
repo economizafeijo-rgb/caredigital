@@ -14,8 +14,9 @@ import { loadPeriodRaw, resolveTargets, type PeriodData } from "@/lib/period-dat
 import { EvolutionDayView } from "./EvolutionDayView";
 import { DayDetailDialog } from "./DayDetailDialog";
 import { EvolutionMonthView, EvolutionYearView } from "./EvolutionPeriodView";
+import { EvolutionCompare } from "./EvolutionCompare";
 
-type View = "dia" | "mes" | "ano";
+type View = "dia" | "mes" | "ano" | "comparar";
 type Props = {
   patientId: string;
   ownerId: string;
@@ -32,6 +33,7 @@ const VIEWS: { key: View; label: string }[] = [
   { key: "dia", label: "Dia" },
   { key: "mes", label: "Mês" },
   { key: "ano", label: "Ano" },
+  { key: "comparar", label: "Comparar" },
 ];
 const YEARS_BACK = 5;
 
@@ -91,13 +93,16 @@ export function EvolutionHub({
     () => (data ? resolveTargets(data.result.prefs, waterTarget) : null),
     [data, waterTarget],
   );
-  const days = useMemo(
-    () =>
-      data && targets && data.from === range.from && data.to === range.to
-        ? buildDays(data.result.raw, range.from, range.to, { targets, nowMs: Date.now() })
-        : [],
-    [data, targets, range.from, range.to],
-  );
+  // Mantém o período anterior na tela enquanto o novo carrega: a página não encolhe nem "pula".
+  const keep = useRef<{ view: View; days: ReturnType<typeof buildDays> }>({ view, days: [] });
+  const days = useMemo(() => {
+    if (data && targets && data.from === range.from && data.to === range.to) {
+      const built = buildDays(data.result.raw, range.from, range.to, { targets, nowMs: Date.now() });
+      keep.current = { view, days: built };
+      return built;
+    }
+    return keep.current.view === view ? keep.current.days : [];
+  }, [data, targets, range.from, range.to, view]);
   const raw: PeriodRaw | null = data?.result.raw ?? null;
 
   const firstOfMonth = (y: number, m: number) =>
@@ -173,7 +178,7 @@ export function EvolutionHub({
             ))}
           </div>
         </div>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
+        <div className={`mt-3 flex flex-wrap items-center gap-2 ${view === "comparar" ? "hidden" : ""}`}>
           <button
             type="button"
             onClick={() => shift(-1)}
@@ -245,7 +250,15 @@ export function EvolutionHub({
         </div>
       </div>
 
-      {warnings.length > 0 && (
+      {view === "comparar" && (
+        <EvolutionCompare
+          patientId={patientId}
+          ownerId={ownerId}
+          waterTarget={waterTarget}
+          loader={loader}
+        />
+      )}
+      {view !== "comparar" && warnings.length > 0 && (
         <p
           role="status"
           className="flex items-start gap-2 rounded-xl border border-warning/30 bg-warning/10 p-3 text-xs"
@@ -257,7 +270,7 @@ export function EvolutionHub({
           </span>
         </p>
       )}
-      {failed && (
+      {view !== "comparar" && failed && (
         <p
           role="alert"
           className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive"
@@ -266,7 +279,7 @@ export function EvolutionHub({
         </p>
       )}
 
-      {loading && !days.length ? (
+      {view === "comparar" ? null : loading && !days.length ? (
         <p
           role="status"
           style={{ minHeight: lastHeight.current || undefined }}

@@ -176,7 +176,7 @@ export function HydrationPeriodHistory({
   const maxDay = Math.max(1, ...byDay.map(([, g]) => g.total));
 
   return (
-    <div className="flex min-h-0 flex-col gap-3">
+    <div className={"flex min-h-0 flex-col gap-3 transition-opacity " + (loading ? "opacity-60" : "")} aria-busy={loading}>
       <div className="flex flex-wrap items-center gap-2">
         <div role="group" aria-label="Período da hidratação" className="flex flex-1 gap-1 border border-border bg-muted/35 p-1">
           {PERIODS.map((p) => (
@@ -241,14 +241,14 @@ export function HydrationPeriodHistory({
       </dl>
 
       {error && <p role="alert" className="text-xs text-rose-600">{error}</p>}
-      {loading && <p className="text-xs text-muted-foreground">Carregando…</p>}
+      
       {!loading && rows.length === 0 && (
         <p className="border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
           Nenhum registro de líquido neste período.
         </p>
       )}
 
-      {!loading && period === "dia" && rows.length > 0 && (
+      {period === "dia" && rows.length > 0 && (
         <ul className="grid gap-1.5">
           {rows.map((r) => (
             <li key={r.at + r.name + r.ml} className="flex items-center gap-3 border border-border bg-card px-3 py-2">
@@ -265,7 +265,7 @@ export function HydrationPeriodHistory({
         </ul>
       )}
 
-      {!loading && (period === "semana" || period === "mes") && byDay.length > 0 && (
+      {(period === "semana" || period === "mes") && byDay.length > 0 && (
         <ul className="grid gap-1.5">
           {byDay.map(([day, g]) => (
             <DayRow
@@ -281,7 +281,7 @@ export function HydrationPeriodHistory({
         </ul>
       )}
 
-      {!loading && period === "ano" && byMonth.length > 0 && (
+      {period === "ano" && byMonth.length > 0 && (
         <ul className="grid gap-1.5">
           {byMonth.map(([month, m]) => {
             const open = openKey === month;
