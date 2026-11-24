@@ -171,183 +171,187 @@ export function ProductQuickViewHost() {
         if (e.target === e.currentTarget) setId(null);
       }}
     >
-      <div className="nv-pop grid !max-h-[calc(100dvh-env(safe-area-inset-top)-1rem)] w-full max-w-4xl overflow-y-auto overscroll-contain rounded-t-3xl pb-[env(safe-area-inset-bottom)] sm:pb-0 border border-border bg-card shadow-2xl sm:rounded-3xl md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <div className="relative overflow-hidden bg-[#e9eaec]">
-          <img
-            src={p.img}
-            alt=""
-            aria-hidden="true"
-            className="absolute inset-0 size-full scale-125 object-cover opacity-70 blur-2xl md:hidden"
-          />
-          <img
-            src={p.img}
-            alt={p.name}
-            className="relative h-60 w-full object-contain min-[420px]:h-64 md:aspect-square md:h-auto md:object-cover"
-          />
-          {off > 0 && (
-            <span className="absolute left-3 top-3 rounded-full bg-rose-600 px-3 py-1 text-sm font-extrabold text-white shadow">
-              -{off}%
-            </span>
-          )}
-          <div className="absolute right-3 top-3 flex gap-2">
-            <button
-              type="button"
-              onClick={share}
-              aria-label={copied ? "Link copiado" : `Compartilhar ${p.name}`}
-              title={copied ? "Link copiado" : "Compartilhar"}
-              className="nv-tiny grid size-9 place-items-center rounded-full bg-white/90 text-slate-900 shadow transition hover:bg-white"
-            >
-              {copied ? <Check size={16} /> : <Share2 size={16} />}
-            </button>
-            <button
-              type="button"
-              onClick={() => setId(null)}
-              aria-label="Fechar"
-              className="nv-tiny grid size-9 place-items-center rounded-full bg-white/90 text-slate-900 shadow transition hover:bg-white md:hidden"
-            >
-              <X size={17} />
-            </button>
-          </div>
-        </div>
-        <div className="flex min-w-0 flex-col p-4 sm:p-6">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-[11px] font-bold uppercase tracking-widest text-primary">
-                {categoryLabel[p.category]}
-                {p.tag ? ` · ${p.tag}` : ""}
-              </p>
-              <h2 className="mt-1 text-xl font-extrabold leading-tight sm:text-2xl">{p.name}</h2>
-            </div>
-            <button
-              type="button"
-              onClick={() => setId(null)}
-              aria-label="Fechar"
-              className="hidden size-9 shrink-0 place-items-center rounded-full bg-muted transition hover:bg-muted/70 md:grid"
-            >
-              <X size={17} />
-            </button>
-          </div>
-          <p className="mt-2 text-sm text-muted-foreground">{p.text}</p>
-          <div className="mt-3 rounded-2xl bg-muted/50 p-3">
-            {p.oldPriceCents && (
-              <p className="text-sm">
-                <span className="text-muted-foreground line-through">{money(p.oldPriceCents)}</span>{" "}
-                <span className="ml-1 rounded bg-emerald-500/15 px-1.5 py-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">
-                  economize {money(p.oldPriceCents - p.priceCents)}
-                </span>
-              </p>
+      <div className="relative w-full max-w-4xl">
+        <button
+          type="button"
+          onClick={() => setId(null)}
+          aria-label="Fechar"
+          title="Fechar"
+          style={{ cursor: "pointer" }}
+          className="absolute right-3 top-3 z-30 grid size-10 place-items-center rounded-full bg-slate-900/80 text-white shadow-lg ring-1 ring-white/20 backdrop-blur transition hover:bg-slate-900 md:right-4 md:top-4"
+        >
+          <X size={18} />
+        </button>
+        <div className="nv-pop grid !max-h-[calc(100dvh-env(safe-area-inset-top)-1rem)] w-full overflow-y-auto overscroll-contain rounded-t-3xl pb-[env(safe-area-inset-bottom)] sm:pb-0 border border-border bg-card shadow-2xl sm:rounded-3xl md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+          <div className="relative overflow-hidden bg-[#e9eaec]">
+            <img
+              src={p.img}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 size-full scale-125 object-cover opacity-70 blur-2xl md:hidden"
+            />
+            <img
+              src={p.img}
+              alt={p.name}
+              className="relative h-60 w-full object-contain min-[420px]:h-64 md:aspect-square md:h-auto md:object-cover"
+            />
+            {off > 0 && (
+              <span className="absolute left-3 top-3 rounded-full bg-rose-600 px-3 py-1 text-sm font-extrabold text-white shadow">
+                -{off}%
+              </span>
             )}
-            <p className="text-2xl font-extrabold tabular-nums sm:text-3xl">
-              {money(p.priceCents)}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              ou 3x de {money(Math.round(p.priceCents / 3))} sem juros ·{" "}
-              <strong className="text-emerald-700 dark:text-emerald-300">
-                {money(Math.round(p.priceCents * 0.95))} no Pix
-              </strong>
-            </p>
-          </div>
-          <div className="mt-4 flex items-center gap-2">
-            <div className="flex h-11 items-center rounded-xl border border-border">
+            <div className="absolute right-16 top-3 flex gap-2 md:right-3">
               <button
                 type="button"
-                onClick={() => setQty((q) => Math.max(1, q - 1))}
-                aria-label="Diminuir"
-                className="grid size-11 place-items-center hover:bg-muted"
+                onClick={share}
+                aria-label={copied ? "Link copiado" : `Compartilhar ${p.name}`}
+                title={copied ? "Link copiado" : "Compartilhar"}
+                className="nv-tiny grid size-9 place-items-center rounded-full bg-white/90 text-slate-900 shadow transition hover:bg-white"
               >
-                <Minus size={16} />
-              </button>
-              <span className="w-8 text-center font-bold tabular-nums">{qty}</span>
-              <button
-                type="button"
-                onClick={() => setQty((q) => Math.min(20, q + 1))}
-                aria-label="Aumentar"
-                className="grid size-11 place-items-center hover:bg-muted"
-              >
-                <Plus size={16} />
+                {copied ? <Check size={16} /> : <Share2 size={16} />}
               </button>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                cart.add(p.id, qty);
-                setAdded(true);
-                window.setTimeout(() => setAdded(false), 1400);
-              }}
-              className={`inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-bold text-white transition active:scale-[.98] ${added ? "nv-added bg-emerald-700" : "bg-gradient-to-r from-emerald-700 to-teal-700 hover:brightness-110"}`}
-            >
-              {added ? (
-                <>
-                  <CheckCircle2 size={17} /> Adicionado ao carrinho
-                </>
-              ) : (
-                <>
-                  <ShoppingCart size={17} /> Adicionar · {money(p.priceCents * qty)}
-                </>
-              )}
-            </button>
           </div>
-          <ul className="mt-3 grid gap-1.5 text-xs text-muted-foreground">
-            <li className="flex items-center gap-2">
-              <Truck size={14} className="text-primary" />{" "}
-              {v ? vendorAbout[v.id].delivery : "Entrega combinada com a equipe"}
-            </li>
-            <li className="flex items-center gap-2">
-              <ShieldCheck size={14} className="text-primary" /> Compra protegida pela NextVita
-            </li>
-          </ul>
-          {v && (
-            <div className="mt-4 rounded-2xl border border-border p-3">
-              <div className="flex items-center gap-3">
-                <span
-                  className="grid size-12 shrink-0 place-items-center rounded-2xl text-sm font-extrabold text-white shadow"
-                  style={{ background: v.hex }}
+          <div className="flex min-w-0 flex-col p-4 sm:p-6">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-primary">
+                  {categoryLabel[p.category]}
+                  {p.tag ? ` · ${p.tag}` : ""}
+                </p>
+                <h2 className="mt-1 text-xl font-extrabold leading-tight sm:text-2xl md:pr-12">
+                  {p.name}
+                </h2>
+              </div>
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">{p.text}</p>
+            <div className="mt-3 rounded-2xl bg-muted/50 p-3">
+              {p.oldPriceCents && (
+                <p className="text-sm">
+                  <span className="text-muted-foreground line-through">
+                    {money(p.oldPriceCents)}
+                  </span>{" "}
+                  <span className="ml-1 rounded bg-emerald-500/15 px-1.5 py-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                    economize {money(p.oldPriceCents - p.priceCents)}
+                  </span>
+                </p>
+              )}
+              <p className="text-2xl font-extrabold tabular-nums sm:text-3xl">
+                {money(p.priceCents)}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                ou 3x de {money(Math.round(p.priceCents / 3))} sem juros ·{" "}
+                <strong className="text-emerald-700 dark:text-emerald-300">
+                  {money(Math.round(p.priceCents * 0.95))} no Pix
+                </strong>
+              </p>
+            </div>
+            <div className="mt-4 flex items-center gap-2">
+              <div className="flex h-11 items-center rounded-xl border border-border">
+                <button
+                  type="button"
+                  onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  aria-label="Diminuir"
+                  className="grid size-11 place-items-center hover:bg-muted"
                 >
-                  {v.initials}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="flex items-center gap-1 text-sm font-bold">
-                    {v.name}
-                    {v.sampleVerified && <BadgeCheck size={15} className="text-sky-500" />}
-                  </p>
-                  <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                    <Stars value={v.sampleRating} /> {v.sampleRating.toFixed(1).replace(".", ",")}{" "}
-                    <span className="rounded bg-muted px-1">exemplo</span> · <MapPin size={11} />{" "}
-                    {v.city}
-                  </p>
-                </div>
+                  <Minus size={16} />
+                </button>
+                <span className="w-8 text-center font-bold tabular-nums">{qty}</span>
+                <button
+                  type="button"
+                  onClick={() => setQty((q) => Math.min(20, q + 1))}
+                  aria-label="Aumentar"
+                  className="grid size-11 place-items-center hover:bg-muted"
+                >
+                  <Plus size={16} />
+                </button>
               </div>
               <button
                 type="button"
-                onClick={goStore}
-                className="group mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary/5 text-sm font-bold text-primary transition hover:bg-primary/10"
+                onClick={() => {
+                  cart.add(p.id, qty);
+                  setAdded(true);
+                  window.setTimeout(() => setAdded(false), 1400);
+                }}
+                className={`inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-bold text-white transition active:scale-[.98] ${added ? "nv-added bg-emerald-700" : "bg-gradient-to-r from-emerald-700 to-teal-700 hover:brightness-110"}`}
               >
-                <Store size={16} /> Conheça a loja{" "}
-                <ArrowRight
-                  size={15}
-                  className="transition-transform group-hover:translate-x-0.5"
-                />
+                {added ? (
+                  <>
+                    <CheckCircle2 size={17} /> Adicionado ao carrinho
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart size={17} /> Adicionar · {money(p.priceCents * qty)}
+                  </>
+                )}
               </button>
-              {more.length > 0 && (
-                <div className="mt-3 grid grid-cols-4 gap-1.5">
-                  {more.map((m) => (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={() => {
-                        setId(m.id);
-                        setQty(1);
-                      }}
-                      title={m.name}
-                      className="overflow-hidden rounded-lg bg-[#e9eaec] ring-1 ring-border transition hover:ring-primary"
-                    >
-                      <img src={m.img} alt={m.name} className="aspect-square w-full object-cover" />
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
-          )}
+            <ul className="mt-3 grid gap-1.5 text-xs text-muted-foreground">
+              <li className="flex items-center gap-2">
+                <Truck size={14} className="text-primary" />{" "}
+                {v ? vendorAbout[v.id].delivery : "Entrega combinada com a equipe"}
+              </li>
+              <li className="flex items-center gap-2">
+                <ShieldCheck size={14} className="text-primary" /> Compra protegida pela NextVita
+              </li>
+            </ul>
+            {v && (
+              <div className="mt-4 rounded-2xl border border-border p-3">
+                <div className="flex items-center gap-3">
+                  <span
+                    className="grid size-12 shrink-0 place-items-center rounded-2xl text-sm font-extrabold text-white shadow"
+                    style={{ background: v.hex }}
+                  >
+                    {v.initials}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="flex items-center gap-1 text-sm font-bold">
+                      {v.name}
+                      {v.sampleVerified && <BadgeCheck size={15} className="text-sky-500" />}
+                    </p>
+                    <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <Stars value={v.sampleRating} /> {v.sampleRating.toFixed(1).replace(".", ",")}{" "}
+                      <span className="rounded bg-muted px-1">exemplo</span> · <MapPin size={11} />{" "}
+                      {v.city}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={goStore}
+                  className="group mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary/5 text-sm font-bold text-primary transition hover:bg-primary/10"
+                >
+                  <Store size={16} /> Conheça a loja{" "}
+                  <ArrowRight
+                    size={15}
+                    className="transition-transform group-hover:translate-x-0.5"
+                  />
+                </button>
+                {more.length > 0 && (
+                  <div className="mt-3 grid grid-cols-4 gap-1.5">
+                    {more.map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => {
+                          setId(m.id);
+                          setQty(1);
+                        }}
+                        title={m.name}
+                        className="overflow-hidden rounded-lg bg-[#e9eaec] ring-1 ring-border transition hover:ring-primary"
+                      >
+                        <img
+                          src={m.img}
+                          alt={m.name}
+                          className="aspect-square w-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>,

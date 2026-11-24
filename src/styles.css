@@ -247,6 +247,7 @@
 
 button:not(:disabled),
 a[href],
+button:not(:disabled),
 [role="button"],
 label:has(input[type="checkbox"]),
 summary,

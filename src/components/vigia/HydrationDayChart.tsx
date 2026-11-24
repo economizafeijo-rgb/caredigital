@@ -147,7 +147,7 @@ export function HydrationDayChart({
     e.source === "beverage" ? e.name || "Bebida" : "Água";
 
   // Chip de anotação do registro ativo, preso dentro da área do gráfico.
-  const chipW = 118;
+  const chipW = 132;
   const chipX = act ? Math.min(W - padR - chipW, Math.max(padL, x(act.h) - chipW / 2)) : 0;
   const chipY = act ? Math.max(padT - 6, y(cum[active!]) - 38) : 0;
 
@@ -156,9 +156,6 @@ export function HydrationDayChart({
       <figcaption className="mb-3 flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
         <div>
           <strong className="text-sm font-bold">Linha do tempo do dia</strong>
-          <p className="text-[11px] text-muted-foreground">
-            Passe o cursor para destacar um registro · clique para fixar
-          </p>
         </div>
         <dl className="flex flex-wrap items-stretch gap-2 text-[11px]">
           <div className="rounded-lg bg-muted/50 px-3 py-1.5">
@@ -199,7 +196,7 @@ export function HydrationDayChart({
         </dl>
       </figcaption>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_17rem]">
+      <div className="grid gap-3">
         <div ref={boxRef} className="relative min-w-0">
           <svg
             width={W}
@@ -514,55 +511,45 @@ export function HydrationDayChart({
               </span>
             )}
           </div>
-        </div>
 
-        <aside className="flex min-h-0 flex-col rounded-lg border border-border bg-muted/20">
-          <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2 text-[11px]">
-            <strong className="text-xs">Registros ({sorted.length})</strong>
-            <span className="tabular-nums text-muted-foreground">
-              <b style={{ color: WATER }}>{fmt(waterTotal)}</b> água
-              {drinkTotal > 0 && (
-                <>
-                  {" · "}
-                  <b style={{ color: DRINK }}>{fmt(drinkTotal)}</b>
-                </>
-              )}
-            </span>
+          <div
+            className="mt-2 flex h-11 items-center gap-3 rounded-lg border border-border bg-muted/30 px-3 text-xs"
+            aria-live="polite"
+          >
+            {act ? (
+              <>
+                <i
+                  className="h-6 w-1 shrink-0 rounded-full"
+                  style={{ background: act.source === "beverage" ? DRINK : WATER }}
+                />
+                <span className="min-w-0 flex-1 truncate">
+                  <strong>{nameOf(act)}</strong>
+                  <span className="ml-2 font-mono text-muted-foreground">{hm(act.h)}</span>
+                </span>
+                <strong className="shrink-0 tabular-nums">+{fmt(act.ml)}</strong>
+                <span className="hidden shrink-0 tabular-nums text-muted-foreground sm:inline">
+                  acumulado {fmt(cum[active!])}
+                  {goal > 0 && ` · ${Math.round((cum[active!] / goal) * 100)}% da meta`}
+                </span>
+                {pinIdx !== null && (
+                  <button
+                    type="button"
+                    onClick={() => setPinIdx(null)}
+                    className="shrink-0 rounded-md px-2 py-1 text-[11px] font-semibold text-muted-foreground hover:bg-muted"
+                  >
+                    Soltar
+                  </button>
+                )}
+              </>
+            ) : (
+              <span className="text-muted-foreground">
+                {sorted.length
+                  ? "Passe o cursor sobre um ponto para ver o registro; clique para fixar."
+                  : "Nada registrado hoje."}
+              </span>
+            )}
           </div>
-          {sorted.length === 0 ? (
-            <p className="px-3 py-4 text-[11px] text-muted-foreground">Nada registrado hoje.</p>
-          ) : (
-            <ul className="max-h-[17rem] min-h-[8rem] flex-1 overflow-y-auto p-1.5 lg:h-[17rem]">
-              {sorted.map((e, i) => {
-                const c = e.source === "beverage" ? DRINK : WATER;
-                const on = active === i;
-                return (
-                  <li key={i}>
-                    <button
-                      type="button"
-                      onMouseEnter={() => setHoverIdx(i)}
-                      onMouseLeave={() => setHoverIdx(null)}
-                      onFocus={() => setHoverIdx(i)}
-                      onBlur={() => setHoverIdx(null)}
-                      onClick={() => pick(i)}
-                      aria-pressed={pinIdx === i}
-                      className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[11px] transition-colors ${on ? "bg-card shadow-sm ring-1 ring-border" : "hover:bg-muted/60"}`}
-                    >
-                      <i className="h-6 w-1 shrink-0 rounded-full" style={{ background: c }} />
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate font-semibold">{nameOf(e)}</span>
-                        <span className="block font-mono text-[10px] text-muted-foreground">
-                          {hm(e.h)} · acumulado {fmt(cum[i])}
-                        </span>
-                      </span>
-                      <strong className="shrink-0 tabular-nums">+{fmt(e.ml)}</strong>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </aside>
+        </div>
       </div>
       {note && (
         <p

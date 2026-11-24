@@ -38,7 +38,7 @@ const fallbackCards: Card[] = (
 ).map(([ref, name, price, old]) => ({
   key: ref,
   name,
-  img: `/loja/kessia/${ref}.png`,
+  img: `/loja/kessia/${ref}.webp`,
   price: money(price),
   old: old ? money(old) : undefined,
   off: old ? Math.round((1 - price / old) * 100) : 0,

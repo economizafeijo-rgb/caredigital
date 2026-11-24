@@ -65,7 +65,7 @@ export const Route = createFileRoute("/p/$code")({
       if (!u) return null;
       if (!/\.svg(\?|$)/i.test(u)) return u;
       // Fotos ilustrativas das lojas têm versão raster ao lado do SVG.
-      if (u.includes("/loja/bela-vista/")) return u.replace(/\.svg.*$/i, ".png");
+      if (u.includes("/loja/bela-vista/")) return u.replace(/\.svg.*$/i, ".webp");
       if (u.includes("/loja/sophia-store/")) return u.replace(/\.svg.*$/i, ".webp");
       return null;
     };
