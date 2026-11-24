@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { AlertTriangle, CheckCircle2, X } from "lucide-react";
+import { ConfirmCard, confirmArea } from "@/components/vigia/ConfirmCard";
 
 type DialogRequest = {
   kind: "confirm" | "prompt";
@@ -142,6 +143,48 @@ function DialogOverlay({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [close, request.kind]);
+  if (request.kind === "confirm") {
+    const area = confirmArea(`${request.title} ${request.message}`);
+    return (
+      <div
+        className="fixed inset-0 z-[12000] grid place-items-center bg-[radial-gradient(ellipse_at_center,rgba(2,6,23,.55),rgba(2,6,23,.82))] p-4 backdrop-blur-md"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="nextvita-dialog-title"
+        style={{ maxWidth: "100vw" }}
+      >
+        <ConfirmCard
+          titleId="nextvita-dialog-title"
+          title={request.title}
+          lines={[request.message]}
+          area={area}
+          danger={request.danger}
+          onClose={() => close(null)}
+          footer={
+            <div className="grid grid-cols-[auto_1fr] gap-2">
+              <button
+                type="button"
+                onClick={() => close(null)}
+                style={{ cursor: "pointer" }}
+                className="h-11 rounded-xl border border-white/20 bg-white/10 px-4 text-sm font-semibold transition hover:bg-white/20 active:scale-95"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                autoFocus
+                onClick={() => close(true)}
+                style={{ cursor: "pointer", background: request.danger ? "#f43f5e" : area.accent }}
+                className={`h-11 rounded-xl text-sm font-extrabold shadow-lg transition hover:brightness-110 active:scale-95 ${request.danger ? "text-white" : "text-slate-950"}`}
+              >
+                {request.confirmLabel ?? (request.danger ? "Excluir" : "Continuar")}
+              </button>
+            </div>
+          }
+        />
+      </div>
+    );
+  }
   return (
     <div
       className="fixed inset-0 z-[12000] grid place-items-center bg-[radial-gradient(ellipse_at_center,rgba(2,6,23,.55),rgba(2,6,23,.8))] p-4 backdrop-blur-md"

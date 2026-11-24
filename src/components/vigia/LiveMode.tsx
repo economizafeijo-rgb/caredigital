@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { ConfirmCard, confirmArea } from "./ConfirmCard";
 import { createPortal } from "react-dom";
 import {
   Area,
@@ -493,43 +494,43 @@ function ConfirmSheet({
   }, [onCancel]);
   return (
     <div
-      className="fixed inset-0 z-[520] grid place-items-end bg-slate-950/70 p-3 backdrop-blur-sm sm:place-items-center"
+      className="fixed inset-0 z-[520] grid place-items-center bg-slate-950/70 p-3 backdrop-blur-sm"
       role="alertdialog"
       aria-modal="true"
       aria-label={title}
+      style={{ maxWidth: "100vw" }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onCancel();
       }}
     >
-      <div className="w-full max-w-sm rounded-3xl bg-slate-900 p-5 text-white shadow-2xl ring-1 ring-white/20">
-        <span className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-emerald-400 to-cyan-400 text-slate-950">
-          <CheckCircle2 size={24} />
-        </span>
-        <h3 className="mt-3 text-lg font-extrabold">{title}</h3>
-        {lines.map((l) => (
-          <p key={l} className="mt-1 text-sm text-white/75">
-            {l}
-          </p>
-        ))}
-        <div className="mt-5 grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={busy}
-            className="h-12 rounded-2xl bg-white/10 text-sm font-bold ring-1 ring-white/15 transition hover:bg-white/20 active:scale-95"
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={busy}
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-400 to-cyan-400 text-sm font-extrabold text-slate-950 shadow-[0_10px_28px_-10px_rgba(52,211,153,.9)] transition active:scale-95 disabled:opacity-60"
-          >
-            <Check size={17} /> {busy ? "Salvando…" : confirmLabel}
-          </button>
-        </div>
-      </div>
+      <ConfirmCard
+        title={title}
+        lines={lines}
+        area={confirmArea(`${title} ${lines.join(" ")}`)}
+        onClose={busy ? undefined : onCancel}
+        footer={
+          <div className="grid grid-cols-[auto_1fr] gap-2">
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={busy}
+              style={{ cursor: "pointer" }}
+              className="h-11 rounded-xl border border-white/20 bg-white/10 px-4 text-sm font-semibold transition hover:bg-white/20 active:scale-95"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={onConfirm}
+              disabled={busy}
+              style={{ cursor: "pointer" }}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-emerald-400 text-sm font-extrabold text-slate-950 shadow-lg transition hover:bg-emerald-300 active:scale-95 disabled:opacity-60"
+            >
+              <Check size={17} /> {busy ? "Salvando…" : confirmLabel}
+            </button>
+          </div>
+        }
+      />
     </div>
   );
 }

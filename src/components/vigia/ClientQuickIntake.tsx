@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { CheckCircle2, Droplets, Plus, Save, UtensilsCrossed, X } from "lucide-react";
+import { ConfirmCard, confirmArea } from "./ConfirmCard";
 import { CareCategoryReport } from "./CareCategoryReport";
 import { BarChart3 } from "lucide-react";
 import { CareIntakePicker, CareIntakeIcon } from "./CareIntakePicker";
@@ -70,87 +71,70 @@ function MealConfirm({
   return (
     <div
       className="fixed inset-0 z-[200] grid place-items-center bg-slate-950/70 p-3 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="meal-confirm-title"
+      style={{ maxWidth: "100vw" }}
       onClick={(e) => e.target === e.currentTarget && onClose(null)}
     >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="meal-confirm-title"
-        className="nv-pop relative w-full max-w-md overflow-hidden rounded-2xl border border-white/15 bg-slate-950 text-white shadow-2xl"
-      >
-        <img
-          src="/images/hero-alimentacao.webp"
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-950/85 to-slate-950/95"
-        />
-        <div className="relative p-5">
-          <p className="text-[11px] font-semibold text-emerald-300">Quase lá</p>
-          <h2 id="meal-confirm-title" className="mt-0.5 text-xl font-bold">
-            Confirmar registro?
-          </h2>
-          <ul className="mt-3 grid gap-2 text-sm">
-            {request.lines.map((line) => (
-              <li
-                key={line}
-                className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 backdrop-blur-sm"
-              >
-                {line}
-              </li>
-            ))}
-          </ul>
-          <p className="mt-2 text-xs text-white/70">{request.when} · horário do Acre</p>
-          {request.needsMeal && (
-            <div className="mt-4" role="group" aria-label="Qual refeição é esta?">
-              <p className="text-xs font-bold">
-                Qual refeição é esta?
-                {request.suggested && (
-                  <span className="ml-1 font-normal text-white/70">(sugerida pelo horário)</span>
-                )}
-              </p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {mealTimes.map((m) => (
-                  <button
-                    key={m.value}
-                    type="button"
-                    aria-pressed={m.value === meal}
-                    onClick={() => setMeal(m.value)}
-                    className={
-                      "h-10 rounded-full border px-4 text-xs font-semibold transition active:scale-95 " +
-                      (m.value === meal
-                        ? "border-emerald-300 bg-emerald-400 text-slate-950"
-                        : "border-white/25 bg-white/10 text-white hover:bg-white/20")
-                    }
-                  >
-                    {m.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-          <div className="mt-5 grid grid-cols-[auto_1fr] gap-2">
+      <ConfirmCard
+        titleId="meal-confirm-title"
+        title="Confirmar registro?"
+        area={confirmArea(request.lines.join(" "))}
+        lines={[...request.lines, `${request.when} · horário do Acre`]}
+        onClose={() => onClose(null)}
+        footer={
+          <div className="grid grid-cols-[auto_1fr] gap-2">
             <button
               type="button"
-              className="h-12 rounded-xl border border-white/30 bg-white/10 px-5 text-sm font-semibold text-white transition hover:bg-white/20 active:scale-95"
+              style={{ cursor: "pointer" }}
+              className="h-11 rounded-xl border border-white/20 bg-white/10 px-4 text-sm font-semibold text-white transition hover:bg-white/20 active:scale-95"
               onClick={() => onClose(null)}
             >
               Cancelar
             </button>
             <button
               type="button"
-              className="h-12 rounded-xl bg-emerald-400 text-sm font-bold text-slate-950 shadow-lg shadow-emerald-500/30 transition hover:bg-emerald-300 active:scale-95"
+              style={{ cursor: "pointer" }}
+              className="h-11 rounded-xl bg-emerald-400 text-sm font-extrabold text-slate-950 shadow-lg shadow-emerald-500/30 transition hover:bg-emerald-300 active:scale-95"
               autoFocus
               onClick={() => onClose(request.needsMeal ? meal : "ok")}
             >
               Confirmar registro
             </button>
           </div>
-        </div>
-      </div>
+        }
+      >
+        {request.needsMeal && (
+          <div className="mt-4" role="group" aria-label="Qual refeição é esta?">
+            <p className="text-xs font-bold">
+              Qual refeição é esta?
+              {request.suggested && (
+                <span className="ml-1 font-normal text-white/70">(sugerida pelo horário)</span>
+              )}
+            </p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {mealTimes.map((m) => (
+                <button
+                  key={m.value}
+                  type="button"
+                  aria-pressed={m.value === meal}
+                  onClick={() => setMeal(m.value)}
+                  style={{ cursor: "pointer" }}
+                  className={
+                    "h-9 rounded-full border px-3 text-xs font-semibold transition active:scale-95 " +
+                    (m.value === meal
+                      ? "border-emerald-300 bg-emerald-400 text-slate-950"
+                      : "border-white/25 bg-white/10 text-white hover:bg-white/20")
+                  }
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </ConfirmCard>
     </div>
   );
 }
