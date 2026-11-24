@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { shareProductLink } from "@/lib/share-product";
 import type React from "react";
@@ -136,6 +136,25 @@ export function ProductQuickViewHost() {
       document.body.style.overflow = prev;
     };
   }, [id]);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!id) return;
+    const on = (e: MouseEvent) => {
+      const r = closeRef.current?.getBoundingClientRect();
+      if (
+        r &&
+        e.clientX >= r.left &&
+        e.clientX <= r.right &&
+        e.clientY >= r.top &&
+        e.clientY <= r.bottom
+      ) {
+        e.stopPropagation();
+        setId(null);
+      }
+    };
+    document.addEventListener("click", on, true);
+    return () => document.removeEventListener("click", on, true);
+  }, [id]);
   const p = products.find((x) => x.id === id);
   if (!p) return null;
   const v = vendorById(p.vendorId);
@@ -163,7 +182,7 @@ export function ProductQuickViewHost() {
   if (typeof document === "undefined") return null;
   return createPortal(
     <div
-      className="fixed inset-0 z-[11500] grid !max-h-none place-items-end bg-slate-950/70 backdrop-blur-sm sm:place-items-center sm:p-4"
+      className="fixed inset-0 z-[2147482000] grid !max-h-none place-items-end bg-slate-950/70 backdrop-blur-sm sm:place-items-center sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-label={p.name}
@@ -174,6 +193,7 @@ export function ProductQuickViewHost() {
       <div className="relative w-full max-w-4xl">
         <button
           type="button"
+          ref={closeRef}
           onClick={() => setId(null)}
           aria-label="Fechar"
           title="Fechar"

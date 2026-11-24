@@ -213,6 +213,26 @@ function PublicStore({
   useEffect(() => {
     setZoomImg(false);
   }, [detail]);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  // Garantia extra: um clique dentro da área do X sempre fecha, mesmo que algo transparente cubra o botão.
+  useEffect(() => {
+    if (!detail) return;
+    const on = (e: MouseEvent) => {
+      const r = closeRef.current?.getBoundingClientRect();
+      if (
+        r &&
+        e.clientX >= r.left &&
+        e.clientX <= r.right &&
+        e.clientY >= r.top &&
+        e.clientY <= r.bottom
+      ) {
+        e.stopPropagation();
+        setDetail(null);
+      }
+    };
+    document.addEventListener("click", on, true);
+    return () => document.removeEventListener("click", on, true);
+  }, [detail]);
   // Só o X (ou Esc) fecha o detalhe: clicar fora por engano não fecha mais.
   useEffect(() => {
     if (!detail) return;
@@ -717,202 +737,206 @@ function PublicStore({
       {chat && (
         <CustomerChat vendor={vendor} onClose={() => setChat(false)} initialText={chatDraft} />
       )}
-      {detail && (
-        <div className="fixed inset-0 z-[120] flex items-end justify-center bg-slate-950/70 backdrop-blur-sm sm:items-center sm:p-6">
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="product-detail-title"
-            className="nv-round relative !max-h-[88vh] w-full overflow-y-auto rounded-t-3xl bg-card shadow-2xl ring-1 ring-white/10 sm:grid sm:!max-h-[min(86vh,480px)] sm:max-w-[720px] sm:grid-cols-[minmax(0,300px)_minmax(0,1fr)] sm:overflow-hidden sm:rounded-2xl"
-            style={{ maxWidth: 720 }}
-          >
-            <button
-              type="button"
-              autoFocus
-              onClick={() => setDetail(null)}
-              onPointerDown={(e) => e.stopPropagation()}
-              aria-label="Fechar"
-              title="Fechar"
-              style={{ cursor: "pointer", pointerEvents: "auto" }}
-              className="absolute right-3 top-3 z-30 grid size-10 place-items-center rounded-full bg-black/45 text-white backdrop-blur transition hover:bg-black/65"
+      {detail &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div className="fixed inset-0 z-[2147482000] flex items-end justify-center bg-slate-950/70 backdrop-blur-sm sm:items-center sm:p-6">
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="product-detail-title"
+              className="nv-round relative !max-h-[88vh] w-full overflow-y-auto rounded-t-3xl bg-card shadow-2xl ring-1 ring-white/10 sm:grid sm:!max-h-[min(86vh,480px)] sm:max-w-[720px] sm:grid-cols-[minmax(0,300px)_minmax(0,1fr)] sm:overflow-hidden sm:rounded-2xl"
+              style={{ maxWidth: 720 }}
             >
-              <X size={18} />
-            </button>
-            <div className="relative bg-gradient-to-b from-[#f2f3f5] to-[#dfe2e6] sm:min-h-0">
-              {detail.image_url ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setZoom(1);
-                    setZoomImg(true);
-                  }}
-                  aria-label="Ampliar foto do produto"
-                  className="group relative block w-full cursor-zoom-in sm:h-full"
-                  style={{ minHeight: 0 }}
-                >
-                  <img
-                    src={detail.image_url}
-                    alt={detail.name}
-                    className="h-44 w-full bg-gradient-to-b from-[#f2f3f5] to-[#dfe2e6] object-contain p-2 min-[420px]:h-52 sm:aspect-square sm:h-full sm:max-h-[480px] sm:object-contain sm:p-4"
-                  />
-                  <span className="nv-round absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-slate-900/75 px-2.5 py-1 text-[11px] font-bold text-white shadow backdrop-blur">
-                    <ZoomIn size={13} aria-hidden="true" /> Ampliar
-                  </span>
-                </button>
-              ) : (
-                <div className="grid h-36 place-items-center text-4xl font-black text-slate-300 sm:aspect-square sm:h-auto">
-                  {initialsOf(detail.name)}
-                </div>
-              )}
-              {detail.promo_percent ? (
-                <span className="absolute left-3 top-3 rounded-full bg-rose-600 px-2.5 py-1 text-xs font-extrabold text-white shadow">
-                  −{detail.promo_percent}%
-                </span>
-              ) : null}
-            </div>
-            <div className="flex min-w-0 flex-col p-4 sm:max-h-[min(86vh,480px)] sm:overflow-y-auto sm:p-5">
-              <p
-                className="text-[11.5px] font-semibold uppercase tracking-wide"
-                style={{ color: accent }}
+              <button
+                type="button"
+                autoFocus
+                ref={closeRef}
+                onClick={() => setDetail(null)}
+                onPointerDown={(e) => e.stopPropagation()}
+                aria-label="Fechar"
+                title="Fechar"
+                style={{ cursor: "pointer", pointerEvents: "auto" }}
+                className="absolute right-3 top-3 z-30 grid size-10 place-items-center rounded-full bg-black/45 text-white backdrop-blur transition hover:bg-black/65"
               >
-                {categoryName(detail.category)}
-              </p>
-              <h2
-                id="product-detail-title"
-                className="mt-1 pr-8 font-display text-lg font-extrabold leading-snug sm:text-2xl"
-              >
-                {detail.name}
-              </h2>
-              {detail.code && (
-                <p className="mt-1 text-xs text-muted-foreground">Código {detail.code}</p>
-              )}
-              <div className="mt-2.5 flex flex-wrap items-baseline gap-2">
-                <strong className="text-xl font-extrabold tabular-nums sm:text-2xl">
-                  {money(detail.price_cents)}
-                </strong>
-                {detail.old_price_cents ? (
-                  <span className="text-sm text-muted-foreground line-through tabular-nums">
-                    {money(detail.old_price_cents)}
-                  </span>
-                ) : null}
-              </div>
-              <p
-                className={`mt-2 inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${
-                  productStatus(detail).buyable
-                    ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
-                    : "bg-muted text-muted-foreground"
-                }`}
-              >
-                <span
-                  aria-hidden="true"
-                  className={`size-1.5 rounded-full ${productStatus(detail).buyable ? "bg-emerald-500" : "bg-slate-400"}`}
-                />
-                {productStatus(detail).label}
-                {productStatus(detail).buyable && detail.stock <= 3
-                  ? ` · últimas ${detail.stock}`
-                  : ""}
-              </p>
-              {detail.description && (
-                <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground sm:text-sm">
-                  {detail.description}
-                </p>
-              )}
-              {!!detail.colors?.length && (
-                <div className="mt-4">
-                  <p className="text-xs font-semibold">Cores</p>
-                  <ul className="mt-1.5 flex flex-wrap gap-2">
-                    {detail.colors.map((c) => (
-                      <li
-                        key={c.name}
-                        className={`flex items-center gap-1.5 rounded-full border border-border px-2 py-1 text-xs ${c.stock <= 0 ? "opacity-50 line-through" : ""}`}
-                      >
-                        <span
-                          className="size-3.5 rounded-full border border-border"
-                          style={{ background: c.hex }}
-                          aria-hidden="true"
-                        />
-                        {c.name}
-                        {c.stock <= 0 ? " (esgotada)" : ""}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              <div className="mt-auto pt-4">
-                <button
-                  type="button"
-                  disabled={!productStatus(detail).buyable}
-                  onClick={() => addToCart(detail)}
-                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl text-sm sm:h-12 sm:text-[15px] font-bold text-white shadow-lg transition hover:brightness-110 disabled:opacity-45"
-                  style={{ background: accent }}
-                >
-                  <ShoppingCart size={18} /> Adicionar ao carrinho
-                </button>
-                <div className="mt-2 grid grid-cols-4 gap-1.5 sm:gap-2">
+                <X size={18} />
+              </button>
+              <div className="relative bg-gradient-to-b from-[#f2f3f5] to-[#dfe2e6] sm:min-h-0">
+                {detail.image_url ? (
                   <button
                     type="button"
                     onClick={() => {
-                      setChatDraft(
-                        detail.code
-                          ? `Tenho uma dúvida sobre o produto ${detail.code} (${detail.name}).`
-                          : `Tenho uma dúvida sobre o produto ${detail.name}.`,
-                      );
-                      setDetail(null);
-                      setChat(true);
+                      setZoom(1);
+                      setZoomImg(true);
                     }}
-                    className="nv-tiny inline-flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl border border-border px-1 text-[10.5px] font-semibold leading-none transition hover:bg-muted sm:h-10 sm:flex-row sm:gap-1.5 sm:text-xs"
+                    aria-label="Ampliar foto do produto"
+                    className="group relative block w-full cursor-zoom-in sm:h-full"
+                    style={{ minHeight: 0 }}
                   >
-                    <MessageCircle size={15} /> Perguntar
+                    <img
+                      src={detail.image_url}
+                      alt={detail.name}
+                      className="h-44 w-full bg-gradient-to-b from-[#f2f3f5] to-[#dfe2e6] object-contain p-2 min-[420px]:h-52 sm:aspect-square sm:h-full sm:max-h-[480px] sm:object-contain sm:p-4"
+                    />
+                    <span className="nv-round absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-slate-900/75 px-2.5 py-1 text-[11px] font-bold text-white shadow backdrop-blur">
+                      <ZoomIn size={13} aria-hidden="true" /> Ampliar
+                    </span>
                   </button>
-                  {detail.share_code ? (
-                    <>
-                      <a
-                        href={`https://wa.me/?text=${encodeURIComponent(
-                          `${detail.name} por ${money(detail.price_cents)} na ${vendor.name}:\n${window.location.origin}/p/${detail.share_code}`,
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="nv-tiny inline-flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl border border-border px-1 text-[10.5px] font-semibold leading-none transition hover:bg-muted sm:h-10 sm:flex-row sm:gap-1.5 sm:text-xs"
-                      >
-                        <Share2 size={15} className="text-[#25D366]" /> WhatsApp
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          void navigator.clipboard
-                            ?.writeText(`${window.location.origin}/p/${detail.share_code}`)
-                            .then(() => {
-                              setLinkCopied(true);
-                              setTimeout(() => setLinkCopied(false), 2000);
-                            });
-                        }}
-                        className="nv-tiny inline-flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl border border-border px-1 text-[10.5px] font-semibold leading-none transition hover:bg-muted sm:h-10 sm:flex-row sm:gap-1.5 sm:text-xs"
-                      >
-                        {linkCopied ? <Check size={15} /> : <Copy size={15} />}
-                        {linkCopied ? "Copiado" : "Copiar link"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          void shareProduct(detail, vendor.name).then((how) => {
-                            if (how === "copied") {
-                              setLinkCopied(true);
-                              setTimeout(() => setLinkCopied(false), 2000);
-                            }
-                          });
-                        }}
-                        className="nv-tiny inline-flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl border border-border px-1 text-[10.5px] font-semibold leading-none transition hover:bg-muted sm:h-10 sm:flex-row sm:gap-1.5 sm:text-xs"
-                      >
-                        <Share2 size={15} /> Compartilhar
-                      </button>
-                    </>
+                ) : (
+                  <div className="grid h-36 place-items-center text-4xl font-black text-slate-300 sm:aspect-square sm:h-auto">
+                    {initialsOf(detail.name)}
+                  </div>
+                )}
+                {detail.promo_percent ? (
+                  <span className="absolute left-3 top-3 rounded-full bg-rose-600 px-2.5 py-1 text-xs font-extrabold text-white shadow">
+                    −{detail.promo_percent}%
+                  </span>
+                ) : null}
+              </div>
+              <div className="flex min-w-0 flex-col p-4 sm:max-h-[min(86vh,480px)] sm:overflow-y-auto sm:p-5">
+                <p
+                  className="text-[11.5px] font-semibold uppercase tracking-wide"
+                  style={{ color: accent }}
+                >
+                  {categoryName(detail.category)}
+                </p>
+                <h2
+                  id="product-detail-title"
+                  className="mt-1 pr-8 font-display text-lg font-extrabold leading-snug sm:text-2xl"
+                >
+                  {detail.name}
+                </h2>
+                {detail.code && (
+                  <p className="mt-1 text-xs text-muted-foreground">Código {detail.code}</p>
+                )}
+                <div className="mt-2.5 flex flex-wrap items-baseline gap-2">
+                  <strong className="text-xl font-extrabold tabular-nums sm:text-2xl">
+                    {money(detail.price_cents)}
+                  </strong>
+                  {detail.old_price_cents ? (
+                    <span className="text-sm text-muted-foreground line-through tabular-nums">
+                      {money(detail.old_price_cents)}
+                    </span>
                   ) : null}
+                </div>
+                <p
+                  className={`mt-2 inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${
+                    productStatus(detail).buyable
+                      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`size-1.5 rounded-full ${productStatus(detail).buyable ? "bg-emerald-500" : "bg-slate-400"}`}
+                  />
+                  {productStatus(detail).label}
+                  {productStatus(detail).buyable && detail.stock <= 3
+                    ? ` · últimas ${detail.stock}`
+                    : ""}
+                </p>
+                {detail.description && (
+                  <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground sm:text-sm">
+                    {detail.description}
+                  </p>
+                )}
+                {!!detail.colors?.length && (
+                  <div className="mt-4">
+                    <p className="text-xs font-semibold">Cores</p>
+                    <ul className="mt-1.5 flex flex-wrap gap-2">
+                      {detail.colors.map((c) => (
+                        <li
+                          key={c.name}
+                          className={`flex items-center gap-1.5 rounded-full border border-border px-2 py-1 text-xs ${c.stock <= 0 ? "opacity-50 line-through" : ""}`}
+                        >
+                          <span
+                            className="size-3.5 rounded-full border border-border"
+                            style={{ background: c.hex }}
+                            aria-hidden="true"
+                          />
+                          {c.name}
+                          {c.stock <= 0 ? " (esgotada)" : ""}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <div className="mt-auto pt-4">
+                  <button
+                    type="button"
+                    disabled={!productStatus(detail).buyable}
+                    onClick={() => addToCart(detail)}
+                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl text-sm sm:h-12 sm:text-[15px] font-bold text-white shadow-lg transition hover:brightness-110 disabled:opacity-45"
+                    style={{ background: accent }}
+                  >
+                    <ShoppingCart size={18} /> Adicionar ao carrinho
+                  </button>
+                  <div className="mt-2 grid grid-cols-4 gap-1.5 sm:gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setChatDraft(
+                          detail.code
+                            ? `Tenho uma dúvida sobre o produto ${detail.code} (${detail.name}).`
+                            : `Tenho uma dúvida sobre o produto ${detail.name}.`,
+                        );
+                        setDetail(null);
+                        setChat(true);
+                      }}
+                      className="nv-tiny inline-flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl border border-border px-1 text-[10.5px] font-semibold leading-none transition hover:bg-muted sm:h-10 sm:flex-row sm:gap-1.5 sm:text-xs"
+                    >
+                      <MessageCircle size={15} /> Perguntar
+                    </button>
+                    {detail.share_code ? (
+                      <>
+                        <a
+                          href={`https://wa.me/?text=${encodeURIComponent(
+                            `${detail.name} por ${money(detail.price_cents)} na ${vendor.name}:\n${window.location.origin}/p/${detail.share_code}`,
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="nv-tiny inline-flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl border border-border px-1 text-[10.5px] font-semibold leading-none transition hover:bg-muted sm:h-10 sm:flex-row sm:gap-1.5 sm:text-xs"
+                        >
+                          <Share2 size={15} className="text-[#25D366]" /> WhatsApp
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            void navigator.clipboard
+                              ?.writeText(`${window.location.origin}/p/${detail.share_code}`)
+                              .then(() => {
+                                setLinkCopied(true);
+                                setTimeout(() => setLinkCopied(false), 2000);
+                              });
+                          }}
+                          className="nv-tiny inline-flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl border border-border px-1 text-[10.5px] font-semibold leading-none transition hover:bg-muted sm:h-10 sm:flex-row sm:gap-1.5 sm:text-xs"
+                        >
+                          {linkCopied ? <Check size={15} /> : <Copy size={15} />}
+                          {linkCopied ? "Copiado" : "Copiar link"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            void shareProduct(detail, vendor.name).then((how) => {
+                              if (how === "copied") {
+                                setLinkCopied(true);
+                                setTimeout(() => setLinkCopied(false), 2000);
+                              }
+                            });
+                          }}
+                          className="nv-tiny inline-flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl border border-border px-1 text-[10.5px] font-semibold leading-none transition hover:bg-muted sm:h-10 sm:flex-row sm:gap-1.5 sm:text-xs"
+                        >
+                          <Share2 size={15} /> Compartilhar
+                        </button>
+                      </>
+                    ) : null}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
       {detail &&
         zoomImg &&
         detail.image_url &&
