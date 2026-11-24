@@ -64,6 +64,7 @@ import { ClientMedicationManager } from "./ClientMedicationManager";
 import { CareTimer, toneForCategory } from "./CareTimer";
 import { ClientSupplementCenter } from "./ClientSupplementCenter";
 import { clientSectionOrder, clientSectionTheme } from "@/lib/client-section-theme";
+import { HydrationPeriodHistory } from "./HydrationPeriodHistory";
 import {
   canConfirmCare,
   careScheduleBlockMessage,
@@ -1142,12 +1143,16 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                         ))}
                       </div>
                       <div className="min-h-0">
-                        <CareRecentHistory
-                          patientId={client.id}
-                          ownerId={client.owner_id}
-                          category={historyCategory}
-                          compact
-                        />
+                        {historyCategory === "hidratacao" ? (
+                          <HydrationPeriodHistory patientId={client.id} ownerId={client.owner_id} />
+                        ) : (
+                          <CareRecentHistory
+                            patientId={client.id}
+                            ownerId={client.owner_id}
+                            category={historyCategory}
+                            compact
+                          />
+                        )}
                       </div>
                     </section>
                   </div>

@@ -1,4 +1,5 @@
-import { DailyNutritionPanel, useDailyNutrition } from "./DailyNutritionPanel";
+import { DailyNutritionPanel, useDailyNutrition, type DailyNutrition } from "./DailyNutritionPanel";
+import { sumNutrients } from "@/lib/food-parser";
 import { NutritionGuardPanel } from "./NutritionGuard";
 import { Fold } from "./Fold";
 import { MealMacroBars, NutritionDayChart, NutritionHero } from "./NutritionHero";
@@ -211,6 +212,8 @@ export function ClientMealsPage({
         }
       />
       <NutritionGuardPanel data={nutrition} />
+      {/* Refeições já realizadas hoje, em destaque logo abaixo da meta. */}
+      <MealsDoneToday data={nutrition} />
       {/* Área principal: o que foi registrado no dia, por refeição, em ordem de horário. */}
       <section
         aria-labelledby="meals-day-title"
@@ -506,5 +509,58 @@ export function ClientMealsPage({
         valor nutricional da refeição.
       </p>
     </div>
+  );
+}
+
+/** Cartões das refeições realizadas hoje (sem bebidas), em ordem de horário. */
+function MealsDoneToday({ data }: { data: DailyNutrition }) {
+  const meals = useMemo(
+    () =>
+      data.entries
+        .filter((e) => e.entryType !== "beverage")
+        .slice()
+        .sort((a, b) => a.at.localeCompare(b.at)),
+    [data.entries],
+  );
+  if (!meals.length) {
+    return (
+      <p className="border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
+        Nenhuma refeição registrada hoje. Toque em “Registrar refeição” para começar.
+      </p>
+    );
+  }
+  return (
+    <section aria-label="Refeições realizadas hoje" className="grid min-w-0 gap-2">
+      <h3 className="flex items-center justify-between text-sm font-bold">
+        <span>Refeições realizadas hoje</span>
+        <span className="text-[11px] font-semibold text-muted-foreground">{meals.length} registro(s)</span>
+      </h3>
+      <ul className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
+        {meals.map((e) => {
+          const kcal = e.direct?.kcal ?? sumNutrients(e.foods.map((f) => f.nutrients)).kcal;
+          const Icon = foodIcon(e.text || e.source);
+          const names = e.foods.map((f) => f.name.split(",")[0]).join(", ") || e.text || e.source;
+          return (
+            <li
+              key={e.entryId ?? e.at + e.text}
+              className="flex min-w-0 items-start gap-3 border border-emerald-500/30 bg-emerald-500/[.07] p-3"
+            >
+              <span className="grid size-10 shrink-0 place-items-center bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
+                <Icon size={20} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-semibold text-muted-foreground">
+                  {reminderClock(e.at)} · {e.source}
+                </p>
+                <p className="mt-0.5 line-clamp-2 break-words text-sm font-bold text-foreground">{names}</p>
+              </div>
+              <p className="shrink-0 text-sm font-extrabold tabular-nums text-emerald-700 dark:text-emerald-300">
+                {Math.round(kcal)} <span className="text-[10px] font-semibold">kcal</span>
+              </p>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
