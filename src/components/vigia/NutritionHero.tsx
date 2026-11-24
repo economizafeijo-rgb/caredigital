@@ -1,6 +1,6 @@
 import { EvoChart, EvoLegend } from "./EvoChart";
 import { useMemo, useState, type ReactNode } from "react";
-import { Beef, Droplet, Target, Wheat } from "lucide-react";
+import { Beef, Droplet, Leaf, Target, Wheat } from "lucide-react";
 import { sumNutrients, type Nutrients } from "@/lib/food-parser";
 import { objectiveLabel } from "@/lib/objective-nutrition";
 import type { DailyNutrition } from "./DailyNutritionPanel";
@@ -30,6 +30,15 @@ const macros = [
   { key: "carbs", label: "Carboidrato", short: "Carbos", icon: Wheat, color: MACRO_COLORS.carbs },
   { key: "fat", label: "Gordura", short: "Gordura", icon: Droplet, color: MACRO_COLORS.fat },
 ] as const;
+
+const fiberMacro = {
+  key: "fiber",
+  label: "Fibras",
+  short: "Fibras",
+  icon: Leaf,
+  color: "#14b8a6",
+} as const;
+const macroList = [...macros, fiberMacro] as const;
 
 const mealSlots: [number, string][] = [
   [7, "Café da manhã"],
@@ -169,8 +178,8 @@ export function NutritionHero({
               {actions}
             </div>
           )}
-          <ul className="grid grid-cols-3 gap-1.5 sm:gap-2 lg:col-start-3 lg:row-span-2 lg:row-start-1 lg:grid-cols-1 lg:gap-1">
-            {macros.map((m, i) => {
+          <ul className="grid grid-cols-2 gap-1.5 sm:grid-cols-4 sm:gap-2 lg:col-start-3 lg:row-span-2 lg:row-start-1 lg:grid-cols-1 lg:gap-1">
+            {macroList.map((m, i) => {
               const v = total[m.key],
                 t = target[m.key] || 1;
               const p = Math.min(100, Math.round((v / t) * 100));
@@ -184,13 +193,15 @@ export function NutritionHero({
                     boxShadow: `inset 0 2px 0 ${m.color}`,
                   }}
                 >
-                  <NutrientArt
-                    kind={m.key}
-                    className="pointer-events-none absolute -bottom-1 -right-0.5 size-9 sm:size-11 lg:hidden"
-                  />
+                  {m.key !== "fiber" && (
+                    <NutrientArt
+                      kind={m.key}
+                      className="pointer-events-none absolute -bottom-1 -right-0.5 size-9 sm:size-11 lg:hidden"
+                    />
+                  )}
                   <span
                     className="flex items-center gap-1 text-[11px] font-bold"
-                    style={{ color: NUTRIENT_INK[m.key] }}
+                    style={{ color: m.key === "fiber" ? "#5eead4" : NUTRIENT_INK[m.key] }}
                   >
                     <m.icon size={12} className="shrink-0" />
                     <span className="truncate sm:hidden">{m.short}</span>

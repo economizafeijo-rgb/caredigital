@@ -590,6 +590,7 @@ export function DailyNutritionPanel({
               <p className="mt-0.5 text-xs text-muted-foreground">
                 Do que mais falta para o que já foi atingido. A barra cheia é a referência do dia.
               </p>
+              <NutrientGaps total={total} target={target} hasEntries={entries.length > 0} />
               {/* Uma cor só para micronutrientes (verde-água): vermelho, âmbar e roxo ficam reservados
                   para proteína, carboidrato e gordura. A situação vem escrita, não só na cor. */}
               <ul className="mt-2 grid gap-x-6 gap-y-2 border border-border bg-muted/30 p-3 sm:grid-cols-2">
@@ -909,5 +910,73 @@ function FoodNutrientDetails({ foods }: { foods: ParsedFood[] }) {
         })}
       </ul>
     </details>
+  );
+}
+
+/** Fontes regionais e comuns de cada nutriente, para sugerir como completar o dia. */
+const GAP_FOODS: Record<string, string[]> = {
+  Fibras: ["feijão", "aveia", "mamão", "banana", "pão integral", "legumes"],
+  "Vitamina C": ["acerola", "laranja", "caju", "goiaba", "limão"],
+  "Vitamina A": ["cenoura", "abóbora", "manga", "ovo", "folhas verde-escuras"],
+  Cálcio: ["leite", "iogurte", "queijo", "sardinha", "couve"],
+  Ferro: ["feijão", "carne magra", "fígado", "lentilha", "folhas verde-escuras"],
+  Potássio: ["banana", "feijão", "batata-doce", "água de coco", "abacate"],
+};
+
+/** O que provavelmente falta hoje: nutrientes abaixo de 50% da referência, com ideias para completar. */
+function NutrientGaps({
+  total,
+  target,
+  hasEntries,
+}: {
+  total: Nutrients;
+  target: { fiber: number };
+  hasEntries: boolean;
+}) {
+  if (!hasEntries) return null;
+  const items = [
+    { label: "Fibras", value: total.fiber, target: target.fiber },
+    ...(Object.keys(microTargets) as (keyof typeof microTargets)[]).map((k) => ({
+      label: microTargets[k].label,
+      value: total[k],
+      target: microTargets[k].target,
+    })),
+  ]
+    .map((i) => ({ ...i, pct: Math.round((i.value / i.target) * 100) }))
+    .filter((i) => i.pct < 50)
+    .sort((a, b) => a.pct - b.pct);
+  if (!items.length) {
+    return (
+      <p className="mt-2 flex items-center gap-1.5 border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-800 dark:text-emerald-200">
+        <Check size={14} aria-hidden="true" /> Fibras, vitaminas e minerais acima de 50% da
+        referência hoje.
+      </p>
+    );
+  }
+  return (
+    <section
+      aria-label="Nutrientes que estão faltando hoje"
+      className="mt-2 border border-amber-500/35 bg-amber-500/[.07] p-2.5"
+    >
+      <h5 className="text-xs font-bold text-amber-800 dark:text-amber-200">
+        Pode estar faltando hoje ({items.length})
+      </h5>
+      <ul className="mt-1.5 grid gap-1.5 text-xs">
+        {items.map((i) => (
+          <li key={i.label} className="grid gap-0.5 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-2">
+            <span className="font-semibold">
+              {i.label} <span className="tabular-nums text-muted-foreground">{i.pct}%</span>
+            </span>
+            <span className="text-muted-foreground">
+              Ajuda: {(GAP_FOODS[i.label] ?? []).slice(0, 4).join(", ")}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-1.5 text-[10px] text-muted-foreground">
+        Baseado só no que foi registrado hoje; o dia ainda pode estar em andamento. Estimativa, não
+        é diagnóstico: se suspeitar de deficiência, procure um profissional.
+      </p>
+    </section>
   );
 }
