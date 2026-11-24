@@ -213,6 +213,13 @@ function PublicStore({
   useEffect(() => {
     setZoomImg(false);
   }, [detail]);
+  // Só o X (ou Esc) fecha o detalhe: clicar fora por engano não fecha mais.
+  useEffect(() => {
+    if (!detail) return;
+    const k = (e: KeyboardEvent) => e.key === "Escape" && !zoomImg && setDetail(null);
+    window.addEventListener("keydown", k);
+    return () => window.removeEventListener("keydown", k);
+  }, [detail, zoomImg]);
   const deepLinked = useRef(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [cardCopied, setCardCopied] = useState<string | null>(null);
@@ -711,15 +718,7 @@ function PublicStore({
         <CustomerChat vendor={vendor} onClose={() => setChat(false)} initialText={chatDraft} />
       )}
       {detail && (
-        <div
-          className="fixed inset-0 z-[120] flex items-end justify-center bg-slate-950/70 backdrop-blur-sm sm:items-center sm:p-6"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setDetail(null);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") setDetail(null);
-          }}
-        >
+        <div className="fixed inset-0 z-[120] flex items-end justify-center bg-slate-950/70 backdrop-blur-sm sm:items-center sm:p-6">
           <div
             role="dialog"
             aria-modal="true"
@@ -731,8 +730,11 @@ function PublicStore({
               type="button"
               autoFocus
               onClick={() => setDetail(null)}
+              onPointerDown={(e) => e.stopPropagation()}
               aria-label="Fechar"
-              className="absolute right-3 top-3 z-10 grid size-9 place-items-center rounded-full bg-black/45 text-white backdrop-blur transition hover:bg-black/65"
+              title="Fechar"
+              style={{ cursor: "pointer", pointerEvents: "auto" }}
+              className="absolute right-3 top-3 z-30 grid size-10 place-items-center rounded-full bg-black/45 text-white backdrop-blur transition hover:bg-black/65"
             >
               <X size={18} />
             </button>
