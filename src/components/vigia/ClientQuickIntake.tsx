@@ -947,7 +947,7 @@ export function ClientQuickIntake({
                                     type="number"
                                     min={10}
                                     max={1500}
-                                    step={10}
+                                    step={1}
                                     required
                                     value={amount}
                                     onChange={(event) => setAmount(event.target.value)}

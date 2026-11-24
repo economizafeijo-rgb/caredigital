@@ -171,6 +171,8 @@ export const intakeCategory = (kind: string) => foodCategory(kind) || beverageCa
 /** Alimentos típicos de cada refeição (inclui pratos do Acre). O texto entra na descrição e é calculado pelo leitor de alimentos. */
 export const typicalFoods: Record<FoodKind, { label: string; text: string }[]> = {
   cafe_manha: [
+    { label: "Pão integral", text: "1 pão integral" },
+    { label: "Requeijão", text: "30 g de requeijão" },
     { label: "Café preto", text: "1 xícara de café" },
     { label: "Café com leite", text: "1 xícara de café com leite" },
     { label: "Pão francês", text: "1 pão francês" },
@@ -352,6 +354,10 @@ export const typicalFoods: Record<FoodKind, { label: string; text: string }[]> =
 /** Refeições prontas sugeridas por tipo de refeição (vários alimentos); entram na descrição e no cálculo. */
 export const mealCombos: Partial<Record<FoodKind, { label: string; text: string }[]>> = {
   cafe_manha: [
+    { label: "Pão francês com ovo e manteiga", text: "1 pão francês com ovo e manteiga" },
+    { label: "Pão francês com queijo da região", text: "1 pão francês com queijo da região" },
+    { label: "Pão francês com queijo e presunto", text: "1 pão francês com queijo e presunto" },
+    { label: "Pão francês com requeijão", text: "1 pão francês com requeijão" },
     {
       label: "Cuscuz com ovo e café com leite",
       text: "1 prato de cuscuz, 2 ovos cozidos, 1 xícara de café com leite",

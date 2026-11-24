@@ -410,7 +410,7 @@ export function DrinkBoard({
                 type="number"
                 min={10}
                 max={1500}
-                step={10}
+                step={1}
                 required
                 value={amount}
                 onChange={(e) => onAmount(e.target.value)}
