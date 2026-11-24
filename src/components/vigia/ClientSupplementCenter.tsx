@@ -192,115 +192,122 @@ function ProductPage({
         </div>
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <div className="grid min-h-0 flex-1 content-start gap-4 overflow-y-auto p-5 sm:p-6">
-          <header>
-            {item.brand && (
-              <p className="text-xs font-bold tracking-wide" style={{ color }}>
-                {item.brand}
-              </p>
-            )}
-            <h3 className="mt-0.5 pr-10 text-2xl font-extrabold leading-tight">{item.name}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.benefit}</p>
-            {item.label && (
-              <p className="mt-2 flex flex-wrap gap-1.5">
-                {item.label.seals.map((seal) => (
-                  <span
-                    key={seal}
-                    className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300"
-                  >
-                    <Check size={12} /> {seal}
-                  </span>
-                ))}
-              </p>
-            )}
-          </header>
-
-          <dl className="grid gap-2">
-            {specs.map(({ icon: Icon, label, value }) => (
-              <div key={label} className="flex items-start gap-3 rounded-2xl bg-muted/60 px-3 py-2.5">
-                <span
-                  className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-xl text-white"
-                  style={{ background: color }}
-                >
-                  <Icon size={16} />
-                </span>
-                <div className="min-w-0">
-                  <dt className="text-[11px] font-semibold text-muted-foreground">{label}</dt>
-                  <dd className="text-sm font-bold">{value}</dd>
-                </div>
-              </div>
-            ))}
-          </dl>
-
-          {item.label && (
-            <section aria-label="Informação nutricional" className="overflow-hidden rounded-2xl border border-border">
-              <div className="flex flex-wrap items-baseline justify-between gap-x-3 bg-foreground px-3 py-2 text-background">
-                <h4 className="text-sm font-extrabold">Informação nutricional</h4>
-                <span className="text-[11px] opacity-80">Porção: {item.label.serving}</span>
-              </div>
-              <p className="px-3 pt-1.5 text-[11px] text-muted-foreground">{item.label.servings}</p>
-              <table className="w-full text-sm">
-                <thead className="sr-only">
-                  <tr>
-                    <th>Nutriente</th>
-                    <th>Quantidade por porção</th>
-                    <th>%VD</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {item.label.rows.map((row) => (
-                    <tr key={row.name} className="border-t border-border">
-                      <td className="px-3 py-2">
-                        <strong>{row.name}</strong>
-                        {row.detail && (
-                          <span className="block text-[11px] leading-4 text-muted-foreground">
-                            {row.detail}
-                          </span>
-                        )}
-                      </td>
-                      <td className="whitespace-nowrap px-1 text-right font-bold tabular-nums">
-                        {row.amount}
-                      </td>
-                      <td className="w-14 whitespace-nowrap px-3 text-right tabular-nums text-muted-foreground">
-                        {row.dv}
-                      </td>
-                    </tr>
+            <header>
+              {item.brand && (
+                <p className="text-xs font-bold tracking-wide" style={{ color }}>
+                  {item.brand}
+                </p>
+              )}
+              <h3 className="mt-0.5 pr-10 text-2xl font-extrabold leading-tight">{item.name}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.benefit}</p>
+              {item.label && (
+                <p className="mt-2 flex flex-wrap gap-1.5">
+                  {item.label.seals.map((seal) => (
+                    <span
+                      key={seal}
+                      className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300"
+                    >
+                      <Check size={12} /> {seal}
+                    </span>
                   ))}
-                </tbody>
-              </table>
-              <div className="grid gap-1.5 border-t border-border px-3 py-2.5 text-xs">
-                <p>
-                  <strong>Outros ingredientes:</strong> {item.label.other}
                 </p>
-                <p>
-                  <strong>Livre de:</strong> {item.label.free.join(", ")}.
-                </p>
-                <p className="text-[11px] text-muted-foreground">{item.label.note}</p>
-              </div>
-            </section>
-          )}
+              )}
+            </header>
 
-          <section aria-label="Como tomar">
-            <h4 className="flex items-center gap-2 text-sm font-extrabold">
-              <Lightbulb size={16} className="text-amber-500" /> Como tomar
-            </h4>
-            <ul className="mt-2 grid gap-2 text-sm">
-              {item.tips.map((tip) => (
-                <li key={tip} className="flex gap-2.5">
-                  <Check size={15} className="mt-0.5 shrink-0" style={{ color }} />
-                  <span>{tip}</span>
-                </li>
+            <dl className="grid gap-2">
+              {specs.map(({ icon: Icon, label, value }) => (
+                <div
+                  key={label}
+                  className="flex items-start gap-3 rounded-2xl bg-muted/60 px-3 py-2.5"
+                >
+                  <span
+                    className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-xl text-white"
+                    style={{ background: color }}
+                  >
+                    <Icon size={16} />
+                  </span>
+                  <div className="min-w-0">
+                    <dt className="text-[11px] font-semibold text-muted-foreground">{label}</dt>
+                    <dd className="text-sm font-bold">{value}</dd>
+                  </div>
+                </div>
               ))}
-            </ul>
-          </section>
+            </dl>
 
-          <aside className="flex gap-2.5 rounded-2xl bg-amber-500/10 p-3 text-xs leading-relaxed">
-            <ShieldCheck size={16} className="mt-0.5 shrink-0 text-amber-600" />
-            <p>
-              <strong>Atenção:</strong> {item.caution} Converse com seu médico ou nutricionista
-              antes de iniciar.
-            </p>
-          </aside>
+            {item.label && (
+              <section
+                aria-label="Informação nutricional"
+                className="overflow-hidden rounded-2xl border border-border"
+              >
+                <div className="flex flex-wrap items-baseline justify-between gap-x-3 bg-foreground px-3 py-2 text-background">
+                  <h4 className="text-sm font-extrabold">Informação nutricional</h4>
+                  <span className="text-[11px] opacity-80">Porção: {item.label.serving}</span>
+                </div>
+                <p className="px-3 pt-1.5 text-[11px] text-muted-foreground">
+                  {item.label.servings}
+                </p>
+                <table className="w-full text-sm">
+                  <thead className="sr-only">
+                    <tr>
+                      <th>Nutriente</th>
+                      <th>Quantidade por porção</th>
+                      <th>%VD</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {item.label.rows.map((row) => (
+                      <tr key={row.name} className="border-t border-border">
+                        <td className="px-3 py-2">
+                          <strong>{row.name}</strong>
+                          {row.detail && (
+                            <span className="block text-[11px] leading-4 text-muted-foreground">
+                              {row.detail}
+                            </span>
+                          )}
+                        </td>
+                        <td className="whitespace-nowrap px-1 text-right font-bold tabular-nums">
+                          {row.amount}
+                        </td>
+                        <td className="w-14 whitespace-nowrap px-3 text-right tabular-nums text-muted-foreground">
+                          {row.dv}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div className="grid gap-1.5 border-t border-border px-3 py-2.5 text-xs">
+                  <p>
+                    <strong>Outros ingredientes:</strong> {item.label.other}
+                  </p>
+                  <p>
+                    <strong>Livre de:</strong> {item.label.free.join(", ")}.
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">{item.label.note}</p>
+                </div>
+              </section>
+            )}
 
+            <section aria-label="Como tomar">
+              <h4 className="flex items-center gap-2 text-sm font-extrabold">
+                <Lightbulb size={16} className="text-amber-500" /> Como tomar
+              </h4>
+              <ul className="mt-2 grid gap-2 text-sm">
+                {item.tips.map((tip) => (
+                  <li key={tip} className="flex gap-2.5">
+                    <Check size={15} className="mt-0.5 shrink-0" style={{ color }} />
+                    <span>{tip}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <aside className="flex gap-2.5 rounded-2xl bg-amber-500/10 p-3 text-xs leading-relaxed">
+              <ShieldCheck size={16} className="mt-0.5 shrink-0 text-amber-600" />
+              <p>
+                <strong>Atenção:</strong> {item.caution} Converse com seu médico ou nutricionista
+                antes de iniciar.
+              </p>
+            </aside>
           </div>
           <div className="flex shrink-0 flex-wrap gap-2 border-t border-border bg-background px-5 py-3 sm:px-6">
             <button
@@ -638,7 +645,12 @@ export const supplementLibrary: LibraryItem[] = [
     ],
     caution:
       "Quem tem doença renal, está grávida ou amamentando, ou usa medicamentos (como alguns antibióticos, remédios para osteoporose e para a tireoide) deve consultar o profissional antes. Excesso de magnésio pode causar diarreia.",
-    pack: { shape: "frasco", color: "#ea580c", label: "MAGNÉSIO", sub: "Doctor's Best · cápsulas vegetais" },
+    pack: {
+      shape: "frasco",
+      color: "#ea580c",
+      label: "MAGNÉSIO",
+      sub: "Doctor's Best · cápsulas vegetais",
+    },
     photo: "/images/suplementos/doctors-best-magnesio-alta-absorcao.webp",
     label: {
       serving: "2 cápsulas vegetais",
@@ -651,7 +663,8 @@ export const supplementLibrary: LibraryItem[] = [
           dv: "25%",
         },
       ],
-      other: "Hipromelose (cápsula vegetal), estearato de cálcio, celulose microcristalina e dióxido de silício.",
+      other:
+        "Hipromelose (cápsula vegetal), estearato de cálcio, celulose microcristalina e dióxido de silício.",
       free: ["Glúten", "Soja", "Transgênicos"],
       seals: ["Quelato 100%", "Vegano", "Sem glúten", "Sem soja"],
       note: "%VD norte-americano. Dados conferidos em lojas que vendem o frasco de 120 cápsulas; confirme no rótulo do seu frasco de 240.",
@@ -680,7 +693,12 @@ export const supplementLibrary: LibraryItem[] = [
     ],
     caution:
       "Gestantes, lactantes, quem usa medicamentos ou tem alguma condição de saúde devem consultar o profissional antes. Suspenda e procure atendimento se houver reação adversa. Cálcio, magnésio e zinco podem interferir na absorção de alguns medicamentos: pergunte sobre o horário. O magnésio desta porção (400 mg) já passa do limite de 350 mg/dia indicado para magnésio de suplementos; não some outro suplemento com magnésio sem orientação.",
-    pack: { shape: "frasco", color: "#b45309", label: "CÁLCIO MAG ZINCO", sub: "Solgar · 100 comp" },
+    pack: {
+      shape: "frasco",
+      color: "#b45309",
+      label: "CÁLCIO MAG ZINCO",
+      sub: "Solgar · 100 comp",
+    },
     photo: "/images/suplementos/solgar-calcio-magnesio-zinco.webp",
     label: {
       serving: "3 comprimidos",
@@ -703,7 +721,15 @@ export const supplementLibrary: LibraryItem[] = [
       ],
       other:
         "Celulose microcristalina, celulose vegetal, ácido cítrico, estearato de magnésio vegetal, ácido esteárico vegetal, glicerina vegetal e cera de carnaúba.",
-      free: ["Glúten", "Trigo", "Laticínios", "Soja", "Levedura", "Açúcar", "Aromas, adoçantes e corantes artificiais"],
+      free: [
+        "Glúten",
+        "Trigo",
+        "Laticínios",
+        "Soja",
+        "Levedura",
+        "Açúcar",
+        "Aromas, adoçantes e corantes artificiais",
+      ],
       seals: ["Não transgênico", "Adequado para veganos", "Kosher pareve"],
       note: "%VD conforme o rótulo norte-americano (base de adultos dos EUA). Informações do rótulo do fabricante; confira sempre a embalagem em mãos.",
     },
@@ -1113,7 +1139,7 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
           aria-hidden="true"
           className="pointer-events-none absolute -bottom-16 left-1/4 -z-10 size-56 rounded-full bg-fuchsia-400/15 blur-3xl"
         />
-        <div className="grid items-center gap-3 lg:grid-cols-[auto_minmax(0,1fr)_26rem]">
+        <div className="grid items-center gap-3 lg:grid-cols-[auto_minmax(0,1fr)_18rem]">
           <div
             className="relative mx-auto size-[68px] shrink-0 lg:mx-0"
             role="img"
@@ -1191,6 +1217,7 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
             </div>
           </div>
           <NextUpClock
+            compact
             alertKey="suplemento"
             title="Próxima dose"
             color="#fbbf24"

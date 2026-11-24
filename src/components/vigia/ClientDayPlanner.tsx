@@ -921,7 +921,7 @@ export function ClientDayPlanner({
   return (
     <section className="flex min-w-0 flex-col gap-3" aria-label="Meu dia">
       <header className="nv-dark nv-scan relative isolate overflow-hidden border border-indigo-400/30 p-2.5 text-white shadow-card sm:px-3">
-        <div className="grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_26rem]">
+        <div className="grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_18rem]">
           <div className="flex items-center gap-3">
             <div
               className="relative size-16 shrink-0"
@@ -987,6 +987,7 @@ export function ClientDayPlanner({
             </div>
           </div>
           <NextUpClock
+            compact
             alertKey={next ? next.kind : "dia"}
             title={next ? `Próximo · ${KINDS[next.kind].label}` : "Próximo item"}
             color="#f0abfc"

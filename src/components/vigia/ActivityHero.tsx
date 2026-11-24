@@ -76,7 +76,7 @@ export function ActivityHero({
     { icon: Trophy, label: "Sequência", value: `${streak} ${streak === 1 ? "dia" : "dias"}` },
   ];
   return (
-    <header className="nv-dark relative isolate shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-[#06231f] via-[#0b4a43] to-[#0e7490] p-3.5 text-white shadow-card sm:p-4">
+    <header className="nv-dark relative isolate shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-[#06231f] via-[#0b4a43] to-[#0e7490] p-3 text-white shadow-card sm:p-3.5">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -right-16 -top-20 -z-10 size-72 rounded-full bg-cyan-300/15 blur-3xl"
@@ -89,9 +89,9 @@ export function ActivityHero({
       >
         <path d="M0 60 Q50 20 100 45 T200 40 T300 30 T400 50 V80 H0Z" fill="currentColor" />
       </svg>
-      <div className="grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_16rem]">
+      <div className="grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_17rem] lg:gap-x-5">
         <div
-          className="relative mx-auto size-28 shrink-0 lg:mx-0"
+          className="relative mx-auto size-24 shrink-0 lg:mx-0 lg:size-20"
           role="img"
           aria-label={`${wMin} de ${WEEK_GOAL} minutos na semana`}
         >
@@ -116,7 +116,7 @@ export function ActivityHero({
               </linearGradient>
             </defs>
           </svg>
-          <div className="absolute inset-[24px] grid place-items-center rounded-full bg-white/[.07] text-center shadow-inner">
+          <div className="absolute inset-[20%] grid place-items-center rounded-full bg-white/[.07] text-center shadow-inner">
             <span className="leading-none">
               <strong className="block text-lg font-extrabold tabular-nums">{pct}%</strong>
               <span className="text-[10px] font-semibold text-white/70">da meta</span>
@@ -147,11 +147,11 @@ export function ActivityHero({
                 ? "Meta semanal alcançada. Mantenha o ritmo."
                 : `Faltam ${WEEK_GOAL - wMin} min nos últimos 7 dias (recomendação da OMS).`}
           </p>
-          <ul className="mt-3 grid grid-cols-3 gap-2">
+          <ul className="mt-2 grid grid-cols-3 gap-1.5">
             {stats.map((s) => (
               <li
                 key={s.label}
-                className="flex items-center gap-2 rounded-xl border border-white/12 bg-white/[.07] px-2.5 py-2 backdrop-blur transition-colors hover:bg-white/[.12]"
+                className="flex items-center gap-2 rounded-xl border border-white/12 bg-white/[.07] px-2 py-1.5 backdrop-blur transition-colors hover:bg-white/[.12]"
               >
                 <span className="hidden size-7 shrink-0 place-items-center rounded-lg bg-white/10 text-teal-200 sm:grid">
                   <s.icon size={14} />
@@ -165,7 +165,7 @@ export function ActivityHero({
               </li>
             ))}
           </ul>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-2 flex flex-wrap gap-2">
             <button
               type="button"
               onClick={onStartGps}
@@ -182,6 +182,7 @@ export function ActivityHero({
           </div>
         </div>
         <NextUpClock
+          compact
           alertKey="atividade"
           title="Hora de se mexer"
           color="#a3e635"

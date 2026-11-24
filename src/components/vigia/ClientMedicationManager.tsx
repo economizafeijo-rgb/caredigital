@@ -630,7 +630,7 @@ export function ClientMedicationManager({
         </p>
       )}
       <header className="nv-dark nv-scan relative isolate overflow-hidden border border-rose-400/30 p-2.5 text-white shadow-card sm:px-3">
-        <div className="grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_26rem]">
+        <div className="grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_18rem]">
           <AdherenceRing done={done} total={doses.length} />
           <div className="min-w-0">
             <p className="text-sm font-bold leading-tight">
@@ -680,6 +680,7 @@ export function ClientMedicationManager({
             </div>
           </div>
           <NextUpClock
+            compact
             alertKey="medicacao"
             title="Próxima dose"
             color="#f9a8d4"
