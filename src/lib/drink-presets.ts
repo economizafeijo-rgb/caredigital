@@ -62,6 +62,7 @@ export const drinkPresets: DrinkPreset[] = [
   d("vitamina", "Vitaminas", "Vitamina de mamão com leite", 300, "vitamina de mamão"),
   d("vitamina", "Vitaminas", "Abacatada", 250, "abacatada"),
   d("cha", "Chás", "Chá de camomila", 200, "chá de camomila"),
+  d("cha", "Chás", "Chá de alfazema", 200, "chá de alfazema"),
   d("cha", "Chás", "Chá de erva-doce", 200, "chá de erva-doce"),
   d("cha", "Chás", "Chá de capim-santo", 200, "chá de capim-santo"),
   d("cha", "Chás", "Chá de boldo", 150, "chá de boldo"),
