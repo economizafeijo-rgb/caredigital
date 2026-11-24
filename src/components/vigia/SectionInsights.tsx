@@ -89,7 +89,7 @@ export const isInsightSection = (section: ClientSection): section is InsightSect
 
 const dayOf = (iso: string) => acreDateKey(new Date(iso));
 
-type DrinkLine = { at: string; name: string; ml: number };
+type DrinkLine = { at: string; name: string; ml: number; unit?: string };
 const clock = (iso: string) =>
   new Intl.DateTimeFormat("pt-BR", {
     timeZone: "America/Rio_Branco",
@@ -246,7 +246,13 @@ async function load(
         .gte("consumed_at", since)
         .limit(3000),
     ]);
-    for (const w of water.data ?? []) add(dayOf(w.recorded_at), Number(w.amount_ml));
+    for (const w of water.data ?? []) {
+      const day = dayOf(w.recorded_at);
+      add(day, Number(w.amount_ml));
+      const list = drinks.get(day) ?? [];
+      list.push({ at: w.recorded_at, name: "Água", ml: Number(w.amount_ml) || 0 });
+      drinks.set(day, list);
+    }
     for (const d of drinksRes?.data ?? []) {
       const day = dayOf(d.consumed_at);
       add(day, Number(d.amount_ml), Number(d.amount_ml));
@@ -275,6 +281,15 @@ async function load(
         ),
       );
       add(dayOf(r.happened_at), Math.round(total.kcal), Math.round(total.protein));
+      const day = dayOf(r.happened_at);
+      const list = drinks.get(day) ?? [];
+      list.push({
+        at: r.happened_at,
+        name: String(r.details?.description || r.details?.title || "Refeição"),
+        ml: Math.round(total.kcal),
+        unit: "kcal",
+      });
+      drinks.set(day, list);
     }
   } else if (section === "atividade") {
     const rows = await db
@@ -742,7 +757,7 @@ export function SectionInsights({
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {config.a.label}
-                      {config.b ? ` · ${fmt(picked.b)} ${config.b.label.toLowerCase()}` : ""}
+                      {config.b ? ` · ${fmt(picked.b)} ${section === "alimentacao" ? "g de proteína" : config.b.label.toLowerCase()}` : ""}
                     </p>
                     {pct !== null && (
                       <div className="mt-2.5">
@@ -771,11 +786,11 @@ export function SectionInsights({
                     {config.b && (
                       <div className="mt-2.5 min-h-0 flex-1">
                         <p className="text-[11px] font-semibold text-muted-foreground">
-                          Bebidas do dia ({data?.drinks.get(picked.day)?.length ?? 0})
+                          {section === "alimentacao" ? "Refeições do dia" : "Bebidas do dia"} ({data?.drinks.get(picked.day)?.length ?? 0})
                         </p>
                         {(data?.drinks.get(picked.day) ?? []).length === 0 ? (
                           <p className="mt-1 text-[11px] text-muted-foreground">
-                            Nenhuma bebida registrada neste dia.
+                            {section === "alimentacao" ? "Nenhuma refeição registrada neste dia." : "Nenhuma bebida registrada neste dia."}
                           </p>
                         ) : (
                           <ul className="mt-1 grid max-h-40 gap-1 overflow-y-auto text-xs">
@@ -792,7 +807,7 @@ export function SectionInsights({
                                     {line.name}
                                   </span>
                                   <span className="shrink-0 tabular-nums font-semibold">
-                                    {fmt(line.ml)} ml
+                                    {fmt(line.ml)} {line.unit ?? "ml"}
                                   </span>
                                 </li>
                               ))}
