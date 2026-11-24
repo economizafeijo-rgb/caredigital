@@ -3,12 +3,13 @@ import { Check, Info, Search } from "lucide-react";
 import { HowItWorks, foodHowTo } from "./HowItWorks";
 import { CareIntakeIcon } from "./CareIntakePicker";
 import { FoodThumb, foodVisual } from "./FoodArt";
+import { drinkCards, type Card as DrinkCard } from "./DrinkBoard";
 import { NutritionInfoCard } from "./MealSuggestions";
 import { PlateBuilder, PlateRows } from "./PlateBuilder";
 import { EditingHeader, FocusStrip, KindRail, NutritionSummary, SidePanel } from "./IntakeParts";
 import { foodKinds, mealCombos, typicalFoods, type FoodKind } from "@/lib/care-intake-categories";
 import { measureUnit, parseFoodText, sumNutrients } from "@/lib/food-parser";
-import { foodsForKind, isRegionalFood, searchFoods } from "@/lib/food-search";
+import { foodsForKind, isRegionalFood, normalize, searchFoods } from "@/lib/food-search";
 
 /** Cor de cada tipo de refeição, usada nos setores, no cabeçalho e no prato. */
 export const mealTone: Record<FoodKind, string> = {
@@ -82,6 +83,7 @@ function statsOf(text: string) {
 type Props = {
   kind: FoodKind;
   onKind: (kind: FoodKind) => void;
+  onPickDrink?: (card: DrinkCard) => void;
   description: string;
   onDescription: (value: string) => void;
   portion: string;
@@ -102,6 +104,7 @@ type Props = {
 export function MealBoard({
   kind,
   onKind,
+  onPickDrink,
   description,
   onDescription,
   portion,
@@ -165,6 +168,19 @@ export function MealBoard({
     toggle(q);
     setQuery("");
   };
+
+  // Bebidas aparecem na busca de qualquer refeição; tocar leva ao registro de bebida.
+  const drinkHits = useMemo(() => {
+    if (q.length < 2) return [] as DrinkCard[];
+    const tokens = normalize(q).split(" ");
+    return drinkCards
+      .filter((c) => c.kind !== "agua")
+      .filter((c) => {
+        const hay = normalize(`${c.label} ${c.text}`).split(" ");
+        return tokens.every((t) => hay.some((w) => w.startsWith(t)));
+      })
+      .slice(0, 12);
+  }, [q]);
 
   const foods = useMemo(() => parseFoodText(`${portion} ${description}`), [portion, description]);
   const total = useMemo(() => sumNutrients(foods.map((f) => f.nutrients)), [foods]);
@@ -359,6 +375,25 @@ export function MealBoard({
               </span>
               <Check size={14} />
             </button>
+          )}
+          {drinkHits.length > 0 && onPickDrink && (
+            <section aria-label="Bebidas encontradas">
+              <h3 className="text-[13px] font-bold">Bebidas encontradas</h3>
+              <ul className="mt-2 flex flex-wrap gap-2">
+                {drinkHits.map((c) => (
+                  <li key={c.key}>
+                    <button
+                      type="button"
+                      onClick={() => onPickDrink(c)}
+                      style={{ cursor: "pointer" }}
+                      className="h-9 border border-border bg-card px-3 text-xs font-semibold transition hover:bg-muted active:scale-95"
+                    >
+                      {c.label} <span className="font-normal text-muted-foreground">· {c.ml} ml</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
           )}
           {q.length >= 2 ? (
             found.length ? (

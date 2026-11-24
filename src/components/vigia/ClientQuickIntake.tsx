@@ -657,6 +657,12 @@ export function ClientQuickIntake({
                     }}
                     description={description}
                     onDescription={setDescription}
+                    onPickDrink={(c) => {
+                      setKind(c.kind);
+                      setDescription(c.text);
+                      setAmount(String(c.ml));
+                      setError("");
+                    }}
                     portion={portion}
                     onPortion={setPortion}
                     consumedAt={consumedAt}
