@@ -526,9 +526,11 @@ function MealsDoneToday({ data }: { data: DailyNutrition }) {
     <section aria-label="Refeições realizadas hoje" className="grid min-w-0 gap-2">
       <h3 className="flex items-center justify-between text-sm font-bold">
         <span>Refeições realizadas hoje</span>
-        <span className="text-[11px] font-semibold text-muted-foreground">{meals.length} registro(s)</span>
+        <span className="text-[11px] font-semibold text-muted-foreground">
+          {meals.length} registro(s)
+        </span>
       </h3>
-      <ul className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
+      <ul className="grid min-w-0 grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
         {meals.map((e) => {
           const kcal = e.direct?.kcal ?? sumNutrients(e.foods.map((f) => f.nutrients)).kcal;
           const Icon = foodIcon(e.text || e.source);
@@ -536,16 +538,18 @@ function MealsDoneToday({ data }: { data: DailyNutrition }) {
           return (
             <li
               key={e.entryId ?? e.at + e.text}
-              className="flex min-w-0 items-start gap-3 border border-emerald-500/30 bg-emerald-500/[.07] p-3"
+              className="flex min-w-0 items-center gap-2.5 border border-emerald-500/30 bg-emerald-500/[.07] px-2.5 py-2"
             >
-              <span className="grid size-10 shrink-0 place-items-center bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
-                <Icon size={20} />
+              <span className="grid size-8 shrink-0 place-items-center bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
+                <Icon size={16} />
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-[11px] font-semibold text-muted-foreground">
                   {reminderClock(e.at)} · {e.source}
                 </p>
-                <p className="mt-0.5 line-clamp-2 break-words text-sm font-bold text-foreground">{names}</p>
+                <p className="line-clamp-1 break-words text-[13px] font-bold text-foreground">
+                  {names}
+                </p>
               </div>
               <p className="shrink-0 text-sm font-extrabold tabular-nums text-emerald-700 dark:text-emerald-300">
                 {Math.round(kcal)} <span className="text-[10px] font-semibold">kcal</span>

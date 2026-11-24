@@ -92,10 +92,10 @@ export function NutritionHero({
       />
       {/* Celular: anel + números lado a lado, botão de registro em largura total, macros em 3 colunas.
           Computador: anel | números e macros | próxima refeição. */}
-      <div className="grid gap-3 lg:grid-cols-[auto_minmax(0,1fr)_minmax(16rem,20rem)] lg:items-center lg:gap-x-4">
+      <div className="grid gap-3 lg:grid-cols-[auto_minmax(0,1fr)_minmax(15rem,19rem)_minmax(12rem,15rem)] lg:items-center lg:gap-x-5 lg:gap-y-1.5">
         <div className="flex items-center gap-3.5 lg:contents">
           <div
-            className="relative size-24 shrink-0 lg:row-span-2"
+            className="relative size-24 shrink-0 lg:row-span-2 lg:size-20"
             role="img"
             aria-label={`${n0(total.kcal)} de ${n0(target.kcal)} kcal hoje`}
           >
@@ -163,13 +163,13 @@ export function NutritionHero({
           </div>
         </div>
 
-        <div className="grid min-w-0 gap-2.5 lg:col-start-2 lg:row-start-2 lg:self-start">
+        <div className="grid min-w-0 gap-2.5 lg:contents">
           {actions && (
-            <div className="flex [&>*]:w-full [&_button]:w-full [&_button]:justify-center sm:[&>*]:w-auto sm:[&_button]:w-auto">
+            <div className="flex lg:col-start-2 lg:row-start-2 lg:self-start [&>*]:w-full [&_button]:w-full [&_button]:justify-center sm:[&>*]:w-auto sm:[&_button]:w-auto">
               {actions}
             </div>
           )}
-          <ul className="grid grid-cols-3 gap-1.5 sm:gap-2">
+          <ul className="grid grid-cols-3 gap-1.5 sm:gap-2 lg:col-start-3 lg:row-span-2 lg:row-start-1 lg:grid-cols-1 lg:gap-1">
             {macros.map((m, i) => {
               const v = total[m.key],
                 t = target[m.key] || 1;
@@ -177,7 +177,7 @@ export function NutritionHero({
               return (
                 <li
                   key={m.key}
-                  className="relative min-w-0 overflow-hidden rounded-lg border px-2 py-1.5 pr-9 transition-[filter] hover:brightness-110 sm:px-2.5 sm:pr-12"
+                  className="relative min-w-0 overflow-hidden rounded-lg border px-2 py-1.5 pr-9 transition-[filter] hover:brightness-110 sm:px-2.5 sm:pr-12 lg:grid lg:grid-cols-[6.5rem_minmax(0,1fr)_auto] lg:items-center lg:gap-2 lg:py-1 lg:pr-2.5"
                   style={{
                     borderColor: `color-mix(in srgb, ${m.color} 60%, transparent)`,
                     background: `linear-gradient(135deg, color-mix(in srgb, ${m.color} 30%, #10141c), color-mix(in srgb, ${m.color} 8%, #10141c))`,
@@ -186,7 +186,7 @@ export function NutritionHero({
                 >
                   <NutrientArt
                     kind={m.key}
-                    className="pointer-events-none absolute -bottom-1 -right-0.5 size-9 sm:size-11"
+                    className="pointer-events-none absolute -bottom-1 -right-0.5 size-9 sm:size-11 lg:hidden"
                   />
                   <span
                     className="flex items-center gap-1 text-[11px] font-bold"
@@ -196,11 +196,11 @@ export function NutritionHero({
                     <span className="truncate sm:hidden">{m.short}</span>
                     <span className="hidden truncate sm:inline">{m.label}</span>
                   </span>
-                  <span className="mt-0.5 block truncate text-sm font-bold tabular-nums text-white">
+                  <span className="mt-0.5 block truncate text-sm font-bold tabular-nums text-white lg:order-3 lg:mt-0 lg:text-xs">
                     {n0(v)}
                     <span className="text-[11px] font-medium text-white/55">/{n0(t)} g</span>
                   </span>
-                  <div className="mt-1 h-1 overflow-hidden rounded-full bg-white/15">
+                  <div className="mt-1 h-1 overflow-hidden rounded-full bg-white/15 lg:order-2 lg:mt-0">
                     <i
                       className="block h-full rounded-full transition-[width] duration-700 ease-out"
                       style={{
@@ -227,7 +227,7 @@ export function NutritionHero({
           compact
           actionLabel={actions ? undefined : "Registrar refeição"}
           onAction={actions ? undefined : onRegister}
-          className="lg:col-start-3 lg:row-span-2 lg:row-start-1"
+          className="lg:col-start-4 lg:row-span-2 lg:row-start-1"
         />
       </div>
     </header>
