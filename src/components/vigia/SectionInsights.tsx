@@ -380,6 +380,10 @@ export function SectionInsights({
   }, [section]);
 
   const rows = useMemo(() => withTrend(fillDays(data?.map ?? new Map(), days)), [data, days]);
+  const rowsWithItems = useMemo(
+    () => rows.map((r) => ({ ...r, items: data?.drinks.get(r.day) ?? [] })),
+    [rows, data],
+  );
   const TREND = {
     label: "Tendência (3 dias)",
     color: section === "medicacao" ? "#4f46e5" : "#f59e0b",
@@ -607,7 +611,7 @@ export function SectionInsights({
                 </div>
               ) : isWater ? (
                 <HydrationDaysChart
-                  rows={rows}
+                  rows={rowsWithItems}
                   goal={data.goal}
                   showWater={!hidden.a}
                   showDrinks={!hidden.b}

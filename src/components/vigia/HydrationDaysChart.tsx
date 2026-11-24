@@ -2,7 +2,14 @@ import { useState } from "react";
 import { Check } from "lucide-react";
 import { useBoxWidth } from "./HydrationDayChart";
 
-type Row = { day: string; a: number; b: number; t?: number };
+type DrinkItem = { at: string; name: string; ml: number };
+type Row = { day: string; a: number; b: number; t?: number; items?: DrinkItem[] };
+const clockOf = (iso: string) =>
+  new Intl.DateTimeFormat("pt-BR", {
+    timeZone: "America/Rio_Branco",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(iso));
 const DRINK = "#8b5cf6",
   WATER = "#0ea5e9",
   IDEAL = "#10b981",
@@ -53,12 +60,63 @@ export function HydrationDaysChart({
   const every = n <= 8 ? 1 : n <= 16 ? 2 : 5;
   const today = rows[n - 1]?.day;
   const hv = rows.find((r) => r.day === hover);
-  const hi = hv ? rows.indexOf(hv) : -1;
   const trend = rows.map((r, i) => `${i ? "L" : "M"}${cx(i)},${y(r.t ?? 0)}`).join(" ");
-  const tipLeft = hi < 0 ? 0 : Math.min(W - 164, Math.max(4, cx(hi) - 78));
+  const info = hv ?? rows.find((r) => r.day === selected) ?? null;
+  const infoItems = (info?.items ?? []).slice().sort((x, y) => x.at.localeCompare(y.at));
 
   return (
     <div ref={ref} className="relative">
+      <div
+        className="mb-2 min-h-[64px] rounded-lg border border-border bg-muted/40 px-3 py-2 text-[11px]"
+        aria-live="polite"
+      >
+        {info ? (
+          <>
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+              <p className="font-bold capitalize">
+                {wk(info.day)}, {dm(info.day)}
+              </p>
+              {goal ? (
+                <p
+                  className={`flex items-center gap-1 font-semibold ${info.a >= goal ? "text-emerald-700 dark:text-emerald-400" : "text-muted-foreground"}`}
+                >
+                  {info.a >= goal && <Check size={11} />} {Math.round((info.a / goal) * 100)}% da
+                  meta
+                </p>
+              ) : null}
+            </div>
+            <p className="mt-0.5 text-muted-foreground">
+              Água{" "}
+              <strong className="text-foreground tabular-nums">
+                {fmt(Math.max(0, info.a - info.b))}
+              </strong>
+              {info.b > 0 && (
+                <>
+                  {" · "}Outras bebidas{" "}
+                  <strong className="text-foreground tabular-nums">{fmt(info.b)}</strong>
+                </>
+              )}
+            </p>
+            {infoItems.length > 0 && (
+              <ul className="mt-1.5 grid max-h-24 gap-0.5 overflow-y-auto border-t border-border pt-1.5">
+                {infoItems.map((item, i) => (
+                  <li key={i} className="flex items-center gap-2">
+                    <span className="font-mono text-muted-foreground">{clockOf(item.at)}</span>
+                    <span className="min-w-0 flex-1 truncate" title={item.name}>
+                      {item.name}
+                    </span>
+                    <span className="shrink-0 tabular-nums font-semibold">{fmt(item.ml)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        ) : (
+          <p className="text-muted-foreground">
+            Passe o cursor ou toque numa barra para ver o que foi bebido naquele dia.
+          </p>
+        )}
+      </div>
       <svg
         width={W}
         height={H}
@@ -258,33 +316,6 @@ export function HydrationDaysChart({
           </g>
         )}
       </svg>
-      {hv && (
-        <div
-          className="pointer-events-none absolute top-0 z-10 w-40 border border-border bg-popover px-2.5 py-1.5 text-[11px] text-popover-foreground shadow-lg"
-          style={{ left: tipLeft }}
-        >
-          <p className="font-bold capitalize">
-            {wk(hv.day)}, {dm(hv.day)}
-          </p>
-          <p className="flex justify-between">
-            <span className="text-muted-foreground">Água</span>
-            <strong className="tabular-nums">{fmt(Math.max(0, hv.a - hv.b))}</strong>
-          </p>
-          {hv.b > 0 && (
-            <p className="flex justify-between">
-              <span className="text-muted-foreground">Bebidas</span>
-              <strong className="tabular-nums">{fmt(hv.b)}</strong>
-            </p>
-          )}
-          {goal ? (
-            <p
-              className={`mt-1 flex items-center gap-1 border-t border-border pt-1 font-semibold ${hv.a >= goal ? "text-emerald-700 dark:text-emerald-400" : "text-muted-foreground"}`}
-            >
-              {hv.a >= goal && <Check size={11} />} {Math.round((hv.a / goal) * 100)}% da meta
-            </p>
-          ) : null}
-        </div>
-      )}
     </div>
   );
 }
