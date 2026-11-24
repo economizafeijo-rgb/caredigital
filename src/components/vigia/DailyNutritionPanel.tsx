@@ -785,18 +785,22 @@ export function DailyNutritionPanel({
                         · C {entry.direct.carbs.toFixed(1)} g · G {entry.direct.fat.toFixed(1)} g
                       </p>
                     ) : entry.foods.length ? (
-                      <div className="mt-1.5 flex flex-wrap gap-1.5">
-                        {entry.foods.map((food, i) => (
-                          <span
-                            key={i}
-                            className="border border-emerald-500/20 bg-emerald-500/10 px-1.5 py-0.5 text-[11px] font-medium text-emerald-800 dark:text-emerald-200"
-                          >
-                            {food.name.split(",")[0]} {food.grams} {measureUnit(food.id)}
-                            {food.estimatedPortion ? "*" : ""} · {Math.round(food.nutrients.kcal)}{" "}
-                            kcal
-                          </span>
-                        ))}
-                      </div>
+                      <>
+                        <EntryNutrientTags foods={entry.foods} />
+                        <div className="mt-1.5 flex flex-wrap gap-1.5">
+                          {entry.foods.map((food, i) => (
+                            <span
+                              key={i}
+                              className="border border-emerald-500/20 bg-emerald-500/10 px-1.5 py-0.5 text-[11px] font-medium text-emerald-800 dark:text-emerald-200"
+                            >
+                              {food.name.split(",")[0]} {food.grams} {measureUnit(food.id)}
+                              {food.estimatedPortion ? "*" : ""} · {Math.round(food.nutrients.kcal)}{" "}
+                              kcal
+                            </span>
+                          ))}
+                        </div>
+                        <FoodNutrientDetails foods={entry.foods} />
+                      </>
                     ) : (
                       <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
                         Alimento não reconhecido no catálogo; descreva os itens para calcular.
@@ -814,5 +818,96 @@ export function DailyNutritionPanel({
         </>
       )}
     </section>
+  );
+}
+
+/** Referência diária usada para destacar o que cada alimento oferece (adulto, valores aproximados). */
+const NUTRIENT_REF = [
+  { key: "fiber", label: "Fibras", ref: 25, unit: "g", color: "#14b8a6" },
+  { key: "vitC", label: "Vitamina C", ref: 90, unit: "mg", color: "#f59e0b" },
+  { key: "vitA", label: "Vitamina A", ref: 900, unit: "mcg", color: "#f97316" },
+  { key: "calcium", label: "Cálcio", ref: 1000, unit: "mg", color: "#38bdf8" },
+  { key: "iron", label: "Ferro", ref: 14, unit: "mg", color: "#ef4444" },
+  { key: "potassium", label: "Potássio", ref: 3500, unit: "mg", color: "#a78bfa" },
+] as const;
+
+/** Nutrientes em destaque (a partir de 10% da referência do dia), do mais para o menos relevante. */
+function nutrientHighlights(n: Nutrients) {
+  return NUTRIENT_REF.map((r) => ({
+    ...r,
+    value: n[r.key],
+    pct: Math.round((n[r.key] / r.ref) * 100),
+  }))
+    .filter((r) => r.pct >= 10)
+    .sort((x, y) => y.pct - x.pct);
+}
+
+function NutrientPill({ h }: { h: ReturnType<typeof nutrientHighlights>[number] }) {
+  return (
+    <span
+      title={`${h.label}: ${h.value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} ${h.unit} (${h.pct}% da referência do dia)`}
+      className="inline-flex items-center gap-1 border px-1.5 py-0.5 text-[10px] font-semibold"
+      style={{ borderColor: `${h.color}66`, background: `${h.color}1f`, color: h.color }}
+    >
+      {h.label}
+      <b className="tabular-nums">{h.pct}%</b>
+    </span>
+  );
+}
+
+/** Resumo do registro: macros e os micronutrientes que a refeição mais oferece. */
+function EntryNutrientTags({ foods }: { foods: ParsedFood[] }) {
+  const n = sumNutrients(foods.map((f) => f.nutrients));
+  const tags = nutrientHighlights(n);
+  const g = (v: number) => Math.round(v * 10) / 10;
+  return (
+    <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px] font-semibold">
+      <span style={{ color: MACRO_COLORS.protein }}>P {g(n.protein)} g</span>
+      <span style={{ color: MACRO_COLORS.carbs }}>C {g(n.carbs)} g</span>
+      <span style={{ color: MACRO_COLORS.fat }}>G {g(n.fat)} g</span>
+      {tags.length > 0 && <span className="h-3 w-px bg-border" aria-hidden="true" />}
+      {tags.slice(0, 5).map((h) => (
+        <NutrientPill key={h.key} h={h} />
+      ))}
+    </div>
+  );
+}
+
+/** Abre o que cada alimento do registro oferece: macros e vitaminas/minerais em destaque. */
+function FoodNutrientDetails({ foods }: { foods: ParsedFood[] }) {
+  if (foods.length < 1) return null;
+  const g = (v: number) => (Math.round(v * 10) / 10).toLocaleString("pt-BR");
+  return (
+    <details className="group mt-1.5 text-xs">
+      <summary className="inline-flex cursor-pointer list-none items-center gap-1 text-[11px] font-semibold text-primary hover:underline [&::-webkit-details-marker]:hidden">
+        <span className="transition group-open:rotate-90">▸</span> O que cada alimento oferece
+      </summary>
+      <ul className="mt-1.5 divide-y divide-border/60 border border-border">
+        {foods.map((f, i) => {
+          const tags = nutrientHighlights(f.nutrients);
+          return (
+            <li key={i} className="grid gap-1 px-2 py-1.5">
+              <span className="flex items-baseline justify-between gap-2">
+                <span className="min-w-0 truncate font-semibold">{f.name.split(",")[0]}</span>
+                <span className="shrink-0 tabular-nums text-muted-foreground">
+                  {Math.round(f.grams)} {measureUnit(f.id)} · {Math.round(f.nutrients.kcal)} kcal
+                </span>
+              </span>
+              <span className="flex flex-wrap items-center gap-1.5 text-[10px] font-semibold">
+                <span style={{ color: MACRO_COLORS.protein }}>P {g(f.nutrients.protein)} g</span>
+                <span style={{ color: MACRO_COLORS.carbs }}>C {g(f.nutrients.carbs)} g</span>
+                <span style={{ color: MACRO_COLORS.fat }}>G {g(f.nutrients.fat)} g</span>
+                {tags.map((h) => (
+                  <NutrientPill key={h.key} h={h} />
+                ))}
+                {!tags.length && (
+                  <span className="text-muted-foreground">sem micronutriente em destaque</span>
+                )}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </details>
   );
 }
