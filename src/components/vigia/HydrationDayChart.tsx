@@ -67,6 +67,7 @@ export function HydrationDayChart({
 }) {
   const [boxRef, W] = useBoxWidth();
   const [hover, setHover] = useState<number | null>(null);
+  const [pinned, setPinned] = useState<number | null>(null);
   const nowH = hourOf(nowMs);
   const sorted = useMemo(
     () =>
@@ -131,18 +132,14 @@ export function HydrationDayChart({
   const slot = pw / (H1 - H0);
 
   const accAt = (h: number) => sorted.filter((e) => e.h <= h + 1e-6).reduce((s, e) => s + e.ml, 0);
-  const hoverHits =
-    hover === null
-      ? []
-      : sorted.filter(
-          (e) =>
-            Math.abs(e.h - hover) < 0.3 ||
-            (Math.floor(e.h) === Math.floor(hover) && Math.abs(e.h - hover) < 0.5),
-        );
-  const hoverAcc = hover === null ? 0 : accAt(hover);
+  const hitsAt = (h: number | null) =>
+    h === null ? [] : sorted.filter((e) => Math.floor(e.h) === Math.floor(h));
+  const active = hover ?? pinned;
+  const hoverHits = hitsAt(active);
+  const hoverAcc = active === null ? 0 : accAt(Math.floor(active) + 1 - 1e-6);
+  const canClick = hover !== null && hitsAt(hover).length > 0;
   const ticks = [6, 9, 12, 15, 18, 21];
   const yTicks = goal > 0 ? [0, goal / 2, goal] : [0, yMax / 2];
-  const tipLeft = hover === null ? 0 : Math.min(W - 190, Math.max(4, x(hover) + 10));
 
   return (
     <figure className="min-w-0 border border-border bg-card p-3">
@@ -195,6 +192,14 @@ export function HydrationDayChart({
           role="img"
           aria-label={`Água hoje: ${fmt(total)}${goal ? ` de ${fmt(goal)}` : ""}`}
           className="block touch-pan-y select-none text-muted-foreground"
+          style={{ cursor: canClick ? "pointer" : "crosshair" }}
+          onClick={() => {
+            if (hover === null) return;
+            const hit = hitsAt(hover).length > 0;
+            setPinned((p) =>
+              hit && (p === null || Math.floor(p) !== Math.floor(hover)) ? hover : null,
+            );
+          }}
           onPointerMove={(e) => {
             const r = e.currentTarget.getBoundingClientRect();
             const h = H0 + ((e.clientX - r.left - padL) / pw) * (H1 - H0);
@@ -378,8 +383,19 @@ export function HydrationDayChart({
             const base = padT + plotH + gap + stripH;
             const wh = v ? (v.w / hMax) * stripH : 0;
             const dh = v ? (v.d / hMax) * stripH : 0;
+            const isActive = active !== null && Math.floor(active) === h;
             return (
               <g key={h}>
+                {isActive && (
+                  <rect
+                    x={x(h)}
+                    y={padT}
+                    width={slot}
+                    height={plotH + gap + stripH}
+                    fill={WATER}
+                    fillOpacity=".1"
+                  />
+                )}
                 <rect
                   x={x(h) + 1.5}
                   y={base - stripH}
@@ -412,18 +428,18 @@ export function HydrationDayChart({
             );
           })}
 
-          {hover !== null && (
+          {active !== null && (
             <g pointerEvents="none">
               <line
-                x1={x(hover)}
-                x2={x(hover)}
+                x1={x(active)}
+                x2={x(active)}
                 y1={padT}
                 y2={padT + plotH + gap + stripH}
                 stroke="currentColor"
                 strokeOpacity=".5"
               />
               <circle
-                cx={x(hover)}
+                cx={x(active)}
                 cy={y(hoverAcc)}
                 r="4.5"
                 fill={WATER}
@@ -433,35 +449,57 @@ export function HydrationDayChart({
             </g>
           )}
         </svg>
-        {hover !== null && (
-          <div
-            className="pointer-events-none absolute top-1 z-10 w-44 border border-border bg-popover px-2.5 py-1.5 text-[11px] text-popover-foreground shadow-lg"
-            style={{ left: tipLeft }}
-          >
-            <p className="flex justify-between font-bold">
-              <span className="tabular-nums">{hm(hover)}</span>
-              <span className="tabular-nums" style={{ color: WATER }}>
-                {fmt(hoverAcc)}
-              </span>
-            </p>
-            {goal > 0 && (
-              <p className="text-muted-foreground">
-                {Math.round((hoverAcc / goal) * 100)}% da meta · ideal {fmt(idealAt(hover))}
+      </div>
+
+      <div
+        className="mt-2 h-[104px] overflow-y-auto rounded-lg border border-border bg-muted/30 px-3 py-2 text-[11px]"
+        aria-live="polite"
+      >
+        {active === null ? (
+          <p className="text-muted-foreground">
+            Passe o cursor ou toque numa hora do gráfico para ver o que foi bebido.
+          </p>
+        ) : (
+          <>
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="font-bold tabular-nums">
+                {String(Math.floor(active)).padStart(2, "0")}h às{" "}
+                {String(Math.floor(active) + 1).padStart(2, "0")}h
+                {pinned !== null && hover === null && (
+                  <span className="ml-2 font-medium text-muted-foreground">
+                    fixado · toque de novo para soltar
+                  </span>
+                )}
               </p>
+              <p className="tabular-nums">
+                <strong style={{ color: WATER }}>{fmt(hoverAcc)}</strong>
+                {goal > 0 && (
+                  <span className="ml-1 text-muted-foreground">
+                    {Math.round((hoverAcc / goal) * 100)}% da meta
+                  </span>
+                )}
+              </p>
+            </div>
+            {hoverHits.length === 0 ? (
+              <p className="mt-1 text-muted-foreground">Nada registrado nesta hora.</p>
+            ) : (
+              <ul className="mt-1.5 grid gap-0.5 border-t border-border pt-1.5">
+                {hoverHits.map((e, i) => (
+                  <li key={i} className="flex items-center gap-2">
+                    <i
+                      className="size-2 shrink-0 rounded-[2px]"
+                      style={{ background: e.source === "beverage" ? DRINK : WATER }}
+                    />
+                    <span className="font-mono text-muted-foreground">{hm(e.h)}</span>
+                    <span className="min-w-0 flex-1 truncate">
+                      {e.source === "beverage" ? e.name || "Bebida" : "Água"}
+                    </span>
+                    <strong className="shrink-0 tabular-nums">+{fmt(e.ml)}</strong>
+                  </li>
+                ))}
+              </ul>
             )}
-            {hoverHits.map((e, i) => (
-              <p key={i} className="mt-0.5 flex items-center gap-1.5 border-t border-border pt-0.5">
-                <i
-                  className="size-2"
-                  style={{ background: e.source === "beverage" ? DRINK : WATER }}
-                />
-                <span className="truncate">
-                  {e.source === "beverage" ? e.name || "Bebida" : "Água"}
-                </span>
-                <strong className="ml-auto tabular-nums">+{fmt(e.ml)}</strong>
-              </p>
-            ))}
-          </div>
+          </>
         )}
       </div>
 

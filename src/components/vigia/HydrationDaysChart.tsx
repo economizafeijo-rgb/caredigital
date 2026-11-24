@@ -67,7 +67,7 @@ export function HydrationDaysChart({
   return (
     <div ref={ref} className="relative">
       <div
-        className="mb-2 min-h-[64px] rounded-lg border border-border bg-muted/40 px-3 py-2 text-[11px]"
+        className="mb-2 h-[112px] overflow-y-auto rounded-lg border border-border bg-muted/40 px-3 py-2 text-[11px]"
         aria-live="polite"
       >
         {info ? (
@@ -98,7 +98,7 @@ export function HydrationDaysChart({
               )}
             </p>
             {infoItems.length > 0 && (
-              <ul className="mt-1.5 grid max-h-24 gap-0.5 overflow-y-auto border-t border-border pt-1.5">
+              <ul className="mt-1.5 grid gap-0.5 border-t border-border pt-1.5">
                 {infoItems.map((item, i) => (
                   <li key={i} className="flex items-center gap-2">
                     <span className="font-mono text-muted-foreground">{clockOf(item.at)}</span>
@@ -158,7 +158,8 @@ export function HydrationDaysChart({
               tabIndex={0}
               role="button"
               aria-label={`${wk(r.day)}, ${dm(r.day)}: ${fmt(r.a)}`}
-              className="cursor-pointer outline-none"
+              className="outline-none"
+              style={{ cursor: "pointer" }}
               onClick={() => onPick(r.day)}
               onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onPick(r.day)}
               onPointerEnter={() => setHover(r.day)}
