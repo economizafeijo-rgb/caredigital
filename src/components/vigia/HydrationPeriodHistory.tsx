@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronLeft, ChevronRight, Droplets } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { usePlatformStart } from "@/lib/platform-start";
+import { DayLookup } from "./DayLookup";
 import { acreAddDays, acreDateKey, acreEndOfDay, acreStartOfDay } from "@/lib/acre-time";
 
 type Period = "dia" | "semana" | "mes" | "ano";
@@ -30,9 +32,11 @@ const dayLabel = (key: string) => {
 
 const monthLabel = (key: string) => {
   const [y, m] = key.split("-").map(Number);
-  return new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric", timeZone: "UTC" }).format(
-    new Date(Date.UTC(y, m - 1, 15, 12)),
-  );
+  return new Intl.DateTimeFormat("pt-BR", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(y, m - 1, 15, 12)));
 };
 
 /** Intervalo (chaves de dia AAAA-MM-DD, horário do Acre) do período escolhido. */
@@ -86,6 +90,9 @@ export function HydrationPeriodHistory({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [openKey, setOpenKey] = useState<string | null>(null);
+  const start = usePlatformStart(patientId, ownerId);
+  const todayKey = acreDateKey();
+  const startKey = start;
 
   useEffect(() => {
     let active = true;
@@ -115,7 +122,8 @@ export function HydrationPeriodHistory({
         .limit(2000),
     ]).then(([water, drinks]: any[]) => {
       if (!active) return;
-      if (water.error || drinks.error) setError("Não foi possível carregar a hidratação deste período.");
+      if (water.error || drinks.error)
+        setError("Não foi possível carregar a hidratação deste período.");
       const list: Row[] = [
         ...(water.data ?? []).map((r: any) => ({
           at: r.recorded_at,
@@ -143,10 +151,13 @@ export function HydrationPeriodHistory({
     const days = new Set(rows.map((r) => r.day));
     const { from, to } = rangeFor(period, anchor);
     const span =
-      Math.round(
-        (Date.parse(to + "T12:00:00Z") - Date.parse(from + "T12:00:00Z")) / 86400000,
-      ) + 1;
-    return { total, count: rows.length, withRecords: days.size, average: total / Math.max(1, span) };
+      Math.round((Date.parse(to + "T12:00:00Z") - Date.parse(from + "T12:00:00Z")) / 86400000) + 1;
+    return {
+      total,
+      count: rows.length,
+      withRecords: days.size,
+      average: total / Math.max(1, span),
+    };
   }, [rows, period, anchor]);
 
   // Agrupa por dia (semana, mês, ano) ou por registro (dia).
@@ -176,9 +187,16 @@ export function HydrationPeriodHistory({
   const maxDay = Math.max(1, ...byDay.map(([, g]) => g.total));
 
   return (
-    <div className={"flex min-h-0 flex-col gap-3 transition-opacity " + (loading ? "opacity-60" : "")} aria-busy={loading}>
+    <div
+      className={"flex min-h-0 flex-col gap-3 transition-opacity " + (loading ? "opacity-60" : "")}
+      aria-busy={loading}
+    >
       <div className="flex flex-wrap items-center gap-2">
-        <div role="group" aria-label="Período da hidratação" className="flex flex-1 gap-1 border border-border bg-muted/35 p-1">
+        <div
+          role="group"
+          aria-label="Período da hidratação"
+          className="flex flex-1 gap-1 border border-border bg-muted/35 p-1"
+        >
           {PERIODS.map((p) => (
             <button
               key={p.key}
@@ -191,7 +209,9 @@ export function HydrationPeriodHistory({
               style={{ cursor: "pointer" }}
               className={
                 "min-w-0 flex-1 px-2 py-2 text-xs font-bold transition " +
-                (period === p.key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-card")
+                (period === p.key
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-card")
               }
             >
               {p.label}
@@ -205,12 +225,15 @@ export function HydrationPeriodHistory({
           type="button"
           aria-label="Período anterior"
           onClick={() => setAnchor((a) => shift(period, a, -1))}
+          disabled={!!startKey && rangeFor(period, anchor).from <= startKey}
           style={{ cursor: "pointer" }}
-          className="grid size-9 place-items-center hover:bg-muted"
+          className="grid size-9 place-items-center hover:bg-muted disabled:opacity-30"
         >
           <ChevronLeft size={18} />
         </button>
-        <p className="min-w-0 truncate text-center text-sm font-bold capitalize">{periodTitle(period, anchor)}</p>
+        <p className="min-w-0 truncate text-center text-sm font-bold capitalize">
+          {periodTitle(period, anchor)}
+        </p>
         <button
           type="button"
           aria-label="Próximo período"
@@ -223,41 +246,85 @@ export function HydrationPeriodHistory({
         </button>
       </div>
 
+      <DayLookup
+        value={period === "dia" ? anchor : undefined}
+        min={startKey}
+        onPick={(day) => {
+          setPeriod("dia");
+          setAnchor(day);
+          setOpenKey(null);
+        }}
+      />
+
       <dl className="grid grid-cols-3 gap-2 text-center">
         <div className="border border-border bg-card p-2">
           <dt className="text-[10px] font-semibold text-muted-foreground">Total</dt>
-          <dd className="text-base font-extrabold tabular-nums">{summary.total.toLocaleString("pt-BR")} ml</dd>
+          <dd className="text-base font-extrabold tabular-nums">
+            {summary.total.toLocaleString("pt-BR")} ml
+          </dd>
         </div>
         <div className="border border-border bg-card p-2">
           <dt className="text-[10px] font-semibold text-muted-foreground">Média/dia</dt>
-          <dd className="text-base font-extrabold tabular-nums">{Math.round(summary.average).toLocaleString("pt-BR")} ml</dd>
+          <dd className="text-base font-extrabold tabular-nums">
+            {Math.round(summary.average).toLocaleString("pt-BR")} ml
+          </dd>
         </div>
         <div className="border border-border bg-card p-2">
           <dt className="text-[10px] font-semibold text-muted-foreground">Registros</dt>
           <dd className="text-base font-extrabold tabular-nums">
-            {summary.count} <span className="text-[10px] font-normal text-muted-foreground">em {summary.withRecords} dia(s)</span>
+            {summary.count}{" "}
+            <span className="text-[10px] font-normal text-muted-foreground">
+              em {summary.withRecords} dia(s)
+            </span>
           </dd>
         </div>
       </dl>
 
-      {error && <p role="alert" className="text-xs text-rose-600">{error}</p>}
-      
+      {error && (
+        <p role="alert" className="text-xs text-rose-600">
+          {error}
+        </p>
+      )}
+
       {!loading && rows.length === 0 && (
         <p className="border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
           Nenhum registro de líquido neste período.
         </p>
       )}
 
+      {(period === "semana" || period === "mes" || period === "ano") && (
+        <PeriodBars
+          period={period}
+          anchor={anchor}
+          byDay={byDay}
+          today={todayKey}
+          start={startKey}
+          onPickDay={(day) => {
+            setPeriod("dia");
+            setAnchor(day);
+          }}
+          onPickMonth={(monthKey) => {
+            setPeriod("mes");
+            setAnchor(monthKey + "-01");
+          }}
+        />
+      )}
+
       {period === "dia" && rows.length > 0 && (
         <ul className="grid gap-1.5">
           {rows.map((r) => (
-            <li key={r.at + r.name + r.ml} className="flex items-center gap-3 border border-border bg-card px-3 py-2">
+            <li
+              key={r.at + r.name + r.ml}
+              className="flex items-center gap-3 border border-border bg-card px-3 py-2"
+            >
               <span className="grid size-9 shrink-0 place-items-center bg-cyan-500/10 text-cyan-600">
                 <Droplets size={16} />
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-bold">{r.name}</p>
-                <p className="text-[11px] text-muted-foreground">{timeOf(r.at)} · horário do Acre</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {timeOf(r.at)} · horário do Acre
+                </p>
               </div>
               <p className="text-sm font-extrabold tabular-nums">{r.ml} ml</p>
             </li>
@@ -296,9 +363,13 @@ export function HydrationPeriodHistory({
                 >
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-bold capitalize">{monthLabel(month + "-01")}</p>
-                    <p className="text-[11px] text-muted-foreground">{m.days.length} dia(s) com registro</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {m.days.length} dia(s) com registro
+                    </p>
                   </div>
-                  <p className="text-sm font-extrabold tabular-nums">{m.total.toLocaleString("pt-BR")} ml</p>
+                  <p className="text-sm font-extrabold tabular-nums">
+                    {m.total.toLocaleString("pt-BR")} ml
+                  </p>
                   <ChevronDown size={16} className={"transition " + (open ? "rotate-180" : "")} />
                 </button>
                 {open && (
@@ -360,13 +431,19 @@ function DayRow({
           <ChevronDown size={15} className={"transition " + (open ? "rotate-180" : "")} />
         </div>
         <div className="h-1.5 w-full bg-muted">
-          <div className="h-full bg-cyan-500" style={{ width: `${Math.round((total / max) * 100)}%` }} />
+          <div
+            className="h-full bg-cyan-500"
+            style={{ width: `${Math.round((total / max) * 100)}%` }}
+          />
         </div>
       </button>
       {open && (
         <ul className="grid gap-1 border-t border-border p-2">
           {items.map((r) => (
-            <li key={r.at + r.name + r.ml} className="flex items-center justify-between gap-2 px-1 py-1 text-xs">
+            <li
+              key={r.at + r.name + r.ml}
+              className="flex items-center justify-between gap-2 px-1 py-1 text-xs"
+            >
               <span className="min-w-0 truncate">
                 <span className="font-semibold">{timeOf(r.at)}</span> · {r.name}
               </span>
@@ -376,5 +453,89 @@ function DayRow({
         </ul>
       )}
     </li>
+  );
+}
+
+/** Barras do período: cada barra é clicável e abre os registros daquele dia (ou mês, no ano). */
+function PeriodBars({
+  period,
+  anchor,
+  byDay,
+  today,
+  start,
+  onPickDay,
+  onPickMonth,
+}: {
+  period: Period;
+  anchor: string;
+  byDay: [string, { total: number }][];
+  today: string;
+  start: string | null;
+  onPickDay: (day: string) => void;
+  onPickMonth: (monthKey: string) => void;
+}) {
+  const totals = new Map(byDay.map(([day, g]) => [day, g.total]));
+  const { from, to } = rangeFor(period, anchor);
+  const bars: { key: string; label: string; value: number; disabled: boolean; title: string }[] =
+    [];
+  if (period === "ano") {
+    const year = anchor.slice(0, 4);
+    for (let m = 1; m <= 12; m++) {
+      const mk = `${year}-${String(m).padStart(2, "0")}`;
+      const value = byDay.filter(([d]) => d.startsWith(mk)).reduce((s, [, g]) => s + g.total, 0);
+      const days = byDay.filter(([d]) => d.startsWith(mk)).length;
+      bars.push({
+        key: mk,
+        label: monthLabel(mk + "-01").slice(0, 3),
+        value: days ? value / days : 0,
+        disabled: mk > today.slice(0, 7) || (!!start && mk < start.slice(0, 7)),
+        title: `${monthLabel(mk + "-01")}: ${days} dia(s) com registro`,
+      });
+    }
+  } else {
+    for (let d = from; d <= to; d = acreAddDays(d, 1)) {
+      bars.push({
+        key: d,
+        label: d.slice(8),
+        value: totals.get(d) ?? 0,
+        disabled: d > today || (!!start && d < start),
+        title: `${dayLabel(d)}: ${(totals.get(d) ?? 0).toLocaleString("pt-BR")} ml`,
+      });
+    }
+  }
+  const max = Math.max(1, ...bars.map((b) => b.value));
+  return (
+    <div className="border border-border bg-card p-2.5">
+      <p className="mb-1.5 text-[11px] font-semibold text-muted-foreground">
+        {period === "ano" ? "Média diária por mês" : "Total por dia"} · toque numa barra para ver os
+        registros
+      </p>
+      <div className="flex h-24 items-end gap-[3px]">
+        {bars.map((b) => (
+          <button
+            key={b.key}
+            type="button"
+            disabled={b.disabled}
+            title={b.title}
+            aria-label={b.title}
+            onClick={() => (period === "ano" ? onPickMonth(b.key) : onPickDay(b.key))}
+            style={{ cursor: b.disabled ? "default" : "pointer" }}
+            className="group flex h-full min-w-0 flex-1 flex-col justify-end disabled:opacity-25"
+          >
+            <span
+              className="block w-full bg-cyan-500/80 transition group-enabled:group-hover:bg-cyan-400"
+              style={{ height: `${Math.max(b.value ? 6 : 2, Math.round((b.value / max) * 100))}%` }}
+            />
+          </button>
+        ))}
+      </div>
+      <div className="mt-1 flex gap-[3px] text-[9px] text-muted-foreground">
+        {bars.map((b, i) => (
+          <span key={b.key} className="min-w-0 flex-1 truncate text-center">
+            {bars.length > 16 && i % 5 !== 0 ? "" : b.label}
+          </span>
+        ))}
+      </div>
+    </div>
   );
 }

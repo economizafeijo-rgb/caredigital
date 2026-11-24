@@ -1,6 +1,9 @@
 import { DailyNutritionPanel, useDailyNutrition, type DailyNutrition } from "./DailyNutritionPanel";
 import { measureUnit, sumNutrients, type Nutrients } from "@/lib/food-parser";
 import { createPortal } from "react-dom";
+import { usePlatformStart } from "@/lib/platform-start";
+import { DayLookup } from "./DayLookup";
+import { DayDetailDialog } from "./DayDetailDialog";
 import { NutritionGuardPanel } from "./NutritionGuard";
 import { Fold } from "./Fold";
 import { MealMacroBars, NutritionDayChart, NutritionHero } from "./NutritionHero";
@@ -85,6 +88,8 @@ export function ClientMealsPage({
   onRecorded,
 }: Props) {
   const nutrition = useDailyNutrition(patientId, ownerId, revision);
+  const platformStart = usePlatformStart(patientId, ownerId);
+  const [lookupDay, setLookupDay] = useState<string | null>(null);
   const [intakeSignal, setIntakeSignal] = useState(0);
   const [details, setDetails] = useState<MealDetail[]>([]);
   const [detailsError, setDetailsError] = useState(false);
@@ -215,6 +220,14 @@ export function ClientMealsPage({
       />
       {/* Refeições já realizadas hoje, em destaque logo abaixo da meta. */}
       <MealsDoneToday data={nutrition} />
+      <DayLookup min={platformStart} onPick={setLookupDay} label="Ver refeições de outro dia" />
+      <DayDetailDialog
+        patientId={patientId}
+        ownerId={ownerId}
+        day={lookupDay}
+        minDay={platformStart}
+        onClose={() => setLookupDay(null)}
+      />
       <NutritionGuardPanel data={nutrition} />
       <Fold
         title="Detalhes nutricionais e registros do dia"

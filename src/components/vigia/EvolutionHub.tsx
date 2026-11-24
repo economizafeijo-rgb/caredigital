@@ -15,6 +15,7 @@ import { EvolutionDayView } from "./EvolutionDayView";
 import { DayDetailDialog } from "./DayDetailDialog";
 import { EvolutionMonthView, EvolutionYearView } from "./EvolutionPeriodView";
 import { EvolutionCompare } from "./EvolutionCompare";
+import { usePlatformStart } from "@/lib/platform-start";
 
 type View = "dia" | "mes" | "ano" | "comparar";
 type Props = {
@@ -47,6 +48,8 @@ export function EvolutionHub({
 }: Props) {
   const today = acreDayHour(Date.now()).day;
   const thisYear = Number(today.slice(0, 4));
+  const start = usePlatformStart(patientId, ownerId);
+  const startYear = start ? Number(start.slice(0, 4)) : thisYear - YEARS_BACK;
   const [view, setView] = useState<View>(defaultView);
   const [cursor, setCursor] = useState(today);
   const [data, setData] = useState<{ result: PeriodData; from: string; to: string } | null>(null);
@@ -97,7 +100,10 @@ export function EvolutionHub({
   const keep = useRef<{ view: View; days: ReturnType<typeof buildDays> }>({ view, days: [] });
   const days = useMemo(() => {
     if (data && targets && data.from === range.from && data.to === range.to) {
-      const built = buildDays(data.result.raw, range.from, range.to, { targets, nowMs: Date.now() });
+      const built = buildDays(data.result.raw, range.from, range.to, {
+        targets,
+        nowMs: Date.now(),
+      });
       keep.current = { view, days: built };
       return built;
     }
@@ -120,6 +126,13 @@ export function EvolutionHub({
       : view === "mes"
         ? `${year}-${pad(month)}` >= today.slice(0, 7)
         : year >= thisYear;
+  const prevBlocked =
+    !!start &&
+    (view === "dia"
+      ? cursor <= start
+      : view === "mes"
+        ? `${year}-${pad(month)}` <= start.slice(0, 7)
+        : year <= startYear);
   const openMonth = (m: number) => {
     setView("mes");
     setCursor(firstOfMonth(year, m));
@@ -178,12 +191,15 @@ export function EvolutionHub({
             ))}
           </div>
         </div>
-        <div className={`mt-3 flex flex-wrap items-center gap-2 ${view === "comparar" ? "hidden" : ""}`}>
+        <div
+          className={`mt-3 flex flex-wrap items-center gap-2 ${view === "comparar" ? "hidden" : ""}`}
+        >
           <button
             type="button"
             onClick={() => shift(-1)}
+            disabled={prevBlocked}
             aria-label="Período anterior"
-            className="grid size-9 place-items-center rounded-xl border border-border hover:bg-muted"
+            className="grid size-9 place-items-center rounded-xl border border-border hover:bg-muted disabled:opacity-40"
           >
             <ChevronLeft size={17} />
           </button>
@@ -205,7 +221,10 @@ export function EvolutionHub({
             onChange={(event) => changeYear(Number(event.target.value))}
             className="h-9 rounded-xl border border-border bg-surface px-3 text-sm font-semibold"
           >
-            {Array.from({ length: YEARS_BACK + 1 }, (_, i) => thisYear - i).map((y) => (
+            {Array.from(
+              { length: Math.max(1, thisYear - startYear + 1) },
+              (_, i) => thisYear - i,
+            ).map((y) => (
               <option key={y} value={y}>
                 {y}
               </option>
@@ -225,7 +244,9 @@ export function EvolutionHub({
               aria-label="Mês"
             >
               {MONTH_NAMES.map((name, i) => {
-                const disabled = `${year}-${pad(i + 1)}` > today.slice(0, 7);
+                const disabled =
+                  `${year}-${pad(i + 1)}` > today.slice(0, 7) ||
+                  (!!start && `${year}-${pad(i + 1)}` < start.slice(0, 7));
                 return (
                   <button
                     key={name}
@@ -314,6 +335,7 @@ export function EvolutionHub({
         patientId={patientId}
         ownerId={ownerId}
         day={detailDay}
+        minDay={start}
         onClose={() => setDetailDay(null)}
       />
     </section>

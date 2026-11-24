@@ -24,6 +24,8 @@ type Props = {
   day: string | null;
   waterTarget?: number | null;
   focus?: MetricFocus;
+  /** Primeiro dia com dados na plataforma; antes dele não há o que consultar. */
+  minDay?: string | null;
   onClose: () => void;
 };
 
@@ -37,6 +39,7 @@ export function DayDetailDialog({
   day: initialDay,
   waterTarget = null,
   focus,
+  minDay = null,
   onClose,
 }: Props) {
   const [day, setDay] = useState<string | null>(initialDay);
@@ -252,8 +255,9 @@ export function DayDetailDialog({
               <button
                 type="button"
                 onClick={() => setDay(acreAddDays(day, -1))}
+                disabled={!!minDay && day <= minDay}
                 aria-label="Dia anterior"
-                className="grid size-8 place-items-center rounded-lg border border-white/15 bg-white/[.06] transition hover:bg-white/15 active:scale-95"
+                className="grid size-8 place-items-center rounded-lg border border-white/15 bg-white/[.06] transition hover:bg-white/15 active:scale-95 disabled:opacity-40"
               >
                 <ChevronLeft size={17} />
               </button>
