@@ -368,7 +368,9 @@ export function ClientQuickIntake({
     }
     // Líquidos citados dentro de uma refeição (café com leite, suco…) também vão para a hidratação.
     if (foodDraft && foodDraft.description.trim()) {
-      const meal = foodDraft.description.trim() + (foodDraft.portion.trim() ? " " + foodDraft.portion.trim() : "");
+      const meal =
+        foodDraft.description.trim() +
+        (foodDraft.portion.trim() ? " " + foodDraft.portion.trim() : "");
       parseFoodText(meal)
         .filter((f) => isLiquid(f.id) && f.grams >= 10)
         .forEach((f) => {
@@ -691,9 +693,15 @@ export function ClientQuickIntake({
                     description={description}
                     onDescription={setDescription}
                     onPickDrink={(c) => {
+                      // Guarda a refeição montada e abre a bebida escolhida junto dela:
+                      // os dois são registrados juntos e a bebida também vai para a hidratação.
+                      const saved = stash.beverage;
+                      setStash((current) => ({ ...current, food: live }));
+                      setGroup("beverage");
                       setKind(c.kind);
                       setDescription(c.text);
-                      setAmount(String(c.ml));
+                      setPortion("");
+                      setAmount(String(c.ml || saved?.amount || 200));
                       setError("");
                     }}
                     portion={portion}
