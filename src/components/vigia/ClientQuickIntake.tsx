@@ -19,7 +19,7 @@ import {
   type FoodKind,
   type BeverageKind,
 } from "@/lib/care-intake-categories";
-import { parseFoodText, sumNutrients, measureUnit } from "@/lib/food-parser";
+import { isLiquid, parseFoodText, sumNutrients, measureUnit } from "@/lib/food-parser";
 
 import { drinkGroups, drinkPresetFor, drinkPresets } from "@/lib/drink-presets";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,6 +41,22 @@ function suggestMealType(wallTime: string): FoodKind {
   if (minutes >= 900 && minutes < 1080) return "lanche";
   if (minutes >= 1080 && minutes < 1260) return "jantar";
   return "ceia";
+}
+
+/** Tipo de bebida (registro de hidratação) a partir do nome do líquido encontrado no alimento. */
+function liquidKindOf(name: string): BeverageKind {
+  const n = name.toLowerCase();
+  if (/água de coco|agua de coco/.test(n)) return "agua_coco";
+  if (/água|agua/.test(n)) return "agua";
+  if (/suco|limonada|caldo de cana/.test(n)) return "suco";
+  if (/chá|cha /.test(n)) return "cha";
+  if (/café|cafe/.test(n)) return "cafe";
+  if (/leite|achocolatado|nescau/.test(n)) return "leite";
+  if (/vitamina|smoothie|shake/.test(n)) return "vitamina";
+  if (/refrigerante|refri|guaraná|coca/.test(n)) return "refrigerante";
+  if (/isot[oô]nico/.test(n)) return "isotonico";
+  if (/energ[eé]tico/.test(n)) return "energetico";
+  return "outra";
 }
 
 type AskRequest = {
@@ -349,6 +365,23 @@ export function ClientQuickIntake({
         volume: null,
         summary: `${(foodCategory(mealType)?.label ?? "refeição").toLowerCase()}: ${text}`,
       });
+    }
+    // Líquidos citados dentro de uma refeição (café com leite, suco…) também vão para a hidratação.
+    if (foodDraft && foodDraft.description.trim()) {
+      const meal = foodDraft.description.trim() + (foodDraft.portion.trim() ? " " + foodDraft.portion.trim() : "");
+      parseFoodText(meal)
+        .filter((f) => isLiquid(f.id) && f.grams >= 10)
+        .forEach((f) => {
+          const ml = Math.min(1500, Math.round(f.grams));
+          const liquidKind = liquidKindOf(f.name);
+          entries.push({
+            id: crypto.randomUUID(),
+            kind: liquidKind,
+            description: f.name.split(",")[0].trim(),
+            volume: ml,
+            summary: `${(beverageCategory(liquidKind)?.label ?? "bebida").toLowerCase()}: ${f.name.split(",")[0].trim()} (${ml} ml) · hidratação`,
+          });
+        });
     }
     // A bebida escolhida (se houver) vira outro registro, junto com a refeição.
     const drinkIsWater = drinkDraft?.kind === "agua";

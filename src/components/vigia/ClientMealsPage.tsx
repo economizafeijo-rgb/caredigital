@@ -211,29 +211,24 @@ export function ClientMealsPage({
         }
       />
       <NutritionGuardPanel data={nutrition} />
-      <div className="grid shrink-0 gap-3 xl:grid-cols-2 xl:items-start">
-        <Fold
-          title="Evolução do dia"
-          icon={BarChart3}
-          color="#0d9488"
-          info="Mostra como as calorias e os nutrientes foram se somando ao longo do dia, e quanto cada refeição contribuiu."
-        >
-          <div className="grid min-w-0 content-start gap-3 p-3 pt-1">
-            <NutritionDayChart data={nutrition} />
-            <MealMacroBars data={nutrition} />
+      {/* Área principal: o que foi registrado no dia, por refeição, em ordem de horário. */}
+      <section
+        aria-labelledby="meals-day-title"
+        className="flex min-w-0 flex-col gap-2 border border-border bg-card p-3"
+      >
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div className="min-w-0">
+            <h3 id="meals-day-title" className="flex items-center gap-2 text-sm font-bold text-foreground">
+              <UtensilsCrossed size={16} className="text-amber-600 dark:text-amber-300" />
+              Registro de hoje
+            </h3>
+            <p className="text-[11px] text-muted-foreground">
+              Refeições e bebidas por horário (horário do Acre)
+            </p>
           </div>
-        </Fold>
-        <Fold
-          title="O que você comeu hoje"
-          icon={UtensilsCrossed}
-          color="#d97706"
-          info="Todos os alimentos registrados hoje, por refeição, com as quantidades e os nutrientes de cada um."
-        >
-          <div className="p-3 pt-1">
-            <DailyNutritionPanel data={nutrition} hideSummary />
-          </div>
-        </Fold>
-      </div>
+        </div>
+        <DailyNutritionPanel data={nutrition} hideSummary />
+      </section>
       {/* Refeições programadas pela equipe: só aparece quando existem (os registros avulsos já estão no painel acima). */}
       {meals.length > 0 && (
         <>
@@ -493,6 +488,19 @@ export function ClientMealsPage({
           </nav>
         </>
       )}
+      {/* Área secundária: métricas e gráficos, recolhidos para não competir com o registro. */}
+      <Fold
+        title="Métricas e gráficos do dia"
+        icon={BarChart3}
+        color="#0d9488"
+        defaultOpen={false}
+        info="Evolução das calorias e dos nutrientes ao longo do dia, e a contribuição de cada refeição."
+      >
+        <div className="grid min-w-0 content-start gap-3 p-3 pt-1">
+          <NutritionDayChart data={nutrition} />
+          <MealMacroBars data={nutrition} />
+        </div>
+      </Fold>
       <p className="shrink-0 text-[11px] text-muted-foreground">
         As descrições são registros informados pelo paciente. A confirmação do sistema não avalia o
         valor nutricional da refeição.
