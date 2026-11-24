@@ -23,7 +23,7 @@ type Props = {
 
 /** Botão quadrado de ferramenta (PDF, ao vivo, perfil): só ícone no celular, com texto no computador. */
 const tool =
-  "inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/25 bg-white/10 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20 active:scale-95 max-sm:w-10 sm:px-3";
+  "inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/30 bg-slate-950/60 text-sm font-semibold text-white shadow-md backdrop-blur-md transition hover:bg-slate-900/85 active:scale-95 max-sm:w-10 sm:px-3";
 
 /**
  * Faixa do topo de cada área do painel do cliente.
