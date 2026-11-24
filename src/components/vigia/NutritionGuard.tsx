@@ -55,10 +55,10 @@ export function NutritionGuardPanel({ data }: { data: DailyNutrition }) {
   return (
     <section
       aria-label="Limites de saúde do dia"
-      className="nv-scan min-w-0 border border-border bg-card p-3 shadow-card"
+      className="min-w-0 border border-border bg-card p-2.5"
       style={{ ["--ca" as string]: levelColor[worst] }}
     >
-      <header className="mb-2 flex flex-wrap items-center justify-between gap-2">
+      <header className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
         <span className="flex items-center gap-2">
           {worst === "ok" ? (
             <ShieldCheck size={16} className="text-emerald-500" />
@@ -74,7 +74,7 @@ export function NutritionGuardPanel({ data }: { data: DailyNutrition }) {
           {worst === "ok" ? "Tudo dentro do limite" : levelText[worst]}
         </span>
       </header>
-      <div className="grid gap-2.5 md:grid-cols-3">
+      <div className="grid gap-1.5 md:grid-cols-3">
         {risks.map((r) => {
           const Icon = ICONS[r.key];
           const col = levelColor[r.level];
@@ -83,37 +83,24 @@ export function NutritionGuardPanel({ data }: { data: DailyNutrition }) {
           return (
             <article
               key={r.key}
-              className={`relative overflow-hidden border p-2.5 pr-[4.75rem] ${r.level === "severe" ? "nv-due" : ""}`}
-              style={{
-                borderColor: `color-mix(in srgb, ${nc} 55%, transparent)`,
-                boxShadow: `inset 0 3px 0 ${nc}`,
-                background: `linear-gradient(135deg, color-mix(in srgb, ${nc} ${r.level === "ok" ? 20 : 26}%, #12151c), color-mix(in srgb, ${nc} 6%, #12151c) 70%)`,
-                ["--due" as string]: col,
-              }}
+              title={advice(r)}
+              className={`min-w-0 border border-border bg-background/40 px-2.5 py-2 ${r.level === "severe" ? "nv-due" : ""}`}
+              style={{ borderLeft: `3px solid ${nc}`, ["--due" as string]: col }}
             >
-              <NutrientArt
-                kind={r.key}
-                className="pointer-events-none absolute -bottom-1 right-1 size-[4.5rem] opacity-95"
-              />
               <div className="flex items-center justify-between gap-2 text-xs">
-                <span className="flex items-center gap-1.5 font-semibold">
-                  <span
-                    className="grid size-6 place-items-center rounded-md"
-                    style={{ background: `${nc}33`, color: NUTRIENT_INK[r.key] }}
-                  >
-                    <Icon size={14} />
-                  </span>{" "}
-                  {r.label}
+                <span className="flex min-w-0 items-center gap-1.5 font-semibold">
+                  <Icon size={13} style={{ color: NUTRIENT_INK[r.key] }} />
+                  <span className="truncate">{r.label}</span>
                 </span>
-                <span className="tabular-nums">
-                  <b className="text-sm">{Math.round(r.value).toLocaleString("pt-BR")}</b>
+                <span className="shrink-0 tabular-nums">
+                  <b>{Math.round(r.value).toLocaleString("pt-BR")}</b>
                   <span className="text-muted-foreground">
                     /{Math.round(r.limit).toLocaleString("pt-BR")} {r.unit}
                   </span>
                 </span>
               </div>
               <div
-                className="relative mt-2 h-2.5 bg-black/10 dark:bg-white/10"
+                className="relative mt-1.5 h-1.5 bg-black/10 dark:bg-white/10"
                 role="meter"
                 aria-label={`${r.label}: ${Math.round(r.pct * 100)}% do limite`}
                 aria-valuemin={0}
@@ -122,41 +109,15 @@ export function NutritionGuardPanel({ data }: { data: DailyNutrition }) {
               >
                 <i
                   className="absolute inset-y-0 left-0 transition-[width] duration-700"
-                  style={{
-                    width: `${fill * 100}%`,
-                    background: `linear-gradient(90deg, #10b981 0%, #f59e0b ${(0.8 / 1.3) * 100}%, ${col} 100%)`,
-                  }}
-                />
-                {/* marcas: 80% (perto) e 100% (limite) */}
-                <b
-                  className="absolute inset-y-[-3px] w-px bg-amber-400"
-                  style={{ left: `${(0.8 / 1.3) * 100}%` }}
-                />
-                <b
-                  className="absolute inset-y-[-3px] w-0.5 bg-rose-500"
-                  style={{ left: `${(1 / 1.3) * 100}%` }}
+                  style={{ width: `${fill * 100}%`, background: col }}
                 />
               </div>
-              <p className="mt-1.5 flex items-center justify-between text-[11px]">
+              <p className="mt-1 flex items-center justify-between text-[10.5px]">
                 <b style={{ color: levelInk[r.level] }}>{levelText[r.level]}</b>
                 <span className="tabular-nums text-muted-foreground">
                   {Math.round(r.pct * 100)}% do limite
                 </span>
               </p>
-              <p className="mt-1 text-xs leading-snug text-foreground/90">{advice(r)}</p>
-              {r.culprits.length > 0 && r.value > 0 && (
-                <ul className="mt-1.5 flex flex-wrap gap-1">
-                  {r.culprits.map((c) => (
-                    <li
-                      key={c.id}
-                      className="border border-border bg-card px-1.5 py-0.5 text-[10.5px] font-semibold tabular-nums"
-                      title={`${c.name}: ${fmt(c.amount, r.unit)}`}
-                    >
-                      {c.name} · {fmt(c.amount, r.unit)}
-                    </li>
-                  ))}
-                </ul>
-              )}
             </article>
           );
         })}
@@ -176,14 +137,17 @@ export function NutritionGuardPanel({ data }: { data: DailyNutrition }) {
           ))}
         </ul>
       )}
-      <p className="mt-2 text-[10.5px] leading-snug text-muted-foreground">
+      <details className="mt-1.5 text-[10.5px] text-muted-foreground">
+        <summary style={{ cursor: "pointer" }} className="font-semibold">Como os limites são calculados</summary>
+        <p className="mt-1 leading-snug">
         Limites: sódio abaixo de 2.000 mg/dia e açúcar livre abaixo de 10% das calorias (OMS);
         gordura pela sua meta. Açúcar livre inclui o açúcar adicionado, o mel, os xaropes e os
         sucos. Valores estimados (TACO/TBCA e rótulos) a partir do que você registrou; sal de mesa,
         açúcar de colher e molhos só entram se forem registrados. Limonada sem a indicação "sem
         açúcar" é contada como adoçada (estimativa de 10 g a cada 200 ml). Não substitui orientação
         de médico ou nutricionista.
-      </p>
+        </p>
+      </details>
     </section>
   );
 }

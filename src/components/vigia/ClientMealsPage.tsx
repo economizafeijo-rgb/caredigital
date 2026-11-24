@@ -211,27 +211,20 @@ export function ClientMealsPage({
           />
         }
       />
-      <NutritionGuardPanel data={nutrition} />
       {/* Refeições já realizadas hoje, em destaque logo abaixo da meta. */}
       <MealsDoneToday data={nutrition} />
-      {/* Área principal: o que foi registrado no dia, por refeição, em ordem de horário. */}
-      <section
-        aria-labelledby="meals-day-title"
-        className="flex min-w-0 flex-col gap-2 border border-border bg-card p-3"
+      <NutritionGuardPanel data={nutrition} />
+      <Fold
+        title="Detalhes nutricionais e registros do dia"
+        icon={UtensilsCrossed}
+        color="#d97706"
+        defaultOpen={false}
+        info="Todos os alimentos e bebidas do dia, com fibras, vitaminas, minerais e opções para editar ou excluir."
       >
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <div className="min-w-0">
-            <h3 id="meals-day-title" className="flex items-center gap-2 text-sm font-bold text-foreground">
-              <UtensilsCrossed size={16} className="text-amber-600 dark:text-amber-300" />
-              Registro de hoje
-            </h3>
-            <p className="text-[11px] text-muted-foreground">
-              Refeições e bebidas por horário (horário do Acre)
-            </p>
-          </div>
+        <div className="p-3 pt-1">
+          <DailyNutritionPanel data={nutrition} hideSummary />
         </div>
-        <DailyNutritionPanel data={nutrition} hideSummary />
-      </section>
+      </Fold>
       {/* Refeições programadas pela equipe: só aparece quando existem (os registros avulsos já estão no painel acima). */}
       {meals.length > 0 && (
         <>
