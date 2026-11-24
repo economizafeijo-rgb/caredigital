@@ -359,6 +359,7 @@ export function HydrationDayChart({
               role="dialog"
               aria-modal="true"
               aria-label="Registros da hora"
+              style={{ maxWidth: 380 }}
               className="!max-h-[80vh] w-full max-w-sm overflow-y-auto rounded-2xl border border-border bg-card p-4 shadow-2xl"
             >
               <div className="flex items-start justify-between gap-3">

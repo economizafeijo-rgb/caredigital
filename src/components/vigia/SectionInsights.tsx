@@ -11,6 +11,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { EvoChart } from "./EvoChart";
+import { clientSectionTheme } from "@/lib/client-section-theme";
 import { supabase } from "@/integrations/supabase/client";
 import { acreDateKey } from "@/lib/acre-time";
 import { parseFoodText, sumNutrients } from "@/lib/food-parser";
@@ -360,6 +361,12 @@ export function SectionInsights({
   });
   const [selected, setSelected] = useState<string | null>(null);
   const [modal, setModal] = useState(false);
+  const [empty_, setEmptyNotice] = useState<string | null>(null);
+  useEffect(() => {
+    if (!empty_) return;
+    const t = window.setTimeout(() => setEmptyNotice(null), 3200);
+    return () => window.clearTimeout(t);
+  }, [empty_]);
   const [open, setOpen] = useState(true);
   const [detailDay, setDetailDay] = useState<string | null>(null);
 
@@ -406,6 +413,11 @@ export function SectionInsights({
   const picked = rows.find((row) => row.day === selected) ?? rows[rows.length - 1];
   const empty = total === 0 && rows.every((row) => row.b === 0);
   const unit = config.unit ? " " + config.unit : "";
+  const hasRecords = (day: string) => {
+    const r = rows.find((row) => row.day === day);
+    return !!r && (r.a > 0 || r.b > 0);
+  };
+  const noRecords = (day: string) => setEmptyNotice(`${day.slice(8, 10)}/${day.slice(5, 7)}`);
   const goalDays = data?.goal ? rows.filter((row) => row.a >= data.goal!).length : null;
   const byX = useMemo(() => new Map(rows.map((r) => [toX(r.day), r])), [rows]);
   const bOnAxis = Boolean(config.b) && sharesAxis(section);
@@ -619,6 +631,7 @@ export function SectionInsights({
                   showTrend={!hidden.t}
                   selected={selected}
                   onPick={(day) => {
+                    if (!hasRecords(day)) return noRecords(day);
                     setSelected(day);
                     setModal(true);
                     window.dispatchEvent(new CustomEvent("nv-hydration-day", { detail: day }));
@@ -646,6 +659,7 @@ export function SectionInsights({
                   series={series}
                   selectedX={selected ? toX(selected) : null}
                   onPick={(x) => {
+                    if (!hasRecords(fromX(x))) return noRecords(fromX(x));
                     setSelected(fromX(x));
                     setModal(true);
                   }}
@@ -690,9 +704,13 @@ export function SectionInsights({
                     role="dialog"
                     aria-modal="true"
                     aria-label="Detalhes do dia"
-                    className="relative flex !max-h-[85vh] w-full max-w-sm flex-col overflow-y-auto rounded-2xl border border-border bg-card p-4 shadow-2xl"
+                    className="relative flex !max-h-[85vh] w-full flex-col overflow-y-auto rounded-2xl border border-border bg-card p-4 pt-5 shadow-2xl"
                     style={{
-                      backgroundImage: `linear-gradient(160deg, color-mix(in oklab, ${config.a.color} 10%, transparent), transparent 70%)`,
+                      maxWidth: 380,
+                      backgroundImage: `linear-gradient(180deg, rgb(6 12 26 / .45) 0%, var(--card) 130px), url(${(clientSectionTheme as any)[section]?.image ?? "/images/caredigital-hidratacao.webp"})`,
+                      backgroundSize: "100% 100%, 100% 170px",
+                      backgroundRepeat: "no-repeat",
+                      backgroundPosition: "top",
                     }}
                     aria-live="polite"
                   >
@@ -801,6 +819,21 @@ export function SectionInsights({
           </div>
         </div>
       )}
+      {empty_ &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            role="status"
+            className="fixed inset-x-0 top-4 z-[11700] mx-auto flex w-fit max-w-[calc(100vw-1.5rem)] items-center gap-2.5 rounded-xl border border-border bg-card px-4 py-2.5 text-sm shadow-2xl"
+          >
+            <CalendarDays size={16} style={{ color: config.a.color }} />
+            <span>
+              <strong>Sem registros em {empty_}.</strong>{" "}
+              <span className="text-muted-foreground">Nada foi registrado nesse dia.</span>
+            </span>
+          </div>,
+          document.body,
+        )}
       <DayDetailDialog
         patientId={patientId}
         ownerId={ownerId}
