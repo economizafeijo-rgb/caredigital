@@ -162,7 +162,7 @@ const extra = new Map<string, NutrientKey[]>([
     "carne carne_moida carne_assada contrafile_grelhado carne_sol churrasco hamburguer_grelhado pacoca_carne_sol panelada",
     ["B12", "B3", "zinco", "ferro"],
   ),
-  ...G("frango frango_molho frango_grelhado frango_assado galinha_caipira", [
+  ...G("frango frango_cozido frango_coxa frango_molho frango_grelhado frango_assado galinha_caipira", [
     "B3",
     "B6",
     "selenio",

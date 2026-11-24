@@ -76,6 +76,8 @@ export const sodiumPer100: Record<string, number> = {
   macarrao: 200,
   carne: 280,
   frango: 280,
+  frango_cozido: 280,
+  frango_coxa: 280,
   frango_grelhado: 300,
   contrafile_grelhado: 300,
   bisteca_grelhada: 330,
