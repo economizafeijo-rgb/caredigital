@@ -14,6 +14,7 @@ import {
   Info,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { acreDateKey, acreEndOfDay, acreStartOfDay } from "@/lib/acre-time";
 import { useDialog } from "@/lib/dialog";
 import { ClientQuickIntake } from "./ClientQuickIntake";
 import { NextUpClock } from "./NextUpClock";
@@ -144,6 +145,63 @@ export function ClientHydrationTab({
   const [dailyGoal, setDailyGoal] = useState<HydrationGoalSnapshot | null>(null);
   const lastDeadlineRefresh = useRef<string>("");
   const [clock, setClock] = useState(() => Date.now());
+  // Dia escolhido no gráfico "Líquidos por dia": o gráfico por hora passa a mostrar aquele dia.
+  const [pastDay, setPastDay] = useState<string | null>(null);
+  const [pastEntries, setPastEntries] = useState<
+    { amount_ml: number; recorded_at: string; name?: string; source: "water" | "beverage" }[]
+  >([]);
+  useEffect(() => {
+    const on = (e: Event) => {
+      const day = (e as CustomEvent<string | null>).detail;
+      setPastDay(day && day !== acreDateKey() ? day : null);
+    };
+    window.addEventListener("nv-hydration-day", on);
+    return () => window.removeEventListener("nv-hydration-day", on);
+  }, []);
+  useEffect(() => {
+    if (!pastDay) {
+      setPastEntries([]);
+      return;
+    }
+    let active = true;
+    const from = acreStartOfDay(pastDay).toISOString();
+    const to = acreEndOfDay(pastDay).toISOString();
+    const db = supabase as any;
+    void Promise.all([
+      db
+        .from("care_hydration")
+        .select("amount_ml,recorded_at")
+        .eq("patient_id", patientId)
+        .gte("recorded_at", from)
+        .lt("recorded_at", to)
+        .limit(500),
+      db
+        .from("care_client_beverages")
+        .select("name,amount_ml,consumed_at")
+        .eq("patient_id", patientId)
+        .gte("consumed_at", from)
+        .lt("consumed_at", to)
+        .limit(500),
+    ]).then(([w, b]: any[]) => {
+      if (!active) return;
+      setPastEntries([
+        ...(w.data ?? []).map((r: any) => ({
+          amount_ml: Number(r.amount_ml) || 0,
+          recorded_at: r.recorded_at,
+          source: "water" as const,
+        })),
+        ...(b.data ?? []).map((r: any) => ({
+          amount_ml: Number(r.amount_ml) || 0,
+          recorded_at: r.consumed_at,
+          name: r.name,
+          source: "beverage" as const,
+        })),
+      ]);
+    });
+    return () => {
+      active = false;
+    };
+  }, [pastDay, patientId]);
   useEffect(() => {
     const timer = window.setInterval(() => setClock(Date.now()), 1000);
     return () => window.clearInterval(timer);
@@ -894,16 +952,47 @@ export function ClientHydrationTab({
         </div>
       )}
       <div className="grid min-w-0 gap-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
-        <HydrationDayChart
-          entries={[
-            ...drinks.map((d) => ({ ...d, source: "water" as const })),
-            ...otherDrinks.map((d) => ({ ...d, source: "beverage" as const })),
-          ]}
-          goal={goal}
-          nowMs={clock}
-          lastHour={WATER_LAST_RECOMMENDED_HOUR}
-          note={!loading && dailyGoal && dailyGoal.status !== "sem_meta" ? goalSummary : null}
-        />
+        <div className="min-w-0">
+          {pastDay && (
+            <div className="mb-2 flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/40 px-3 py-1.5 text-xs">
+              <span>
+                Mostrando{" "}
+                <strong>
+                  {pastDay.slice(8, 10)}/{pastDay.slice(5, 7)}
+                </strong>
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setPastDay(null);
+                  window.dispatchEvent(new CustomEvent("nv-hydration-day", { detail: null }));
+                }}
+                style={{ cursor: "pointer" }}
+                className="rounded-md px-2 py-1 font-semibold text-primary hover:bg-muted"
+              >
+                Voltar para hoje
+              </button>
+            </div>
+          )}
+          <HydrationDayChart
+            entries={
+              pastDay
+                ? pastEntries
+                : [
+                    ...drinks.map((d) => ({ ...d, source: "water" as const })),
+                    ...otherDrinks.map((d) => ({ ...d, source: "beverage" as const })),
+                  ]
+            }
+            goal={goal}
+            nowMs={pastDay ? acreEndOfDay(pastDay).getTime() - 1 : clock}
+            lastHour={WATER_LAST_RECOMMENDED_HOUR}
+            note={
+              !pastDay && !loading && dailyGoal && dailyGoal.status !== "sem_meta"
+                ? goalSummary
+                : null
+            }
+          />
+        </div>
         {drinks.length + otherDrinks.length > 0 ? (
           <HydrationEntries
             patientId={patientId}

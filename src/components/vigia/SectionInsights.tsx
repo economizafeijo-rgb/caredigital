@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   CalendarDays,
   ChevronDown,
+  X,
   Flame,
   LineChart as LineIcon,
   TrendingDown,
@@ -357,6 +359,7 @@ export function SectionInsights({
     t: false,
   });
   const [selected, setSelected] = useState<string | null>(null);
+  const [modal, setModal] = useState(false);
   const [open, setOpen] = useState(true);
   const [detailDay, setDetailDay] = useState<string | null>(null);
 
@@ -569,9 +572,7 @@ export function SectionInsights({
             ))}
           </dl>
 
-          <div
-            className={`mt-3 grid gap-3 ${selected ? "xl:grid-cols-[minmax(0,1fr)_15rem]" : ""}`}
-          >
+          <div className="mt-3 grid gap-3">
             <div className="min-w-0">
               <div className="mb-1 flex flex-wrap items-center gap-1.5">
                 {(
@@ -617,7 +618,11 @@ export function SectionInsights({
                   showDrinks={!hidden.b}
                   showTrend={!hidden.t}
                   selected={selected}
-                  onPick={(day) => setSelected(day)}
+                  onPick={(day) => {
+                    setSelected(day);
+                    setModal(true);
+                    window.dispatchEvent(new CustomEvent("nv-hydration-day", { detail: day }));
+                  }}
                 />
               ) : (
                 <EvoChart
@@ -640,7 +645,10 @@ export function SectionInsights({
                   bars={bars}
                   series={series}
                   selectedX={selected ? toX(selected) : null}
-                  onPick={(x) => setSelected(fromX(x))}
+                  onPick={(x) => {
+                    setSelected(fromX(x));
+                    setModal(true);
+                  }}
                   detailAction={(x) => ({
                     label: "Ver registros do dia",
                     onClick: () => setDetailDay(fromX(x)),
@@ -670,113 +678,126 @@ export function SectionInsights({
               )}
             </div>
 
-            {selected && (
-              <aside
-                className="flex flex-col rounded-xl border border-border p-3"
-                style={{
-                  background: `linear-gradient(160deg, color-mix(in oklab, ${config.a.color} 10%, transparent), transparent 70%)`,
-                }}
-                aria-live="polite"
-              >
-                <p className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
-                  <CalendarDays size={13} style={{ color: config.a.color }} />
-                  {selected ? "Dia selecionado" : "Hoje"}
-                </p>
-                <p className="text-sm font-bold capitalize">
-                  {weekday(picked.day)}, {short(picked.day)}
-                </p>
-                <p
-                  className="mt-2 text-3xl font-extrabold tabular-nums leading-none"
-                  style={{ color: config.a.color }}
+            {selected &&
+              modal &&
+              typeof document !== "undefined" &&
+              createPortal(
+                <div
+                  className="fixed inset-0 z-[11600] grid !max-h-none place-items-center bg-slate-950/60 p-4 backdrop-blur-sm"
+                  onClick={(e) => e.target === e.currentTarget && setModal(false)}
                 >
-                  {compact(picked.a)}
-                  <span className="ml-1 text-sm font-semibold text-muted-foreground">
-                    {config.unit}
-                  </span>
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {config.a.label}
-                  {config.b ? ` · ${fmt(picked.b)} ${config.b.label.toLowerCase()}` : ""}
-                </p>
-                {pct !== null && (
-                  <div className="mt-2.5">
-                    <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                      <i
-                        className="block h-full rounded-full transition-[width] duration-700"
-                        style={{
-                          width: Math.min(100, pct) + "%",
-                          background: `linear-gradient(90deg, ${config.a.color}, ${config.a.to})`,
-                        }}
-                      />
-                    </div>
-                    <p className="mt-1 text-[11px] text-muted-foreground">
-                      {pct}% de {compact(data!.goal!)}
-                      {unit}
-                    </p>
-                  </div>
-                )}
-                <p className="mt-2 text-[11px] text-muted-foreground">
-                  {average > 0
-                    ? picked.a >= average
-                      ? `Acima da sua média (${compact(average)}).`
-                      : `Abaixo da sua média (${compact(average)}).`
-                    : "Sem média ainda."}
-                </p>
-                {config.b && (
-                  <div className="mt-2.5 min-h-0 flex-1">
-                    <p className="text-[11px] font-semibold text-muted-foreground">
-                      Bebidas do dia ({data?.drinks.get(picked.day)?.length ?? 0})
-                    </p>
-                    {(data?.drinks.get(picked.day) ?? []).length === 0 ? (
-                      <p className="mt-1 text-[11px] text-muted-foreground">
-                        Nenhuma bebida registrada neste dia.
-                      </p>
-                    ) : (
-                      <ul className="mt-1 grid max-h-40 gap-1 overflow-y-auto text-xs">
-                        {(data?.drinks.get(picked.day) ?? [])
-                          .slice()
-                          .sort((x, y) => x.at.localeCompare(y.at))
-                          .map((line, i) => (
-                            <li
-                              key={i}
-                              className="flex items-center gap-2 rounded-lg bg-muted/50 px-2 py-1"
-                            >
-                              <span className="font-mono font-bold">{clock(line.at)}</span>
-                              <span className="min-w-0 flex-1 truncate" title={line.name}>
-                                {line.name}
-                              </span>
-                              <span className="shrink-0 tabular-nums font-semibold">
-                                {fmt(line.ml)} ml
-                              </span>
-                            </li>
-                          ))}
-                      </ul>
-                    )}
-                  </div>
-                )}
-                <div className="mt-auto flex gap-1.5 pt-3">
-                  <button
-                    type="button"
-                    onClick={() => setDetailDay(picked.day)}
-                    className="h-8 flex-1 rounded-lg text-xs font-bold text-white shadow-sm transition hover:brightness-110 active:scale-[.98]"
+                  <aside
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Detalhes do dia"
+                    className="relative flex !max-h-[85vh] w-full max-w-sm flex-col overflow-y-auto rounded-2xl border border-border bg-card p-4 shadow-2xl"
                     style={{
-                      background: `linear-gradient(135deg, ${config.a.color}, ${config.a.to})`,
+                      backgroundImage: `linear-gradient(160deg, color-mix(in oklab, ${config.a.color} 10%, transparent), transparent 70%)`,
                     }}
+                    aria-live="polite"
                   >
-                    Ver detalhes
-                  </button>
-                  {selected && (
                     <button
                       type="button"
-                      onClick={() => setSelected(null)}
-                      className="h-8 rounded-lg border border-border px-2.5 text-xs font-semibold hover:bg-muted"
+                      autoFocus
+                      onClick={() => setModal(false)}
+                      aria-label="Fechar"
+                      style={{ cursor: "pointer" }}
+                      className="absolute right-3 top-3 grid size-8 place-items-center rounded-full bg-muted hover:bg-muted/70"
                     >
-                      Hoje
+                      <X size={16} />
                     </button>
-                  )}
-                </div>
-              </aside>
-            )}
+                    <p className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
+                      <CalendarDays size={13} style={{ color: config.a.color }} />
+                      {selected ? "Dia selecionado" : "Hoje"}
+                    </p>
+                    <p className="text-sm font-bold capitalize">
+                      {weekday(picked.day)}, {short(picked.day)}
+                    </p>
+                    <p
+                      className="mt-2 text-3xl font-extrabold tabular-nums leading-none"
+                      style={{ color: config.a.color }}
+                    >
+                      {compact(picked.a)}
+                      <span className="ml-1 text-sm font-semibold text-muted-foreground">
+                        {config.unit}
+                      </span>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {config.a.label}
+                      {config.b ? ` · ${fmt(picked.b)} ${config.b.label.toLowerCase()}` : ""}
+                    </p>
+                    {pct !== null && (
+                      <div className="mt-2.5">
+                        <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                          <i
+                            className="block h-full rounded-full transition-[width] duration-700"
+                            style={{
+                              width: Math.min(100, pct) + "%",
+                              background: `linear-gradient(90deg, ${config.a.color}, ${config.a.to})`,
+                            }}
+                          />
+                        </div>
+                        <p className="mt-1 text-[11px] text-muted-foreground">
+                          {pct}% de {compact(data!.goal!)}
+                          {unit}
+                        </p>
+                      </div>
+                    )}
+                    <p className="mt-2 text-[11px] text-muted-foreground">
+                      {average > 0
+                        ? picked.a >= average
+                          ? `Acima da sua média (${compact(average)}).`
+                          : `Abaixo da sua média (${compact(average)}).`
+                        : "Sem média ainda."}
+                    </p>
+                    {config.b && (
+                      <div className="mt-2.5 min-h-0 flex-1">
+                        <p className="text-[11px] font-semibold text-muted-foreground">
+                          Bebidas do dia ({data?.drinks.get(picked.day)?.length ?? 0})
+                        </p>
+                        {(data?.drinks.get(picked.day) ?? []).length === 0 ? (
+                          <p className="mt-1 text-[11px] text-muted-foreground">
+                            Nenhuma bebida registrada neste dia.
+                          </p>
+                        ) : (
+                          <ul className="mt-1 grid max-h-40 gap-1 overflow-y-auto text-xs">
+                            {(data?.drinks.get(picked.day) ?? [])
+                              .slice()
+                              .sort((x, y) => x.at.localeCompare(y.at))
+                              .map((line, i) => (
+                                <li
+                                  key={i}
+                                  className="flex items-center gap-2 rounded-lg bg-muted/50 px-2 py-1"
+                                >
+                                  <span className="font-mono font-bold">{clock(line.at)}</span>
+                                  <span className="min-w-0 flex-1 truncate" title={line.name}>
+                                    {line.name}
+                                  </span>
+                                  <span className="shrink-0 tabular-nums font-semibold">
+                                    {fmt(line.ml)} ml
+                                  </span>
+                                </li>
+                              ))}
+                          </ul>
+                        )}
+                      </div>
+                    )}
+                    <div className="mt-auto flex gap-1.5 pt-3">
+                      <button
+                        type="button"
+                        onClick={() => setDetailDay(picked.day)}
+                        className="h-8 flex-1 rounded-lg text-xs font-bold text-white shadow-sm transition hover:brightness-110 active:scale-[.98]"
+                        style={{
+                          background: `linear-gradient(135deg, ${config.a.color}, ${config.a.to})`,
+                        }}
+                      >
+                        Ver detalhes
+                      </button>
+                    </div>
+                  </aside>
+                </div>,
+                document.body,
+              )}
           </div>
         </div>
       )}
