@@ -1,3 +1,5 @@
+import { useDialog } from "@/lib/dialog";
+import { ensureUnlocked } from "@/lib/record-lock";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -116,6 +118,7 @@ export function CareCategoryReport({
   const [loading, setLoading] = useState(true);
   const [warning, setWarning] = useState("");
   const [all, setAll] = useState(false);
+  const { prompt, notify } = useDialog();
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [selectedTaskDetails, setSelectedTaskDetails] = useState<TaskDetails | null>(null);
   const [selectedWaterResponse, setSelectedWaterResponse] = useState<{
@@ -354,6 +357,7 @@ export function CareCategoryReport({
   const saveEntry = async () => {
     const event = selectedEvent;
     if (!event?.entryType || !event.entryId || mutating) return;
+    if (!(await ensureUnlocked(event.at, prompt, notify))) return;
     const when = new Date(editAt + "-05:00");
     if (!editAt || !Number.isFinite(when.getTime()) || when.getTime() > Date.now() + 120000) {
       setDetailError("Informe uma data e hora válidas, sem horário futuro (Acre).");
@@ -405,6 +409,7 @@ export function CareCategoryReport({
   const deleteEntry = async () => {
     const event = selectedEvent;
     if (!event?.entryType || !event.entryId || !event.canDelete || mutating) return;
+    if (!(await ensureUnlocked(event.at, prompt, notify))) return;
     setMutating(true);
     setDetailError("");
     try {

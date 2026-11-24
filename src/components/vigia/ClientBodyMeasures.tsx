@@ -1,3 +1,4 @@
+import { ensureUnlocked } from "@/lib/record-lock";
 import { useEffect, useMemo, useState } from "react";
 import {
   Info,
@@ -237,6 +238,7 @@ export function ClientBodyMeasures({
     setReload((n) => n + 1);
   }
   async function remove(r: Row) {
+    if (!(await ensureUnlocked(r.measured_on, dialog.prompt, dialog.notify))) return;
     if (
       !(await dialog.confirm(
         "Excluir definitivamente?",

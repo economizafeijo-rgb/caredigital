@@ -1,3 +1,4 @@
+import { ensureUnlocked } from "@/lib/record-lock";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
   Battery,
@@ -57,7 +58,7 @@ export function ClientHeartRate({
   ownerId: string;
   ageYears?: number | null;
 }) {
-  const { confirm, notify } = useDialog();
+  const { confirm, prompt, notify } = useDialog();
   const { max, zones } = useMemo(() => heartZones(ageYears), [ageYears]);
   const [state, setState] = useState<LinkState>("parado");
   const [detail, setDetail] = useState("");
@@ -250,6 +251,7 @@ export function ClientHeartRate({
     }
   }
   async function remove(s: Session) {
+    if (!(await ensureUnlocked(s.started_at, prompt, notify))) return;
     if (
       !(await confirm(
         "Apagar esta sessão?",

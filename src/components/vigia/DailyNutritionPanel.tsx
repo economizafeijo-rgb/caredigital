@@ -33,6 +33,7 @@ import { beverageNutrients } from "@/lib/beverage-nutrients";
 import { isBeverageKind } from "@/lib/care-intake-categories";
 import { ingredientById } from "@/lib/nutrition-catalog";
 import { useDialog } from "@/lib/dialog";
+import { ensureUnlocked } from "@/lib/record-lock";
 import { MACRO_COLORS, MacroBreakdown } from "./MacroBreakdown";
 
 /** Cor única dos micronutrientes (fibras, vitaminas e minerais), distinta das cores dos macros. */
@@ -359,6 +360,7 @@ export function DailyNutritionPanel({
   }
   async function editEntry(entry: Entry) {
     if (!entry.entryId || !entry.entryType || busyEntry) return;
+    if (!(await ensureUnlocked(entry.at, prompt, notify))) return;
     if (entry.entryType === "beverage" || (entry.entryType === "meal" && entry.foods.length > 0)) {
       setQty(
         entry.entryType === "beverage"
@@ -421,6 +423,7 @@ export function DailyNutritionPanel({
   }
   async function deleteEntry(entry: Entry) {
     if (!entry.entryId || !entry.entryType || busyEntry) return;
+    if (!(await ensureUnlocked(entry.at, prompt, notify))) return;
     if (
       !(await confirm(
         "Excluir registro",

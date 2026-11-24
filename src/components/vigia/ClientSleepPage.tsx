@@ -1,3 +1,4 @@
+import { ensureUnlocked } from "@/lib/record-lock";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Area,
@@ -381,6 +382,7 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
     setReload((v) => v + 1);
   }
   async function remove(log: SleepLog) {
+    if (!(await ensureUnlocked(log.sleep_date, dialog.prompt, dialog.notify))) return;
     if (
       !(await dialog.confirm(
         "Excluir registro de sono?",

@@ -10,6 +10,7 @@ type DialogRequest = {
   confirmLabel?: string;
   placeholder?: string;
   initial?: string;
+  secret?: boolean;
   resolve: (value: boolean | string | null) => void;
 };
 const DialogContext = createContext<{
@@ -24,6 +25,7 @@ const DialogContext = createContext<{
     message: string,
     placeholder?: string,
     initial?: string,
+    secret?: boolean,
   ) => Promise<string | null>;
   /** Aviso rápido de confirmação (registro salvo, alterado, excluído…). */
   notify: (message: string, tone?: NoticeTone) => void;
@@ -53,7 +55,7 @@ export function DialogProvider({ children }: { children: ReactNode }) {
         resolve: (value) => resolve(Boolean(value)),
       }),
     );
-  const prompt = (title: string, message: string, placeholder = "", initial = "") =>
+  const prompt = (title: string, message: string, placeholder = "", initial = "", secret = false) =>
     new Promise<string | null>((resolve) =>
       setRequest({
         kind: "prompt",
@@ -61,6 +63,7 @@ export function DialogProvider({ children }: { children: ReactNode }) {
         message,
         placeholder,
         initial,
+        secret,
         resolve: (value) => resolve(typeof value === "string" ? value : null),
       }),
     );
@@ -231,6 +234,9 @@ function DialogOverlay({
               onChange={(e) => setValue(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && close(value)}
               placeholder={request.placeholder}
+              type={request.secret ? "password" : "text"}
+              inputMode={request.secret ? "numeric" : undefined}
+              autoComplete="off"
               className="field mt-4 text-left"
             />
           )}

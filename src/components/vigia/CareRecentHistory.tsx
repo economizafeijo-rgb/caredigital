@@ -14,6 +14,7 @@ import {
 import { ingredientById } from "@/lib/nutrition-catalog";
 import { measureUnit, nutrientsFor, parseFoodText } from "@/lib/food-parser";
 import { useDialog } from "@/lib/dialog";
+import { ensureUnlocked } from "@/lib/record-lock";
 import { supabase } from "@/integrations/supabase/client";
 import { AnimatedLock } from "./AnimatedLock";
 import { RecordInfo, type RecordInfoRow } from "./RecordInfo";
@@ -524,6 +525,7 @@ export function CareRecentHistory({
   async function saveEdit() {
     const row = editing;
     if (!row?.rawId) return;
+    if (!(await ensureUnlocked(row.at, dialog.prompt, dialog.notify))) return;
     const when = Date.parse(`${fWhen}:00-05:00`);
     if (!Number.isFinite(when) || when > Date.now() + 120_000) {
       dialog.notify?.("Informe um horário válido que não esteja no futuro.", "danger");
@@ -594,6 +596,7 @@ export function CareRecentHistory({
   async function remove(row: RecordRow) {
     if (!row.rawId || (row.kind !== "water" && row.kind !== "beverage" && row.kind !== "meal"))
       return;
+    if (!(await ensureUnlocked(row.at, dialog.prompt, dialog.notify))) return;
     if (
       !(await dialog.confirm(
         "Excluir registro?",

@@ -1,3 +1,4 @@
+import { ensureUnlocked } from "@/lib/record-lock";
 import { type LivePoint } from "./LiveWorkoutVisual";
 import { NiceSelect } from "./NiceSelect";
 import { ActivityDaysChart, ActivityHero } from "./ActivityHero";
@@ -238,7 +239,7 @@ export function ClientActivityPage({
   typeRef.current = type;
   autoPausedRef.current = autoPaused;
   const halted = paused || autoPaused;
-  const { confirm } = useDialog();
+  const { confirm, prompt, notify } = useDialog();
 
   useEffect(() => {
     let active = true;
@@ -732,6 +733,7 @@ export function ClientActivityPage({
   }
 
   async function removeItem(item: ActivityEntry) {
+    if (!(await ensureUnlocked(item.happened_at, prompt, notify))) return;
     const title = item.details?.title ?? "atividade";
     if (
       !(await confirm(
