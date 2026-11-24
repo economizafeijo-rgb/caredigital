@@ -171,6 +171,9 @@ export const intakeCategory = (kind: string) => foodCategory(kind) || beverageCa
 /** Alimentos típicos de cada refeição (inclui pratos do Acre). O texto entra na descrição e é calculado pelo leitor de alimentos. */
 export const typicalFoods: Record<FoodKind, { label: string; text: string }[]> = {
   cafe_manha: [
+    { label: "Café com leite em pó", text: "1 xícara de café com leite em pó" },
+    { label: "Café com leite em pó integral", text: "1 xícara de café com leite em pó integral" },
+    { label: "Café com leite de gado da região", text: "1 xícara de café com leite de gado da região" },
     { label: "Pão integral", text: "1 pão integral" },
     { label: "Requeijão", text: "30 g de requeijão" },
     { label: "Café preto", text: "1 xícara de café" },
