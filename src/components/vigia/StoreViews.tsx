@@ -186,9 +186,6 @@ export function ProductQuickViewHost() {
       role="dialog"
       aria-modal="true"
       aria-label={p.name}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) setId(null);
-      }}
     >
       <div className="relative w-full max-w-4xl">
         <button

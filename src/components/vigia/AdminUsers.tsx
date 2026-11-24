@@ -401,7 +401,6 @@ export function AdminUsers() {
           aria-modal="true"
           aria-label="Ficha do usuário"
           className="fixed inset-0 z-[90] flex justify-end bg-black/50 backdrop-blur-sm"
-          onClick={(e) => e.target === e.currentTarget && close()}
         >
           <aside className="nv-fade-in flex h-full w-full max-w-xl flex-col overflow-y-auto bg-card shadow-2xl">
             <header className="flex items-start justify-between gap-3 border-b border-border p-5">

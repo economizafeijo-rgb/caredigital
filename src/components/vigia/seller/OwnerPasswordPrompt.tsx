@@ -59,9 +59,6 @@ export function useOwnerPasswordPrompt(): {
   const element = open ? (
     <div
       className="fixed inset-0 z-[200] grid place-items-center bg-slate-950/70 p-4 backdrop-blur-sm"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && !busy) close(false);
-      }}
       onKeyDown={(e) => {
         if (e.key === "Escape" && !busy) close(false);
       }}

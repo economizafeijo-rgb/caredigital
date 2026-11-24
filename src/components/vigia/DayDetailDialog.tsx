@@ -203,9 +203,6 @@ export function DayDetailDialog({
       role="dialog"
       aria-modal="true"
       aria-labelledby="day-detail-title"
-      onClick={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
     >
       <div className="nv-pop flex max-h-full w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl">
         <header className="nv-dark relative isolate shrink-0 overflow-hidden bg-[#070b1a] text-white">

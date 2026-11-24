@@ -82,9 +82,6 @@ export function ExportPlanButton({
             role="dialog"
             aria-modal="true"
             aria-labelledby="nv-export-title"
-            onMouseDown={(e) => {
-              if (e.target === e.currentTarget) setOpen(false);
-            }}
           >
             <div className="nv-rise w-full max-w-md overflow-hidden rounded-3xl bg-card text-foreground shadow-2xl">
               <div className="relative bg-gradient-to-br from-[#062019] to-[#0c8063] p-5 text-white">

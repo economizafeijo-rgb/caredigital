@@ -299,9 +299,6 @@ export function ClientHealthProfile({ patientId, ownerId, initial, onSaved, onCl
   return (
     <div
       className="fixed inset-0 z-[9990] flex items-center justify-center bg-slate-950/60 p-3 backdrop-blur-sm"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
     >
       <section
         role="dialog"

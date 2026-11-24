@@ -556,9 +556,6 @@ export function SellerProducts({
           aria-modal="true"
           aria-labelledby="prod-form-title"
           className="fixed inset-0 z-[80] flex justify-end bg-black/50 backdrop-blur-sm"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setDraft(null);
-          }}
         >
           <form
             onSubmit={save}

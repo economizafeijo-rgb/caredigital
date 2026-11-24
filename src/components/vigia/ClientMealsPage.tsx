@@ -653,7 +653,6 @@ function MealDetailCard({ entry, onClose }: { entry: MealEntry; onClose: () => v
   return createPortal(
     <div
       className="fixed inset-0 z-[90] grid place-items-center bg-black/60 p-3 backdrop-blur-[2px]"
-      onMouseDown={(ev) => ev.target === ev.currentTarget && onClose()}
     >
       <div
         role="dialog"

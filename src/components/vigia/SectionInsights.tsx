@@ -713,7 +713,6 @@ export function SectionInsights({
               createPortal(
                 <div
                   className="fixed inset-0 z-[11600] grid !max-h-none place-items-center bg-slate-950/60 p-4 backdrop-blur-sm"
-                  onClick={(e) => e.target === e.currentTarget && setModal(false)}
                 >
                   <aside
                     role="dialog"

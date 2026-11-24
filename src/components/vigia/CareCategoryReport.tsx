@@ -459,9 +459,6 @@ export function CareCategoryReport({
     : createPortal(
         <div
           className="fixed inset-0 z-[190] flex items-end justify-center bg-slate-950/60 p-0 backdrop-blur-sm sm:items-center sm:p-4"
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) onClose();
-          }}
         >
           <section
             role="dialog"
@@ -696,9 +693,6 @@ export function CareCategoryReport({
             {selectedEvent && (
               <div
                 className="fixed inset-0 z-[220] flex items-center justify-center bg-slate-950/60 p-3 backdrop-blur-sm"
-                onMouseDown={(e) => {
-                  if (e.target === e.currentTarget) setSelectedEvent(null);
-                }}
               >
                 <section
                   role="dialog"

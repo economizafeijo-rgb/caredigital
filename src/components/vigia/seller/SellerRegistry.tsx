@@ -263,7 +263,6 @@ export function SellerRegistry({ vendor }: { vendor: Vendor }) {
           aria-modal="true"
           aria-label="Cadastro"
           className="fixed inset-0 z-[80] flex justify-end bg-black/50 backdrop-blur-sm"
-          onClick={(e) => e.target === e.currentTarget && setDraft(null)}
         >
           <form
             onSubmit={(e) => void save(e)}

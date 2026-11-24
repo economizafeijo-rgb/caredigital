@@ -1040,7 +1040,6 @@ function ShareSheet({ vendor, onClose }: { vendor: Vendor; onClose: () => void }
       aria-modal="true"
       aria-label="Compartilhar loja"
       className="fixed inset-0 z-[95] grid !max-h-none place-items-center bg-black/50 p-4 backdrop-blur-sm"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="nv-fade-in w-full max-w-sm rounded-3xl bg-card p-5 text-center shadow-2xl">
         <div className="flex justify-end">
@@ -1363,7 +1362,6 @@ function VendorCheckout({
       aria-modal="true"
       aria-label="Carrinho da loja"
       className="fixed inset-0 z-[95] flex !max-h-none justify-end bg-black/50 backdrop-blur-sm"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="nv-fade-in flex h-full w-full max-w-md flex-col bg-card shadow-2xl">
         <header className="flex items-center gap-3 border-b border-border px-5 py-4">

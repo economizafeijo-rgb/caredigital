@@ -111,7 +111,6 @@ function Modal({
   return createPortal(
     <div
       className="fixed inset-0 z-[12000] grid place-items-center bg-slate-950/70 p-3 backdrop-blur-sm"
-      onMouseDown={(e) => e.target === e.currentTarget && onClose()}
     >
       <section
         role="dialog"

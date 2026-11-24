@@ -194,7 +194,6 @@ function DialogOverlay({
       role="dialog"
       aria-modal="true"
       aria-labelledby="nextvita-dialog-title"
-      onMouseDown={(e) => e.target === e.currentTarget && close(null)}
     >
       <div className="nv-pop relative w-full max-w-[28rem] overflow-hidden border border-white/10 bg-card shadow-[0_30px_80px_-20px_rgba(0,0,0,.7)]">
         <DialogHero

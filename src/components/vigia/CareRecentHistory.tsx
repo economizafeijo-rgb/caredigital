@@ -743,7 +743,6 @@ export function CareRecentHistory({
       {editing && (
         <div
           className="fixed inset-0 z-[150] grid place-items-center bg-slate-950/70 p-3 backdrop-blur-sm"
-          onMouseDown={(e) => e.target === e.currentTarget && setEditing(null)}
         >
           <form
             role="dialog"

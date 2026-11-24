@@ -1499,9 +1499,6 @@ function ResolveSheet({
       role="dialog"
       aria-modal="true"
       aria-label={`O que aconteceu com ${item.title}?`}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
     >
       <div className="nv-pop w-full max-w-md overflow-hidden rounded-3xl border border-border bg-card shadow-2xl">
         <header

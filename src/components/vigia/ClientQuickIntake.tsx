@@ -91,7 +91,6 @@ function MealConfirm({
       aria-modal="true"
       aria-labelledby="meal-confirm-title"
       style={{ maxWidth: "100vw" }}
-      onClick={(e) => e.target === e.currentTarget && onClose(null)}
     >
       <ConfirmCard
         titleId="meal-confirm-title"
@@ -618,9 +617,6 @@ export function ClientQuickIntake({
               "care-intake-modal-overlay fixed inset-0 z-[150] flex items-center justify-center overflow-hidden bg-slate-950/60 backdrop-blur-sm " +
               (mode !== "water" ? "p-2" : "p-3")
             }
-            onMouseDown={(event) => {
-              if (event.target === event.currentTarget) closeForm();
-            }}
           >
             <section
               role="dialog"

@@ -72,7 +72,6 @@ export function NewStoreModal({
   return (
     <div
       className="fixed inset-0 z-[120] grid place-items-center bg-slate-950/70 p-3 backdrop-blur-sm sm:p-6"
-      onClick={(e) => e.target === e.currentTarget && !busy && onClose()}
     >
       <div
         role="dialog"

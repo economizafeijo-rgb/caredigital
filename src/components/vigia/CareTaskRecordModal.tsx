@@ -479,9 +479,6 @@ export function CareTaskRecordModal({ task, onClose, onSaved, onConfirm }: Props
   return createPortal(
     <div
       className="care-record-modal-overlay care-detail-v4 care-modal-theme fixed inset-0 z-[10020] flex items-center justify-center overflow-hidden bg-slate-950/60 p-2 backdrop-blur-sm sm:p-3"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !saving && !decisionSaving) onClose();
-      }}
     >
       <section
         role="dialog"

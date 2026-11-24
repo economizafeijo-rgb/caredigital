@@ -1488,9 +1488,6 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
             <div
               className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/60 p-3 backdrop-blur-sm"
               role="presentation"
-              onMouseDown={(event) => {
-                if (event.target === event.currentTarget && !busy) setPending(null);
-              }}
             >
               <section
                 role="dialog"
@@ -1561,9 +1558,6 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
             <div
               className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/70 p-3 backdrop-blur-sm"
               role="presentation"
-              onMouseDown={(e) => {
-                if (e.target === e.currentTarget && !busy) setPending(null);
-              }}
             >
               <section
                 role="dialog"
@@ -1662,9 +1656,6 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
             <div
               className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/75 p-3 backdrop-blur-sm"
               role="presentation"
-              onMouseDown={(event) => {
-                if (event.target === event.currentTarget && !busy) setMealToDelete(null);
-              }}
             >
               <section
                 role="alertdialog"

@@ -499,9 +499,6 @@ function ConfirmSheet({
       aria-modal="true"
       aria-label={title}
       style={{ maxWidth: "100vw" }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onCancel();
-      }}
     >
       <ConfirmCard
         title={title}

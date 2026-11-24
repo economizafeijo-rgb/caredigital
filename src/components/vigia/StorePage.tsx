@@ -52,9 +52,6 @@ export function CartDrawer({
       role="dialog"
       aria-modal="true"
       aria-label="Carrinho"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
     >
       <aside className="flex h-full w-full max-w-md flex-col bg-background shadow-2xl">
         <header className="flex items-center justify-between border-b border-border px-4 py-3">
@@ -231,9 +228,6 @@ export function Checkout({ onClose }: { onClose: () => void }) {
       role="dialog"
       aria-modal="true"
       aria-label="Finalizar pedido"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
     >
       <div className="flex max-h-[96dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-border bg-background shadow-2xl sm:rounded-3xl">
         <header className="flex items-center justify-between border-b border-border px-4 py-3">

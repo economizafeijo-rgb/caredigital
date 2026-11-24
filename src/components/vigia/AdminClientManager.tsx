@@ -826,7 +826,6 @@ export function AdminClientManager({ ownerId }: { ownerId: string }) {
           return (
             <div
               className="fixed inset-0 z-[90] grid place-items-center bg-slate-950/70 p-0 backdrop-blur-sm sm:p-4"
-              onClick={(e) => e.target === e.currentTarget && close()}
               onKeyDown={(e) => e.key === "Escape" && close()}
             >
               <div
