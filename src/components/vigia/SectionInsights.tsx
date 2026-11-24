@@ -85,6 +85,14 @@ export const isInsightSection = (section: ClientSection): section is InsightSect
   (insightSections as string[]).includes(section);
 
 const dayOf = (iso: string) => acreDateKey(new Date(iso));
+
+type DrinkLine = { at: string; name: string; ml: number };
+const clock = (iso: string) =>
+  new Intl.DateTimeFormat("pt-BR", {
+    timeZone: "America/Rio_Branco",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(iso));
 const short = (key: string) => key.slice(8, 10) + "/" + key.slice(5, 7);
 const weekday = (key: string) =>
   new Intl.DateTimeFormat("pt-BR", { weekday: "short", timeZone: "UTC" })
@@ -133,7 +141,11 @@ async function load(
   section: InsightSection,
   patientId: string,
   ownerId: string,
-): Promise<{ map: Map<string, { a: number; b: number }>; goal: number | null }> {
+): Promise<{
+  map: Map<string, { a: number; b: number }>;
+  goal: number | null;
+  drinks: Map<string, DrinkLine[]>;
+}> {
   const db = supabase as any;
   const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
   const sinceDay = since.slice(0, 10);
@@ -143,6 +155,7 @@ async function load(
     map.set(day, { a: cur.a + a, b: cur.b + b });
   };
   let goal: number | null = null;
+  const drinks = new Map<string, DrinkLine[]>();
   if (section === "agenda") {
     // Mesmas fontes do "Meu dia": tudo o que foi feito conta como concluído; cuidados da equipe sem confirmação ficam pendentes.
     const own = (table: string, col: string, extra?: (q: any) => any) => {
@@ -209,7 +222,7 @@ async function load(
       for (const t of own.data ?? []) add(t.taken_on, 1, 0);
     }
   } else if (section === "hidratacao") {
-    const [water, profile, drinks] = await Promise.all([
+    const [water, profile, drinksRes] = await Promise.all([
       db
         .from("care_hydration")
         .select("amount_ml,recorded_at")
@@ -224,15 +237,24 @@ async function load(
         .maybeSingle(),
       db
         .from("care_client_beverages")
-        .select("amount_ml,consumed_at")
+        .select("name,kind,amount_ml,consumed_at")
         .eq("patient_id", patientId)
         .eq("owner_id", ownerId)
         .gte("consumed_at", since)
         .limit(3000),
     ]);
     for (const w of water.data ?? []) add(dayOf(w.recorded_at), Number(w.amount_ml));
-    for (const d of drinks?.data ?? [])
-      add(dayOf(d.consumed_at), Number(d.amount_ml), Number(d.amount_ml));
+    for (const d of drinksRes?.data ?? []) {
+      const day = dayOf(d.consumed_at);
+      add(day, Number(d.amount_ml), Number(d.amount_ml));
+      const list = drinks.get(day) ?? [];
+      list.push({
+        at: d.consumed_at,
+        name: String(d.name || d.kind || "Bebida"),
+        ml: Number(d.amount_ml) || 0,
+      });
+      drinks.set(day, list);
+    }
     goal = Number(profile.data?.target_ml) || null;
   } else if (section === "alimentacao") {
     const rows = await db
@@ -292,7 +314,7 @@ async function load(
     for (const r of log.data ?? []) add(dayOf(r.happened_at), 1, 0);
     for (const r of water.data ?? []) add(dayOf(r.recorded_at), 0, 1);
   }
-  return { map, goal };
+  return { map, goal, drinks };
 }
 
 const ranges = [
@@ -326,6 +348,7 @@ export function SectionInsights({
   const [data, setData] = useState<{
     map: Map<string, { a: number; b: number }>;
     goal: number | null;
+    drinks: Map<string, DrinkLine[]>;
   } | null>(null);
   const [days, setDays] = useState<7 | 14 | 30>(14);
   const [hidden, setHidden] = useState<{ a: boolean; b: boolean; t: boolean }>({
@@ -344,7 +367,7 @@ export function SectionInsights({
         if (active) setData(result);
       },
       () => {
-        if (active) setData({ map: new Map(), goal: null });
+        if (active) setData({ map: new Map(), goal: null, drinks: new Map() });
       },
     );
     return () => {
@@ -695,6 +718,38 @@ export function SectionInsights({
                       : `Abaixo da sua média (${compact(average)}).`
                     : "Sem média ainda."}
                 </p>
+                {config.b && (
+                  <div className="mt-2.5 min-h-0 flex-1">
+                    <p className="text-[11px] font-semibold text-muted-foreground">
+                      Bebidas do dia ({data?.drinks.get(picked.day)?.length ?? 0})
+                    </p>
+                    {(data?.drinks.get(picked.day) ?? []).length === 0 ? (
+                      <p className="mt-1 text-[11px] text-muted-foreground">
+                        Nenhuma bebida registrada neste dia.
+                      </p>
+                    ) : (
+                      <ul className="mt-1 grid max-h-40 gap-1 overflow-y-auto text-xs">
+                        {(data?.drinks.get(picked.day) ?? [])
+                          .slice()
+                          .sort((x, y) => x.at.localeCompare(y.at))
+                          .map((line, i) => (
+                            <li
+                              key={i}
+                              className="flex items-center gap-2 rounded-lg bg-muted/50 px-2 py-1"
+                            >
+                              <span className="font-mono font-bold">{clock(line.at)}</span>
+                              <span className="min-w-0 flex-1 truncate" title={line.name}>
+                                {line.name}
+                              </span>
+                              <span className="shrink-0 tabular-nums font-semibold">
+                                {fmt(line.ml)} ml
+                              </span>
+                            </li>
+                          ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
                 <div className="mt-auto flex gap-1.5 pt-3">
                   <button
                     type="button"
