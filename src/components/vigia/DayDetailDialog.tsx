@@ -168,6 +168,32 @@ export function DayDetailDialog({
       ]
     : [];
 
+  const chipRow = (
+    <>
+      {(chips.length ? chips : Array.from({ length: 7 }, () => null)).map((c, i) =>
+        c ? (
+          <div
+            key={c.label}
+            className={`nv-rise flex min-w-[6.5rem] shrink-0 items-center gap-1.5 rounded-lg border px-2 py-1 transition-colors hover:bg-white/[.08] ${c.value === "—" ? "border-white/[.06] opacity-55" : "border-white/[.12] bg-white/[.04]"}`}
+            style={{ animationDelay: `${i * 40}ms` }}
+          >
+            <span
+              className={`grid size-6 shrink-0 place-items-center rounded-md bg-gradient-to-br ${c.tone} shadow-sm`}
+            >
+              <c.icon size={14} />
+            </span>
+            <span className="min-w-0 leading-tight">
+              <span className="block text-[10px] text-white/65">{c.label}</span>
+              <strong className="block truncate text-[13px] tabular-nums">{c.value}</strong>
+            </span>
+          </div>
+        ) : (
+          <div key={i} className="h-8 w-[6.5rem] shrink-0 animate-pulse rounded-xl bg-white/10" />
+        ),
+      )}
+    </>
+  );
+
   return (
     <div
       className="fixed inset-0 z-[220] grid place-items-center bg-slate-950/60 p-2 backdrop-blur-sm sm:p-5"
@@ -190,7 +216,7 @@ export function DayDetailDialog({
           />
           <div className="flex items-center gap-3 px-3 pb-1.5 pt-2.5 sm:px-4">
             {metrics && <DayDial metrics={metrics} />}
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1 xl:w-[19rem] xl:flex-none">
               <p className="text-[11px] font-semibold text-white/60">
                 {focus ? `${FOCUS_LABEL[focus]} · detalhes do dia` : "Seu dia completo · 24 horas"}
                 {day === today ? " · hoje" : ""}
@@ -218,6 +244,9 @@ export function DayDetailDialog({
                   registros
                 </p>
               )}
+            </div>
+            <div className="hidden min-w-0 flex-1 justify-end gap-1.5 overflow-x-auto [scrollbar-width:none] xl:flex">
+              {chipRow}
             </div>
             <div className="flex items-center gap-1.5 self-start">
               <button
@@ -247,31 +276,8 @@ export function DayDetailDialog({
               </button>
             </div>
           </div>
-          <div className="flex gap-1.5 overflow-x-auto px-3 pb-2.5 [scrollbar-width:none] sm:px-4">
-            {(chips.length ? chips : Array.from({ length: 7 }, () => null)).map((c, i) =>
-              c ? (
-                <div
-                  key={c.label}
-                  className={`nv-rise flex min-w-[6.5rem] shrink-0 items-center gap-1.5 rounded-lg border px-2 py-1 transition-colors hover:bg-white/[.08] ${c.value === "—" ? "border-white/[.06] opacity-55" : "border-white/[.12] bg-white/[.04]"}`}
-                  style={{ animationDelay: `${i * 40}ms` }}
-                >
-                  <span
-                    className={`grid size-6 shrink-0 place-items-center rounded-md bg-gradient-to-br ${c.tone} shadow-sm`}
-                  >
-                    <c.icon size={14} />
-                  </span>
-                  <span className="min-w-0 leading-tight">
-                    <span className="block text-[10px] text-white/65">{c.label}</span>
-                    <strong className="block truncate text-[13px] tabular-nums">{c.value}</strong>
-                  </span>
-                </div>
-              ) : (
-                <div
-                  key={i}
-                  className="h-8 w-[6.5rem] shrink-0 animate-pulse rounded-xl bg-white/10"
-                />
-              ),
-            )}
+          <div className="flex gap-1.5 overflow-x-auto px-3 pb-2.5 [scrollbar-width:none] sm:px-4 xl:hidden">
+            {chipRow}
           </div>
         </header>
         <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
