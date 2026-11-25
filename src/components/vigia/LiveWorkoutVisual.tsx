@@ -1,3 +1,4 @@
+import { LiveMeters } from "./LiveMeters";
 import { useMemo } from "react";
 import { Flame, MapPin, Timer } from "lucide-react";
 
@@ -340,6 +341,9 @@ export function LiveWorkoutVisual({
         <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-1 text-[11px] font-semibold">
           <MapPin size={12} /> Percurso ao vivo
           {accuracy ? ` · precisão ±${Math.round(accuracy)} m` : ""}
+        </span>
+        <span className="absolute bottom-3 right-3 rounded-full bg-black/45 px-3 py-1.5 backdrop-blur">
+          <LiveMeters distanceKm={distanceKm} active={live} />
         </span>
       </div>
 

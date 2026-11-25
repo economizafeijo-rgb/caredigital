@@ -1,3 +1,4 @@
+import { LiveMeters } from "./LiveMeters";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -376,7 +377,6 @@ export function WorkoutLive({
   const avgPace = formatPace(distanceKm, elapsed);
   const accuracy = route.at(-1)?.accuracy;
   const path = useMemo(() => routePath(route, 340, 170, 18), [route]);
-  const pathLen = route.length * 40;
   const remaining = maxMinutes * 60 - elapsed;
 
   const pill = gpsLost
@@ -521,9 +521,6 @@ export function WorkoutLive({
                 strokeWidth="4.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeDasharray={pathLen}
-                className="nvw-anim"
-                style={{ ["--len" as string]: pathLen, animation: "nvw-draw 1.2s ease-out both" }}
               />
               <circle
                 cx={path.start![0]}
@@ -565,6 +562,9 @@ export function WorkoutLive({
         </svg>
         <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-semibold backdrop-blur">
           <MapPin size={12} /> Percurso ao vivo
+        </span>
+        <span className="absolute right-3 top-3 rounded-full bg-black/45 px-3 py-1.5 backdrop-blur">
+          <LiveMeters distanceKm={distanceKm} active={live} />
         </span>
         {remaining <= 15 * 60 && (
           <span className="absolute bottom-3 left-3 rounded-full bg-amber-400/20 px-2.5 py-1 text-[11px] font-semibold text-amber-100">
