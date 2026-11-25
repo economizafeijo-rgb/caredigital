@@ -162,11 +162,10 @@ const extra = new Map<string, NutrientKey[]>([
     "carne carne_moida carne_assada contrafile_grelhado carne_sol churrasco hamburguer_grelhado pacoca_carne_sol panelada",
     ["B12", "B3", "zinco", "ferro"],
   ),
-  ...G("frango frango_cozido frango_coxa frango_molho frango_grelhado frango_assado galinha_caipira", [
-    "B3",
-    "B6",
-    "selenio",
-  ]),
+  ...G(
+    "frango frango_frito frango_cozido frango_coxa frango_molho frango_grelhado frango_assado galinha_caipira",
+    ["B3", "B6", "selenio"],
+  ),
   ...G("peixe tilapia pirarucu matrinxa jaraqui caldo_piranha", ["B12", "B3", "selenio"]),
   ...G("sardinha tambaqui", ["B12", "D", "B3"]),
   ...G("ovo ovo_frito omelete crepioca pao_com_ovo baixaria", ["B12", "B2", "D", "selenio"]),
@@ -195,7 +194,7 @@ const extra = new Map<string, NutrientKey[]>([
   ...G("acai acai_acucar", ["E"]),
   ...G("cereal_milho", ["ferro", "B1", "B2", "B3"]),
   ...G(
-    "pao_frances pao_integral pao_massa_fina macarrao macarronada biscoito_salgado misto_quente sanduiche_natural cuscuz milho_cozido",
+    "pao_frances pao_integral pao_forma_visconti_36_integral pao_forma_bauducco_fermentacao_natural pao_massa_fina macarrao macarronada biscoito_salgado misto_quente sanduiche_natural cuscuz milho_cozido",
     ["B1", "B9", "ferro"],
   ),
   ...G(
