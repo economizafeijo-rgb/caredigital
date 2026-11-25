@@ -56,11 +56,7 @@ describe("refeições previstas × registradas", () => {
     expect(next?.label).toBe("Jantar");
   });
   it("jantar registrado antes das 19h resolve o jantar", () => {
-    const { next } = nextMealSuggestion(
-      [{ t: at("17:40"), kind: "jantar" }],
-      day,
-      at("18:30"),
-    );
+    const { next } = nextMealSuggestion([{ t: at("17:40"), kind: "jantar" }], day, at("18:30"));
     expect(next).toBeNull();
   });
   it("dois lanches, um de manhã e outro à tarde, ocupam cada um o seu horário", () => {
@@ -85,7 +81,11 @@ describe("nextMealSuggestion cobertura", () => {
   it("lanche adiantado a menos de 90 min cobre o slot da tarde", () => {
     const day = "2026-11-22";
     const t = Date.parse(`${day}T15:25:00-05:00`);
-    const r = nextMealSuggestion([{ t, kind: null } as any], day, Date.parse(`${day}T16:10:00-05:00`));
+    const r = nextMealSuggestion(
+      [{ t, kind: null } as any],
+      day,
+      Date.parse(`${day}T16:10:00-05:00`),
+    );
     expect(r.next?.label).not.toMatch(/tarde/i);
   });
 });

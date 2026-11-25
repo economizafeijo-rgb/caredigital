@@ -52,7 +52,14 @@ const synonyms: Record<string, string[]> = {
 
 /** Itens que a pessoa espera achar na aba Frutas mesmo fora do grupo "frutas" do catálogo. */
 const alsoFruit = new Set(["castanha_caju", "castanha_para", "coco", "amendoim"]);
-const notFruit = new Set(["doce_banana", "goiabada", "brigadeiro", "doce_coco", "doce_leite", "pe_moleque"]);
+const notFruit = new Set([
+  "doce_banana",
+  "goiabada",
+  "brigadeiro",
+  "doce_coco",
+  "doce_leite",
+  "pe_moleque",
+]);
 
 const groupKind: Record<string, FoodKind> = {
   frutas: "fruta",

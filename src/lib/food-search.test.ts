@@ -45,7 +45,19 @@ describe("busca de alimentos", () => {
 
   it("aba Frutas lista as frutas do catálogo, inclusive regionais", () => {
     const names = foodsForKind("fruta").map((i) => normalize(i.label));
-    for (const esperado of ["banana prata", "banana maca", "melao", "maracuja", "abacate", "morango", "tangerina", "buriti", "acerola", "biriba", "castanha de caju"])
+    for (const esperado of [
+      "banana prata",
+      "banana maca",
+      "melao",
+      "maracuja",
+      "abacate",
+      "morango",
+      "tangerina",
+      "buriti",
+      "acerola",
+      "biriba",
+      "castanha de caju",
+    ])
       expect(names.some((n) => n.startsWith(esperado))).toBe(true);
     expect(names.length).toBeGreaterThan(50);
   });

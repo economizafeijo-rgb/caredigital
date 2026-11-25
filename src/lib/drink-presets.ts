@@ -22,7 +22,13 @@ const d = (
 
 export const drinkPresets: DrinkPreset[] = [
   d("cafe", "Café", "Café coado sem açúcar", 100, "café coado"),
-  d("cafe", "Café", "Café coado com açúcar (2 colheres de chá)", 100, "café coado, 2 colheres de chá de açúcar"),
+  d(
+    "cafe",
+    "Café",
+    "Café coado com açúcar (2 colheres de chá)",
+    100,
+    "café coado, 2 colheres de chá de açúcar",
+  ),
   d("cafe", "Café", "Café com leite em pó e açúcar", 200, "café com leite em pó com açúcar"),
   d("cafe", "Café", "Café expresso", 50, "café expresso"),
   d("cafe", "Café", "Café com leite integral", 200, "café com leite"),
@@ -39,7 +45,13 @@ export const drinkPresets: DrinkPreset[] = [
   d("leite", "Leite e achocolatado", "Leite semidesnatado", 200, "leite semidesnatado"),
   d("leite", "Leite e achocolatado", "Leite desnatado", 200, "leite desnatado"),
   d("leite", "Leite e achocolatado", "Leite em pó dissolvido", 200, "leite em pó dissolvido"),
-  d("leite", "Leite e achocolatado", "Leite Ninho Integral (lata, 25 g + 200 ml)", 200, "leite ninho integral"),
+  d(
+    "leite",
+    "Leite e achocolatado",
+    "Leite Ninho Integral (lata, 25 g + 200 ml)",
+    200,
+    "leite ninho integral",
+  ),
   d("leite", "Leite e achocolatado", "Nescau (achocolatado com leite)", 250, "nescau"),
   d("leite", "Leite e achocolatado", "Iogurte natural", 170, "iogurte natural"),
   d("suco", "Sucos naturais", "Suco de graviola", 250, "suco de graviola"),

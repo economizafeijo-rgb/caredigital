@@ -36,7 +36,9 @@ describe("parseFoodText", () => {
       id: "acucar",
       grams: 24,
     });
-    expect(parseFoodText("café coado, 2 colheres de chá de açúcar", 100).map((f) => [f.id, f.grams])).toEqual([
+    expect(
+      parseFoodText("café coado, 2 colheres de chá de açúcar", 100).map((f) => [f.id, f.grams]),
+    ).toEqual([
       ["cafe", 100],
       ["acucar", 10],
     ]);
@@ -46,9 +48,9 @@ describe("parseFoodText", () => {
     expect(plain.map((f) => f.id)).toEqual(["limonada", "acucar"]);
     expect(plain[1]).toMatchObject({ grams: 35, estimatedPortion: true });
     expect(parseFoodText("limonada sem açúcar", 700).map((f) => f.id)).toEqual(["limonada"]);
-    expect(parseFoodText("limonada com 2 colheres de sopa de açúcar", 700).map((f) => f.grams)).toEqual([
-      700, 24,
-    ]);
+    expect(
+      parseFoodText("limonada com 2 colheres de sopa de açúcar", 700).map((f) => f.grams),
+    ).toEqual([700, 24]);
     expect(parseFoodText("água com limão", 300).map((f) => f.id)).toEqual(["limao"]);
   });
 });
