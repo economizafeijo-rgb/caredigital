@@ -248,10 +248,22 @@ const TILE_META: Record<MetricKey, { icon: LucideIcon; tone: string; title: stri
   agua: { icon: Droplets, tone: "linear-gradient(135deg,#0ea5e9,#22d3ee)", title: "Hidratação" },
   peso: { icon: Scale, tone: "linear-gradient(135deg,#d946ef,#ec4899)", title: "Peso" },
   imc: { icon: Zap, tone: "linear-gradient(135deg,#10b981,#84cc16)", title: "IMC" },
-  metapeso: { icon: Trophy, tone: "linear-gradient(135deg,#ec4899,#f59e0b)", title: "Meta de peso" },
+  metapeso: {
+    icon: Trophy,
+    tone: "linear-gradient(135deg,#ec4899,#f59e0b)",
+    title: "Meta de peso",
+  },
   sono: { icon: BedDouble, tone: "linear-gradient(135deg,#6366f1,#8b5cf6)", title: "Sono" },
-  exercicio: { icon: Activity, tone: "linear-gradient(135deg,#f97316,#f59e0b)", title: "Exercício hoje" },
-  semana: { icon: Dumbbell, tone: "linear-gradient(135deg,#ef4444,#f97316)", title: "Exercício na semana" },
+  exercicio: {
+    icon: Activity,
+    tone: "linear-gradient(135deg,#f97316,#f59e0b)",
+    title: "Exercício hoje",
+  },
+  semana: {
+    icon: Dumbbell,
+    tone: "linear-gradient(135deg,#ef4444,#f97316)",
+    title: "Exercício na semana",
+  },
   calorias: { icon: Flame, tone: "linear-gradient(135deg,#f59e0b,#ef4444)", title: "Calorias" },
   proteina: { icon: Egg, tone: "linear-gradient(135deg,#22c55e,#14b8a6)", title: "Proteína" },
   carbs: { icon: Wheat, tone: "linear-gradient(135deg,#eab308,#f59e0b)", title: "Carboidratos" },
@@ -996,114 +1008,97 @@ function LiveDashboard({
   } as const;
 
   const chartEl = (
-                <ResponsiveContainer width="100%" height="100%">
-                  {chart.kind === "bar" ? (
-                    <BarChart data={chartData} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        vertical={false}
-                        stroke="rgba(255,255,255,.1)"
-                      />
-                      <XAxis
-                        dataKey="label"
-                        tick={{ fontSize: 11, fill: "rgba(255,255,255,.6)" }}
-                        interval="preserveStartEnd"
-                      />
-                      <YAxis tick={{ fontSize: 10, fill: "rgba(255,255,255,.6)" }} width={44} />
-                      <Tooltip
-                        cursor={{ fill: "rgba(255,255,255,.08)" }}
-                        contentStyle={tip}
-                        {...tipText}
-                        formatter={(v: number) => [
-                          `${nf(v, chart.unit === "h" ? 1 : 0)} ${chart.unit}`.trim(),
-                          chart.title,
-                        ]}
-                      />
-                      {chart.goal ? (
-                        <ReferenceLine
-                          y={chart.goal}
-                          stroke="#34d399"
-                          strokeDasharray="5 4"
-                          label={{
-                            value: "Meta",
-                            fill: "#34d399",
-                            fontSize: 11,
-                            position: "insideTopRight",
-                          }}
-                        />
-                      ) : null}
-                      <Bar
-                        dataKey="v"
-                        radius={[8, 8, 0, 0]}
-                        maxBarSize={36}
-                        animationDuration={800}
-                      >
-                        {chartData.map((d, i) => (
-                          <Cell
-                            key={i}
-                            fill={
-                              chart.goal && d.v != null && d.v >= chart.goal
-                                ? "#34d399"
-                                : chart.color
-                            }
-                          />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  ) : (
-                    <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="liveArea" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor={chart.color} stopOpacity={0.55} />
-                          <stop offset="100%" stopColor={chart.color} stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        vertical={false}
-                        stroke="rgba(255,255,255,.1)"
-                      />
-                      <XAxis
-                        dataKey="label"
-                        tick={{ fontSize: 11, fill: "rgba(255,255,255,.6)" }}
-                        interval="preserveStartEnd"
-                      />
-                      <YAxis
-                        tick={{ fontSize: 10, fill: "rgba(255,255,255,.6)" }}
-                        width={44}
-                        domain={["auto", "auto"]}
-                      />
-                      <Tooltip
-                        contentStyle={tip}
-                        {...tipText}
-                        formatter={(v: number) => [`${nf(v, 1)} ${chart.unit}`.trim(), chart.title]}
-                      />
-                      {chart.goal ? (
-                        <ReferenceLine
-                          y={chart.goal}
-                          stroke="#34d399"
-                          strokeDasharray="5 4"
-                          label={{
-                            value: "Meta",
-                            fill: "#34d399",
-                            fontSize: 11,
-                            position: "insideTopRight",
-                          }}
-                        />
-                      ) : null}
-                      <Area
-                        type="monotone"
-                        dataKey="v"
-                        stroke={chart.color}
-                        strokeWidth={3}
-                        fill="url(#liveArea)"
-                        dot={{ r: 3, fill: chart.color }}
-                        activeDot={{ r: 7 }}
-                        animationDuration={900}
-                      />
-                    </AreaChart>
-                  )}
-                </ResponsiveContainer>
+    <ResponsiveContainer width="100%" height="100%">
+      {chart.kind === "bar" ? (
+        <BarChart data={chartData} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,.1)" />
+          <XAxis
+            dataKey="label"
+            tick={{ fontSize: 11, fill: "rgba(255,255,255,.6)" }}
+            interval="preserveStartEnd"
+          />
+          <YAxis tick={{ fontSize: 10, fill: "rgba(255,255,255,.6)" }} width={44} />
+          <Tooltip
+            cursor={{ fill: "rgba(255,255,255,.08)" }}
+            contentStyle={tip}
+            {...tipText}
+            formatter={(v: number) => [
+              `${nf(v, chart.unit === "h" ? 1 : 0)} ${chart.unit}`.trim(),
+              chart.title,
+            ]}
+          />
+          {chart.goal ? (
+            <ReferenceLine
+              y={chart.goal}
+              stroke="#34d399"
+              strokeDasharray="5 4"
+              label={{
+                value: "Meta",
+                fill: "#34d399",
+                fontSize: 11,
+                position: "insideTopRight",
+              }}
+            />
+          ) : null}
+          <Bar dataKey="v" radius={[8, 8, 0, 0]} maxBarSize={36} animationDuration={800}>
+            {chartData.map((d, i) => (
+              <Cell
+                key={i}
+                fill={chart.goal && d.v != null && d.v >= chart.goal ? "#34d399" : chart.color}
+              />
+            ))}
+          </Bar>
+        </BarChart>
+      ) : (
+        <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
+          <defs>
+            <linearGradient id="liveArea" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={chart.color} stopOpacity={0.55} />
+              <stop offset="100%" stopColor={chart.color} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,.1)" />
+          <XAxis
+            dataKey="label"
+            tick={{ fontSize: 11, fill: "rgba(255,255,255,.6)" }}
+            interval="preserveStartEnd"
+          />
+          <YAxis
+            tick={{ fontSize: 10, fill: "rgba(255,255,255,.6)" }}
+            width={44}
+            domain={["auto", "auto"]}
+          />
+          <Tooltip
+            contentStyle={tip}
+            {...tipText}
+            formatter={(v: number) => [`${nf(v, 1)} ${chart.unit}`.trim(), chart.title]}
+          />
+          {chart.goal ? (
+            <ReferenceLine
+              y={chart.goal}
+              stroke="#34d399"
+              strokeDasharray="5 4"
+              label={{
+                value: "Meta",
+                fill: "#34d399",
+                fontSize: 11,
+                position: "insideTopRight",
+              }}
+            />
+          ) : null}
+          <Area
+            type="monotone"
+            dataKey="v"
+            stroke={chart.color}
+            strokeWidth={3}
+            fill="url(#liveArea)"
+            dot={{ r: 3, fill: chart.color }}
+            activeDot={{ r: 7 }}
+            animationDuration={900}
+          />
+        </AreaChart>
+      )}
+    </ResponsiveContainer>
   );
 
   type Fact = { label: string; value: string };
@@ -1136,7 +1131,11 @@ function LiveDashboard({
         sub = waterTarget
           ? `${Math.round(waterPct)}% de ${nf(waterTarget)} ml`
           : "Defina a meta de hidratação na área de água";
-        if (waterTarget) facts.push({ label: "Falta para a meta", value: `${nf(Math.max(0, waterTarget - (t?.waterMl ?? 0)))} ml` });
+        if (waterTarget)
+          facts.push({
+            label: "Falta para a meta",
+            value: `${nf(Math.max(0, waterTarget - (t?.waterMl ?? 0)))} ml`,
+          });
         break;
       case "peso":
         value = lastWeight ? `${nf(lastWeight.kg, 1)} kg` : "—";
@@ -1146,7 +1145,10 @@ function LiveDashboard({
             : "Primeira medida registrada"
           : "Nenhum peso registrado";
         if (firstWeight && lastWeight)
-          facts.push({ label: "Desde a primeira medida", value: `${nf(lastWeight.kg - firstWeight.kg, 1)} kg` });
+          facts.push({
+            label: "Desde a primeira medida",
+            value: `${nf(lastWeight.kg - firstWeight.kg, 1)} kg`,
+          });
         break;
       case "imc":
         value = bmi ? nf(bmi, 1) : "—";
@@ -1156,24 +1158,37 @@ function LiveDashboard({
         break;
       case "metapeso":
         value = toGo != null ? `${nf(Math.abs(toGo), 1)} kg` : "—";
-        sub = targetKg ? (toGo != null && toGo <= 0 ? `Meta de ${nf(targetKg, 1)} kg alcançada` : `para chegar a ${nf(targetKg, 1)} kg`) : "Defina a meta de peso";
-        facts.push({ label: "Progresso", value: `${Math.round(Math.max(0, Math.min(100, goalPct)))}%` });
-        if (firstWeight) facts.push({ label: "Peso inicial", value: `${nf(firstWeight.kg, 1)} kg` });
+        sub = targetKg
+          ? toGo != null && toGo <= 0
+            ? `Meta de ${nf(targetKg, 1)} kg alcançada`
+            : `para chegar a ${nf(targetKg, 1)} kg`
+          : "Defina a meta de peso";
+        facts.push({
+          label: "Progresso",
+          value: `${Math.round(Math.max(0, Math.min(100, goalPct)))}%`,
+        });
+        if (firstWeight)
+          facts.push({ label: "Peso inicial", value: `${nf(firstWeight.kg, 1)} kg` });
         break;
       case "sono":
         value = sleep ? `${nf(sleep.hours, 1)} h` : "—";
         sub = sleep ? "na última noite registrada" : "Sem noite registrada";
-        if (sleepAvg != null) facts.push({ label: "Média de 7 noites", value: `${nf(sleepAvg, 1)} h` });
+        if (sleepAvg != null)
+          facts.push({ label: "Média de 7 noites", value: `${nf(sleepAvg, 1)} h` });
         break;
       case "exercicio":
         value = `${nf(t?.activityMinutes ?? 0)} min`;
         sub = `meta diária de ${EXERCISE_GOAL} min`;
-        if (t && t.activityKm > 0) facts.push({ label: "Distância hoje", value: `${nf(t.activityKm, 1)} km` });
+        if (t && t.activityKm > 0)
+          facts.push({ label: "Distância hoje", value: `${nf(t.activityKm, 1)} km` });
         break;
       case "semana":
         value = `${nf(weekMin)} min`;
         sub = `de ${WEEK_GOAL} min na semana`;
-        facts.push({ label: "Falta para a meta", value: `${nf(Math.max(0, WEEK_GOAL - weekMin))} min` });
+        facts.push({
+          label: "Falta para a meta",
+          value: `${nf(Math.max(0, WEEK_GOAL - weekMin))} min`,
+        });
         if (weekKm > 0) facts.push({ label: "Distância na semana", value: `${nf(weekKm, 1)} km` });
         break;
       case "calorias":
@@ -1209,7 +1224,9 @@ function LiveDashboard({
       ...facts,
       ...(detail === "streak" ? [] : [{ label: "Média no período", value: fmt(avg) }]),
       ...(detail === "streak" ? [] : [{ label: "Melhor valor", value: fmt(best) }]),
-      ...(detail === "streak" || detail === "imc" ? [] : [{ label: "Menor valor", value: fmt(low) }]),
+      ...(detail === "streak" || detail === "imc"
+        ? []
+        : [{ label: "Menor valor", value: fmt(low) }]),
       ...(hit != null && detail !== "streak"
         ? [{ label: "Dias na meta", value: `${hit} de ${vals.length}` }]
         : []),
@@ -1222,6 +1239,10 @@ function LiveDashboard({
     <div
       ref={root}
       className="fixed inset-0 z-[500] overflow-y-auto overscroll-contain bg-[radial-gradient(ellipse_at_top,#0b3b3a_0%,#020617_62%)] text-white [scrollbar-width:thin]"
+      style={{
+        paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+      }}
       role="dialog"
       aria-modal="true"
       aria-label="Painel ao vivo"
@@ -1404,7 +1425,9 @@ function LiveDashboard({
                         : "As metas aparecem conforme o dia avança."
                       : [
                           `${goalCount.met} atingida${goalCount.met === 1 ? "" : "s"}`,
-                          goalCount.missed > 0 ? `${goalCount.missed} não atingida${goalCount.missed === 1 ? "" : "s"}` : null,
+                          goalCount.missed > 0
+                            ? `${goalCount.missed} não atingida${goalCount.missed === 1 ? "" : "s"}`
+                            : null,
                           goalCount.pending > 0 ? `${goalCount.pending} em andamento` : null,
                         ]
                           .filter(Boolean)
@@ -1451,7 +1474,9 @@ function LiveDashboard({
                 <div className="flex items-center gap-3">
                   <Ring pct={waterPct} color="#38bdf8" size={92} stroke={8}>
                     <div>
-                      <p className="text-lg font-extrabold leading-none tabular-nums">{nf(waterShown)}</p>
+                      <p className="text-lg font-extrabold leading-none tabular-nums">
+                        {nf(waterShown)}
+                      </p>
                       <p className="mt-0.5 text-[10px] text-white/55">
                         {waterTarget ? `de ${nf(waterTarget)} ml` : "ml hoje"}
                       </p>
@@ -1459,7 +1484,9 @@ function LiveDashboard({
                   </Ring>
                   <dl className="grid flex-1 grid-cols-2 gap-1.5 text-[11px]">
                     <div className="rounded-lg bg-white/[.05] px-2 py-1.5 ring-1 ring-white/10">
-                      <dt className="text-white/50">{waterTarget && waterPct >= 100 ? "Meta" : "Faltam"}</dt>
+                      <dt className="text-white/50">
+                        {waterTarget && waterPct >= 100 ? "Meta" : "Faltam"}
+                      </dt>
                       <dd
                         className={`text-sm font-extrabold tabular-nums ${waterTarget && waterPct >= 100 ? "text-emerald-300" : ""}`}
                       >
@@ -1539,7 +1566,10 @@ function LiveDashboard({
                 tone="linear-gradient(135deg,#fbbf24,#f97316)"
                 title="Sequência"
               >
-                <Big v={`${streak}${streak >= 14 ? "+" : ""}`} unit={streak === 1 ? "dia" : "dias"} />
+                <Big
+                  v={`${streak}${streak >= 14 ? "+" : ""}`}
+                  unit={streak === 1 ? "dia" : "dias"}
+                />
                 <p className="mt-1 text-xs text-white/60">
                   {streak > 0
                     ? "seguidos registrando o seu cuidado."
@@ -1669,7 +1699,11 @@ function LiveDashboard({
                 icon={Trophy}
                 tone="linear-gradient(135deg,#ec4899,#f59e0b)"
                 title="Meta de peso"
-                badge={targetKg && lastWeight ? `${Math.round(Math.max(0, Math.min(100, goalPct)))}%` : undefined}
+                badge={
+                  targetKg && lastWeight
+                    ? `${Math.round(Math.max(0, Math.min(100, goalPct)))}%`
+                    : undefined
+                }
               >
                 {targetKg && lastWeight ? (
                   <>
@@ -1688,7 +1722,8 @@ function LiveDashboard({
                     </p>
                     <Bar2 pct={goalPct} from="#ec4899" to="#f59e0b" />
                     <p className="mt-1.5 text-[11px] text-white/50">
-                      início {firstWeight ? nf(firstWeight.kg, 1) : "—"} kg · meta {nf(targetKg, 1)} kg
+                      início {firstWeight ? nf(firstWeight.kg, 1) : "—"} kg · meta {nf(targetKg, 1)}{" "}
+                      kg
                     </p>
                   </>
                 ) : (
@@ -1711,7 +1746,12 @@ function LiveDashboard({
                 title="Sono"
               >
                 <div className="flex items-center gap-3">
-                  <Ring pct={sleep ? (sleep.hours / SLEEP_GOAL) * 100 : 0} color="#818cf8" size={84} stroke={8}>
+                  <Ring
+                    pct={sleep ? (sleep.hours / SLEEP_GOAL) * 100 : 0}
+                    color="#818cf8"
+                    size={84}
+                    stroke={8}
+                  >
                     <div>
                       <p className="text-lg font-extrabold leading-none tabular-nums">
                         {sleep ? nf(sleep.hours, 1) : "—"}
@@ -1724,11 +1764,15 @@ function LiveDashboard({
                       <>
                         <p className="text-sm tracking-widest text-indigo-200">
                           {"★".repeat(Math.max(0, Math.min(5, sleep.quality)))}
-                          <span className="text-white/25">{"★".repeat(5 - Math.max(0, Math.min(5, sleep.quality)))}</span>
+                          <span className="text-white/25">
+                            {"★".repeat(5 - Math.max(0, Math.min(5, sleep.quality)))}
+                          </span>
                         </p>
                         <p>Meta de {SLEEP_GOAL} h por noite</p>
                         {sleepAvg !== null && (
-                          <p className="mt-0.5 text-indigo-200">Média de 7 noites: {nf(sleepAvg, 1)} h</p>
+                          <p className="mt-0.5 text-indigo-200">
+                            Média de 7 noites: {nf(sleepAvg, 1)} h
+                          </p>
                         )}
                       </>
                     ) : (
@@ -1752,14 +1796,23 @@ function LiveDashboard({
                 title="Exercício hoje"
               >
                 <div className="flex items-center gap-3">
-                  <Ring pct={((today?.activityMinutes ?? 0) / EXERCISE_GOAL) * 100} color="#fb923c" size={84} stroke={8}>
+                  <Ring
+                    pct={((today?.activityMinutes ?? 0) / EXERCISE_GOAL) * 100}
+                    color="#fb923c"
+                    size={84}
+                    stroke={8}
+                  >
                     <div>
-                      <p className="text-lg font-extrabold leading-none tabular-nums">{today?.activityMinutes ?? 0}</p>
+                      <p className="text-lg font-extrabold leading-none tabular-nums">
+                        {today?.activityMinutes ?? 0}
+                      </p>
                       <p className="mt-0.5 text-[10px] text-white/55">min hoje</p>
                     </div>
                   </Ring>
                   <p className="text-xs leading-relaxed text-white/65">
-                    {today && today.activityKm > 0 ? `${nf(today.activityKm, 1)} km percorridos. ` : ""}
+                    {today && today.activityKm > 0
+                      ? `${nf(today.activityKm, 1)} km percorridos. `
+                      : ""}
                     Referência: {EXERCISE_GOAL} min por dia.
                   </p>
                 </div>
@@ -1784,7 +1837,9 @@ function LiveDashboard({
                 <p className="mt-1.5 text-[11px] text-white/55">
                   Meta da OMS: {WEEK_GOAL} min por semana
                   {weekKm > 0 ? ` · ${nf(weekKm, 1)} km` : ""}
-                  {weekMin >= WEEK_GOAL ? " · meta batida!" : ` · faltam ${nf(WEEK_GOAL - weekMin)} min`}
+                  {weekMin >= WEEK_GOAL
+                    ? " · meta batida!"
+                    : ` · faltam ${nf(WEEK_GOAL - weekMin)} min`}
                 </p>
               </Tile>
             </div>
@@ -1801,7 +1856,13 @@ function LiveDashboard({
                 tone="linear-gradient(135deg,#f59e0b,#ef4444)"
                 title="Calorias"
               >
-                <Progress value={today?.kcal ?? 0} unit="kcal" target={kcalTarget} from="#fbbf24" to="#f97316" />
+                <Progress
+                  value={today?.kcal ?? 0}
+                  unit="kcal"
+                  target={kcalTarget}
+                  from="#fbbf24"
+                  to="#f97316"
+                />
               </Tile>
               <Tile
                 k="proteina"
@@ -1813,7 +1874,13 @@ function LiveDashboard({
                 tone="linear-gradient(135deg,#22c55e,#14b8a6)"
                 title="Proteína"
               >
-                <Progress value={today?.protein ?? 0} unit="g" target={proteinTarget} from="#4ade80" to="#2dd4bf" />
+                <Progress
+                  value={today?.protein ?? 0}
+                  unit="g"
+                  target={proteinTarget}
+                  from="#4ade80"
+                  to="#2dd4bf"
+                />
               </Tile>
               <Tile
                 k="carbs"
@@ -1825,7 +1892,13 @@ function LiveDashboard({
                 tone="linear-gradient(135deg,#eab308,#f59e0b)"
                 title="Carboidratos"
               >
-                <Progress value={today?.carbs ?? 0} unit="g" target={carbsTarget} from="#fde047" to="#f59e0b" />
+                <Progress
+                  value={today?.carbs ?? 0}
+                  unit="g"
+                  target={carbsTarget}
+                  from="#fde047"
+                  to="#f59e0b"
+                />
               </Tile>
               <Tile
                 k="gordura"
@@ -1837,7 +1910,13 @@ function LiveDashboard({
                 tone="linear-gradient(135deg,#fb923c,#e11d48)"
                 title="Gorduras"
               >
-                <Progress value={today?.fat ?? 0} unit="g" target={fatTarget} from="#fb923c" to="#e11d48" />
+                <Progress
+                  value={today?.fat ?? 0}
+                  unit="g"
+                  target={fatTarget}
+                  from="#fb923c"
+                  to="#e11d48"
+                />
               </Tile>
             </div>
 
@@ -1855,7 +1934,11 @@ function LiveDashboard({
               >
                 <div className="flex items-center gap-3">
                   <Ring
-                    pct={today?.medication.planned ? (today.medication.taken / today.medication.planned) * 100 : 0}
+                    pct={
+                      today?.medication.planned
+                        ? (today.medication.taken / today.medication.planned) * 100
+                        : 0
+                    }
                     color="#fb7185"
                     size={76}
                     stroke={8}
@@ -1889,7 +1972,11 @@ function LiveDashboard({
               >
                 <div className="flex items-center gap-3">
                   <Ring
-                    pct={today?.supplements.planned ? (today.supplements.taken / today.supplements.planned) * 100 : 0}
+                    pct={
+                      today?.supplements.planned
+                        ? (today.supplements.taken / today.supplements.planned) * 100
+                        : 0
+                    }
                     color="#c084fc"
                     size={76}
                     stroke={8}
@@ -1943,9 +2030,7 @@ function LiveDashboard({
                   </span>
                 )}
               </div>
-              <div className="mt-3 h-64 sm:h-72">
-                {chartEl}
-              </div>
+              <div className="mt-3 h-64 sm:h-72">{chartEl}</div>
             </section>
             <QrShareCard variant="live" dark className="mx-auto w-full max-w-3xl" />
             <p className="text-center text-[11px] text-white/40">
@@ -2004,7 +2089,10 @@ function LiveDashboard({
               </div>
               <dl className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {detailView.stats.map((f) => (
-                  <div key={f.label} className="rounded-2xl bg-white/[.06] px-3 py-2.5 ring-1 ring-white/10">
+                  <div
+                    key={f.label}
+                    className="rounded-2xl bg-white/[.06] px-3 py-2.5 ring-1 ring-white/10"
+                  >
                     <dt className="text-[11px] font-semibold text-white/55">{f.label}</dt>
                     <dd className="mt-0.5 text-base font-extrabold tabular-nums">{f.value}</dd>
                   </div>

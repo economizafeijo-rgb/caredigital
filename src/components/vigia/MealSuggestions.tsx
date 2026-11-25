@@ -61,6 +61,10 @@ export function NutritionInfoCard({ item, onClose }: { item: Suggestion; onClose
       aria-label={`Informações nutricionais: ${item.label}`}
       aria-modal="true"
       className="nv-dark fixed inset-0 z-[11000] flex flex-col bg-[#060d15] text-white"
+      style={{
+        paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+      }}
     >
       <div
         aria-hidden

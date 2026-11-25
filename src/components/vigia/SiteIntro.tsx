@@ -291,7 +291,8 @@ export function SiteIntro() {
           e.stopPropagation();
           skip();
         }}
-        className="absolute right-4 top-4 rounded-full border border-white/15 bg-white/5 px-3.5 py-1.5 text-xs font-semibold text-white/70 backdrop-blur transition hover:bg-white/15 hover:text-white"
+        className="absolute right-4 rounded-full border border-white/15 bg-white/5 px-3.5 py-2 text-xs font-semibold text-white/70 backdrop-blur transition hover:bg-white/15 hover:text-white"
+        style={{ top: "calc(env(safe-area-inset-top) + 0.75rem)" }}
       >
         Pular
       </button>

@@ -405,8 +405,9 @@ export function CustomerChat({
         }`}
       >
         <header
-          className="relative flex items-center gap-3 px-4 py-3.5 text-white"
+          className="relative flex items-center gap-3 px-4 pb-3.5 text-white"
           style={{
+            paddingTop: "max(env(safe-area-inset-top), 0.875rem)",
             background: `linear-gradient(135deg, ${accent}, color-mix(in srgb, ${accent} 55%, #0b1220))`,
           }}
         >
@@ -603,7 +604,11 @@ export function CustomerChat({
                 </div>
               );
             })()}
-            <form onSubmit={send} className="border-t border-border bg-card p-3">
+            <form
+              onSubmit={send}
+              className="border-t border-border bg-card p-3"
+              style={{ paddingBottom: "max(env(safe-area-inset-bottom), 0.75rem)" }}
+            >
               <div
                 className={`mx-auto flex items-center gap-2 rounded-2xl border border-border bg-surface p-1.5 pl-4 focus-within:ring-2 focus-within:ring-[color-mix(in_srgb,var(--v,#888)_40%,transparent)] ${max ? "max-w-3xl" : ""}`}
               >

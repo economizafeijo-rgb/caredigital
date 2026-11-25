@@ -1192,6 +1192,10 @@ function OnboardingStudio({
   return (
     <div
       className="nv-dark fixed inset-0 z-[10020] flex flex-col overflow-hidden bg-[#050d0b] text-white"
+      style={{
+        paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+      }}
       role="dialog"
       aria-modal="true"
       aria-labelledby="nv-onb-title"

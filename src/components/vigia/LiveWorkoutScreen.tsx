@@ -81,6 +81,10 @@ export function WorkoutShell({
       aria-modal="true"
       aria-label={label}
       className="nv-dark nv-round fixed inset-0 z-[11000] !max-h-none overflow-hidden bg-[#050b14] text-white"
+      style={{
+        paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+      }}
     >
       <style>{CSS}</style>
       <div aria-hidden="true" className="absolute inset-0">
