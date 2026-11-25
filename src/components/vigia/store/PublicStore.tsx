@@ -757,7 +757,7 @@ function PublicStore({
                 aria-label="Fechar"
                 title="Fechar"
                 style={{ cursor: "pointer", pointerEvents: "auto" }}
-                className="absolute right-3 top-3 z-30 grid size-10 place-items-center rounded-full bg-black/45 text-white backdrop-blur transition hover:bg-black/65"
+                className="z-30 grid size-10 place-items-center rounded-full bg-black/45 text-white backdrop-blur transition hover:bg-black/65 max-sm:sticky max-sm:top-2 max-sm:ml-auto max-sm:mr-2 max-sm:mt-2 max-sm:-mb-12 sm:absolute sm:right-3 sm:top-3"
               >
                 <X size={18} />
               </button>
