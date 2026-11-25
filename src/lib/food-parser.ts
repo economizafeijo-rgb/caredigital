@@ -82,6 +82,7 @@ export const foodMicros: Record<string, [number, number, number, number, number]
   frango_coxa: [0, 14, 10, 0.8, 250],
   frango_frito: [0, 6, 8, 0.4, 250],
   esfirra_carne: [0, 2, 25, 1.5, 200],
+  coxinha_frango: [0, 4, 15, 1.2, 230],
   quibe_carne_frito: [0, 2, 20, 1.8, 220],
   bolo_trigo_confeitado: [20, 0, 40, 0.5, 70],
   pao_forma_visconti_36_integral: [0, 0, 40, 1.5, 120],
@@ -267,6 +268,7 @@ const aliases: Array<[RegExp, string]> = [
     "bolo_trigo_confeitado",
   ],
   [/esfi(r|h)ra|esfiha/, "esfirra_carne"],
+  [/coxinha(?! da asa)/, "coxinha_frango"],
   [/bolo de milho|bolo de fub[aá]/, "bolo_milho"],
   [/bolo de cenoura/, "bolo_cenoura"],
   [/bolo de leite/, "bolo_leite"],
@@ -679,6 +681,7 @@ const defaultPortion: Record<string, number> = {
   frango_coxa: 110,
   frango_frito: 120,
   esfirra_carne: 80,
+  coxinha_frango: 100,
   quibe_carne_frito: 80,
   bolo_trigo_confeitado: 80,
   pao_forma_visconti_36_integral: 50,
@@ -1035,13 +1038,17 @@ export function parseFoodText(text: string, liquidMl?: number | null): ParsedFoo
       // Açúcar: colher de sopa ≈ 12 g; colher de chá ≈ 5 g.
       const sugarSpoon =
         /^acucar/.test(item.id) && /colher/.test(segment) ? (/sopa/.test(segment) ? 12 : 5) : 0;
+      // Pão: uma fatia pesa cerca de 25 g (pão francês fatiado ou de forma).
+      const breadSlice = /^pao_/.test(item.id) && /fatia/.test(segment);
       const base = slice
         ? 110
-        : sugarSpoon
-          ? sugarSpoon
-          : unit && unit[1] > 0 && !(/fatia/.test(segment) && /^bolo/.test(item.id))
-            ? unit[1]
-            : (defaultPortion[item.id] ?? 100);
+        : breadSlice
+          ? 25
+          : sugarSpoon
+            ? sugarSpoon
+            : unit && unit[1] > 0 && !(/fatia/.test(segment) && /^bolo/.test(item.id))
+              ? unit[1]
+              : (defaultPortion[item.id] ?? 100);
       grams = count * base;
     }
     if (liquidMl && !explicit && liquidSegments === 1 && !isAdditive(item.id)) grams = liquidMl;

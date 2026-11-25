@@ -189,6 +189,15 @@ const baseIngredients: Omit<Ingredient, "carbs" | "fat" | "fiber">[] = [
     flags: ["industrializado"],
   },
   {
+    id: "coxinha_frango",
+    name: "Coxinha de frango (frita)",
+    group: "cereais",
+    protein: 8,
+    kcal: 270,
+    flags: ["frito", "gorduroso"],
+    note: "Estimativa para coxinha frita; varia com o tamanho e o recheio.",
+  },
+  {
     id: "esfirra_carne",
     name: "Esfirra de carne (assada)",
     group: "cereais",
@@ -2453,6 +2462,7 @@ const macroMap: Record<
   pao_forma_bauducco_fermentacao_natural: [50, 4.3, 2.5, "rotulo"],
   frango_frito: [8, 15, 0],
   esfirra_carne: [30, 8, 1.5],
+  coxinha_frango: [32, 13, 1.5],
   quibe_carne_frito: [18, 14, 2],
   bolo_trigo_confeitado: [55, 14, 1],
   frango_molho: [3.5, 7.5, 0.5],

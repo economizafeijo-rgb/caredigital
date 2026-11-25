@@ -349,6 +349,26 @@ export function explicit(food: Parsed, g: number): string | null {
  * Um trecho que vira vários alimentos (ex.: "mixto de carnes assadas") ganha uma linha por alimento;
  * ao editar uma delas, o trecho é reescrito com as quantidades explícitas.
  */
+// Pão: escolha rápida entre unidade inteira e fatia (gramas aproximadas).
+const FORMA: Array<[string, number]> = [
+  ["1 fatia", 25],
+  ["2 fatias", 50],
+  ["3 fatias", 75],
+];
+const BREAD_CHOICES: Record<string, Array<[string, number]>> = {
+  pao_frances: [
+    ["Inteiro", 50],
+    ["Fatia", 25],
+  ],
+  pao_massa_fina: [
+    ["Inteiro", 50],
+    ["Fatia", 25],
+  ],
+  pao_integral: FORMA,
+  pao_forma_visconti_36_integral: FORMA,
+  pao_forma_bauducco_fermentacao_natural: FORMA,
+};
+
 export function PlateRows({
   description,
   onDescription,
@@ -395,6 +415,25 @@ export function PlateRows({
               <span className="block tabular-nums text-[10px] text-muted-foreground">
                 {nf(f.nutrients.kcal)} kcal
               </span>
+              {BREAD_CHOICES[f.id] && (
+                <span className="mt-0.5 flex gap-1">
+                  {BREAD_CHOICES[f.id].map(([label, g]) => (
+                    <button
+                      key={label}
+                      type="button"
+                      aria-pressed={Math.round(f.grams) === g}
+                      onClick={() => edit(idx, j, foods, g)}
+                      className={`border px-1.5 py-0.5 text-[10px] font-semibold ${
+                        Math.round(f.grams) === g
+                          ? "border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                          : "border-border text-muted-foreground hover:bg-muted"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </span>
+              )}
             </span>
             <button
               type="button"
