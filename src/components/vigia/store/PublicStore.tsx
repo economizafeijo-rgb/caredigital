@@ -946,12 +946,16 @@ function PublicStore({
             role="dialog"
             aria-modal="true"
             aria-label={`Foto de ${detail.name}`}
-            className="nv-dark fixed inset-0 z-[2147483000] flex !max-h-none flex-col bg-black/95 text-white"
+            className="nv-dark fixed inset-x-0 top-0 z-[2147483000] flex !max-h-none flex-col bg-black text-white"
+            style={{ height: "100dvh", maxHeight: "100dvh" }}
             onKeyDown={(e) => {
               if (e.key === "Escape") setZoomImg(false);
             }}
           >
-            <div className="flex items-center gap-2 px-3 py-2.5">
+            <div
+              className="relative z-20 flex shrink-0 items-center gap-2 bg-black px-3 pb-2.5"
+              style={{ paddingTop: "max(env(safe-area-inset-top), 2.75rem)" }}
+            >
               <p className="min-w-0 flex-1 truncate text-sm font-semibold">{detail.name}</p>
               <button
                 type="button"
@@ -976,9 +980,10 @@ function PublicStore({
                 aria-label="Fechar foto"
                 autoFocus
                 onClick={() => setZoomImg(false)}
-                className="nv-round grid size-10 place-items-center rounded-full bg-white/15"
+                className="nv-round grid size-11 shrink-0 place-items-center rounded-full bg-white text-black"
+                style={{ cursor: "pointer", pointerEvents: "auto" }}
               >
-                <X size={18} />
+                <X size={20} />
               </button>
             </div>
             <div
@@ -994,12 +999,15 @@ function PublicStore({
                   alt={detail.name}
                   draggable={false}
                   onDoubleClick={() => setZoom((z) => (z > 1 ? 1 : 2.5))}
-                  className="max-h-[calc(100dvh-4rem)] w-full select-none object-contain"
+                  className="max-h-[calc(100dvh-10rem)] w-full select-none object-contain"
                   style={zoom > 1 ? { maxHeight: "none" } : undefined}
                 />
               </div>
             </div>
-            <p className="px-4 pb-3 text-center text-[11px] text-white/60">
+            <p
+              className="shrink-0 px-4 text-center text-[11px] text-white/60"
+              style={{ paddingBottom: "max(env(safe-area-inset-bottom), 0.75rem)" }}
+            >
               Use + e − para ampliar, arraste para ver os detalhes ou toque duas vezes na foto.
             </p>
           </div>,
