@@ -221,7 +221,6 @@ const baseIngredients: Omit<Ingredient, "carbs" | "fat" | "fiber">[] = [
     group: "cereais",
     protein: 4.5,
     kcal: 360,
-    flags: ["doce"],
     note: "Estimativa para bolo de festa com cobertura/glacê; varia com a receita.",
   },
   {
