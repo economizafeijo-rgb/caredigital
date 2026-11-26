@@ -13,6 +13,7 @@ import {
   ChevronDown,
   CalendarDays,
   Coffee,
+  Milk,
   Droplets,
   Dumbbell,
   HeartPulse,
@@ -136,6 +137,7 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
         section("sono", "Sono", BedDouble),
         section("miccao", "Micção", Droplets),
         section("cafeina", "Cafeína", Coffee),
+        section("lactose", "Lactose", Milk),
       ],
     },
     {

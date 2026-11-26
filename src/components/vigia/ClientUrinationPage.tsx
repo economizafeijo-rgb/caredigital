@@ -15,6 +15,9 @@ import {
 } from "@/lib/urination";
 import { HourBars } from "./HourBars";
 import { useCareLogs, useLiquids } from "./useCareLogs";
+import { CaffeineCharts } from "./CaffeineCharts";
+import { useIntakeRecords } from "./useIntakeRecords";
+import { DEFAULT_LIMIT_MG } from "@/lib/caffeine";
 
 const COLS = "id,at,volume,ml,notes";
 const toneCls = {
@@ -37,6 +40,14 @@ export function ClientUrinationPage({
     ownerId,
   );
   const { liquids, goalMl } = useLiquids(patientId, ownerId);
+  const intake = useIntakeRecords(patientId, ownerId, 30);
+  const cafLimit = (() => {
+    try {
+      return Number(localStorage.getItem("nv-caffeine-limit")) || DEFAULT_LIMIT_MG;
+    } catch {
+      return DEFAULT_LIMIT_MG;
+    }
+  })();
   const [range, setRange] = useState<"dia" | "semana">("dia");
   const [open, setOpen] = useState(false);
   const [when, setWhen] = useState(() => acreDateTimeInput());
@@ -267,6 +278,8 @@ export function ClientUrinationPage({
           />
         )}
       </div>
+
+      <CaffeineCharts records={intake.caffeine} urination={items} limit={cafLimit} />
 
       <div className="rounded-2xl border border-border bg-card p-4">
         <h3 className="mb-2 text-sm font-bold">

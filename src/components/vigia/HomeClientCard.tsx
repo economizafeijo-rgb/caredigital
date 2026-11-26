@@ -32,6 +32,7 @@ import { ClientMobileNav } from "./ClientMobileNav";
 import { SectionInsights, isInsightSection } from "./SectionInsights";
 import { ClientSleepPage } from "./ClientSleepPage";
 import { ClientUrinationPage } from "./ClientUrinationPage";
+import { ClientLactosePage } from "./ClientLactosePage";
 import { ClientCaffeinePage } from "./ClientCaffeinePage";
 import { WeightExplorer } from "./WeightExplorer";
 import { ClientHeartRate } from "./ClientHeartRate";
@@ -1315,6 +1316,9 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                     )}
                     {activeTab === "cafeina" && (
                       <ClientCaffeinePage patientId={client.id} ownerId={client.owner_id} />
+                    )}
+                    {activeTab === "lactose" && (
+                      <ClientLactosePage patientId={client.id} ownerId={client.owner_id} />
                     )}
                     {activeTab === "peso" && (
                       <ClientWeightPage

@@ -1,5 +1,6 @@
 import {
   Coffee,
+  Milk,
   HeartPulse,
   Activity,
   BookOpen,
@@ -153,6 +154,15 @@ export const clientSectionTheme: Record<ClientSection, SectionTheme> = {
     overlay: "from-amber-950 via-amber-900/80 to-orange-600/10",
     pill: "bg-gradient-to-r from-amber-600 to-orange-500",
     chip: "bg-amber-500/15 text-amber-600 dark:text-amber-300",
+  },
+  lactose: {
+    label: "Lactose",
+    icon: Milk,
+    image: "/images/hero-hidratacao.webp",
+    position: "50% 55%",
+    overlay: "from-emerald-950 via-emerald-900/80 to-teal-600/10",
+    pill: "bg-gradient-to-r from-emerald-600 to-teal-500",
+    chip: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300",
   },
   suplementos: {
     label: "Suplementos",

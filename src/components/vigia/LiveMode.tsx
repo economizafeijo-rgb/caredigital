@@ -1,3 +1,4 @@
+import { LiveIntake } from "./LiveIntake";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ConfirmCard, confirmArea } from "./ConfirmCard";
 import { createPortal } from "react-dom";
@@ -1239,10 +1240,7 @@ function LiveDashboard({
     <div
       ref={root}
       className="fixed inset-0 z-[500] overflow-y-auto overscroll-contain bg-[radial-gradient(ellipse_at_top,#0b3b3a_0%,#020617_62%)] text-white [scrollbar-width:thin]"
-      style={{
-        paddingTop: "env(safe-area-inset-top)",
-        paddingBottom: "env(safe-area-inset-bottom)",
-      }}
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       role="dialog"
       aria-modal="true"
       aria-label="Painel ao vivo"
@@ -1252,8 +1250,11 @@ function LiveDashboard({
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(255,255,255,.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.035)_1px,transparent_1px)] bg-[size:44px_44px] [mask-image:radial-gradient(ellipse_at_top,#000,transparent_75%)]"
       />
-      <div className="relative mx-auto flex min-h-full max-w-[1500px] flex-col gap-3 p-3 pb-24 sm:p-6">
-        <header className="sticky top-0 z-20 -mx-3 flex flex-wrap items-center gap-2.5 border-b border-white/10 bg-slate-950/55 px-3 py-2.5 backdrop-blur-xl sm:-mx-6 sm:gap-3 sm:px-6">
+      <div className="relative mx-auto flex min-h-full max-w-[1500px] flex-col gap-3 p-3 pb-24 pt-0 sm:p-6 sm:pt-0">
+        <header
+          className="sticky top-0 z-20 -mx-3 mb-0.5 flex flex-wrap items-center gap-2 border-b border-white/10 bg-slate-950/95 px-3 pb-2.5 backdrop-blur-xl sm:-mx-6 sm:gap-3 sm:px-6"
+          style={{ paddingTop: "calc(env(safe-area-inset-top) + 0.5rem)" }}
+        >
           {data && (
             <span
               key={data.at}
@@ -1918,6 +1919,16 @@ function LiveDashboard({
                   to="#e11d48"
                 />
               </Tile>
+              <LiveIntake
+                patientId={patientId}
+                ownerId={ownerId}
+                targets={{
+                  kcal: kcalTarget,
+                  protein: proteinTarget,
+                  carbs: carbsTarget,
+                  fat: fatTarget,
+                }}
+              />
             </div>
 
             <SectionTitle>Rotina de cuidado</SectionTitle>

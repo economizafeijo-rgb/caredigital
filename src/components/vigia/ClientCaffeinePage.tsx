@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMemo, useState } from "react";
 import { Coffee, Info, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,16 +19,33 @@ import {
 } from "@/lib/caffeine";
 import { HourBars } from "./HourBars";
 import { useCareLogs } from "./useCareLogs";
+import { useIntakeRecords } from "./useIntakeRecords";
 
 const COLS = "id,at,source,ml,mg";
 const LIMIT_KEY = "nv-caffeine-limit";
 
 export function ClientCaffeinePage({ patientId, ownerId }: { patientId: string; ownerId: string }) {
-  const { items, loaded, remote, error, add, remove } = useCareLogs<CaffeineLog>(
-    "care_caffeine_logs",
-    COLS,
-    patientId,
-    ownerId,
+  const {
+    loaded,
+    remote,
+    error,
+    add: addRaw,
+    remove: removeRaw,
+  } = useCareLogs<CaffeineLog>("care_caffeine_logs", COLS, patientId, ownerId);
+  const add = async (row: Parameters<typeof addRaw>[0]) => {
+    const ok = await addRaw(row);
+    window.dispatchEvent(new Event("nv-intake-changed"));
+    return ok;
+  };
+  const remove = async (id: string) => {
+    await removeRaw(id);
+    window.dispatchEvent(new Event("nv-intake-changed"));
+  };
+  const auto = useIntakeRecords(patientId, ownerId, 30);
+  // Soma automática: bebidas, refeições, porções e registros manuais, sem duplicar.
+  const all = useMemo<CaffeineLog[]>(
+    () => auto.caffeine.map((r) => ({ id: r.id, at: r.at, source: r.label, ml: r.ml, mg: r.mg })),
+    [auto.caffeine],
   );
   const [sleeps, setSleeps] = useState<
     { bed_at: string; wake_at: string; quality: number; awakenings: number }[]
@@ -63,7 +81,7 @@ export function ClientCaffeinePage({ patientId, ownerId }: { patientId: string; 
 
   const today = acreDateKey();
   const nowMs = Date.now();
-  const todayLogs = useMemo(() => items.filter((l) => acreDateKey(l.at) === today), [items, today]);
+  const todayLogs = useMemo(() => all.filter((l) => acreDateKey(l.at) === today), [all, today]);
   const total = totalMg(todayLogs);
   const left = Math.max(0, limit - total);
   const bedHour = useMemo(() => {
@@ -88,7 +106,7 @@ export function ClientCaffeinePage({ patientId, ownerId }: { patientId: string; 
   const intake = Array<number>(24).fill(0);
   for (const l of todayLogs) intake[Number(acreTimeLabel(l.at).slice(0, 2))] += l.mg;
 
-  const corr = useMemo(() => sleepCorrelation(items, sleeps), [items, sleeps]);
+  const corr = useMemo(() => sleepCorrelation(all, sleeps), [all, sleeps]);
 
   async function addSource(s: CaffeineSource, ml?: number, mg?: number) {
     if (saving) return;
@@ -314,14 +332,20 @@ export function ClientCaffeinePage({ patientId, ownerId }: { patientId: string; 
                   {l.source}
                   {l.ml ? ` · ${l.ml} ml` : ""} · {l.mg} mg
                 </span>
-                <button
-                  type="button"
-                  aria-label="Excluir registro"
-                  onClick={() => void remove(l.id)}
-                  className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-red-500"
-                >
-                  <Trash2 size={15} />
-                </button>
+                {l.id.includes("-c-") ? (
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                    automático
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    aria-label="Excluir registro"
+                    onClick={() => void remove(l.id)}
+                    className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-red-500"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                )}
               </li>
             ))}
           </ul>

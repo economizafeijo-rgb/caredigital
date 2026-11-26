@@ -13,6 +13,7 @@ export type ClientSection =
   | "sono"
   | "miccao"
   | "cafeina"
+  | "lactose"
   | "suplementos"
   | "indicadores";
 export const clientSectionLabels: Record<
@@ -92,6 +93,11 @@ export const clientSectionLabels: Record<
     subtitle: "Doses, limite diário, horário de corte e relação com a qualidade do sono",
     tagline: "Energia sem atrapalhar a noite",
   },
+  lactose: {
+    title: "Gestão de lactose",
+    subtitle: "Lactose de cada leite ou derivado, limite por refeição e no dia, sintomas e dicas",
+    tagline: "Laticínios sem surpresas",
+  },
   suplementos: {
     title: "Central de suplementação",
     subtitle: "Seus suplementos, doses, horários com timer, dicas e biblioteca de referência",
@@ -119,6 +125,7 @@ export const clientSectionHashes: Record<ClientSection, string> = {
   sono: "sono",
   miccao: "miccao",
   cafeina: "cafeina",
+  lactose: "lactose",
   suplementos: "suplementos",
   indicadores: "indicadores",
 };
