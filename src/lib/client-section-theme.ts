@@ -1,4 +1,5 @@
 import {
+  Coffee,
   HeartPulse,
   Activity,
   BookOpen,
@@ -134,6 +135,24 @@ export const clientSectionTheme: Record<ClientSection, SectionTheme> = {
     overlay: "from-indigo-950 via-indigo-900/80 to-violet-600/10",
     pill: "bg-gradient-to-r from-indigo-600 to-violet-500",
     chip: "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300",
+  },
+  miccao: {
+    label: "Micção",
+    icon: Droplets,
+    image: "/images/hero-hidratacao.webp",
+    position: "50% 40%",
+    overlay: "from-sky-950 via-sky-900/80 to-cyan-600/10",
+    pill: "bg-gradient-to-r from-sky-600 to-cyan-500",
+    chip: "bg-sky-500/15 text-sky-600 dark:text-sky-300",
+  },
+  cafeina: {
+    label: "Cafeína",
+    icon: Coffee,
+    image: "/images/show-sono.webp",
+    position: "50% 60%",
+    overlay: "from-amber-950 via-amber-900/80 to-orange-600/10",
+    pill: "bg-gradient-to-r from-amber-600 to-orange-500",
+    chip: "bg-amber-500/15 text-amber-600 dark:text-amber-300",
   },
   suplementos: {
     label: "Suplementos",

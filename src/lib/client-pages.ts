@@ -11,6 +11,8 @@ export type ClientSection =
   | "medidas"
   | "batimentos"
   | "sono"
+  | "miccao"
+  | "cafeina"
   | "suplementos"
   | "indicadores";
 export const clientSectionLabels: Record<
@@ -80,6 +82,16 @@ export const clientSectionLabels: Record<
       "Nota do sono, horas dormidas, regularidade e batimentos em tempo real com sensor Bluetooth",
     tagline: "Descanso e recuperação",
   },
+  miccao: {
+    title: "Micção e hidratação",
+    subtitle: "Registre idas ao banheiro e cruze com os líquidos que você bebeu",
+    tagline: "Equilíbrio de líquidos",
+  },
+  cafeina: {
+    title: "Cafeína e sono",
+    subtitle: "Doses, limite diário, horário de corte e relação com a qualidade do sono",
+    tagline: "Energia sem atrapalhar a noite",
+  },
   suplementos: {
     title: "Central de suplementação",
     subtitle: "Seus suplementos, doses, horários com timer, dicas e biblioteca de referência",
@@ -105,6 +117,8 @@ export const clientSectionHashes: Record<ClientSection, string> = {
   medidas: "medidas",
   batimentos: "batimentos",
   sono: "sono",
+  miccao: "miccao",
+  cafeina: "cafeina",
   suplementos: "suplementos",
   indicadores: "indicadores",
 };

@@ -31,6 +31,8 @@ import { ClientHydrationTab } from "./ClientHydrationTab";
 import { ClientMobileNav } from "./ClientMobileNav";
 import { SectionInsights, isInsightSection } from "./SectionInsights";
 import { ClientSleepPage } from "./ClientSleepPage";
+import { ClientUrinationPage } from "./ClientUrinationPage";
+import { ClientCaffeinePage } from "./ClientCaffeinePage";
 import { WeightExplorer } from "./WeightExplorer";
 import { ClientHeartRate } from "./ClientHeartRate";
 import { ClientBodyMeasures } from "./ClientBodyMeasures";
@@ -1307,6 +1309,12 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                     )}
                     {activeTab === "sono" && (
                       <ClientSleepPage patientId={client.id} ownerId={client.owner_id} />
+                    )}
+                    {activeTab === "miccao" && (
+                      <ClientUrinationPage patientId={client.id} ownerId={client.owner_id} />
+                    )}
+                    {activeTab === "cafeina" && (
+                      <ClientCaffeinePage patientId={client.id} ownerId={client.owner_id} />
                     )}
                     {activeTab === "peso" && (
                       <ClientWeightPage
