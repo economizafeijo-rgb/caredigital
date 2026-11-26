@@ -83,6 +83,8 @@ export const sodiumPer100: Record<string, number> = {
   frango_cozido: 280,
   frango_coxa: 280,
   frango_frito: 280,
+  frango_frito_oleo: 280,
+  bife_frito_oleo: 300,
   esfirra_carne: 450,
   coxinha_frango: 480,
   quibe_carne_frito: 500,
