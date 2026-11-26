@@ -12,6 +12,7 @@ import {
 } from "@/lib/nutrition-risk";
 import { NutrientArt, NUTRIENT_COLOR, NUTRIENT_INK } from "./NutrientArt";
 import { alertSoundOn, playWarning } from "./NextUpClock";
+import { emptyAlertState, pendingAlerts, type AlertState } from "@/lib/nutrition-alert-policy";
 import { useDailyNutrition, type DailyNutrition } from "./DailyNutritionPanel";
 
 const ICONS = { sodium: Waves, sugar: Candy, fat: Droplet } as const;
@@ -138,23 +139,23 @@ export function NutritionGuardPanel({ data }: { data: DailyNutrition }) {
         </ul>
       )}
       <details className="mt-1.5 text-[10.5px] text-muted-foreground">
-        <summary style={{ cursor: "pointer" }} className="font-semibold">Como os limites são calculados</summary>
+        <summary style={{ cursor: "pointer" }} className="font-semibold">
+          Como os limites são calculados
+        </summary>
         <p className="mt-1 leading-snug">
-        Limites: sódio abaixo de 2.000 mg/dia e açúcar livre abaixo de 10% das calorias (OMS);
-        gordura pela sua meta. Açúcar livre inclui o açúcar adicionado, o mel, os xaropes e os
-        sucos. Valores estimados (TACO/TBCA e rótulos) a partir do que você registrou; sal de mesa,
-        açúcar de colher e molhos só entram se forem registrados. Limonada sem a indicação "sem
-        açúcar" é contada como adoçada (estimativa de 10 g a cada 200 ml). Não substitui orientação
-        de médico ou nutricionista.
+          Limites: sódio abaixo de 2.000 mg/dia e açúcar livre abaixo de 10% das calorias (OMS);
+          gordura pela sua meta. Açúcar livre inclui o açúcar adicionado, o mel, os xaropes e os
+          sucos. Valores estimados (TACO/TBCA e rótulos) a partir do que você registrou; sal de
+          mesa, açúcar de colher e molhos só entram se forem registrados. Limonada sem a indicação
+          "sem açúcar" é contada como adoçada (estimativa de 10 g a cada 200 ml). Não substitui
+          orientação de médico ou nutricionista.
         </p>
       </details>
     </section>
   );
 }
 
-type Toast = { id: string; risk: RiskInfo; fresh: boolean };
-
-/** Monitor em tempo real: avisa na tela, com som e vibração, ao chegar perto ou passar de um limite. */
+/** Monitor do dia: um único aviso discreto na primeira vez que sódio, açúcar ou gordura passam do limite. */
 export function NutritionGuardWatcher({
   patientId,
   ownerId,
@@ -168,11 +169,27 @@ export function NutritionGuardWatcher({
 }) {
   const data = useDailyNutrition(patientId, ownerId, revision);
   const risks = useNutritionRisks(data);
-  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [shown, setShown] = useState<RiskInfo[]>([]);
   const armed = useRef(false);
-  const key = (k: string) => `nv-risk-${patientId}-${dayKey()}-${k}`;
+  const stateKey = `nv-risk-state-${patientId}-${dayKey()}`;
 
-  // Atualização em tempo real: o hook já escuta "nv-intake-changed"; reforça ao voltar para a aba e a cada 30 s.
+  const read = (): AlertState => {
+    try {
+      const raw = localStorage.getItem(stateKey);
+      return raw ? { ...emptyAlertState(), ...JSON.parse(raw) } : emptyAlertState();
+    } catch {
+      return emptyAlertState();
+    }
+  };
+  const write = (st: AlertState) => {
+    try {
+      localStorage.setItem(stateKey, JSON.stringify(st));
+    } catch {
+      /* ok */
+    }
+  };
+
+  // Atualiza ao voltar para a aba e a cada 30 s (o hook escuta "nv-intake-changed").
   useEffect(() => {
     const bump = () => window.dispatchEvent(new Event("nv-intake-changed"));
     const t = window.setInterval(() => document.visibilityState === "visible" && bump(), 30_000);
@@ -186,113 +203,79 @@ export function NutritionGuardWatcher({
 
   useEffect(() => {
     if (!data.loaded) return;
-    const fired: Toast[] = [];
-    for (const r of risks) {
-      let last = 0;
-      try {
-        last = Number(localStorage.getItem(key(r.key)) ?? 0);
-      } catch {
-        /* ok */
-      }
-      const rank = levelRank[r.level];
-      if (rank > last) {
-        fired.push({ id: `${r.key}-${rank}-${Date.now()}`, risk: r, fresh: armed.current });
-        try {
-          localStorage.setItem(key(r.key), String(rank));
-        } catch {
-          /* ok */
-        }
-      } else if (rank < last) {
-        // Registro corrigido ou excluído: rearma para avisar de novo se voltar a subir.
-        try {
-          localStorage.setItem(key(r.key), String(rank));
-        } catch {
-          /* ok */
-        }
-      }
-    }
-    if (fired.length) {
-      setToasts((t) => [...fired, ...t].slice(0, 3));
-      const worst = fired.reduce((a, b) =>
-        levelRank[b.risk.level] > levelRank[a.risk.level] ? b : a,
-      );
+    const { fire, next } = pendingAlerts(risks, read());
+    if (fire.length) {
+      write(next);
+      // Na primeira leitura da sessão só marca como visto: não avisa de excessos antigos.
       if (armed.current) {
-        if (alertSoundOn()) playWarning(worst.risk.level as "near" | "over" | "severe");
-        try {
-          navigator.vibrate?.(worst.risk.level === "near" ? [120] : [200, 100, 200, 100, 300]);
-        } catch {
-          /* ok */
-        }
-        try {
-          if (
-            typeof Notification !== "undefined" &&
-            Notification.permission === "granted" &&
-            document.visibilityState !== "visible"
-          )
-            new Notification(`NextVita · ${levelText[worst.risk.level]}: ${worst.risk.label}`, {
-              body: advice(worst.risk),
-              tag: "nv-risk-" + worst.risk.key,
-            });
-        } catch {
-          /* ok */
-        }
+        setShown((cur) => [...fire, ...cur.filter((c) => !fire.some((f) => f.key === c.key))]);
+        if (alertSoundOn()) playWarning("over");
       }
     }
     armed.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [risks, data.loaded]);
 
-  if (!toasts.length) return null;
+  if (!shown.length) return null;
+  const col = levelColor.over;
   return (
     <div
-      className="pointer-events-none fixed bottom-4 right-4 z-[10001] grid w-[min(24rem,calc(100vw-2rem))] gap-2"
+      className="pointer-events-none fixed bottom-4 right-4 z-[10001] w-[min(22rem,calc(100vw-2rem))]"
       role="region"
-      aria-label="Alertas de limite nutricional"
+      aria-label="Aviso de limite nutricional"
     >
-      {toasts.map((t) => {
-        const col = levelColor[t.risk.level];
-        const Icon = t.risk.level === "near" ? AlertTriangle : AlertOctagon;
-        return (
-          <div
-            key={t.id}
-            role="alert"
-            className="nv-fade-in nv-due pointer-events-auto relative overflow-hidden border border-white/15 bg-[#14171f] p-3 text-white shadow-2xl"
-            style={{ borderLeft: `4px solid ${col}`, ["--due" as string]: col }}
-          >
+      <div
+        role="status"
+        className="nv-fade-in pointer-events-auto relative border border-white/15 bg-[#0b1230] p-3 text-white shadow-2xl"
+        style={{ borderLeft: `4px solid ${col}` }}
+      >
+        <button
+          type="button"
+          aria-label="Fechar aviso"
+          onClick={() => setShown([])}
+          className="absolute right-1.5 top-1.5 grid size-6 place-items-center text-white/60 hover:bg-white/10 hover:text-white"
+        >
+          <X size={14} />
+        </button>
+        <p className="flex items-center gap-2 pr-6 text-sm font-extrabold" style={{ color: col }}>
+          <AlertTriangle size={16} /> Acima do limite hoje
+        </p>
+        <ul className="mt-1.5 grid gap-0.5 text-xs tabular-nums text-white/85">
+          {shown.map((r) => (
+            <li key={r.key}>
+              <b>{r.label}:</b> {fmt(r.value, r.unit)} de {fmt(r.limit, r.unit)} (
+              {Math.round(r.pct * 100)}%)
+            </li>
+          ))}
+        </ul>
+        <p className="mt-1.5 text-[11.5px] leading-snug text-white/70">
+          Os detalhes ficam nos cartões de nutrição. Este aviso não se repete hoje.
+        </p>
+        <div className="mt-2 flex gap-2">
+          {onOpen && (
             <button
               type="button"
-              aria-label="Fechar alerta"
-              onClick={() => setToasts((l) => l.filter((x) => x.id !== t.id))}
-              className="absolute right-1.5 top-1.5 grid size-6 place-items-center text-white/60 hover:bg-white/10 hover:text-white"
+              onClick={() => {
+                onOpen();
+                setShown([]);
+              }}
+              className="h-7 border border-white/25 px-2.5 text-[11px] font-bold hover:bg-white/10"
             >
-              <X size={14} />
+              Ver detalhes
             </button>
-            <p
-              className="flex items-center gap-2 pr-6 text-sm font-extrabold"
-              style={{ color: levelInk[t.risk.level] }}
-            >
-              <Icon size={16} /> {levelText[t.risk.level]}: {t.risk.label}
-            </p>
-            <p className="mt-1 text-xs tabular-nums text-white/85">
-              {fmt(t.risk.value, t.risk.unit)} de {fmt(t.risk.limit, t.risk.unit)} (
-              {Math.round(t.risk.pct * 100)}%)
-            </p>
-            <p className="mt-1 text-[11.5px] leading-snug text-white/70">{advice(t.risk)}</p>
-            {onOpen && (
-              <button
-                type="button"
-                onClick={() => {
-                  onOpen();
-                  setToasts((l) => l.filter((x) => x.id !== t.id));
-                }}
-                className="mt-2 h-7 border border-white/25 px-2.5 text-[11px] font-bold hover:bg-white/10"
-              >
-                Ver detalhes
-              </button>
-            )}
-          </div>
-        );
-      })}
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              write({ ...read(), muted: true });
+              setShown([]);
+            }}
+            className="h-7 px-2.5 text-[11px] font-semibold text-white/70 hover:bg-white/10"
+          >
+            Silenciar hoje
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
