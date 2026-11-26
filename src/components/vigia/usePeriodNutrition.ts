@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchAll } from "@/lib/fetch-all";
 import { acreAddDays, acreDateKey } from "@/lib/acre-time";
 import { beverageNutrients } from "@/lib/beverage-nutrients";
 import { isBeverageKind } from "@/lib/care-intake-categories";
@@ -19,23 +20,29 @@ export function usePeriodNutrition(patientId: string, ownerId: string, days: num
       `${acreAddDays(acreDateKey(), -(days - 1))}T00:00:00-05:00`,
     ).toISOString();
     const q = (t: string, cols: string, col: string) =>
-      db
-        .from(t)
-        .select(cols)
-        .eq("patient_id", patientId)
-        .eq("owner_id", ownerId)
-        .gte(col, from)
-        .limit(2000);
+      fetchAll((x, y) =>
+        db
+          .from(t)
+          .select(cols)
+          .eq("patient_id", patientId)
+          .eq("owner_id", ownerId)
+          .gte(col, from)
+          .order(col)
+          .range(x, y),
+      );
     void Promise.all([
-      db
-        .from("care_activity_log")
-        .select("details,event_type,source,happened_at")
-        .eq("patient_id", patientId)
-        .eq("owner_id", ownerId)
-        .eq("category", "refeicao")
-        .in("event_type", ["confirmed", "logged"])
-        .gte("happened_at", from)
-        .limit(2000),
+      fetchAll((x, y) =>
+        db
+          .from("care_activity_log")
+          .select("details,event_type,source,happened_at")
+          .eq("patient_id", patientId)
+          .eq("owner_id", ownerId)
+          .eq("category", "refeicao")
+          .in("event_type", ["confirmed", "logged"])
+          .gte("happened_at", from)
+          .order("happened_at")
+          .range(x, y),
+      ),
       q("care_client_beverages", "name,kind,amount_ml,consumed_at", "consumed_at"),
       q(
         "care_food_consumptions",

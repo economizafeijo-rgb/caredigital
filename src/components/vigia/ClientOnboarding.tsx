@@ -131,6 +131,7 @@ const conditions = [
   "Tireoide",
   "Gestante ou amamentando",
   "Alergia alimentar",
+  "Intolerância à lactose",
 ];
 const states = [
   "AC",
@@ -707,6 +708,7 @@ function OnboardingStudio({
       return;
     }
     setDone(true);
+    window.dispatchEvent(new Event("nv-profile-changed"));
     window.setTimeout(onDone, 2200);
   }
 

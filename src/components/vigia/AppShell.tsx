@@ -135,6 +135,7 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
         section("alimentacao", "Alimentação", Utensils),
         section("atividade", "Atividade", Activity),
         section("sono", "Sono", BedDouble),
+        section("integrado", "Saúde integrada", Activity),
         section("miccao", "Micção", Droplets),
         section("cafeina", "Cafeína", Coffee),
         section("lactose", "Lactose", Milk),

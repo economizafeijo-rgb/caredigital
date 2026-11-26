@@ -1,13 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMemo, useState } from "react";
-import { Coffee, Info, Trash2 } from "lucide-react";
+import { Coffee, Info, Lock, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 import { acreDateKey, acreTimeLabel } from "@/lib/acre-time";
 import {
   CAFFEINE_NOTE,
   CAFFEINE_SOURCES,
-  DEFAULT_LIMIT_MG,
   curfewHour,
   fmtHour,
   residualMg,
@@ -20,9 +19,10 @@ import {
 import { HourBars } from "./HourBars";
 import { useCareLogs } from "./useCareLogs";
 import { useIntakeRecords } from "./useIntakeRecords";
+import { useHealthLimits } from "./useHealthLimits";
+import { ClientHealthHub } from "./ClientHealthHub";
 
 const COLS = "id,at,source,ml,mg";
-const LIMIT_KEY = "nv-caffeine-limit";
 
 export function ClientCaffeinePage({ patientId, ownerId }: { patientId: string; ownerId: string }) {
   const {
@@ -50,13 +50,9 @@ export function ClientCaffeinePage({ patientId, ownerId }: { patientId: string; 
   const [sleeps, setSleeps] = useState<
     { bed_at: string; wake_at: string; quality: number; awakenings: number }[]
   >([]);
-  const [limit, setLimit] = useState(() => {
-    try {
-      return Number(localStorage.getItem(LIMIT_KEY)) || DEFAULT_LIMIT_MG;
-    } catch {
-      return DEFAULT_LIMIT_MG;
-    }
-  });
+  const { limits } = useHealthLimits(patientId);
+  // Limite calculado do perfil e travado: não há campo para alterar.
+  const limit = limits.caffeineDayMg;
   const [custom, setCustom] = useState<{ source: string; mg: string; ml: string }>({
     source: "",
     mg: "",
@@ -128,15 +124,6 @@ export function ClientCaffeinePage({ patientId, ownerId }: { patientId: string; 
     });
     setSaving(false);
     if (ok) setCustom({ source: "", mg: "", ml: "" });
-  }
-  function setLimitSafe(v: number) {
-    const n = Math.min(600, Math.max(50, v || DEFAULT_LIMIT_MG));
-    setLimit(n);
-    try {
-      localStorage.setItem(LIMIT_KEY, String(n));
-    } catch {
-      /* ok */
-    }
   }
   const fmtCmp = (v: number | null, u = "") =>
     v === null ? "–" : `${String(v).replace(".", ",")}${u}`;
@@ -235,18 +222,10 @@ export function ClientCaffeinePage({ patientId, ownerId }: { patientId: string; 
             : `até ${suggestMg} mg por vez (cerca de ${Math.round((suggestMg / 90) * 150)} ml de café coado), de preferência até ${fmtHour(cutoff)}.`}
           {pastCutoff && " Já passou do horário de corte: tomar agora pode atrapalhar o sono."}
         </p>
-        <label className="mt-2 flex items-center gap-2 text-xs">
-          Limite diário (mg)
-          <input
-            type="number"
-            min={50}
-            max={600}
-            step={25}
-            value={limit}
-            onChange={(e) => setLimitSafe(Number(e.target.value))}
-            className="h-8 w-20 rounded-lg border border-border bg-background px-2 text-sm"
-          />
-        </label>
+        <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Lock size={12} aria-hidden="true" /> Limite diário de {limit} mg, calculado do seu
+          perfil.
+        </p>
         <p className="mt-2 flex gap-1.5 text-[11.5px] text-muted-foreground">
           <Info size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
           {CAFFEINE_NOTE}
@@ -314,6 +293,8 @@ export function ClientCaffeinePage({ patientId, ownerId }: { patientId: string; 
           </>
         )}
       </div>
+
+      <ClientHealthHub patientId={patientId} ownerId={ownerId} only="cafeina" />
 
       <div className="rounded-2xl border border-border bg-card p-4">
         <h3 className="mb-2 text-sm font-bold">Registros de hoje</h3>

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ingredientById } from "@/lib/nutrition-catalog";
 import { parseFoodText } from "@/lib/food-parser";
+import { fetchAll } from "@/lib/fetch-all";
 import { detectCaffeine, detectLactose } from "@/lib/intake-detect";
 
 export type IntakeOrigin = "bebida" | "refeicao" | "porcao" | "manual";
@@ -45,25 +46,31 @@ export function useIntakeRecords(patientId: string, ownerId: string, days = 30) 
     const db = supabase as any;
     const since = new Date(Date.now() - days * 86_400_000).toISOString();
     const base = (t: string, cols: string, col: string) =>
-      db
-        .from(t)
-        .select(cols)
-        .eq("patient_id", patientId)
-        .eq("owner_id", ownerId)
-        .gte(col, since)
-        .limit(1000);
+      fetchAll((a, b) =>
+        db
+          .from(t)
+          .select(cols)
+          .eq("patient_id", patientId)
+          .eq("owner_id", ownerId)
+          .gte(col, since)
+          .order(col)
+          .range(a, b),
+      );
     void Promise.all([
       base("care_client_beverages", "id,name,kind,amount_ml,consumed_at", "consumed_at"),
       base("care_food_consumptions", "id,food_id,grams,recorded_at", "recorded_at"),
-      db
-        .from("care_activity_log")
-        .select("id,happened_at,details,event_type,source")
-        .eq("patient_id", patientId)
-        .eq("owner_id", ownerId)
-        .eq("category", "refeicao")
-        .in("event_type", ["confirmed", "logged"])
-        .gte("happened_at", since)
-        .limit(1000),
+      fetchAll((a, b) =>
+        db
+          .from("care_activity_log")
+          .select("id,happened_at,details,event_type,source")
+          .eq("patient_id", patientId)
+          .eq("owner_id", ownerId)
+          .eq("category", "refeicao")
+          .in("event_type", ["confirmed", "logged"])
+          .gte("happened_at", since)
+          .order("happened_at")
+          .range(a, b),
+      ),
       base("care_caffeine_logs", "id,at,source,ml,mg", "at"),
     ]).then(([bev, food, meals, manual]: any[]) => {
       if (!active) return;

@@ -1,13 +1,14 @@
 import { useMemo, useState } from "react";
-import { Info, Milk, Trash2 } from "lucide-react";
+import { Info, Lock, Milk, Trash2 } from "lucide-react";
 import { acreDateKey, acreTimeLabel } from "@/lib/acre-time";
 import { LACTOSE_THRESHOLDS as T } from "@/lib/intake-detect";
 import { useCareLogs } from "./useCareLogs";
+import { useHealthLimits } from "./useHealthLimits";
+import { ClientHealthHub } from "./ClientHealthHub";
 import { useIntakeRecords, type LactoseRecord } from "./useIntakeRecords";
 
 type SymptomLog = { id: string; at: string; severity: number; symptoms: string; notes: string };
 const COLS = "id,at,severity,symptoms,notes";
-const LIMIT_KEY = "nv-lactose-limit";
 const SYMPTOMS = ["Inchaço", "Gases", "Cólica", "Diarreia", "Náusea", "Ronco na barriga"];
 const SEVERITY = ["Sem sintomas", "Leve", "Moderado", "Forte"];
 const GREEN = "#059669";
@@ -48,45 +49,20 @@ export function ClientLactosePage({ patientId, ownerId }: { patientId: string; o
     patientId,
     ownerId,
   );
-  const [limit, setLimit] = useState(() => {
-    try {
-      return Number(localStorage.getItem(LIMIT_KEY)) || T.dayOk;
-    } catch {
-      return T.dayOk;
-    }
-  });
-  const [range, setRange] = useState<1 | 7 | 30>(1);
-  const [pick, setPick] = useState<number | null>(null);
+  const { limits } = useHealthLimits(patientId);
+  // Limites calculados do perfil e travados: não há campo para alterar.
+  const limit = limits.lactoseDayG ?? T.dayOk;
+  const mealLimit = limits.lactoseMealG ?? T.perMealOk;
+  const range = 1;
   const [sel, setSel] = useState<string[]>([]);
   const [sev, setSev] = useState(1);
   const [saving, setSaving] = useState(false);
   const today = acreDateKey();
 
-  const days = useMemo(
-    () =>
-      Array.from({ length: range }, (_, i) =>
-        acreDateKey(Date.now() - (range - 1 - i) * 86_400_000),
-      ),
-    [range],
-  );
   const todayRecs = intake.lactose.filter((r) => acreDateKey(r.at) === today);
   const todayDoses = useMemo(() => groupDoses(todayRecs), [todayRecs]);
   const todayG = Math.round(todayRecs.reduce((s, r) => s + r.g, 0) * 10) / 10;
   const biggest = todayDoses.reduce((m, d) => Math.max(m, d.g), 0);
-  const perDay = useMemo(
-    () =>
-      days.map((d) => {
-        const recs = intake.lactose.filter((r) => acreDateKey(r.at) === d);
-        const sym = items.filter((s) => acreDateKey(s.at) === d && s.severity > 0);
-        return {
-          d,
-          g: Math.round(recs.reduce((s, r) => s + r.g, 0) * 10) / 10,
-          sev: sym.reduce((m, s) => Math.max(m, s.severity), 0),
-        };
-      }),
-    [days, intake.lactose, items],
-  );
-
   /** Lactose das 4 h anteriores a cada registro com sintomas × sem sintomas. */
   const personal = useMemo(() => {
     const before = (at: string) =>
@@ -138,32 +114,7 @@ export function ClientLactosePage({ patientId, ownerId }: { patientId: string; o
     }
   }
 
-  const W = 320;
-  const H = 140;
-  const L = 30;
-  const R = 8;
-  const Tp = 10;
-  const B = 20;
-  const iw = W - L - R;
-  const ih = H - Tp - B;
-  const yMax = Math.max(
-    range === 1 ? T.perMealHigh * 1.15 : limit * 1.4,
-    ...(range === 1 ? todayDoses.map((d) => d.g) : perDay.map((p) => p.g)),
-  );
-  const y = (g: number) => Tp + ih - (g / yMax) * ih;
-  const dayStart = Date.parse(`${today}T00:00:00-05:00`);
-  const xAt = (f: number) => L + f * iw;
-  const detail =
-    pick === null
-      ? range === 1
-        ? "Toque numa barra para ver a refeição. Cada barra é uma refeição (itens com menos de 1 h de intervalo)."
-        : `Média ${Math.round((perDay.reduce((s, p) => s + p.g, 0) / range) * 10) / 10} g/dia. Toque numa barra para ver o dia.`
-      : range === 1
-        ? `${acreTimeLabel(todayDoses[pick].at)} · ${todayDoses[pick].g} g: ${todayDoses[pick].items.map((i) => `${i.label} ${i.g} g`).join(", ")}`
-        : `${perDay[pick].d.slice(8)}/${perDay[pick].d.slice(5, 7)} · ${perDay[pick].g} g de lactose${perDay[pick].sev ? ` · sintomas ${SEVERITY[perDay[pick].sev].toLowerCase()}` : ""}`;
-  const listRecs = intake.lactose
-    .filter((r) => days.includes(acreDateKey(r.at)))
-    .filter((r) => (pick !== null && range > 1 ? acreDateKey(r.at) === perDay[pick].d : true));
+  const listRecs = intake.lactose.filter((r) => acreDateKey(r.at) === today);
 
   return (
     <section className="grid min-w-0 gap-3" aria-labelledby="lactose-title">
@@ -197,175 +148,15 @@ export function ClientLactosePage({ patientId, ownerId }: { patientId: string; o
           />
         </div>
         <p className="mt-2 text-sm font-medium">{status.t}</p>
-        <label className="mt-2 flex items-center gap-2 text-xs">
-          Meu limite diário (g)
-          <input
-            type="number"
-            min={2}
-            max={60}
-            value={limit}
-            onChange={(e) => {
-              const v = Math.min(60, Math.max(2, Number(e.target.value) || T.dayOk));
-              setLimit(v);
-              try {
-                localStorage.setItem(LIMIT_KEY, String(v));
-              } catch {
-                /* ok */
-              }
-            }}
-            className="h-8 w-16 rounded-lg border border-border bg-background px-2"
-          />
-        </label>
-      </div>
-
-      <div className="rounded-2xl border border-border bg-card p-4">
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-sm font-bold">
-            {range === 1 ? "Lactose por refeição" : "Lactose por dia"}
-          </h3>
-          <div className="flex gap-1" role="group" aria-label="Período da lactose">
-            {([1, 7, 30] as const).map((r) => (
-              <button
-                key={r}
-                type="button"
-                aria-pressed={range === r}
-                onClick={() => {
-                  setRange(r);
-                  setPick(null);
-                }}
-                className={`h-8 rounded-lg px-3 text-xs ${range === r ? "bg-emerald-600 font-bold text-white" : "border border-border"}`}
-              >
-                {r === 1 ? "Hoje" : `${r} dias`}
-              </button>
-            ))}
-          </div>
-        </div>
-        <svg
-          viewBox={`0 0 ${W} ${H}`}
-          className="w-full select-none"
-          role="img"
-          aria-label="Gráfico de lactose"
-        >
-          {[0, 0.5, 1].map((f) => (
-            <g key={f}>
-              <line
-                x1={L}
-                x2={W - R}
-                y1={y(yMax * f)}
-                y2={y(yMax * f)}
-                stroke="currentColor"
-                strokeOpacity=".12"
-              />
-              <text
-                x={L - 4}
-                y={y(yMax * f) + 3}
-                textAnchor="end"
-                fontSize="8"
-                fill="currentColor"
-                opacity=".6"
-              >
-                {Math.round(yMax * f)}
-              </text>
-            </g>
-          ))}
-          <line
-            x1={L}
-            x2={W - R}
-            y1={y(range === 1 ? T.perMealOk : limit)}
-            y2={y(range === 1 ? T.perMealOk : limit)}
-            stroke={AMBER}
-            strokeDasharray="4 3"
-          />
-          <text
-            x={W - R}
-            y={y(range === 1 ? T.perMealOk : limit) - 2}
-            textAnchor="end"
-            fontSize="8"
-            fill={AMBER}
-          >
-            {range === 1 ? `${T.perMealOk} g por refeição` : `limite ${limit} g`}
-          </text>
-          {range === 1
-            ? todayDoses.map((d, i) => {
-                const f = (Date.parse(d.at) - dayStart) / 86_400_000;
-                return (
-                  <rect
-                    key={d.at}
-                    x={xAt(f) - 6}
-                    y={y(d.g)}
-                    width="12"
-                    height={Math.max(0, Tp + ih - y(d.g))}
-                    rx="2"
-                    fill={tone(d.g)}
-                    opacity={pick === i ? 1 : 0.8}
-                    tabIndex={0}
-                    role="button"
-                    aria-label={`${acreTimeLabel(d.at)}, ${d.g} gramas`}
-                    onClick={() => setPick(i)}
-                    onKeyDown={(e) => e.key === "Enter" && setPick(i)}
-                    style={{ cursor: "pointer" }}
-                  />
-                );
-              })
-            : perDay.map((p, i) => {
-                const bw = Math.max(2, Math.min(18, iw / perDay.length - 2));
-                const cx = xAt(perDay.length === 1 ? 0.5 : i / (perDay.length - 1));
-                return (
-                  <g key={p.d} onClick={() => setPick(i)} style={{ cursor: "pointer" }}>
-                    <rect
-                      x={cx - bw / 2}
-                      y={y(p.g)}
-                      width={bw}
-                      height={Math.max(0, Tp + ih - y(p.g))}
-                      rx="2"
-                      fill={p.g > limit ? RED : GREEN}
-                      opacity={pick === i ? 1 : 0.8}
-                    />
-                    <rect
-                      x={cx - bw / 2 - 1}
-                      y={Tp}
-                      width={bw + 2}
-                      height={ih}
-                      fill="transparent"
-                    />
-                    {p.sev > 0 && <circle cx={cx} cy={H - B + 8} r={2 + p.sev} fill={RED} />}
-                  </g>
-                );
-              })}
-          {range === 1 &&
-            [0, 6, 12, 18, 24].map((h) => (
-              <text
-                key={h}
-                x={xAt(h / 24)}
-                y={H - 6}
-                textAnchor="middle"
-                fontSize="8"
-                fill="currentColor"
-                opacity=".6"
-              >
-                {h}h
-              </text>
-            ))}
-          {range > 1 &&
-            [0, perDay.length - 1].map((i) => (
-              <text
-                key={i}
-                x={xAt(perDay.length === 1 ? 0.5 : i / (perDay.length - 1))}
-                y={H - 6}
-                textAnchor={i === 0 ? "start" : "end"}
-                fontSize="8"
-                fill="currentColor"
-                opacity=".6"
-              >
-                {perDay[i].d.slice(8)}/{perDay[i].d.slice(5, 7)}
-              </text>
-            ))}
-        </svg>
-        <p className="mt-1 min-h-5 text-xs text-muted-foreground" aria-live="polite">
-          {detail}
-          {range > 1 && " Pontos vermelhos = dias com sintomas."}
+        <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Lock size={12} aria-hidden="true" />{" "}
+          {limits.lactoseIntolerant
+            ? `Limite de ${limit} g por dia e ${mealLimit} g por refeição, calculado do seu perfil.`
+            : "Sem intolerância no perfil: valores de referência, sem limite pessoal."}
         </p>
       </div>
+
+      <ClientHealthHub patientId={patientId} ownerId={ownerId} only="lactose" />
 
       <div className="rounded-2xl border border-border bg-card p-4">
         <h3 className="mb-2 text-sm font-bold">Como você se sentiu?</h3>

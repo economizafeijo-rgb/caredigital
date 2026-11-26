@@ -137,6 +137,15 @@ export const clientSectionTheme: Record<ClientSection, SectionTheme> = {
     pill: "bg-gradient-to-r from-indigo-600 to-violet-500",
     chip: "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300",
   },
+  integrado: {
+    label: "Integrada",
+    icon: Activity,
+    image: "/images/hero-hidratacao.webp",
+    position: "50% 45%",
+    overlay: "from-teal-950 via-teal-900/80 to-sky-600/10",
+    pill: "bg-gradient-to-r from-teal-600 to-sky-500",
+    chip: "bg-teal-500/15 text-teal-600 dark:text-teal-300",
+  },
   miccao: {
     label: "Micção",
     icon: Droplets,

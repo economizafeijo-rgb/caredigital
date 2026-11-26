@@ -13,11 +13,8 @@ import {
   type UrinationLog,
   type UrineVolume,
 } from "@/lib/urination";
-import { HourBars } from "./HourBars";
 import { useCareLogs, useLiquids } from "./useCareLogs";
-import { CaffeineCharts } from "./CaffeineCharts";
-import { useIntakeRecords } from "./useIntakeRecords";
-import { DEFAULT_LIMIT_MG } from "@/lib/caffeine";
+import { ClientHealthHub } from "./ClientHealthHub";
 
 const COLS = "id,at,volume,ml,notes";
 const toneCls = {
@@ -40,15 +37,7 @@ export function ClientUrinationPage({
     ownerId,
   );
   const { liquids, goalMl } = useLiquids(patientId, ownerId);
-  const intake = useIntakeRecords(patientId, ownerId, 30);
-  const cafLimit = (() => {
-    try {
-      return Number(localStorage.getItem("nv-caffeine-limit")) || DEFAULT_LIMIT_MG;
-    } catch {
-      return DEFAULT_LIMIT_MG;
-    }
-  })();
-  const [range, setRange] = useState<"dia" | "semana">("dia");
+  const range = "dia" as "dia" | "semana";
   const [open, setOpen] = useState(false);
   const [when, setWhen] = useState(() => acreDateTimeInput());
   const [volume, setVolume] = useState<UrineVolume>("moderado");
@@ -248,38 +237,7 @@ export function ClientUrinationPage({
         ))}
       </dl>
 
-      <div className="rounded-2xl border border-border bg-card p-4">
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <h3 className="text-sm font-bold">Líquidos × idas ao banheiro</h3>
-          <div className="flex gap-1" role="group" aria-label="Período">
-            {(["dia", "semana"] as const).map((r) => (
-              <button
-                key={r}
-                type="button"
-                aria-pressed={range === r}
-                onClick={() => setRange(r)}
-                className={`h-8 rounded-lg px-3 text-xs ${range === r ? "bg-sky-600 font-bold text-white" : "border border-border"}`}
-              >
-                {r === "dia" ? "Hoje" : "7 dias"}
-              </button>
-            ))}
-          </div>
-        </div>
-        {!loaded ? (
-          <p className="text-sm text-muted-foreground">Carregando…</p>
-        ) : (
-          <HourBars
-            a={ml24}
-            b={counts}
-            aLabel="Líquidos (ml)"
-            bLabel="Idas ao banheiro"
-            aColor="#0ea5e9"
-            bColor="#f59e0b"
-          />
-        )}
-      </div>
-
-      <CaffeineCharts records={intake.caffeine} urination={items} limit={cafLimit} />
+      <ClientHealthHub patientId={patientId} ownerId={ownerId} only="miccao" />
 
       <div className="rounded-2xl border border-border bg-card p-4">
         <h3 className="mb-2 text-sm font-bold">

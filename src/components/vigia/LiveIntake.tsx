@@ -1,16 +1,12 @@
 import { useMemo, useState } from "react";
 import { Coffee, Flame, Milk, Egg, Wheat, Droplet, Leaf } from "lucide-react";
 import { acreAddDays, acreDateKey } from "@/lib/acre-time";
-import { DEFAULT_LIMIT_MG } from "@/lib/caffeine";
+import { RANGES, aggregate, makeBuckets, rangeDays, type RangeId } from "@/lib/health-ranges";
+import { useHealthLimits } from "./useHealthLimits";
 import { LACTOSE_THRESHOLDS } from "@/lib/intake-detect";
 import { usePeriodNutrition } from "./usePeriodNutrition";
 import { useIntakeRecords } from "./useIntakeRecords";
 
-const PERIODS = [
-  { n: 1, label: "Hoje" },
-  { n: 7, label: "7 dias" },
-  { n: 30, label: "30 dias" },
-] as const;
 const MICROS = [
   { k: "fiber", label: "Fibras", unit: "g", ref: 25, color: "#a3e635" },
   { k: "vitC", label: "Vitamina C", unit: "mg", ref: 90, color: "#fb923c" },
@@ -42,9 +38,11 @@ export function LiveIntake({
   ownerId: string;
   targets: { kcal: number; protein: number; carbs: number; fat: number };
 }) {
-  const [n, setN] = useState<1 | 7 | 30>(7);
-  const { byDay, loaded } = usePeriodNutrition(patientId, ownerId, 30);
-  const intake = useIntakeRecords(patientId, ownerId, 30);
+  const [range, setRange] = useState<RangeId>("7d");
+  const n = rangeDays(range);
+  const { limits } = useHealthLimits(patientId);
+  const { byDay, loaded } = usePeriodNutrition(patientId, ownerId, n);
+  const intake = useIntakeRecords(patientId, ownerId, n);
   const today = acreDateKey();
   const keys = useMemo(
     () => Array.from({ length: n }, (_, i) => acreAddDays(today, -(n - 1 - i))),
@@ -77,31 +75,32 @@ export function LiveIntake({
   const lac = intake.lactose.filter((r) => keys.includes(acreDateKey(r.at)));
   const cafMg = caf.reduce((s, r) => s + r.mg, 0);
   const lacG = Math.round(lac.reduce((s, r) => s + r.g, 0) * 10) / 10;
-  let cafLimit: number = DEFAULT_LIMIT_MG;
-  try {
-    cafLimit = Number(localStorage.getItem("nv-caffeine-limit")) || DEFAULT_LIMIT_MG;
-  } catch {
-    /* ok */
-  }
+  const cafLimit = limits.caffeineDayMg;
+  const lacLimit = limits.lactoseDayG ?? LACTOSE_THRESHOLDS.dayOk;
   const macroKcal = tot.t.protein * 4 + tot.t.carbs * 4 + tot.t.fat * 9 || 1;
-  const bars = keys.map((k) => byDay[k]?.kcal ?? 0);
+  const buckets = useMemo(() => makeBuckets(range), [range]);
+  const dayItems = useMemo(
+    () => keys.map((k) => ({ at: `${k}T12:00:00-05:00`, kcal: byDay[k]?.kcal ?? 0 })),
+    [keys, byDay],
+  );
+  const bars = useMemo(() => aggregate(buckets, dayItems, (x) => x.kcal), [buckets, dayItems]);
   const barMax = Math.max(targets.kcal || 0, ...bars, 1);
   const kcalTarget = targets.kcal * n;
 
   return (
     <div className="col-span-2 grid gap-2.5 sm:col-span-6 lg:col-span-12">
       <div
-        className="grid grid-cols-3 gap-1 rounded-2xl bg-white/[.06] p-1 ring-1 ring-white/10"
+        className="grid grid-cols-3 gap-1 sm:grid-cols-6 rounded-2xl bg-white/[.06] p-1 ring-1 ring-white/10"
         role="group"
         aria-label="Período da ingestão"
       >
-        {PERIODS.map((p) => (
+        {RANGES.map((p) => (
           <button
-            key={p.n}
+            key={p.id}
             type="button"
-            aria-pressed={n === p.n}
-            onClick={() => setN(p.n)}
-            className={`h-10 rounded-xl text-[13px] font-bold transition active:scale-95 ${n === p.n ? "bg-emerald-400 text-slate-950 shadow-lg" : "text-white/70 hover:bg-white/10"}`}
+            aria-pressed={range === p.id}
+            onClick={() => setRange(p.id)}
+            className={`h-10 rounded-xl text-[13px] font-bold transition active:scale-95 ${range === p.id ? "bg-emerald-400 text-slate-950 shadow-lg" : "text-white/70 hover:bg-white/10"}`}
           >
             {p.label}
           </button>
@@ -135,12 +134,12 @@ export function LiveIntake({
           >
             {bars.map((v, i) => (
               <span
-                key={keys[i]}
-                title={`${keys[i].slice(8)}/${keys[i].slice(5, 7)}: ${nf(v)} kcal`}
+                key={buckets[i].startMs}
+                title={`${buckets[i].long}: ${nf(v)} kcal`}
                 className="flex-1 rounded-t-sm bg-gradient-to-t from-orange-500 to-amber-300"
                 style={{
                   height: `${Math.max(v ? 6 : 0, (v / barMax) * 100)}%`,
-                  opacity: keys[i] === today ? 1 : 0.7,
+                  opacity: i === bars.length - 1 ? 1 : 0.7,
                 }}
               />
             ))}
@@ -257,13 +256,11 @@ export function LiveIntake({
           </p>
           <p className="text-[11px] text-white/60">
             {lac.length} {lac.length === 1 ? "item" : "itens"}
-            {n > 1
-              ? ` · ${Math.round((lacG / n) * 10) / 10} g/dia`
-              : ` · ideal até ${LACTOSE_THRESHOLDS.dayOk} g`}
+            {n > 1 ? ` · ${Math.round((lacG / n) * 10) / 10} g/dia` : ` · ideal até ${lacLimit} g`}
           </p>
           <Meter
-            pct={(lacG / (LACTOSE_THRESHOLDS.dayOk * n)) * 100}
-            color={lacG > LACTOSE_THRESHOLDS.dayOk * n ? "#ef4444" : "#34d399"}
+            pct={(lacG / (lacLimit * n)) * 100}
+            color={lacG > lacLimit * n ? "#ef4444" : "#34d399"}
           />
         </button>
       </div>

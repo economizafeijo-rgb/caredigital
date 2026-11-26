@@ -32,6 +32,7 @@ import { ClientMobileNav } from "./ClientMobileNav";
 import { SectionInsights, isInsightSection } from "./SectionInsights";
 import { ClientSleepPage } from "./ClientSleepPage";
 import { ClientUrinationPage } from "./ClientUrinationPage";
+import { ClientHealthHub } from "./ClientHealthHub";
 import { ClientLactosePage } from "./ClientLactosePage";
 import { ClientCaffeinePage } from "./ClientCaffeinePage";
 import { WeightExplorer } from "./WeightExplorer";
@@ -211,6 +212,11 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
     "todos" | "hidratacao" | "refeicao" | "medicacao"
   >("todos");
   const [showHealthProfile, setShowHealthProfile] = useState(false);
+  useEffect(() => {
+    const open = () => setOnboardingSignal((v) => v + 1);
+    window.addEventListener("nv-open-profile", open);
+    return () => window.removeEventListener("nv-open-profile", open);
+  }, []);
   const mealRecordDay = dayInAcre(clock ?? new Date());
   const birthSummary = client?.birth_date
     ? patientDateSummary(client.birth_date, clock ?? new Date())
@@ -1310,6 +1316,9 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                     )}
                     {activeTab === "sono" && (
                       <ClientSleepPage patientId={client.id} ownerId={client.owner_id} />
+                    )}
+                    {activeTab === "integrado" && (
+                      <ClientHealthHub patientId={client.id} ownerId={client.owner_id} />
                     )}
                     {activeTab === "miccao" && (
                       <ClientUrinationPage patientId={client.id} ownerId={client.owner_id} />

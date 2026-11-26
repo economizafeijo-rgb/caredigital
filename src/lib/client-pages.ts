@@ -11,6 +11,7 @@ export type ClientSection =
   | "medidas"
   | "batimentos"
   | "sono"
+  | "integrado"
   | "miccao"
   | "cafeina"
   | "lactose"
@@ -83,6 +84,11 @@ export const clientSectionLabels: Record<
       "Nota do sono, horas dormidas, regularidade e batimentos em tempo real com sensor Bluetooth",
     tagline: "Descanso e recuperação",
   },
+  integrado: {
+    title: "Saúde integrada",
+    subtitle: "Líquidos, micção, cafeína, lactose e sono juntos, por hora, dia, semana ou mês",
+    tagline: "Tudo conectado",
+  },
   miccao: {
     title: "Micção e hidratação",
     subtitle: "Registre idas ao banheiro e cruze com os líquidos que você bebeu",
@@ -123,6 +129,7 @@ export const clientSectionHashes: Record<ClientSection, string> = {
   medidas: "medidas",
   batimentos: "batimentos",
   sono: "sono",
+  integrado: "saude-integrada",
   miccao: "miccao",
   cafeina: "cafeina",
   lactose: "lactose",
