@@ -171,6 +171,10 @@ export const foodMicros: Record<string, [number, number, number, number, number]
   macarronada: [5, 40, 20, 1.1, 200],
   crepioca: [0, 100, 35, 0.9, 95],
   sopa_carne_legumes: [4, 120, 15, 0.6, 170],
+  sopa_frango_legumes: [4, 130, 14, 0.4, 170],
+  sopa_frango_arroz: [3, 100, 12, 0.4, 170],
+  sopao_macarrao_verdura: [4, 140, 18, 0.7, 170],
+  sopao_carne: [4, 110, 16, 0.8, 190],
   panelada: [0, 0, 40, 1.5, 60],
   churrasco: [0, 0, 10, 2.7, 320],
   carne_assada: [0, 0, 6, 3, 330],
@@ -325,6 +329,13 @@ const aliases: Array<[RegExp, string]> = [
   [/leite integral|leite de (vaca|gado)/, "leite_integral"],
   [/nescaf[eé]|caf[eé] sol[uú]vel/, "cafe_soluvel"],
   [/bai[aã]o de dois/, "baiao_dois"],
+  [
+    /sopao_macarrao_verdura|sop[aã]o (com|de) macarr[aã]o|sopa (com|de) macarr[aã]o|macarr[aã]o com sop[aã]o/,
+    "sopao_macarrao_verdura",
+  ],
+  [/sop[aã]o de carne|sopa de carne|sop[aã]o/, "sopao_carne"],
+  [/sopa de frango (com|e) arroz|canja/, "sopa_frango_arroz"],
+  [/sopa de frango/, "sopa_frango_legumes"],
   [/sopa de (legumes|verduras)/, "sopa_legumes"],
   [/quibe (de carne|frito de carne|de trigo)|quibe tradicional|kibe/, "quibe_carne_frito"],
   [/quibe de (macaxeira|mandioca)/, "quibe_macaxeira"],
@@ -798,6 +809,10 @@ const defaultPortion: Record<string, number> = {
   macarronada: 250,
   crepioca: 90,
   sopa_carne_legumes: 350,
+  sopa_frango_legumes: 350,
+  sopa_frango_arroz: 350,
+  sopao_macarrao_verdura: 400,
+  sopao_carne: 400,
   panelada: 300,
   churrasco: 150,
   carne_assada: 120,
@@ -971,6 +986,8 @@ export function parseFoodText(text: string, liquidMl?: number | null): ParsedFoo
     .replace(/nescaf[eé] com leite desnatado/g, "café com leite desnatado")
     .replace(/nescaf[eé] com leite/g, "café com leite")
     .replace(/caf[eé] com leite/g, "café_com_leite")
+    .replace(/sop[aã]o (com|de) macarr[aã]o( e verduras?| e legumes)?/g, "sopao_macarrao_verdura")
+    .replace(/sopa de frango (com|e) arroz( e legumes)?/g, "canja")
     .replace(
       /(guaran[aá] )?quinari( guaran[aá])?( zero| 0| diet| sem a[cç][uú]car)+/g,
       "quinari_zero",
@@ -1192,6 +1209,10 @@ const liquidIds = new Set([
   "tacaca",
   "iogurte",
   "sopa_carne_legumes",
+  "sopa_frango_legumes",
+  "sopa_frango_arroz",
+  "sopao_macarrao_verdura",
+  "sopao_carne",
 ]);
 /** Líquidos são medidos em ml (densidade ≈ 1 g/ml); sólidos em g. */
 export function isLiquid(id: string): boolean {
