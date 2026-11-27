@@ -28,6 +28,7 @@ import {
   Minimize,
   Moon,
   Pill,
+  Stethoscope,
   Scale,
   Settings2,
   Sparkles,
@@ -139,6 +140,7 @@ const navByProfile: Record<Exclude<AccessStatus, "loading">, NavGroup[]> = {
         section("miccao", "Micção", Droplets),
         section("cafeina", "Cafeína", Coffee),
         section("lactose", "Lactose", Milk),
+        section("sintomas", "Sintomas", Stethoscope),
       ],
     },
     {

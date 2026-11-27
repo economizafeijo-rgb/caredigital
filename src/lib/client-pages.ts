@@ -15,6 +15,7 @@ export type ClientSection =
   | "miccao"
   | "cafeina"
   | "lactose"
+  | "sintomas"
   | "suplementos"
   | "indicadores";
 export const clientSectionLabels: Record<
@@ -104,6 +105,11 @@ export const clientSectionLabels: Record<
     subtitle: "Lactose de cada leite ou derivado, limite por refeição e no dia, sintomas e dicas",
     tagline: "Laticínios sem surpresas",
   },
+  sintomas: {
+    title: "Sintomas e pistas",
+    subtitle: "Registre como se sentiu e veja o que comeu, bebeu ou tomou antes",
+    tagline: "Descubra o que pode estar por trás",
+  },
   suplementos: {
     title: "Central de suplementação",
     subtitle: "Seus suplementos, doses, horários com timer, dicas e biblioteca de referência",
@@ -133,6 +139,7 @@ export const clientSectionHashes: Record<ClientSection, string> = {
   miccao: "miccao",
   cafeina: "cafeina",
   lactose: "lactose",
+  sintomas: "sintomas",
   suplementos: "suplementos",
   indicadores: "indicadores",
 };

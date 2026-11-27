@@ -34,6 +34,7 @@ import { ClientSleepPage } from "./ClientSleepPage";
 import { ClientUrinationPage } from "./ClientUrinationPage";
 import { ClientHealthHub } from "./ClientHealthHub";
 import { ClientLactosePage } from "./ClientLactosePage";
+import { ClientSymptomsPage } from "./ClientSymptomsPage";
 import { ClientCaffeinePage } from "./ClientCaffeinePage";
 import { WeightExplorer } from "./WeightExplorer";
 import { ClientHeartRate } from "./ClientHeartRate";
@@ -1345,6 +1346,9 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                     )}
                     {activeTab === "lactose" && (
                       <ClientLactosePage patientId={client.id} ownerId={client.owner_id} />
+                    )}
+                    {activeTab === "sintomas" && (
+                      <ClientSymptomsPage patientId={client.id} ownerId={client.owner_id} />
                     )}
                     {activeTab === "peso" && (
                       <ClientWeightPage

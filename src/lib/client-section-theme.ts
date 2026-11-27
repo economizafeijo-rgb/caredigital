@@ -12,6 +12,7 @@ import {
   Pill,
   Scale,
   Sparkles,
+  Stethoscope,
   Target,
   UtensilsCrossed,
   Ruler,
@@ -172,6 +173,15 @@ export const clientSectionTheme: Record<ClientSection, SectionTheme> = {
     overlay: "from-emerald-950 via-emerald-900/80 to-teal-600/10",
     pill: "bg-gradient-to-r from-emerald-600 to-teal-500",
     chip: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300",
+  },
+  sintomas: {
+    label: "Sintomas",
+    icon: Stethoscope,
+    image: "/images/caredigital-care-hero.webp",
+    position: "55% 30%",
+    overlay: "from-rose-950 via-rose-900/80 to-pink-600/10",
+    pill: "bg-gradient-to-r from-rose-600 to-pink-500",
+    chip: "bg-rose-500/15 text-rose-600 dark:text-rose-300",
   },
   suplementos: {
     label: "Suplementos",
