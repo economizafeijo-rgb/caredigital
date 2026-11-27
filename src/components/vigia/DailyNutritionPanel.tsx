@@ -28,6 +28,8 @@ import {
   isLiquid,
   measureUnit,
 } from "@/lib/food-parser";
+import { ageFromBirth } from "@/lib/health-limits";
+import { planMacroTargets, type PlanTargets } from "@/lib/weight-plan";
 import { objectiveLabel } from "@/lib/objective-nutrition";
 import { beverageNutrients } from "@/lib/beverage-nutrients";
 import { isBeverageKind } from "@/lib/care-intake-categories";
@@ -79,6 +81,7 @@ export function useDailyNutrition(
     fat: number | null;
   }>({ objective: null, weight: null, kcal: null, protein: null, carbs: null, fat: null });
   const [loaded, setLoaded] = useState(false);
+  const [plan, setPlan] = useState<PlanTargets | null>(null);
   const [reload, setReload] = useState(0);
   useEffect(() => {
     const bump = () => setReload((value) => value + 1);
@@ -120,9 +123,27 @@ export function useDailyNutrition(
         .eq("patient_id", patientId)
         .eq("owner_id", ownerId)
         .maybeSingle(),
+      db
+        .from("care_patients")
+        .select("birth_date,sex,height_cm,weight_kg,activity_level,care_goal,health_conditions")
+        .eq("id", patientId)
+        .maybeSingle(),
     ]).then(
-      ([meals, drinks, portions, pref]: any[]) => {
+      ([meals, drinks, portions, pref, prof]: any[]) => {
         if (!active) return;
+        const pd = prof?.data;
+        setPlan(
+          pd && (pd.care_goal === "emagrecimento" || pref.data?.objective === "emagrecimento")
+            ? planMacroTargets({
+                weightKg: Number(pd.weight_kg) || null,
+                heightCm: Number(pd.height_cm) || null,
+                age: ageFromBirth(pd.birth_date),
+                sex: pd.sex,
+                activity: pd.activity_level,
+                conditions: pd.health_conditions,
+              })
+            : null,
+        );
         const list: Entry[] = [];
         for (const row of meals.data ?? []) {
           // Versões antigas (editadas/excluídas) e registros da biblioteca (já listados como porções) não entram.
@@ -235,7 +256,7 @@ export function useDailyNutrition(
         entry.direct ? [entry.direct] : entry.foods.map((food) => food.nutrients),
       ),
     );
-    const base = goalTargets(prefs.objective, prefs.weight);
+    const base = plan ?? goalTargets(prefs.objective, prefs.weight);
     const target = {
       ...base,
       kcal: prefs.kcal ?? base.kcal,
@@ -252,7 +273,7 @@ export function useDailyNutrition(
       patientId,
       refresh: () => window.dispatchEvent(new Event("nv-intake-changed")),
     };
-  }, [entries, prefs, loaded]);
+  }, [entries, prefs, plan, loaded]);
 }
 
 function Ring({

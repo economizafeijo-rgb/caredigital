@@ -19,6 +19,8 @@ import {
 } from "./day-metrics";
 import { acreDayHour } from "./day-metrics";
 import { goalTargets, parseFoodText, sumNutrients } from "./food-parser";
+import { ageFromBirth } from "./health-limits";
+import { planMacroTargets, type PlanTargets } from "./weight-plan";
 
 const db = supabase as any;
 
@@ -30,6 +32,8 @@ export type PrefsInfo = {
   carbs: number | null;
   fat: number | null;
   targetWeightKg: number | null;
+  /** Metas do plano de perda de peso, quando o objetivo é emagrecer. */
+  plan?: PlanTargets | null;
 };
 export type PeriodData = { raw: PeriodRaw; prefs: PrefsInfo; warnings: string[] };
 
@@ -54,7 +58,7 @@ async function fetchAll(
 
 /** Metas efetivas: as do perfil quando existem; senão as de referência por objetivo e peso. */
 export function resolveTargets(prefs: PrefsInfo, waterMl: number | null): Targets {
-  const base = goalTargets(prefs.objective, prefs.weightKg);
+  const base = prefs.plan ?? goalTargets(prefs.objective, prefs.weightKg);
   // Sem peso cadastrado nem metas próprias, não há base para metas nutricionais: nada é cobrado
   // nem registrado como "não atingido" até a pessoa informar os dados essenciais.
   const essential =
@@ -116,6 +120,7 @@ export async function loadPeriodRaw(
     weights,
     reviews,
     prefsRow,
+    profRow,
   ] = await Promise.all([
     fetchAll((a, b) =>
       scope(db.from("care_hydration").select("amount_ml,recorded_at"))
@@ -246,6 +251,11 @@ export async function loadPeriodRaw(
         .range(a, b),
     ),
     scope(db.from("care_nutrition_preferences").select("*")).maybeSingle(),
+    db
+      .from("care_patients")
+      .select("birth_date,sex,height_cm,weight_kg,activity_level,care_goal,health_conditions")
+      .eq("id", patientId)
+      .maybeSingle(),
   ]);
 
   note("hidratação", water.failed);
@@ -430,6 +440,18 @@ export async function loadPeriodRaw(
     carbs: num(p.target_carbs_g),
     fat: num(p.target_fat_g),
     targetWeightKg: num(p.target_weight_kg),
+    plan:
+      profRow?.data &&
+      (profRow.data.care_goal === "emagrecimento" || p.objective === "emagrecimento")
+        ? planMacroTargets({
+            weightKg: Number(profRow.data.weight_kg) || null,
+            heightCm: Number(profRow.data.height_cm) || null,
+            age: ageFromBirth(profRow.data.birth_date),
+            sex: profRow.data.sex,
+            activity: profRow.data.activity_level,
+            conditions: profRow.data.health_conditions,
+          })
+        : null,
   };
   return { raw, prefs, warnings };
 }

@@ -162,3 +162,20 @@ export const HABITS = [
   },
   { t: "Durma de 7 a 9 horas", d: "Dormir pouco aumenta a fome e a vontade de doces." },
 ];
+
+export type PlanTargets = {
+  kcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber: number;
+};
+
+/** Metas diárias do plano de perda de peso, no mesmo formato das metas de referência. */
+export function planMacroTargets(i: PlanInput): PlanTargets | null {
+  const p = buildWeightPlan(i);
+  if (!p.ok || !p.kcal) return null;
+  const fat = Math.round((p.kcal * 0.27) / 9);
+  const carbs = Math.max(0, Math.round((p.kcal - p.proteinG * 4 - fat * 9) / 4));
+  return { kcal: p.kcal, protein: p.proteinG, carbs, fat, fiber: p.fiberG };
+}
