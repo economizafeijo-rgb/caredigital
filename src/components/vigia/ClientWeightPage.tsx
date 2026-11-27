@@ -127,6 +127,56 @@ function StatCard({
   );
 }
 
+function GoalProgress({
+  start,
+  now,
+  target,
+  onSet,
+}: {
+  start: number | null;
+  now: number | null;
+  target: number | null;
+  onSet: () => void;
+}) {
+  if (!target || start === null || now === null)
+    return (
+      <div className="mt-auto border-t border-border pt-3">
+        <p className="text-xs text-muted-foreground">
+          Defina uma meta para acompanhar o progresso aqui.
+        </p>
+        <button
+          type="button"
+          onClick={onSet}
+          className="mt-2 h-9 border border-border px-3 text-xs font-bold hover:bg-muted"
+        >
+          Definir meta de peso
+        </button>
+      </div>
+    );
+  const total = start - target;
+  const done = start - now;
+  const pct = Math.abs(total) < 0.1 ? 100 : Math.max(0, Math.min(100, (done / total) * 100));
+  return (
+    <div className="mt-auto border-t border-border pt-3">
+      <div className="flex items-baseline justify-between text-xs">
+        <span className="font-semibold">Progresso até a meta</span>
+        <span className="font-display font-extrabold tabular-nums">{Math.round(pct)}%</span>
+      </div>
+      <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted">
+        <i
+          className="block h-full rounded-full bg-[#a78bfa] transition-[width] duration-700"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <div className="mt-1.5 flex justify-between text-[11px] text-muted-foreground tabular-nums">
+        <span>Início {nf(start)} kg</span>
+        <span>Agora {nf(now)} kg</span>
+        <span>Meta {nf(target)} kg</span>
+      </div>
+    </div>
+  );
+}
+
 export function ClientWeightPage({
   patientId,
   ownerId,
@@ -651,7 +701,7 @@ export function ClientWeightPage({
           </section>
 
           <section
-            className="border border-border bg-card p-3.5 shadow-card"
+            className="flex flex-col border border-border bg-card p-3.5 shadow-card"
             aria-label="Classificação do IMC"
           >
             <h3 className="font-display text-sm font-bold">Classificação do IMC</h3>
@@ -690,6 +740,12 @@ export function ClientWeightPage({
             >
               {guidance.message} Não substitui avaliação profissional.
             </p>
+            <GoalProgress
+              start={points[0]?.weight_kg ?? null}
+              now={last?.weight_kg ?? currentWeight}
+              target={target}
+              onSet={() => setEditingGoal(true)}
+            />
           </section>
         </aside>
       </div>
@@ -700,7 +756,7 @@ export function ClientWeightPage({
           onPick={setDetailDay}
         />
         <section
-          className="border border-border bg-card p-3.5 shadow-card"
+          className="flex flex-col border border-border bg-card p-3.5 shadow-card"
           aria-label="Registros de peso"
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -881,6 +937,23 @@ export function ClientWeightPage({
               </table>
             )}
           </div>
+          {points.length > 0 && (
+            <dl className="mt-auto grid grid-cols-3 gap-2 border-t border-border pt-3 text-center">
+              {[
+                ["Registros", String(points.length)],
+                ["Primeiro", `${nf(points[0].weight_kg)} kg`],
+                [
+                  "Variação total",
+                  `${points.length > 1 ? signed(points[points.length - 1].weight_kg - points[0].weight_kg) : "—"}`,
+                ],
+              ].map(([k, v]) => (
+                <div key={k}>
+                  <dt className="text-[10px] font-semibold text-muted-foreground">{k}</dt>
+                  <dd className="font-display text-sm font-extrabold tabular-nums">{v}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
           {listMessage && (
             <p
               role="status"

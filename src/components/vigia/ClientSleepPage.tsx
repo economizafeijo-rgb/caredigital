@@ -755,7 +755,7 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
         </section>
 
         <section
-          className="border border-border bg-card p-3.5 shadow-card"
+          className="flex flex-col border border-border bg-card p-3.5 shadow-card"
           aria-label="Sensor em tempo real"
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -862,6 +862,13 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
               </div>
             </>
           )}
+          <ol className="mt-auto grid gap-2 border-t border-border pt-3 text-xs text-muted-foreground">
+            <li>
+              1. Ligue o Bluetooth do relógio ou da cinta e ative a transmissão de batimentos.
+            </li>
+            <li>2. Toque em Conectar sensor e escolha o aparelho na lista.</li>
+            <li>3. Deixe a tela aberta durante a noite: a média e a mínima entram no registro.</li>
+          </ol>
         </section>
       </div>
 
