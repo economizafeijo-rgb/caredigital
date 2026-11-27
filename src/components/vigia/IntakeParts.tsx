@@ -122,12 +122,18 @@ export function NutritionSummary({
   ];
   const max = Math.max(1, ...rows.map((r) => r.value));
   return (
-    <div aria-live="polite" title={note} className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
+    <div
+      aria-live="polite"
+      title={note}
+      className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-3"
+    >
       <p className="leading-none">
         <strong className="block text-3xl font-extrabold tabular-nums" style={{ color: tone }}>
           {nf(shown)}
         </strong>
-        <span className="mt-1 block text-[10px] font-semibold text-muted-foreground">{caption}</span>
+        <span className="mt-1 block text-[10px] font-semibold text-muted-foreground">
+          {caption}
+        </span>
       </p>
       <ul className="grid min-w-0 grid-cols-2 gap-x-3 gap-y-1.5">
         {rows.map((r) => (
@@ -168,6 +174,7 @@ export function SidePanel({
   saving,
   onCancel,
   registerNote,
+  hiddenOnMobile,
 }: {
   label: string;
   title: string;
@@ -183,11 +190,13 @@ export function SidePanel({
   saving: boolean;
   onCancel: () => void;
   registerNote?: string;
+  /** No celular, esconde o painel enquanto a lista de opções está aberta. */
+  hiddenOnMobile?: boolean;
 }) {
   return (
     <aside
       aria-label={label}
-      className="flex min-w-0 flex-col border border-border bg-card lg:min-h-0"
+      className={`flex min-w-0 flex-col border border-border bg-card lg:min-h-0 ${hiddenOnMobile ? "max-lg:hidden" : ""}`}
     >
       <header className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
         <h3 className="flex items-center gap-2 text-sm font-bold">
@@ -216,7 +225,10 @@ export function SidePanel({
       <div className="grid grid-cols-[minmax(0,1fr)] content-start gap-3 p-3 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overflow-x-hidden">
         {children}
       </div>
-      <footer className="sticky bottom-0 z-10 grid gap-2 border-t border-border bg-card p-3" data-intake-actions>
+      <footer
+        className="sticky bottom-0 z-10 grid gap-2 border-t border-border bg-card p-3"
+        data-intake-actions
+      >
         <label className="grid min-w-0 grid-cols-[auto_1fr] items-center gap-2 text-[11px] font-semibold text-muted-foreground">
           Quando · Acre (UTC−5)
           <input
@@ -237,7 +249,12 @@ export function SidePanel({
           </p>
         )}
         <div className="grid grid-cols-[auto_1fr] gap-2">
-          <button type="button" disabled={saving} onClick={onCancel} className="nv-btn nv-btn-ghost px-3.5">
+          <button
+            type="button"
+            disabled={saving}
+            onClick={onCancel}
+            className="nv-btn nv-btn-ghost px-3.5"
+          >
             <X size={14} /> Cancelar
           </button>
           <button
@@ -247,7 +264,9 @@ export function SidePanel({
             style={{ ["--btn" as string]: tone }}
           >
             <Save size={15} /> {saving ? "Salvando..." : "Registrar agora"}
-            {!saving && registerNote ? <span className="text-[11px] font-semibold opacity-80">· {registerNote}</span> : null}
+            {!saving && registerNote ? (
+              <span className="text-[11px] font-semibold opacity-80">· {registerNote}</span>
+            ) : null}
           </button>
         </div>
       </footer>
@@ -297,7 +316,8 @@ export function RecordOverview({
   const kcal = items.reduce((sum, i) => sum + i.kcal, 0);
   const foodKcal = items.filter((i) => i.group === "food").reduce((sum, i) => sum + i.kcal, 0);
   const drinkKcal = kcal - foodKcal;
-  const hasBoth = items.some((i) => i.group === "food") && items.some((i) => i.group === "beverage");
+  const hasBoth =
+    items.some((i) => i.group === "food") && items.some((i) => i.group === "beverage");
   return (
     <section
       ref={box}
@@ -326,7 +346,9 @@ export function RecordOverview({
         <ChevronDown
           size={15}
           aria-hidden="true"
-          className={"shrink-0 text-muted-foreground transition-transform " + (open ? "rotate-180" : "")}
+          className={
+            "shrink-0 text-muted-foreground transition-transform " + (open ? "rotate-180" : "")
+          }
         />
       </button>
       <div
@@ -348,7 +370,9 @@ export function RecordOverview({
                 title={item.group === active ? "Em edição agora" : "Toque para voltar e editar"}
                 className={
                   "flex w-full min-w-0 items-center gap-2 border-l-2 px-1.5 py-1.5 text-left text-xs transition hover:bg-amber-400/10 " +
-                  (item.group === active ? "border-l-amber-300 bg-white/[.06]" : "border-l-transparent")
+                  (item.group === active
+                    ? "border-l-amber-300 bg-white/[.06]"
+                    : "border-l-transparent")
                 }
               >
                 <span
@@ -467,5 +491,27 @@ export function EditingHeader({ title, tone }: { title: string; tone: string }) 
       <span className="block text-[10px] font-bold text-muted-foreground">Editando agora</span>
       <strong className="block truncate text-sm">{title}</strong>
     </div>
+  );
+}
+
+/**
+ * Fluxo no celular: com um item escolhido, só o painel de quantidade aparece (sem a lista enorme).
+ * "Trocar" volta para a lista; escolher outro item volta para o painel.
+ */
+export function useListToggle(hasSelection: boolean, key: string) {
+  const [browse, setBrowse] = useState(false);
+  useEffect(() => setBrowse(false), [key]);
+  return { showList: !hasSelection || browse, browse, setBrowse };
+}
+
+export function SwapButton({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-muted/40 text-sm font-semibold transition active:scale-[.98] lg:hidden"
+    >
+      {label}
+    </button>
   );
 }

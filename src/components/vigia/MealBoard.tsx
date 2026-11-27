@@ -6,7 +6,15 @@ import { FoodThumb, foodVisual } from "./FoodArt";
 import { drinkCards, type Card as DrinkCard } from "./DrinkBoard";
 import { NutritionInfoCard } from "./MealSuggestions";
 import { PlateBuilder, PlateRows } from "./PlateBuilder";
-import { EditingHeader, FocusStrip, KindRail, NutritionSummary, SidePanel } from "./IntakeParts";
+import {
+  EditingHeader,
+  FocusStrip,
+  KindRail,
+  NutritionSummary,
+  SidePanel,
+  SwapButton,
+  useListToggle,
+} from "./IntakeParts";
 import { foodKinds, mealCombos, typicalFoods, type FoodKind } from "@/lib/care-intake-categories";
 import { measureUnit, parseFoodText, sumNutrients } from "@/lib/food-parser";
 import { foodsForKind, isRegionalFood, normalize, searchFoods } from "@/lib/food-search";
@@ -183,6 +191,8 @@ export function MealBoard({
   }, [q]);
 
   const foods = useMemo(() => parseFoodText(`${portion} ${description}`), [portion, description]);
+  const hasSelection = description.trim().length > 0;
+  const { showList, browse, setBrowse } = useListToggle(hasSelection, description);
   const total = useMemo(() => sumNutrients(foods.map((f) => f.nutrients)), [foods]);
 
   const card = (item: Item, index: number, prefix: string) => {
@@ -281,24 +291,38 @@ export function MealBoard({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3 lg:grid lg:grid-cols-[10.5rem_minmax(0,1fr)_24rem] lg:overflow-hidden">
-      <KindRail
-        legend="Qual refeição?"
-        group="food"
-        items={foodKinds.map((c) => ({
-          value: c.value,
-          label: c.label,
-          hint: c.hint,
-          color: mealTone[c.value],
-          count: counts[c.value],
-        }))}
-        active={kind}
-        suggested={suggestedKind}
-        onPick={(value) => onKind(value as FoodKind)}
-        topSlot={topSlot}
-      />
+      <div className={showList ? "contents" : "hidden lg:contents"}>
+        <KindRail
+          legend="Qual refeição?"
+          group="food"
+          items={foodKinds.map((c) => ({
+            value: c.value,
+            label: c.label,
+            hint: c.hint,
+            color: mealTone[c.value],
+            count: counts[c.value],
+          }))}
+          active={kind}
+          suggested={suggestedKind}
+          onPick={(value) => onKind(value as FoodKind)}
+          topSlot={topSlot}
+        />
+      </div>
 
-      <div className="min-w-0 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
+      <div
+        className={`min-w-0 lg:min-h-0 lg:overflow-y-auto lg:pr-1 ${showList ? "" : "max-lg:hidden"}`}
+      >
         <div className="sticky top-0 z-10 -mt-px bg-card/95 pb-2 backdrop-blur">
+          {browse && hasSelection ? (
+            <button
+              type="button"
+              onClick={() => setBrowse(false)}
+              className="mb-2 flex h-10 w-full items-center justify-center rounded-xl text-sm font-bold text-white lg:hidden"
+              style={{ background: tone }}
+            >
+              Voltar ao registro
+            </button>
+          ) : null}
           <div className="flex flex-wrap items-center gap-2.5">
             <span
               className="grid size-9 shrink-0 place-items-center text-white"
@@ -388,7 +412,8 @@ export function MealBoard({
                       style={{ cursor: "pointer" }}
                       className="h-9 border border-border bg-card px-3 text-xs font-semibold transition hover:bg-muted active:scale-95"
                     >
-                      {c.label} <span className="font-normal text-muted-foreground">· {c.ml} ml</span>
+                      {c.label}{" "}
+                      <span className="font-normal text-muted-foreground">· {c.ml} ml</span>
                     </button>
                   </li>
                 ))}
@@ -431,6 +456,7 @@ export function MealBoard({
         tone={tone}
         pinned={overview}
         registerNote={registerNote}
+        hiddenOnMobile={browse && hasSelection}
         summary={
           overview ? undefined : totals || foods.length > 0 ? (
             <NutritionSummary
@@ -461,6 +487,7 @@ export function MealBoard({
         onCancel={onCancel}
       >
         <EditingHeader title={`Seu prato · ${category.label}`} tone={tone} />
+        <SwapButton label="Adicionar outro alimento" onClick={() => setBrowse(true)} />
 
         <PlateBuilder description={description} onDescription={onDescription} tone={tone} />
 

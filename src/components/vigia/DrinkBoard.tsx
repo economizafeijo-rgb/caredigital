@@ -4,7 +4,15 @@ import { HowItWorks, drinkHowTo } from "./HowItWorks";
 import { CareIntakeIcon } from "./CareIntakePicker";
 import { FoodThumb } from "./FoodArt";
 import { NutritionInfoCard } from "./MealSuggestions";
-import { EditingHeader, FocusStrip, KindRail, NutritionSummary, SidePanel } from "./IntakeParts";
+import {
+  EditingHeader,
+  FocusStrip,
+  KindRail,
+  NutritionSummary,
+  SidePanel,
+  SwapButton,
+  useListToggle,
+} from "./IntakeParts";
 import { beverageKinds, type BeverageKind } from "@/lib/care-intake-categories";
 import { drinkPresets, type DrinkPreset } from "@/lib/drink-presets";
 import { checkIntake } from "@/lib/hydration-need";
@@ -117,6 +125,8 @@ export function DrinkBoard({
     () => (isWater ? [] : parseFoodText(description, ml || null)),
     [description, ml, isWater],
   );
+  const hasSelection = !isWater && description.trim().length > 0;
+  const { showList, browse, setBrowse } = useListToggle(hasSelection, description);
   const total = useMemo(() => sumNutrients(parsed.map((f) => f.nutrients)), [parsed]);
   const check = checkIntake(ml);
   const picked = (c: Card) =>
@@ -227,29 +237,43 @@ export function DrinkBoard({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3 lg:grid lg:grid-cols-[10.5rem_minmax(0,1fr)_24rem] lg:overflow-hidden">
-      <KindRail
-        legend="Qual bebida?"
-        group="beverage"
-        items={beverageKinds.map((c) => ({
-          value: c.value,
-          label: c.label,
-          hint: c.hint,
-          color: drinkTone[c.value],
-          count: counts[c.value],
-        }))}
-        active={kind}
-        suggested={suggestedKind}
-        onPick={(value) => {
-          const c = beverageKinds.find((b) => b.value === value)!;
-          onKind(c.value);
-          // Trocar de categoria não apaga a bebida já escolhida.
-          if (!description.trim()) onAmount(String(c.amount ?? 200));
-        }}
-        topSlot={topSlot}
-      />
+      <div className={showList ? "contents" : "hidden lg:contents"}>
+        <KindRail
+          legend="Qual bebida?"
+          group="beverage"
+          items={beverageKinds.map((c) => ({
+            value: c.value,
+            label: c.label,
+            hint: c.hint,
+            color: drinkTone[c.value],
+            count: counts[c.value],
+          }))}
+          active={kind}
+          suggested={suggestedKind}
+          onPick={(value) => {
+            const c = beverageKinds.find((b) => b.value === value)!;
+            onKind(c.value);
+            // Trocar de categoria não apaga a bebida já escolhida.
+            if (!description.trim()) onAmount(String(c.amount ?? 200));
+          }}
+          topSlot={topSlot}
+        />
+      </div>
 
-      <div className="min-w-0 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
+      <div
+        className={`min-w-0 lg:min-h-0 lg:overflow-y-auto lg:pr-1 ${showList ? "" : "max-lg:hidden"}`}
+      >
         <div className="sticky top-0 z-10 -mt-px bg-card/95 pb-2 backdrop-blur">
+          {browse && hasSelection ? (
+            <button
+              type="button"
+              onClick={() => setBrowse(false)}
+              className="mb-2 flex h-10 w-full items-center justify-center rounded-xl text-sm font-bold text-white lg:hidden"
+              style={{ background: tone }}
+            >
+              Voltar ao registro
+            </button>
+          ) : null}
           <div className="flex flex-wrap items-center gap-2.5">
             <span
               className="grid size-9 shrink-0 place-items-center text-white"
@@ -348,6 +372,7 @@ export function DrinkBoard({
         tone={tone}
         pinned={overview}
         registerNote={registerNote}
+        hiddenOnMobile={browse && hasSelection}
         summary={
           overview ? undefined : totals || parsed.length > 0 ? (
             <NutritionSummary
@@ -377,6 +402,7 @@ export function DrinkBoard({
         onCancel={onCancel}
       >
         <EditingHeader title={`Sua bebida · ${category.label}`} tone={tone} />
+        <SwapButton label="Trocar bebida" onClick={() => setBrowse(true)} />
 
         {!isWater && (
           <label className="block text-xs font-semibold">
