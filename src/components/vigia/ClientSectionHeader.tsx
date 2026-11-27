@@ -45,7 +45,7 @@ export function ClientSectionHeader({
   const theme = clientSectionTheme[area];
   const Icon = theme.icon;
   return (
-    <header className="relative isolate flex min-h-0 shrink-0 flex-wrap items-center gap-x-3 gap-y-2.5 overflow-hidden rounded-xl bg-slate-950 !px-3 !py-2.5 text-white shadow-card sm:!py-2 [&_p]:!text-slate-200">
+    <header className="relative isolate flex min-h-0 shrink-0 flex-wrap items-center gap-x-3 gap-y-2.5 overflow-hidden rounded-2xl bg-slate-950 ring-1 ring-white/10 !px-4 !py-3 text-white shadow-card [&_p]:!text-slate-200">
       <img
         key={area}
         src={theme.image}
@@ -110,7 +110,7 @@ export function ClientSectionHeader({
           />
         )}
         {profileLocked && (
-          <span className="inline-flex h-9 items-center gap-1.5 border border-white/20 px-2.5 text-xs font-semibold text-white/80">
+          <span className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-white/20 bg-white/5 px-3 text-xs font-semibold text-white/80">
             <AnimatedLock
               size={15}
               label="Registros bloqueados até completar o cadastro"

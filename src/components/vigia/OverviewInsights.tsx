@@ -299,12 +299,12 @@ function DayBoard({
           ? "Em andamento"
           : "Comece o seu dia";
   const shownScore = Math.round(useCountUp(score));
-  const SEG = 20;
-  const lit = Math.round((score / 100) * SEG);
+  const R = 52;
+  const C = 2 * Math.PI * R;
   return (
     <section
       aria-label="Painel do dia"
-      className="nv-dark nv-scan grid overflow-hidden border border-white/10 bg-[#0b1230] text-white lg:grid-cols-[14.5rem_minmax(0,1fr)]"
+      className="nv-dark nv-scan grid overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[#121b45] via-[#0b1230] to-[#080e24] text-white shadow-card lg:grid-cols-[16rem_minmax(0,1fr)]"
     >
       <div className="relative flex flex-col justify-between gap-3 border-b border-white/10 p-4 lg:border-b-0 lg:border-r">
         <div className="flex items-center justify-between gap-2 text-[11px] font-semibold text-slate-400">
@@ -313,27 +313,47 @@ function DayBoard({
             <i className="nv-live size-1.5 rounded-full bg-emerald-400" /> ao vivo
           </span>
         </div>
-        <div role="img" aria-label={`Pontuação ${score} de 100. ${status}.`}>
-          <p className="font-display text-6xl font-extrabold leading-none tabular-nums tracking-tight">
-            {shownScore}
-            <span className="ml-1 text-base font-semibold text-slate-500">/100</span>
+        <div
+          role="img"
+          aria-label={`Pontuação ${score} de 100. ${status}.`}
+          className="flex items-center gap-4 lg:flex-col lg:items-start lg:gap-3"
+        >
+          <div className="relative size-[7.5rem] shrink-0">
+            <svg viewBox="0 0 120 120" className="size-full -rotate-90" aria-hidden="true">
+              <defs>
+                <linearGradient id="nv-score-grad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor="#34d399" />
+                  <stop offset="100%" stopColor="#22d3ee" />
+                </linearGradient>
+              </defs>
+              <circle
+                cx="60"
+                cy="60"
+                r={R}
+                fill="none"
+                stroke="rgba(255,255,255,.08)"
+                strokeWidth="9"
+              />
+              <circle
+                cx="60"
+                cy="60"
+                r={R}
+                fill="none"
+                stroke="url(#nv-score-grad)"
+                strokeWidth="9"
+                strokeLinecap="round"
+                strokeDasharray={`${(score / 100) * C} ${C}`}
+                className="transition-[stroke-dasharray] duration-700"
+              />
+            </svg>
+            <p className="absolute inset-0 grid place-content-center text-center font-display text-4xl font-extrabold leading-none tabular-nums">
+              {shownScore}
+              <span className="mt-0.5 text-[11px] font-semibold text-slate-400">de 100</span>
+            </p>
+          </div>
+          <p className="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-sm font-semibold text-cyan-200">
+            {status}
           </p>
-          <p className="mt-1 text-sm font-semibold text-cyan-200">{status}</p>
-        </div>
-        <div className="flex gap-[3px]" aria-hidden="true">
-          {Array.from({ length: SEG }, (_, i) => (
-            <i
-              key={i}
-              className="nv-seg h-2.5 flex-1 transition-colors duration-500"
-              style={{
-                animationDelay: `${i * 35}ms`,
-                background:
-                  i < lit
-                    ? `color-mix(in srgb, #34d399 ${100 - (i / SEG) * 45}%, #22d3ee)`
-                    : "rgba(255,255,255,.08)",
-              }}
-            />
-          ))}
         </div>
       </div>
       <div className="grid grid-cols-2 divide-white/10 max-lg:divide-y xl:grid-cols-4 xl:divide-x">
@@ -360,12 +380,12 @@ function DayBoard({
               type="button"
               onClick={() => onOpen(c.k)}
               aria-label={c.empty ? `${m.label}: ${m.empty}` : `${m.label}: abrir detalhes`}
-              className={`group relative flex min-w-0 flex-col gap-2 p-3.5 text-left transition-colors hover:bg-white/[.035] ${idx % 2 === 0 ? "max-xl:border-r max-xl:border-white/10" : ""} ${idx > 1 ? "max-xl:border-t max-xl:border-white/10" : ""}`}
+              className={`group relative flex min-w-0 flex-col gap-2.5 p-4 text-left transition-colors hover:bg-white/[.05] ${idx % 2 === 0 ? "max-xl:border-r max-xl:border-white/10" : ""} ${idx > 1 ? "max-xl:border-t max-xl:border-white/10" : ""}`}
               style={{ ["--c" as string]: m.color }}
             >
               <span className="flex items-center gap-2 text-xs font-semibold text-slate-300">
                 <span
-                  className="grid size-6 place-items-center text-white"
+                  className="grid size-7 place-items-center rounded-lg text-white"
                   style={{ background: m.color }}
                 >
                   <m.icon size={13} />
@@ -385,7 +405,7 @@ function DayBoard({
                 <span className="flex flex-1 flex-col justify-between gap-2">
                   <span className="text-xs text-slate-400">Sem registros nos últimos 7 dias</span>
                   <span
-                    className="inline-flex h-7 w-fit items-center gap-1 px-2.5 text-[11px] font-bold text-white transition group-hover:brightness-110"
+                    className="inline-flex h-8 w-fit items-center gap-1 rounded-full px-3 text-[11px] font-bold text-white transition group-hover:brightness-110"
                     style={{ background: m.color }}
                   >
                     <Plus size={12} /> {m.empty}
@@ -403,9 +423,9 @@ function DayBoard({
                   </span>
                   {c.pct !== null && (
                     <span className="flex items-center gap-2">
-                      <span className="h-1 flex-1 bg-white/10">
+                      <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
                         <i
-                          className="nv-sheen block h-full transition-[width] duration-700"
+                          className="nv-sheen block h-full rounded-full transition-[width] duration-700"
                           style={{ width: `${c.pct}%`, background: m.color }}
                         />
                       </span>
@@ -423,7 +443,7 @@ function DayBoard({
                       <i
                         key={keys[i] ?? i}
                         title={`${weekday(keys[i] ?? "")}: ${m.unit(v)}`}
-                        className={`flex-1 ${i === 6 ? "nv-grow-live" : "nv-grow"}`}
+                        className={`flex-1 rounded-t-[4px] ${i === 6 ? "nv-grow-live" : "nv-grow"}`}
                         style={{
                           height: `${Math.max(8, (v / peak) * 100)}%`,
                           background:
