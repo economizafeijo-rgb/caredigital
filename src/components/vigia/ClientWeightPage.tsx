@@ -39,6 +39,7 @@ import { useDialog } from "@/lib/dialog";
 import { weightGuidance } from "@/lib/nutrition-science";
 import { DayDetailDialog } from "./DayDetailDialog";
 import { WeightEvolutionChart, WeightVariationPanel } from "./WeightCharts";
+import { WeightLossPlan } from "./WeightLossPlan";
 
 type Point = { id: string; recorded_on: string; weight_kg: number; height_cm: number };
 type Props = {
@@ -485,6 +486,7 @@ export function ClientWeightPage({
 
   return (
     <div className="flex flex-col gap-2.5" aria-label="Registro e evolução do peso">
+      <WeightLossPlan patientId={patientId} currentWeight={last?.weight_kg ?? currentWeight} />
       <HowItWorks>{weightHowTo}</HowItWorks>
       <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
         <StatCard
@@ -647,7 +649,7 @@ export function ClientWeightPage({
                     {guidance.adultBmi ? category?.label : "avaliar por percentil de idade"}
                   </strong>
                   {guidance.healthyRangeKg
-                    ? ` · faixa adequada: ${nf(guidance.healthyRangeKg[0])}–${nf(guidance.healthyRangeKg[1])} kg`
+                    ? ` · faixa adequada: ${nf(guidance.healthyRangeKg[0])}–${nf(guidance.healthyRangeKg[1])} kg · peso de referência: ${nf(22 * (refHeight / 100) ** 2)} kg`
                     : ""}
                 </>
               ) : (
