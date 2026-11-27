@@ -85,6 +85,13 @@ describe("selo regional", () => {
   });
 });
 
+describe("assado de panela", () => {
+  it("acha e reconhece assado de panela", () => {
+    expect(labels("assado de panela")).toContain("assado de panela");
+    expect(parseFoodText("120 g de assado de panela").map((f) => f.id)).toEqual(["carne_assada"]);
+  });
+});
+
 describe("carnes assadas", () => {
   it("acha carne assada e mixto de carnes assadas", () => {
     expect(labels("carne assada")).toContain("carne assada");

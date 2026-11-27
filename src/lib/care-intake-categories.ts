@@ -208,6 +208,7 @@ export const typicalFoods: Record<FoodKind, { label: string; text: string }[]> =
   almoco: [
     { label: "Cozido de carne com legumes", text: "cozido de carne" },
     { label: "Carne assada", text: "120 g de carne assada" },
+    { label: "Assado de panela", text: "120 g de assado de panela" },
     { label: "Mixto de carnes assadas", text: "mixto de carnes assadas" },
     { label: "Arroz", text: "4 colheres de sopa de arroz" },
     { label: "Feijão", text: "1 concha de feijão" },
@@ -240,6 +241,7 @@ export const typicalFoods: Record<FoodKind, { label: string; text: string }[]> =
   jantar: [
     { label: "Sopa de legumes", text: "1 prato de sopa de legumes" },
     { label: "Carne assada", text: "120 g de carne assada" },
+    { label: "Assado de panela", text: "120 g de assado de panela" },
     { label: "Mixto de carnes assadas", text: "mixto de carnes assadas" },
     { label: "Arroz", text: "3 colheres de sopa de arroz" },
     { label: "Feijão", text: "1 concha de feijão" },
