@@ -137,3 +137,95 @@ export const LACTOSE_THRESHOLDS = {
   /** Dieta de baixa lactose. */
   lowDiet: 10,
 } as const;
+
+/** g de açúcar livre/adicionado por 100 g ou ml (OMS, tabelas TACO/USDA). A primeira regra que combina vence. */
+const SUGAR_RULES: Rule[] = [
+  [/zero|diet|light|sem acucar|adocante|stevia/, 0, "Sem açúcar"],
+  [/\bacucar\b|acucar (cristal|refinado|mascavo|demerara|de coco)|rapadura|gramixo/, 98, "Açúcar"],
+  [/\bmel\b/, 80, "Mel"],
+  [/leite condensado|doce de leite|brigadeiro|beijinho|cocada/, 50, "Doce de leite / condensado"],
+  [/achocolatado (em )?po|nescau|toddy|ovomaltine/, 70, "Achocolatado em pó"],
+  [/achocolatado/, 10, "Achocolatado"],
+  [/goiabada|geleia|marmelada|compota|doce de fruta/, 55, "Geleia / goiabada"],
+  [/chocolate|bombom|trufa|barra de cereal|pa[cç]oca/, 45, "Chocolate / doce"],
+  [/biscoito (recheado|wafer|doce)|bolacha (recheada|doce)|wafer|cookie/, 33, "Biscoito doce"],
+  [
+    /bolo|torta|pudim|mousse|sobremesa|donut|rosquinha|sonho|churros|brownie|pave/,
+    28,
+    "Bolo / sobremesa",
+  ],
+  [/sorvete|picole|gelato|milkshake|sundae/, 20, "Sorvete"],
+  [/cereal (matinal|acucarado)|sucrilhos|granola/, 30, "Cereal açucarado"],
+  [/refrigerante|\bcola\b|guarana|fanta|sprite|pepsi|coca|tonica/, 10.5, "Refrigerante"],
+  [/energetico|red bull|monster|isot[oô]nico|gatorade|powerade/, 11, "Energético / isotônico"],
+  [
+    /suco (de )?(caixa|caixinha|po|industrializado|pronto)|nectar|refresco|del valle|tang/,
+    11,
+    "Suco industrializado",
+  ],
+  [/suco|vitamina de fruta|caldo de cana|garapa/, 9, "Suco"],
+  [
+    /iogurte (com|de) (fruta|polpa|morango|sabor)|iogurte (saborizado|grego com)|danone|yakult|leite fermentado|petit suisse/,
+    13,
+    "Iogurte adoçado",
+  ],
+  [/acai (na tigela|no copo|com xarope|adocado|com guarana)/, 20, "Açaí adoçado"],
+  [/pao doce|rosca doce|panetone|sonho|cuca/, 20, "Pão doce"],
+  [/gelatina|flan|manjar/, 15, "Gelatina / flan"],
+  [/molho (barbecue|agridoce)|ketchup|catchup/, 22, "Molho adoçado"],
+];
+
+/** g de gordura saturada por 100 g ou ml. */
+const SATFAT_RULES: Rule[] = [
+  [/oleo de coco|gordura de coco/, 82, "Óleo de coco"],
+  [/manteiga|ghee/, 51, "Manteiga"],
+  [/nata\b/, 25, "Nata"],
+  [/coco (ralado|seco|fresco)|leite de coco/, 20, "Coco"],
+  [/chocolate|bombom|trufa/, 18, "Chocolate"],
+  [/margarina/, 15, "Margarina"],
+  [/bacon|toucinho|torresmo|pele de frango/, 14, "Bacon / torresmo"],
+  [/creme de leite/, 20, "Creme de leite"],
+  [
+    /queijo (curado|parmesao|cheddar|provolone|gouda|prato|mussarela|muçarela|minas|coalho)|parmesao|cheddar|mussarela|mucarela/,
+    15,
+    "Queijo",
+  ],
+  [/queijo|requeijao|cream cheese/, 8, "Queijo cremoso"],
+  [/linguica|salame|calabresa|mortadela|salsicha/, 9, "Embutido"],
+  [
+    /costela|picanha|fraldinha|cupim|acem|carne gorda|carne de porco|pernil|barriga|hamburguer/,
+    7,
+    "Carne gorda",
+  ],
+  [
+    /pizza|pao de queijo|coxinha|pastel|empada|salgado|esfiha|quibe|croissant/,
+    6,
+    "Salgado / massa folhada",
+  ],
+  [/batata frita|frango frito|frito|fritura|nuggets|empanado|milanesa/, 4, "Frituras"],
+  [/sorvete|milkshake|picole cremoso/, 6, "Sorvete"],
+  [/biscoito recheado|bolo|torta|brownie|cookie|donut|sonho|churros/, 5, "Bolo / biscoito"],
+  [/maionese/, 5, "Maionese"],
+  [/leite integral|iogurte integral|leite (em )?po integral/, 2, "Leite integral"],
+  [/ovo (frito|mexido)|omelete/, 3, "Ovos com gordura"],
+  [/azeite/, 14, "Azeite"],
+];
+
+export type NutrientHit = { g: number; label: string };
+
+const hit = (rules: Rule[], text: string, amount: number): NutrientHit | null => {
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+  const t = norm(text);
+  for (const [re, per100, label] of rules) {
+    if (re.test(t)) {
+      if (per100 <= 0) return null;
+      return { g: Math.round(((per100 * amount) / 100) * 10) / 10, label };
+    }
+  }
+  return null;
+};
+
+/** Açúcar livre/adicionado estimado (g) de um item. Null se não houver. */
+export const detectSugar = (text: string, amount: number) => hit(SUGAR_RULES, text, amount);
+/** Gordura saturada estimada (g) de um item. Null se não houver. */
+export const detectSatFat = (text: string, amount: number) => hit(SATFAT_RULES, text, amount);

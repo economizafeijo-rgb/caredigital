@@ -1,4 +1,5 @@
-import { Flame } from "lucide-react";
+import { useState } from "react";
+import { ChevronDown, Flame } from "lucide-react";
 import { acreDateKey } from "@/lib/acre-time";
 import { microTargets } from "@/lib/food-parser";
 import { useDailyNutrition } from "./DailyNutritionPanel";
@@ -27,6 +28,16 @@ export function TodayGoalsCard({
   const lacG = intake.lactose
     .filter((r) => acreDateKey(r.at) === today && !r.free)
     .reduce((a, r) => a + r.g, 0);
+  const sugarG = intake.sugar
+    .filter((r) => acreDateKey(r.at) === today)
+    .reduce((a, r) => a + r.g, 0);
+  const satG = intake.satFat
+    .filter((r) => acreDateKey(r.at) === today)
+    .reduce((a, r) => a + r.g, 0);
+  // OMS: açúcar livre abaixo de 10% e gordura saturada abaixo de 10% das calorias do dia.
+  const kcalGoal = d.target.kcal || 2000;
+  const sugarLimit = Math.round((kcalGoal * 0.1) / 4);
+  const satLimit = Math.round((kcalGoal * 0.1) / 9);
   const micro = (Object.keys(microTargets) as (keyof typeof microTargets)[]).map((k) => ({
     label: microTargets[k].label,
     v: d.total[k],
@@ -34,6 +45,10 @@ export function TodayGoalsCard({
     u: microTargets[k].unit,
     c: "#2dd4bf",
   }));
+  const fats: Row[] = [
+    { label: "Açúcar adicionado", v: sugarG, t: sugarLimit, u: "g", c: "#f472b6", limit: true },
+    { label: "Gordura saturada", v: satG, t: satLimit, u: "g", c: "#fb923c", limit: true },
+  ];
   const watch: Row[] = [
     {
       label: "Cafeína",
@@ -77,7 +92,13 @@ export function TodayGoalsCard({
         </span>
       </div>
       <Group title="Macronutrientes" rows={rows} />
-      <Group title="Vitaminas, minerais e fibras" rows={[...micro]} className="mt-4" />
+      <Group
+        title="Açúcar e gordura"
+        rows={fats}
+        className="mt-4"
+        note="Limites de 10% das calorias da sua meta (OMS). Estimado pelos alimentos registrados."
+      />
+      <Group title="Vitaminas, minerais e fibras" rows={[...micro]} className="mt-4" collapsed />
       <Group
         title="Atenção do dia"
         rows={watch}
@@ -100,48 +121,66 @@ function Group({
   rows,
   className = "",
   note,
+  collapsed = false,
 }: {
   title: string;
   rows: Row[];
   className?: string;
   note?: string;
+  collapsed?: boolean;
 }) {
+  const [open, setOpen] = useState(!collapsed);
+  const hit = rows.filter((r) => r.t > 0 && r.v / r.t >= 1).length;
   return (
     <div className={className}>
-      <h4 className="mb-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-        {title}
-      </h4>
-      <ul className="grid gap-2.5">
-        {rows.map((r) => {
-          const ratio = r.t > 0 ? r.v / r.t : 0;
-          const over = r.limit && ratio > 1;
-          return (
-            <li key={r.label} className="grid gap-1">
-              <div className="flex items-baseline justify-between gap-2 text-xs">
-                <span className="font-semibold">{r.label}</span>
-                <span className="tabular-nums text-muted-foreground">
-                  <b className={over ? "text-red-400" : "text-foreground"}>
-                    {nf(r.v, r.u === "kcal" || r.u === "mg" || r.u === "mcg" ? 0 : 1)}
-                  </b>{" "}
-                  / {nf(r.t)} {r.u} · {nf(ratio * 100)}%
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className="mb-2 flex min-h-9 w-full items-center justify-between gap-2 text-left"
+      >
+        <span className="text-xs font-bold text-foreground">{title}</span>
+        <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          {!open && `${hit}/${rows.length} atingidos`}
+          <ChevronDown
+            size={16}
+            className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          />
+        </span>
+      </button>
+      {open && (
+        <ul className="grid gap-2.5">
+          {rows.map((r) => {
+            const ratio = r.t > 0 ? r.v / r.t : 0;
+            const over = r.limit && ratio > 1;
+            return (
+              <li key={r.label} className="grid gap-1">
+                <div className="flex items-baseline justify-between gap-2 text-xs">
+                  <span className="font-semibold">{r.label}</span>
+                  <span className="tabular-nums text-muted-foreground">
+                    <b className={over ? "text-red-400" : "text-foreground"}>
+                      {nf(r.v, r.u === "kcal" || r.u === "mg" || r.u === "mcg" ? 0 : 1)}
+                    </b>{" "}
+                    / {nf(r.t)} {r.u} · {nf(ratio * 100)}%
+                  </span>
+                </div>
+                <span className="h-2 overflow-hidden rounded-full bg-muted" aria-hidden="true">
+                  <i
+                    className="block h-full rounded-full transition-[width] duration-700"
+                    style={{
+                      width: `${Math.min(100, ratio * 100)}%`,
+                      background: over
+                        ? "#ef4444"
+                        : `linear-gradient(90deg, ${r.c}, color-mix(in srgb, ${r.c} 60%, #fff))`,
+                    }}
+                  />
                 </span>
-              </div>
-              <span className="h-2 overflow-hidden rounded-full bg-muted" aria-hidden="true">
-                <i
-                  className="block h-full rounded-full transition-[width] duration-700"
-                  style={{
-                    width: `${Math.min(100, ratio * 100)}%`,
-                    background: over
-                      ? "#ef4444"
-                      : `linear-gradient(90deg, ${r.c}, color-mix(in srgb, ${r.c} 60%, #fff))`,
-                  }}
-                />
-              </span>
-            </li>
-          );
-        })}
-      </ul>
-      {note && <p className="mt-2 text-[11px] text-muted-foreground">{note}</p>}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {open && note && <p className="mt-2 text-[11px] text-muted-foreground">{note}</p>}
     </div>
   );
 }

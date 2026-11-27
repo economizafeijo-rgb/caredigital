@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ingredientById } from "@/lib/nutrition-catalog";
 import { parseFoodText } from "@/lib/food-parser";
 import { fetchAll } from "@/lib/fetch-all";
-import { detectCaffeine, detectLactose } from "@/lib/intake-detect";
+import { detectCaffeine, detectLactose, detectSatFat, detectSugar } from "@/lib/intake-detect";
 
 const norm = (t: string) =>
   t
@@ -21,6 +21,7 @@ export type CaffeineRecord = {
   mg: number;
   origin: IntakeOrigin;
 };
+export type NutrientRecord = { id: string; at: string; label: string; g: number };
 export type LactoseRecord = {
   id: string;
   at: string;
@@ -38,6 +39,8 @@ export type LactoseRecord = {
 export function useIntakeRecords(patientId: string, ownerId: string, days = 30) {
   const [caffeine, setCaffeine] = useState<CaffeineRecord[]>([]);
   const [lactose, setLactose] = useState<LactoseRecord[]>([]);
+  const [sugar, setSugar] = useState<NutrientRecord[]>([]);
+  const [satFat, setSatFat] = useState<NutrientRecord[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [reload, setReload] = useState(0);
 
@@ -95,6 +98,8 @@ export function useIntakeRecords(patientId: string, ownerId: string, days = 30) 
       if (!active) return;
       const caf: CaffeineRecord[] = [];
       const lac: LactoseRecord[] = [];
+      const sug: NutrientRecord[] = [];
+      const sat: NutrientRecord[] = [];
       const addBoth = (
         id: string,
         at: string,
@@ -113,6 +118,10 @@ export function useIntakeRecords(patientId: string, ownerId: string, days = 30) 
             mg: c.mg,
             origin,
           });
+        const sg = detectSugar(text, amount);
+        if (sg) sug.push({ id: `${origin}-s-${id}`, at, label: sg.label, g: sg.g });
+        const sf = detectSatFat(text, amount);
+        if (sf) sat.push({ id: `${origin}-f-${id}`, at, label: sf.label, g: sf.g });
         const l = detectLactose(text, amount);
         if (l)
           lac.push({
@@ -212,6 +221,8 @@ export function useIntakeRecords(patientId: string, ownerId: string, days = 30) 
       lacU.sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
       setCaffeine(merged);
       setLactose(lacU);
+      setSugar(uniq(sug));
+      setSatFat(uniq(sat));
       setLoaded(true);
     });
     return () => {
@@ -219,5 +230,5 @@ export function useIntakeRecords(patientId: string, ownerId: string, days = 30) 
     };
   }, [patientId, ownerId, days, reload]);
 
-  return { caffeine, lactose, loaded };
+  return { caffeine, lactose, sugar, satFat, loaded };
 }
