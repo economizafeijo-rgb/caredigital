@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AnimatedLock } from "./AnimatedLock";
 import { RecordInfo, type RecordInfoRow } from "./RecordInfo";
 import { MacroBreakdown } from "./MacroBreakdown";
+import { EmptyState } from "./EmptyState";
 
 type Category = "hidratacao" | "refeicao" | "medicacao" | "resumo";
 type RecordRow = {
@@ -661,10 +662,12 @@ export function CareRecentHistory({
           {error}
         </p>
       ) : rows.length === 0 ? (
-        <p className="care-history-empty">
-          Nenhum registro encontrado neste período. Outros eventos podem estar disponíveis no
-          prontuário completo.
-        </p>
+        <EmptyState
+          icon={History}
+          compact
+          title="Nenhum registro neste período"
+          text="Outros eventos podem estar disponíveis no prontuário completo."
+        />
       ) : (
         <>
           {error && (
@@ -741,9 +744,7 @@ export function CareRecentHistory({
         </p>
       )}
       {editing && (
-        <div
-          className="fixed inset-0 z-[150] grid place-items-center bg-slate-950/70 p-3 backdrop-blur-sm"
-        >
+        <div className="fixed inset-0 z-[150] grid place-items-center bg-slate-950/70 p-3 backdrop-blur-sm">
           <form
             role="dialog"
             aria-modal="true"

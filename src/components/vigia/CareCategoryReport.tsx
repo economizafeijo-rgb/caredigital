@@ -15,7 +15,12 @@ import {
   Save,
   AlertTriangle,
   LockKeyhole,
+  Droplets,
+  UtensilsCrossed,
+  Pill,
+  Inbox,
 } from "lucide-react";
+import { EmptyState } from "./EmptyState";
 import { supabase } from "@/integrations/supabase/client";
 import type { HydrationGoalSnapshot } from "@/lib/hydration-goal";
 
@@ -59,6 +64,16 @@ const labels: Record<Category, string> = {
   refeicao: "Alimentação",
   medicacao: "Medicamentos e suplementos",
 };
+const themes = {
+  hidratacao: { tone: "#0ea5e9", icon: Droplets },
+  refeicao: { tone: "#f59e0b", icon: UtensilsCrossed },
+  medicacao: { tone: "#8b5cf6", icon: Pill },
+} as const;
+const stateStyle = {
+  realizado: { color: "#10b981", label: "Realizado" },
+  pendente: { color: "#0ea5e9", label: "Pendente" },
+  nao_realizado: { color: "#f59e0b", label: "Sem confirmação" },
+} as const;
 const stamp = (d: Date) =>
   new Intl.DateTimeFormat("en-CA", {
     timeZone: zone,
@@ -454,35 +469,53 @@ export function CareCategoryReport({
     link.click();
     URL.revokeObjectURL(url);
   };
+  const theme = themes[category];
+  const ThemeIcon = theme.icon;
   return typeof document === "undefined"
     ? null
     : createPortal(
-        <div
-          className="fixed inset-0 z-[190] flex items-end justify-center bg-slate-950/60 p-0 backdrop-blur-sm sm:items-center sm:p-4"
-        >
+        <div className="fixed inset-0 z-[190] flex items-end justify-center bg-slate-950/60 p-0 backdrop-blur-sm sm:items-center sm:p-4">
           <section
             role="dialog"
             aria-modal="true"
             aria-label={"Relatório de " + labels[category]}
             className="care-category-report-dialog flex h-[min(96dvh,760px)] w-full max-w-[900px] min-h-0 flex-col overflow-hidden rounded-t-3xl border border-primary/30 bg-card text-foreground shadow-2xl sm:h-[min(94dvh,760px)] sm:rounded-2xl"
           >
-            <header className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-3 py-2 sm:px-4 sm:py-2.5">
-              <div>
-                <p className="flex items-center gap-2 text-[11px] font-bold text-primary">
-                  <BarChart3 size={15} /> Relatório de acompanhamento
-                </p>
-                <h2 className="text-base font-bold sm:text-lg">{labels[category]}</h2>
-                <p className="text-xs text-muted-foreground">
-                  Eventos realizados, não confirmados e futuros · horário do Acre
-                </p>
+            <header
+              className="relative flex shrink-0 items-start justify-between gap-3 overflow-hidden border-b border-border px-4 py-3 sm:px-5"
+              style={{ background: `linear-gradient(135deg, ${theme.tone}1f, transparent 70%)` }}
+            >
+              <ThemeIcon
+                aria-hidden="true"
+                size={110}
+                strokeWidth={1.25}
+                className="pointer-events-none absolute -right-3 -top-3 opacity-[.08]"
+                style={{ color: theme.tone }}
+              />
+              <div className="relative flex min-w-0 items-center gap-3">
+                <span
+                  className="grid size-11 shrink-0 place-items-center rounded-2xl text-white shadow-sm"
+                  style={{ background: theme.tone }}
+                >
+                  <ThemeIcon size={22} />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[11px] font-semibold" style={{ color: theme.tone }}>
+                    Relatório de acompanhamento
+                  </p>
+                  <h2 className="text-lg font-bold leading-tight sm:text-xl">{labels[category]}</h2>
+                  <p className="text-xs text-muted-foreground">
+                    Realizados, sem confirmação e futuros · horário do Acre
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
                 aria-label="Fechar relatório"
                 onClick={onClose}
-                className="rounded-lg border border-border p-2"
+                className="relative grid size-10 shrink-0 place-items-center rounded-xl border border-border bg-card/70 transition active:scale-95"
               >
-                <X size={19} />
+                <X size={18} />
               </button>
             </header>
             <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 px-3 py-2 sm:px-4 sm:py-2.5">
@@ -590,19 +623,33 @@ export function CareCategoryReport({
                     icon: BarChart3,
                   },
                 ] as const
-              ).map((item) => (
-                <div
-                  key={item.label}
-                  className="rounded-lg border border-border bg-muted p-2 sm:rounded-xl sm:p-2.5"
-                >
-                  <span className="block text-[11px] leading-tight text-muted-foreground sm:text-[11px]">
-                    {item.label}
-                  </span>
-                  <strong className="mt-0.5 block text-lg leading-tight sm:mt-1 sm:text-xl">
-                    {item.value}
-                  </strong>
-                </div>
-              ))}
+              ).map((item, i) => {
+                const color = [
+                  stateStyle.realizado.color,
+                  stateStyle.nao_realizado.color,
+                  stateStyle.pendente.color,
+                  theme.tone,
+                ][i];
+                return (
+                  <div
+                    key={item.label}
+                    className="flex items-center gap-2.5 rounded-2xl border border-border bg-muted/40 p-2.5"
+                  >
+                    <span
+                      className="grid size-8 shrink-0 place-items-center rounded-xl"
+                      style={{ background: `${color}22`, color }}
+                    >
+                      <item.icon size={16} />
+                    </span>
+                    <div className="min-w-0 leading-tight">
+                      <strong className="block text-lg tabular-nums">{item.value}</strong>
+                      <span className="block truncate text-[11px] text-muted-foreground">
+                        {item.label}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
             {warning && (
               <p
@@ -618,11 +665,40 @@ export function CareCategoryReport({
               aria-label="Eventos do período"
             >
               {loading ? (
-                <p className="p-4 text-sm text-muted-foreground">Consultando registros…</p>
-              ) : events.length === 0 ? (
-                <p className="p-4 text-sm text-muted-foreground">
-                  Nenhum evento encontrado neste período.
+                <p className="p-8 text-center text-sm text-muted-foreground">
+                  Consultando registros…
                 </p>
+              ) : events.length === 0 ? (
+                <EmptyState
+                  icon={
+                    category === "hidratacao"
+                      ? Droplets
+                      : category === "refeicao"
+                        ? UtensilsCrossed
+                        : Inbox
+                  }
+                  tone={theme.tone}
+                  title={
+                    period === "dia"
+                      ? "Nada registrado hoje"
+                      : period === "mes"
+                        ? "Nada registrado neste mês"
+                        : "Nada registrado neste ano"
+                  }
+                  text="Quando você registrar, os eventos aparecem aqui em ordem, com horário e situação."
+                  action={
+                    onAdd ? (
+                      <button
+                        type="button"
+                        onClick={onAdd}
+                        className="inline-flex h-10 items-center gap-2 rounded-xl px-4 text-xs font-bold text-white"
+                        style={{ background: theme.tone }}
+                      >
+                        <Plus size={14} /> Registrar agora
+                      </button>
+                    ) : undefined
+                  }
+                />
               ) : (
                 <div className="space-y-2">
                   {(all ? events : events.slice(0, 35)).map((e) => (
@@ -631,20 +707,15 @@ export function CareCategoryReport({
                       type="button"
                       onClick={() => void openEventDetails(e)}
                       aria-label={"Ver detalhes de " + e.title + " às " + format(e.at)}
-                      className="group flex w-full items-start gap-2.5 rounded-lg border border-border bg-muted p-2 sm:gap-3 sm:rounded-xl sm:p-2.5 text-left transition hover:border-primary/30 hover:bg-teal-300/[.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300"
+                      className="group relative flex w-full items-start gap-3 overflow-hidden rounded-2xl border border-border bg-muted/40 py-2.5 pl-4 pr-3 text-left transition hover:border-primary/40 hover:bg-muted/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                     >
                       <span
-                        className={
-                          "mt-1 size-2 shrink-0 rounded-full " +
-                          (e.state === "realizado"
-                            ? "bg-emerald-300"
-                            : e.state === "pendente"
-                              ? "bg-sky-300"
-                              : "bg-amber-300")
-                        }
+                        aria-hidden="true"
+                        className="absolute inset-y-0 left-0 w-1"
+                        style={{ background: stateStyle[e.state].color }}
                       />
                       <span className="min-w-0 flex-1">
-                        <strong className="flex items-center gap-1.5 text-[12px] leading-snug sm:text-sm">
+                        <strong className="flex items-center gap-1.5 text-sm leading-snug">
                           {e.state === "realizado" && (
                             <LockKeyhole
                               size={12}
@@ -652,27 +723,29 @@ export function CareCategoryReport({
                               aria-label="Registro protegido, editável"
                             />
                           )}
-                          <span>{e.title}</span>
+                          <span className="truncate">{e.title}</span>
                         </strong>
-                        <span className="mt-0.5 block text-[11px] leading-snug text-muted-foreground sm:mt-1 sm:text-xs">
+                        <span className="mt-0.5 line-clamp-2 block text-xs leading-snug text-muted-foreground">
                           {e.detail}
                           {e.amount !== undefined
                             ? " · " + e.amount.toLocaleString("pt-BR") + " ml"
                             : ""}
                         </span>
                       </span>
-                      <span className="shrink-0 text-right">
-                        <time className="block text-[11px] text-muted-foreground sm:text-[11px]">
+                      <span className="flex shrink-0 flex-col items-end gap-1">
+                        <time className="text-[11px] tabular-nums text-muted-foreground">
                           {format(e.at)}
                         </time>
-                        <span className="text-[11px] font-semibold sm:text-[11px]">
-                          {e.state === "realizado"
-                            ? "Realizado"
-                            : e.state === "pendente"
-                              ? "Pendente"
-                              : "Sem confirmação"}
+                        <span
+                          className="rounded-full px-2 py-0.5 text-[10px] font-bold"
+                          style={{
+                            background: `${stateStyle[e.state].color}22`,
+                            color: stateStyle[e.state].color,
+                          }}
+                        >
+                          {stateStyle[e.state].label}
                         </span>
-                        <span className="mt-0.5 flex items-center justify-end gap-1 text-[11px] font-bold text-primary opacity-80 group-hover:opacity-100">
+                        <span className="flex items-center gap-0.5 text-[11px] font-bold text-primary opacity-80 group-hover:opacity-100">
                           Detalhes <span aria-hidden="true">›</span>
                         </span>
                       </span>
@@ -691,9 +764,7 @@ export function CareCategoryReport({
               )}
             </div>
             {selectedEvent && (
-              <div
-                className="fixed inset-0 z-[220] flex items-center justify-center bg-slate-950/60 p-3 backdrop-blur-sm"
-              >
+              <div className="fixed inset-0 z-[220] flex items-center justify-center bg-slate-950/60 p-3 backdrop-blur-sm">
                 <section
                   role="dialog"
                   aria-modal="true"

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePlatformStart } from "@/lib/platform-start";
 import { DayLookup } from "./DayLookup";
 import { acreAddDays, acreDateKey, acreEndOfDay, acreStartOfDay } from "@/lib/acre-time";
+import { EmptyState } from "./EmptyState";
 
 type Period = "dia" | "semana" | "mes" | "ano";
 type Row = { at: string; day: string; ml: number; name: string };
@@ -287,9 +288,15 @@ export function HydrationPeriodHistory({
       )}
 
       {!loading && rows.length === 0 && (
-        <p className="border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
-          Nenhum registro de líquido neste período.
-        </p>
+        <div className="border border-dashed border-border">
+          <EmptyState
+            icon={Droplets}
+            tone="#0ea5e9"
+            compact
+            title="Nenhum líquido registrado"
+            text="Registre água ou bebidas para ver o histórico deste período."
+          />
+        </div>
       )}
 
       {(period === "semana" || period === "mes" || period === "ano") && (

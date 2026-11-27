@@ -18,6 +18,7 @@ import {
 import { useCareLogs, useLiquids } from "./useCareLogs";
 import { ClientHealthHub } from "./ClientHealthHub";
 import { Collapsible } from "./HealthBits";
+import { EmptyState } from "./EmptyState";
 
 const COLS = "id,at,volume,ml,notes";
 const toneCls = {
@@ -341,9 +342,13 @@ export function ClientUrinationPage({
         defaultOpen
       >
         {!scope.length ? (
-          <p className="text-sm text-muted-foreground">
-            Nenhum registro ainda. Toque em “Registrar xixi agora” quando for ao banheiro.
-          </p>
+          <EmptyState
+            icon={Droplets}
+            tone="#eab308"
+            compact
+            title="Nenhum registro ainda"
+            text="Toque em “Registrar xixi agora” quando for ao banheiro."
+          />
         ) : (
           <ul className="divide-y divide-border">
             {scope.map((l) => (

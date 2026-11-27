@@ -17,6 +17,7 @@ import {
   Pencil,
   Trash2,
   Droplets,
+  CalendarDays,
   HeartPulse,
   Moon,
   Pill,
@@ -36,6 +37,7 @@ import { careReminderState, type ReminderTask } from "@/lib/care-reminders";
 import { clientSectionHashes, type ClientSection } from "@/lib/client-pages";
 import { AnimatedLock } from "./AnimatedLock";
 import { NextUpClock } from "./NextUpClock";
+import { EmptyState } from "./EmptyState";
 
 /**
  * Meu dia: uma linha do tempo com tudo o que o cliente planejou para hoje — doses de
@@ -1110,9 +1112,14 @@ export function ClientDayPlanner({
                   />
                 </div>
                 {list.length === 0 ? (
-                  <p className="grid flex-1 place-items-center rounded-xl border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground">
-                    Nada registrado neste período.
-                  </p>
+                  <div className="grid flex-1 place-items-center rounded-xl border border-dashed border-border">
+                    <EmptyState
+                      icon={CalendarDays}
+                      compact
+                      title="Nada registrado neste período"
+                      text="Os registros do dia aparecem aqui conforme você usa o app."
+                    />
+                  </div>
                 ) : (
                   <ol className="relative -mx-1 grid max-h-[calc(100dvh-25rem)] min-h-[16rem] content-start gap-px overflow-y-auto overflow-x-hidden px-1 [scrollbar-gutter:stable] [scrollbar-width:thin]">
                     {list.map((i, idx) => (
