@@ -3,6 +3,7 @@ import { NiceSelect } from "./NiceSelect";
 import { CheckCircle2, Clock3, Droplets, Minus, Plus, Save, Search } from "lucide-react";
 import { CareIntakeIcon } from "./CareIntakePicker";
 import { drinkCards, drinkTone } from "./DrinkBoard";
+import { SwapButton, useListToggle } from "./IntakeParts";
 import { beverageKinds, beverageCategory, type BeverageKind } from "@/lib/care-intake-categories";
 import { supabase } from "@/integrations/supabase/client";
 import { useDialog } from "@/lib/dialog";
@@ -180,6 +181,8 @@ export function ClientBeverageTracker({
         : sumNutrients(parseFoodText(name, ml || null).map((f) => f.nutrients)).kcal,
     [kind, name, ml],
   );
+  const hasSelection = !!pickedKey;
+  const { showList, browse, setBrowse } = useListToggle(hasSelection, pickedKey ?? "");
   const pick = (card: (typeof drinkCards)[number]) => {
     setPickedKey(card.key);
     setKind(card.kind);
@@ -199,7 +202,16 @@ export function ClientBeverageTracker({
   return (
     <section aria-label="Cadastro de chás e bebidas" className="space-y-3">
       <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_21rem]">
-        <div className="min-w-0 space-y-2.5">
+        <div className={`min-w-0 space-y-2.5 ${showList ? "" : "max-lg:hidden"}`}>
+          {browse && hasSelection ? (
+            <button
+              type="button"
+              onClick={() => setBrowse(false)}
+              className="flex h-10 w-full items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground lg:hidden"
+            >
+              Voltar ao registro
+            </button>
+          ) : null}
           <div className="flex flex-wrap items-center gap-2.5">
             <span className="grid size-9 shrink-0 place-items-center bg-sky-500/10 text-sky-600 dark:text-sky-300">
               <Droplets size={18} />
@@ -334,7 +346,7 @@ export function ClientBeverageTracker({
 
         <form
           aria-label="Sua bebida"
-          className="flex min-w-0 flex-col gap-3 border border-border bg-card p-3"
+          className={`flex min-w-0 flex-col gap-3 border border-border bg-card p-3 ${browse && hasSelection ? "max-lg:hidden" : ""}`}
           onSubmit={(event) => {
             event.preventDefault();
             void saveBeverage();
@@ -360,6 +372,10 @@ export function ClientBeverageTracker({
               </button>
             )}
           </div>
+
+          {hasSelection ? (
+            <SwapButton label="Trocar bebida" onClick={() => setBrowse(true)} />
+          ) : null}
 
           <label className="block text-xs font-semibold text-foreground">
             Nome da bebida
