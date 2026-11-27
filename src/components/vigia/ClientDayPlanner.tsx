@@ -920,70 +920,93 @@ export function ClientDayPlanner({
 
   return (
     <section className="flex min-w-0 flex-col gap-3" aria-label="Meu dia">
-      <header className="nv-dark nv-scan relative isolate overflow-hidden border border-indigo-400/30 p-2.5 text-white shadow-card sm:px-3">
-        <div className="grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_18rem]">
-          <div className="flex items-center gap-3">
+      <header className="nv-dark relative isolate overflow-hidden rounded-3xl border border-indigo-400/25 bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 p-4 text-white shadow-card">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-16 -top-20 size-56 rounded-full bg-fuchsia-500/20 blur-3xl"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-24 -left-10 size-56 rounded-full bg-teal-400/15 blur-3xl"
+        />
+        <div className="relative grid items-center gap-4 lg:grid-cols-[auto_minmax(0,1fr)_18rem]">
+          <div className="flex items-center gap-4">
             <div
-              className="relative size-16 shrink-0"
+              className="relative size-24 shrink-0"
               role="img"
               aria-label={`${pct}% do que estava previsto até agora foi feito`}
             >
               <svg viewBox="0 0 120 120" className="absolute inset-0 -rotate-90">
-                <circle cx="60" cy="60" r="52" fill="none" stroke="#ffffff22" strokeWidth="11" />
+                <circle cx="60" cy="60" r="50" fill="none" stroke="#ffffff1f" strokeWidth="10" />
                 <circle
                   cx="60"
                   cy="60"
-                  r="52"
+                  r="50"
                   fill="none"
                   stroke="url(#nv-day-ring)"
-                  strokeWidth="11"
+                  strokeWidth="10"
                   strokeLinecap="round"
                   pathLength={100}
                   strokeDasharray={`${pct} 100`}
-                  className="nv-ring-draw"
-                  style={{ transition: "stroke-dasharray .8s ease" }}
+                  style={{ transition: "stroke-dasharray .8s cubic-bezier(0.23,1,0.32,1)" }}
                 />
                 <defs>
                   <linearGradient id="nv-day-ring" x1="0" y1="0" x2="1" y2="1">
-                    <stop stopColor="#f0abfc" />
-                    <stop offset="1" stopColor="#facc15" />
+                    <stop stopColor="#5eead4" />
+                    <stop offset="1" stopColor="#a78bfa" />
                   </linearGradient>
                 </defs>
               </svg>
               <span className="absolute inset-0 grid place-items-center text-center leading-none">
                 <span>
-                  <strong className="block text-base font-extrabold tabular-nums">{pct}%</strong>
-                  <span className="text-[9px] text-white/70">em dia</span>
+                  <strong className="block text-[22px] font-black tabular-nums">{pct}%</strong>
+                  <span className="mt-0.5 block text-[10px] font-medium text-white/60">em dia</span>
                 </span>
               </span>
             </div>
+            <div className="min-w-0 lg:hidden">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-white/50">
+                Seu dia
+              </p>
+              <p className="text-2xl font-black leading-none tabular-nums">
+                {doneCount}
+                <span className="text-base font-semibold text-white/50">/{actionable.length}</span>
+              </p>
+              <p className="mt-1 text-xs text-white/65">
+                {left > 0
+                  ? `${left} ${left === 1 ? "item pela frente" : "itens pela frente"}`
+                  : "nada pendente"}
+              </p>
+            </div>
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-bold leading-tight">
+            <p className="hidden text-sm font-bold leading-tight lg:block">
               {actionable.length
                 ? `${doneCount} de ${actionable.length} itens previstos até agora já foram feitos`
                 : "Seu dia começa com o primeiro item da linha do tempo"}
             </p>
-            {left > 0 && (
-              <p className="text-xs text-white/70">
-                {left} {left === 1 ? "item ainda pela frente" : "itens ainda pela frente"} hoje
-              </p>
-            )}
-            <div className="mt-1.5 flex flex-wrap gap-1.5 text-[11px] font-semibold">
-              <span className="inline-flex items-center gap-1.5 bg-emerald-400/20 px-2 py-0.5 text-emerald-200">
-                <Check size={13} /> {doneCount} feitos
-              </span>
-              <span
-                className={`inline-flex items-center gap-1.5 px-2 py-0.5 ${nowCount ? "bg-amber-300 text-amber-950" : "bg-amber-400/15 text-amber-200"}`}
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-2xl bg-emerald-400/15 px-2 py-2 ring-1 ring-emerald-300/20">
+                <p className="flex items-center justify-center gap-1 text-lg font-black tabular-nums text-emerald-200">
+                  <Check size={15} /> {doneCount}
+                </p>
+                <p className="text-[11px] font-medium text-emerald-100/70">feitos</p>
+              </div>
+              <div
+                className={`rounded-2xl px-2 py-2 ring-1 ${nowCount ? "bg-amber-300 text-amber-950 ring-amber-200" : "bg-amber-400/10 text-amber-200 ring-amber-300/15"}`}
               >
-                {nowCount ? <i className="size-1.5 rounded-full bg-amber-950 nv-live" /> : null}
-                {nowCount} na hora
-              </span>
-              <span
-                className={`inline-flex items-center gap-1.5 px-2 py-0.5 ${late ? "bg-rose-500 text-white" : "bg-rose-400/15 text-rose-200"}`}
+                <p className="flex items-center justify-center gap-1 text-lg font-black tabular-nums">
+                  {nowCount ? <i className="size-1.5 rounded-full bg-amber-950 nv-live" /> : null}
+                  {nowCount}
+                </p>
+                <p className="text-[11px] font-medium opacity-80">na hora</p>
+              </div>
+              <div
+                className={`rounded-2xl px-2 py-2 ring-1 ${late ? "bg-rose-500 text-white ring-rose-300" : "bg-rose-400/10 text-rose-200 ring-rose-300/15"}`}
               >
-                {late} atrasados
-              </span>
+                <p className="text-lg font-black tabular-nums">{late}</p>
+                <p className="text-[11px] font-medium opacity-80">atrasados</p>
+              </div>
             </div>
           </div>
           <NextUpClock
