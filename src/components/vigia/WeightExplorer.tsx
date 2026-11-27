@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { signed } from "@/lib/weight-variation";
 import { EvoChart } from "./EvoChart";
 import { CalendarClock, Flag, MousePointerClick, TrendingDown, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -239,8 +240,7 @@ export function WeightExplorer({
                     <p
                       className={`mt-1.5 border-t border-border pt-1.5 font-semibold ${d <= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-orange-500"}`}
                     >
-                      {d > 0 ? "+" : ""}
-                      {nf(d)} kg desde a medida anterior
+                      {signed(d)} kg desde a medida anterior
                     </p>
                   )}
                 </>
@@ -261,9 +261,7 @@ export function WeightExplorer({
             {focus && (
               <p className="mt-2 text-sm text-white/90">
                 IMC {nf(focus.bmi)}
-                {prev
-                  ? ` · ${focus.weight - prev.weight > 0 ? "+" : ""}${nf(focus.weight - prev.weight)} kg desde ${short(prev.day)}`
-                  : ""}
+                {prev ? ` · ${signed(focus.weight - prev.weight)} kg desde ${short(prev.day)}` : ""}
               </p>
             )}
             <button
@@ -293,9 +291,7 @@ export function WeightExplorer({
               Ritmo atual
             </p>
             <p className="text-lg font-extrabold tabular-nums">
-              {trend === null
-                ? "—"
-                : `${Math.abs(trend) < 0.005 ? "" : trend > 0 ? "+" : ""}${nf(Math.abs(trend) < 0.005 ? 0 : trend, 2)} kg`}
+              {trend === null ? "—" : `${signed(trend, 2)} kg`}
               <span className="ml-1 text-sm font-semibold text-muted-foreground">/semana</span>
             </p>
             <p className="text-xs text-muted-foreground">tendência das últimas semanas</p>

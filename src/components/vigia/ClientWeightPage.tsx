@@ -41,6 +41,7 @@ import { DayDetailDialog } from "./DayDetailDialog";
 import { WeightEvolutionChart, WeightVariationPanel } from "./WeightCharts";
 import { WeightLossPlan } from "./WeightLossPlan";
 import { NumberDial } from "./NumberDial";
+import { signed } from "@/lib/weight-variation";
 
 type Point = { id: string; recorded_on: string; weight_kg: number; height_cm: number };
 type Props = {
@@ -508,7 +509,7 @@ export function ClientWeightPage({
           }
           label="Variação no período"
           color={delta !== null && delta < 0 ? "#34d399" : "#fbbf24"}
-          value={delta !== null ? `${delta > 0 ? "+" : ""}${nf(delta)} kg` : "—"}
+          value={delta !== null ? `${signed(delta)} kg` : "—"}
           note={first ? `Desde ${longDate(first.recorded_on)}` : "Sem registros no período"}
         />
         <StatCard
@@ -798,7 +799,7 @@ export function ClientWeightPage({
                           <td
                             className={`tabular-nums ${diff === null ? "text-muted-foreground" : diff <= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-orange-600 dark:text-orange-400"}`}
                           >
-                            {diff === null ? "—" : `${diff > 0 ? "+" : ""}${nf(diff)}`}
+                            {diff === null ? "—" : signed(diff)}
                           </td>
                           <td>
                             <span

@@ -104,5 +104,12 @@ export function weightVariation(points: WeightPoint[]): {
   };
 }
 
-export const signed = (value: number, digits = 1) =>
-  `${value > 0 ? "+" : value < 0 ? "−" : ""}${Math.abs(value).toLocaleString("pt-BR", { minimumFractionDigits: digits, maximumFractionDigits: digits })}`;
+/** Variação sem sinal de menos: seta para baixo (perdeu), seta para cima (ganhou) e o valor positivo. */
+export const signed = (value: number, digits = 1) => {
+  const text = Math.abs(value).toLocaleString("pt-BR", {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
+  const zero = Number(Math.abs(value).toFixed(digits)) === 0;
+  return `${zero ? "" : value > 0 ? "↑ " : "↓ "}${text}`;
+};

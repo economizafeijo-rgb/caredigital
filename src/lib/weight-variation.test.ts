@@ -94,8 +94,8 @@ describe("variação do peso entre medidas", () => {
         ]),
       ).rows[0].date,
     ).toBe("2026-11-01");
-    expect(signed(-1.25, 1)).toBe("−1,3");
-    expect(signed(0.4)).toBe("+0,4");
+    expect(signed(-1.25, 1)).toBe("↓ 1,3");
+    expect(signed(0.4)).toBe("↑ 0,4");
     expect(signed(0)).toBe("0,0");
   });
 });
