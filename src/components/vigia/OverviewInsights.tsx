@@ -402,8 +402,17 @@ function DayBoard({
                 )}
               </span>
               {c.empty ? (
-                <span className="flex flex-1 flex-col justify-between gap-2">
+                <span className="flex flex-1 flex-col gap-2">
                   <span className="text-xs text-slate-400">Sem registros nos últimos 7 dias</span>
+                  <span className="flex min-h-10 flex-1 items-end gap-1" aria-hidden="true">
+                    {keys.map((k) => (
+                      <i
+                        key={k}
+                        className="h-1.5 flex-1 rounded-t-[4px]"
+                        style={{ background: `color-mix(in srgb, ${m.color} 22%, transparent)` }}
+                      />
+                    ))}
+                  </span>
                   <span
                     className="inline-flex h-8 w-fit items-center gap-1 rounded-full px-3 text-[11px] font-bold text-white transition group-hover:brightness-110"
                     style={{ background: m.color }}
@@ -414,7 +423,7 @@ function DayBoard({
               ) : (
                 <>
                   <span className="flex items-baseline justify-between gap-2">
-                    <span className="truncate font-display text-xl font-extrabold leading-none tabular-nums">
+                    <span className="truncate font-display text-[clamp(1rem,1.5vw,1.25rem)] font-extrabold leading-none tabular-nums">
                       {m.unit(c.today)}
                     </span>
                     <span className="shrink-0 text-[11px] text-slate-400">
@@ -429,7 +438,7 @@ function DayBoard({
                           style={{ width: `${c.pct}%`, background: m.color }}
                         />
                       </span>
-                      <span className="w-8 text-right text-[11px] font-bold tabular-nums">
+                      <span className="w-10 whitespace-nowrap text-right text-[11px] font-bold tabular-nums">
                         {c.pct}%
                       </span>
                     </span>
