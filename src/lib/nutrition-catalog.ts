@@ -579,6 +579,14 @@ const baseIngredients: Omit<Ingredient, "carbs" | "fat" | "fiber">[] = [
     flags: ["industrializado"],
   },
   {
+    id: "bolo_trigo",
+    name: "Bolo de trigo (sem confeite)",
+    group: "cereais",
+    protein: 6.2,
+    kcal: 311,
+    note: "Bolo caseiro de trigo simples, sem cobertura nem recheio. 1 fatia ≈ 60 g; varia com a receita.",
+  },
+  {
     id: "biscoito_salgado",
     name: "Biscoito salgado tipo cream cracker",
     group: "cereais",
@@ -2588,6 +2596,7 @@ const macroMap: Record<
   cafe_com_leite: [2.5, 1.6, 0],
   achocolatado: [14.2, 2.2, 0.6, "TACO"],
   bolo_simples: [51, 9, 1],
+  bolo_trigo: [51, 9, 1],
   biscoito_salgado: [68.7, 14.4, 2.5, "TACO"],
   biscoito_doce: [75.2, 12, null, "TACO"],
   biscoito_recheado: [70.5, 19.6, 3, "TACO"],

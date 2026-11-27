@@ -160,6 +160,7 @@ export const sugarPer100: Record<string, number> = {
   doce_coco: 60,
   sorvete: 20,
   bolo_simples: 25,
+  bolo_trigo: 25,
   bolo_milho: 22,
   bolo_cenoura: 28,
   bolo_leite: 26,

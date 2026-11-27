@@ -274,6 +274,7 @@ export const typicalFoods: Record<FoodKind, { label: string; text: string }[]> =
     { label: "Iogurte grego", text: "1 pote de iogurte grego" },
     { label: "Pão de queijo", text: "3 pães de queijo" },
     { label: "Pastel", text: "1 pastel" },
+    { label: "Bolo de trigo (sem confeite)", text: "1 fatia de bolo de trigo" },
     { label: "Bolo de milho", text: "1 fatia de bolo de milho" },
     { label: "Bolo de cenoura", text: "1 fatia de bolo de cenoura" },
     { label: "Bolo de leite", text: "1 fatia de bolo de leite" },

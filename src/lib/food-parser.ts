@@ -91,6 +91,7 @@ export const foodMicros: Record<string, [number, number, number, number, number]
   pao_forma_bauducco_fermentacao_natural: [0, 0, 60, 1.5, 120],
   frango_molho: [8, 8, 11, 0.9, 260],
   bolo_milho: [0, 30, 60, 0.8, 90],
+  bolo_trigo: [0, 40, 45, 1, 80],
   bolo_cenoura: [1, 300, 60, 0.9, 120],
   bolo_leite: [0, 40, 70, 0.7, 80],
   sorvete: [0.5, 70, 110, 0.1, 160],
@@ -270,9 +271,10 @@ export const foodMicros: Record<string, [number, number, number, number, number]
 const aliases: Array<[RegExp, string]> = [
   [/p(ão|ao|ães|aes) de queijo/, "pao_queijo"],
   [
-    /bolo (de trigo )?confeitado|bolo de trigo|bolo com cobertura|bolo de festa/,
+    /bolo (de trigo )?confeitado|bolo com cobertura|bolo de festa/,
     "bolo_trigo_confeitado",
   ],
+  [/bolo de trigo|bolo simples de trigo/, "bolo_trigo"],
   [/esfi(r|h)ra|esfiha/, "esfirra_carne"],
   [/frango frito (no|em|com) [oó]leo|frango frito sem empanar/, "frango_frito_oleo"],
   [
@@ -760,6 +762,7 @@ const defaultPortion: Record<string, number> = {
   cafe_com_leite: 200,
   achocolatado: 200,
   bolo_simples: 60,
+  bolo_trigo: 60,
   biscoito_salgado: 30,
   biscoito_doce: 30,
   biscoito_recheado: 36,

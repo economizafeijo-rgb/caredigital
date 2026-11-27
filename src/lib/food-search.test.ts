@@ -85,6 +85,16 @@ describe("selo regional", () => {
   });
 });
 
+describe("bolo de trigo", () => {
+  it("bolo de trigo sem confeite não vira confeitado", () => {
+    expect(parseFoodText("1 fatia de bolo de trigo").map((f) => f.id)).toEqual(["bolo_trigo"]);
+    expect(parseFoodText("bolo de trigo confeitado").map((f) => f.id)).toEqual([
+      "bolo_trigo_confeitado",
+    ]);
+    expect(labels("bolo de trigo")).toContain("bolo de trigo");
+  });
+});
+
 describe("assado de panela", () => {
   it("acha e reconhece assado de panela", () => {
     expect(labels("assado de panela")).toContain("assado de panela");

@@ -68,6 +68,10 @@ const overrides: Record<string, [HealthLevel, string]> = {
   mungunza: ["moderacao", "Adoçado e com leite de coco: porção pequena."],
   mingau_maisena: ["moderacao", "Amido refinado e açúcar: o de aveia sacia mais."],
   macarronada: ["moderacao", "Massa refinada: capriche no molho de tomate e na salada."],
+  bolo_trigo: [
+    "moderacao",
+    "Farinha refinada e açúcar: uma fatia pequena, de preferência com fruta ou café sem açúcar.",
+  ],
   bolo_milho: [
     "moderacao",
     "Doce de dia de festa: uma fatia pequena e, de preferência, com fruta ou café sem açúcar.",
