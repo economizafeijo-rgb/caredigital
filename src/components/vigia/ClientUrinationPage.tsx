@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Droplets, Trash2, Clock, Info } from "lucide-react";
+import { Droplets, Trash2, Info, X } from "lucide-react";
 import { acreDateKey, acreDateTimeInput, acreTimeLabel } from "@/lib/acre-time";
 import {
   MEDICAL_NOTE,
@@ -45,6 +45,7 @@ export function ClientUrinationPage({
   const [ml, setMl] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [done, setDone] = useState<string | null>(null);
 
   const today = acreDateKey();
   const nowMs = Date.now();
@@ -93,18 +94,20 @@ export function ClientUrinationPage({
       ? (todayLogs.length / (liquidToday / 1000)).toFixed(1).replace(".", ",")
       : "–";
 
-  async function save(quick: boolean) {
+  async function save() {
     if (saving) return;
     setSaving(true);
     const mlNum = ml ? Number(ml) : null;
     const ok = await add({
-      at: quick ? new Date().toISOString() : new Date(when + ":00-05:00").toISOString(),
+      at: new Date(when + ":00-05:00").toISOString(),
       volume,
       ml: mlNum && mlNum >= 10 && mlNum <= 1500 ? Math.round(mlNum) : null,
       notes: notes.trim().slice(0, 300),
     });
     setSaving(false);
     if (ok) {
+      setDone(`Micção registrada às ${acreTimeLabel(new Date(when + ":00-05:00").getTime())}.`);
+      window.setTimeout(() => setDone(null), 4000);
       setOpen(false);
       setMl("");
       setNotes("");
@@ -120,19 +123,13 @@ export function ClientUrinationPage({
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
-          disabled={saving}
-          onClick={() => void save(true)}
-          className="inline-flex h-11 items-center gap-2 rounded-xl bg-sky-600 px-5 text-sm font-bold text-white hover:bg-sky-500 disabled:opacity-60"
+          onClick={() => {
+            setWhen(acreDateTimeInput());
+            setOpen(true);
+          }}
+          className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-sky-600 px-5 text-[15px] font-bold text-white shadow-sm transition active:scale-[0.97] hover:bg-sky-500"
         >
-          <Droplets size={18} aria-hidden="true" /> Registrar xixi agora
-        </button>
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          className="inline-flex h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-semibold hover:bg-muted"
-        >
-          <Clock size={16} aria-hidden="true" /> Ajustar hora e detalhes
+          <Droplets size={19} aria-hidden="true" /> Registrar xixi agora
         </button>
         {!remote && loaded && (
           <span className="text-xs text-muted-foreground">
@@ -141,60 +138,115 @@ export function ClientUrinationPage({
         )}
       </div>
 
+      {done && (
+        <p
+          role="status"
+          className="rounded-2xl bg-emerald-500/15 px-4 py-3 text-sm font-semibold text-emerald-600 dark:text-emerald-300"
+        >
+          {done}
+        </p>
+      )}
+
       {open && (
-        <div className="grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-2">
-          <label className="grid gap-1 text-sm font-semibold">
-            Horário
-            <input
-              type="datetime-local"
-              value={when}
-              onChange={(e) => setWhen(e.target.value)}
-              className="h-10 rounded-lg border border-border bg-background px-3 text-sm font-normal"
-            />
-          </label>
-          <fieldset className="grid gap-1 text-sm font-semibold">
-            <legend className="mb-1">Volume estimado</legend>
-            <div className="flex gap-1.5">
-              {(Object.keys(VOLUME_LABEL) as UrineVolume[]).map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  aria-pressed={volume === v}
-                  onClick={() => setVolume(v)}
-                  className={`h-10 flex-1 rounded-lg border text-sm ${volume === v ? "border-sky-500 bg-sky-500/15 font-bold" : "border-border font-medium"}`}
-                >
-                  {VOLUME_LABEL[v]}
-                </button>
-              ))}
+        <div
+          className="fixed inset-0 z-[12000] flex items-end bg-black/60 sm:items-center sm:justify-center"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Registrar micção"
+          onClick={(e) => e.target === e.currentTarget && setOpen(false)}
+        >
+          <div className="grid max-h-[92dvh] w-full gap-4 overflow-y-auto rounded-t-3xl border border-border bg-card p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-2xl sm:max-w-md sm:rounded-3xl">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-black">Registrar micção</h3>
+                <p className="text-xs text-muted-foreground">
+                  Confirme o horário e, se quiser, quanto saiu.
+                </p>
+              </div>
+              <button
+                type="button"
+                aria-label="Fechar"
+                onClick={() => setOpen(false)}
+                className="grid size-10 place-items-center rounded-xl text-muted-foreground hover:bg-muted"
+              >
+                <X size={18} />
+              </button>
             </div>
-          </fieldset>
-          <label className="grid gap-1 text-sm font-semibold">
-            Volume em ml (opcional)
-            <input
-              inputMode="numeric"
-              value={ml}
-              onChange={(e) => setMl(e.target.value.replace(/\D/g, ""))}
-              className="h-10 rounded-lg border border-border bg-background px-3 text-sm font-normal"
-              placeholder="ex.: 250"
-            />
-          </label>
-          <label className="grid gap-1 text-sm font-semibold">
-            Observações (cor, aspecto…)
-            <input
-              maxLength={300}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="h-10 rounded-lg border border-border bg-background px-3 text-sm font-normal"
-            />
-          </label>
-          <button
-            type="button"
-            disabled={saving}
-            onClick={() => void save(false)}
-            className="h-10 rounded-lg bg-sky-600 text-sm font-bold text-white sm:col-span-2 disabled:opacity-60"
-          >
-            Salvar registro
-          </button>
+            <label className="grid gap-1 text-sm font-semibold">
+              Horário
+              <input
+                type="datetime-local"
+                value={when}
+                onChange={(e) => setWhen(e.target.value)}
+                className="h-12 rounded-xl border border-border bg-background px-3 text-base font-normal"
+              />
+            </label>
+            <fieldset className="grid gap-1.5 text-sm font-semibold">
+              <legend className="mb-1">Quantidade</legend>
+              <div className="flex gap-2">
+                {(Object.keys(VOLUME_LABEL) as UrineVolume[]).map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    aria-pressed={volume === v}
+                    onClick={() => setVolume(v)}
+                    className={`h-12 flex-1 rounded-xl border text-sm transition active:scale-95 ${volume === v ? "border-sky-500 bg-sky-500/15 font-bold" : "border-border font-medium"}`}
+                  >
+                    {VOLUME_LABEL[v]}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+            <div className="grid gap-1.5 text-sm font-semibold">
+              <label htmlFor="urina-ml">Volume em ml (opcional)</label>
+              <input
+                id="urina-ml"
+                inputMode="numeric"
+                value={ml}
+                onChange={(e) => setMl(e.target.value.replace(/\D/g, ""))}
+                className="h-12 rounded-xl border border-border bg-background px-3 text-base font-normal"
+                placeholder="ex.: 250"
+              />
+              <div className="flex flex-wrap gap-1.5">
+                {[100, 200, 300, 400, 500].map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setMl(String(v))}
+                    className={`h-9 rounded-full border px-3 text-xs font-semibold ${ml === String(v) ? "border-sky-500 bg-sky-500/15" : "border-border"}`}
+                  >
+                    {v} ml
+                  </button>
+                ))}
+              </div>
+            </div>
+            <label className="grid gap-1 text-sm font-semibold">
+              Observações (cor, aspecto…)
+              <input
+                maxLength={300}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="h-12 rounded-xl border border-border bg-background px-3 text-base font-normal"
+              />
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="h-12 rounded-xl border border-border text-sm font-semibold"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => void save()}
+                className="h-12 rounded-xl bg-sky-600 text-sm font-bold text-white disabled:opacity-60"
+              >
+                {saving ? "Salvando…" : "Confirmar"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
       {error && (
