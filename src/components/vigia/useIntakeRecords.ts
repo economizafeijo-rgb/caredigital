@@ -170,7 +170,7 @@ export function useIntakeRecords(patientId: string, ownerId: string, days = 30) 
         if (!pl || !r.taken_at) continue;
         const name = norm(`${pl.name ?? ""} ${pl.kind ?? ""}`);
         let mg = 0;
-        let label = String(pl.name || "Suplemento");
+        const label = String(pl.name || "Suplemento");
         if (/cafeina|caffeine/.test(name))
           mg = String(pl.unit ?? "").toLowerCase() === "mg" ? Number(pl.dose) || 0 : 200;
         else if (/pre.?treino|pre-workout|termogenic/.test(name)) mg = 150;
