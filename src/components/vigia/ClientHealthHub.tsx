@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { BedDouble, Coffee, Droplets, Milk, Sparkles, Waves } from "lucide-react";
 import { acreDateKey, acreTimeLabel } from "@/lib/acre-time";
+import { feel, hourKey, useHourlyTemps } from "@/lib/weather";
 import {
   aggregate,
   bucketDays,
@@ -63,6 +64,7 @@ export function ClientHealthHub({
   const [range, setRange] = useState<RangeId>("7d");
   const { limits } = useHealthLimits(patientId);
   const d = useHealthSeries(patientId, ownerId, range);
+  const wx = useHourlyTemps(Math.min(92, rangeDays(range) + 1));
   const buckets = useMemo(() => makeBuckets(range), [range]);
   const days = rangeDays(range);
 
@@ -95,6 +97,11 @@ export function ClientHealthHub({
   const lastUri = d.urine.length
     ? d.urine.reduce((a, b) => (Date.parse(b.at) > Date.parse(a.at) ? b : a))
     : null;
+  const uriTemps = d.urine
+    .map((u) => wx.temps[hourKey(u.at)])
+    .filter((t): t is number => t !== undefined);
+  const uriTempAvg = uriTemps.length ? uriTemps.reduce((a, b) => a + b, 0) / uriTemps.length : null;
+  const uriTempMin = uriTemps.length ? Math.min(...uriTemps) : null;
   const lastUriWhen = lastUri
     ? (acreDateKey(lastUri.at) === acreDateKey(Date.now())
         ? "Hoje"
@@ -127,6 +134,19 @@ export function ClientHealthHub({
         k: "cafeina",
         t: `Com mais cafeína, foram ${nf(c2.hi, 1)} idas ao banheiro por dia; com menos, ${nf(c2.lo, 1)}. A cafeína aumenta um pouco a vontade de urinar.`,
       });
+    // Temperatura média do dia (Acre) x idas ao banheiro.
+    const tDay = new Map<string, number[]>();
+    for (const [k, v] of Object.entries(wx.temps)) {
+      const day = k.slice(0, 10);
+      tDay.set(day, [...(tDay.get(day) ?? []), v]);
+    }
+    const tAvg = new Map([...tDay].map(([k, v]) => [k, v.reduce((a, b) => a + b, 0) / v.length]));
+    const c4 = compareDays(tAvg, uri);
+    if (c4)
+      out.push({
+        k: "miccao",
+        t: `Nos dias mais frios você foi ao banheiro ${nf(c4.lo, 1)} vezes; nos dias mais quentes, ${nf(c4.hi, 1)}. O frio costuma aumentar a vontade de urinar.`,
+      });
     // O sono da noite seguinte: desloca a data do sono um dia para trás.
     const prev = new Map<string, number>();
     for (const [k, v] of sl)
@@ -138,7 +158,7 @@ export function ClientHealthHub({
         t: `Nas noites depois de dias com mais cafeína você dormiu ${nf(c3.hi, 1)} h; depois de dias com menos, ${nf(c3.lo, 1)} h.`,
       });
     return out;
-  }, [d, range]);
+  }, [d, range, wx.temps]);
 
   const liqUri: ChartSeries[] = [
     {
@@ -383,6 +403,28 @@ export function ClientHealthHub({
               {lastUri ? lastUriWhen : "sem registro"}
             </p>
           </div>
+        </div>
+      )}
+      {only === "miccao" && uriTempAvg !== null && (
+        <div
+          className="flex items-center gap-3 rounded-2xl border px-3 py-2.5"
+          style={{
+            borderColor: `${feel(uriTempAvg).color}55`,
+            background: `${feel(uriTempAvg).color}12`,
+          }}
+        >
+          <span
+            className="grid size-9 shrink-0 place-items-center rounded-xl text-lg font-black"
+            style={{ background: `${feel(uriTempAvg).color}25`, color: feel(uriTempAvg).color }}
+          >
+            {Math.round(uriTempAvg)}°
+          </span>
+          <p className="text-xs leading-snug text-muted-foreground">
+            <b className="text-foreground">Clima nas idas ao banheiro:</b> média de{" "}
+            {nf(uriTempAvg, 1)} °C ({feel(uriTempAvg).label})
+            {uriTempMin !== null ? `, mínima de ${nf(uriTempMin, 1)} °C` : ""}. Cada registro mostra
+            a temperatura da hora.
+          </p>
         </div>
       )}
       {(!only || only === "miccao") && (

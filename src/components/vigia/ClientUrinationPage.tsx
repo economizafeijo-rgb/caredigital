@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { Droplets, Trash2, Info, Lock, Pencil, X } from "lucide-react";
+import { Droplets, Trash2, Info, Lock, Pencil, Thermometer, X } from "lucide-react";
+import { feel, useHourlyTemps } from "@/lib/weather";
 import { useDialog } from "@/lib/dialog";
 import { useRecordLock } from "./useRecordLock";
 import { acreDateKey, acreDateTimeInput, acreTimeLabel } from "@/lib/acre-time";
@@ -46,6 +47,8 @@ export function ClientUrinationPage({
   const [when, setWhen] = useState(() => acreDateTimeInput());
   const [volume, setVolume] = useState<UrineVolume>("moderado");
   const [ml, setMl] = useState("");
+  const wx = useHourlyTemps(8);
+  const nowFeel = wx.now !== null ? feel(wx.now) : null;
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -233,6 +236,19 @@ export function ClientUrinationPage({
                 ))}
               </div>
             </fieldset>
+            {nowFeel && wx.now !== null ? (
+              <p
+                className="flex items-center gap-2 rounded-xl border px-3 py-2 text-xs"
+                style={{ borderColor: `${nowFeel.color}55`, background: `${nowFeel.color}14` }}
+              >
+                <Thermometer size={15} style={{ color: nowFeel.color }} />
+                <span>
+                  Agora: <b>{Math.round(wx.now)} °C</b> · {nowFeel.label}. O clima será anotado com
+                  o registro
+                  {wx.now <= 22 ? "; tempo frio pode aumentar a vontade de urinar." : "."}
+                </span>
+              </p>
+            ) : null}
             <div className="grid gap-1.5 text-sm font-semibold">
               <label htmlFor="urina-ml">Volume em ml (opcional)</label>
               <input
@@ -368,6 +384,18 @@ export function ClientUrinationPage({
                   {l.ml ? ` · ${l.ml} ml` : ""}
                   {l.notes ? ` · ${l.notes}` : ""}
                 </span>
+                {wx.at(l.at) !== null ? (
+                  <span
+                    className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums"
+                    style={{
+                      background: `${feel(wx.at(l.at)!).color}22`,
+                      color: feel(wx.at(l.at)!).color,
+                    }}
+                    title={`Temperatura na hora do registro: ${feel(wx.at(l.at)!).label}`}
+                  >
+                    <Thermometer size={11} /> {Math.round(wx.at(l.at)!)}°
+                  </span>
+                ) : null}
                 {lock.isLocked(l.at) ? (
                   <button
                     type="button"
