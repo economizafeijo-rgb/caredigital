@@ -951,7 +951,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                 )}
 
                 <div
-                  className={`grid gap-3 ${tasks.length > 0 ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}
+                  className={`grid items-start gap-3 lg:grid-cols-2 ${tasks.length > 0 ? "min-[1500px]:grid-cols-4" : "min-[1300px]:grid-cols-3"}`}
                 >
                   <div className="flex flex-col gap-3 lg:pr-0.5">
                     {tasks.length > 0 && (
@@ -1017,21 +1017,21 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                         onCompleteProfile={() => setOnboardingSignal((v) => v + 1)}
                       />
                     </Retractable>
-                    <Retractable
-                      id="consumo"
-                      eyebrow="Hoje"
-                      title="Consumo em relação às metas"
-                      accent="#fb923c"
-                      summary="Macros, vitaminas e atenção do dia"
-                    >
-                      <TodayGoalsCard
-                        bare
-                        patientId={client.id}
-                        ownerId={client.owner_id}
-                        revision={tick}
-                      />
-                    </Retractable>
                   </div>
+                  <Retractable
+                    id="consumo"
+                    eyebrow="Hoje"
+                    title="Consumo em relação às metas"
+                    accent="#fb923c"
+                    summary="Macros, vitaminas e atenção do dia"
+                  >
+                    <TodayGoalsCard
+                      bare
+                      patientId={client.id}
+                      ownerId={client.owner_id}
+                      revision={tick}
+                    />
+                  </Retractable>
 
                   {tasks.length > 0 && (
                     <Retractable
@@ -1040,7 +1040,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                       title="Agenda de hoje"
                       accent="#38bdf8"
                       summary={`${tasks.length} ${tasks.length === 1 ? "cuidado" : "cuidados"} hoje`}
-                      className="self-start"
+                      className="w-full"
                       action={
                         <button
                           type="button"
@@ -1129,14 +1129,16 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                     </Retractable>
                   )}
 
-                  <div className="flex min-h-0 flex-col gap-3">
+                  <div
+                    className={`flex min-h-0 flex-col gap-3 ${tasks.length > 0 ? "" : "lg:col-span-2 min-[1300px]:col-span-1"}`}
+                  >
                     <Retractable
                       id="historico"
                       eyebrow="Registros"
                       title="Histórico recente"
                       accent="#14b8a6"
                       summary="Últimos registros de água, refeições e medicação"
-                      className="self-start"
+                      className="w-full"
                       action={
                         <button
                           type="button"
