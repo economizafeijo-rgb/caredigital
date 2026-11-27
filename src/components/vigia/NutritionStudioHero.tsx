@@ -109,9 +109,7 @@ function Modal({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
   return createPortal(
-    <div
-      className="fixed inset-0 z-[12000] grid place-items-center bg-slate-950/70 p-3 backdrop-blur-sm"
-    >
+    <div className="fixed inset-0 z-[12000] grid place-items-center bg-slate-950/70 p-3 backdrop-blur-sm">
       <section
         role="dialog"
         aria-modal="true"
@@ -171,9 +169,9 @@ export function NutritionStudioHero({
   const active = info ? by[info] : null;
   const ActiveIcon = info ? chipIcon[info] : null;
   return (
-    <header className="nv-dark border border-white/10 bg-[#0d1626] p-2.5 text-white">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="min-w-0">
+    <header className="nv-dark relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[#12203a] via-[#0d1626] to-[#0a1220] p-3.5 text-white sm:p-4">
+      <div className="flex flex-col gap-3">
+        <div>
           <p className="flex items-center gap-1.5 text-xs font-semibold text-white/70">
             Seu objetivo
             <button
@@ -181,13 +179,13 @@ export function NutritionStudioHero({
               onClick={() => setGoalInfo((v) => !v)}
               aria-expanded={goalInfo}
               aria-label="O que cada objetivo muda"
-              className="grid size-5 place-items-center border border-white/25 text-white/70 hover:bg-white/10"
+              className="grid size-6 place-items-center rounded-lg border border-white/25 text-white/70 hover:bg-white/10"
             >
               <Info size={12} />
             </button>
           </p>
           <div
-            className="mt-1 flex flex-wrap gap-1"
+            className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4"
             role="radiogroup"
             aria-label="Objetivo alimentar"
           >
@@ -202,35 +200,35 @@ export function NutritionStudioHero({
                   aria-checked={on}
                   onClick={() => onGoal(o.value)}
                   className={
-                    "inline-flex h-8 items-center gap-1.5 border px-2.5 text-xs font-semibold transition active:scale-95 " +
+                    "inline-flex h-11 items-center justify-center gap-1.5 rounded-xl border px-2 text-xs font-semibold transition active:scale-95 " +
                     (on
-                      ? "border-white bg-white text-slate-900"
-                      : "border-white/15 bg-transparent text-white/75 hover:bg-white/10")
+                      ? "border-emerald-300/60 bg-emerald-400/20 text-emerald-100 shadow-[inset_0_0_0_1px_rgba(110,231,183,.25)]"
+                      : "border-white/10 bg-white/[.04] text-white/75 hover:bg-white/10")
                   }
                 >
-                  <Icon size={14} />
-                  {o.label}
+                  <Icon size={15} className="shrink-0" />
+                  <span className="truncate">{o.label}</span>
                 </button>
               );
             })}
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-2 gap-2 [&>*]:h-11 [&>*]:w-full [&>*]:justify-center [&>*]:rounded-xl">
           {exportSlot}
           <button
             type="button"
             onClick={onToggleSettings}
             aria-expanded={settingsOpen}
             className={
-              "inline-flex h-8 items-center gap-1.5 border px-2.5 text-xs font-semibold transition " +
+              "inline-flex items-center gap-1.5 border px-2.5 text-xs font-semibold transition " +
               (settingsOpen
                 ? "border-white bg-white text-slate-900"
-                : "border-white/20 bg-white/10 text-white hover:bg-white/20")
+                : "border-white/15 bg-white/10 text-white hover:bg-white/20")
             }
           >
             <Settings2 size={15} /> Preferências
             {settingsBadge ? (
-              <span className="grid size-5 place-items-center bg-white/20 text-[11px] font-bold">
+              <span className="grid size-5 place-items-center rounded-md bg-white/20 text-[11px] font-bold">
                 {settingsBadge}
               </span>
             ) : null}
@@ -252,7 +250,7 @@ export function NutritionStudioHero({
         </dl>
       )}
 
-      <div className="mt-2 grid grid-cols-2 gap-1.5 lg:grid-cols-4">
+      <div className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
         {chips.map((c) => {
           const pct = c.goal ? (c.v / c.goal) * 100 : 0;
           return (
@@ -261,24 +259,27 @@ export function NutritionStudioHero({
               type="button"
               onClick={() => setInfo(c.k)}
               aria-label={`${c.label} hoje: ${fmt(c.v)} de ${fmt(c.goal)} ${c.unit}. Ver detalhes`}
-              className="group border border-white/10 bg-white/[.04] px-2.5 py-1.5 text-left transition hover:bg-white/[.09]"
+              className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/[.04] p-2.5 text-left transition hover:bg-white/[.09]"
             >
-              <span className="flex items-baseline justify-between gap-2">
-                <span className="flex items-center gap-1 text-[11px] text-white/65">
-                  {c.label}
-                  <Info size={10} className="opacity-50 group-hover:opacity-100" />
-                </span>
-                <span className="text-sm font-bold tabular-nums">
-                  {fmt(c.v)}
-                  <span className="text-[11px] font-medium text-white/50">
-                    {" "}
-                    / {fmt(c.goal)} {c.unit}
-                  </span>
+              <span
+                aria-hidden="true"
+                className="absolute inset-y-0 left-0 w-[3px]"
+                style={{ background: c.color }}
+              />
+              <span className="flex items-center justify-between gap-1 pl-1 text-[11px] text-white/65">
+                <span className="whitespace-nowrap">{c.label}</span>
+                <Info size={11} className="shrink-0 opacity-50 group-hover:opacity-100" />
+              </span>
+              <span className="mt-0.5 block whitespace-nowrap pl-1 text-lg font-bold leading-tight tabular-nums">
+                {fmt(c.v)}
+                <span className="text-[11px] font-medium text-white/50">
+                  {" "}
+                  / {fmt(c.goal)} {c.unit}
                 </span>
               </span>
-              <span className="mt-1 block h-[3px] bg-white/10">
+              <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-white/10">
                 <i
-                  className="block h-full transition-[width] duration-700"
+                  className="block h-full rounded-full transition-[width] duration-700"
                   style={{ width: Math.min(100, pct) + "%", background: c.color }}
                 />
               </span>
