@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { BedDouble, Coffee, Droplets, Milk, Sparkles, Waves } from "lucide-react";
-import { acreDateKey } from "@/lib/acre-time";
+import { acreDateKey, acreTimeLabel } from "@/lib/acre-time";
 import {
   aggregate,
   bucketDays,
@@ -69,6 +69,7 @@ export function ClientHealthHub({
   const m = useMemo(() => {
     const liquids = aggregate(buckets, d.liquids, (x) => x.v);
     const urine = aggregate(buckets, d.urine);
+    const urineMl = aggregate(buckets, d.urine, (x) => x.ml ?? 0);
     const caf = aggregate(buckets, d.caffeine, (x) => x.mg);
     const lac = aggregate(buckets, d.lactose, (x) => x.g);
     const sym = buckets.map((_, i) => {
@@ -81,7 +82,7 @@ export function ClientHealthHub({
     const sleepSum = aggregate(buckets, d.sleep, (x) => x.hours);
     const sleepN = aggregate(buckets, d.sleep);
     const sleep = sleepSum.map((v, i) => (sleepN[i] ? Math.round((v / sleepN[i]) * 10) / 10 : 0));
-    return { liquids, urine, caf, lac, sym, sleep };
+    return { liquids, urine, urineMl, caf, lac, sym, sleep };
   }, [buckets, d]);
 
   const sum = (a: number[]) => a.reduce((x, y) => x + y, 0);
@@ -89,6 +90,18 @@ export function ClientHealthHub({
   const dayCount = (items: { at: string }[]) => activeDays(items.map((i) => acreDateKey(i.at)));
   const tLiq = sum(m.liquids);
   const tUri = sum(m.urine);
+  const tUriMl = sum(m.urineMl);
+  const uriNoMl = d.urine.filter((u) => !u.ml).length;
+  const lastUri = d.urine.length
+    ? d.urine.reduce((a, b) => (Date.parse(b.at) > Date.parse(a.at) ? b : a))
+    : null;
+  const lastUriWhen = lastUri
+    ? (acreDateKey(lastUri.at) === acreDateKey(Date.now())
+        ? "Hoje"
+        : acreDateKey(lastUri.at).split("-").reverse().slice(0, 2).join("/")) +
+      " às " +
+      acreTimeLabel(lastUri.at)
+    : "";
   const tCaf = sum(m.caf);
   const tLac = Math.round(sum(m.lac) * 10) / 10;
   const sleeps = d.sleep.length ? d.sleep.reduce((s, x) => s + x.hours, 0) / d.sleep.length : 0;
@@ -142,6 +155,28 @@ export function ClientHealthHub({
       id: "uri",
       label: "Idas ao banheiro",
       color: "#f59e0b",
+      unit: "vezes",
+      values: m.urine,
+      type: "line",
+      axis: "b",
+      agg: "sum",
+    },
+  ];
+  const uriChart: ChartSeries[] = [
+    {
+      id: "uml",
+      label: "Volume urinado",
+      color: "#f59e0b",
+      unit: "ml",
+      values: m.urineMl,
+      type: "bar",
+      axis: "a",
+      agg: "sum",
+    },
+    {
+      id: "uri",
+      label: "Idas ao banheiro",
+      color: "#0ea5e9",
       unit: "vezes",
       values: m.urine,
       type: "line",
@@ -317,13 +352,50 @@ export function ClientHealthHub({
         />
       )}
 
+      {only === "miccao" && (
+        <div className="grid grid-cols-3 gap-2" aria-label="Resumo da micção no período">
+          <div className="rounded-2xl border border-sky-500/30 bg-sky-500/10 p-3">
+            <p className="text-[11px] font-semibold text-muted-foreground">Idas</p>
+            <p className="mt-0.5 text-2xl font-black tabular-nums leading-none">{nf(tUri)}</p>
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              {nf(tUri / dayCount(d.urine), 1)} por dia
+            </p>
+          </div>
+          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3">
+            <p className="text-[11px] font-semibold text-muted-foreground">Total urinado</p>
+            <p className="mt-0.5 text-2xl font-black tabular-nums leading-none">
+              {nf(tUriMl)}
+              <span className="ml-0.5 text-[11px] font-semibold text-muted-foreground">ml</span>
+            </p>
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              {uriNoMl ? `${uriNoMl} sem volume informado` : "todos com volume"}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-border bg-muted/40 p-3">
+            <p className="text-[11px] font-semibold text-muted-foreground">Mais recente</p>
+            <p className="mt-0.5 text-2xl font-black tabular-nums leading-none">
+              {lastUri?.ml ? nf(lastUri.ml) : "—"}
+              {lastUri?.ml ? (
+                <span className="ml-0.5 text-[11px] font-semibold text-muted-foreground">ml</span>
+              ) : null}
+            </p>
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              {lastUri ? lastUriWhen : "sem registro"}
+            </p>
+          </div>
+        </div>
+      )}
       {(!only || only === "miccao") && (
         <HealthChart
           key={`${only ?? "all"}-${range}`}
-          title="Líquidos e idas ao banheiro"
-          hint="O que você bebeu e quantas vezes foi ao banheiro."
+          title={only === "miccao" ? "Volume e idas ao banheiro" : "Líquidos e idas ao banheiro"}
+          hint={
+            only === "miccao"
+              ? "Quanto você urinou (ml) e quantas vezes foi ao banheiro."
+              : "O que você bebeu e quantas vezes foi ao banheiro."
+          }
           buckets={buckets}
-          series={liqUri}
+          series={only === "miccao" ? uriChart : liqUri}
         />
       )}
       {(!only || only === "cafeina") && (
