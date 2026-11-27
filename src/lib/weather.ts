@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 /** Temperatura por hora em Feijó/AC (Open-Meteo, sem chave). Histórico vem da própria API, então não precisa de coluna nova. */
 const LAT = -8.1647;
@@ -61,17 +62,41 @@ async function load(days: number): Promise<Record<string, number>> {
   return temps;
 }
 
-export function useHourlyTemps(days = 8) {
+/** Guarda no banco as últimas horas de temperatura (no máximo a cada 6 h); ignora erros se a tabela ainda não existe. */
+async function archive(patientId: string, ownerId: string, temps: Record<string, number>) {
+  const flag = `nv-weather-archived-${patientId}`;
+  try {
+    if (Date.now() - Number(localStorage.getItem(flag) ?? 0) < 6 * 3_600_000) return;
+    const cut = hourKey(Date.now() - 72 * 3_600_000);
+    const now = hourKey(Date.now());
+    const rows = Object.entries(temps)
+      .filter(([h]) => h >= cut && h <= now)
+      .map(([hour, temp_c]) => ({ patient_id: patientId, owner_id: ownerId, hour, temp_c }));
+    if (!rows.length) return;
+    const { error } = await (supabase as any)
+      .from("care_weather_hours")
+      .upsert(rows, { onConflict: "patient_id,hour" });
+    if (!error) localStorage.setItem(flag, String(Date.now()));
+  } catch {
+    /* clima guardado é opcional */
+  }
+}
+
+export function useHourlyTemps(days = 8, who?: { patientId: string; ownerId: string }) {
   const [temps, setTemps] = useState<Record<string, number>>({});
   useEffect(() => {
     let alive = true;
     load(days)
-      .then((t) => alive && setTemps(t))
+      .then((t) => {
+        if (!alive) return;
+        setTemps(t);
+        if (who) void archive(who.patientId, who.ownerId, t);
+      })
       .catch(() => undefined);
     return () => {
       alive = false;
     };
-  }, [days]);
+  }, [days, who?.patientId, who?.ownerId]);
   return {
     temps,
     at: (iso: string | number) => temps[hourKey(iso)] ?? null,

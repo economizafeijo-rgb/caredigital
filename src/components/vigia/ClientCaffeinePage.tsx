@@ -18,6 +18,8 @@ import { Collapsible } from "./HealthBits";
 import { useDialog } from "@/lib/dialog";
 import { useRecordLock } from "./useRecordLock";
 import { useCareLogs } from "./useCareLogs";
+import { TempChip } from "./TempChip";
+import { useHourlyTemps } from "@/lib/weather";
 import { useIntakeRecords } from "./useIntakeRecords";
 import { useHealthLimits } from "./useHealthLimits";
 import { ClientHealthHub } from "./ClientHealthHub";
@@ -102,6 +104,7 @@ export function ClientCaffeinePage({ patientId, ownerId }: { patientId: string; 
   const intake = Array<number>(24).fill(0);
   for (const l of todayLogs) intake[Number(acreTimeLabel(l.at).slice(0, 2))] += l.mg;
 
+  const wx = useHourlyTemps(8, { patientId, ownerId });
   const corr = useMemo(() => sleepCorrelation(all, sleeps), [all, sleeps]);
 
   async function addCustom() {
@@ -319,6 +322,7 @@ export function ClientCaffeinePage({ patientId, ownerId }: { patientId: string; 
                   {l.source}
                   {l.ml ? ` · ${l.ml} ml` : ""} · {l.mg} mg
                 </span>
+                <TempChip temp={wx.at(l.at)} />
                 {l.id.includes("-c-") ? (
                   <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
                     automático

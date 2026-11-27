@@ -3,6 +3,8 @@ import { Info, Lock, Milk, Trash2 } from "lucide-react";
 import { acreDateKey, acreTimeLabel } from "@/lib/acre-time";
 import { LACTOSE_THRESHOLDS as T } from "@/lib/intake-detect";
 import { useCareLogs } from "./useCareLogs";
+import { TempChip } from "./TempChip";
+import { useHourlyTemps } from "@/lib/weather";
 import { useHealthLimits } from "./useHealthLimits";
 import { ClientHealthHub } from "./ClientHealthHub";
 import { Collapsible } from "./HealthBits";
@@ -45,6 +47,7 @@ function groupDoses(recs: LactoseRecord[]): Dose[] {
 const tone = (g: number) => (g > T.perMealHigh ? RED : g > T.perMealOk ? AMBER : GREEN);
 
 export function ClientLactosePage({ patientId, ownerId }: { patientId: string; ownerId: string }) {
+  const wx = useHourlyTemps(8, { patientId, ownerId });
   const intake = useIntakeRecords(patientId, ownerId, 30);
   const { items, remote, error, add, remove } = useCareLogs<SymptomLog>(
     "care_lactose_logs",
@@ -262,6 +265,7 @@ export function ClientLactosePage({ patientId, ownerId }: { patientId: string; o
                 <span className="min-w-0 flex-1 truncate">
                   {r.label} · {r.amount} {r.origin === "porcao" ? "g" : "ml/g"}
                 </span>
+                <TempChip temp={wx.at(r.at)} />
                 <span
                   className={`w-16 shrink-0 text-right font-semibold tabular-nums ${r.free ? "text-emerald-600" : ""}`}
                 >

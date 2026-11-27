@@ -57,7 +57,7 @@ export function ClientUrinationPage({
   const [when, setWhen] = useState(() => acreDateTimeInput());
   const [volume, setVolume] = useState<UrineVolume>("moderado");
   const [ml, setMl] = useState("");
-  const wx = useHourlyTemps(8);
+  const wx = useHourlyTemps(8, { patientId, ownerId });
   const nowFeel = wx.now !== null ? feel(wx.now) : null;
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);

@@ -64,7 +64,7 @@ export function ClientHealthHub({
   const [range, setRange] = useState<RangeId>("7d");
   const { limits } = useHealthLimits(patientId);
   const d = useHealthSeries(patientId, ownerId, range);
-  const wx = useHourlyTemps(Math.min(92, rangeDays(range) + 1));
+  const wx = useHourlyTemps(Math.min(92, rangeDays(range) + 1), { patientId, ownerId });
   const buckets = useMemo(() => makeBuckets(range), [range]);
   const days = rangeDays(range);
 
@@ -146,6 +146,18 @@ export function ClientHealthHub({
       out.push({
         k: "miccao",
         t: `Nos dias mais frios você foi ao banheiro ${nf(c4.lo, 1)} vezes; nos dias mais quentes, ${nf(c4.hi, 1)}. O frio costuma aumentar a vontade de urinar.`,
+      });
+    const c5 = compareDays(tAvg, liq);
+    if (c5)
+      out.push({
+        k: "miccao",
+        t: `Nos dias mais quentes você bebeu ${nf(c5.hi)} ml; nos mais frios, ${nf(c5.lo)} ml.`,
+      });
+    const c6 = compareDays(tAvg, caf);
+    if (c6)
+      out.push({
+        k: "cafeina",
+        t: `Nos dias mais frios você tomou ${nf(c6.lo)} mg de cafeína; nos mais quentes, ${nf(c6.hi)} mg.`,
       });
     // O sono da noite seguinte: desloca a data do sono um dia para trás.
     const prev = new Map<string, number>();

@@ -1,3 +1,5 @@
+import { TempChip } from "./TempChip";
+import { useHourlyTemps } from "@/lib/weather";
 import { useMemo, useState } from "react";
 import { Check, Droplets, Pencil, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,6 +42,7 @@ export function HydrationEntries({
   onChanged: () => void;
 }) {
   const dialog = useDialog();
+  const wx = useHourlyTemps(2);
   const entries = useMemo<Entry[]>(
     () =>
       [
@@ -270,8 +273,9 @@ export function HydrationEntries({
                     <Droplets size={15} />
                   </span>
                   <span className="min-w-0">
-                    <strong className="block text-[13px] leading-tight tabular-nums">
+                    <strong className="flex items-center gap-1.5 text-[13px] leading-tight tabular-nums">
                       {ml(Number(e.amount_ml))}
+                      <TempChip temp={wx.at(e.recorded_at)} />
                     </strong>
                     <span className="block truncate text-[11px] text-muted-foreground">
                       {hhmm(e.recorded_at)} ·{" "}
