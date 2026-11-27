@@ -15,6 +15,8 @@ import {
   type CaffeineLog,
 } from "@/lib/caffeine";
 import { Collapsible } from "./HealthBits";
+import { useDialog } from "@/lib/dialog";
+import { useRecordLock } from "./useRecordLock";
 import { useCareLogs } from "./useCareLogs";
 import { useIntakeRecords } from "./useIntakeRecords";
 import { useHealthLimits } from "./useHealthLimits";
@@ -134,6 +136,19 @@ export function ClientCaffeinePage({ patientId, ownerId }: { patientId: string; 
     .map((v, h) => `${h ? "L" : "M"}${px(h).toFixed(1)},${py(v).toFixed(1)}`)
     .join(" ");
   const nowHr = Math.min(23, Math.floor(nowH));
+
+  const lock = useRecordLock();
+  const dialog = useDialog();
+  async function guardedRemove(r: { id: string; at: string }) {
+    if (lock.isLocked(r.at) && !(await lock.unlock())) return;
+    const ok = await dialog.confirm(
+      "Excluir este registro?",
+      "Não dá para desfazer.",
+      true,
+      "Excluir",
+    );
+    if (ok) await remove(r.id);
+  }
 
   return (
     <section className="grid min-w-0 gap-3" aria-labelledby="cafe-title">
@@ -312,7 +327,7 @@ export function ClientCaffeinePage({ patientId, ownerId }: { patientId: string; 
                   <button
                     type="button"
                     aria-label="Excluir registro"
-                    onClick={() => void remove(l.id)}
+                    onClick={() => void guardedRemove(l)}
                     className="grid size-9 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-red-500"
                   >
                     <Trash2 size={15} />

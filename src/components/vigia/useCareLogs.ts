@@ -95,7 +95,31 @@ export function useCareLogs<T extends { id: string; at: string }>(
     [remote, table, items, localKey],
   );
 
-  return { items, loaded, remote, error, add, remove };
+  const update = useCallback(
+    async (id: string, patch: Partial<Omit<T, "id">>) => {
+      setError("");
+      if (remote) {
+        const { error: e } = await (supabase as any).from(table).update(patch).eq("id", id);
+        if (e) {
+          setError("Não foi possível salvar a alteração.");
+          return false;
+        }
+        setTick((n) => n + 1);
+        return true;
+      }
+      const next = items.map((x) => (x.id === id ? { ...x, ...patch } : x));
+      try {
+        localStorage.setItem(localKey, JSON.stringify(next));
+      } catch {
+        /* ok */
+      }
+      setItems(next);
+      return true;
+    },
+    [remote, table, items, localKey],
+  );
+
+  return { items, loaded, remote, error, add, remove, update };
 }
 
 /** Líquidos do dia (água + outras bebidas) e meta, para cruzar com micção. */

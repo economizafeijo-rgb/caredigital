@@ -6,6 +6,8 @@ import { useCareLogs } from "./useCareLogs";
 import { useHealthLimits } from "./useHealthLimits";
 import { ClientHealthHub } from "./ClientHealthHub";
 import { Collapsible } from "./HealthBits";
+import { useDialog } from "@/lib/dialog";
+import { useRecordLock } from "./useRecordLock";
 import { useIntakeRecords, type LactoseRecord } from "./useIntakeRecords";
 
 type SymptomLog = { id: string; at: string; severity: number; symptoms: string; notes: string };
@@ -116,6 +118,19 @@ export function ClientLactosePage({ patientId, ownerId }: { patientId: string; o
   }
 
   const listRecs = intake.lactose.filter((r) => acreDateKey(r.at) === today);
+
+  const lock = useRecordLock();
+  const dialog = useDialog();
+  async function guardedRemove(r: { id: string; at: string }) {
+    if (lock.isLocked(r.at) && !(await lock.unlock())) return;
+    const ok = await dialog.confirm(
+      "Excluir este registro?",
+      "Não dá para desfazer.",
+      true,
+      "Excluir",
+    );
+    if (ok) await remove(r.id);
+  }
 
   return (
     <section className="grid min-w-0 gap-3" aria-labelledby="lactose-title">
@@ -273,7 +288,7 @@ export function ClientLactosePage({ patientId, ownerId }: { patientId: string; o
                   <button
                     type="button"
                     aria-label="Excluir registro"
-                    onClick={() => void remove(s.id)}
+                    onClick={() => void guardedRemove(s)}
                     className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-red-500"
                   >
                     <Trash2 size={15} />

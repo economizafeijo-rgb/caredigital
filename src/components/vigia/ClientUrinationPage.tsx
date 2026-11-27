@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
-import { Droplets, Trash2, Info, X } from "lucide-react";
+import { Droplets, Trash2, Info, Lock, Pencil, X } from "lucide-react";
+import { useDialog } from "@/lib/dialog";
+import { useRecordLock } from "./useRecordLock";
 import { acreDateKey, acreDateTimeInput, acreTimeLabel } from "@/lib/acre-time";
 import {
   MEDICAL_NOTE,
@@ -31,7 +33,7 @@ export function ClientUrinationPage({
   patientId: string;
   ownerId: string;
 }) {
-  const { items, loaded, remote, error, add, remove } = useCareLogs<UrinationLog>(
+  const { items, loaded, remote, error, add, remove, update } = useCareLogs<UrinationLog>(
     "care_urination_logs",
     COLS,
     patientId,
@@ -45,6 +47,9 @@ export function ClientUrinationPage({
   const [ml, setMl] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const lock = useRecordLock();
+  const dialog = useDialog();
   const [done, setDone] = useState<string | null>(null);
 
   const today = acreDateKey();
@@ -98,21 +103,45 @@ export function ClientUrinationPage({
     if (saving) return;
     setSaving(true);
     const mlNum = ml ? Number(ml) : null;
-    const ok = await add({
+    const row = {
       at: new Date(when + ":00-05:00").toISOString(),
       volume,
       ml: mlNum && mlNum >= 10 && mlNum <= 1500 ? Math.round(mlNum) : null,
       notes: notes.trim().slice(0, 300),
-    });
+    };
+    const ok = editId ? await update(editId, row) : await add(row);
     setSaving(false);
     if (ok) {
-      setDone(`Micção registrada às ${acreTimeLabel(new Date(when + ":00-05:00").getTime())}.`);
+      setEditId(null);
+      setDone(
+        `Micção ${editId ? "atualizada" : "registrada"} às ${acreTimeLabel(new Date(when + ":00-05:00").getTime())}.`,
+      );
       window.setTimeout(() => setDone(null), 4000);
       setOpen(false);
       setMl("");
       setNotes("");
       setWhen(acreDateTimeInput());
     }
+  }
+
+  async function startEdit(l: UrinationLog) {
+    if (lock.isLocked(l.at) && !(await lock.unlock())) return;
+    setEditId(l.id);
+    setWhen(acreDateTimeInput(new Date(l.at).getTime()));
+    setVolume(l.volume);
+    setMl(l.ml ? String(l.ml) : "");
+    setNotes(l.notes ?? "");
+    setOpen(true);
+  }
+  async function askRemove(l: UrinationLog) {
+    if (lock.isLocked(l.at) && !(await lock.unlock())) return;
+    const ok = await dialog.confirm(
+      "Excluir este registro?",
+      `Micção das ${acreTimeLabel(l.at)}. Não dá para desfazer.`,
+      true,
+      "Excluir",
+    );
+    if (ok) await remove(l.id);
   }
 
   return (
@@ -124,6 +153,7 @@ export function ClientUrinationPage({
         <button
           type="button"
           onClick={() => {
+            setEditId(null);
             setWhen(acreDateTimeInput());
             setOpen(true);
           }}
@@ -158,7 +188,9 @@ export function ClientUrinationPage({
           <div className="grid max-h-[92dvh] w-full gap-4 overflow-y-auto rounded-t-3xl border border-border bg-card p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-2xl sm:max-w-md sm:rounded-3xl">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h3 className="text-lg font-black">Registrar micção</h3>
+                <h3 className="text-lg font-black">
+                  {editId ? "Editar micção" : "Registrar micção"}
+                </h3>
                 <p className="text-xs text-muted-foreground">
                   Confirme o horário e, se quiser, quanto saiu.
                 </p>
@@ -166,7 +198,10 @@ export function ClientUrinationPage({
               <button
                 type="button"
                 aria-label="Fechar"
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  setOpen(false);
+                  setEditId(null);
+                }}
                 className="grid size-10 place-items-center rounded-xl text-muted-foreground hover:bg-muted"
               >
                 <X size={18} />
@@ -232,7 +267,10 @@ export function ClientUrinationPage({
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  setOpen(false);
+                  setEditId(null);
+                }}
                 className="h-12 rounded-xl border border-border text-sm font-semibold"
               >
                 Cancelar
@@ -243,7 +281,7 @@ export function ClientUrinationPage({
                 onClick={() => void save()}
                 className="h-12 rounded-xl bg-sky-600 text-sm font-bold text-white disabled:opacity-60"
               >
-                {saving ? "Salvando…" : "Confirmar"}
+                {saving ? "Salvando…" : editId ? "Salvar alteração" : "Confirmar"}
               </button>
             </div>
           </div>
@@ -325,14 +363,35 @@ export function ClientUrinationPage({
                   {l.ml ? ` · ${l.ml} ml` : ""}
                   {l.notes ? ` · ${l.notes}` : ""}
                 </span>
-                <button
-                  type="button"
-                  aria-label="Excluir registro"
-                  onClick={() => void remove(l.id)}
-                  className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-red-500"
-                >
-                  <Trash2 size={15} />
-                </button>
+                {lock.isLocked(l.at) ? (
+                  <button
+                    type="button"
+                    aria-label="Registro trancado: liberar com a senha"
+                    onClick={() => void lock.unlock()}
+                    className="grid size-9 place-items-center rounded-lg text-muted-foreground hover:bg-muted"
+                  >
+                    <Lock size={15} />
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      aria-label="Editar registro"
+                      onClick={() => void startEdit(l)}
+                      className="grid size-9 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-sky-500"
+                    >
+                      <Pencil size={15} />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Excluir registro"
+                      onClick={() => void askRemove(l)}
+                      className="grid size-9 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-red-500"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </>
+                )}
               </li>
             ))}
           </ul>
