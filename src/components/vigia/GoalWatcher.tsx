@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useWeightGoalVersion } from "@/lib/weight-goal";
 import { acreAddDays } from "@/lib/acre-time";
 import { acreDayHour, buildDays, type GoalResult, type GoalStatus } from "@/lib/day-metrics";
 import { loadPeriodRaw, lookbackStart, resolveTargets, saveGoalReviews } from "@/lib/period-data";
@@ -36,6 +37,7 @@ export function GoalWatcher({ patientId, ownerId, waterTarget, revision }: Props
   const previous = useRef(new Map<string, GoalStatus>());
   const saved = useRef(new Set<string>());
   const running = useRef(false);
+  const goalVersion = useWeightGoalVersion();
 
   useEffect(() => {
     if (!patientId || !ownerId || running.current) return;
@@ -125,7 +127,7 @@ export function GoalWatcher({ patientId, ownerId, waterTarget, revision }: Props
       active = false;
       running.current = false;
     };
-  }, [patientId, ownerId, waterTarget, revision]);
+  }, [patientId, ownerId, waterTarget, revision, goalVersion]);
 
   return null;
 }

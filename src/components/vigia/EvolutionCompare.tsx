@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useWeightGoalVersion } from "@/lib/weight-goal";
 import { ArrowDownRight, ArrowRight, ArrowUpRight, Loader2 } from "lucide-react";
 import { acreAddDays } from "@/lib/acre-time";
 import {
@@ -66,19 +67,86 @@ const METRICS: Metric[] = [
     color: "#10b981",
     get: (s) => (s.goalsEvaluated ? Math.round((s.goalsMet / s.goalsEvaluated) * 100) : null),
   },
-  { key: "agua", label: "Água por dia", unit: "ml", better: "up", color: "#0ea5e9", get: (s) => s.avgWaterMl },
-  { key: "kcal", label: "Calorias por dia", unit: "kcal", better: "neutral", color: "#f97316", get: (s) => s.avgKcal },
-  { key: "prot", label: "Proteína por dia", unit: "g", better: "up", color: "#f43f5e", get: (s) => s.avgProtein },
-  { key: "sono", label: "Sono médio", unit: "h", digits: 1, better: "up", color: "#6366f1", get: (s) => s.avgSleepHours },
-  { key: "sup", label: "Suplementos", unit: "%", better: "up", color: "#8b5cf6", get: (s) => s.supplementAdherence },
-  { key: "med", label: "Medicação", unit: "%", better: "up", color: "#ec4899", get: (s) => s.medicationAdherence },
-  { key: "ativ", label: "Atividade", unit: "min", better: "up", color: "#14b8a6", get: (s) => s.activityMinutes },
-  { key: "dias", label: "Dias completos", unit: "dias", better: "up", color: "#22c55e", get: (s) => s.daysAllMet },
-  { key: "peso", label: "Peso ao fim", unit: "kg", digits: 1, better: "neutral", color: "#c026d3", get: (s) => s.weightLast },
+  {
+    key: "agua",
+    label: "Água por dia",
+    unit: "ml",
+    better: "up",
+    color: "#0ea5e9",
+    get: (s) => s.avgWaterMl,
+  },
+  {
+    key: "kcal",
+    label: "Calorias por dia",
+    unit: "kcal",
+    better: "neutral",
+    color: "#f97316",
+    get: (s) => s.avgKcal,
+  },
+  {
+    key: "prot",
+    label: "Proteína por dia",
+    unit: "g",
+    better: "up",
+    color: "#f43f5e",
+    get: (s) => s.avgProtein,
+  },
+  {
+    key: "sono",
+    label: "Sono médio",
+    unit: "h",
+    digits: 1,
+    better: "up",
+    color: "#6366f1",
+    get: (s) => s.avgSleepHours,
+  },
+  {
+    key: "sup",
+    label: "Suplementos",
+    unit: "%",
+    better: "up",
+    color: "#8b5cf6",
+    get: (s) => s.supplementAdherence,
+  },
+  {
+    key: "med",
+    label: "Medicação",
+    unit: "%",
+    better: "up",
+    color: "#ec4899",
+    get: (s) => s.medicationAdherence,
+  },
+  {
+    key: "ativ",
+    label: "Atividade",
+    unit: "min",
+    better: "up",
+    color: "#14b8a6",
+    get: (s) => s.activityMinutes,
+  },
+  {
+    key: "dias",
+    label: "Dias completos",
+    unit: "dias",
+    better: "up",
+    color: "#22c55e",
+    get: (s) => s.daysAllMet,
+  },
+  {
+    key: "peso",
+    label: "Peso ao fim",
+    unit: "kg",
+    digits: 1,
+    better: "neutral",
+    color: "#c026d3",
+    get: (s) => s.weightLast,
+  },
 ];
 
 const fmt = (v: number | null, digits = 0) =>
-  v === null ? "—" : v.toLocaleString("pt-BR", { maximumFractionDigits: digits, minimumFractionDigits: digits });
+  v === null
+    ? "—"
+    : v.toLocaleString("pt-BR", { maximumFractionDigits: digits, minimumFractionDigits: digits });
 
 function useSummary(
   loader: Loader,
@@ -88,11 +156,14 @@ function useSummary(
   from: string,
   to: string,
 ) {
-  const [state, setState] = useState<{ s: PeriodSummary | null; loading: boolean; error: boolean }>({
-    s: null,
-    loading: true,
-    error: false,
-  });
+  const [state, setState] = useState<{ s: PeriodSummary | null; loading: boolean; error: boolean }>(
+    {
+      s: null,
+      loading: true,
+      error: false,
+    },
+  );
+  const goalVersion = useWeightGoalVersion();
   useEffect(() => {
     let active = true;
     setState((p) => ({ ...p, loading: true, error: false }));
@@ -108,7 +179,7 @@ function useSummary(
     return () => {
       active = false;
     };
-  }, [loader, patientId, ownerId, waterTarget, from, to]);
+  }, [loader, patientId, ownerId, waterTarget, from, to, goalVersion]);
   return state;
 }
 
@@ -130,7 +201,12 @@ function Picker({
     <label className="grid gap-1 text-[11px] font-bold" style={{ color: tone }}>
       {title}
       {kind === "semana" && (
-        <input type="date" className={field} value={value} onChange={(e) => e.target.value && onChange(e.target.value)} />
+        <input
+          type="date"
+          className={field}
+          value={value}
+          onChange={(e) => e.target.value && onChange(e.target.value)}
+        />
       )}
       {kind === "mes" && (
         <input
@@ -171,7 +247,12 @@ export function EvolutionCompare({
   const [a, setA] = useState(() => `${today.slice(0, 7)}-01`);
   const [b, setB] = useState(() => previous("mes", `${today.slice(0, 7)}-01`));
   const changeKind = (k: Kind) => {
-    const start = k === "semana" ? acreAddDays(today, -6) : k === "mes" ? `${today.slice(0, 7)}-01` : `${today.slice(0, 4)}-01-01`;
+    const start =
+      k === "semana"
+        ? acreAddDays(today, -6)
+        : k === "mes"
+          ? `${today.slice(0, 7)}-01`
+          : `${today.slice(0, 4)}-01-01`;
     setKind(k);
     setA(start);
     setB(previous(k, start));
@@ -219,7 +300,9 @@ export function EvolutionCompare({
         {loading && <Loader2 size={13} className="animate-spin text-muted-foreground" />}
       </p>
       {(sa.error || sb.error) && (
-        <p role="alert" className="text-xs text-rose-600">Não foi possível carregar um dos períodos.</p>
+        <p role="alert" className="text-xs text-rose-600">
+          Não foi possível carregar um dos períodos.
+        </p>
       )}
 
       <ul className="grid gap-2 md:grid-cols-2">
@@ -230,7 +313,8 @@ export function EvolutionCompare({
           const diff = va !== null && vb !== null ? va - vb : null;
           const pct = diff !== null && vb ? (diff / Math.abs(vb)) * 100 : null;
           const good = diff === null || diff === 0 || m.better === "neutral" ? null : diff > 0;
-          const Icon = diff === null || diff === 0 ? ArrowRight : diff > 0 ? ArrowUpRight : ArrowDownRight;
+          const Icon =
+            diff === null || diff === 0 ? ArrowRight : diff > 0 ? ArrowUpRight : ArrowDownRight;
           const chip =
             good === null
               ? "bg-muted text-muted-foreground"
@@ -238,10 +322,16 @@ export function EvolutionCompare({
                 ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300"
                 : "bg-rose-500/15 text-rose-600 dark:text-rose-300";
           return (
-            <li key={m.key} className="min-w-0 border border-border bg-background/40 p-2.5" style={{ borderLeft: `3px solid ${m.color}` }}>
+            <li
+              key={m.key}
+              className="min-w-0 border border-border bg-background/40 p-2.5"
+              style={{ borderLeft: `3px solid ${m.color}` }}
+            >
               <div className="flex items-center justify-between gap-2">
                 <p className="truncate text-xs font-bold">{m.label}</p>
-                <span className={`inline-flex shrink-0 items-center gap-1 px-1.5 py-0.5 text-[11px] font-bold tabular-nums ${chip}`}>
+                <span
+                  className={`inline-flex shrink-0 items-center gap-1 px-1.5 py-0.5 text-[11px] font-bold tabular-nums ${chip}`}
+                >
                   <Icon size={12} />
                   {diff === null
                     ? "sem dados"
@@ -252,16 +342,23 @@ export function EvolutionCompare({
                 { tag: "A", v: va, color: COLOR_A },
                 { tag: "B", v: vb, color: COLOR_B },
               ].map((r) => (
-                <div key={r.tag} className="mt-1.5 grid grid-cols-[1rem_minmax(0,1fr)_auto] items-center gap-2 text-[11px]">
+                <div
+                  key={r.tag}
+                  className="mt-1.5 grid grid-cols-[1rem_minmax(0,1fr)_auto] items-center gap-2 text-[11px]"
+                >
                   <b style={{ color: r.color }}>{r.tag}</b>
                   <div className="h-2 bg-black/10 dark:bg-white/10">
                     <div
                       className="h-full transition-[width] duration-500"
-                      style={{ width: `${r.v === null ? 0 : Math.max(2, (r.v / max) * 100)}%`, background: r.color }}
+                      style={{
+                        width: `${r.v === null ? 0 : Math.max(2, (r.v / max) * 100)}%`,
+                        background: r.color,
+                      }}
                     />
                   </div>
                   <span className="min-w-[4.5rem] text-right font-semibold tabular-nums">
-                    {fmt(r.v, m.digits ?? 0)} <span className="font-normal text-muted-foreground">{m.unit}</span>
+                    {fmt(r.v, m.digits ?? 0)}{" "}
+                    <span className="font-normal text-muted-foreground">{m.unit}</span>
                   </span>
                 </div>
               ))}

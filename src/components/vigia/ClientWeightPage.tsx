@@ -42,6 +42,8 @@ import { WeightEvolutionChart, WeightVariationPanel } from "./WeightCharts";
 import { WeightLossPlan } from "./WeightLossPlan";
 import { NumberDial } from "./NumberDial";
 import { signed } from "@/lib/weight-variation";
+import { useWeightGoalVersion } from "@/lib/weight-goal";
+import { WeightGoalEditor } from "./WeightGoalEditor";
 
 type Point = { id: string; recorded_on: string; weight_kg: number; height_cm: number };
 type Props = {
@@ -85,12 +87,14 @@ function StatCard({
   value,
   note,
   color,
+  action,
 }: {
   icon: typeof Scale;
   label: string;
   value: string;
   note: string;
   color: string;
+  action?: { label: string; onClick: () => void };
 }) {
   return (
     <div
@@ -108,6 +112,17 @@ function StatCard({
         <p className="font-display text-xl font-extrabold tabular-nums tracking-tight">{value}</p>
         <p className="truncate text-[10px] text-muted-foreground">{note}</p>
       </div>
+      {action && (
+        <button
+          type="button"
+          onClick={action.onClick}
+          aria-label={action.label}
+          title={action.label}
+          className="ml-auto grid size-9 shrink-0 place-items-center border border-border text-muted-foreground transition hover:bg-muted hover:text-foreground"
+        >
+          <Pencil size={15} />
+        </button>
+      )}
     </div>
   );
 }
@@ -135,6 +150,8 @@ export function ClientWeightPage({
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [listMessage, setListMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [reload, setReload] = useState(0);
+  const goalVersion = useWeightGoalVersion();
+  const [editingGoal, setEditingGoal] = useState(false);
   const dialog = useDialog();
   // Cadeado: os registros salvos só podem ser editados ou excluídos depois de uma confirmação,
   // e voltam a ficar bloqueados sozinhos.
@@ -236,7 +253,7 @@ export function ClientWeightPage({
     return () => {
       active = false;
     };
-  }, [patientId, ownerId, heightCm, reload]);
+  }, [patientId, ownerId, heightCm, reload, goalVersion]);
 
   async function save() {
     if (saving) return;
@@ -529,10 +546,24 @@ export function ClientWeightPage({
               ? Math.abs(toTarget) < 0.1
                 ? "Meta alcançada!"
                 : `${nf(Math.abs(toTarget))} kg ${toTarget > 0 ? "acima" : "abaixo"} da meta`
-              : "Defina em Meu perfil › nutrição"
+              : "Toque em Ajustar meta para definir"
           }
+          action={{
+            label: target ? "Ajustar meta" : "Definir meta",
+            onClick: () => setEditingGoal(true),
+          }}
         />
       </div>
+      {editingGoal && (
+        <WeightGoalEditor
+          patientId={patientId}
+          ownerId={ownerId}
+          current={target}
+          lastWeight={last?.weight_kg ?? currentWeight}
+          heightCm={Number(height.replace(",", ".")) || heightCm}
+          onClose={() => setEditingGoal(false)}
+        />
+      )}
 
       {explorer}
       <div className="grid gap-3 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">

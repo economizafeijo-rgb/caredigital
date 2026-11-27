@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useWeightGoalVersion } from "@/lib/weight-goal";
 import {
   Activity,
   ChevronLeft,
@@ -51,6 +52,7 @@ export function DayDetailDialog({
   const [failed, setFailed] = useState(false);
   const today = acreDayHour(Date.now()).day;
 
+  const goalVersion = useWeightGoalVersion();
   useEffect(() => {
     setDay(initialDay);
   }, [initialDay]);
@@ -82,7 +84,7 @@ export function DayDetailDialog({
     return () => {
       active = false;
     };
-  }, [day, patientId, ownerId, waterTarget]);
+  }, [day, patientId, ownerId, waterTarget, goalVersion]);
   useEffect(() => {
     if (!initialDay) return;
     const onKey = (event: KeyboardEvent) => {

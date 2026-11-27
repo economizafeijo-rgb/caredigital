@@ -1,4 +1,5 @@
 import { LiveIntake } from "./LiveIntake";
+import { useWeightGoalVersion } from "@/lib/weight-goal";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ConfirmCard, confirmArea } from "./ConfirmCard";
 import { createPortal } from "react-dom";
@@ -624,6 +625,7 @@ function LiveDashboard({
     );
   }, []);
 
+  const goalVersion = useWeightGoalVersion();
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -655,7 +657,7 @@ function LiveDashboard({
     } finally {
       setLoading(false);
     }
-  }, [patientId, ownerId]);
+  }, [patientId, ownerId, goalVersion]);
 
   useEffect(() => {
     void load();

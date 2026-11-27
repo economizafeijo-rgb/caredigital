@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { NiceSelect } from "./NiceSelect";
 import { Activity, Save, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { announceWeightGoalChange, useWeightGoalVersion } from "@/lib/weight-goal";
 import { estimateActivityFactor } from "@/lib/objective-nutrition";
 import { ClientBodyHistory } from "./ClientBodyHistory";
 
@@ -140,6 +141,7 @@ export function ClientHealthProfile({ patientId, ownerId, initial, onSaved, onCl
     initial.fat,
     initial.kcal,
   ]);
+  const goalVersion = useWeightGoalVersion();
   useEffect(() => {
     let active = true;
     setTargetLoading(true);
@@ -158,7 +160,7 @@ export function ClientHealthProfile({ patientId, ownerId, initial, onSaved, onCl
     return () => {
       active = false;
     };
-  }, [patientId, ownerId]);
+  }, [patientId, ownerId, goalVersion]);
   const parse = (s: string, min: number, max: number) => {
     if (!s.trim()) return null;
     const n = Number(s.replace(",", "."));
@@ -270,10 +272,12 @@ export function ClientHealthProfile({ patientId, ownerId, initial, onSaved, onCl
         setMessage(
           "Metas salvas, mas a atividade diária precisa ser configurada no perfil de hidratação.",
         );
+        announceWeightGoalChange();
         onSaved();
         return;
       }
       setMessage("Perfil atualizado. Indicadores recalculados.");
+      announceWeightGoalChange();
       onSaved();
     } catch (e) {
       setMessage(e instanceof Error ? e.message : "Falha ao salvar.");
@@ -297,9 +301,7 @@ export function ClientHealthProfile({ patientId, ownerId, initial, onSaved, onCl
     </label>
   );
   return (
-    <div
-      className="fixed inset-0 z-[9990] flex items-center justify-center bg-slate-950/60 p-3 backdrop-blur-sm"
-    >
+    <div className="fixed inset-0 z-[9990] flex items-center justify-center bg-slate-950/60 p-3 backdrop-blur-sm">
       <section
         role="dialog"
         aria-modal="true"

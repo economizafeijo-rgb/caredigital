@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useWeightGoalVersion } from "@/lib/weight-goal";
 import { signed } from "@/lib/weight-variation";
 import { EvoChart } from "./EvoChart";
 import { CalendarClock, Flag, MousePointerClick, TrendingDown, TrendingUp } from "lucide-react";
@@ -50,6 +51,7 @@ export function WeightExplorer({
   const [range, setRange] = useState<30 | 90 | 365 | 0>(90);
   const [picked, setPicked] = useState<string | null>(null);
   const [detail, setDetail] = useState<string | null>(null);
+  const goalVersion = useWeightGoalVersion();
   useEffect(() => {
     let active = true;
     const db = supabase as any;
@@ -94,7 +96,7 @@ export function WeightExplorer({
     return () => {
       active = false;
     };
-  }, [patientId, ownerId, revision]);
+  }, [patientId, ownerId, revision, goalVersion]);
 
   const last = points.at(-1);
   const recent = useMemo(() => {

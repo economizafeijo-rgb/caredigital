@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useWeightGoalVersion } from "@/lib/weight-goal";
 import { AlertTriangle, CalendarDays, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { acreAddDays, acreDateAtTime, ACRE_TIME_ZONE } from "@/lib/acre-time";
 import {
@@ -50,6 +51,7 @@ export function EvolutionHub({
   const thisYear = Number(today.slice(0, 4));
   const start = usePlatformStart(patientId, ownerId);
   const startYear = start ? Number(start.slice(0, 4)) : thisYear - YEARS_BACK;
+  const goalVersion = useWeightGoalVersion();
   const [view, setView] = useState<View>(defaultView);
   const [cursor, setCursor] = useState(today);
   const [data, setData] = useState<{ result: PeriodData; from: string; to: string } | null>(null);
@@ -90,7 +92,7 @@ export function EvolutionHub({
     return () => {
       active = false;
     };
-  }, [loader, patientId, ownerId, range.from, range.to, revision]);
+  }, [loader, patientId, ownerId, range.from, range.to, revision, goalVersion]);
 
   const targets = useMemo(
     () => (data ? resolveTargets(data.result.prefs, waterTarget) : null),
