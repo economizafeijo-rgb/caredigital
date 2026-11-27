@@ -293,7 +293,9 @@ export function WeightExplorer({
               Ritmo atual
             </p>
             <p className="text-lg font-extrabold tabular-nums">
-              {trend === null ? "—" : `${trend > 0 ? "+" : ""}${nf(trend, 2)} kg`}
+              {trend === null
+                ? "—"
+                : `${Math.abs(trend) < 0.005 ? "" : trend > 0 ? "+" : ""}${nf(Math.abs(trend) < 0.005 ? 0 : trend, 2)} kg`}
               <span className="ml-1 text-sm font-semibold text-muted-foreground">/semana</span>
             </p>
             <p className="text-xs text-muted-foreground">tendência das últimas semanas</p>

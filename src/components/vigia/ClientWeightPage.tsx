@@ -40,6 +40,7 @@ import { weightGuidance } from "@/lib/nutrition-science";
 import { DayDetailDialog } from "./DayDetailDialog";
 import { WeightEvolutionChart, WeightVariationPanel } from "./WeightCharts";
 import { WeightLossPlan } from "./WeightLossPlan";
+import { NumberDial } from "./NumberDial";
 
 type Point = { id: string; recorded_on: string; weight_kg: number; height_cm: number };
 type Props = {
@@ -449,6 +450,7 @@ export function ClientWeightPage({
   const last = points.at(-1);
   const first = filtered[0];
   const refHeight = Number(height.replace(",", ".")) || last?.height_cm || heightCm || 0;
+  const lastKg = last?.weight_kg ?? null;
   const bmi = last && refHeight ? bmiOf(last.weight_kg, refHeight) : null;
   const category = bmi ? bmiCategory(bmi) : null;
   const weeks =
@@ -562,39 +564,34 @@ export function ClientWeightPage({
                   />
                 </span>
               </label>
-              <div className="contents">
-                <label className="text-xs font-semibold">
-                  Peso (kg)
-                  <span className="relative mt-1 block">
-                    <Scale
-                      size={15}
-                      className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
-                    />
-                    <input
-                      inputMode="decimal"
-                      value={weight}
-                      onChange={(event) => setWeight(event.target.value)}
-                      placeholder="75,5"
-                      className="block h-10 w-full border border-border bg-surface pl-8 pr-2 text-sm"
-                    />
-                  </span>
-                </label>
-                <label className="text-xs font-semibold">
-                  Altura (cm)
-                  <span className="relative mt-1 block">
-                    <Ruler
-                      size={15}
-                      className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
-                    />
-                    <input
-                      inputMode="numeric"
-                      value={height}
-                      onChange={(event) => setHeight(event.target.value)}
-                      placeholder="170"
-                      className="block h-10 w-full border border-border bg-surface pl-8 pr-2 text-sm"
-                    />
-                  </span>
-                </label>
+              <div className="grid gap-4 sm:col-span-3 sm:grid-cols-2">
+                <NumberDial
+                  label="Peso"
+                  unit="kg"
+                  value={weight}
+                  onChange={setWeight}
+                  min={20}
+                  max={300}
+                  step={0.1}
+                  digits={1}
+                  color="#e879f9"
+                  fallback={lastKg ?? 70}
+                  quick={[-1, -0.5, -0.1, 0.1, 0.5, 1]}
+                  hint={lastKg ? `último: ${nf(lastKg)} kg` : undefined}
+                />
+                <NumberDial
+                  label="Altura"
+                  unit="cm"
+                  value={height}
+                  onChange={setHeight}
+                  min={100}
+                  max={230}
+                  step={1}
+                  digits={0}
+                  color="#38bdf8"
+                  fallback={refHeight || 170}
+                  quick={[-5, -1, 1, 5]}
+                />
               </div>
               <button
                 type="button"
