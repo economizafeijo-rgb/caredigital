@@ -62,6 +62,13 @@ export function HealthChart({
   const [off, setOff] = useState<Set<string>>(new Set());
   const [pick, setPick] = useState<number | null>(null);
   const n = buckets.length;
+  // Linha de progresso (acumulado) por padrão no dia, onde há 24 intervalos.
+  const [cum, setCum] = useState(n === 24);
+  const cumOf = (s: ChartSeries) => {
+    let t = 0;
+    return s.values.map((v) => (t += v));
+  };
+  const canCum = (s: ChartSeries) => s.type === "bar" && s.agg === "sum";
   const vis = series.filter((s) => !off.has(s.id));
   const iw = W - PAD.l - PAD.r;
   const ih = H - PAD.t - PAD.b;
@@ -71,11 +78,14 @@ export function HealthChart({
   const scale = useMemo(() => {
     const max = (ax: "a" | "b") => {
       const list = vis.filter((s) => (s.axis ?? "a") === ax);
-      const top = Math.max(0, ...list.flatMap((s) => [...s.values, s.limit?.value ?? 0]));
+      const top = Math.max(
+        0,
+        ...list.flatMap((s) => [...(cum && canCum(s) ? cumOf(s) : s.values), s.limit?.value ?? 0]),
+      );
       return { has: list.length > 0, max: nice(top * 1.08) };
     };
     return { a: max("a"), b: max("b") };
-  }, [vis]);
+  }, [vis, cum]);
   const y = (v: number, ax: "a" | "b") => PAD.t + ih - (v / scale[ax].max) * ih;
   // Se só o eixo b estiver ligado, ele vira o esquerdo.
   const leftAxis: "a" | "b" = scale.a.has ? "a" : "b";
@@ -133,6 +143,25 @@ export function HealthChart({
         })}
       </div>
 
+      {vis.some(canCum) && (
+        <div className="mb-2 inline-flex rounded-full bg-muted/60 p-0.5 text-xs font-semibold">
+          {[
+            [false, "Por intervalo"],
+            [true, "Progresso"],
+          ].map(([v, l]) => (
+            <button
+              key={String(v)}
+              type="button"
+              aria-pressed={cum === v}
+              onClick={() => setCum(v as boolean)}
+              className={`h-8 rounded-full px-3 transition ${cum === v ? "bg-card shadow-sm" : "text-muted-foreground"}`}
+            >
+              {l as string}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Leitura do ponto tocado, ou resumo do período */}
       <div className="mb-1 min-h-[3.25rem] rounded-2xl bg-muted/40 px-3 py-2" aria-live="polite">
         <p className="text-[11px] font-semibold text-muted-foreground">
@@ -151,6 +180,11 @@ export function HealthChart({
                 <span className="ml-0.5 text-[10px] font-semibold text-muted-foreground">
                   {s.unit} {pick === null && s.agg === "avg" ? "(média)" : ""}
                 </span>
+                {cum && pick !== null && canCum(s) && (
+                  <span className="ml-1 text-[10px] font-semibold text-muted-foreground">
+                    · acumulado {fmt(cumOf(s)[pick], s.digits ?? (s.unit === "g" ? 1 : 0))} {s.unit}
+                  </span>
+                )}
               </span>
             );
           })}
@@ -275,7 +309,7 @@ export function HealthChart({
           .filter((s) => s.type === "bar")
           .map((s, si, arr) => {
             const ax = s.axis ?? "a";
-            const bw = Math.min(28, (slot * 0.72) / arr.length);
+            const bw = Math.min(26, (slot * (n > 14 ? 0.56 : 0.7)) / arr.length);
             return s.values.map((v, i) => {
               if (v <= 0) return null;
               const x = cx(i) - (bw * arr.length) / 2 + si * bw;
@@ -290,10 +324,42 @@ export function HealthChart({
                   height={hh}
                   rx={Math.min(4, bw / 2)}
                   fill={over ? "#ef4444" : `url(#${uid}-${s.id})`}
-                  opacity={pick === null || pick === i ? 1 : 0.5}
+                  opacity={(cum && canCum(s) ? 0.45 : 1) * (pick === null || pick === i ? 1 : 0.55)}
                 />
               );
             });
+          })}
+        {cum &&
+          vis.filter(canCum).map((s) => {
+            const ax = s.axis ?? "a";
+            const c = cumOf(s);
+            const pts: [number, number][] = c.map((v, i) => [cx(i), y(v, ax)]);
+            const last = c[c.length - 1] ?? 0;
+            return (
+              <g key={`cum-${s.id}`}>
+                <path
+                  d={`${smooth(pts)} L${cx(n - 1)},${PAD.t + ih} L${cx(0)},${PAD.t + ih} Z`}
+                  fill={s.color}
+                  opacity=".12"
+                />
+                <path
+                  d={smooth(pts)}
+                  fill="none"
+                  stroke={s.color}
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <circle
+                  cx={cx(pick ?? n - 1)}
+                  cy={y(c[pick ?? n - 1] ?? last, ax)}
+                  r="5"
+                  fill="var(--card, #fff)"
+                  stroke={s.color}
+                  strokeWidth="2.5"
+                />
+              </g>
+            );
           })}
         {vis
           .filter((s) => s.type === "line")

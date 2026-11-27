@@ -319,6 +319,7 @@ export function ClientHealthHub({
 
       {(!only || only === "miccao") && (
         <HealthChart
+          key={`${only ?? "all"}-${range}`}
           title="Líquidos e idas ao banheiro"
           hint="O que você bebeu e quantas vezes foi ao banheiro."
           buckets={buckets}
@@ -327,6 +328,7 @@ export function ClientHealthHub({
       )}
       {(!only || only === "cafeina") && (
         <HealthChart
+          key={`${only ?? "all"}-${range}`}
           title="Cafeína e sono"
           hint="Cafeína ingerida (bebidas, chás e refeições) junto com as horas dormidas."
           buckets={buckets}
@@ -335,6 +337,7 @@ export function ClientHealthHub({
       )}
       {(!only || only === "lactose") && (
         <HealthChart
+          key={`${only ?? "all"}-${range}`}
           title="Lactose e sintomas"
           hint="Lactose dos laticínios e a intensidade dos sintomas que você registrou."
           buckets={buckets}
