@@ -18,8 +18,8 @@ export type ChartSeries = {
 };
 
 const W = 360;
-const H = 210;
-const PAD = { l: 34, r: 34, t: 14, b: 24 };
+const H = 260;
+const PAD = { l: 38, r: 38, t: 16, b: 28 };
 
 const nice = (max: number) => {
   if (max <= 0) return 1;
@@ -196,14 +196,20 @@ export function HealthChart({
                 x={PAD.l - 5}
                 y={yy + 3}
                 textAnchor="end"
-                fontSize="9"
+                fontSize="10.5"
                 fill="currentColor"
                 opacity=".55"
               >
                 {fmt(scale[ax].max * f, scale[ax].max < 10 ? 1 : 0)}
               </text>
               {showRight && (
-                <text x={W - PAD.r + 5} y={yy + 3} fontSize="9" fill="currentColor" opacity=".55">
+                <text
+                  x={W - PAD.r + 5}
+                  y={yy + 3}
+                  fontSize="10.5"
+                  fill="currentColor"
+                  opacity=".55"
+                >
                   {fmt(scale.b.max * f, scale.b.max < 10 ? 1 : 0)}
                 </text>
               )}
@@ -215,9 +221,9 @@ export function HealthChart({
             <text
               key={b.startMs}
               x={cx(i)}
-              y={H - 7}
+              y={H - 9}
               textAnchor="middle"
-              fontSize="9"
+              fontSize="10.5"
               fill="currentColor"
               opacity=".55"
             >
@@ -256,7 +262,7 @@ export function HealthChart({
                   x={W - PAD.r - 2}
                   y={yy - 3}
                   textAnchor="end"
-                  fontSize="9"
+                  fontSize="10.5"
                   fontWeight="700"
                   fill={s.color}
                 >
@@ -269,7 +275,7 @@ export function HealthChart({
           .filter((s) => s.type === "bar")
           .map((s, si, arr) => {
             const ax = s.axis ?? "a";
-            const bw = Math.min(22, (slot * 0.7) / arr.length);
+            const bw = Math.min(28, (slot * 0.72) / arr.length);
             return s.values.map((v, i) => {
               if (v <= 0) return null;
               const x = cx(i) - (bw * arr.length) / 2 + si * bw;
@@ -305,7 +311,7 @@ export function HealthChart({
                   d={line}
                   fill="none"
                   stroke={s.color}
-                  strokeWidth="2.2"
+                  strokeWidth="2.8"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />

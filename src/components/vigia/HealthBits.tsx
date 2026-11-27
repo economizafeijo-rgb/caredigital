@@ -1,4 +1,5 @@
-import { Coffee, Lock, Milk, UserRound } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { ChevronDown, Coffee, Lock, Milk, UserRound } from "lucide-react";
 import { RANGES, type RangeId } from "@/lib/health-ranges";
 import type { Limits } from "@/lib/health-limits";
 
@@ -36,10 +37,18 @@ export function RangeTabs({
 }
 
 /** Limites calculados do perfil. Não há campo editável: mudam apenas quando o perfil muda. */
-export function LimitsCard({ limits, focus }: { limits: Limits; focus?: "caffeine" | "lactose" }) {
+export function LimitsCard({
+  limits,
+  focus,
+  collapsible = false,
+}: {
+  limits: Limits;
+  focus?: "caffeine" | "lactose";
+  collapsible?: boolean;
+}) {
   const openProfile = () => window.dispatchEvent(new Event("nv-open-profile"));
-  return (
-    <div className="rounded-3xl border border-border bg-card p-4">
+  const inner = (
+    <div className={collapsible ? "" : "rounded-3xl border border-border bg-card p-4"}>
       <div className="mb-3 flex items-start justify-between gap-2">
         <div>
           <h3 className="flex items-center gap-1.5 text-sm font-bold">
@@ -114,6 +123,66 @@ export function LimitsCard({ limits, focus }: { limits: Limits; focus?: "caffein
           <li>Cafeína não muda por sexo, só por idade, peso, gestação e condições de saúde.</li>
         </ul>
       </details>
+    </div>
+  );
+  if (!collapsible) return inner;
+  return (
+    <Collapsible
+      title="Seus limites"
+      summary={
+        focus === "lactose"
+          ? limits.lactoseIntolerant
+            ? `${limits.lactoseDayG} g por dia · ${limits.lactoseMealG} g por refeição`
+            : "Sem intolerância no perfil"
+          : `${limits.caffeineDayMg} mg por dia · até ${limits.caffeineDoseMg} mg por dose`
+      }
+      icon={<Lock size={16} className="text-emerald-500" />}
+    >
+      {inner}
+    </Collapsible>
+  );
+}
+
+/** Seção retrátil: cabeçalho com título, resumo curto e seta; o conteúdo só ocupa espaço quando aberto. */
+export function Collapsible({
+  title,
+  summary,
+  icon,
+  defaultOpen = false,
+  children,
+}: {
+  title: string;
+  summary?: string;
+  icon?: ReactNode;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="overflow-hidden rounded-3xl border border-border bg-card">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition active:bg-muted/60"
+      >
+        {icon && (
+          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-muted">
+            {icon}
+          </span>
+        )}
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-bold">{title}</span>
+          {summary && (
+            <span className="block truncate text-[11px] text-muted-foreground">{summary}</span>
+          )}
+        </span>
+        <ChevronDown
+          size={18}
+          className={`shrink-0 text-muted-foreground transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      {open && <div className="border-t border-border px-4 pb-4 pt-3">{children}</div>}
     </div>
   );
 }

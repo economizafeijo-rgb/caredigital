@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { BedDouble, Coffee, Droplets, Milk, Waves } from "lucide-react";
+import { BedDouble, Coffee, Droplets, Milk, Sparkles, Waves } from "lucide-react";
 import { acreDateKey } from "@/lib/acre-time";
 import {
   aggregate,
@@ -10,7 +10,7 @@ import {
   type RangeId,
 } from "@/lib/health-ranges";
 import { HealthChart, type ChartSeries } from "./HealthChart";
-import { LimitsCard, RangeTabs } from "./HealthBits";
+import { Collapsible, LimitsCard, RangeTabs } from "./HealthBits";
 import { useHealthLimits } from "./useHealthLimits";
 import { useHealthSeries } from "./useHealthSeries";
 
@@ -96,7 +96,7 @@ export function ClientHealthHub({
     range === "hoje" ? undefined : per * bucketDays(b);
 
   const insights = useMemo(() => {
-    const out: string[] = [];
+    const out: { k: "miccao" | "cafeina"; t: string }[] = [];
     if (range === "hoje") return out;
     const caf = byDay(d.caffeine, (x) => x.mg);
     const uri = byDay(d.urine, () => 1);
@@ -104,23 +104,26 @@ export function ClientHealthHub({
     const sl = byDay(d.sleep, (x) => x.hours, "avg");
     const c1 = compareDays(liq, uri);
     if (c1)
-      out.push(
-        `Nos dias em que você bebeu mais líquidos, foi ao banheiro ${nf(c1.hi, 1)} vezes, contra ${nf(c1.lo, 1)} nos dias de menos líquidos.`,
-      );
+      out.push({
+        k: "miccao",
+        t: `Nos dias em que você bebeu mais líquidos, foi ao banheiro ${nf(c1.hi, 1)} vezes, contra ${nf(c1.lo, 1)} nos dias de menos líquidos.`,
+      });
     const c2 = compareDays(caf, uri);
     if (c2)
-      out.push(
-        `Com mais cafeína, foram ${nf(c2.hi, 1)} idas ao banheiro por dia; com menos, ${nf(c2.lo, 1)}. A cafeína aumenta um pouco a vontade de urinar.`,
-      );
+      out.push({
+        k: "cafeina",
+        t: `Com mais cafeína, foram ${nf(c2.hi, 1)} idas ao banheiro por dia; com menos, ${nf(c2.lo, 1)}. A cafeína aumenta um pouco a vontade de urinar.`,
+      });
     // O sono da noite seguinte: desloca a data do sono um dia para trás.
     const prev = new Map<string, number>();
     for (const [k, v] of sl)
       prev.set(acreDateKey(Date.parse(`${k}T12:00:00-05:00`) - 86_400_000), v);
     const c3 = compareDays(caf, prev);
     if (c3)
-      out.push(
-        `Nas noites depois de dias com mais cafeína você dormiu ${nf(c3.hi, 1)} h; depois de dias com menos, ${nf(c3.lo, 1)} h.`,
-      );
+      out.push({
+        k: "cafeina",
+        t: `Nas noites depois de dias com mais cafeína você dormiu ${nf(c3.hi, 1)} h; depois de dias com menos, ${nf(c3.lo, 1)} h.`,
+      });
     return out;
   }, [d, range]);
 
@@ -265,6 +268,8 @@ export function ClientHealthHub({
     },
   ];
 
+  const shown = insights.filter((x) => !only || x.k === only);
+
   return (
     <section className="grid min-w-0 gap-3" aria-labelledby="hub-title">
       <h2 id="hub-title" className="sr-only">
@@ -305,7 +310,7 @@ export function ClientHealthHub({
         </div>
       )}
 
-      {(!only || only === "cafeina" || only === "lactose") && (
+      {(only === "cafeina" || only === "lactose" || !only) && (
         <LimitsCard
           limits={limits}
           focus={only === "cafeina" ? "caffeine" : only === "lactose" ? "lactose" : undefined}
@@ -337,28 +342,34 @@ export function ClientHealthHub({
         />
       )}
 
-      <div className="rounded-3xl border border-border bg-card p-4">
-        <h3 className="text-sm font-bold">O que seus dados mostram</h3>
-        {insights.length ? (
-          <ul className="mt-2 grid gap-2 text-sm">
-            {insights.map((t) => (
-              <li key={t} className="rounded-2xl bg-muted/50 p-3">
-                {t}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mt-1 text-sm text-muted-foreground">
-            {range === "hoje"
-              ? "Escolha 7 dias ou mais para o app cruzar líquidos, micção, cafeína e sono."
-              : "Registre por pelo menos 6 dias para o app mostrar como líquidos, cafeína, micção e sono se relacionam."}
+      {only !== "lactose" && (
+        <Collapsible
+          title="O que seus dados mostram"
+          summary={
+            shown.length
+              ? `${shown.length} ${shown.length === 1 ? "achado" : "achados"}`
+              : "Ainda sem dados suficientes"
+          }
+          icon={<Sparkles size={16} className="text-amber-500" />}
+        >
+          {shown.length ? (
+            <ul className="grid gap-2 text-sm">
+              {shown.map((x) => (
+                <li key={x.t} className="rounded-2xl bg-muted/50 p-3">
+                  {x.t}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Registre por pelo menos 6 dias e escolha 7 dias ou mais para o app cruzar seus dados.
+            </p>
+          )}
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            Comparações simples dos seus registros, não diagnóstico.
           </p>
-        )}
-        <p className="mt-2 text-[11px] text-muted-foreground">
-          Comparações simples dos seus registros, não diagnóstico. Outros fatores também
-          influenciam.
-        </p>
-      </div>
+        </Collapsible>
+      )}
     </section>
   );
 }

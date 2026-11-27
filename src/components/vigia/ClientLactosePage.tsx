@@ -5,6 +5,7 @@ import { LACTOSE_THRESHOLDS as T } from "@/lib/intake-detect";
 import { useCareLogs } from "./useCareLogs";
 import { useHealthLimits } from "./useHealthLimits";
 import { ClientHealthHub } from "./ClientHealthHub";
+import { Collapsible } from "./HealthBits";
 import { useIntakeRecords, type LactoseRecord } from "./useIntakeRecords";
 
 type SymptomLog = { id: string; at: string; severity: number; symptoms: string; notes: string };
@@ -222,10 +223,12 @@ export function ClientLactosePage({ patientId, ownerId }: { patientId: string; o
         </p>
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-4">
-        <h3 className="mb-2 text-sm font-bold">
-          Laticínios registrados{range > 1 ? ` (${range} dias)` : " hoje"}
-        </h3>
+      <Collapsible
+        title={`Laticínios registrados${range > 1 ? ` (${range} dias)` : " hoje"}`}
+        summary={`${listRecs.length} ${listRecs.length === 1 ? "registro" : "registros"}`}
+        icon={<Milk size={16} className="text-emerald-500" />}
+        defaultOpen
+      >
         {!listRecs.length ? (
           <p className="text-sm text-muted-foreground">
             Leite, iogurte, queijo e derivados registrados em qualquer tela aparecem aqui sozinhos,
@@ -280,12 +283,13 @@ export function ClientLactosePage({ patientId, ownerId }: { patientId: string; o
             </ul>
           </>
         )}
-      </div>
+      </Collapsible>
 
-      <div className="rounded-2xl border border-border bg-card p-4">
-        <h3 className="mb-2 flex items-center gap-2 text-sm font-bold">
-          <Milk size={16} /> Dicas para conviver com a lactose
-        </h3>
+      <Collapsible
+        title="Dicas para conviver com a lactose"
+        summary={`${TIPS.length} dicas`}
+        icon={<Info size={16} className="text-sky-500" />}
+      >
         <ul className="grid gap-2 text-sm">
           {TIPS.map((t) => (
             <li key={t} className="rounded-xl bg-muted/50 p-3">
@@ -293,15 +297,13 @@ export function ClientLactosePage({ patientId, ownerId }: { patientId: string; o
             </li>
           ))}
         </ul>
-      </div>
-
-      <p className="flex gap-2 text-[12px] text-muted-foreground">
-        <Info size={14} className="mt-0.5 shrink-0" />
-        Valores médios educativos (NIDDK, revisão sistemática em Annals of Internal Medicine,
-        tabelas de composição). A lactose real varia por marca. Não é diagnóstico: sintomas fortes,
-        sangue nas fezes ou perda de peso pedem avaliação médica. Alergia ao leite é diferente de
-        intolerância e exige acompanhamento.
-      </p>
+        <p className="mt-3 text-[12px] text-muted-foreground">
+          Valores médios educativos (NIDDK, revisão sistemática em Annals of Internal Medicine,
+          tabelas de composição). A lactose real varia por marca. Não é diagnóstico: sintomas
+          fortes, sangue nas fezes ou perda de peso pedem avaliação médica. Alergia ao leite é
+          diferente de intolerância e exige acompanhamento.
+        </p>
+      </Collapsible>
     </section>
   );
 }

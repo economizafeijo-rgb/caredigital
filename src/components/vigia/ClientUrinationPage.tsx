@@ -15,6 +15,7 @@ import {
 } from "@/lib/urination";
 import { useCareLogs, useLiquids } from "./useCareLogs";
 import { ClientHealthHub } from "./ClientHealthHub";
+import { Collapsible } from "./HealthBits";
 
 const COLS = "id,at,volume,ml,notes";
 const toneCls = {
@@ -212,11 +213,15 @@ export function ClientUrinationPage({
             evite beber muito de uma vez.
           </p>
         )}
-        <p className="mt-2 flex gap-1.5 text-[11.5px] text-muted-foreground">
-          <Info size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
-          {MEDICAL_NOTE}
-        </p>
       </div>
+
+      <Collapsible
+        title="Sobre estas orientações"
+        summary="Não substitui avaliação médica"
+        icon={<Info size={16} className="text-sky-500" />}
+      >
+        <p className="text-[12.5px] leading-snug text-muted-foreground">{MEDICAL_NOTE}</p>
+      </Collapsible>
 
       <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {[
@@ -239,10 +244,12 @@ export function ClientUrinationPage({
 
       <ClientHealthHub patientId={patientId} ownerId={ownerId} only="miccao" />
 
-      <div className="rounded-2xl border border-border bg-card p-4">
-        <h3 className="mb-2 text-sm font-bold">
-          Registros {range === "dia" ? "de hoje" : "dos últimos 7 dias"}
-        </h3>
+      <Collapsible
+        title={`Registros ${range === "dia" ? "de hoje" : "dos últimos 7 dias"}`}
+        summary={`${scope.length} ${scope.length === 1 ? "ida" : "idas"}`}
+        icon={<Droplets size={16} className="text-sky-500" />}
+        defaultOpen
+      >
         {!scope.length ? (
           <p className="text-sm text-muted-foreground">
             Nenhum registro ainda. Toque em “Registrar xixi agora” quando for ao banheiro.
@@ -278,7 +285,7 @@ export function ClientUrinationPage({
             ))}
           </ul>
         )}
-      </div>
+      </Collapsible>
     </section>
   );
 }
