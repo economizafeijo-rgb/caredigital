@@ -51,7 +51,7 @@ describe("NextVita nutrition safety and planning", () => {
     expect(ingredients).toHaveLength(310);
     expect(
       ingredients.filter((x) => x.protein !== null && x.carbs !== null && x.fat !== null).length,
-    ).toBe(306);
+    ).toBe(307);
   });
   it("converts 100g and calculated portions without pretending labels are verified", () => {
     const chicken = ingredients.find((x) => x.id === "frango")!;
