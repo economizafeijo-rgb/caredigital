@@ -70,6 +70,7 @@ export const drinkPresets: DrinkPreset[] = [
   d("suco", "Sucos naturais", "Limonada com açúcar", 250, "limonada com açúcar"),
   d("suco", "Sucos naturais", "Suco de laranja com açúcar", 250, "suco de laranja com açúcar"),
   d("suco", "Sucos naturais", "Suco de caixinha / néctar", 200, "néctar de caixinha"),
+  d("suco", "Sucos naturais", "Suco artificial (refresco em pó)", 200, "suco artificial de laranja"),
   d("suco", "Sucos naturais", "Suco de uva (envasado)", 200, "suco de uva"),
   d("suco", "Sucos naturais", "Caldo de cana (garapa)", 300, "caldo de cana"),
   d("vitamina", "Vitaminas", "Vitamina de banana com leite", 300, "vitamina de banana"),
@@ -90,8 +91,15 @@ export const drinkPresets: DrinkPreset[] = [
   d("refrigerante", "Refrigerante", "Refrigerante zero açúcar", 350, "refrigerante zero"),
   d("refrigerante", "Refrigerante", "Guaraná Quinari Zero", 350, "guaraná quinari zero"),
   d("refrigerante", "Refrigerante", "Refrigerante tipo laranja", 350, "refrigerante de laranja"),
+  d("refrigerante", "Refrigerante", "Coca-Cola", 350, "coca-cola"),
+  d("refrigerante", "Refrigerante", "Guaraná Antarctica", 350, "guaraná antarctica"),
+  d("refrigerante", "Refrigerante", "Guaraná regional (Baré, Tuchaua)", 350, "guaraná regional"),
+  d("refrigerante", "Refrigerante", "Fanta Laranja", 350, "fanta laranja"),
+  d("refrigerante", "Refrigerante", "Fanta Uva", 350, "fanta uva"),
   d("refrigerante", "Refrigerante", "Água tônica", 250, "água tônica"),
   d("outra", "Outras", "Cerveja (contém álcool)", 350, "cerveja"),
+  d("outra", "Outras", "Cerveja Skol (contém álcool)", 350, "cerveja skol"),
+  d("outra", "Outras", "Cerveja Amstel (contém álcool)", 350, "cerveja amstel"),
 ];
 
 export const drinkGroups = Array.from(new Set(drinkPresets.map((p) => p.group)));
