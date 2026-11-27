@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Droplets, Trash2, Info, Lock, Pencil, Thermometer, X } from "lucide-react";
 import { feel, useHourlyTemps } from "@/lib/weather";
 import { useDialog } from "@/lib/dialog";
@@ -35,9 +36,18 @@ export function ClientUrinationPage({
   patientId: string;
   ownerId: string;
 }) {
+  // Só grava/lê a temperatura se a coluna já existir no banco (migração aplicada).
+  const [tempCol, setTempCol] = useState(false);
+  useEffect(() => {
+    void (supabase as any)
+      .from("care_urination_logs")
+      .select("temp_c")
+      .limit(1)
+      .then((r: { error: unknown }) => setTempCol(!r.error));
+  }, []);
   const { items, loaded, remote, error, add, remove, update } = useCareLogs<UrinationLog>(
     "care_urination_logs",
-    COLS,
+    tempCol ? `${COLS},temp_c` : COLS,
     patientId,
     ownerId,
   );
@@ -112,6 +122,15 @@ export function ClientUrinationPage({
       volume,
       ml: mlNum && mlNum >= 10 && mlNum <= 1500 ? Math.round(mlNum) : null,
       notes: notes.trim().slice(0, 300),
+      // Ao editar, mantém a temperatura original; ao criar, usa a da hora do registro.
+      ...(tempCol
+        ? {
+            temp_c: editId
+              ? (items.find((x) => x.id === editId)?.temp_c ??
+                wx.at(new Date(when + ":00-05:00").getTime()))
+              : wx.at(new Date(when + ":00-05:00").getTime()),
+          }
+        : {}),
     };
     const ok = editId ? await update(editId, row) : await add(row);
     setSaving(false);
@@ -384,16 +403,16 @@ export function ClientUrinationPage({
                   {l.ml ? ` · ${l.ml} ml` : ""}
                   {l.notes ? ` · ${l.notes}` : ""}
                 </span>
-                {wx.at(l.at) !== null ? (
+                {(l.temp_c ?? wx.at(l.at)) !== null ? (
                   <span
                     className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums"
                     style={{
-                      background: `${feel(wx.at(l.at)!).color}22`,
-                      color: feel(wx.at(l.at)!).color,
+                      background: `${feel((l.temp_c ?? wx.at(l.at))!).color}22`,
+                      color: feel((l.temp_c ?? wx.at(l.at))!).color,
                     }}
-                    title={`Temperatura na hora do registro: ${feel(wx.at(l.at)!).label}`}
+                    title={`Temperatura na hora do registro: ${feel((l.temp_c ?? wx.at(l.at))!).label}`}
                   >
-                    <Thermometer size={11} /> {Math.round(wx.at(l.at)!)}°
+                    <Thermometer size={11} /> {Math.round((l.temp_c ?? wx.at(l.at))!)}°
                   </span>
                 ) : null}
                 {lock.isLocked(l.at) ? (

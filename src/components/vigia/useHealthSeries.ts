@@ -6,7 +6,7 @@ import { rangeDays, type RangeId } from "@/lib/health-ranges";
 import { useIntakeRecords } from "./useIntakeRecords";
 
 export type Pt = { at: string; v: number };
-export type UrineRow = { at: string; ml: number | null; volume: string };
+export type UrineRow = { at: string; ml: number | null; volume: string; temp_c?: number | null };
 export type SymptomRow = { at: string; severity: number };
 
 /** Tudo o que alimenta o painel integrado: líquidos, micção, cafeína, lactose, sintomas e sono. */
@@ -39,7 +39,10 @@ export function useHealthSeries(patientId: string, ownerId: string, range: Range
     void Promise.all([
       q("care_hydration", "amount_ml,recorded_at", "recorded_at"),
       q("care_client_beverages", "amount_ml,consumed_at", "consumed_at"),
-      q("care_urination_logs", "at,ml,volume", "at"),
+      // Tenta ler a temperatura gravada; se a coluna ainda não existe, lê sem ela.
+      q("care_urination_logs", "at,ml,volume,temp_c", "at").then((r: any) =>
+        r.error ? q("care_urination_logs", "at,ml,volume", "at") : r,
+      ),
       q("care_lactose_logs", "at,severity", "at"),
       q("care_sleep_logs", "sleep_date,bed_at,wake_at,quality", "sleep_date"),
     ]).then(([w, b, u, s, sl]: any[]) => {

@@ -7,6 +7,8 @@ export type UrinationLog = {
   volume: UrineVolume;
   ml: number | null;
   notes: string;
+  /** Temperatura (°C) no momento do registro; null em registros antigos. */
+  temp_c?: number | null;
 };
 export type Liquid = { at: string; ml: number };
 

@@ -98,8 +98,8 @@ export function ClientHealthHub({
     ? d.urine.reduce((a, b) => (Date.parse(b.at) > Date.parse(a.at) ? b : a))
     : null;
   const uriTemps = d.urine
-    .map((u) => wx.temps[hourKey(u.at)])
-    .filter((t): t is number => t !== undefined);
+    .map((u) => u.temp_c ?? wx.temps[hourKey(u.at)])
+    .filter((t): t is number => t !== undefined && t !== null);
   const uriTempAvg = uriTemps.length ? uriTemps.reduce((a, b) => a + b, 0) / uriTemps.length : null;
   const uriTempMin = uriTemps.length ? Math.min(...uriTemps) : null;
   const lastUriWhen = lastUri
