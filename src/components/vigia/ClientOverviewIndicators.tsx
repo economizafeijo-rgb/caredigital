@@ -14,6 +14,8 @@ type Props = {
   ownerId?: string;
   revision?: number;
   full?: boolean;
+  /** Quando o bloco já tem título próprio (ex.: Retractable). */
+  hideHeading?: boolean;
   /** Dados do perfil para estimar metas que ainda não foram definidas manualmente. */
   age?: number | null;
   sex?: string | null;
@@ -38,6 +40,7 @@ export function ClientOverviewIndicators({
   ownerId,
   revision = 0,
   full = false,
+  hideHeading = false,
   age = null,
   sex = null,
   objective = null,
@@ -166,15 +169,17 @@ export function ClientOverviewIndicators({
 
   return (
     <section className="care-overview-indicators" aria-label="Indicadores de saúde">
-      <div className="care-overview-section-heading">
-        <div>
-          <span className="care-overview-eyebrow">Seus indicadores</span>
-          <h3>Saúde e nutrição</h3>
+      {hideHeading ? null : (
+        <div className="care-overview-section-heading">
+          <div>
+            <span className="care-overview-eyebrow">Seus indicadores</span>
+            <h3>Saúde e nutrição</h3>
+          </div>
+          <span className="care-overview-heading-note">
+            {full ? "Histórico por dia, mês e ano" : "Metas do dia"}
+          </span>
         </div>
-        <span className="care-overview-heading-note">
-          {full ? "Histórico por dia, mês e ano" : "Metas do dia"}
-        </span>
-      </div>
+      )}
       <div className="care-overview-indicator-grid">
         {items.map((item) => {
           const Icon = item.icon;

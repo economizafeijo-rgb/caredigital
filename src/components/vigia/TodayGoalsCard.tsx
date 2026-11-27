@@ -14,10 +14,13 @@ export function TodayGoalsCard({
   patientId,
   ownerId,
   revision,
+  bare = false,
 }: {
   patientId: string;
   ownerId: string;
   revision: number;
+  /** Sem moldura nem título: o bloco pai (Retractable) cuida disso. */
+  bare?: boolean;
 }) {
   const d = useDailyNutrition(patientId, ownerId, revision);
   const { limits } = useHealthLimits(patientId);
@@ -206,19 +209,25 @@ export function TodayGoalsCard({
   return (
     <section
       aria-label="Consumo de hoje"
-      className="flex flex-1 flex-col border border-border bg-card p-3.5 shadow-card"
+      className={
+        bare
+          ? "flex flex-1 flex-col"
+          : "flex flex-1 flex-col border border-border bg-card p-3.5 shadow-card"
+      }
       style={{ ["--ca" as string]: "#fb923c" }}
     >
-      <div className="care-overview-section-heading shrink-0">
-        <div>
-          <span className="care-overview-eyebrow">Hoje</span>
-          <h3>Consumo em relação às metas</h3>
+      {bare ? null : (
+        <div className="care-overview-section-heading shrink-0">
+          <div>
+            <span className="care-overview-eyebrow">Hoje</span>
+            <h3>Consumo em relação às metas</h3>
+          </div>
+          <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+            <Flame size={12} className="text-orange-400" /> {meals}{" "}
+            {meals === 1 ? "refeição" : "refeições"}
+          </span>
         </div>
-        <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-          <Flame size={12} className="text-orange-400" /> {meals}{" "}
-          {meals === 1 ? "refeição" : "refeições"}
-        </span>
-      </div>
+      )}
       <Group title="Macronutrientes" rows={rows} onPick={setPick} />
       <Group
         title="Açúcar e gordura"

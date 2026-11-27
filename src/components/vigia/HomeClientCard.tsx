@@ -59,6 +59,7 @@ import { CareRecentHistory } from "./CareRecentHistory";
 import { ClientHealthProfile } from "./ClientHealthProfile";
 import { ClientOverviewIndicators } from "./ClientOverviewIndicators";
 import { TodayGoalsCard } from "./TodayGoalsCard";
+import { Retractable, RetractAllBar } from "./Retractable";
 import { NutritionGuardWatcher } from "./NutritionGuard";
 import { GoalFxProvider } from "./GoalFx";
 import { GoalWatcher } from "./GoalWatcher";
@@ -926,6 +927,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                 data-client-page="hoje"
                 className="flex flex-col gap-3 overscroll-contain lg:pr-0.5"
               >
+                <RetractAllBar />
                 <OverviewInsights
                   patientId={client.id}
                   ownerId={client.owner_id}
@@ -990,8 +992,16 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                         )}
                       </section>
                     )}
-                    <div className={card + " shrink-0 p-3.5"}>
+                    <Retractable
+                      id="indicadores"
+                      eyebrow="Seus indicadores"
+                      title="Saúde e nutrição"
+                      accent="#8b5cf6"
+                      summary="IMC, água, macros e energia"
+                      className="shrink-0"
+                    >
                       <ClientOverviewIndicators
+                        hideHeading
                         heightCm={client.height_cm}
                         weightKg={healthProfile.weightKg ?? client.weight_kg}
                         waterTarget={hydrationTarget || null}
@@ -1005,32 +1015,41 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                         activityMinutes={healthProfile.activityMinutes}
                         onCompleteProfile={() => setOnboardingSignal((v) => v + 1)}
                       />
-                    </div>
-                    <TodayGoalsCard
-                      patientId={client.id}
-                      ownerId={client.owner_id}
-                      revision={tick}
-                    />
+                    </Retractable>
+                    <Retractable
+                      id="consumo"
+                      eyebrow="Hoje"
+                      title="Consumo em relação às metas"
+                      accent="#fb923c"
+                      summary="Macros, vitaminas e atenção do dia"
+                    >
+                      <TodayGoalsCard
+                        bare
+                        patientId={client.id}
+                        ownerId={client.owner_id}
+                        revision={tick}
+                      />
+                    </Retractable>
                   </div>
 
                   {tasks.length > 0 && (
-                    <section
-                      aria-label="Agenda de hoje"
-                      className={card + " flex min-h-[280px] flex-col p-4"}
-                    >
-                      <div className="care-overview-section-heading shrink-0">
-                        <div>
-                          <span className="care-overview-eyebrow">Rotina</span>
-                          <h3>Agenda de hoje</h3>
-                        </div>
+                    <Retractable
+                      id="agenda"
+                      eyebrow="Rotina"
+                      title="Agenda de hoje"
+                      accent="#38bdf8"
+                      summary={`${tasks.length} ${tasks.length === 1 ? "cuidado" : "cuidados"} hoje`}
+                      className="self-start"
+                      action={
                         <button
                           type="button"
                           onClick={() => openSection("agenda")}
-                          className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                          className="inline-flex h-8 items-center gap-1 rounded-full px-2.5 text-xs font-semibold text-primary hover:bg-primary/10"
                         >
                           Ver agenda <ArrowRight size={13} />
                         </button>
-                      </div>
+                      }
+                    >
                       <ul className="-mx-1 px-1">
                         {tasks.map((task) => {
                           const info = supplement(task)
@@ -1106,27 +1125,27 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                           </li>
                         )}
                       </ul>
-                    </section>
+                    </Retractable>
                   )}
 
                   <div className="flex min-h-0 flex-col gap-3">
-                    <section
-                      aria-label="Histórico recente"
-                      className={card + " flex min-h-[220px] flex-1 flex-col p-3.5 lg:min-h-0"}
-                    >
-                      <div className="care-overview-section-heading shrink-0">
-                        <div>
-                          <span className="care-overview-eyebrow">Registros</span>
-                          <h3>Histórico recente</h3>
-                        </div>
+                    <Retractable
+                      id="historico"
+                      eyebrow="Registros"
+                      title="Histórico recente"
+                      accent="#14b8a6"
+                      summary="Últimos registros de água, refeições e medicação"
+                      className="self-start"
+                      action={
                         <button
                           type="button"
                           onClick={() => openSection("historico")}
-                          className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                          className="inline-flex h-8 items-center gap-1 rounded-full px-2.5 text-xs font-semibold text-primary hover:bg-primary/10"
                         >
                           Ver tudo <ArrowRight size={13} />
                         </button>
-                      </div>
+                      }
+                    >
                       <div
                         className="mb-2 flex shrink-0 flex-wrap gap-1"
                         role="group"
@@ -1163,19 +1182,17 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                           />
                         )}
                       </div>
-                    </section>
+                    </Retractable>
                   </div>
                 </div>
-                <section aria-label="Panorama geral das métricas" className="shrink-0">
-                  <div className="care-overview-section-heading">
-                    <div>
-                      <span className="care-overview-eyebrow">Visão geral</span>
-                      <h3>Panorama das métricas</h3>
-                    </div>
-                    <span className="care-overview-heading-note">
-                      Todas as áreas reunidas · cada área abre só o que é dela
-                    </span>
-                  </div>
+                <Retractable
+                  id="panorama"
+                  eyebrow="Visão geral"
+                  title="Panorama das métricas"
+                  accent="#6366f1"
+                  summary="Todas as áreas reunidas"
+                  className="shrink-0"
+                >
                   <EvolutionHub
                     patientId={client.id}
                     ownerId={client.owner_id}
@@ -1183,7 +1200,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                     revision={tick}
                     defaultView="mes"
                   />
-                </section>
+                </Retractable>
               </div>
             ) : (
               <section
