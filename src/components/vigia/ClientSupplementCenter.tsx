@@ -1128,7 +1128,7 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
       )}
 
       <header
-        className="nv-dark nv-scan relative isolate overflow-hidden border border-violet-400/30 p-2.5 text-white shadow-card sm:px-3"
+        className="relative isolate overflow-hidden rounded-2xl border border-violet-400/30 bg-gradient-to-br from-violet-900 via-indigo-950 to-slate-950 p-4 text-white shadow-card"
         aria-label="Próxima dose"
       >
         <div
@@ -1139,9 +1139,9 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
           aria-hidden="true"
           className="pointer-events-none absolute -bottom-16 left-1/4 -z-10 size-56 rounded-full bg-fuchsia-400/15 blur-3xl"
         />
-        <div className="grid items-center gap-3 lg:grid-cols-[auto_minmax(0,1fr)_18rem]">
+        <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-3 lg:grid-cols-[auto_minmax(0,1fr)_18rem]">
           <div
-            className="relative mx-auto size-[68px] shrink-0 lg:mx-0"
+            className="relative size-[84px] shrink-0"
             role="img"
             aria-label={`${takenCount} de ${doses.length} doses tomadas hoje`}
           >
@@ -1167,10 +1167,10 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
                 </linearGradient>
               </defs>
             </svg>
-            <div className="absolute inset-[13px] grid place-items-center rounded-full bg-white/[.07] text-center shadow-inner">
+            <div className="absolute inset-[15px] grid place-items-center rounded-full bg-white/[.07] text-center shadow-inner">
               <span className="leading-none">
-                <strong className="block text-sm font-extrabold tabular-nums">{percent}%</strong>
-                <span className="text-[8px] font-semibold text-white/70">doses</span>
+                <strong className="block text-base font-extrabold tabular-nums">{percent}%</strong>
+                <span className="text-[9px] font-semibold text-white/70">doses</span>
               </span>
             </div>
           </div>
@@ -1190,53 +1190,55 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
                     ? `Próxima: ${next.plan.name} às ${next.slot}.`
                     : "Restam doses atrasadas para registrar."}
             </p>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {next && (
-                <button
-                  type="button"
-                  data-register-target="Registrar dose"
-                  onClick={() => void toggleDose(next.plan, next.slot, false)}
-                  className="inline-flex h-8 items-center gap-2 bg-white px-3 text-xs font-bold text-violet-900 shadow-sm transition hover:bg-white/90 active:scale-[.97]"
-                >
-                  <CheckCircle2 size={16} /> Registrar dose agora
-                </button>
-              )}
+          </div>
+          <div className="col-span-2 flex flex-wrap gap-2 lg:col-span-1 lg:col-start-2">
+            {next && (
               <button
                 type="button"
-                onClick={() => setEditing({ times: ["08:00"], unit: "g", dose: 1 })}
-                className={`inline-flex h-8 items-center gap-1.5 px-3 text-xs font-bold transition active:scale-[.97] ${next ? "border border-white/25 bg-white/10 text-white backdrop-blur hover:bg-white/20" : "bg-white text-violet-900 shadow-sm hover:bg-white/90"}`}
+                data-register-target="Registrar dose"
+                onClick={() => void toggleDose(next.plan, next.slot, false)}
+                className="inline-flex h-11 min-w-[9rem] flex-1 items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 text-sm font-bold text-violet-950 shadow-sm transition hover:bg-amber-300 active:scale-[.97]"
               >
-                <Plus size={16} /> Adicionar suplemento
+                <CheckCircle2 size={16} /> Registrar dose agora
               </button>
-              <a
-                href="#nv-sup-library"
-                className="inline-flex h-8 items-center gap-1.5 border border-white/25 bg-white/10 px-3 text-xs font-bold text-white backdrop-blur transition hover:bg-white/20"
-              >
-                <BookOpen size={15} /> Biblioteca
-              </a>
-            </div>
+            )}
+            <button
+              type="button"
+              onClick={() => setEditing({ times: ["08:00"], unit: "g", dose: 1 })}
+              className={`inline-flex h-11 min-w-[9rem] flex-1 items-center justify-center gap-1.5 rounded-xl px-4 text-sm font-bold transition active:scale-[.97] ${next ? "border border-white/25 bg-white/10 text-white backdrop-blur hover:bg-white/20" : "bg-amber-400 text-violet-950 shadow-sm hover:bg-amber-300"}`}
+            >
+              <Plus size={16} /> Adicionar suplemento
+            </button>
+            <a
+              href="#nv-sup-library"
+              className="inline-flex h-11 min-w-[9rem] flex-1 items-center justify-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-4 text-sm font-bold text-white backdrop-blur transition hover:bg-white/20"
+            >
+              <BookOpen size={15} /> Biblioteca
+            </a>
           </div>
-          <NextUpClock
-            compact
-            alertKey="suplemento"
-            title="Próxima dose"
-            color="#fbbf24"
-            target={next ? next.at : null}
-            from={(() => {
-              const prev = doses.filter((d) => d.at < (next?.at ?? 0)).at(-1);
-              return prev ? prev.at : null;
-            })()}
-            detail={
-              next
-                ? `${next.plan.name} · ${fmtDose(next.plan)}${next.plan.with_food ? " · com refeição" : ""}`
-                : undefined
-            }
-            emptyText={
-              doses.length ? "Todas as doses de hoje registradas" : "Sem doses programadas"
-            }
-            actionLabel="Tomei"
-            onAction={next ? () => void toggleDose(next.plan, next.slot, false) : undefined}
-          />
+          <div className="col-span-2 lg:col-span-1 lg:col-start-3 lg:row-start-1 lg:row-span-2">
+            <NextUpClock
+              compact
+              alertKey="suplemento"
+              title="Próxima dose"
+              color="#fbbf24"
+              target={next ? next.at : null}
+              from={(() => {
+                const prev = doses.filter((d) => d.at < (next?.at ?? 0)).at(-1);
+                return prev ? prev.at : null;
+              })()}
+              detail={
+                next
+                  ? `${next.plan.name} · ${fmtDose(next.plan)}${next.plan.with_food ? " · com refeição" : ""}`
+                  : undefined
+              }
+              emptyText={
+                doses.length ? "Todas as doses de hoje registradas" : "Sem doses programadas"
+              }
+              actionLabel="Tomei"
+              onAction={next ? () => void toggleDose(next.plan, next.slot, false) : undefined}
+            />
+          </div>
         </div>
       </header>
 

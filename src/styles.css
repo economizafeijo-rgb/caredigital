@@ -358,10 +358,24 @@ iframe[title*="Lovable" i][title*="badge" i] {
   text-overflow: ellipsis;
 }
 .care-overview-indicator {
-  border: 1px solid var(--border);
+  --ind: var(--primary);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--ind) 28%, var(--border));
   border-radius: var(--radius-lg);
-  background: var(--surface);
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--ind) 12%, var(--surface)),
+    var(--surface) 65%
+  );
   transition: border-color 0.15s;
+}
+.care-overview-indicator::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--ind);
 }
 .care-overview-indicator[open],
 .care-overview-indicator:hover {
@@ -383,9 +397,9 @@ iframe[title*="Lovable" i][title*="badge" i] {
   width: 2rem;
   height: 2rem;
   flex-shrink: 0;
-  border-radius: 0.6rem;
-  background: var(--accent);
-  color: var(--accent-foreground);
+  border-radius: 0.7rem;
+  background: color-mix(in srgb, var(--ind) 20%, transparent);
+  color: var(--ind);
 }
 .care-overview-indicator-copy {
   display: grid;
@@ -398,7 +412,7 @@ iframe[title*="Lovable" i][title*="badge" i] {
 }
 .care-overview-indicator-copy strong {
   font-family: var(--font-display);
-  font-size: 1.05rem;
+  font-size: 1.3rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }

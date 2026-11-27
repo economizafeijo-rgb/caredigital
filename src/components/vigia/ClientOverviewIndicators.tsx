@@ -44,20 +44,40 @@ export function ClientOverviewIndicators({
   activityMinutes = null,
   onCompleteProfile,
 }: Props) {
-  const est = estimateObjectiveNutrition({
+  const base = {
     weight: weightKg,
     age,
     heightCm,
     sex,
     objective,
     activityFactor: estimateActivityFactor(activityMinutes),
-  });
+  };
+  const exact = estimateObjectiveNutrition(base);
+  // Perfil incompleto (idade, sexo ou altura): usa uma estimativa média para não deixar o painel vazio.
+  const approximate = !exact.valid && weightKg !== null && weightKg >= 30;
+  const est = (() => {
+    if (!approximate) return exact;
+    const sexes = sex ? [sex] : ["male", "female"];
+    const list = sexes.map((sx) =>
+      estimateObjectiveNutrition({ ...base, age: age ?? 30, heightCm: heightCm ?? 168, sex: sx }),
+    );
+    const avg = (f: (e: (typeof list)[number]) => number | null) => {
+      const v = list.map(f).filter((x): x is number => x !== null);
+      return v.length ? Math.round(v.reduce((x, y) => x + y, 0) / v.length) : null;
+    };
+    return {
+      ...exact,
+      target: avg((e) => e.target),
+      carbs: avg((e) => e.carbs),
+      protein: exact.protein ?? avg((e) => e.protein),
+    };
+  })();
   const waterEst = weightKg && weightKg > 0 ? Math.round((weightKg * 35) / 50) * 50 : null;
   const pick = (own: number | null, guess: number | null) =>
     own && own > 0
       ? { v: own, note: "Meta diária" }
       : guess
-        ? { v: guess, note: "Estimado pelo perfil" }
+        ? { v: guess, note: approximate ? "Estimativa média" : "Estimado pelo perfil" }
         : { v: null, note: "Complete o perfil" };
   const pw = pick(waterTarget, waterEst),
     pp = pick(protein, est.protein),
@@ -80,6 +100,7 @@ export function ClientOverviewIndicators({
   const items = [
     {
       key: "bmi",
+      color: "#8b5cf6",
       label: "IMC",
       value: numberPt(bmi, 1),
       unit: "",
@@ -90,6 +111,7 @@ export function ClientOverviewIndicators({
     },
     {
       key: "water",
+      color: "#0ea5e9",
       label: "Água por dia",
       value: numberPt(pw.v),
       unit: "ml",
@@ -100,6 +122,7 @@ export function ClientOverviewIndicators({
     },
     {
       key: "protein",
+      color: "#f43f5e",
       label: "Proteínas",
       value: numberPt(pp.v),
       unit: "g",
@@ -110,6 +133,7 @@ export function ClientOverviewIndicators({
     },
     {
       key: "carbs",
+      color: "#eab308",
       label: "Carboidratos",
       value: numberPt(pc.v),
       unit: "g",
@@ -120,6 +144,7 @@ export function ClientOverviewIndicators({
     },
     {
       key: "fat",
+      color: "#14b8a6",
       label: "Gorduras",
       value: numberPt(pf.v),
       unit: "g",
@@ -129,6 +154,7 @@ export function ClientOverviewIndicators({
     },
     {
       key: "energy",
+      color: "#f97316",
       label: "Energia",
       value: numberPt(pk.v),
       unit: "kcal",
@@ -153,7 +179,11 @@ export function ClientOverviewIndicators({
         {items.map((item) => {
           const Icon = item.icon;
           return (
-            <details key={item.key} className="care-overview-indicator">
+            <details
+              key={item.key}
+              className="care-overview-indicator"
+              style={{ "--ind": item.color } as React.CSSProperties}
+            >
               <summary>
                 <span className="care-overview-indicator-icon">
                   <Icon size={15} />
@@ -172,13 +202,15 @@ export function ClientOverviewIndicators({
           );
         })}
       </div>
-      {missing > 0 && onCompleteProfile && (
+      {(missing > 0 || approximate) && onCompleteProfile && (
         <button
           type="button"
           onClick={onCompleteProfile}
           className="mt-2 flex w-full items-center justify-between gap-2 rounded-xl border border-dashed border-primary/40 bg-primary/5 px-3 py-2 text-left text-xs font-semibold text-primary transition hover:bg-primary/10"
         >
-          <span>Informe idade, sexo e atividade para calcular as metas que faltam.</span>
+          <span>
+            Informe idade, sexo e altura para trocar a estimativa média por metas só suas.
+          </span>
           <span aria-hidden="true">→</span>
         </button>
       )}
