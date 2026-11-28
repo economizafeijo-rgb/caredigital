@@ -149,18 +149,24 @@ export function ClientSymptomsPage({ patientId, ownerId }: { patientId: string; 
   const topClues = clues.filter((c) => c.score >= 0.2).slice(0, 6);
 
   return (
-    <section className="grid min-w-0 gap-3" aria-labelledby="sint-title">
+    <section
+      className="grid min-w-0 items-start gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]"
+      aria-labelledby="sint-title"
+    >
       <h2 id="sint-title" className="sr-only">
         Sintomas e pistas
       </h2>
 
       <div className="overflow-hidden rounded-2xl border border-border bg-card">
-        <div className="flex items-center gap-3 px-4 py-3" style={{ background: `${ACCENT}12` }}>
+        <div
+          className="flex items-center gap-3 px-3.5 py-2.5"
+          style={{ background: `${ACCENT}12` }}
+        >
           <span
-            className="grid size-10 shrink-0 place-items-center rounded-xl text-white"
+            className="grid size-9 shrink-0 place-items-center rounded-xl text-white"
             style={{ background: ACCENT }}
           >
-            <Stethoscope size={20} aria-hidden="true" />
+            <Stethoscope size={18} aria-hidden="true" />
           </span>
           <div className="min-w-0">
             <p className="text-sm font-bold leading-tight">Como você está se sentindo?</p>
@@ -170,33 +176,35 @@ export function ClientSymptomsPage({ patientId, ownerId }: { patientId: string; 
           </div>
         </div>
 
-        <div className="grid gap-3 p-4">
-          {groups.map((g) => (
-            <fieldset key={g} className="min-w-0">
-              <legend className="mb-1 text-xs font-semibold text-muted-foreground">
-                {SYMPTOM_GROUPS[g]}
-              </legend>
-              <div className="flex flex-wrap gap-1.5">
-                {SYMPTOMS.filter((s) => s.group === g).map((s) => {
-                  const on = sel.includes(s.key);
-                  return (
-                    <button
-                      key={s.key}
-                      type="button"
-                      aria-pressed={on}
-                      onClick={() =>
-                        setSel((v) => (on ? v.filter((x) => x !== s.key) : [...v, s.key]))
-                      }
-                      className={`min-h-9 rounded-full border px-3 py-1 text-xs transition-colors ${on ? "font-semibold text-white" : "border-border hover:bg-muted"}`}
-                      style={on ? { background: ACCENT, borderColor: ACCENT } : undefined}
-                    >
-                      {s.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </fieldset>
-          ))}
+        <div className="grid gap-3 p-3.5">
+          <div className="grid gap-x-4 gap-y-2.5 sm:grid-cols-2">
+            {groups.map((g) => (
+              <fieldset key={g} className="min-w-0">
+                <legend className="mb-1 text-xs font-semibold text-muted-foreground">
+                  {SYMPTOM_GROUPS[g]}
+                </legend>
+                <div className="flex flex-wrap gap-1.5">
+                  {SYMPTOMS.filter((s) => s.group === g).map((s) => {
+                    const on = sel.includes(s.key);
+                    return (
+                      <button
+                        key={s.key}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() =>
+                          setSel((v) => (on ? v.filter((x) => x !== s.key) : [...v, s.key]))
+                        }
+                        className={`min-h-8 rounded-full border px-2.5 py-0.5 text-xs transition-colors ${on ? "font-semibold text-white" : "border-border hover:bg-muted"}`}
+                        style={on ? { background: ACCENT, borderColor: ACCENT } : undefined}
+                      >
+                        {s.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            ))}
+          </div>
 
           {alert && (
             <div
@@ -212,50 +220,56 @@ export function ClientSymptomsPage({ patientId, ownerId }: { patientId: string; 
             </div>
           )}
 
-          <div>
-            <p className="mb-1 text-xs font-semibold text-muted-foreground">Intensidade</p>
-            <div className="flex flex-wrap gap-1.5">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  aria-pressed={sev === n}
-                  onClick={() => setSev(n)}
-                  className={`h-9 rounded-lg px-3 text-xs ${sev === n ? "font-bold text-white" : "border border-border"}`}
-                  style={sev === n ? { background: ACCENT } : undefined}
-                >
-                  {n} · {SEVERITY_LABELS[n]}
-                </button>
-              ))}
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <p className="mb-1 text-xs font-semibold text-muted-foreground">Intensidade</p>
+              <div className="flex flex-wrap gap-1.5">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    aria-pressed={sev === n}
+                    onClick={() => setSev(n)}
+                    className={`h-9 rounded-lg px-3 text-xs ${sev === n ? "font-bold text-white" : "border border-border"}`}
+                    style={sev === n ? { background: ACCENT } : undefined}
+                  >
+                    {n}
+                    <span className="hidden min-[1500px]:inline"> · {SEVERITY_LABELS[n]}</span>
+                  </button>
+                ))}
+              </div>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                {sev} · {SEVERITY_LABELS[sev]}
+              </p>
             </div>
-          </div>
 
-          <div>
-            <label
-              htmlFor="sint-when"
-              className="mb-1 flex items-center gap-1 text-xs font-semibold text-muted-foreground"
-            >
-              <Clock size={12} aria-hidden="true" /> Quando começou
-            </label>
-            <div className="flex flex-wrap items-center gap-1.5">
-              <input
-                id="sint-when"
-                type="datetime-local"
-                value={when}
-                max={acreDateTimeInput()}
-                onChange={(e) => setWhen(e.target.value)}
-                className="h-9 rounded-lg border border-border bg-background px-2 text-sm"
-              />
-              {[0, 1, 3, 6].map((h) => (
-                <button
-                  key={h}
-                  type="button"
-                  onClick={() => setAgo(h)}
-                  className="h-9 rounded-lg border border-border px-2.5 text-xs hover:bg-muted"
-                >
-                  {h === 0 ? "Agora" : `Há ${h} h`}
-                </button>
-              ))}
+            <div>
+              <label
+                htmlFor="sint-when"
+                className="mb-1 flex items-center gap-1 text-xs font-semibold text-muted-foreground"
+              >
+                <Clock size={12} aria-hidden="true" /> Quando começou
+              </label>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <input
+                  id="sint-when"
+                  type="datetime-local"
+                  value={when}
+                  max={acreDateTimeInput()}
+                  onChange={(e) => setWhen(e.target.value)}
+                  className="h-9 rounded-lg border border-border bg-background px-2 text-sm"
+                />
+                {[0, 1, 3, 6].map((h) => (
+                  <button
+                    key={h}
+                    type="button"
+                    onClick={() => setAgo(h)}
+                    className="h-9 rounded-lg border border-border px-2.5 text-xs hover:bg-muted"
+                  >
+                    {h === 0 ? "Agora" : `Há ${h} h`}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -326,173 +340,175 @@ export function ClientSymptomsPage({ patientId, ownerId }: { patientId: string; 
         </div>
       </div>
 
-      <Retractable
-        id="sint-pistas"
-        eyebrow="O que pode estar por trás"
-        title="Pistas para investigar"
-        accent={ACCENT}
-        summary={topClues.length ? `${topClues.length} pistas` : "Sem pistas ainda"}
-      >
-        {!events.length ? (
-          <EmptyState
-            compact
-            icon={Search}
-            tone={ACCENT}
-            title="Nenhum sintoma registrado"
-            text="Registre o que sentir. Com alguns registros, o app mostra o que costuma vir antes."
-          />
-        ) : !topClues.length ? (
-          <EmptyState
-            compact
-            icon={Search}
-            tone={ACCENT}
-            title="Ainda sem pistas claras"
-            text={
-              exp.loaded && !exp.items.length
-                ? "Registre também refeições, bebidas e remédios para o app poder comparar."
-                : "Os registros atuais não repetem nenhum gatilho. Continue anotando: padrões aparecem com o tempo."
-            }
-          />
-        ) : (
-          <ul className="grid gap-2">
-            {topClues.map((c) => (
-              <li key={`${c.symptom}-${c.tag}`} className="rounded-xl border border-border p-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span
-                    className="rounded-full px-2 py-0.5 text-[11px] font-bold text-white"
-                    style={{ background: CONF[c.confidence].c }}
-                  >
-                    {CONF[c.confidence].t}
-                  </span>
-                  <p className="min-w-0 flex-1 text-sm font-semibold">
-                    {c.label}{" "}
-                    <span className="font-normal text-muted-foreground">
-                      → {symptomLabel(c.symptom).toLowerCase()}
+      <div className="grid min-w-0 gap-3">
+        <Retractable
+          id="sint-pistas"
+          eyebrow="O que pode estar por trás"
+          title="Pistas para investigar"
+          accent={ACCENT}
+          summary={topClues.length ? `${topClues.length} pistas` : "Sem pistas ainda"}
+        >
+          {!events.length ? (
+            <EmptyState
+              compact
+              icon={Search}
+              tone={ACCENT}
+              title="Nenhum sintoma registrado"
+              text="Registre o que sentir. Com alguns registros, o app mostra o que costuma vir antes."
+            />
+          ) : !topClues.length ? (
+            <EmptyState
+              compact
+              icon={Search}
+              tone={ACCENT}
+              title="Ainda sem pistas claras"
+              text={
+                exp.loaded && !exp.items.length
+                  ? "Registre também refeições, bebidas e remédios para o app poder comparar."
+                  : "Os registros atuais não repetem nenhum gatilho. Continue anotando: padrões aparecem com o tempo."
+              }
+            />
+          ) : (
+            <ul className="grid gap-2">
+              {topClues.map((c) => (
+                <li key={`${c.symptom}-${c.tag}`} className="rounded-xl border border-border p-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className="rounded-full px-2 py-0.5 text-[11px] font-bold text-white"
+                      style={{ background: CONF[c.confidence].c }}
+                    >
+                      {CONF[c.confidence].t}
                     </span>
-                  </p>
-                </div>
-                <p className="mt-1.5 text-xs text-muted-foreground">{clueText(c)}</p>
-                {c.lift >= 1.5 && (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Isso é {c.lift.toFixed(1).replace(".", ",")}× mais frequente que com o resto do
-                    que você consome.
-                  </p>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-        <p className="mt-3 flex gap-1.5 text-[12px] text-muted-foreground">
-          <Sparkles size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
-          Pista não é diagnóstico: coincidir não prova que foi a causa. Leve o histórico ao médico,
-          principalmente se repetir, piorar ou vier com falta de ar, inchaço no rosto ou dor no
-          peito.
-        </p>
-      </Retractable>
-
-      <Retractable
-        id="sint-historico"
-        eyebrow="Linha do tempo"
-        title="Registros e o que veio antes"
-        accent={ACCENT}
-        summary={`${items.length} ${items.length === 1 ? "registro" : "registros"}`}
-        defaultOpen
-      >
-        {!items.length ? (
-          <EmptyState
-            compact
-            icon={Stethoscope}
-            tone={ACCENT}
-            title="Nada registrado"
-            text="Cada registro mostra o que você consumiu nas horas anteriores."
-          />
-        ) : (
-          <ul className="grid gap-2">
-            {items.slice(0, 30).map((r) => {
-              const e = events.find((x) => x.id === r.id)!;
-              const before = openId === r.id ? explainEvent(e, exp.items, clues) : [];
-              const b = classifyBp(r.sys, r.dia);
-              return (
-                <li key={r.id} className="rounded-xl border border-border">
-                  <div className="flex items-start gap-2 p-3">
-                    <button
-                      type="button"
-                      aria-expanded={openId === r.id}
-                      onClick={() => setOpenId(openId === r.id ? null : r.id)}
-                      className="min-w-0 flex-1 text-left"
-                    >
-                      <p className="text-xs tabular-nums text-muted-foreground">
-                        {dm(r.at)} às {acreTimeLabel(r.at)} ·{" "}
-                        {SEVERITY_LABELS[r.severity] ?? r.severity}
-                      </p>
-                      <p className="text-sm font-semibold">
-                        {e.symptoms.map(symptomLabel).join(", ") || "Sem sintomas"}
-                      </p>
-                      {(b || r.temp_c || r.notes) && (
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                          {b ? `Pressão ${r.sys}/${r.dia} (${b.label}) ` : ""}
-                          {r.temp_c ? `· ${String(r.temp_c).replace(".", ",")} °C ` : ""}
-                          {r.notes ? `· ${r.notes}` : ""}
-                        </p>
-                      )}
-                    </button>
-                    <ChevronDown
-                      size={16}
-                      aria-hidden="true"
-                      className={`mt-1 shrink-0 text-muted-foreground transition-transform ${openId === r.id ? "rotate-180" : ""}`}
-                    />
-                    <button
-                      type="button"
-                      aria-label="Excluir registro"
-                      onClick={() => void del(r)}
-                      className="grid size-8 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-red-500"
-                    >
-                      <Trash2 size={15} />
-                    </button>
+                    <p className="min-w-0 flex-1 text-sm font-semibold">
+                      {c.label}{" "}
+                      <span className="font-normal text-muted-foreground">
+                        → {symptomLabel(c.symptom).toLowerCase()}
+                      </span>
+                    </p>
                   </div>
-                  {openId === r.id && (
-                    <div className="border-t border-border bg-muted/30 p-3">
-                      {!before.length ? (
-                        <p className="text-xs text-muted-foreground">
-                          Nada registrado nas horas anteriores. Anote refeições, bebidas e remédios
-                          para comparar.
-                        </p>
-                      ) : (
-                        <ul className="grid gap-1">
-                          {before.map((i) => (
-                            <li
-                              key={i.exposure.id}
-                              className={`flex items-center gap-2 rounded-lg px-2 py-1 text-sm ${i.suspect ? "bg-red-500/10" : ""}`}
-                            >
-                              <span className="w-14 shrink-0 text-xs tabular-nums text-muted-foreground">
-                                há {fmtDelay(i.minBefore)}
-                              </span>
-                              <span className="min-w-0 flex-1 truncate">{i.exposure.label}</span>
-                              {i.novel && (
-                                <span className="rounded-full bg-amber-500/15 px-1.5 text-[10px] font-bold text-amber-600">
-                                  novidade
-                                </span>
-                              )}
-                              {i.suspect && (
-                                <span className="rounded-full bg-red-500/15 px-1.5 text-[10px] font-bold text-red-600">
-                                  suspeito
-                                </span>
-                              )}
-                              <span className="text-[10px] text-muted-foreground">
-                                {KIND_LABEL[i.exposure.kind]}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
+                  <p className="mt-1.5 text-xs text-muted-foreground">{clueText(c)}</p>
+                  {c.lift >= 1.5 && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Isso é {c.lift.toFixed(1).replace(".", ",")}× mais frequente que com o resto
+                      do que você consome.
+                    </p>
                   )}
                 </li>
-              );
-            })}
-          </ul>
-        )}
-      </Retractable>
+              ))}
+            </ul>
+          )}
+          <p className="mt-3 flex gap-1.5 text-[12px] text-muted-foreground">
+            <Sparkles size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
+            Pista não é diagnóstico: coincidir não prova que foi a causa. Leve o histórico ao
+            médico, principalmente se repetir, piorar ou vier com falta de ar, inchaço no rosto ou
+            dor no peito.
+          </p>
+        </Retractable>
+
+        <Retractable
+          id="sint-historico"
+          eyebrow="Linha do tempo"
+          title="Registros e o que veio antes"
+          accent={ACCENT}
+          summary={`${items.length} ${items.length === 1 ? "registro" : "registros"}`}
+          defaultOpen
+        >
+          {!items.length ? (
+            <EmptyState
+              compact
+              icon={Stethoscope}
+              tone={ACCENT}
+              title="Nada registrado"
+              text="Cada registro mostra o que você consumiu nas horas anteriores."
+            />
+          ) : (
+            <ul className="grid gap-2">
+              {items.slice(0, 30).map((r) => {
+                const e = events.find((x) => x.id === r.id)!;
+                const before = openId === r.id ? explainEvent(e, exp.items, clues) : [];
+                const b = classifyBp(r.sys, r.dia);
+                return (
+                  <li key={r.id} className="rounded-xl border border-border">
+                    <div className="flex items-start gap-2 p-3">
+                      <button
+                        type="button"
+                        aria-expanded={openId === r.id}
+                        onClick={() => setOpenId(openId === r.id ? null : r.id)}
+                        className="min-w-0 flex-1 text-left"
+                      >
+                        <p className="text-xs tabular-nums text-muted-foreground">
+                          {dm(r.at)} às {acreTimeLabel(r.at)} ·{" "}
+                          {SEVERITY_LABELS[r.severity] ?? r.severity}
+                        </p>
+                        <p className="text-sm font-semibold">
+                          {e.symptoms.map(symptomLabel).join(", ") || "Sem sintomas"}
+                        </p>
+                        {(b || r.temp_c || r.notes) && (
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {b ? `Pressão ${r.sys}/${r.dia} (${b.label}) ` : ""}
+                            {r.temp_c ? `· ${String(r.temp_c).replace(".", ",")} °C ` : ""}
+                            {r.notes ? `· ${r.notes}` : ""}
+                          </p>
+                        )}
+                      </button>
+                      <ChevronDown
+                        size={16}
+                        aria-hidden="true"
+                        className={`mt-1 shrink-0 text-muted-foreground transition-transform ${openId === r.id ? "rotate-180" : ""}`}
+                      />
+                      <button
+                        type="button"
+                        aria-label="Excluir registro"
+                        onClick={() => void del(r)}
+                        className="grid size-8 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-red-500"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                    {openId === r.id && (
+                      <div className="border-t border-border bg-muted/30 p-3">
+                        {!before.length ? (
+                          <p className="text-xs text-muted-foreground">
+                            Nada registrado nas horas anteriores. Anote refeições, bebidas e
+                            remédios para comparar.
+                          </p>
+                        ) : (
+                          <ul className="grid gap-1">
+                            {before.map((i) => (
+                              <li
+                                key={i.exposure.id}
+                                className={`flex items-center gap-2 rounded-lg px-2 py-1 text-sm ${i.suspect ? "bg-red-500/10" : ""}`}
+                              >
+                                <span className="w-14 shrink-0 text-xs tabular-nums text-muted-foreground">
+                                  há {fmtDelay(i.minBefore)}
+                                </span>
+                                <span className="min-w-0 flex-1 truncate">{i.exposure.label}</span>
+                                {i.novel && (
+                                  <span className="rounded-full bg-amber-500/15 px-1.5 text-[10px] font-bold text-amber-600">
+                                    novidade
+                                  </span>
+                                )}
+                                {i.suspect && (
+                                  <span className="rounded-full bg-red-500/15 px-1.5 text-[10px] font-bold text-red-600">
+                                    suspeito
+                                  </span>
+                                )}
+                                <span className="text-[10px] text-muted-foreground">
+                                  {KIND_LABEL[i.exposure.kind]}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </Retractable>
+      </div>
     </section>
   );
 }
