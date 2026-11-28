@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Activity,
   CalendarCheck,
@@ -12,6 +12,7 @@ import {
   Target,
 } from "lucide-react";
 import {
+  Area,
   Bar,
   CartesianGrid,
   Cell,
@@ -193,6 +194,252 @@ function monthRows(days: DayMetrics[], tab: Tab, targets: Targets, year: number)
   });
 }
 
+type WeightRow = Row & { delta: number | null; good: boolean | null };
+
+/** Peso no período: curva com área, barras da variação entre pesagens e resumo que reage ao toque. */
+function WeightChart({
+  rows,
+  yearly,
+  onPick,
+}: {
+  rows: Row[];
+  yearly: boolean;
+  onPick: (day: string) => void;
+}) {
+  const [bars, setBars] = useState(true);
+  const [focus, setFocus] = useState<"min" | "max" | null>(null);
+  const target = rows.find((r) => r.target)?.target ?? null;
+  const data = useMemo<WeightRow[]>(() => {
+    let prev: number | null = null;
+    return rows.map((r) => {
+      let delta: number | null = null;
+      let good: boolean | null = null;
+      if (r.value !== null) {
+        if (prev !== null) {
+          delta = Math.round((r.value - prev) * 10) / 10;
+          good =
+            delta === 0
+              ? null
+              : target
+                ? Math.abs(r.value - target) < Math.abs(prev - target)
+                : delta < 0;
+        }
+        prev = r.value;
+      }
+      return { ...r, delta, good };
+    });
+  }, [rows, target]);
+  const vals = data.map((r) => r.value).filter((v): v is number => v !== null);
+  if (!vals.length)
+    return (
+      <p className="grid h-56 place-items-center rounded-xl border border-dashed border-border text-center text-xs text-muted-foreground">
+        Sem registros de peso neste período.
+      </p>
+    );
+  const first = vals[0];
+  const last = vals[vals.length - 1];
+  const min = Math.min(...vals);
+  const max = Math.max(...vals);
+  const change = Math.round((last - first) * 10) / 10;
+  const lo = Math.floor(Math.min(min, target ?? min) - 1);
+  const hi = Math.ceil(Math.max(max, target ?? max) + 1);
+  const maxDelta = Math.max(0.5, ...data.map((r) => Math.abs(r.delta ?? 0)));
+  const col = { good: "#10b981", bad: "#f59e0b", flat: "#94a3b8", line: "#c026d3" };
+  const pick = (key: "min" | "max") => setFocus((f) => (f === key ? null : key));
+  const focusVal = focus === "min" ? min : focus === "max" ? max : null;
+  return (
+    <div>
+      <div className="mb-2 grid grid-cols-2 gap-1 text-[11px] sm:grid-cols-4">
+        <div className="border border-border px-2 py-1">
+          <span className="block text-muted-foreground">Último peso</span>
+          <b className="text-sm tabular-nums">{nf(last, 1)} kg</b>
+        </div>
+        <div className="border border-border px-2 py-1">
+          <span className="block text-muted-foreground">{yearly ? "No ano" : "No período"}</span>
+          <b
+            className="text-sm tabular-nums"
+            style={{ color: change === 0 ? undefined : change < 0 ? col.good : col.bad }}
+          >
+            {change > 0 ? "+" : ""}
+            {nf(change, 1)} kg
+          </b>
+        </div>
+        <button
+          type="button"
+          aria-pressed={focus === "min"}
+          onClick={() => pick("min")}
+          className={`border px-2 py-1 text-left ${focus === "min" ? "border-primary bg-primary/10" : "border-border hover:bg-muted/50"}`}
+        >
+          <span className="block text-muted-foreground">Menor</span>
+          <b className="text-sm tabular-nums">{nf(min, 1)} kg</b>
+        </button>
+        <button
+          type="button"
+          aria-pressed={focus === "max"}
+          onClick={() => pick("max")}
+          className={`border px-2 py-1 text-left ${focus === "max" ? "border-primary bg-primary/10" : "border-border hover:bg-muted/50"}`}
+        >
+          <span className="block text-muted-foreground">Maior</span>
+          <b className="text-sm tabular-nums">{nf(max, 1)} kg</b>
+        </button>
+      </div>
+      <div className="mb-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+        <button
+          type="button"
+          aria-pressed={bars}
+          onClick={() => setBars((v) => !v)}
+          className={`h-6 border px-2 font-bold ${bars ? "border-primary bg-primary/10 text-foreground" : "border-border"}`}
+        >
+          Barras de variação
+        </button>
+        <span className="inline-flex items-center gap-1">
+          <i className="size-2 rounded-full" style={{ background: col.good }} /> mais perto da meta
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <i className="size-2 rounded-full" style={{ background: col.bad }} /> mais longe
+        </span>
+      </div>
+      <div className="h-64 w-full cursor-pointer sm:h-72">
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart
+            data={data}
+            margin={{ top: 8, right: 8, left: -12, bottom: 0 }}
+            onClick={(state: any) => {
+              const day = state?.activePayload?.[0]?.payload?.day;
+              if (day) onPick(day);
+            }}
+          >
+            <defs>
+              <linearGradient id="weight-area" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={col.line} stopOpacity={0.35} />
+                <stop offset="100%" stopColor={col.line} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid
+              strokeDasharray="2 6"
+              stroke="currentColor"
+              className="text-border/60"
+              vertical={false}
+            />
+            <XAxis
+              dataKey="label"
+              tick={axis}
+              className="text-muted-foreground"
+              tickLine={false}
+              axisLine={false}
+              interval={yearly ? 0 : "preserveStartEnd"}
+              minTickGap={8}
+            />
+            <YAxis
+              yAxisId="left"
+              tick={axis}
+              className="text-muted-foreground"
+              tickLine={false}
+              axisLine={false}
+              width={46}
+              domain={[lo, hi]}
+            />
+            <YAxis yAxisId="delta" hide domain={[-maxDelta * 1.3, maxDelta * 4.5]} />
+            <Tooltip
+              cursor={{ stroke: "#94a3b8", strokeDasharray: "3 3" }}
+              content={
+                <ChartTip
+                  title={(r) => r.full}
+                  rows={(r: WeightRow) => [
+                    [
+                      "Peso",
+                      r.value === null ? "sem pesagem" : `${nf(r.value, 1)} kg`,
+                      col.line,
+                    ] as [string, string, string],
+                    ...(r.delta !== null
+                      ? [
+                          [
+                            "Desde a pesagem anterior",
+                            `${r.delta > 0 ? "+" : ""}${nf(r.delta, 1)} kg`,
+                            r.good === null ? col.flat : r.good ? col.good : col.bad,
+                          ] as [string, string, string],
+                        ]
+                      : []),
+                    ...(r.value !== null && target
+                      ? [
+                          [
+                            r.value > target ? "Acima da meta" : "Abaixo da meta",
+                            `${nf(Math.abs(r.value - target), 1)} kg`,
+                            "#10b981",
+                          ] as [string, string, string],
+                        ]
+                      : []),
+                    ["Clique para abrir", yearly ? "o mês" : "o dia"],
+                  ]}
+                />
+              }
+            />
+            {target && (
+              <ReferenceLine
+                yAxisId="left"
+                y={target}
+                stroke="#10b981"
+                strokeDasharray="5 5"
+                strokeOpacity={0.85}
+                label={{
+                  value: `meta ${nf(target, 1)} kg`,
+                  position: "insideTopRight",
+                  fill: "#10b981",
+                  fontSize: 10,
+                }}
+              />
+            )}
+            {focusVal !== null && (
+              <ReferenceLine
+                yAxisId="left"
+                y={focusVal}
+                stroke={col.line}
+                strokeDasharray="2 4"
+                label={{
+                  value: `${focus === "min" ? "menor" : "maior"} ${nf(focusVal, 1)} kg`,
+                  position: "insideBottomLeft",
+                  fill: col.line,
+                  fontSize: 10,
+                }}
+              />
+            )}
+            {bars && (
+              <Bar
+                yAxisId="delta"
+                dataKey="delta"
+                radius={[3, 3, 0, 0]}
+                maxBarSize={yearly ? 28 : 14}
+              >
+                {data.map((r) => (
+                  <Cell
+                    key={r.day}
+                    fill={r.good === null ? col.flat : r.good ? col.good : col.bad}
+                    fillOpacity={0.85}
+                  />
+                ))}
+              </Bar>
+            )}
+            <Area
+              yAxisId="left"
+              dataKey="value"
+              type="monotone"
+              stroke={col.line}
+              strokeWidth={3}
+              fill="url(#weight-area)"
+              dot={{ r: 3.5, fill: "#fff", stroke: col.line, strokeWidth: 2 }}
+              activeDot={{ r: 6 }}
+              connectNulls
+              isAnimationActive
+              animationDuration={800}
+              animationEasing="ease-out"
+            />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
 function PeriodChart({
   rows,
   tab,
@@ -204,6 +451,7 @@ function PeriodChart({
   yearly: boolean;
   onPick: (day: string) => void;
 }) {
+  if (tab === "peso") return <WeightChart rows={rows} yearly={yearly} onPick={onPick} />;
   const series = SERIES[tab];
   const unit =
     yearly && (tab === "suplementos" || tab === "medicacao")
@@ -264,7 +512,7 @@ function PeriodChart({
             tickLine={false}
             axisLine={false}
             width={46}
-            domain={tab === "peso" ? ["dataMin - 2", "dataMax + 2"] : [0, "auto"]}
+            domain={[0, "auto"]}
           />
           {series.secondary && (
             <YAxis
@@ -335,7 +583,12 @@ function PeriodChart({
               y={avg}
               stroke="#94a3b8"
               strokeDasharray="2 4"
-              label={{ value: `média ${nf(avg, series.digits)}`, position: "insideTopLeft", fill: "#94a3b8", fontSize: 10 }}
+              label={{
+                value: `média ${nf(avg, series.digits)}`,
+                position: "insideTopLeft",
+                fill: "#94a3b8",
+                fontSize: 10,
+              }}
             />
           )}
           {series.line ? (
