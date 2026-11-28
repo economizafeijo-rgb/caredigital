@@ -1,7 +1,13 @@
 import { EvoChart, EvoLegend } from "./EvoChart";
 import { useMemo, useState, type ReactNode } from "react";
 import { Beef, Droplet, Leaf, Target, Wheat } from "lucide-react";
-import { microTargets, sumNutrients, type Micros, type Nutrients } from "@/lib/food-parser";
+import {
+  measureUnit,
+  microTargets,
+  sumNutrients,
+  type Micros,
+  type Nutrients,
+} from "@/lib/food-parser";
 import { objectiveLabel } from "@/lib/objective-nutrition";
 import { evaluateRisks } from "@/lib/nutrition-risk";
 import { detectCaffeine, detectLactose, LACTOSE_THRESHOLDS } from "@/lib/intake-detect";
@@ -269,6 +275,42 @@ function extrasOf(e: DayEntry, target: DailyNutrition["target"]) {
   return { sodium: val("sodium"), sugar: val("sugar"), caffeine, lactose };
 }
 
+type DayItem = { name: string; qty: string; v: Record<DayMetric["key"], number> };
+
+/** De onde vem cada nutriente: um item por alimento (ou bebida, ou porção) do registro. */
+function itemsOf(e: DayEntry, target: DailyNutrition["target"]): DayItem[] {
+  const limits = { kcal: target.kcal, fat: target.fat };
+  if (!e.direct && e.foods.length) {
+    return e.foods.map((f) => {
+      const risks = evaluateRisks([{ foods: [f], direct: null }], limits);
+      const val = (k: string) => risks.find((r) => r.key === k)?.value ?? 0;
+      return {
+        name: f.name.split(",")[0].split("(")[0].trim(),
+        qty: `${Math.round(f.grams)} ${measureUnit(f.id)}`,
+        v: {
+          ...f.nutrients,
+          sodium: val("sodium"),
+          sugar: val("sugar"),
+          caffeine: detectCaffeine(f.name, f.grams)?.mg ?? 0,
+          lactose: detectLactose(f.name, f.grams)?.g ?? 0,
+        } as Record<DayMetric["key"], number>,
+      };
+    });
+  }
+  const n = entryNutrients(e);
+  return [
+    {
+      name: (e.foodName ?? e.text ?? e.source).split(",")[0],
+      qty: e.grams
+        ? `${Math.round(e.grams)} ${measureUnit(e.foodId ?? "")}`
+        : e.amountMl
+          ? `${e.amountMl} ml`
+          : "",
+      v: { ...n, ...extrasOf(e, target) } as Record<DayMetric["key"], number>,
+    },
+  ];
+}
+
 type DayMetric = {
   key:
     | "kcal"
@@ -370,13 +412,11 @@ export function NutritionDayChart({ data }: { data: DailyNutrition }) {
     () =>
       entries
         .map((e) => {
-          const n = entryNutrients(e);
-          return {
-            h: hourOf(e.at),
-            n,
-            v: { ...n, ...extrasOf(e, target) } as Record<DayMetric["key"], number>,
-            text: e.text,
-          };
+          const items = itemsOf(e, target);
+          const v = {} as Record<DayMetric["key"], number>;
+          for (const it of items)
+            for (const k of Object.keys(it.v) as DayMetric["key"][]) v[k] = (v[k] ?? 0) + it.v[k];
+          return { h: hourOf(e.at), items, v, text: e.text };
         })
         .filter((p) => Object.values(p.v).some((x) => x > 0))
         .sort((a, b) => a.h - b.h),
@@ -459,7 +499,7 @@ export function NutritionDayChart({ data }: { data: DailyNutrition }) {
                 aria-pressed={on}
                 onClick={() => setSel(m.key)}
                 title={`${m.label}: ${fmtV(v, m)} de ${fmtV(m.target, m)}`}
-                className="grid w-full grid-cols-[5.4rem_minmax(0,1fr)_auto] items-center gap-2 border px-1.5 py-1 text-left transition-colors hover:bg-muted/50"
+                className="grid w-full grid-cols-[6.6rem_minmax(0,1fr)_auto] items-center gap-2 border px-1.5 py-1 text-left transition-colors hover:bg-muted/50"
                 style={{
                   borderColor: on ? m.color : "transparent",
                   background: on ? `${m.color}1f` : undefined,
@@ -555,23 +595,46 @@ export function NutritionDayChart({ data }: { data: DailyNutrition }) {
                   );
                 })}
               </ul>
-              {hit.map((p, i) => (
-                <div key={i} className="border-t border-border/60 pt-1">
-                  <p className="flex gap-2">
-                    <span className="truncate font-semibold">{p.text || "Registro"}</span>
-                    <strong className="ml-auto shrink-0 tabular-nums text-foreground">
-                      +{n0(p.n.kcal)} kcal
-                    </strong>
-                  </p>
-                  <MacroBreakdown
-                    variant="inline"
-                    className="mt-1"
-                    protein={p.n.protein}
-                    carbs={p.n.carbs}
-                    fat={p.n.fat}
-                  />
-                </div>
-              ))}
+              {hit.map((p, i) => {
+                const m = active[0];
+                const parts = p.items
+                  .filter((it) => (it.v[m.key] ?? 0) > 0)
+                  .sort((x, y) => y.v[m.key] - x.v[m.key]);
+                const sum = parts.reduce((acc, it) => acc + it.v[m.key], 0);
+                return (
+                  <div key={i} className="border-t border-border/60 pt-1">
+                    <p className="mb-0.5 text-[11px] text-muted-foreground">
+                      De onde vem o(a) {m.label.toLowerCase()} deste registro
+                    </p>
+                    {parts.length ? (
+                      <ul className="grid gap-0.5">
+                        {parts.map((it, j) => (
+                          <li key={j} className="flex items-baseline gap-2">
+                            <span className="min-w-0 truncate font-semibold">
+                              {it.name}
+                              {it.qty && (
+                                <span className="font-normal text-muted-foreground">
+                                  {" "}
+                                  · {it.qty}
+                                </span>
+                              )}
+                            </span>
+                            <strong className="ml-auto shrink-0 tabular-nums text-foreground">
+                              {fmtV(it.v[m.key], m)}
+                              <span className="font-normal text-muted-foreground">
+                                {" "}
+                                · {Math.round((it.v[m.key] / (sum || 1)) * 100)}%
+                              </span>
+                            </strong>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-muted-foreground">Nada de {m.label.toLowerCase()} aqui.</p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           );
         }}
