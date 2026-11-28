@@ -8,6 +8,52 @@ import {
   Stethoscope,
   Trash2,
 } from "lucide-react";
+import {
+  Activity as IcActivity,
+  Brain,
+  Circle,
+  CloudRain,
+  Droplet,
+  Flame,
+  Frown,
+  Hand,
+  HeartCrack,
+  HeartPulse,
+  Moon,
+  Smile,
+  Snowflake,
+  Sparkles as IcSparkles,
+  Thermometer,
+  TrendingDown,
+  TrendingUp,
+  Wind,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
+
+const SYMPTOM_ICONS: Record<string, LucideIcon> = {
+  dor_barriga: Zap,
+  nausea: Frown,
+  vomito: CloudRain,
+  diarreia: Droplet,
+  inchaco_gases: Circle,
+  azia: Flame,
+  coceira: Hand,
+  manchas: IcSparkles,
+  inchaco_rosto: Smile,
+  nariz: Wind,
+  falta_ar: Wind,
+  pressao_alta: TrendingUp,
+  pressao_baixa: TrendingDown,
+  palpitacao: HeartPulse,
+  tontura: IcActivity,
+  dor_peito: HeartCrack,
+  desmaio: Moon,
+  dor_cabeca: Brain,
+  sonolencia: Moon,
+  suor_frio: Snowflake,
+  febre: Thermometer,
+};
 import { acreDateKey, acreDateTimeInput, acreTimeLabel } from "@/lib/acre-time";
 import {
   SEVERITY_LABELS,
@@ -150,7 +196,7 @@ export function ClientSymptomsPage({ patientId, ownerId }: { patientId: string; 
 
   return (
     <section
-      className="grid min-w-0 items-start gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]"
+      className="grid min-w-0 items-start gap-3 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]"
       aria-labelledby="sint-title"
     >
       <h2 id="sint-title" className="sr-only">
@@ -177,15 +223,16 @@ export function ClientSymptomsPage({ patientId, ownerId }: { patientId: string; 
         </div>
 
         <div className="grid gap-3 p-3.5">
-          <div className="grid gap-x-4 gap-y-2.5 sm:grid-cols-2">
+          <div className="grid gap-3">
             {groups.map((g) => (
               <fieldset key={g} className="min-w-0">
                 <legend className="mb-1 text-xs font-semibold text-muted-foreground">
                   {SYMPTOM_GROUPS[g]}
                 </legend>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4 xl:grid-cols-6">
                   {SYMPTOMS.filter((s) => s.group === g).map((s) => {
                     const on = sel.includes(s.key);
+                    const Icon = SYMPTOM_ICONS[s.key] ?? Circle;
                     return (
                       <button
                         key={s.key}
@@ -194,10 +241,15 @@ export function ClientSymptomsPage({ patientId, ownerId }: { patientId: string; 
                         onClick={() =>
                           setSel((v) => (on ? v.filter((x) => x !== s.key) : [...v, s.key]))
                         }
-                        className={`min-h-8 rounded-full border px-2.5 py-0.5 text-xs transition-colors ${on ? "font-semibold text-white" : "border-border hover:bg-muted"}`}
+                        className={`relative flex min-h-[4.5rem] flex-col items-center justify-center gap-1 rounded-xl border p-1.5 text-center text-[11px] leading-tight transition active:scale-[.97] ${on ? "font-semibold text-white shadow-md" : "border-border bg-background/40 hover:border-foreground/30 hover:bg-muted"}`}
                         style={on ? { background: ACCENT, borderColor: ACCENT } : undefined}
                       >
-                        {s.label}
+                        <Icon
+                          size={20}
+                          aria-hidden="true"
+                          style={on ? undefined : { color: s.red ? "#ef4444" : ACCENT }}
+                        />
+                        <span className="line-clamp-2">{s.label}</span>
                       </button>
                     );
                   })}
