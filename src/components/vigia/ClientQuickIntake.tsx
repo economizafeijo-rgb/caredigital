@@ -472,6 +472,8 @@ export function ClientQuickIntake({
       setOpen(false);
       requestId.current = null;
       drinkRequestId.current = null;
+      // Avisa toda a plataforma (lista de refeições, metas, histórico) para recarregar.
+      window.dispatchEvent(new Event("nv-intake-changed"));
       onRecorded?.();
     } catch (failure) {
       const detail =
