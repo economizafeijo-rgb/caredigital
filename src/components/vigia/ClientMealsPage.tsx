@@ -8,6 +8,7 @@ import { NutritionGuardPanel } from "./NutritionGuard";
 import { Fold } from "./Fold";
 import { MealMacroBars, NutritionDayChart, NutritionHero } from "./NutritionHero";
 import { useEffect, useMemo, useState } from "react";
+import { MealEditDialog, canEditMeal, mealIsLocked, useMealActions } from "./MealEditDialog";
 import {
   BarChart3,
   CalendarDays,
@@ -17,6 +18,8 @@ import {
   Clock3,
   Coffee,
   Info,
+  Lock,
+  Pencil,
   Search,
   Trash2,
   UtensilsCrossed,
@@ -533,6 +536,8 @@ const MACRO_ROWS = [
 /** Cartões das refeições realizadas hoje (sem bebidas): hover resume, clique detalha. */
 function MealsDoneToday({ data }: { data: DailyNutrition }) {
   const [open, setOpen] = useState<MealEntry | null>(null);
+  const [editing, setEditing] = useState<MealEntry | null>(null);
+  const actions = useMealActions(data.patientId, data.refresh);
   const meals = useMemo(
     () =>
       data.entries
@@ -632,13 +637,45 @@ function MealsDoneToday({ data }: { data: DailyNutrition }) {
           );
         })}
       </ul>
-      {open && <MealDetailCard entry={open} onClose={() => setOpen(null)} />}
+      {open && (
+        <MealDetailCard
+          entry={open}
+          onClose={() => setOpen(null)}
+          onEdit={async () => {
+            if (await actions.startEdit(open)) {
+              setEditing(open);
+              setOpen(null);
+            }
+          }}
+          onDelete={async () => {
+            if (await actions.remove(open)) setOpen(null);
+          }}
+        />
+      )}
+      {editing && (
+        <MealEditDialog
+          meal={editing}
+          patientId={data.patientId}
+          onClose={() => setEditing(null)}
+          onSaved={data.refresh}
+        />
+      )}
     </section>
   );
 }
 
 /** Cartão detalhado e compacto de uma refeição: macros, micronutrientes e cada alimento. */
-function MealDetailCard({ entry, onClose }: { entry: MealEntry; onClose: () => void }) {
+function MealDetailCard({
+  entry,
+  onClose,
+  onEdit,
+  onDelete,
+}: {
+  entry: MealEntry;
+  onClose: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
   const n = mealNutrients(entry);
   const Icon = foodIcon(entry.text || entry.source);
   const macroKcal = n.protein * 4 + n.carbs * 4 + n.fat * 9 || 1;
@@ -745,9 +782,29 @@ function MealDetailCard({ entry, onClose }: { entry: MealEntry; onClose: () => v
               <p className="border border-border px-2 py-1.5 text-xs">{entry.text}</p>
             )}
           </div>
+          {canEditMeal(entry) && (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={onEdit}
+                className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 border border-border text-xs font-bold hover:bg-muted"
+              >
+                {mealIsLocked(entry) ? <Lock size={13} /> : <Pencil size={13} />} Editar
+              </button>
+              <button
+                type="button"
+                onClick={onDelete}
+                className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 border border-destructive/30 text-xs font-bold text-destructive hover:bg-destructive/5"
+              >
+                {mealIsLocked(entry) ? <Lock size={13} /> : <Trash2 size={13} />} Excluir
+              </button>
+            </div>
+          )}
           <p className="text-[10px] text-muted-foreground">
-            Valores estimados pela tabela nutricional do NextVita. Para editar ou excluir, use
-            “Detalhes nutricionais e registros do dia”.
+            Valores estimados pela tabela nutricional do NextVita.
+            {canEditMeal(entry)
+              ? " Registros com mais de 24 h pedem senha para alterar."
+              : " Refeições da agenda se ajustam na agenda."}
           </p>
         </div>
       </div>
