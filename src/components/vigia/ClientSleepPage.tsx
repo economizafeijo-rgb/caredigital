@@ -31,6 +31,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { DayDetailDialog } from "./DayDetailDialog";
 import { NextUpClock } from "./NextUpClock";
+import { SleepInsightsPanel } from "./SleepInsightsPanel";
 import { acreDateKey } from "@/lib/acre-time";
 import { useDialog } from "@/lib/dialog";
 
@@ -871,6 +872,8 @@ export function ClientSleepPage({ patientId, ownerId }: { patientId: string; own
           </ol>
         </section>
       </div>
+
+      <SleepInsightsPanel logs={logs} patientId={patientId} ownerId={ownerId} />
 
       <section
         className="border border-border bg-card p-3.5 shadow-card"
