@@ -422,8 +422,8 @@ function DayBoard({
                 </span>
               ) : (
                 <>
-                  <span className="flex items-baseline justify-between gap-2">
-                    <span className="truncate font-display text-[clamp(1rem,1.5vw,1.25rem)] font-extrabold leading-none tabular-nums">
+                  <span className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
+                    <span className="whitespace-nowrap font-display text-[clamp(1rem,1.5vw,1.25rem)] font-extrabold leading-none tabular-nums">
                       {m.unit(c.today)}
                     </span>
                     <span className="shrink-0 text-[11px] text-slate-400">
