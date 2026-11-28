@@ -145,13 +145,16 @@ export function NumberDial({
           } as React.CSSProperties
         }
       />
-      <div className="flex flex-wrap gap-1.5">
+      <div
+        className="grid gap-1"
+        style={{ gridTemplateColumns: `repeat(${quick.length}, minmax(0, 1fr))` }}
+      >
         {quick.map((q) => (
           <button
             key={q}
             type="button"
             onClick={() => set(shown + q)}
-            className="h-9 rounded-full border border-border px-3 text-xs font-semibold tabular-nums transition active:scale-95"
+            className="h-9 min-w-0 rounded-full border border-border px-1 text-xs font-semibold tabular-nums transition hover:bg-muted active:scale-95"
           >
             {q > 0 ? "+" : "−"}
             {fmt(Math.abs(q), digits)}

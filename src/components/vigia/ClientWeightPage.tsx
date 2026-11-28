@@ -140,7 +140,7 @@ function GoalProgress({
 }) {
   if (!target || start === null || now === null)
     return (
-      <div className="mt-auto border-t border-border pt-3">
+      <div className="mt-3 border-t border-border pt-3">
         <p className="text-xs text-muted-foreground">
           Defina uma meta para acompanhar o progresso aqui.
         </p>
@@ -157,7 +157,7 @@ function GoalProgress({
   const done = start - now;
   const pct = Math.abs(total) < 0.1 ? 100 : Math.max(0, Math.min(100, (done / total) * 100));
   return (
-    <div className="mt-auto border-t border-border pt-3">
+    <div className="mt-3 border-t border-border pt-3">
       <div className="flex items-baseline justify-between text-xs">
         <span className="font-semibold">Progresso até a meta</span>
         <span className="font-display font-extrabold tabular-nums">{Math.round(pct)}%</span>
@@ -646,7 +646,7 @@ export function ClientWeightPage({
                   />
                 </span>
               </label>
-              <div className="grid gap-4 sm:col-span-3 sm:grid-cols-2">
+              <div className="grid items-start gap-4 sm:col-span-3 sm:grid-cols-2">
                 <NumberDial
                   label="Peso"
                   unit="kg"
@@ -740,6 +740,29 @@ export function ClientWeightPage({
             >
               {guidance.message} Não substitui avaliação profissional.
             </p>
+            <ul className="mt-3 grid grid-cols-2 gap-1.5 text-[11px] sm:grid-cols-3">
+              {[
+                ["Abaixo", "< 18,5", "#38bdf8"],
+                ["Adequado", "18,5–24,9", "#10b981"],
+                ["Sobrepeso", "25–29,9", "#f59e0b"],
+                ["Obesidade I", "30–34,9", "#f97316"],
+                ["Obesidade II", "35–39,9", "#ef4444"],
+                ["Obesidade III", "≥ 40", "#b91c1c"],
+              ].map(([name, range, c]) => {
+                const active = category?.label === name;
+                return (
+                  <li
+                    key={name}
+                    className={`flex items-center gap-1.5 border px-2 py-1.5 ${active ? "border-current font-bold" : "border-border text-muted-foreground"}`}
+                    style={active ? { color: c } : undefined}
+                  >
+                    <i className="size-2 shrink-0 rounded-full" style={{ background: c }} />
+                    <span className="min-w-0 truncate">{name}</span>
+                    <span className="ml-auto tabular-nums">{range}</span>
+                  </li>
+                );
+              })}
+            </ul>
             <GoalProgress
               start={points[0]?.weight_kg ?? null}
               now={last?.weight_kg ?? currentWeight}
