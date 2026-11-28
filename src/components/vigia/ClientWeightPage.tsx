@@ -44,6 +44,7 @@ import { NumberDial } from "./NumberDial";
 import { signed } from "@/lib/weight-variation";
 import { useWeightGoalVersion } from "@/lib/weight-goal";
 import { WeightGoalEditor } from "./WeightGoalEditor";
+import { WeightDriversPanel } from "./WeightDriversPanel";
 
 type Point = { id: string; recorded_on: string; weight_kg: number; height_cm: number };
 type Props = {
@@ -615,6 +616,7 @@ export function ClientWeightPage({
         />
       )}
 
+      <WeightDriversPanel patientId={patientId} ownerId={ownerId} revision={reload} />
       {explorer}
       <div className="grid gap-3 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         <aside className="contents">
