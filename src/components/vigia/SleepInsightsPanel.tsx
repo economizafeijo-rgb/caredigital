@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AlarmClock, BedDouble, Coffee, Lightbulb, Scale, UtensilsCrossed } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useExposures } from "./useExposures";
+import { Retractable } from "./Retractable";
 import {
   compareHabits,
   recommendedRange,
@@ -117,20 +118,14 @@ export function SleepInsightsPanel({
   ];
 
   return (
-    <section
-      className="border border-border bg-card p-3.5 shadow-card"
-      aria-label="Análise do sono"
+    <Retractable
+      id="sono-analise"
+      eyebrow="Métricas e dicas"
+      title="Análise do sono"
+      accent="#a78bfa"
+      summary={`Média ${hm(m.avgHours)} · ${m.nights} noites`}
     >
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="flex items-center gap-2 text-sm font-bold">
-          <Lightbulb size={16} className="text-amber-400" /> Análise do sono
-        </h3>
-        <span className="text-[11px] text-muted-foreground">
-          Últimos {m.nights} registros · horário do Acre
-        </span>
-      </div>
-
-      <div className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
         {tiles.map(([Icon, label, value, sub, color]) => (
           <div key={label} className="border border-border bg-background/40 p-2.5">
             <p className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
@@ -225,6 +220,6 @@ export function SleepInsightsPanel({
           </p>
         </div>
       </div>
-    </section>
+    </Retractable>
   );
 }
