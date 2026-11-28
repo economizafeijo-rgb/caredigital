@@ -169,6 +169,12 @@ export const foodMicros: Record<string, [number, number, number, number, number]
   acucar_gramixo: [0, 0, 127, 8.3, 522],
   acucar: [0, 0, 4, 0.1, 6],
   pizza: [2, 60, 200, 1.2, 180],
+  pizza_calabresa: [2, 60, 200, 1.2, 180],
+  pizza_portuguesa: [2, 60, 200, 1.2, 180],
+  pizza_frango_catupiry: [2, 60, 200, 1.2, 180],
+  pizza_quatro_queijos: [2, 60, 200, 1.2, 180],
+  pizza_marguerita: [2, 60, 200, 1.2, 180],
+  pizza_lombo: [2, 60, 200, 1.2, 180],
   feijoada: [1, 10, 25, 1.3, 220],
   feijoada_jaba: [1, 8, 30, 2.1, 300],
   macarronada: [5, 40, 20, 1.1, 200],
@@ -269,11 +275,15 @@ export const foodMicros: Record<string, [number, number, number, number, number]
 
 /** Palavras-chave → alimento do catálogo. Ordem importa: termos mais específicos primeiro. */
 const aliases: Array<[RegExp, string]> = [
+  [/pizza (de )?calabre[sz]a/, "pizza_calabresa"],
+  [/pizza (a |à )?portuguesa/, "pizza_portuguesa"],
+  [/pizza (de )?frango/, "pizza_frango_catupiry"],
+  [/pizza (de )?(4|quatro) queijos/, "pizza_quatro_queijos"],
+  [/pizza (de )?marguerita|pizza margherita/, "pizza_marguerita"],
+  [/pizza (de )?lombo/, "pizza_lombo"],
+  [/pizza (doce|de chocolate|de brigadeiro|de prestigio|de banana)/, "pizza_chocolate"],
   [/p(ão|ao|ães|aes) de queijo/, "pao_queijo"],
-  [
-    /bolo (de trigo )?confeitado|bolo com cobertura|bolo de festa/,
-    "bolo_trigo_confeitado",
-  ],
+  [/bolo (de trigo )?confeitado|bolo com cobertura|bolo de festa/, "bolo_trigo_confeitado"],
   [/bolo de trigo|bolo simples de trigo/, "bolo_trigo"],
   [/esfi(r|h)ra|esfiha/, "esfirra_carne"],
   [/frango frito (no|em|com) [oó]leo|frango frito sem empanar/, "frango_frito_oleo"],
@@ -465,11 +475,17 @@ const aliases: Array<[RegExp, string]> = [
   [/cerveja skol|\bskol\b/, "cerveja_skol"],
   [/cerveja amstel|\bamstel\b/, "cerveja_amstel"],
   [/coca.?cola|\bcoca\b/, "coca_cola"],
-  [/guaran[aá] (do acre|regional|bar[eé]|tuchaua|cajueiro)|\bbar[eé]\b|tuchaua/, "guarana_regional"],
+  [
+    /guaran[aá] (do acre|regional|bar[eé]|tuchaua|cajueiro)|\bbar[eé]\b|tuchaua/,
+    "guarana_regional",
+  ],
   [/guaran[aá] antarctica|\bguaran[aá]\b/, "guarana_antarctica"],
   [/fanta (de )?uva|refrigerante (de )?uva/, "fanta_uva"],
   [/fanta laranja|refrigerante (tipo |de )?laranja/, "fanta_laranja"],
-  [/suco (artificial|em p[oó]|de p[oó]|de saquinho)( de laranja)?|refresco em p[oó]|\btang\b/, "suco_artificial_laranja"],
+  [
+    /suco (artificial|em p[oó]|de p[oó]|de saquinho)( de laranja)?|refresco em p[oó]|\btang\b/,
+    "suco_artificial_laranja",
+  ],
   [/[aá]gua t[oô]nica/, "agua_tonica"],
   [/cerveja|chope/, "cerveja"],
   [/caldo de cana|garapa/, "caldo_cana"],
@@ -827,6 +843,13 @@ const defaultPortion: Record<string, number> = {
   acucar_gramixo: 15,
   acucar: 10,
   pizza: 110,
+  pizza_calabresa: 110,
+  pizza_portuguesa: 110,
+  pizza_frango_catupiry: 110,
+  pizza_quatro_queijos: 110,
+  pizza_marguerita: 110,
+  pizza_lombo: 110,
+  pizza_chocolate: 110,
   feijoada: 250,
   feijoada_jaba: 300,
   macarronada: 250,
@@ -1086,7 +1109,7 @@ export function parseFoodText(text: string, liquidMl?: number | null): ParsedFoo
           : (numberWords[countMatch[2]] ?? 1)
         : 1;
       const unit = unitGrams.find(([pattern]) => pattern.test(segment));
-      const slice = item.id === "pizza" && /fatia/.test(segment);
+      const slice = /^pizza/.test(item.id) && /fatia/.test(segment);
       // Açúcar: colher de sopa ≈ 12 g; colher de chá ≈ 5 g.
       const sugarSpoon =
         /^acucar/.test(item.id) && /colher/.test(segment) ? (/sopa/.test(segment) ? 12 : 5) : 0;
