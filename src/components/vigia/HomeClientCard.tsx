@@ -951,9 +951,9 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                 )}
 
                 <div
-                  className={`grid items-start gap-3 lg:grid-cols-2 ${tasks.length > 0 ? "min-[1500px]:grid-cols-4" : "min-[1300px]:grid-cols-3"}`}
+                  className={`columns-1 gap-3 lg:columns-2 [&>*]:mb-3 [&>*]:break-inside-avoid ${tasks.length > 0 ? "min-[1500px]:columns-3" : "min-[1300px]:columns-3"}`}
                 >
-                  <div className="flex flex-col gap-3 lg:pr-0.5">
+                  <>
                     {tasks.length > 0 && (
                       <section
                         aria-label="Próximo cuidado"
@@ -1017,7 +1017,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                         onCompleteProfile={() => setOnboardingSignal((v) => v + 1)}
                       />
                     </Retractable>
-                  </div>
+                  </>
                   <Retractable
                     id="consumo"
                     eyebrow="Hoje"
@@ -1129,9 +1129,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                     </Retractable>
                   )}
 
-                  <div
-                    className={`flex min-h-0 flex-col gap-3 ${tasks.length > 0 ? "" : "lg:col-span-2 min-[1300px]:col-span-1"}`}
-                  >
+                  <div className="flex min-h-0 flex-col gap-3">
                     <Retractable
                       id="historico"
                       eyebrow="Registros"
