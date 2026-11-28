@@ -277,11 +277,23 @@ export const foodMicros: Record<string, [number, number, number, number, number]
 const aliases: Array<[RegExp, string]> = [
   [/pizza (de )?calabre[sz]a/, "pizza_calabresa"],
   [/pizza (a |à )?portuguesa/, "pizza_portuguesa"],
+  [/pizza (de )?frango (com |e )?cheddar/, "pizza_frango_cheddar"],
   [/pizza (de )?frango/, "pizza_frango_catupiry"],
   [/pizza (de )?(4|quatro) queijos/, "pizza_quatro_queijos"],
   [/pizza (de )?marguerita|pizza margherita/, "pizza_marguerita"],
   [/pizza (de )?lombo/, "pizza_lombo"],
-  [/pizza (doce|de chocolate|de brigadeiro|de prestigio|de banana)/, "pizza_chocolate"],
+  [/pizza (de )?bacon/, "pizza_bacon"],
+  [/pizza (de )?pepperoni|pizza (de )?salame/, "pizza_pepperoni"],
+  [/pizza (de )?atum/, "pizza_atum"],
+  [/pizza (a |à )?napolitana/, "pizza_napolitana"],
+  [/pizza (de )?(vegetariana|legumes|palmito|milho|br[oó]colis)/, "pizza_vegetariana"],
+  [/pizza (de )?carne (de sol|seca)|pizza nordestina/, "pizza_carne_sol"],
+  [/pizza (doce )?(de )?banana/, "pizza_banana"],
+  [/pizza (de )?(romeu e julieta|goiabada)/, "pizza_romeu_julieta"],
+  [/pizza (de )?prest[ií]gio|pizza (de )?coco/, "pizza_prestigio"],
+  [/pizza (de )?morango/, "pizza_morango_chocolate"],
+  [/pizza (doce|de chocolate|de brigadeiro|de nutella|de ovomaltine)/, "pizza_chocolate"],
+  [/pizza (de )?(mu[sç]{1,2}arela|queijo)/, "pizza"],
   [/p(ão|ao|ães|aes) de queijo/, "pao_queijo"],
   [/bolo (de trigo )?confeitado|bolo com cobertura|bolo de festa/, "bolo_trigo_confeitado"],
   [/bolo de trigo|bolo simples de trigo/, "bolo_trigo"],
@@ -850,6 +862,17 @@ const defaultPortion: Record<string, number> = {
   pizza_marguerita: 110,
   pizza_lombo: 110,
   pizza_chocolate: 110,
+  pizza_frango_cheddar: 110,
+  pizza_bacon: 110,
+  pizza_pepperoni: 110,
+  pizza_atum: 110,
+  pizza_napolitana: 110,
+  pizza_vegetariana: 110,
+  pizza_carne_sol: 110,
+  pizza_banana: 110,
+  pizza_romeu_julieta: 110,
+  pizza_prestigio: 110,
+  pizza_morango_chocolate: 110,
   feijoada: 250,
   feijoada_jaba: 300,
   macarronada: 250,
@@ -1100,9 +1123,9 @@ export function parseFoodText(text: string, liquidMl?: number | null): ParsedFoo
       const value = Number(explicit[1].replace(",", "."));
       grams = /kg|^l$|litro/.test(explicit[2]) ? value * 1000 : value;
     } else {
-      const countMatch = segment.match(
-        /(\d+(?:[.,]\d+)?)|\b(um|uma|dois|duas|tr[eê]s|quatro|cinco|meio|meia)\b/,
-      );
+      const countMatch = segment
+        .replace(/\b(4|quatro) queijos/, "queijos")
+        .match(/(\d+(?:[.,]\d+)?)|\b(um|uma|dois|duas|tr[eê]s|quatro|cinco|meio|meia)\b/);
       const count = countMatch
         ? countMatch[1]
           ? Number(countMatch[1].replace(",", "."))
