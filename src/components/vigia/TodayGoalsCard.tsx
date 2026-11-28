@@ -1,4 +1,7 @@
-import { useState } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useWeightGoalVersion } from "@/lib/weight-goal";
 import { ChevronDown, ChevronRight, Flame } from "lucide-react";
 import { acreDateKey, acreTimeLabel } from "@/lib/acre-time";
 import { microTargets } from "@/lib/food-parser";
@@ -25,6 +28,22 @@ export function TodayGoalsCard({
   const d = useDailyNutrition(patientId, ownerId, revision);
   const { limits } = useHealthLimits(patientId);
   const intake = useIntakeRecords(patientId, ownerId, 2);
+  const [weightKg, setWeightKg] = useState<number | null>(null);
+  const weightVersion = useWeightGoalVersion();
+  useEffect(() => {
+    let active = true;
+    void (supabase as any)
+      .from("care_body_measurements")
+      .select("weight_kg")
+      .eq("patient_id", patientId)
+      .order("recorded_on", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }: any) => active && setWeightKg(Number(data?.weight_kg) || null));
+    return () => {
+      active = false;
+    };
+  }, [patientId, weightVersion]);
   const today = acreDateKey();
   const cafMg = intake.caffeine
     .filter((r) => acreDateKey(r.at) === today)
@@ -203,7 +222,7 @@ export function TodayGoalsCard({
           v: x.g,
         })),
       };
-    return { ...base, about, items: nutrientItems(r.id) };
+    return { ...base, about, items: nutrientItems(r.id), weightKg };
   };
   const meals = d.entries.filter((e) => e.entryType !== "beverage").length;
   return (

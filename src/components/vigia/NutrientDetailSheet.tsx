@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, Info } from "lucide-react";
+import { CalorieGuide } from "./CalorieGuide";
 
 export type DetailItem = { id: string; name: string; sub: string; v: number };
 export type DetailInfo = {
@@ -12,6 +13,8 @@ export type DetailInfo = {
   limit?: boolean;
   items: DetailItem[];
   about: string;
+  /** Peso para estimar o gasto em exercícios (só energia). */
+  weightKg?: number | null;
 };
 
 const nf = (n: number, d = 1) =>
@@ -217,6 +220,13 @@ export function NutrientDetailSheet({ info, onClose }: { info: DetailInfo; onClo
             )}
           </section>
 
+          {info.unit === "kcal" && (
+            <CalorieGuide
+              total={info.total}
+              target={info.target}
+              weightKg={info.weightKg ?? null}
+            />
+          )}
           <p className="mt-3 flex gap-2 px-1 text-[11px] leading-snug text-muted-foreground">
             <Info size={13} className="mt-0.5 shrink-0" />
             {info.about} Valores estimados a partir das quantidades registradas, não substituem o
