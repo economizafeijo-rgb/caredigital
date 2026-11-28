@@ -134,7 +134,7 @@ export function EvolutionDayView({
           note={
             m.closed
               ? "Dia encerrado (horário do Acre)"
-              : "Em andamento · a água fecha à meia-noite; refeições contam até as 22h"
+              : "Em andamento · o dia fecha à meia-noite"
           }
         >
           {shownGoals.length === 0 ? (

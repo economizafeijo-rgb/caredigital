@@ -23,7 +23,8 @@ export function FitPage({
     const box = outer.current;
     const content = inner.current;
     if (!box || !content) return;
-    const main = box.parentElement;
+    // Sempre o contêiner de rolagem real; um pai com altura automática faria a página encolher a cada medição.
+    const main = (box.closest("#care-content") as HTMLElement | null) ?? box.parentElement;
     let frame = 0;
     document.body.dataset.fitPage = "1"; // o QR Code do rodapé some nestas páginas fixas (telas largas) para não criar rolagem
     const fit = () => {
@@ -38,6 +39,13 @@ export function FitPage({
         const styles = main ? getComputedStyle(main) : null;
         const pad = styles ? parseFloat(styles.paddingTop) + parseFloat(styles.paddingBottom) : 0;
         const available = Math.floor((main?.clientHeight ?? window.innerHeight) - pad - reserve);
+        if (available < 360) {
+          // Medida inválida ou janela muito baixa: deixa a página fluir e rolar normalmente.
+          box.style.height = "";
+          content.style.zoom = "";
+          content.style.height = "";
+          return;
+        }
         box.style.height = `${available}px`;
         content.style.zoom = "1";
         content.style.height = "auto";

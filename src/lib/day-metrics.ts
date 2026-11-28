@@ -323,13 +323,11 @@ function buildOne(index: Map<string, Slot>, plans: PlanInfo[], day: string, ctx:
     hours[hour].protein += food.protein;
     hours[hour].carbs += food.carbs;
     hours[hour].fat += food.fat;
-    // Refeições contam somente até o fechamento do dia, como no painel do dia.
-    if (hour < DAY_CUTOFF_HOUR) {
-      counted.kcal += food.kcal;
-      counted.protein += food.protein;
-      counted.carbs += food.carbs;
-      counted.fat += food.fat;
-    }
+    // Tudo o que foi registrado no dia conta, inclusive depois das 22h.
+    counted.kcal += food.kcal;
+    counted.protein += food.protein;
+    counted.carbs += food.carbs;
+    counted.fat += food.fat;
   }
   // Snapshots persistidos registram o total diário visível no painel antigo.
   // Complementam os eventos individuais sem somá-los novamente.

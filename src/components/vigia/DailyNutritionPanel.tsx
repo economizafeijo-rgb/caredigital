@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { RecordInfo } from "./RecordInfo";
 import { supabase } from "@/integrations/supabase/client";
-import { acreDateKey, DAY_CUTOFF_HOUR } from "@/lib/acre-time";
+import { acreDateKey } from "@/lib/acre-time";
 import {
   foodMicros,
   goalAdvice,
@@ -220,14 +220,8 @@ export function useDailyNutrition(
             },
           });
         }
-        // Refeições e líquidos contam somente até o fechamento do dia (22h, horário do Acre).
-        const dayCutoff = Date.parse(
-          acreDateKey() + `T${String(DAY_CUTOFF_HOUR).padStart(2, "0")}:00:00-05:00`,
-        );
-        const counted = list.filter((entry) => Date.parse(entry.at) < dayCutoff);
-        counted.sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
-        list.length = 0;
-        list.push(...counted);
+        // Tudo o que foi registrado no dia conta, inclusive depois das 22h.
+        list.sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
         setEntries(list);
         const p = pref.data ?? {};
         const num = (v: unknown) =>

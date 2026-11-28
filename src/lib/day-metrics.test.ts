@@ -144,14 +144,14 @@ describe("métricas das 24 horas", () => {
     expect(result.hasData).toBe(true);
   });
 
-  it("não conta refeições depois das 22h na meta de calorias", () => {
+  it("conta refeições registradas depois das 22h", () => {
     const day = "2026-11-10";
     const result = buildDay(
       raw({ foods: [food(day, "12:00", 800, 40), food(day, "22:15", 400, 10)] }),
       day,
       ctxAt("2026-11-17", "15:00"),
     );
-    expect(result.kcal).toBe(800);
+    expect(result.kcal).toBe(1200);
     expect(result.hours[22].kcal).toBe(400);
   });
 });
