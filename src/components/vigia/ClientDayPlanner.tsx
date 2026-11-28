@@ -1121,7 +1121,7 @@ export function ClientDayPlanner({
                     />
                   </div>
                 ) : (
-                  <ol className="relative -mx-1 grid max-h-[calc(100dvh-25rem)] min-h-[8rem] content-start gap-px overflow-y-auto overflow-x-hidden px-1 [scrollbar-gutter:stable] [scrollbar-width:thin]">
+                  <ol className="relative -mx-1 grid max-h-[calc(100dvh-25rem)] min-h-[8rem] content-start gap-px overflow-y-auto overflow-x-hidden px-1 pb-2 [scrollbar-gutter:stable] [scrollbar-width:thin]">
                     {list.map((i, idx) => (
                       <li key={i.id} className="contents">
                         {idx === nowIdx && <NowLine now={now} />}
@@ -1197,8 +1197,17 @@ function FilterChip({
 }
 
 function NowLine({ now }: { now: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  // Ao abrir, a lista rola até o "agora" para ele aparecer inteiro, sem mexer na página.
+  useEffect(() => {
+    const el = ref.current;
+    const list = el?.parentElement;
+    if (!el || !list) return;
+    list.scrollTop = Math.max(0, el.offsetTop - list.clientHeight / 2);
+  }, []);
   return (
     <div
+      ref={ref}
       className="relative flex items-center gap-2 overflow-hidden py-1 pl-[1.05rem]"
       aria-label={`Agora, ${hm(now)}`}
     >
@@ -1351,7 +1360,7 @@ function Row({
       >
         <span className="flex min-w-0 items-center gap-1.5">
           <strong
-            className={`truncate text-[13px] leading-tight ${done ? "text-muted-foreground line-through decoration-muted-foreground/40" : ""}`}
+            className={`line-clamp-2 break-words text-[13px] leading-tight ${done ? "text-muted-foreground line-through decoration-muted-foreground/40" : ""}`}
           >
             {item.title}
           </strong>
