@@ -1,3 +1,4 @@
+import { Retractable } from "./Retractable";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { NiceSelect } from "./NiceSelect";
 import {
@@ -714,288 +715,305 @@ export function ClientMedicationManager({
         {/* Coluna principal: hoje + meus medicamentos */}
         <div className="grid min-w-0 gap-4">
           {doses.length > 0 && (
-            <div className="rounded-2xl border border-border bg-card p-3 shadow-card sm:p-4">
-              <DoseTimeline
-                doses={doses}
-                onPick={(d) =>
-                  setPending({ kind: "take", med: d.med, slot: d.slot, taken: d.taken })
-                }
-                bare
-              />
-              <h3 className="mt-3 flex items-center gap-2 border-t border-border pt-3 text-sm font-bold">
-                <Clock size={16} className="text-rose-500" /> Horários de hoje
-              </h3>
-              <ul className="mt-2 grid gap-1.5 sm:grid-cols-2">
-                {doses.map(({ med, slot, taken, at }, i) => (
-                  <li
-                    key={med.id + slot}
-                    className={`nv-fade-in flex items-center gap-2.5 rounded-xl border p-2 transition-colors ${taken ? "border-emerald-500/30 bg-emerald-500/[.06]" : at < Date.now() ? "border-amber-500/40 bg-amber-500/[.06]" : "border-border hover:bg-muted/40"}`}
-                    style={{ animationDelay: `${i * 40}ms` }}
-                  >
-                    <span className="w-12 shrink-0 text-center font-mono text-sm font-bold tabular-nums">
-                      {slot}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <strong className="block truncate text-sm">{med.name}</strong>
-                      <span className="text-xs text-muted-foreground">
-                        {med.dose}
-                        {taken ? " · tomada" : at < Date.now() ? " · atrasada" : ""}
-                      </span>
-                    </span>
-                    <RecordInfo
-                      title={`${med.name} · ${med.dose}`}
-                      category="Medicação"
-                      color="#e11d48"
-                      at={
-                        taken
-                          ? (intakes.find((x) => x.medication_id === med.id && x.slot === slot)
-                              ?.taken_at ?? new Date(at).toISOString())
-                          : new Date(at).toISOString()
-                      }
-                      rows={[
-                        { label: "Medicamento", value: med.name },
-                        { label: "Dose", value: med.dose },
-                        { label: "Horário previsto", value: slot },
-                        {
-                          label: "Situação",
-                          value: taken ? "Tomada" : at < Date.now() ? "Atrasada" : "A tomar",
-                        },
-                        { label: "Categoria", value: categoryOf(med.category)?.label ?? "Outros" },
-                      ]}
-                      description={med.instructions}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setPending({ kind: "take", med, slot, taken })}
-                      aria-label={
-                        taken ? `Desfazer ${med.name} ${slot}` : `Tomei ${med.name} ${slot}`
-                      }
-                      className={`inline-flex h-9 items-center gap-1 rounded-lg px-2.5 text-xs font-bold transition active:scale-95 ${taken ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : "bg-gradient-to-r from-rose-600 to-pink-500 text-white hover:brightness-110"}`}
+            <Retractable
+              id="med-doses"
+              eyebrow="Hoje"
+              title="Doses e horários"
+              accent="#f43f5e"
+              summary={`${doses.filter((d) => d.taken).length} de ${doses.length} tomadas`}
+            >
+              <div>
+                <DoseTimeline
+                  doses={doses}
+                  onPick={(d) =>
+                    setPending({ kind: "take", med: d.med, slot: d.slot, taken: d.taken })
+                  }
+                  bare
+                />
+                <h3 className="mt-3 flex items-center gap-2 border-t border-border pt-3 text-sm font-bold">
+                  <Clock size={16} className="text-rose-500" /> Horários de hoje
+                </h3>
+                <ul className="mt-2 grid gap-1.5 sm:grid-cols-2">
+                  {doses.map(({ med, slot, taken, at }, i) => (
+                    <li
+                      key={med.id + slot}
+                      className={`nv-fade-in flex items-center gap-2.5 rounded-xl border p-2 transition-colors ${taken ? "border-emerald-500/30 bg-emerald-500/[.06]" : at < Date.now() ? "border-amber-500/40 bg-amber-500/[.06]" : "border-border hover:bg-muted/40"}`}
+                      style={{ animationDelay: `${i * 40}ms` }}
                     >
-                      {taken ? <Undo2 size={14} /> : <Check size={15} />}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 className="flex items-center gap-2 text-base font-bold">
-                <Pill size={18} className="text-rose-500" /> Meus medicamentos{" "}
-                <span className="rounded-full bg-muted px-2 text-xs font-semibold text-muted-foreground">
-                  {meds.length}
-                </span>
-              </h3>
-              <button
-                type="button"
-                onClick={() => {
-                  setMessage(null);
-                  setDraft({ times: ["08:00"], category: "outros" });
-                }}
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-gradient-to-r from-rose-600 to-pink-500 px-3 text-sm font-bold text-white transition hover:brightness-110 active:scale-[.97]"
-              >
-                <Plus size={15} /> Adicionar
-              </button>
-            </div>
-            {meds.length === 0 ? (
-              <div className="mt-3 grid place-items-center rounded-2xl border border-dashed border-border px-4 py-8 text-center">
-                <span className="grid size-14 place-items-center rounded-2xl bg-rose-500/10 text-rose-600">
-                  <Pill size={26} />
-                </span>
-                <p className="mt-3 font-bold">Nenhum medicamento cadastrado</p>
-                <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                  Adicione o seu com o botão acima ou escolha um na biblioteca ao lado. Depois é só
-                  confirmar cada dose no horário.
-                </p>
-              </div>
-            ) : (
-              <ul className="mt-3 divide-y divide-border">
-                {meds.map((med) => {
-                  const c = categoryOf(med.category);
-                  return (
-                    <li key={med.id} className="group flex items-center gap-3 py-2.5">
-                      <span
-                        className={`grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white ${c?.gradient ?? "from-slate-500 to-slate-600"}`}
-                      >
-                        <Pill size={17} />
+                      <span className="w-12 shrink-0 text-center font-mono text-sm font-bold tabular-nums">
+                        {slot}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <strong className="block truncate text-sm">
-                          {med.name}{" "}
-                          <span className="font-semibold text-muted-foreground">{med.dose}</span>
-                        </strong>
-                        <span className="mt-0.5 flex flex-wrap gap-1">
-                          {med.times.map((t) => (
-                            <span
-                              key={t}
-                              className="rounded-md bg-rose-500/10 px-1.5 py-0.5 font-mono text-[11px] font-bold text-rose-700 dark:text-rose-300"
-                            >
-                              {t}
-                            </span>
-                          ))}
-                          <span className="text-[11px] text-muted-foreground">
-                            · {c?.label ?? "Outros"}
-                          </span>
+                        <strong className="block truncate text-sm">{med.name}</strong>
+                        <span className="text-xs text-muted-foreground">
+                          {med.dose}
+                          {taken ? " · tomada" : at < Date.now() ? " · atrasada" : ""}
                         </span>
                       </span>
+                      <RecordInfo
+                        title={`${med.name} · ${med.dose}`}
+                        category="Medicação"
+                        color="#e11d48"
+                        at={
+                          taken
+                            ? (intakes.find((x) => x.medication_id === med.id && x.slot === slot)
+                                ?.taken_at ?? new Date(at).toISOString())
+                            : new Date(at).toISOString()
+                        }
+                        rows={[
+                          { label: "Medicamento", value: med.name },
+                          { label: "Dose", value: med.dose },
+                          { label: "Horário previsto", value: slot },
+                          {
+                            label: "Situação",
+                            value: taken ? "Tomada" : at < Date.now() ? "Atrasada" : "A tomar",
+                          },
+                          {
+                            label: "Categoria",
+                            value: categoryOf(med.category)?.label ?? "Outros",
+                          },
+                        ]}
+                        description={med.instructions}
+                      />
                       <button
                         type="button"
-                        onClick={() => {
-                          setMessage(null);
-                          setDraft(med);
-                        }}
-                        aria-label={`Editar ${med.name}`}
-                        className="grid size-9 place-items-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                        onClick={() => setPending({ kind: "take", med, slot, taken })}
+                        aria-label={
+                          taken ? `Desfazer ${med.name} ${slot}` : `Tomei ${med.name} ${slot}`
+                        }
+                        className={`inline-flex h-9 items-center gap-1 rounded-lg px-2.5 text-xs font-bold transition active:scale-95 ${taken ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : "bg-gradient-to-r from-rose-600 to-pink-500 text-white hover:brightness-110"}`}
                       >
-                        <Pencil size={15} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setPending({ kind: "delete", med })}
-                        aria-label={`Excluir ${med.name}`}
-                        className="grid size-9 place-items-center rounded-lg text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
-                      >
-                        <Trash2 size={15} />
+                        {taken ? <Undo2 size={14} /> : <Check size={15} />}
                       </button>
                     </li>
-                  );
-                })}
-              </ul>
-            )}
-            {meds.length > 0 && (
-              <details className="group mt-3 rounded-xl border border-border bg-muted/30 px-3 py-2">
-                <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-semibold">
-                  <History size={15} className="text-rose-500" /> Esqueceu de confirmar doses
-                  passadas?{" "}
-                  <span className="ml-auto text-xs text-primary group-open:hidden">
-                    Regularizar
+                  ))}
+                </ul>
+              </div>
+            </Retractable>
+          )}
+
+          <Retractable
+            id="med-lista"
+            eyebrow="Cadastro"
+            title="Meus medicamentos"
+            accent="#f43f5e"
+            summary={`${meds.length} cadastrados`}
+          >
+            <div>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMessage(null);
+                    setDraft({ times: ["08:00"], category: "outros" });
+                  }}
+                  className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-gradient-to-r from-rose-600 to-pink-500 px-3 text-sm font-bold text-white transition hover:brightness-110 active:scale-[.97]"
+                >
+                  <Plus size={15} /> Adicionar
+                </button>
+              </div>
+              {meds.length === 0 ? (
+                <div className="mt-3 grid place-items-center rounded-2xl border border-dashed border-border px-4 py-8 text-center">
+                  <span className="grid size-14 place-items-center rounded-2xl bg-rose-500/10 text-rose-600">
+                    <Pill size={26} />
                   </span>
-                </summary>
-                <div className="mt-2">
-                  <MissedDoseRegularizer
-                    patientId={patientId}
-                    onDone={() => setReload((v) => v + 1)}
-                    compact
-                  />
+                  <p className="mt-3 font-bold">Nenhum medicamento cadastrado</p>
+                  <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+                    Adicione o seu com o botão acima ou escolha um na biblioteca ao lado. Depois é
+                    só confirmar cada dose no horário.
+                  </p>
                 </div>
-              </details>
-            )}
-          </div>
+              ) : (
+                <ul className="mt-3 divide-y divide-border">
+                  {meds.map((med) => {
+                    const c = categoryOf(med.category);
+                    return (
+                      <li key={med.id} className="group flex items-center gap-3 py-2.5">
+                        <span
+                          className={`grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white ${c?.gradient ?? "from-slate-500 to-slate-600"}`}
+                        >
+                          <Pill size={17} />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <strong className="block truncate text-sm">
+                            {med.name}{" "}
+                            <span className="font-semibold text-muted-foreground">{med.dose}</span>
+                          </strong>
+                          <span className="mt-0.5 flex flex-wrap gap-1">
+                            {med.times.map((t) => (
+                              <span
+                                key={t}
+                                className="rounded-md bg-rose-500/10 px-1.5 py-0.5 font-mono text-[11px] font-bold text-rose-700 dark:text-rose-300"
+                              >
+                                {t}
+                              </span>
+                            ))}
+                            <span className="text-[11px] text-muted-foreground">
+                              · {c?.label ?? "Outros"}
+                            </span>
+                          </span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMessage(null);
+                            setDraft(med);
+                          }}
+                          aria-label={`Editar ${med.name}`}
+                          className="grid size-9 place-items-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                        >
+                          <Pencil size={15} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPending({ kind: "delete", med })}
+                          aria-label={`Excluir ${med.name}`}
+                          className="grid size-9 place-items-center rounded-lg text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+              {meds.length > 0 && (
+                <details className="group mt-3 rounded-xl border border-border bg-muted/30 px-3 py-2">
+                  <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-semibold">
+                    <History size={15} className="text-rose-500" /> Esqueceu de confirmar doses
+                    passadas?{" "}
+                    <span className="ml-auto text-xs text-primary group-open:hidden">
+                      Regularizar
+                    </span>
+                  </summary>
+                  <div className="mt-2">
+                    <MissedDoseRegularizer
+                      patientId={patientId}
+                      onDone={() => setReload((v) => v + 1)}
+                      compact
+                    />
+                  </div>
+                </details>
+              )}
+            </div>
+          </Retractable>
         </div>
 
         {/* Biblioteca */}
-        <aside
-          className="min-w-0 rounded-2xl border border-border bg-card p-4 shadow-card xl:sticky xl:top-2"
-          aria-label="Biblioteca de medicamentos"
+        <Retractable
+          id="med-biblioteca"
+          eyebrow="Consulta"
+          title="Biblioteca"
+          accent="#f59e0b"
+          summary="Busque e adicione medicamentos"
+          className="min-w-0 xl:sticky xl:top-2"
         >
-          <h3 className="flex items-center gap-2 text-base font-bold">
-            <BookOpen size={18} className="text-amber-500" /> Biblioteca
-          </h3>
-          <p className="text-xs text-muted-foreground">
-            Toque em um medicamento para ver detalhes e adicionar.
-          </p>
-          <label className="relative mt-3 block">
-            <Search
-              size={15}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
-            <input
-              type="search"
-              value={libQuery}
-              onChange={(e) => setLibQuery(e.target.value)}
-              placeholder="Buscar: dipirona, losartana…"
-              aria-label="Buscar medicamento"
-              className="h-10 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm outline-none focus:border-rose-400"
-            />
-          </label>
-          <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label="Categorias">
-            {medicationLibrary.map((c) => (
-              <button
-                key={c.key}
-                type="button"
-                aria-pressed={category === c.key}
-                onClick={() => {
-                  setCategory(c.key);
-                  setLibQuery("");
-                }}
-                className={`inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-semibold transition ${category === c.key && !libQuery ? `bg-gradient-to-r text-white ${c.gradient}` : "bg-muted text-muted-foreground hover:text-foreground"}`}
-              >
-                {c.label}
-              </button>
-            ))}
-          </div>
-          <ul className="mt-3 grid gap-1.5">
-            {(libQuery.trim()
-              ? medicationLibrary
-                  .flatMap((c) => c.meds.map((m) => ({ m, c })))
-                  .filter(({ m }) => m.name.toLowerCase().includes(libQuery.trim().toLowerCase()))
-              : cat.meds.map((m) => ({ m, c: cat }))
-            ).map(({ m, c }) => {
-              const open = openLib === m.name;
-              return (
-                <li
-                  key={c.key + m.name}
-                  className={`overflow-hidden rounded-xl border transition ${open ? "border-rose-400/50 bg-rose-500/[.04]" : "border-border hover:border-rose-400/30"}`}
+          <aside className="min-w-0" aria-label="Biblioteca de medicamentos">
+            <p className="text-xs text-muted-foreground">
+              Toque em um medicamento para ver detalhes e adicionar.
+            </p>
+            <label className="relative mt-3 block">
+              <Search
+                size={15}
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+              />
+              <input
+                type="search"
+                value={libQuery}
+                onChange={(e) => setLibQuery(e.target.value)}
+                placeholder="Buscar: dipirona, losartana…"
+                aria-label="Buscar medicamento"
+                className="h-10 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm outline-none focus:border-rose-400"
+              />
+            </label>
+            <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label="Categorias">
+              {medicationLibrary.map((c) => (
+                <button
+                  key={c.key}
+                  type="button"
+                  aria-pressed={category === c.key}
+                  onClick={() => {
+                    setCategory(c.key);
+                    setLibQuery("");
+                  }}
+                  className={`inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-semibold transition ${category === c.key && !libQuery ? `bg-gradient-to-r text-white ${c.gradient}` : "bg-muted text-muted-foreground hover:text-foreground"}`}
                 >
-                  <button
-                    type="button"
-                    onClick={() => setOpenLib(open ? null : m.name)}
-                    aria-expanded={open}
-                    className="flex w-full items-center gap-2.5 p-2.5 text-left"
+                  {c.label}
+                </button>
+              ))}
+            </div>
+            <ul className="mt-3 grid gap-1.5">
+              {(libQuery.trim()
+                ? medicationLibrary
+                    .flatMap((c) => c.meds.map((m) => ({ m, c })))
+                    .filter(({ m }) => m.name.toLowerCase().includes(libQuery.trim().toLowerCase()))
+                : cat.meds.map((m) => ({ m, c: cat }))
+              ).map(({ m, c }) => {
+                const open = openLib === m.name;
+                return (
+                  <li
+                    key={c.key + m.name}
+                    className={`overflow-hidden rounded-xl border transition ${open ? "border-rose-400/50 bg-rose-500/[.04]" : "border-border hover:border-rose-400/30"}`}
                   >
-                    <span
-                      className={`h-8 w-1.5 shrink-0 rounded-full bg-gradient-to-b ${c.gradient}`}
-                    />
-                    <span className="min-w-0 flex-1">
-                      <strong className="block truncate text-sm">
-                        {m.name}{" "}
-                        <span className="font-semibold text-muted-foreground">{m.dose}</span>
-                      </strong>
-                      <span className="text-xs text-muted-foreground">{m.use}</span>
-                    </span>
-                    <ChevronDown
-                      size={16}
-                      className={`shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
-                    />
-                  </button>
-                  {open && (
-                    <div className="nv-fade-in border-t border-border px-3 pb-3 pt-2 text-sm">
-                      <p>{m.tip}</p>
-                      <p className="mt-1.5 text-xs text-muted-foreground">
-                        Horários comuns:{" "}
-                        <span className="font-mono font-semibold text-foreground">
-                          {m.times.join(" · ")}
-                        </span>
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setMessage(null);
-                          setDraft({
-                            name: m.name,
-                            dose: m.dose,
-                            times: m.times,
-                            category: c.key,
-                            instructions: m.tip,
-                          });
-                        }}
-                        className={`mt-2 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r text-sm font-bold text-white transition hover:brightness-110 ${c.gradient}`}
-                      >
-                        <Plus size={15} /> Adicionar à minha lista
-                      </button>
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-          <p className="mt-3 text-[11px] text-muted-foreground">
-            Conteúdo educativo. Use medicamentos somente com orientação médica ou farmacêutica; não
-            altere doses por conta própria.
-          </p>
-        </aside>
+                    <button
+                      type="button"
+                      onClick={() => setOpenLib(open ? null : m.name)}
+                      aria-expanded={open}
+                      className="flex w-full items-center gap-2.5 p-2.5 text-left"
+                    >
+                      <span
+                        className={`h-8 w-1.5 shrink-0 rounded-full bg-gradient-to-b ${c.gradient}`}
+                      />
+                      <span className="min-w-0 flex-1">
+                        <strong className="block truncate text-sm">
+                          {m.name}{" "}
+                          <span className="font-semibold text-muted-foreground">{m.dose}</span>
+                        </strong>
+                        <span className="text-xs text-muted-foreground">{m.use}</span>
+                      </span>
+                      <ChevronDown
+                        size={16}
+                        className={`shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                    {open && (
+                      <div className="nv-fade-in border-t border-border px-3 pb-3 pt-2 text-sm">
+                        <p>{m.tip}</p>
+                        <p className="mt-1.5 text-xs text-muted-foreground">
+                          Horários comuns:{" "}
+                          <span className="font-mono font-semibold text-foreground">
+                            {m.times.join(" · ")}
+                          </span>
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMessage(null);
+                            setDraft({
+                              name: m.name,
+                              dose: m.dose,
+                              times: m.times,
+                              category: c.key,
+                              instructions: m.tip,
+                            });
+                          }}
+                          className={`mt-2 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r text-sm font-bold text-white transition hover:brightness-110 ${c.gradient}`}
+                        >
+                          <Plus size={15} /> Adicionar à minha lista
+                        </button>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+            <p className="mt-3 text-[11px] text-muted-foreground">
+              Conteúdo educativo. Use medicamentos somente com orientação médica ou farmacêutica;
+              não altere doses por conta própria.
+            </p>
+          </aside>
+        </Retractable>
       </div>
 
       {draft && (
