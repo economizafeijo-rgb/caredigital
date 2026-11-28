@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { Bucket } from "@/lib/health-ranges";
 
 export type ChartSeries = {
@@ -17,8 +17,6 @@ export type ChartSeries = {
   digits?: number;
 };
 
-const W = 360;
-const H = 260;
 const PAD = { l: 38, r: 38, t: 16, b: 28 };
 
 const nice = (max: number) => {
@@ -74,6 +72,20 @@ export function HealthChart({
   };
   const canCum = (s: ChartSeries) => s.type === "bar" && s.agg === "sum";
   const vis = series.filter((s) => !off.has(s.id));
+  // A largura do desenho acompanha a do cartão: o gráfico mantém texto e altura compactos em qualquer tela.
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [W, setW] = useState(360);
+  const H = W > 560 ? 200 : 230;
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!el) return;
+    const measure = () => setW(Math.round(Math.min(900, Math.max(280, el.clientWidth))));
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const iw = W - PAD.l - PAD.r;
   const ih = H - PAD.t - PAD.b;
   const slot = iw / Math.max(1, n);
@@ -198,218 +210,226 @@ export function HealthChart({
         </div>
       </div>
 
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        className="w-full touch-pan-y select-none outline-none"
-        role="img"
-        tabIndex={0}
-        aria-label={`${title ?? "Gráfico"}. Use as setas para navegar pelos intervalos.`}
-        onPointerMove={move}
-        onPointerDown={move}
-        onPointerLeave={(e) => e.pointerType === "mouse" && setPick(null)}
-        onKeyDown={key}
-      >
-        <defs>
-          {series.map((s) => (
-            <linearGradient key={s.id} id={`${uid}-${s.id}`} x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor={s.color} stopOpacity={s.type === "bar" ? 0.95 : 0.35} />
-              <stop offset="100%" stopColor={s.color} stopOpacity={s.type === "bar" ? 0.55 : 0} />
-            </linearGradient>
-          ))}
-        </defs>
-        {[0, 0.25, 0.5, 0.75, 1].map((f) => {
-          const ax = leftAxis;
-          const yy = PAD.t + ih - f * ih;
-          return (
-            <g key={f}>
-              <line
-                x1={PAD.l}
-                x2={W - PAD.r}
-                y1={yy}
-                y2={yy}
-                stroke="currentColor"
-                strokeOpacity={f === 0 ? 0.3 : 0.1}
-              />
-              <text
-                x={PAD.l - 5}
-                y={yy + 3}
-                textAnchor="end"
-                fontSize="10.5"
-                fill="currentColor"
-                opacity=".55"
-              >
-                {fmt(scale[ax].max * f, scale[ax].max < 10 ? 1 : 0)}
-              </text>
-              {showRight && (
-                <text
-                  x={W - PAD.r + 5}
-                  y={yy + 3}
-                  fontSize="10.5"
-                  fill="currentColor"
-                  opacity=".55"
-                >
-                  {fmt(scale.b.max * f, scale.b.max < 10 ? 1 : 0)}
-                </text>
-              )}
-            </g>
-          );
-        })}
-        {buckets.map((b, i) =>
-          i % step === 0 || i === n - 1 ? (
-            <text
-              key={b.startMs}
-              x={cx(i)}
-              y={H - 9}
-              textAnchor="middle"
-              fontSize="10.5"
-              fill="currentColor"
-              opacity=".55"
-            >
-              {b.label}
-            </text>
-          ) : null,
-        )}
-        {pick !== null && (
-          <rect
-            x={PAD.l + pick * slot}
-            y={PAD.t}
-            width={slot}
-            height={ih}
-            fill="currentColor"
-            opacity=".07"
-            rx="3"
-          />
-        )}
-        {vis
-          .filter((s) => s.limit)
-          .map((s) => {
-            const ax = s.axis ?? "a";
-            const yy = y(s.limit!.value, ax);
+      <div ref={boxRef} className="w-full">
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          className="w-full touch-pan-y select-none outline-none"
+          role="img"
+          tabIndex={0}
+          aria-label={`${title ?? "Gráfico"}. Use as setas para navegar pelos intervalos.`}
+          onPointerMove={move}
+          onPointerDown={move}
+          onPointerLeave={(e) => e.pointerType === "mouse" && setPick(null)}
+          onKeyDown={key}
+        >
+          <defs>
+            {series.map((s) => (
+              <linearGradient key={s.id} id={`${uid}-${s.id}`} x1="0" x2="0" y1="0" y2="1">
+                <stop
+                  offset="0%"
+                  stopColor={s.color}
+                  stopOpacity={s.type === "bar" ? 0.95 : 0.35}
+                />
+                <stop offset="100%" stopColor={s.color} stopOpacity={s.type === "bar" ? 0.55 : 0} />
+              </linearGradient>
+            ))}
+          </defs>
+          {[0, 0.25, 0.5, 0.75, 1].map((f) => {
+            const ax = leftAxis;
+            const yy = PAD.t + ih - f * ih;
             return (
-              <g key={`l-${s.id}`}>
+              <g key={f}>
                 <line
                   x1={PAD.l}
                   x2={W - PAD.r}
                   y1={yy}
                   y2={yy}
-                  stroke={s.color}
-                  strokeDasharray="5 4"
-                  strokeOpacity=".8"
+                  stroke="currentColor"
+                  strokeOpacity={f === 0 ? 0.3 : 0.1}
                 />
                 <text
-                  x={W - PAD.r - 2}
-                  y={yy - 3}
+                  x={PAD.l - 5}
+                  y={yy + 3}
                   textAnchor="end"
                   fontSize="10.5"
-                  fontWeight="700"
-                  fill={s.color}
+                  fill="currentColor"
+                  opacity=".55"
                 >
-                  {s.limit!.label}
+                  {fmt(scale[ax].max * f, scale[ax].max < 10 ? 1 : 0)}
                 </text>
-              </g>
-            );
-          })}
-        {vis
-          .filter((s) => s.type === "bar")
-          .map((s, si, arr) => {
-            const ax = s.axis ?? "a";
-            const bw = Math.min(26, (slot * (n > 14 ? 0.56 : 0.7)) / arr.length);
-            return s.values.map((v, i) => {
-              if (v <= 0) return null;
-              const x = cx(i) - (bw * arr.length) / 2 + si * bw;
-              const hh = PAD.t + ih - y(v, ax);
-              const over = s.limit && v > s.limit.value;
-              return (
-                <rect
-                  key={`${s.id}-${i}`}
-                  x={x + 0.5}
-                  y={y(v, ax)}
-                  width={Math.max(1.5, bw - 1)}
-                  height={hh}
-                  rx={Math.min(4, bw / 2)}
-                  fill={over ? "#ef4444" : `url(#${uid}-${s.id})`}
-                  opacity={(cum && canCum(s) ? 0.45 : 1) * (pick === null || pick === i ? 1 : 0.55)}
-                />
-              );
-            });
-          })}
-        {cum &&
-          vis.filter(canCum).map((s) => {
-            const ax = s.axis ?? "a";
-            const c = cumOf(s);
-            const pts: [number, number][] = c.map((v, i) => [cx(i), y(v, ax)]);
-            const last = c[c.length - 1] ?? 0;
-            return (
-              <g key={`cum-${s.id}`}>
-                <path
-                  d={`${smooth(pts)} L${cx(n - 1)},${PAD.t + ih} L${cx(0)},${PAD.t + ih} Z`}
-                  fill={s.color}
-                  opacity=".12"
-                />
-                <path
-                  d={smooth(pts)}
-                  fill="none"
-                  stroke={s.color}
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <circle
-                  cx={cx(pick ?? n - 1)}
-                  cy={y(c[pick ?? n - 1] ?? last, ax)}
-                  r="5"
-                  fill="var(--card, #fff)"
-                  stroke={s.color}
-                  strokeWidth="2.5"
-                />
-              </g>
-            );
-          })}
-        {vis
-          .filter((s) => s.type === "line")
-          .map((s) => {
-            const ax = s.axis ?? "a";
-            const pts: [number, number][] = s.values.map((v, i) => [cx(i), y(v, ax)]);
-            const line = smooth(pts);
-            return (
-              <g key={s.id}>
-                <path
-                  d={`${line} L${cx(n - 1)},${PAD.t + ih} L${cx(0)},${PAD.t + ih} Z`}
-                  fill={`url(#${uid}-${s.id})`}
-                />
-                <path
-                  d={line}
-                  fill="none"
-                  stroke={s.color}
-                  strokeWidth="2.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                {pick !== null && (
-                  <circle
-                    cx={cx(pick)}
-                    cy={y(s.values[pick], ax)}
-                    r="4.5"
-                    fill="var(--card, #fff)"
-                    stroke={s.color}
-                    strokeWidth="2.5"
-                  />
+                {showRight && (
+                  <text
+                    x={W - PAD.r + 5}
+                    y={yy + 3}
+                    fontSize="10.5"
+                    fill="currentColor"
+                    opacity=".55"
+                  >
+                    {fmt(scale.b.max * f, scale.b.max < 10 ? 1 : 0)}
+                  </text>
                 )}
               </g>
             );
           })}
-        {pick !== null && (
-          <line
-            x1={cx(pick)}
-            x2={cx(pick)}
-            y1={PAD.t}
-            y2={PAD.t + ih}
-            stroke="currentColor"
-            strokeOpacity=".3"
-            strokeDasharray="2 3"
-          />
-        )}
-      </svg>
+          {buckets.map((b, i) =>
+            i % step === 0 || i === n - 1 ? (
+              <text
+                key={b.startMs}
+                x={cx(i)}
+                y={H - 9}
+                textAnchor="middle"
+                fontSize="10.5"
+                fill="currentColor"
+                opacity=".55"
+              >
+                {b.label}
+              </text>
+            ) : null,
+          )}
+          {pick !== null && (
+            <rect
+              x={PAD.l + pick * slot}
+              y={PAD.t}
+              width={slot}
+              height={ih}
+              fill="currentColor"
+              opacity=".07"
+              rx="3"
+            />
+          )}
+          {vis
+            .filter((s) => s.limit)
+            .map((s) => {
+              const ax = s.axis ?? "a";
+              const yy = y(s.limit!.value, ax);
+              return (
+                <g key={`l-${s.id}`}>
+                  <line
+                    x1={PAD.l}
+                    x2={W - PAD.r}
+                    y1={yy}
+                    y2={yy}
+                    stroke={s.color}
+                    strokeDasharray="5 4"
+                    strokeOpacity=".8"
+                  />
+                  <text
+                    x={W - PAD.r - 2}
+                    y={yy - 3}
+                    textAnchor="end"
+                    fontSize="10.5"
+                    fontWeight="700"
+                    fill={s.color}
+                  >
+                    {s.limit!.label}
+                  </text>
+                </g>
+              );
+            })}
+          {vis
+            .filter((s) => s.type === "bar")
+            .map((s, si, arr) => {
+              const ax = s.axis ?? "a";
+              const bw = Math.min(26, (slot * (n > 14 ? 0.56 : 0.7)) / arr.length);
+              return s.values.map((v, i) => {
+                if (v <= 0) return null;
+                const x = cx(i) - (bw * arr.length) / 2 + si * bw;
+                const hh = PAD.t + ih - y(v, ax);
+                const over = s.limit && v > s.limit.value;
+                return (
+                  <rect
+                    key={`${s.id}-${i}`}
+                    x={x + 0.5}
+                    y={y(v, ax)}
+                    width={Math.max(1.5, bw - 1)}
+                    height={hh}
+                    rx={Math.min(4, bw / 2)}
+                    fill={over ? "#ef4444" : `url(#${uid}-${s.id})`}
+                    opacity={
+                      (cum && canCum(s) ? 0.45 : 1) * (pick === null || pick === i ? 1 : 0.55)
+                    }
+                  />
+                );
+              });
+            })}
+          {cum &&
+            vis.filter(canCum).map((s) => {
+              const ax = s.axis ?? "a";
+              const c = cumOf(s);
+              const pts: [number, number][] = c.map((v, i) => [cx(i), y(v, ax)]);
+              const last = c[c.length - 1] ?? 0;
+              return (
+                <g key={`cum-${s.id}`}>
+                  <path
+                    d={`${smooth(pts)} L${cx(n - 1)},${PAD.t + ih} L${cx(0)},${PAD.t + ih} Z`}
+                    fill={s.color}
+                    opacity=".12"
+                  />
+                  <path
+                    d={smooth(pts)}
+                    fill="none"
+                    stroke={s.color}
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <circle
+                    cx={cx(pick ?? n - 1)}
+                    cy={y(c[pick ?? n - 1] ?? last, ax)}
+                    r="5"
+                    fill="var(--card, #fff)"
+                    stroke={s.color}
+                    strokeWidth="2.5"
+                  />
+                </g>
+              );
+            })}
+          {vis
+            .filter((s) => s.type === "line")
+            .map((s) => {
+              const ax = s.axis ?? "a";
+              const pts: [number, number][] = s.values.map((v, i) => [cx(i), y(v, ax)]);
+              const line = smooth(pts);
+              return (
+                <g key={s.id}>
+                  <path
+                    d={`${line} L${cx(n - 1)},${PAD.t + ih} L${cx(0)},${PAD.t + ih} Z`}
+                    fill={`url(#${uid}-${s.id})`}
+                  />
+                  <path
+                    d={line}
+                    fill="none"
+                    stroke={s.color}
+                    strokeWidth="2.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  {pick !== null && (
+                    <circle
+                      cx={cx(pick)}
+                      cy={y(s.values[pick], ax)}
+                      r="4.5"
+                      fill="var(--card, #fff)"
+                      stroke={s.color}
+                      strokeWidth="2.5"
+                    />
+                  )}
+                </g>
+              );
+            })}
+          {pick !== null && (
+            <line
+              x1={cx(pick)}
+              x2={cx(pick)}
+              y1={PAD.t}
+              y2={PAD.t + ih}
+              stroke="currentColor"
+              strokeOpacity=".3"
+              strokeDasharray="2 3"
+            />
+          )}
+        </svg>
+      </div>
       {!vis.length ? null : (
         <p className="mt-1 text-center text-[10px] text-muted-foreground">
           Toque ou arraste no gráfico para ver cada intervalo.

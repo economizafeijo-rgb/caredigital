@@ -439,37 +439,39 @@ export function ClientHealthHub({
           </p>
         </div>
       )}
-      {(!only || only === "miccao") && (
-        <HealthChart
-          key={`${only ?? "all"}-${range}`}
-          title={only === "miccao" ? "Volume e idas ao banheiro" : "Líquidos e idas ao banheiro"}
-          hint={
-            only === "miccao"
-              ? "Quanto você urinou (ml) e quantas vezes foi ao banheiro."
-              : "O que você bebeu e quantas vezes foi ao banheiro."
-          }
-          buckets={buckets}
-          series={only === "miccao" ? uriChart : liqUri}
-        />
-      )}
-      {(!only || only === "cafeina") && (
-        <HealthChart
-          key={`${only ?? "all"}-${range}`}
-          title="Cafeína e sono"
-          hint="Cafeína ingerida (bebidas, chás e refeições) junto com as horas dormidas."
-          buckets={buckets}
-          series={cafSleep}
-        />
-      )}
-      {(!only || only === "lactose") && (
-        <HealthChart
-          key={`${only ?? "all"}-${range}`}
-          title="Lactose e sintomas"
-          hint="Lactose dos laticínios e a intensidade dos sintomas que você registrou."
-          buckets={buckets}
-          series={lacSym}
-        />
-      )}
+      <div className={only ? "grid gap-3" : "grid items-start gap-3 lg:grid-cols-3"}>
+        {(!only || only === "miccao") && (
+          <HealthChart
+            key={`${only ?? "all"}-${range}`}
+            title={only === "miccao" ? "Volume e idas ao banheiro" : "Líquidos e idas ao banheiro"}
+            hint={
+              only === "miccao"
+                ? "Quanto você urinou (ml) e quantas vezes foi ao banheiro."
+                : "O que você bebeu e quantas vezes foi ao banheiro."
+            }
+            buckets={buckets}
+            series={only === "miccao" ? uriChart : liqUri}
+          />
+        )}
+        {(!only || only === "cafeina") && (
+          <HealthChart
+            key={`${only ?? "all"}-${range}`}
+            title="Cafeína e sono"
+            hint="Cafeína ingerida (bebidas, chás e refeições) junto com as horas dormidas."
+            buckets={buckets}
+            series={cafSleep}
+          />
+        )}
+        {(!only || only === "lactose") && (
+          <HealthChart
+            key={`${only ?? "all"}-${range}`}
+            title="Lactose e sintomas"
+            hint="Lactose dos laticínios e a intensidade dos sintomas que você registrou."
+            buckets={buckets}
+            series={lacSym}
+          />
+        )}
+      </div>
 
       {only !== "lactose" && (
         <Collapsible
