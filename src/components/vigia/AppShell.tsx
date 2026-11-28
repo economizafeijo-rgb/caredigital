@@ -921,7 +921,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   Abrindo o seu painel…
                 </p>
               ) : (
-                children
+                <div className="mx-auto w-full max-w-[1720px]">{children}</div>
               )}
               {location.pathname !== "/" && (
                 <p className="nv-shell-credit mt-3 border-t border-border pt-3 text-center text-xs text-muted-foreground">

@@ -1171,7 +1171,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                           </button>
                         ))}
                       </div>
-                      <div className="min-h-0">
+                      <div className="nv-scroll max-h-[22rem] min-h-0 overflow-y-auto overscroll-contain pr-1">
                         {historyCategory === "hidratacao" ? (
                           <HydrationPeriodHistory patientId={client.id} ownerId={client.owner_id} />
                         ) : (
