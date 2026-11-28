@@ -92,7 +92,7 @@ export function DayTimeline({
       </div>
       <svg
         viewBox={`0 0 ${W} ${Hh}`}
-        className="mt-2 w-full touch-none"
+        className="mx-auto mt-2 max-h-56 w-full touch-none"
         onPointerMove={onMove}
         onPointerLeave={() => setCursor(null)}
         role="img"

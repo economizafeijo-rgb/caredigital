@@ -308,7 +308,7 @@ export function CookingDial({ glyph, color, vessel, qty, progress, status, label
       viewBox="0 0 280 280"
       role="img"
       aria-label={label}
-      className={"block w-full " + (done ? "nv-done-pulse" : "")}
+      className={"mx-auto block max-h-80 w-full " + (done ? "nv-done-pulse" : "")}
     >
       <defs>
         <clipPath id={`${uid}-scene`}>

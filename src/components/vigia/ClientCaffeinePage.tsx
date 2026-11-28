@@ -227,7 +227,7 @@ export function ClientCaffeinePage({ patientId, ownerId }: { patientId: string; 
         </p>
         <svg
           viewBox={`0 0 ${cw} ${ch}`}
-          className="w-full"
+          className="mx-auto max-h-48 w-full"
           role="img"
           aria-label="Cafeína estimada no organismo ao longo do dia"
         >

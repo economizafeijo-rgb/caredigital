@@ -115,7 +115,7 @@ export function GainPlanner({
         <figure className="min-w-0">
           <svg
             viewBox={`0 0 ${W} ${H}`}
-            className="w-full"
+            className="mx-auto max-h-48 w-full"
             role="img"
             aria-label="Projeção do peso ao longo das semanas"
           >

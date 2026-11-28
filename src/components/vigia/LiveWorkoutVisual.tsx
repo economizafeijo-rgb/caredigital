@@ -101,7 +101,7 @@ function SpeedGauge({ speed, max, active }: { speed: number; max: number; active
   return (
     <svg
       viewBox="0 0 200 118"
-      className="w-full"
+      className="mx-auto max-h-44 w-full"
       role="img"
       aria-label={`Velocidade ${speed.toFixed(1)} km/h`}
     >
