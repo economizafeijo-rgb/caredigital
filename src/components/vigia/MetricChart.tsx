@@ -86,7 +86,7 @@ function Ring({
   const R = 52;
   const C = 2 * Math.PI * R;
   return (
-    <div className="relative size-32 shrink-0" role="img" aria-label={`${center} de ${caption}`}>
+    <div className="relative size-28 shrink-0" role="img" aria-label={`${center} de ${caption}`}>
       <svg viewBox="0 0 128 128" className="size-full -rotate-90">
         <defs>
           <linearGradient id={`r${uid}`} x1="0" y1="0" x2="1" y2="1">
@@ -170,7 +170,7 @@ export function MetricPanel({
     <XAxis dataKey="day" tick={AXIS} axisLine={false} tickLine={false} minTickGap={26} />
   );
   const yAxis = (
-    <YAxis domain={domain} tick={AXIS} axisLine={false} tickLine={false} width={44} tickCount={4} />
+    <YAxis domain={domain} tick={AXIS} axisLine={false} tickLine={false} width={48} tickCount={4} />
   );
   const grid = <CartesianGrid vertical={false} stroke="rgba(255,255,255,.06)" />;
   const tip = (cursor?: object) => (
@@ -187,13 +187,13 @@ export function MetricPanel({
   const recent = data.slice(-14);
 
   const chip = (label: string, value: string) => (
-    <span className="rounded-full bg-white/[.06] px-2.5 py-1 text-[11px] text-white/65 ring-1 ring-white/10">
+    <span className="rounded-full bg-white/[.06] px-2 py-0.5 text-[11px] text-white/65 ring-1 ring-white/10">
       {label} <b className="tabular-nums text-white">{value}</b>
     </span>
   );
 
   return (
-    <article className="nv-round relative min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#181c25] to-[#10131a] p-4 text-white shadow-card">
+    <article className="nv-round relative min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#181c25] to-[#10131a] p-3 text-white shadow-card">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full opacity-25 blur-3xl"
@@ -201,14 +201,14 @@ export function MetricPanel({
       />
       <header className="relative flex items-start gap-3">
         <span
-          className="grid size-10 shrink-0 place-items-center rounded-xl ring-1 ring-white/10"
+          className="grid size-8 shrink-0 place-items-center rounded-lg ring-1 ring-white/10"
           style={{ background: `linear-gradient(135deg, ${color}44, ${color}12)`, color }}
         >
           <Icon size={19} />
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-[11px] font-semibold text-white/55">{eyebrow}</p>
-          <h3 className="truncate text-[15px] font-bold leading-tight">{title}</h3>
+          <h3 className="truncate text-sm font-bold leading-tight">{title}</h3>
         </div>
         {has && (
           <span
@@ -224,8 +224,8 @@ export function MetricPanel({
 
       {has ? (
         <>
-          <p className="relative mt-3 flex items-baseline gap-1.5">
-            <strong className="text-[2rem] font-extrabold leading-none tabular-nums">
+          <p className="relative mt-2 flex items-baseline gap-1.5">
+            <strong className="text-2xl font-extrabold leading-none tabular-nums">
               {fmt(isStack ? max : last, decimals)}
             </strong>
             <span className="text-sm font-semibold text-white/55">{unit}</span>
@@ -247,7 +247,7 @@ export function MetricPanel({
               />
             )}
             <div
-              className={`${kind === "ring" ? "min-w-0 flex-1" : "w-full"} h-44`}
+              className={`${kind === "ring" ? "min-w-0 flex-1" : "w-full"} h-36`}
               role="img"
               aria-label={`${title}: gráfico`}
             >
@@ -458,7 +458,7 @@ export function MetricPanel({
               ))}
             </ul>
           )}
-          <div className="mt-2.5 flex flex-wrap gap-1.5">
+          <div className="mt-2 flex flex-wrap gap-1">
             {chip("Média", `${fmt(avg, decimals)} ${unit}`)}
             {!isStack && chip("Maior", `${fmt(max, decimals)} ${unit}`)}
             {!isStack && chip("Menor", `${fmt(min, decimals)} ${unit}`)}
@@ -466,7 +466,7 @@ export function MetricPanel({
           </div>
         </>
       ) : (
-        <div className="relative mt-3 grid h-44 place-items-center rounded-xl border border-dashed border-white/15 px-5 text-center text-sm text-white/60">
+        <div className="relative mt-3 grid h-36 place-items-center rounded-xl border border-dashed border-white/15 px-5 text-center text-sm text-white/60">
           {empty}
         </div>
       )}

@@ -229,17 +229,20 @@ export function SmartMetricsDashboard() {
       <div
         role="status"
         aria-label="Carregando indicadores"
-        className="mt-5 grid gap-4 lg:grid-cols-2"
+        className="mt-3 grid gap-3 md:grid-cols-2 min-[1400px]:grid-cols-3"
       >
         {[0, 1, 2, 3].map((item) => (
-          <div key={item} className="h-60 animate-pulse  bg-muted" />
+          <div key={item} className="h-56 animate-pulse rounded-2xl bg-muted" />
         ))}
       </div>
     );
 
   const hasCarbsFat = metrics.macros.some((point) => Number(point.carbs) + Number(point.fat) > 0);
   return (
-    <section aria-label="Métricas inteligentes" className="mt-5 grid gap-3 lg:grid-cols-2">
+    <section
+      aria-label="Métricas inteligentes"
+      className="mt-3 grid gap-3 md:grid-cols-2 min-[1400px]:grid-cols-3"
+    >
       <MetricPanel
         title="Consumo nos últimos 30 dias"
         eyebrow="Hidratação"
@@ -319,10 +322,10 @@ export function SmartMetricsDashboard() {
         series={[{ key: "value", name: "Atividade", color: "#f97316" }]}
         empty="Nenhuma atividade com duração registrada neste período. Caminhadas e treinos aparecerão aqui após serem salvos."
       />
-      <article className="grid grid-cols-2 gap-3  border border-border bg-card p-4 shadow-card">
+      <article className="grid grid-cols-2 content-start gap-2 rounded-2xl border border-border bg-card p-3 shadow-card">
         <div className="col-span-2">
           <p className="text-[11px] font-bold text-muted-foreground">Registros de rotina</p>
-          <h3 className="text-lg font-bold">Acompanhamento inteligente</h3>
+          <h3 className="text-sm font-bold">Acompanhamento inteligente</h3>
         </div>
         <div className=" bg-med/10 p-3">
           <Pill className="text-med" size={20} />
