@@ -248,6 +248,9 @@ export function NutritionHero({
   );
 }
 
+const LIMIT_KEYS = new Set(["sugar", "sodium", "caffeine", "lactose"]);
+const OVER_KEYS = new Set(["kcal", "carbs", "fat"]);
+
 type DayEntry = DailyNutrition["entries"][number];
 
 /** Açúcar, sódio, cafeína e lactose de um registro (estimativas pelos nomes e quantidades). */
@@ -289,7 +292,7 @@ export function NutritionDayChart({ data }: { data: DailyNutrition }) {
   const { entries, target } = data;
   const H0 = 5,
     H1 = 24;
-  const [sel, setSel] = useState<string[]>(["kcal"]);
+  const [sel, setSel] = useState<string>("kcal");
   const metrics = useMemo<DayMetric[]>(
     () => [
       { key: "kcal", label: "Calorias", unit: "kcal", color: "#10b981", target: target.kcal },
@@ -380,7 +383,7 @@ export function NutritionDayChart({ data }: { data: DailyNutrition }) {
     [entries, target],
   );
   const nowH = hourOf(new Date().toISOString());
-  const active = metrics.filter((m) => sel.includes(m.key));
+  const active = metrics.filter((m) => m.key === sel);
   const single = active.length === 1;
   const totals = Object.fromEntries(
     metrics.map((m) => [m.key, points.reduce((a, p) => a + (p.v[m.key] ?? 0), 0)]),
@@ -411,14 +414,6 @@ export function NutritionDayChart({ data }: { data: DailyNutrition }) {
       : [];
   const hm = (h: number) =>
     `${String(Math.floor(h)).padStart(2, "0")}:${String(Math.round((h % 1) * 60) % 60).padStart(2, "0")}`;
-  const toggle = (key: string) =>
-    setSel((list) =>
-      list.includes(key)
-        ? list.length > 1
-          ? list.filter((x) => x !== key)
-          : list
-        : [...list, key],
-    );
   const goalY = single ? first.target : 100;
   return (
     <figure className="nv-scan min-w-0 border border-border bg-card p-3">
@@ -429,7 +424,7 @@ export function NutritionDayChart({ data }: { data: DailyNutrition }) {
             {points.length
               ? single
                 ? `${fmtV(totals[first.key], first)} em ${points.length} registro${points.length === 1 ? "" : "s"}`
-                : "Acumulado de cada nutriente em % da meta do dia"
+                : "Toque em um nutriente abaixo para ver quando ele entrou"
               : "Os registros de hoje aparecem aqui"}
           </span>
         </span>
@@ -437,30 +432,63 @@ export function NutritionDayChart({ data }: { data: DailyNutrition }) {
           <EvoLegend items={[{ label: "Ritmo de referência", color: "#f97316", dashed: true }]} />
         )}
       </figcaption>
-      <div role="group" aria-label="Nutrientes no gráfico" className="mb-2 flex flex-wrap gap-1">
+      <ul aria-label="Níveis do dia" className="mb-3 grid gap-x-3 gap-y-0.5 sm:grid-cols-2">
         {metrics.map((m) => {
-          const on = sel.includes(m.key);
-          const pct = m.target > 0 ? Math.round((totals[m.key] / m.target) * 100) : 0;
+          const v = totals[m.key];
+          const pct = m.target > 0 ? (v / m.target) * 100 : 0;
+          const on = sel === m.key;
+          const tone = LIMIT_KEYS.has(m.key)
+            ? pct > 100
+              ? "#ef4444"
+              : pct >= 80
+                ? "#f59e0b"
+                : "#10b981"
+            : OVER_KEYS.has(m.key)
+              ? pct > 115
+                ? "#f59e0b"
+                : pct >= 90
+                  ? "#10b981"
+                  : undefined
+              : pct >= 90
+                ? "#10b981"
+                : undefined;
           return (
-            <button
-              key={m.key}
-              type="button"
-              aria-pressed={on}
-              onClick={() => toggle(m.key)}
-              className="inline-flex h-7 items-center gap-1.5 border px-2 text-[11px] font-bold transition-colors"
-              style={{
-                borderColor: on ? m.color : "var(--border)",
-                background: on ? `${m.color}26` : "transparent",
-                color: on ? "var(--foreground)" : "var(--muted-foreground)",
-              }}
-            >
-              <i className="size-2 rounded-full" style={{ background: m.color }} />
-              {m.label}
-              <span className="font-semibold tabular-nums opacity-80">{pct}%</span>
-            </button>
+            <li key={m.key}>
+              <button
+                type="button"
+                aria-pressed={on}
+                onClick={() => setSel(m.key)}
+                title={`${m.label}: ${fmtV(v, m)} de ${fmtV(m.target, m)}`}
+                className="grid w-full grid-cols-[5.4rem_minmax(0,1fr)_auto] items-center gap-2 border px-1.5 py-1 text-left transition-colors hover:bg-muted/50"
+                style={{
+                  borderColor: on ? m.color : "transparent",
+                  background: on ? `${m.color}1f` : undefined,
+                }}
+              >
+                <span className="flex items-center gap-1.5 text-[11px] font-bold">
+                  <i className="size-2 shrink-0 rounded-full" style={{ background: m.color }} />
+                  {m.label}
+                </span>
+                <span className="relative h-2 bg-muted">
+                  <i
+                    className="absolute inset-y-0 left-0 transition-[width] duration-500"
+                    style={{ width: `${Math.min(pct, 150) / 1.5}%`, background: m.color }}
+                  />
+                  <i className="absolute -inset-y-0.5 left-2/3 w-px bg-foreground/70" />
+                </span>
+                <span className="min-w-[6.2rem] text-right text-[11px] tabular-nums">
+                  <b style={{ color: tone }}>{Math.round(pct)}%</b>{" "}
+                  <span className="text-muted-foreground">{fmtV(v, m)}</span>
+                </span>
+              </button>
+            </li>
           );
         })}
-      </div>
+      </ul>
+      <p className="mb-2 text-[11px] text-muted-foreground">
+        A marca vertical é a meta do dia (100%). Em vermelho, o que passou do limite. Toque em um
+        nutriente para ver a evolução dele ao longo do dia.
+      </p>
       <EvoChart
         height={220}
         ariaLabel={`Evolução do dia: ${active.map((m) => `${m.label} ${fmtV(totals[m.key], m)}`).join(", ")}`}
