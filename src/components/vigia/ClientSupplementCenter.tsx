@@ -1,3 +1,4 @@
+import { Retractable } from "./Retractable";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { NiceSelect } from "./NiceSelect";
@@ -1244,240 +1245,251 @@ export function ClientSupplementCenter({ patientId, ownerId, tasks, onConfirm }:
 
       {doses.length > 0 || scheduledTasks.length > 0 || message ? (
         <div className="grid gap-2.5">
-          <section
-            className="border border-border bg-card p-3 shadow-card"
-            aria-label="Doses de hoje"
+          <Retractable
+            id="sup-doses"
+            eyebrow="Hoje"
+            title="Programação de hoje"
+            accent="#8b5cf6"
+            summary={`${takenCount}/${doses.length} tomadas`}
           >
-            <div className="flex items-center justify-between gap-2">
-              <h3 className="flex items-center gap-2 text-base font-bold">
-                <Clock size={18} className="text-violet-500" /> Programação de hoje
-              </h3>
-              <span className="text-xs tabular-nums text-muted-foreground">
-                {takenCount}/{doses.length} tomadas
-              </span>
-            </div>
-            <ul className="mt-3 grid gap-2 md:grid-cols-2">
-              {!loaded ? (
-                <li className="h-16 animate-pulse rounded-xl bg-muted" />
-              ) : doses.length === 0 ? (
-                <li className="rounded-xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground md:col-span-2">
-                  Nenhum suplemento programado para hoje.
-                </li>
-              ) : (
-                doses.map(({ plan, slot, taken, at }) => {
-                  const item = libraryByKey[plan.kind] as LibraryItem | undefined;
-                  const Icon = item?.icon ?? Sparkles;
-                  const late = !taken && at < Date.now();
-                  return (
-                    <li
-                      key={plan.id + slot}
-                      className={`flex items-center gap-3 rounded-2xl border p-3 transition ${taken ? "border-emerald-500/30 bg-emerald-500/[.06]" : late ? "border-amber-500/40 bg-amber-500/[.06]" : "border-border bg-surface"}`}
-                    >
-                      {item ? (
-                        <span
-                          className="grid size-11 shrink-0 place-items-center rounded-xl"
-                          style={{ background: `${item.pack.color}1f` }}
-                        >
-                          <PackArt item={item} className="h-10 w-auto" />
-                        </span>
-                      ) : (
-                        <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-sm">
-                          <Icon size={20} />
-                        </span>
-                      )}
-                      <span className="min-w-0 flex-1">
-                        <strong className="block truncate text-sm">{plan.name}</strong>
-                        <span className="text-xs text-muted-foreground">
-                          {slot} · {fmtDose(plan)}
-                          {plan.with_food ? " · com refeição" : ""}
-                          {late ? " · atrasada" : ""}
-                        </span>
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => void toggleDose(plan, slot, taken)}
-                        aria-pressed={taken}
-                        className={`inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl px-3 text-sm font-bold transition ${taken ? "bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/25 dark:text-emerald-300" : "bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white shadow-sm hover:brightness-110"}`}
-                      >
-                        {taken ? (
-                          <>
-                            <Undo2 size={15} /> Tomado
-                          </>
-                        ) : (
-                          <>
-                            <Check size={16} /> Tomar
-                          </>
-                        )}
-                      </button>
-                    </li>
-                  );
-                })
-              )}
-            </ul>
-            {scheduledTasks.length > 0 && (
-              <div className="mt-3 border-t border-border pt-3">
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Prescritos pelo profissional
-                </p>
-                {scheduledTasks.map((task) => (
-                  <button
-                    key={task.id}
-                    type="button"
-                    onClick={() => onConfirm(task)}
-                    className="mt-2 flex w-full items-center justify-between rounded-xl bg-muted/60 px-3 py-2 text-left text-sm hover:bg-muted"
-                  >
-                    <span className="truncate font-semibold">{task.title}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(task.scheduled_at).toLocaleTimeString("pt-BR", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        timeZone: "America/Rio_Branco",
-                      })}
-                    </span>
-                  </button>
-                ))}
+            <section className="" aria-label="Doses de hoje">
+              <div className="flex items-center justify-between gap-2">
+                <span />
+                <span className="text-xs tabular-nums text-muted-foreground">
+                  {takenCount}/{doses.length} tomadas
+                </span>
               </div>
-            )}
-            {message && (
-              <p
-                role="status"
-                className="mt-3 rounded-xl bg-violet-500/10 px-3 py-2 text-sm font-medium text-violet-700 dark:text-violet-300"
-              >
-                {message}
-              </p>
-            )}
-          </section>
+              <ul className="mt-3 grid gap-2 md:grid-cols-2">
+                {!loaded ? (
+                  <li className="h-16 animate-pulse rounded-xl bg-muted" />
+                ) : doses.length === 0 ? (
+                  <li className="rounded-xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground md:col-span-2">
+                    Nenhum suplemento programado para hoje.
+                  </li>
+                ) : (
+                  doses.map(({ plan, slot, taken, at }) => {
+                    const item = libraryByKey[plan.kind] as LibraryItem | undefined;
+                    const Icon = item?.icon ?? Sparkles;
+                    const late = !taken && at < Date.now();
+                    return (
+                      <li
+                        key={plan.id + slot}
+                        className={`flex items-center gap-3 rounded-2xl border p-3 transition ${taken ? "border-emerald-500/30 bg-emerald-500/[.06]" : late ? "border-amber-500/40 bg-amber-500/[.06]" : "border-border bg-surface"}`}
+                      >
+                        {item ? (
+                          <span
+                            className="grid size-11 shrink-0 place-items-center rounded-xl"
+                            style={{ background: `${item.pack.color}1f` }}
+                          >
+                            <PackArt item={item} className="h-10 w-auto" />
+                          </span>
+                        ) : (
+                          <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-sm">
+                            <Icon size={20} />
+                          </span>
+                        )}
+                        <span className="min-w-0 flex-1">
+                          <strong className="block truncate text-sm">{plan.name}</strong>
+                          <span className="text-xs text-muted-foreground">
+                            {slot} · {fmtDose(plan)}
+                            {plan.with_food ? " · com refeição" : ""}
+                            {late ? " · atrasada" : ""}
+                          </span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => void toggleDose(plan, slot, taken)}
+                          aria-pressed={taken}
+                          className={`inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl px-3 text-sm font-bold transition ${taken ? "bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/25 dark:text-emerald-300" : "bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white shadow-sm hover:brightness-110"}`}
+                        >
+                          {taken ? (
+                            <>
+                              <Undo2 size={15} /> Tomado
+                            </>
+                          ) : (
+                            <>
+                              <Check size={16} /> Tomar
+                            </>
+                          )}
+                        </button>
+                      </li>
+                    );
+                  })
+                )}
+              </ul>
+              {scheduledTasks.length > 0 && (
+                <div className="mt-3 border-t border-border pt-3">
+                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    Prescritos pelo profissional
+                  </p>
+                  {scheduledTasks.map((task) => (
+                    <button
+                      key={task.id}
+                      type="button"
+                      onClick={() => onConfirm(task)}
+                      className="mt-2 flex w-full items-center justify-between rounded-xl bg-muted/60 px-3 py-2 text-left text-sm hover:bg-muted"
+                    >
+                      <span className="truncate font-semibold">{task.title}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(task.scheduled_at).toLocaleTimeString("pt-BR", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          timeZone: "America/Rio_Branco",
+                        })}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {message && (
+                <p
+                  role="status"
+                  className="mt-3 rounded-xl bg-violet-500/10 px-3 py-2 text-sm font-medium text-violet-700 dark:text-violet-300"
+                >
+                  {message}
+                </p>
+              )}
+            </section>
+          </Retractable>
         </div>
       ) : null}
 
       {plans.length > 0 && (
-        <section
-          className="rounded-2xl border border-border bg-card p-4 shadow-card"
-          aria-label="Meus suplementos"
+        <Retractable
+          id="sup-meus"
+          eyebrow="Cadastro"
+          title="Meus suplementos"
+          accent="#10b981"
+          summary={`${plans.length} em uso`}
         >
-          <h3 className="flex items-center gap-2 text-lg font-bold">
-            <ShieldCheck size={20} className="text-emerald-500" /> Meus suplementos
-          </h3>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {plans.map((plan) => {
-              const item = libraryByKey[plan.kind] as LibraryItem | undefined;
-              const Icon = item?.icon ?? Sparkles;
-              return (
-                <article key={plan.id} className="rounded-2xl border border-border bg-surface p-4">
-                  <div className="flex items-start gap-3">
-                    {item ? (
-                      <span
-                        className="grid size-14 shrink-0 place-items-center rounded-xl"
-                        style={{ background: `${item.pack.color}1f` }}
-                      >
-                        <PackArt item={item} className="h-12 w-auto" />
-                      </span>
-                    ) : (
-                      <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white">
-                        <Icon size={20} />
-                      </span>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <strong className="block truncate">{plan.name}</strong>
-                      <span className="text-sm text-muted-foreground">
-                        {fmtDose(plan)} · {plan.times.join(", ")}
-                      </span>
-                    </div>
-                  </div>
-                  {plan.notes && <p className="mt-2 text-sm text-muted-foreground">{plan.notes}</p>}
-                  <div className="mt-3 flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setEditing(plan)}
-                      className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-sm font-semibold hover:bg-muted"
-                    >
-                      <Pencil size={14} /> Editar
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void removePlan(plan)}
-                      className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-sm font-semibold text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 size={14} /> Remover
-                    </button>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      <section
-        id="nv-sup-library"
-        className="scroll-mt-4 border border-border bg-card p-3 shadow-card"
-        aria-label="Biblioteca de suplementos"
-      >
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h3 className="flex items-center gap-2 text-sm font-bold">
-              <BookOpen size={16} className="text-amber-500" /> Biblioteca de suplementos
-            </h3>
-            <p className="text-[11px] text-muted-foreground">
-              {supplementLibrary.length} suplementos com dose de referência, melhor horário e
-              cuidados.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar por categoria">
-            {libraryCategories.map((c) => (
-              <button
-                key={c}
-                type="button"
-                aria-pressed={libCat === c}
-                onClick={() => setLibCat(c)}
-                className={`h-7 px-2.5 text-[11px] font-semibold transition ${libCat === c ? "bg-violet-500 text-white" : "bg-muted text-muted-foreground hover:text-foreground"}`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="mt-2.5 grid gap-3">
-          <div className="grid auto-rows-max grid-cols-3 content-start gap-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
-            {supplementLibrary
-              .filter((item) => libCat === "Todos" || item.category === libCat)
-              .map((item, i) => {
-                const on = selected === item.key;
+          <section className="" aria-label="Meus suplementos">
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {plans.map((plan) => {
+                const item = libraryByKey[plan.kind] as LibraryItem | undefined;
+                const Icon = item?.icon ?? Sparkles;
                 return (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => {
-                      setSelected(item.key);
-                      setProductOpen(true);
-                    }}
-                    aria-haspopup="dialog"
-                    aria-pressed={on}
-                    className={`nv-rise group relative flex min-h-[7.5rem] shrink-0 flex-col items-center justify-start overflow-hidden border px-2 pb-2 pt-2.5 text-center transition duration-300 ${on ? "border-transparent shadow-lg" : "border-border hover:-translate-y-0.5 hover:shadow-md"}`}
-                    style={{
-                      animationDelay: `${Math.min(i, 12) * 35}ms`,
-                      boxShadow: on
-                        ? `0 0 0 2px ${item.pack.color}, 0 14px 30px -14px ${item.pack.color}`
-                        : undefined,
-                      background: `radial-gradient(circle at 50% 28%, ${item.pack.color}22, transparent 65%)`,
-                    }}
+                  <article
+                    key={plan.id}
+                    className="rounded-2xl border border-border bg-surface p-4"
                   >
-                    <PackArt
-                      item={item}
-                      className="h-[4.25rem] w-auto shrink-0 drop-shadow-[0_6px_8px_rgba(0,0,0,.35)] transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <strong className="mt-1.5 line-clamp-2 min-h-[2rem] w-full text-[11px] font-semibold leading-4">
-                      {item.name}
-                    </strong>
-                    <span className="mt-0.5 text-[10px] leading-3 text-muted-foreground">
-                      {item.category}
-                    </span>
-                  </button>
+                    <div className="flex items-start gap-3">
+                      {item ? (
+                        <span
+                          className="grid size-14 shrink-0 place-items-center rounded-xl"
+                          style={{ background: `${item.pack.color}1f` }}
+                        >
+                          <PackArt item={item} className="h-12 w-auto" />
+                        </span>
+                      ) : (
+                        <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white">
+                          <Icon size={20} />
+                        </span>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <strong className="block truncate">{plan.name}</strong>
+                        <span className="text-sm text-muted-foreground">
+                          {fmtDose(plan)} · {plan.times.join(", ")}
+                        </span>
+                      </div>
+                    </div>
+                    {plan.notes && (
+                      <p className="mt-2 text-sm text-muted-foreground">{plan.notes}</p>
+                    )}
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setEditing(plan)}
+                        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-sm font-semibold hover:bg-muted"
+                      >
+                        <Pencil size={14} /> Editar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void removePlan(plan)}
+                        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-sm font-semibold text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 size={14} /> Remover
+                      </button>
+                    </div>
+                  </article>
                 );
               })}
+            </div>
+          </section>
+        </Retractable>
+      )}
+
+      <Retractable
+        id="sup-biblioteca"
+        eyebrow="Consulta"
+        title="Biblioteca de suplementos"
+        accent="#f59e0b"
+        summary={`${supplementLibrary.length} suplementos`}
+      >
+        <section id="nv-sup-library" className="scroll-mt-4" aria-label="Biblioteca de suplementos">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-[11px] text-muted-foreground">
+                {supplementLibrary.length} suplementos com dose de referência, melhor horário e
+                cuidados.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar por categoria">
+              {libraryCategories.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  aria-pressed={libCat === c}
+                  onClick={() => setLibCat(c)}
+                  className={`h-7 px-2.5 text-[11px] font-semibold transition ${libCat === c ? "bg-violet-500 text-white" : "bg-muted text-muted-foreground hover:text-foreground"}`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+          <div className="mt-2.5 grid gap-3">
+            <div className="grid auto-rows-max grid-cols-3 content-start gap-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
+              {supplementLibrary
+                .filter((item) => libCat === "Todos" || item.category === libCat)
+                .map((item, i) => {
+                  const on = selected === item.key;
+                  return (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => {
+                        setSelected(item.key);
+                        setProductOpen(true);
+                      }}
+                      aria-haspopup="dialog"
+                      aria-pressed={on}
+                      className={`nv-rise group relative flex min-h-[7.5rem] shrink-0 flex-col items-center justify-start overflow-hidden border px-2 pb-2 pt-2.5 text-center transition duration-300 ${on ? "border-transparent shadow-lg" : "border-border hover:-translate-y-0.5 hover:shadow-md"}`}
+                      style={{
+                        animationDelay: `${Math.min(i, 12) * 35}ms`,
+                        boxShadow: on
+                          ? `0 0 0 2px ${item.pack.color}, 0 14px 30px -14px ${item.pack.color}`
+                          : undefined,
+                        background: `radial-gradient(circle at 50% 28%, ${item.pack.color}22, transparent 65%)`,
+                      }}
+                    >
+                      <PackArt
+                        item={item}
+                        className="h-[4.25rem] w-auto shrink-0 drop-shadow-[0_6px_8px_rgba(0,0,0,.35)] transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <strong className="mt-1.5 line-clamp-2 min-h-[2rem] w-full text-[11px] font-semibold leading-4">
+                        {item.name}
+                      </strong>
+                      <span className="mt-0.5 text-[10px] leading-3 text-muted-foreground">
+                        {item.category}
+                      </span>
+                    </button>
+                  );
+                })}
+            </div>
+          </div>
+        </section>
+      </Retractable>
 
       {productOpen && (
         <ProductPage
