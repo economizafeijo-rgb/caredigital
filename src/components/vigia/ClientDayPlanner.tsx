@@ -1067,7 +1067,7 @@ export function ClientDayPlanner({
       {!raw ? (
         <div className="grid gap-3 md:grid-cols-3">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="h-64 animate-pulse bg-muted/60" />
+            <div key={i} className="h-48 animate-pulse bg-muted/60" />
           ))}
         </div>
       ) : (
@@ -1121,7 +1121,7 @@ export function ClientDayPlanner({
                     />
                   </div>
                 ) : (
-                  <ol className="relative -mx-1 grid max-h-[calc(100dvh-25rem)] min-h-[16rem] content-start gap-px overflow-y-auto overflow-x-hidden px-1 [scrollbar-gutter:stable] [scrollbar-width:thin]">
+                  <ol className="relative -mx-1 grid max-h-[calc(100dvh-25rem)] min-h-[8rem] content-start gap-px overflow-y-auto overflow-x-hidden px-1 [scrollbar-gutter:stable] [scrollbar-width:thin]">
                     {list.map((i, idx) => (
                       <li key={i.id} className="contents">
                         {idx === nowIdx && <NowLine now={now} />}
