@@ -4,6 +4,7 @@ import { ArrowRight, ChevronDown, Store } from "lucide-react";
 import { useAccess } from "@/lib/use-access";
 import { HomeMarketplace } from "@/components/vigia/HomeMarketplace";
 import { HomeStage } from "@/components/vigia/HomeStage";
+import { HolidayBanner } from "@/components/vigia/HolidayBanner";
 import { HomeToolAds } from "@/components/vigia/HomeToolAds";
 import { QrEnlarge } from "@/components/vigia/QrEnlarge";
 import { InstallAppButton } from "@/components/vigia/InstallApp";
@@ -82,6 +83,8 @@ function Homepage() {
               ao administrador.
             </p>
           )}
+
+          <HolidayBanner />
 
           <HomeStage client={client} panel={panel} firstName={firstName} />
 
