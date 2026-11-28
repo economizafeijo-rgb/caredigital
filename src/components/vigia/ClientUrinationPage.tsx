@@ -172,23 +172,43 @@ export function ClientUrinationPage({
       <h2 id="urina-title" className="sr-only">
         Registro de micção
       </h2>
-      <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={() => {
-            setEditId(null);
-            setWhen(acreDateTimeInput());
-            setOpen(true);
-          }}
-          className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-sky-600 px-5 text-[15px] font-bold text-white shadow-sm transition active:scale-[0.97] hover:bg-sky-500"
-        >
-          <Droplets size={19} aria-hidden="true" /> Registrar xixi agora
-        </button>
-        {!remote && loaded && (
-          <span className="text-xs text-muted-foreground">
-            Salvo só neste aparelho por enquanto.
-          </span>
-        )}
+      <div className="grid gap-2 md:grid-cols-[13rem_minmax(0,1fr)]">
+        <div className="flex flex-col gap-1">
+          <button
+            type="button"
+            onClick={() => {
+              setEditId(null);
+              setWhen(acreDateTimeInput());
+              setOpen(true);
+            }}
+            className="inline-flex h-full min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 text-sm font-bold text-white shadow-sm transition active:scale-[0.97] hover:bg-sky-500"
+          >
+            <Droplets size={19} aria-hidden="true" /> Registrar xixi agora
+          </button>
+          {!remote && loaded && (
+            <span className="text-xs text-muted-foreground">
+              Salvo só neste aparelho por enquanto.
+            </span>
+          )}
+        </div>
+        <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {[
+            ["Idas hoje", String(todayLogs.length)],
+            [
+              "Intervalo médio",
+              interval
+                ? `${Math.floor(interval / 60)}h${String(interval % 60).padStart(2, "0")}`
+                : "–",
+            ],
+            ["Líquidos hoje", `${liquidToday} ml`],
+            ["Idas por litro", perLiter],
+          ].map(([k, v]) => (
+            <div key={k} className="rounded-xl border border-border bg-card px-3 py-2">
+              <dt className="text-[11px] text-muted-foreground">{k}</dt>
+              <dd className="mt-0.5 text-lg font-extrabold tabular-nums">{v}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
 
       {done && (
@@ -329,126 +349,111 @@ export function ClientUrinationPage({
         </p>
       )}
 
-      <div className={`rounded-2xl border p-4 ${toneCls[insight.tone]}`}>
-        <p className="text-sm font-bold">{insight.title}</p>
-        <p className="mt-1 text-[13px] leading-snug">{insight.text}</p>
-        {plan && (
-          <p className="mt-2 text-[13px] leading-snug">
-            <b>Ritmo para o resto do dia:</b> faltam {plan.remainingMl} ml. Beba cerca de{" "}
-            {plan.cupMl} ml a cada {plan.everyMin} min ({plan.cups} copos), até {plan.stopAt}, e
-            evite beber muito de uma vez.
-          </p>
-        )}
+      <div className="grid items-start gap-2 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+        <div className={`rounded-xl border px-3.5 py-2.5 ${toneCls[insight.tone]}`}>
+          <p className="text-sm font-bold">{insight.title}</p>
+          <p className="mt-1 text-[13px] leading-snug">{insight.text}</p>
+          {plan && (
+            <p className="mt-2 text-[13px] leading-snug">
+              <b>Ritmo para o resto do dia:</b> faltam {plan.remainingMl} ml. Beba cerca de{" "}
+              {plan.cupMl} ml a cada {plan.everyMin} min ({plan.cups} copos), até {plan.stopAt}, e
+              evite beber muito de uma vez.
+            </p>
+          )}
+        </div>
+
+        <Collapsible
+          title="Sobre estas orientações"
+          summary="Não substitui avaliação médica"
+          icon={<Info size={16} className="text-sky-500" />}
+        >
+          <p className="text-[12.5px] leading-snug text-muted-foreground">{MEDICAL_NOTE}</p>
+        </Collapsible>
       </div>
 
-      <Collapsible
-        title="Sobre estas orientações"
-        summary="Não substitui avaliação médica"
-        icon={<Info size={16} className="text-sky-500" />}
-      >
-        <p className="text-[12.5px] leading-snug text-muted-foreground">{MEDICAL_NOTE}</p>
-      </Collapsible>
+      <div className="grid items-start gap-3 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+        <ClientHealthHub patientId={patientId} ownerId={ownerId} only="miccao" />
 
-      <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {[
-          ["Idas hoje", String(todayLogs.length)],
-          [
-            "Intervalo médio",
-            interval
-              ? `${Math.floor(interval / 60)}h${String(interval % 60).padStart(2, "0")}`
-              : "–",
-          ],
-          ["Líquidos hoje", `${liquidToday} ml`],
-          ["Idas por litro", perLiter],
-        ].map(([k, v]) => (
-          <div key={k} className="rounded-xl border border-border bg-card p-3">
-            <dt className="text-[11px] text-muted-foreground">{k}</dt>
-            <dd className="mt-0.5 text-lg font-extrabold tabular-nums">{v}</dd>
-          </div>
-        ))}
-      </dl>
-
-      <ClientHealthHub patientId={patientId} ownerId={ownerId} only="miccao" />
-
-      <Collapsible
-        title={`Registros ${range === "dia" ? "de hoje" : "dos últimos 7 dias"}`}
-        summary={`${scope.length} ${scope.length === 1 ? "ida" : "idas"}`}
-        icon={<Droplets size={16} className="text-sky-500" />}
-        defaultOpen
-      >
-        {!scope.length ? (
-          <EmptyState
-            icon={Droplets}
-            tone="#eab308"
-            compact
-            title="Nenhum registro ainda"
-            text="Toque em “Registrar xixi agora” quando for ao banheiro."
-          />
-        ) : (
-          <ul className="divide-y divide-border">
-            {scope.map((l) => (
-              <li key={l.id} className="flex items-center gap-3 py-2 text-sm">
-                <span className="w-24 shrink-0 tabular-nums text-muted-foreground">
-                  {range === "semana"
-                    ? new Date(l.at).toLocaleDateString("pt-BR", {
-                        timeZone: "America/Rio_Branco",
-                        day: "2-digit",
-                        month: "2-digit",
-                      }) + " "
-                    : ""}
-                  {acreTimeLabel(l.at)}
-                </span>
-                <span className="min-w-0 flex-1 truncate">
-                  {VOLUME_LABEL[l.volume]}
-                  {l.ml ? ` · ${l.ml} ml` : ""}
-                  {l.notes ? ` · ${l.notes}` : ""}
-                </span>
-                {(l.temp_c ?? wx.at(l.at)) !== null ? (
-                  <span
-                    className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums"
-                    style={{
-                      background: `${feel((l.temp_c ?? wx.at(l.at))!).color}22`,
-                      color: feel((l.temp_c ?? wx.at(l.at))!).color,
-                    }}
-                    title={`Temperatura na hora do registro: ${feel((l.temp_c ?? wx.at(l.at))!).label}`}
-                  >
-                    <Thermometer size={11} /> {Math.round((l.temp_c ?? wx.at(l.at))!)}°
+        <Collapsible
+          title={`Registros ${range === "dia" ? "de hoje" : "dos últimos 7 dias"}`}
+          summary={`${scope.length} ${scope.length === 1 ? "ida" : "idas"}`}
+          icon={<Droplets size={16} className="text-sky-500" />}
+          defaultOpen
+        >
+          {!scope.length ? (
+            <EmptyState
+              icon={Droplets}
+              tone="#eab308"
+              compact
+              title="Nenhum registro ainda"
+              text="Toque em “Registrar xixi agora” quando for ao banheiro."
+            />
+          ) : (
+            <ul className="divide-y divide-border">
+              {scope.map((l) => (
+                <li key={l.id} className="flex items-center gap-3 py-2 text-sm">
+                  <span className="w-24 shrink-0 tabular-nums text-muted-foreground">
+                    {range === "semana"
+                      ? new Date(l.at).toLocaleDateString("pt-BR", {
+                          timeZone: "America/Rio_Branco",
+                          day: "2-digit",
+                          month: "2-digit",
+                        }) + " "
+                      : ""}
+                    {acreTimeLabel(l.at)}
                   </span>
-                ) : null}
-                {lock.isLocked(l.at) ? (
-                  <button
-                    type="button"
-                    aria-label="Registro trancado: liberar com a senha"
-                    onClick={() => void lock.unlock()}
-                    className="grid size-9 place-items-center rounded-lg text-muted-foreground hover:bg-muted"
-                  >
-                    <Lock size={15} />
-                  </button>
-                ) : (
-                  <>
+                  <span className="min-w-0 flex-1 truncate">
+                    {VOLUME_LABEL[l.volume]}
+                    {l.ml ? ` · ${l.ml} ml` : ""}
+                    {l.notes ? ` · ${l.notes}` : ""}
+                  </span>
+                  {(l.temp_c ?? wx.at(l.at)) !== null ? (
+                    <span
+                      className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums"
+                      style={{
+                        background: `${feel((l.temp_c ?? wx.at(l.at))!).color}22`,
+                        color: feel((l.temp_c ?? wx.at(l.at))!).color,
+                      }}
+                      title={`Temperatura na hora do registro: ${feel((l.temp_c ?? wx.at(l.at))!).label}`}
+                    >
+                      <Thermometer size={11} /> {Math.round((l.temp_c ?? wx.at(l.at))!)}°
+                    </span>
+                  ) : null}
+                  {lock.isLocked(l.at) ? (
                     <button
                       type="button"
-                      aria-label="Editar registro"
-                      onClick={() => void startEdit(l)}
-                      className="grid size-9 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-sky-500"
+                      aria-label="Registro trancado: liberar com a senha"
+                      onClick={() => void lock.unlock()}
+                      className="grid size-9 place-items-center rounded-lg text-muted-foreground hover:bg-muted"
                     >
-                      <Pencil size={15} />
+                      <Lock size={15} />
                     </button>
-                    <button
-                      type="button"
-                      aria-label="Excluir registro"
-                      onClick={() => void askRemove(l)}
-                      className="grid size-9 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-red-500"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </Collapsible>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        aria-label="Editar registro"
+                        onClick={() => void startEdit(l)}
+                        className="grid size-9 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-sky-500"
+                      >
+                        <Pencil size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Excluir registro"
+                        onClick={() => void askRemove(l)}
+                        className="grid size-9 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-red-500"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Collapsible>
+      </div>
     </section>
   );
 }
