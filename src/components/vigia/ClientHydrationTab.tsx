@@ -1,3 +1,4 @@
+import { Retractable } from "./Retractable";
 import { WaterGauge } from "./WaterGauge";
 import { HowItWorks, hydrationHowTo } from "./HowItWorks";
 import { hydrationNeed } from "@/lib/hydration-need";
@@ -1029,192 +1030,199 @@ export function ClientHydrationTab({
         </p>
       )}
       {schedule.length > 0 && (
-        <div className="rounded-xl border border-border bg-card/70 p-2.5">
-          <div className="mb-2 flex min-w-0 items-center justify-between gap-2 border-b border-border/70 pb-2">
-            <div>
-              <h4 className="text-xs font-bold text-foreground">Horários programados</h4>
-              <p className="text-[11px] text-muted-foreground">
-                Toque em um registro confirmado para consultar ou corrigir
-              </p>
+        <Retractable
+          id="hid-horarios"
+          eyebrow="Agenda"
+          title="Horários programados"
+          accent="#0ea5e9"
+          summary={`${schedule.length} horários`}
+        >
+          <div>
+            <div className="mb-2 flex min-w-0 items-center justify-between gap-2 border-b border-border/70 pb-2">
+              <div>
+                <p className="text-[11px] text-muted-foreground">
+                  Toque em um registro confirmado para consultar ou corrigir
+                </p>
+              </div>
+              <span className="shrink-0 rounded-md bg-muted px-2 py-1 text-[11px] font-semibold tabular-nums text-foreground">
+                {schedule.length} horários
+              </span>
             </div>
-            <span className="shrink-0 rounded-md bg-muted px-2 py-1 text-[11px] font-semibold tabular-nums text-foreground">
-              {schedule.length} horários
-            </span>
-          </div>
-          <div className="space-y-1.5">
-            {pageTasks.map((task) => {
-              const i = schedule.findIndex((item) => item.id === task.id);
-              const answered = skipped.get(task.id);
-              const status = task.completed_at
-                ? "done"
-                : answered
-                  ? "skipped"
-                  : getCareScheduleState(task, clock) === "missed"
-                    ? "missed"
-                    : "pending";
-              const available = canConfirmCare(task, clock);
-              const correcting = correctingTaskId === task.id;
-              const backend = suggestedByTask[task.id];
-              const suggested = backend?.suggested_ml ?? (portions[i] || 0);
-              const defaultVolume = volumeByTask[task.id] ?? (suggested > 0 ? suggested : 200);
-              return (
-                <article
-                  key={task.id}
-                  className={`care-premium-hydration-event flex min-w-0 flex-col gap-1.5 rounded-lg border px-2 py-1.5 ${status === "done" ? "border-emerald-500/25 bg-emerald-500/[.055]" : status === "skipped" ? "border-amber-500/30 bg-amber-500/[.04]" : "border-border/75 bg-muted/25"}`}
-                >
-                  <div className="flex min-w-0 items-center gap-2">
-                    <span
-                      className={`grid size-7 shrink-0 place-items-center rounded-lg ${status === "done" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300" : "bg-sky-500/10 text-sky-600 dark:text-sky-300"}`}
-                    >
-                      {status === "done" ? <CheckCircle2 size={16} /> : <Droplets size={16} />}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="flex flex-wrap items-center gap-1 text-[11px] font-bold text-foreground">
-                        <span className="tabular-nums">{time(task.scheduled_at)}</span>
-                        <span>· Água</span>
-                        {suggested > 0 && !task.completed_at && (
-                          <span className="rounded bg-sky-500/10 px-1 text-[11px] text-sky-700 dark:text-sky-300">
-                            ~{suggested} ml
-                          </span>
-                        )}
-                      </p>
-                      {backend?.reason === "restante_supera_capacidade" && !task.completed_at && (
-                        <p className="text-[11px] text-amber-700 dark:text-amber-300">
-                          Meta restante exige fracionamento adicional; não tente beber tudo de uma
-                          vez.
+            <div className="space-y-1.5">
+              {pageTasks.map((task) => {
+                const i = schedule.findIndex((item) => item.id === task.id);
+                const answered = skipped.get(task.id);
+                const status = task.completed_at
+                  ? "done"
+                  : answered
+                    ? "skipped"
+                    : getCareScheduleState(task, clock) === "missed"
+                      ? "missed"
+                      : "pending";
+                const available = canConfirmCare(task, clock);
+                const correcting = correctingTaskId === task.id;
+                const backend = suggestedByTask[task.id];
+                const suggested = backend?.suggested_ml ?? (portions[i] || 0);
+                const defaultVolume = volumeByTask[task.id] ?? (suggested > 0 ? suggested : 200);
+                return (
+                  <article
+                    key={task.id}
+                    className={`care-premium-hydration-event flex min-w-0 flex-col gap-1.5 rounded-lg border px-2 py-1.5 ${status === "done" ? "border-emerald-500/25 bg-emerald-500/[.055]" : status === "skipped" ? "border-amber-500/30 bg-amber-500/[.04]" : "border-border/75 bg-muted/25"}`}
+                  >
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span
+                        className={`grid size-7 shrink-0 place-items-center rounded-lg ${status === "done" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300" : "bg-sky-500/10 text-sky-600 dark:text-sky-300"}`}
+                      >
+                        {status === "done" ? <CheckCircle2 size={16} /> : <Droplets size={16} />}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="flex flex-wrap items-center gap-1 text-[11px] font-bold text-foreground">
+                          <span className="tabular-nums">{time(task.scheduled_at)}</span>
+                          <span>· Água</span>
+                          {suggested > 0 && !task.completed_at && (
+                            <span className="rounded bg-sky-500/10 px-1 text-[11px] text-sky-700 dark:text-sky-300">
+                              ~{suggested} ml
+                            </span>
+                          )}
                         </p>
-                      )}
-                      <p className="truncate text-[11px] text-muted-foreground">
-                        {status === "done"
-                          ? `Bebi · confirmado em ${time(task.completed_at!)}`
-                          : status === "skipped"
-                            ? `Não bebi · resposta às ${time(answered!)}`
-                            : available
-                              ? "Informe se bebeu ou não bebeu"
-                              : `Programado · disponível a partir de ${time(task.scheduled_at)}`}
-                      </p>
-                    </div>
-                    {status === "done" ? (
-                      <button
-                        type="button"
-                        onClick={() => setDetailTask(task)}
-                        title="Consultar e corrigir volume"
-                        className="shrink-0 rounded-lg border border-emerald-500/35 bg-emerald-500/10 px-2 py-1.5 text-[11px] font-bold text-emerald-700 hover:bg-emerald-500/15 dark:text-emerald-300"
-                      >
-                        Ver registro
-                      </button>
-                    ) : status === "skipped" ? (
-                      <button
-                        type="button"
-                        disabled={Boolean(action)}
-                        onClick={() => setCorrectingTaskId(correcting ? null : task.id)}
-                        className="shrink-0 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2 py-1.5 text-[11px] font-bold text-foreground disabled:opacity-50"
-                      >
-                        {correcting ? "Fechar" : "Corrigir"}
-                      </button>
-                    ) : available ? (
-                      <span className="shrink-0 rounded-md bg-sky-500/10 px-2 py-1 text-[11px] font-semibold text-sky-700 dark:text-sky-300">
-                        Responder
-                      </span>
-                    ) : (
-                      <span className="shrink-0 text-[11px] font-medium text-muted-foreground">
-                        Aguardando
-                      </span>
-                    )}
-                  </div>
-                  {((available && !answered) || correcting) && status !== "done" && (
-                    <div className="flex min-w-0 flex-wrap items-center gap-1.5 pl-0 sm:pl-9">
-                      <label className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                        <span>Volume</span>
-                        <input
-                          aria-label={`Volume de água às ${time(task.scheduled_at)} em ml`}
-                          type="number"
-                          min={10}
-                          max={1500}
-                          step={10}
-                          value={defaultVolume}
-                          onChange={(e) =>
-                            setVolumeByTask((prev) => ({
-                              ...prev,
-                              [task.id]: Number(e.target.value),
-                            }))
-                          }
-                          className="h-8 w-[65px] rounded-md border border-border bg-background px-1.5 text-center text-[11px] font-semibold text-foreground"
-                        />
-                        <span>ml</span>
-                      </label>
-                      <button
-                        type="button"
-                        disabled={Boolean(action)}
-                        onClick={() => void confirmGlass(task, defaultVolume)}
-                        className="h-8 rounded-lg bg-primary px-2.5 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
-                      >
-                        {action === task.id ? "Salvando…" : "Bebi"}
-                      </button>
-                      {correcting ? (
+                        {backend?.reason === "restante_supera_capacidade" && !task.completed_at && (
+                          <p className="text-[11px] text-amber-700 dark:text-amber-300">
+                            Meta restante exige fracionamento adicional; não tente beber tudo de uma
+                            vez.
+                          </p>
+                        )}
+                        <p className="truncate text-[11px] text-muted-foreground">
+                          {status === "done"
+                            ? `Bebi · confirmado em ${time(task.completed_at!)}`
+                            : status === "skipped"
+                              ? `Não bebi · resposta às ${time(answered!)}`
+                              : available
+                                ? "Informe se bebeu ou não bebeu"
+                                : `Programado · disponível a partir de ${time(task.scheduled_at)}`}
+                        </p>
+                      </div>
+                      {status === "done" ? (
+                        <button
+                          type="button"
+                          onClick={() => setDetailTask(task)}
+                          title="Consultar e corrigir volume"
+                          className="shrink-0 rounded-lg border border-emerald-500/35 bg-emerald-500/10 px-2 py-1.5 text-[11px] font-bold text-emerald-700 hover:bg-emerald-500/15 dark:text-emerald-300"
+                        >
+                          Ver registro
+                        </button>
+                      ) : status === "skipped" ? (
                         <button
                           type="button"
                           disabled={Boolean(action)}
-                          onClick={() => void undoNo(task)}
-                          className="h-8 rounded-lg border border-border px-2 text-[11px] font-semibold text-foreground disabled:opacity-50"
+                          onClick={() => setCorrectingTaskId(correcting ? null : task.id)}
+                          className="shrink-0 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2 py-1.5 text-[11px] font-bold text-foreground disabled:opacity-50"
                         >
-                          Desfazer “Não bebi”
+                          {correcting ? "Fechar" : "Corrigir"}
                         </button>
+                      ) : available ? (
+                        <span className="shrink-0 rounded-md bg-sky-500/10 px-2 py-1 text-[11px] font-semibold text-sky-700 dark:text-sky-300">
+                          Responder
+                        </span>
                       ) : (
+                        <span className="shrink-0 text-[11px] font-medium text-muted-foreground">
+                          Aguardando
+                        </span>
+                      )}
+                    </div>
+                    {((available && !answered) || correcting) && status !== "done" && (
+                      <div className="flex min-w-0 flex-wrap items-center gap-1.5 pl-0 sm:pl-9">
+                        <label className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                          <span>Volume</span>
+                          <input
+                            aria-label={`Volume de água às ${time(task.scheduled_at)} em ml`}
+                            type="number"
+                            min={10}
+                            max={1500}
+                            step={10}
+                            value={defaultVolume}
+                            onChange={(e) =>
+                              setVolumeByTask((prev) => ({
+                                ...prev,
+                                [task.id]: Number(e.target.value),
+                              }))
+                            }
+                            className="h-8 w-[65px] rounded-md border border-border bg-background px-1.5 text-center text-[11px] font-semibold text-foreground"
+                          />
+                          <span>ml</span>
+                        </label>
                         <button
                           type="button"
                           disabled={Boolean(action)}
-                          onClick={() => void markNo(task)}
-                          className="h-8 rounded-lg border border-border px-2.5 text-[11px] font-semibold text-foreground disabled:opacity-50"
+                          onClick={() => void confirmGlass(task, defaultVolume)}
+                          className="h-8 rounded-lg bg-primary px-2.5 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
                         >
-                          Não bebi
+                          {action === task.id ? "Salvando…" : "Bebi"}
                         </button>
-                      )}
-                    </div>
-                  )}
-                  {!available && !task.completed_at && !answered && (
-                    <p className="text-[11px] text-muted-foreground sm:pl-9">
-                      Se bebeu antes deste horário, use “Registrar água” para salvar agora sem
-                      antecipar a programação.
-                    </p>
-                  )}
-                </article>
-              );
-            })}
-            {!pageTasks.length && (
-              <p className="rounded-lg bg-muted/30 p-2 text-xs text-muted-foreground">
-                Nenhum horário de hidratação programado. Você ainda pode usar{" "}
-                <strong>Registrar água</strong>.
-              </p>
+                        {correcting ? (
+                          <button
+                            type="button"
+                            disabled={Boolean(action)}
+                            onClick={() => void undoNo(task)}
+                            className="h-8 rounded-lg border border-border px-2 text-[11px] font-semibold text-foreground disabled:opacity-50"
+                          >
+                            Desfazer “Não bebi”
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={Boolean(action)}
+                            onClick={() => void markNo(task)}
+                            className="h-8 rounded-lg border border-border px-2.5 text-[11px] font-semibold text-foreground disabled:opacity-50"
+                          >
+                            Não bebi
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    {!available && !task.completed_at && !answered && (
+                      <p className="text-[11px] text-muted-foreground sm:pl-9">
+                        Se bebeu antes deste horário, use “Registrar água” para salvar agora sem
+                        antecipar a programação.
+                      </p>
+                    )}
+                  </article>
+                );
+              })}
+              {!pageTasks.length && (
+                <p className="rounded-lg bg-muted/30 p-2 text-xs text-muted-foreground">
+                  Nenhum horário de hidratação programado. Você ainda pode usar{" "}
+                  <strong>Registrar água</strong>.
+                </p>
+              )}
+            </div>
+            {pageCount > 1 && (
+              <nav
+                aria-label="Páginas dos horários de hidratação"
+                className="mt-2 flex items-center justify-between gap-2 border-t border-border pt-2"
+              >
+                <button
+                  type="button"
+                  disabled={activePage === 0}
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1.5 text-[11px] font-semibold text-foreground disabled:opacity-35"
+                >
+                  <ChevronLeft size={13} /> Anterior
+                </button>
+                <span className="text-[11px] tabular-nums text-muted-foreground">
+                  Página {activePage + 1} de {pageCount}
+                </span>
+                <button
+                  type="button"
+                  disabled={activePage >= pageCount - 1}
+                  onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+                  className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1.5 text-[11px] font-semibold text-foreground disabled:opacity-35"
+                >
+                  Próxima <ChevronRight size={13} />
+                </button>
+              </nav>
             )}
           </div>
-          {pageCount > 1 && (
-            <nav
-              aria-label="Páginas dos horários de hidratação"
-              className="mt-2 flex items-center justify-between gap-2 border-t border-border pt-2"
-            >
-              <button
-                type="button"
-                disabled={activePage === 0}
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
-                className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1.5 text-[11px] font-semibold text-foreground disabled:opacity-35"
-              >
-                <ChevronLeft size={13} /> Anterior
-              </button>
-              <span className="text-[11px] tabular-nums text-muted-foreground">
-                Página {activePage + 1} de {pageCount}
-              </span>
-              <button
-                type="button"
-                disabled={activePage >= pageCount - 1}
-                onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
-                className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1.5 text-[11px] font-semibold text-foreground disabled:opacity-35"
-              >
-                Próxima <ChevronRight size={13} />
-              </button>
-            </nav>
-          )}
-        </div>
+        </Retractable>
       )}
       {loading && drinks.length === 0 && (
         <p role="status" className="text-[11px] text-muted-foreground">
