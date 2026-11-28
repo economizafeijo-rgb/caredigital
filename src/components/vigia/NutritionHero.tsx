@@ -1,7 +1,7 @@
 import { EvoChart, EvoLegend } from "./EvoChart";
 import { useMemo, useState, type ReactNode } from "react";
 import { Beef, Droplet, Leaf, Target, Wheat } from "lucide-react";
-import { sumNutrients, type Nutrients } from "@/lib/food-parser";
+import { microTargets, sumNutrients, type Micros, type Nutrients } from "@/lib/food-parser";
 import { objectiveLabel } from "@/lib/objective-nutrition";
 import type { DailyNutrition } from "./DailyNutritionPanel";
 import { NextUpClock } from "./NextUpClock";
@@ -245,29 +245,110 @@ export function NutritionHero({
   );
 }
 
-/** Evolução do dia: calorias acumuladas a cada registro, com a referência diária. */
+type DayMetric = {
+  key: "kcal" | "protein" | "carbs" | "fat" | "fiber" | keyof Micros;
+  label: string;
+  unit: string;
+  color: string;
+  target: number;
+};
+
+/** Evolução do dia: o acumulado de cada nutriente escolhido, com a meta de cada um. */
 export function NutritionDayChart({ data }: { data: DailyNutrition }) {
   const { entries, target } = data;
   const H0 = 5,
     H1 = 24;
+  const [sel, setSel] = useState<string[]>(["kcal"]);
+  const metrics = useMemo<DayMetric[]>(
+    () => [
+      { key: "kcal", label: "Calorias", unit: "kcal", color: "#10b981", target: target.kcal },
+      {
+        key: "protein",
+        label: "Proteína",
+        unit: "g",
+        color: MACRO_COLORS.protein,
+        target: target.protein,
+      },
+      {
+        key: "carbs",
+        label: "Carboidrato",
+        unit: "g",
+        color: MACRO_COLORS.carbs,
+        target: target.carbs,
+      },
+      { key: "fat", label: "Gordura", unit: "g", color: MACRO_COLORS.fat, target: target.fat },
+      { key: "fiber", label: "Fibras", unit: "g", color: "#a3e635", target: target.fiber },
+      {
+        key: "vitC",
+        label: "Vit. C",
+        unit: "mg",
+        color: "#f59e0b",
+        target: microTargets.vitC.target,
+      },
+      {
+        key: "vitA",
+        label: "Vit. A",
+        unit: "mcg",
+        color: "#fb7185",
+        target: microTargets.vitA.target,
+      },
+      {
+        key: "calcium",
+        label: "Cálcio",
+        unit: "mg",
+        color: "#38bdf8",
+        target: microTargets.calcium.target,
+      },
+      {
+        key: "iron",
+        label: "Ferro",
+        unit: "mg",
+        color: "#ef4444",
+        target: microTargets.iron.target,
+      },
+      {
+        key: "potassium",
+        label: "Potássio",
+        unit: "mg",
+        color: "#c084fc",
+        target: microTargets.potassium.target,
+      },
+    ],
+    [target],
+  );
   const points = useMemo(
     () =>
       entries
         .map((e) => ({ h: hourOf(e.at), n: entryNutrients(e), text: e.text }))
-        .filter((p) => p.n.kcal > 0)
+        .filter(
+          (p) => p.n.kcal > 0 || p.n.protein > 0 || p.n.carbs > 0 || p.n.fat > 0 || p.n.fiber > 0,
+        )
         .sort((a, b) => a.h - b.h),
     [entries],
   );
   const nowH = hourOf(new Date().toISOString());
-  let acc = 0;
-  const line = [
-    { x: Math.min(H0, points[0]?.h ?? H0), y: 0 },
-    ...points.map((p) => ({ x: p.h, y: (acc += p.n.kcal) })),
-  ];
-  const total = acc;
-  if (nowH > line[line.length - 1].x) line.push({ x: nowH, y: total });
+  const active = metrics.filter((m) => sel.includes(m.key));
+  const single = active.length === 1;
+  const totals = Object.fromEntries(
+    metrics.map((m) => [m.key, points.reduce((a, p) => a + (p.n[m.key] ?? 0), 0)]),
+  ) as Record<DayMetric["key"], number>;
+  // Uma escala só: valor real quando há um nutriente; % da meta quando há vários.
+  const k = (m: DayMetric) => (single || m.target <= 0 ? 1 : 100 / m.target);
+  const fmtV = (v: number, m: DayMetric) =>
+    `${v.toLocaleString("pt-BR", { maximumFractionDigits: v < 10 ? 1 : 0 })} ${m.unit}`;
+  const lineOf = (m: DayMetric) => {
+    const mine = points.filter((p) => (p.n[m.key] ?? 0) > 0);
+    let acc = 0;
+    const out = [
+      { x: Math.min(H0, mine[0]?.h ?? H0), y: 0 },
+      ...mine.map((p) => ({ x: p.h, y: (acc += p.n[m.key]) * k(m) })),
+    ];
+    if (nowH > out[out.length - 1].x) out.push({ x: nowH, y: acc * k(m) });
+    return out;
+  };
+  const first = active[0] ?? metrics[0];
   const pace =
-    target.kcal > 0
+    single && first.key === "kcal" && target.kcal > 0
       ? [
           { x: H0, y: 0 },
           { x: 7, y: 0 },
@@ -277,29 +358,59 @@ export function NutritionDayChart({ data }: { data: DailyNutrition }) {
       : [];
   const hm = (h: number) =>
     `${String(Math.floor(h)).padStart(2, "0")}:${String(Math.round((h % 1) * 60) % 60).padStart(2, "0")}`;
+  const toggle = (key: string) =>
+    setSel((list) =>
+      list.includes(key)
+        ? list.length > 1
+          ? list.filter((x) => x !== key)
+          : list
+        : [...list, key],
+    );
+  const goalY = single ? first.target : 100;
   return (
     <figure className="nv-scan min-w-0 border border-border bg-card p-3">
       <figcaption className="mb-1 flex flex-wrap items-start justify-between gap-2">
         <span>
-          <strong className="block text-sm font-bold">Evolução das calorias</strong>
+          <strong className="block text-sm font-bold">Evolução do dia</strong>
           <span className="text-xs text-muted-foreground">
             {points.length
-              ? `${n0(total)} kcal em ${points.length} registro${points.length === 1 ? "" : "s"}`
+              ? single
+                ? `${fmtV(totals[first.key], first)} em ${points.length} registro${points.length === 1 ? "" : "s"}`
+                : "Acumulado de cada nutriente em % da meta do dia"
               : "Os registros de hoje aparecem aqui"}
           </span>
         </span>
-        <EvoLegend
-          items={[
-            { label: "Acumulado", color: "#10b981" },
-            ...(pace.length
-              ? [{ label: "Ritmo de referência", color: "#f97316", dashed: true }]
-              : []),
-          ]}
-        />
+        {pace.length > 0 && (
+          <EvoLegend items={[{ label: "Ritmo de referência", color: "#f97316", dashed: true }]} />
+        )}
       </figcaption>
+      <div role="group" aria-label="Nutrientes no gráfico" className="mb-2 flex flex-wrap gap-1">
+        {metrics.map((m) => {
+          const on = sel.includes(m.key);
+          const pct = m.target > 0 ? Math.round((totals[m.key] / m.target) * 100) : 0;
+          return (
+            <button
+              key={m.key}
+              type="button"
+              aria-pressed={on}
+              onClick={() => toggle(m.key)}
+              className="inline-flex h-7 items-center gap-1.5 border px-2 text-[11px] font-bold transition-colors"
+              style={{
+                borderColor: on ? m.color : "var(--border)",
+                background: on ? `${m.color}26` : "transparent",
+                color: on ? "var(--foreground)" : "var(--muted-foreground)",
+              }}
+            >
+              <i className="size-2 rounded-full" style={{ background: m.color }} />
+              {m.label}
+              <span className="font-semibold tabular-nums opacity-80">{pct}%</span>
+            </button>
+          );
+        })}
+      </div>
       <EvoChart
         height={220}
-        ariaLabel={`Calorias hoje: ${n0(total)} kcal`}
+        ariaLabel={`Evolução do dia: ${active.map((m) => `${m.label} ${fmtV(totals[m.key], m)}`).join(", ")}`}
         xMin={H0}
         xMax={H1}
         xTicks={[6, 9, 12, 15, 18, 21, 24].map((h) => ({
@@ -307,24 +418,29 @@ export function NutritionDayChart({ data }: { data: DailyNutrition }) {
           label: `${String(h % 24).padStart(2, "0")}h`,
         }))}
         formatX={hm}
-        formatY={(v) => n0(v)}
+        formatY={(v) => (single ? n0(v) : `${n0(v)}%`)}
         goal={
-          target.kcal > 0
-            ? { y: target.kcal, label: `Referência ${n0(target.kcal)} kcal`, color: "#f97316" }
+          goalY > 0
+            ? {
+                y: goalY,
+                label: single ? `Meta ${fmtV(first.target, first)}` : "Meta do dia (100%)",
+                color: "#f97316",
+              }
             : undefined
         }
+        yFloor={goalY}
         nowX={nowH}
         persistTip
         series={[
-          {
-            id: "kcal",
-            label: "Acumulado (kcal)",
-            color: "#10b981",
-            points: line,
-            area: true,
+          ...active.map((m) => ({
+            id: m.key,
+            label: single ? `Acumulado (${m.unit})` : `${m.label} (% da meta)`,
+            color: m.color,
+            points: lineOf(m),
+            area: single,
             dots: true,
             live: true,
-          },
+          })),
           ...(pace.length
             ? [
                 {
@@ -339,11 +455,27 @@ export function NutritionDayChart({ data }: { data: DailyNutrition }) {
             : []),
         ]}
         tip={(h) => {
+          const upTo = points.filter((p) => p.h <= h + 1 / 120);
           const hit = points.filter((p) => Math.abs(p.h - h) < 1 / 120);
-          return hit.length ? (
+          return (
             <div className="mt-1.5 grid gap-1 border-t border-border pt-1.5">
+              <ul className="grid gap-0.5">
+                {active.map((m) => {
+                  const v = upTo.reduce((a, p) => a + (p.n[m.key] ?? 0), 0);
+                  const pct = m.target > 0 ? Math.round((v / m.target) * 100) : 0;
+                  return (
+                    <li key={m.key} className="flex items-center gap-2">
+                      <i className="size-2 shrink-0 rounded-full" style={{ background: m.color }} />
+                      <span className="truncate">{m.label}</span>
+                      <strong className="ml-auto shrink-0 tabular-nums text-foreground">
+                        {fmtV(v, m)} · {pct}%
+                      </strong>
+                    </li>
+                  );
+                })}
+              </ul>
               {hit.map((p, i) => (
-                <div key={i}>
+                <div key={i} className="border-t border-border/60 pt-1">
                   <p className="flex gap-2">
                     <span className="truncate font-semibold">{p.text || "Registro"}</span>
                     <strong className="ml-auto shrink-0 tabular-nums text-foreground">
@@ -360,7 +492,7 @@ export function NutritionDayChart({ data }: { data: DailyNutrition }) {
                 </div>
               ))}
             </div>
-          ) : null;
+          );
         }}
       />
     </figure>
@@ -458,6 +590,32 @@ export function MealMacroBars({ data }: { data: DailyNutrition }) {
                     fat={r.n.fat}
                     decimals={1}
                   />
+                  <ul className="mt-2 grid grid-cols-3 gap-1 text-[11px] sm:grid-cols-6">
+                    {(
+                      [
+                        ["Fibras", r.n.fiber, "g", 25, "#a3e635"],
+                        ["Vit. C", r.n.vitC, "mg", microTargets.vitC.target, "#f59e0b"],
+                        ["Vit. A", r.n.vitA, "mcg", microTargets.vitA.target, "#fb7185"],
+                        ["Cálcio", r.n.calcium, "mg", microTargets.calcium.target, "#38bdf8"],
+                        ["Ferro", r.n.iron, "mg", microTargets.iron.target, "#ef4444"],
+                        ["Potássio", r.n.potassium, "mg", microTargets.potassium.target, "#c084fc"],
+                      ] as const
+                    ).map(([label, v, unit, ref, color]) => (
+                      <li key={label} className="border border-border/60 px-1.5 py-1">
+                        <span className="flex items-center gap-1 text-muted-foreground">
+                          <i className="size-1.5 rounded-full" style={{ background: color }} />
+                          {label}
+                        </span>
+                        <b className="tabular-nums">
+                          {v.toLocaleString("pt-BR", { maximumFractionDigits: v < 10 ? 1 : 0 })}{" "}
+                          {unit}
+                        </b>
+                        <span className="ml-1 tabular-nums text-muted-foreground">
+                          {Math.round((v / ref) * 100)}%
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
             </li>
