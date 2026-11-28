@@ -19,6 +19,7 @@ type Props = {
   profileLocked: boolean;
   onRecorded: () => void;
   onProfile: () => void;
+  extraTools?: ReactNode;
 };
 
 /** Botão quadrado de ferramenta (PDF, ao vivo, perfil): só ícone no celular, com texto no computador. */
@@ -41,6 +42,7 @@ export function ClientSectionHeader({
   profileLocked,
   onRecorded,
   onProfile,
+  extraTools,
 }: Props) {
   const theme = clientSectionTheme[area];
   const Icon = theme.icon;
@@ -153,6 +155,7 @@ export function ClientSectionHeader({
           >
             <UserRound size={17} />
           </button>
+          {extraTools}
         </fieldset>
       </div>
     </header>

@@ -228,31 +228,26 @@ export function TodayGoalsCard({
           </span>
         </div>
       )}
-      <Group title="Macronutrientes" rows={rows} onPick={setPick} />
-      <Group
-        title="Açúcar e gordura"
-        rows={fats}
+      <GoalTabs
         onPick={setPick}
-        className="mt-4"
-        note="Limites de 10% das calorias da sua meta (OMS). Estimado pelos alimentos registrados."
-      />
-      <Group
-        title="Vitaminas, minerais e fibras"
-        rows={micro}
-        className="mt-4"
-        collapsed
-        onPick={setPick}
-      />
-      <Group
-        title="Atenção do dia"
-        rows={watch}
-        onPick={setPick}
-        className="mt-4"
-        note={
-          limits.lactoseIntolerant
-            ? "Limites calculados do seu perfil."
-            : "Cafeína pelo seu perfil; lactose em valor de referência."
-        }
+        groups={[
+          { id: "macros", label: "Macros", rows },
+          {
+            id: "acucar",
+            label: "Açúcar e gordura",
+            rows: fats,
+            note: "Limites de 10% das calorias da sua meta (OMS). Estimado pelos alimentos registrados.",
+          },
+          { id: "micro", label: "Vitaminas", rows: micro },
+          {
+            id: "atencao",
+            label: "Atenção",
+            rows: watch,
+            note: limits.lactoseIntolerant
+              ? "Limites calculados do seu perfil."
+              : "Cafeína pelo seu perfil; lactose em valor de referência.",
+          },
+        ]}
       />
       {pick && <NutrientDetailSheet info={detail(pick)} onClose={() => setPick(null)} />}
     </section>
@@ -268,6 +263,86 @@ type Row = {
   c: string;
   limit?: boolean;
 };
+
+type GoalGroup = { id: string; label: string; rows: Row[]; note?: string };
+
+/** Abas por grupo: um grupo por vez, linhas compactas — o cartão não cresce sem fim. */
+function GoalTabs({ groups, onPick }: { groups: GoalGroup[]; onPick: (r: Row) => void }) {
+  const [tab, setTab] = useState(groups[0]?.id ?? "");
+  const current = groups.find((g) => g.id === tab) ?? groups[0];
+  if (!current) return null;
+  return (
+    <div className="grid gap-2">
+      <div
+        role="tablist"
+        aria-label="Grupos de nutrientes"
+        className="grid grid-cols-4 gap-1 rounded-xl bg-muted/50 p-1"
+      >
+        {groups.map((g) => {
+          const on = g.id === current.id;
+          const hit = g.rows.filter((r) => r.t > 0 && r.v / r.t >= 1).length;
+          const over = g.rows.some((r) => r.limit && r.t > 0 && r.v > r.t);
+          return (
+            <button
+              key={g.id}
+              type="button"
+              role="tab"
+              aria-selected={on}
+              onClick={() => setTab(g.id)}
+              className={`flex min-h-9 min-w-0 flex-col items-center justify-center rounded-lg px-1 text-[11px] font-semibold leading-tight transition-colors ${on ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <span className="w-full truncate text-center">{g.label}</span>
+              <span
+                className={`text-[10px] font-normal tabular-nums ${over ? "text-red-400" : ""}`}
+              >
+                {hit}/{g.rows.length}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <ul role="tabpanel" className="grid gap-0.5">
+        {current.rows.map((r) => {
+          const ratio = r.t > 0 ? r.v / r.t : 0;
+          const over = r.limit && ratio > 1;
+          return (
+            <li key={r.label}>
+              <button
+                type="button"
+                onClick={() => onPick(r)}
+                aria-label={`Ver detalhes de ${r.label}`}
+                className="grid w-full grid-cols-[minmax(0,7rem)_minmax(0,1fr)_auto] items-center gap-2.5 rounded-lg px-1.5 py-1.5 text-left text-xs transition hover:bg-muted/50"
+              >
+                <span className="truncate font-semibold">{r.label}</span>
+                <span className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden="true">
+                  <i
+                    className="block h-full rounded-full transition-[width] duration-700"
+                    style={{
+                      width: `${Math.min(100, ratio * 100)}%`,
+                      background: over ? "#ef4444" : r.c,
+                    }}
+                  />
+                </span>
+                <span className="whitespace-nowrap text-right tabular-nums text-muted-foreground">
+                  <b className={over ? "text-red-400" : "text-foreground"}>
+                    {nf(r.v, r.u === "kcal" || r.u === "mg" || r.u === "mcg" ? 0 : 1)}
+                  </b>
+                  /{nf(r.t)} {r.u}
+                  <span
+                    className={`ml-1.5 inline-block w-9 font-semibold ${over ? "text-red-400" : ratio >= 1 ? "text-emerald-400" : "text-foreground"}`}
+                  >
+                    {nf(ratio * 100)}%
+                  </span>
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      {current.note && <p className="text-[11px] text-muted-foreground">{current.note}</p>}
+    </div>
+  );
+}
 
 /** Bloco de barras de progresso; nos itens com limite, passar do valor deixa a barra vermelha. */
 function Group({

@@ -877,6 +877,7 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
               profileLocked={profileLocked}
               onRecorded={() => setTick((value) => value + 1)}
               onProfile={() => setShowHealthProfile(true)}
+              extraTools={activeTab === "hoje" ? <RetractAllBar /> : null}
               title={
                 activeTab === "hoje"
                   ? `Olá, ${(patientName || client.full_name).split(" ")[0]}`
@@ -928,7 +929,6 @@ export function HomeClientCard({ patientName }: { patientName?: string } = {}) {
                 data-client-page="hoje"
                 className="flex flex-col gap-3 overscroll-contain lg:pr-0.5"
               >
-                <RetractAllBar />
                 <OverviewInsights
                   patientId={client.id}
                   ownerId={client.owner_id}

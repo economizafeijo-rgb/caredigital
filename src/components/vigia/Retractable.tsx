@@ -1,4 +1,4 @@
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronsDownUp, ChevronsUpDown } from "lucide-react";
 import { useEffect, useId, useState, type ReactNode } from "react";
 
 /** Evento global para recolher/expandir todos os blocos do painel de uma vez. */
@@ -118,20 +118,32 @@ export function Retractable({
   );
 }
 
-/** Botões "Recolher tudo / Expandir tudo" para o topo do painel. */
+/** Botões "Recolher tudo / Expandir tudo": ícones compactos que cabem na barra do topo. */
 export function RetractAllBar() {
   const fire = (v: boolean) =>
     window.dispatchEvent(new CustomEvent<boolean>(RETRACT_ALL_EVENT, { detail: v }));
   const cls =
-    "inline-flex h-8 items-center rounded-full border border-border bg-card px-3 text-[11px] font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground active:scale-95";
+    "grid size-10 shrink-0 place-items-center rounded-xl border border-white/30 bg-slate-950/60 text-white shadow-md backdrop-blur-md transition hover:bg-slate-900/85 active:scale-95";
   return (
-    <div className="flex items-center justify-end gap-2">
-      <button type="button" className={cls} onClick={() => fire(false)}>
-        Recolher blocos
+    <>
+      <button
+        type="button"
+        className={cls}
+        onClick={() => fire(false)}
+        aria-label="Recolher blocos"
+        title="Recolher blocos"
+      >
+        <ChevronsDownUp size={17} />
       </button>
-      <button type="button" className={cls} onClick={() => fire(true)}>
-        Expandir blocos
+      <button
+        type="button"
+        className={cls}
+        onClick={() => fire(true)}
+        aria-label="Expandir blocos"
+        title="Expandir blocos"
+      >
+        <ChevronsUpDown size={17} />
       </button>
-    </div>
+    </>
   );
 }
