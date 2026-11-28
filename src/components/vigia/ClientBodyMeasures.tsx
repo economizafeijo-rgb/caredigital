@@ -1,3 +1,4 @@
+import { Retractable } from "./Retractable";
 import { ensureUnlocked } from "@/lib/record-lock";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -579,108 +580,118 @@ export function ClientBodyMeasures({
 
       {/* Comparação e histórico */}
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
-        <div className="rounded-2xl border border-border bg-card p-4">
-          <h3 className="flex items-center gap-2 text-sm font-bold">
-            <Target size={16} className="text-primary" /> Antes e agora
-          </h3>
-          {!first || first === last ? (
-            <p className="mt-3 rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
-              Com dois ou mais registros, aparece aqui a comparação de cada medida.
+        <Retractable
+          id="med-antes-agora"
+          eyebrow="Comparação"
+          title="Antes e agora"
+          accent="#06b6d4"
+        >
+          <div className="">
+            {!first || first === last ? (
+              <p className="mt-3 rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+                Com dois ou mais registros, aparece aqui a comparação de cada medida.
+              </p>
+            ) : (
+              <ul className="mt-3 grid gap-1.5">
+                {MEASURES.filter((m) => first[m.key] != null && last![m.key] != null).map((m) => {
+                  const d = Number(last![m.key]) - Number(first[m.key]);
+                  const ok = m.lowerIsBetter ? d <= 0 : d >= 0;
+                  return (
+                    <li key={m.key}>
+                      <button
+                        type="button"
+                        onClick={() => setSelected(m.key)}
+                        className={`grid w-full grid-cols-[1fr_auto_auto] items-center gap-3 rounded-lg px-2 py-1.5 text-left text-xs transition hover:bg-muted/60 ${selected === m.key ? "bg-muted/70" : ""}`}
+                      >
+                        <span className="font-semibold">{m.label}</span>
+                        <span className="tabular-nums text-muted-foreground">
+                          {nf(Number(first[m.key]))} →{" "}
+                          <strong className="text-foreground">{nf(Number(last![m.key]))}</strong>
+                        </span>
+                        <span
+                          className={`inline-flex min-w-[4.5rem] items-center justify-end gap-1 font-bold tabular-nums ${d === 0 ? "text-muted-foreground" : ok ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}
+                        >
+                          {d < 0 ? (
+                            <TrendingDown size={12} />
+                          ) : d > 0 ? (
+                            <TrendingUp size={12} />
+                          ) : null}
+                          {d > 0 ? "+" : ""}
+                          {nf(d)}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              De {first ? br(first.measured_on) : "—"} a {last ? br(last.measured_on) : "—"}. Verde:
+              na direção desejada (menos cintura, mais braço e perna).
             </p>
-          ) : (
-            <ul className="mt-3 grid gap-1.5">
-              {MEASURES.filter((m) => first[m.key] != null && last![m.key] != null).map((m) => {
-                const d = Number(last![m.key]) - Number(first[m.key]);
-                const ok = m.lowerIsBetter ? d <= 0 : d >= 0;
-                return (
-                  <li key={m.key}>
+          </div>
+        </Retractable>
+        <Retractable
+          id="med-historico"
+          eyebrow="Registros"
+          title="Histórico de medições"
+          accent="#06b6d4"
+        >
+          <div className="">
+            {!rows ? (
+              <div className="mt-3 h-24 animate-pulse rounded-xl bg-muted" />
+            ) : !list.length ? (
+              <p className="mt-3 rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+                Nenhuma medição ainda. Registre as primeiras medidas para começar a acompanhar.
+              </p>
+            ) : (
+              <ul className="mt-2 grid max-h-[18rem] gap-1.5 overflow-y-auto pr-1">
+                {[...list].reverse().map((r) => (
+                  <li
+                    key={r.id}
+                    className="flex items-center gap-3 rounded-xl border border-border bg-background px-3 py-2"
+                  >
+                    <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-cyan-500/12 text-cyan-600 dark:text-cyan-300">
+                      <Ruler size={16} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <strong className="block text-sm">
+                        {br(r.measured_on)}
+                        {r.goal_label ? (
+                          <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+                            {r.goal_label}
+                          </span>
+                        ) : null}
+                      </strong>
+                      <span className="block truncate text-[11px] text-muted-foreground">
+                        {MEASURES.filter((m) => r[m.key] != null)
+                          .map((m) => `${m.label} ${nf(Number(r[m.key]))}`)
+                          .join(" · ")}
+                        {r.body_fat_pct != null ? ` · gordura ${nf(Number(r.body_fat_pct))}%` : ""}
+                      </span>
+                    </span>
                     <button
                       type="button"
-                      onClick={() => setSelected(m.key)}
-                      className={`grid w-full grid-cols-[1fr_auto_auto] items-center gap-3 rounded-lg px-2 py-1.5 text-left text-xs transition hover:bg-muted/60 ${selected === m.key ? "bg-muted/70" : ""}`}
+                      onClick={() => openEdit(r)}
+                      title="Editar"
+                      className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
                     >
-                      <span className="font-semibold">{m.label}</span>
-                      <span className="tabular-nums text-muted-foreground">
-                        {nf(Number(first[m.key]))} →{" "}
-                        <strong className="text-foreground">{nf(Number(last![m.key]))}</strong>
-                      </span>
-                      <span
-                        className={`inline-flex min-w-[4.5rem] items-center justify-end gap-1 font-bold tabular-nums ${d === 0 ? "text-muted-foreground" : ok ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}
-                      >
-                        {d < 0 ? (
-                          <TrendingDown size={12} />
-                        ) : d > 0 ? (
-                          <TrendingUp size={12} />
-                        ) : null}
-                        {d > 0 ? "+" : ""}
-                        {nf(d)}
-                      </span>
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void remove(r)}
+                      title="Excluir"
+                      className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-rose-500/10 hover:text-rose-600"
+                    >
+                      <Trash2 size={14} />
                     </button>
                   </li>
-                );
-              })}
-            </ul>
-          )}
-          <p className="mt-2 text-[11px] text-muted-foreground">
-            De {first ? br(first.measured_on) : "—"} a {last ? br(last.measured_on) : "—"}. Verde:
-            na direção desejada (menos cintura, mais braço e perna).
-          </p>
-        </div>
-        <div className="rounded-2xl border border-border bg-card p-4">
-          <h3 className="text-sm font-bold">Histórico de medições</h3>
-          {!rows ? (
-            <div className="mt-3 h-24 animate-pulse rounded-xl bg-muted" />
-          ) : !list.length ? (
-            <p className="mt-3 rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
-              Nenhuma medição ainda. Registre as primeiras medidas para começar a acompanhar.
-            </p>
-          ) : (
-            <ul className="mt-2 grid max-h-[18rem] gap-1.5 overflow-y-auto pr-1">
-              {[...list].reverse().map((r) => (
-                <li
-                  key={r.id}
-                  className="flex items-center gap-3 rounded-xl border border-border bg-background px-3 py-2"
-                >
-                  <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-cyan-500/12 text-cyan-600 dark:text-cyan-300">
-                    <Ruler size={16} />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <strong className="block text-sm">
-                      {br(r.measured_on)}
-                      {r.goal_label ? (
-                        <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
-                          {r.goal_label}
-                        </span>
-                      ) : null}
-                    </strong>
-                    <span className="block truncate text-[11px] text-muted-foreground">
-                      {MEASURES.filter((m) => r[m.key] != null)
-                        .map((m) => `${m.label} ${nf(Number(r[m.key]))}`)
-                        .join(" · ")}
-                      {r.body_fat_pct != null ? ` · gordura ${nf(Number(r.body_fat_pct))}%` : ""}
-                    </span>
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => openEdit(r)}
-                    title="Editar"
-                    className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
-                  >
-                    <Pencil size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void remove(r)}
-                    title="Excluir"
-                    className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-rose-500/10 hover:text-rose-600"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+                ))}
+              </ul>
+            )}
+          </div>
+        </Retractable>
       </div>
       <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
         <Info size={13} className="mt-0.5 shrink-0" /> Indicadores de referência (OMS e método da

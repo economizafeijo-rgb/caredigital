@@ -1,3 +1,4 @@
+import { Retractable } from "./Retractable";
 import { ensureUnlocked } from "@/lib/record-lock";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
@@ -582,84 +583,94 @@ export function ClientHeartRate({
         )}
       </section>
 
-      <section className="border border-border bg-card" aria-label="Sessões e conexão">
-        <div role="tablist" className="relative flex border-b border-border">
-          {(
-            [
-              ["sessoes", `Sessões salvas${history.length ? ` · ${history.length}` : ""}`],
-              ["conectar", "Como conectar"],
-            ] as const
-          ).map(([k, l]) => (
-            <button
-              key={k}
-              type="button"
-              role="tab"
-              aria-selected={tab === k}
-              onClick={() => setTab(k)}
-              className={`h-10 flex-1 text-[13px] font-semibold transition-colors ${tab === k ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              {l}
-            </button>
-          ))}
-          <i
-            aria-hidden
-            className="absolute bottom-[-1px] h-[2px] w-1/2 bg-rose-500 transition-transform duration-300"
-            style={{ transform: tab === "sessoes" ? "translateX(0)" : "translateX(100%)" }}
-          />
-        </div>
-        <div key={tab} className="nv-fade-in p-3">
-          {tab === "sessoes" ? (
-            <ul className="divide-y divide-border">
-              {history.map((s) => (
-                <li key={s.id} className="group flex items-center gap-3 py-2 text-[13px]">
-                  <HeartPulse size={15} className="text-rose-500" />
-                  <span className="min-w-0 flex-1">
-                    <strong className="block">{fmtDate(s.started_at)}</strong>
-                    <span className="text-[11px] text-muted-foreground">
-                      {s.device_name ?? "Sensor"} ·{" "}
-                      {fmtClock(
-                        Math.round(
-                          (new Date(s.ended_at).getTime() - new Date(s.started_at).getTime()) /
-                            1000,
-                        ),
-                      )}
+      <Retractable
+        id="bpm-sessoes"
+        eyebrow="Histórico"
+        title="Sessões e conexão"
+        accent="#f43f5e"
+        summary={`${history.length} sessões salvas`}
+      >
+        <section className="" aria-label="Sessões e conexão">
+          <div role="tablist" className="relative flex border-b border-border">
+            {(
+              [
+                ["sessoes", `Sessões salvas${history.length ? ` · ${history.length}` : ""}`],
+                ["conectar", "Como conectar"],
+              ] as const
+            ).map(([k, l]) => (
+              <button
+                key={k}
+                type="button"
+                role="tab"
+                aria-selected={tab === k}
+                onClick={() => setTab(k)}
+                className={`h-10 flex-1 text-[13px] font-semibold transition-colors ${tab === k ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                {l}
+              </button>
+            ))}
+            <i
+              aria-hidden
+              className="absolute bottom-[-1px] h-[2px] w-1/2 bg-rose-500 transition-transform duration-300"
+              style={{ transform: tab === "sessoes" ? "translateX(0)" : "translateX(100%)" }}
+            />
+          </div>
+          <div key={tab} className="nv-fade-in p-3">
+            {tab === "sessoes" ? (
+              <ul className="divide-y divide-border">
+                {history.map((s) => (
+                  <li key={s.id} className="group flex items-center gap-3 py-2 text-[13px]">
+                    <HeartPulse size={15} className="text-rose-500" />
+                    <span className="min-w-0 flex-1">
+                      <strong className="block">{fmtDate(s.started_at)}</strong>
+                      <span className="text-[11px] text-muted-foreground">
+                        {s.device_name ?? "Sensor"} ·{" "}
+                        {fmtClock(
+                          Math.round(
+                            (new Date(s.ended_at).getTime() - new Date(s.started_at).getTime()) /
+                              1000,
+                          ),
+                        )}
+                      </span>
                     </span>
-                  </span>
-                  <span className="hidden w-28 sm:block" aria-hidden>
-                    <span className="block h-1.5 bg-muted">
-                      <span
-                        className="nv-grow-x block h-full bg-rose-500"
-                        style={{ width: `${Math.min(100, Math.round((s.max_bpm / max) * 100))}%` }}
-                      />
+                    <span className="hidden w-28 sm:block" aria-hidden>
+                      <span className="block h-1.5 bg-muted">
+                        <span
+                          className="nv-grow-x block h-full bg-rose-500"
+                          style={{
+                            width: `${Math.min(100, Math.round((s.max_bpm / max) * 100))}%`,
+                          }}
+                        />
+                      </span>
                     </span>
-                  </span>
-                  <span className="text-right text-xs tabular-nums">
-                    <strong className="text-sm">{s.avg_bpm}</strong> média
-                    <span className="block text-[11px] text-muted-foreground">
-                      {s.min_bpm}–{s.max_bpm}
+                    <span className="text-right text-xs tabular-nums">
+                      <strong className="text-sm">{s.avg_bpm}</strong> média
+                      <span className="block text-[11px] text-muted-foreground">
+                        {s.min_bpm}–{s.max_bpm}
+                      </span>
                     </span>
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => void remove(s)}
-                    aria-label="Apagar sessão"
-                    className="grid size-8 place-items-center text-muted-foreground transition hover:bg-rose-500/10 hover:text-rose-600"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </li>
-              ))}
-              {!history.length && (
-                <li className="py-5 text-center text-sm text-muted-foreground">
-                  Nenhuma sessão salva ainda.
-                </li>
-              )}
-            </ul>
-          ) : (
-            <ConnectGuide />
-          )}
-        </div>
-      </section>
+                    <button
+                      type="button"
+                      onClick={() => void remove(s)}
+                      aria-label="Apagar sessão"
+                      className="grid size-8 place-items-center text-muted-foreground transition hover:bg-rose-500/10 hover:text-rose-600"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </li>
+                ))}
+                {!history.length && (
+                  <li className="py-5 text-center text-sm text-muted-foreground">
+                    Nenhuma sessão salva ainda.
+                  </li>
+                )}
+              </ul>
+            ) : (
+              <ConnectGuide />
+            )}
+          </div>
+        </section>
+      </Retractable>
     </div>
   );
 }

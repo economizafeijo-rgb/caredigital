@@ -1,3 +1,4 @@
+import { Retractable } from "./Retractable";
 import { ensureUnlocked } from "@/lib/record-lock";
 import { type LivePoint } from "./LiveWorkoutVisual";
 import { NiceSelect } from "./NiceSelect";
@@ -1137,168 +1138,175 @@ export function ClientActivityPage({
 
         <div className="flex min-h-0 min-w-0 flex-col gap-3">
           <ActivityDaysChart items={items} />
-          <section className="flex min-h-0 flex-1 flex-col rounded-2xl border border-border bg-card p-3 sm:p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <h3 className="text-sm font-bold">Histórico de atividades</h3>
-                <p className="text-[11px] text-muted-foreground">
-                  Registros reais dos últimos 90 dias
-                </p>
-              </div>
-              <label className="flex items-center gap-1.5 text-xs">
-                <Search size={14} />
-                <NiceSelect
-                  className="h-9 min-w-[9rem]"
-                  ariaLabel="Filtrar atividades"
-                  value={filter}
-                  onChange={setFilter}
-                  options={[
-                    { value: "todos", label: "Todas" },
-                    ...activityOptions.map((option) => ({
-                      value: option.value,
-                      label: option.label,
-                    })),
-                  ]}
-                />
-              </label>
-            </div>
-            <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
-              {loading ? (
-                <p className="py-6 text-center text-xs text-muted-foreground">
-                  Carregando atividades…
-                </p>
-              ) : filtered.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-border p-6 text-center">
-                  <Activity className="mx-auto text-muted-foreground" size={22} />
-                  <p className="mt-2 text-xs font-semibold">
-                    Nenhuma atividade registrada neste filtro.
-                  </p>
-                  <p className="mt-1 text-[11px] text-muted-foreground">
-                    Seus registros aparecerão aqui depois de salvar uma atividade.
+          <Retractable
+            id="ativ-historico"
+            eyebrow="Registros"
+            title="Histórico de atividades"
+            accent="#f97316"
+            summary="Últimos 90 dias"
+          >
+            <section className="flex min-h-0 flex-1 flex-col">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Registros reais dos últimos 90 dias
                   </p>
                 </div>
-              ) : (
-                filtered.map((item) => {
-                  const detail = item.details ?? {};
-                  const option = activityOptions.find(
-                    (entry) => entry.value === detail.activity_type,
-                  );
-                  const Icon = option?.icon ?? Activity;
-                  return (
-                    <article
-                      key={item.id}
-                      className="flex items-start gap-3 rounded-xl border border-border/70 bg-muted/20 p-3"
-                    >
-                      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
-                        <Icon size={17} />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center justify-between gap-1">
-                          <strong className="text-xs">
-                            {detail.title ?? option?.label ?? "Atividade"}
-                          </strong>
-                          <span className="flex items-center gap-1.5">
-                            <time className="text-[11px] text-muted-foreground">
-                              {formatDate(item.happened_at)}
-                            </time>
-                            <RecordInfo
-                              title={detail.title ?? option?.label ?? "Atividade"}
-                              at={item.happened_at}
-                              category="Atividade física"
-                              color="#0d9488"
-                              rows={[
-                                {
-                                  label: "Atividade",
-                                  value: option?.label ?? detail.activity_type ?? "Atividade",
-                                },
-                                {
-                                  label: "Duração",
-                                  value: `${detail.duration_minutes ?? "—"} min`,
-                                },
-                                ...(detail.distance_km != null
-                                  ? [
-                                      {
-                                        label: "Distância",
-                                        value: `${Number(detail.distance_km).toLocaleString("pt-BR")} km`,
-                                      },
-                                    ]
-                                  : []),
-                                ...(detail.distance_km && detail.duration_minutes
-                                  ? [
-                                      {
-                                        label: "Ritmo médio",
-                                        value: `${(Number(detail.duration_minutes) / Number(detail.distance_km)).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} min/km`,
-                                      },
-                                    ]
-                                  : []),
-                                {
-                                  label: "Intensidade",
-                                  value: detail.intensity ?? "não informada",
-                                },
-                              ]}
-                              description={detail.notes}
-                            />
-                          </span>
-                        </div>
-                        <p className="mt-1 text-[11px] text-muted-foreground">
-                          <Clock3 className="mr-1 inline" size={12} />
-                          {detail.duration_minutes ?? "—"} min
-                          {detail.distance_km != null
-                            ? ` · ${Number(detail.distance_km).toLocaleString("pt-BR")} km`
-                            : ""}{" "}
-                          · Intensidade {detail.intensity ?? "não informada"}
-                        </p>
-                        {detail.metrics && Object.keys(detail.metrics).length > 0 && (
-                          <div className="mt-2 flex items-start gap-3">
-                            <dl className="grid min-w-0 flex-1 grid-cols-2 gap-x-3 gap-y-1 sm:grid-cols-3">
-                              {metricRows(detail.metrics).map(([k, v]) => (
-                                <div key={k} className="min-w-0">
-                                  <dt className="truncate text-[10.5px] text-muted-foreground">
-                                    {k}
-                                  </dt>
-                                  <dd className="truncate text-xs font-bold tabular-nums">{v}</dd>
-                                </div>
-                              ))}
-                            </dl>
-                            {detail.metrics.route && detail.metrics.route.length > 1 && (
-                              <RouteMini
-                                route={detail.metrics.route}
-                                className="hidden w-28 shrink-0 sm:block"
+                <label className="flex items-center gap-1.5 text-xs">
+                  <Search size={14} />
+                  <NiceSelect
+                    className="h-9 min-w-[9rem]"
+                    ariaLabel="Filtrar atividades"
+                    value={filter}
+                    onChange={setFilter}
+                    options={[
+                      { value: "todos", label: "Todas" },
+                      ...activityOptions.map((option) => ({
+                        value: option.value,
+                        label: option.label,
+                      })),
+                    ]}
+                  />
+                </label>
+              </div>
+              <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+                {loading ? (
+                  <p className="py-6 text-center text-xs text-muted-foreground">
+                    Carregando atividades…
+                  </p>
+                ) : filtered.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-border p-6 text-center">
+                    <Activity className="mx-auto text-muted-foreground" size={22} />
+                    <p className="mt-2 text-xs font-semibold">
+                      Nenhuma atividade registrada neste filtro.
+                    </p>
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      Seus registros aparecerão aqui depois de salvar uma atividade.
+                    </p>
+                  </div>
+                ) : (
+                  filtered.map((item) => {
+                    const detail = item.details ?? {};
+                    const option = activityOptions.find(
+                      (entry) => entry.value === detail.activity_type,
+                    );
+                    const Icon = option?.icon ?? Activity;
+                    return (
+                      <article
+                        key={item.id}
+                        className="flex items-start gap-3 rounded-xl border border-border/70 bg-muted/20 p-3"
+                      >
+                        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+                          <Icon size={17} />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center justify-between gap-1">
+                            <strong className="text-xs">
+                              {detail.title ?? option?.label ?? "Atividade"}
+                            </strong>
+                            <span className="flex items-center gap-1.5">
+                              <time className="text-[11px] text-muted-foreground">
+                                {formatDate(item.happened_at)}
+                              </time>
+                              <RecordInfo
+                                title={detail.title ?? option?.label ?? "Atividade"}
+                                at={item.happened_at}
+                                category="Atividade física"
+                                color="#0d9488"
+                                rows={[
+                                  {
+                                    label: "Atividade",
+                                    value: option?.label ?? detail.activity_type ?? "Atividade",
+                                  },
+                                  {
+                                    label: "Duração",
+                                    value: `${detail.duration_minutes ?? "—"} min`,
+                                  },
+                                  ...(detail.distance_km != null
+                                    ? [
+                                        {
+                                          label: "Distância",
+                                          value: `${Number(detail.distance_km).toLocaleString("pt-BR")} km`,
+                                        },
+                                      ]
+                                    : []),
+                                  ...(detail.distance_km && detail.duration_minutes
+                                    ? [
+                                        {
+                                          label: "Ritmo médio",
+                                          value: `${(Number(detail.duration_minutes) / Number(detail.distance_km)).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} min/km`,
+                                        },
+                                      ]
+                                    : []),
+                                  {
+                                    label: "Intensidade",
+                                    value: detail.intensity ?? "não informada",
+                                  },
+                                ]}
+                                description={detail.notes}
                               />
-                            )}
+                            </span>
                           </div>
-                        )}
-                        {detail.notes && !detail.notes.startsWith("Percurso GPS:") && (
-                          <p className="mt-1 text-xs">{detail.notes}</p>
-                        )}
-                        {detail.notes?.startsWith("Percurso GPS:") && (
-                          <a
-                            href={detail.notes.replace("Percurso GPS: ", "")}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="mt-1 inline-block text-[11px] font-semibold text-primary underline"
-                          >
-                            Abrir percurso no Google Maps
-                          </a>
-                        )}
-                        <div className="mt-2 flex justify-end">
-                          <button
-                            type="button"
-                            disabled={deleting === item.id}
-                            onClick={() => void removeItem(item)}
-                            aria-label={`Excluir registro de ${detail.title ?? "atividade"}`}
-                            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-2.5 text-[11px] font-semibold text-destructive transition hover:bg-destructive/10 disabled:opacity-50"
-                          >
-                            <Trash2 size={13} /> {deleting === item.id ? "Excluindo…" : "Excluir"}
-                          </button>
+                          <p className="mt-1 text-[11px] text-muted-foreground">
+                            <Clock3 className="mr-1 inline" size={12} />
+                            {detail.duration_minutes ?? "—"} min
+                            {detail.distance_km != null
+                              ? ` · ${Number(detail.distance_km).toLocaleString("pt-BR")} km`
+                              : ""}{" "}
+                            · Intensidade {detail.intensity ?? "não informada"}
+                          </p>
+                          {detail.metrics && Object.keys(detail.metrics).length > 0 && (
+                            <div className="mt-2 flex items-start gap-3">
+                              <dl className="grid min-w-0 flex-1 grid-cols-2 gap-x-3 gap-y-1 sm:grid-cols-3">
+                                {metricRows(detail.metrics).map(([k, v]) => (
+                                  <div key={k} className="min-w-0">
+                                    <dt className="truncate text-[10.5px] text-muted-foreground">
+                                      {k}
+                                    </dt>
+                                    <dd className="truncate text-xs font-bold tabular-nums">{v}</dd>
+                                  </div>
+                                ))}
+                              </dl>
+                              {detail.metrics.route && detail.metrics.route.length > 1 && (
+                                <RouteMini
+                                  route={detail.metrics.route}
+                                  className="hidden w-28 shrink-0 sm:block"
+                                />
+                              )}
+                            </div>
+                          )}
+                          {detail.notes && !detail.notes.startsWith("Percurso GPS:") && (
+                            <p className="mt-1 text-xs">{detail.notes}</p>
+                          )}
+                          {detail.notes?.startsWith("Percurso GPS:") && (
+                            <a
+                              href={detail.notes.replace("Percurso GPS: ", "")}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="mt-1 inline-block text-[11px] font-semibold text-primary underline"
+                            >
+                              Abrir percurso no Google Maps
+                            </a>
+                          )}
+                          <div className="mt-2 flex justify-end">
+                            <button
+                              type="button"
+                              disabled={deleting === item.id}
+                              onClick={() => void removeItem(item)}
+                              aria-label={`Excluir registro de ${detail.title ?? "atividade"}`}
+                              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-2.5 text-[11px] font-semibold text-destructive transition hover:bg-destructive/10 disabled:opacity-50"
+                            >
+                              <Trash2 size={13} /> {deleting === item.id ? "Excluindo…" : "Excluir"}
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    </article>
-                  );
-                })
-              )}
-            </div>
-          </section>
+                      </article>
+                    );
+                  })
+                )}
+              </div>
+            </section>
+          </Retractable>
         </div>
       </div>
     </section>
