@@ -322,26 +322,60 @@ export function SmartMetricsDashboard() {
         series={[{ key: "value", name: "Atividade", color: "#f97316" }]}
         empty="Nenhuma atividade com duração registrada neste período. Caminhadas e treinos aparecerão aqui após serem salvos."
       />
-      <article className="grid grid-cols-2 content-start gap-2 rounded-2xl border border-border bg-card p-3 shadow-card">
-        <div className="col-span-2">
-          <p className="text-[11px] font-bold text-muted-foreground">Registros de rotina</p>
-          <h3 className="text-sm font-bold">Acompanhamento inteligente</h3>
+      <article className="rounded-2xl border border-border bg-card p-3 shadow-card md:col-span-2 min-[1400px]:col-span-3">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <p className="text-[11px] font-bold text-muted-foreground">Registros de rotina</p>
+            <h3 className="text-sm font-bold">Constância nos últimos 30 dias</h3>
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            Dias com registro em cada área · quanto mais completo, melhores as análises
+          </p>
         </div>
-        <div className=" bg-med/10 p-3">
-          <Pill className="text-med" size={20} />
-          <strong className="mt-2 block text-2xl">{metrics.medicationCount}</strong>
-          <span className="text-xs text-muted-foreground">doses registradas</span>
-        </div>
-        <div className=" bg-amber-500/10 p-3">
-          <Sparkles className="text-amber-600" size={20} />
-          <strong className="mt-2 block text-2xl">{metrics.supplementCount}</strong>
-          <span className="text-xs text-muted-foreground">doses de suplementos</span>
-        </div>
-        <div className="col-span-2  bg-muted p-3 text-xs text-muted-foreground">
-          <Activity className="mr-1 inline text-primary" size={15} />
-          Os gráficos mostram somente dados efetivamente salvos no seu prontuário. Ausência de
-          registros não é interpretada como consumo ou atividade igual a zero.
-        </div>
+        <ul className="mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
+          {(
+            [
+              [Droplets, "Água", metrics.hydration.length, "dias", "#38bdf8", 30],
+              [UtensilsCrossed, "Energia", metrics.energy.length, "dias", "#fb923c", 30],
+              [UtensilsCrossed, "Macros", metrics.macros.length, "dias", "#2dd4bf", 30],
+              [Scale, "Pesagens", metrics.weight.length, "registros", "#2dd4bf", 8],
+              [BedDouble, "Sono", metrics.sleep.length, "noites", "#a78bfa", 30],
+              [Activity, "Atividade", metrics.activity.length, "dias", "#f97316", 12],
+              [Pill, "Medicação", metrics.medicationCount, "doses", "#f43f5e", 0],
+              [Sparkles, "Suplementos", metrics.supplementCount, "doses", "#f59e0b", 0],
+            ] as const
+          ).map(([Icon, label, value, unit, color, goal]) => {
+            const pct = goal ? Math.min(100, Math.round((value / goal) * 100)) : null;
+            return (
+              <li key={label} className="rounded-xl border border-border bg-background/40 p-2.5">
+                <p className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
+                  <Icon size={13} style={{ color }} /> {label}
+                </p>
+                <p className="mt-1 font-display text-xl font-extrabold leading-none tabular-nums">
+                  {value}
+                  <span className="ml-1 text-[10px] font-semibold text-muted-foreground">
+                    {unit}
+                  </span>
+                </p>
+                {pct !== null ? (
+                  <span className="mt-2 block h-1 overflow-hidden rounded-full bg-muted">
+                    <i
+                      className="block h-full rounded-full"
+                      style={{ width: `${pct}%`, background: color }}
+                    />
+                  </span>
+                ) : (
+                  <span className="mt-2 block text-[10px] text-muted-foreground">no período</span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+        <p className="mt-2 flex items-start gap-1.5 text-[11px] text-muted-foreground">
+          <Activity className="mt-px shrink-0 text-primary" size={13} />
+          Os gráficos mostram somente dados salvos no seu prontuário. Dias sem registro não contam
+          como consumo ou atividade igual a zero.
+        </p>
       </article>
     </section>
   );
