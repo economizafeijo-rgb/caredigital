@@ -3,6 +3,9 @@ import { useMemo, useState, type ReactNode } from "react";
 import { Beef, Droplet, Leaf, Target, Wheat } from "lucide-react";
 import { microTargets, sumNutrients, type Micros, type Nutrients } from "@/lib/food-parser";
 import { objectiveLabel } from "@/lib/objective-nutrition";
+import { evaluateRisks } from "@/lib/nutrition-risk";
+import { detectCaffeine, detectLactose, LACTOSE_THRESHOLDS } from "@/lib/intake-detect";
+import { DEFAULT_LIMIT_MG } from "@/lib/caffeine";
 import type { DailyNutrition } from "./DailyNutritionPanel";
 import { NextUpClock } from "./NextUpClock";
 import { NutrientArt, NUTRIENT_INK } from "./NutrientArt";
@@ -245,8 +248,36 @@ export function NutritionHero({
   );
 }
 
+type DayEntry = DailyNutrition["entries"][number];
+
+/** Açúcar, sódio, cafeína e lactose de um registro (estimativas pelos nomes e quantidades). */
+function extrasOf(e: DayEntry, target: DailyNutrition["target"]) {
+  const risks = evaluateRisks([e], { kcal: target.kcal, fat: target.fat });
+  const val = (k: string) => risks.find((r) => r.key === k)?.value ?? 0;
+  let caffeine = 0;
+  let lactose = 0;
+  const hit = (text: string, amount: number, kind?: string | null) => {
+    caffeine += detectCaffeine(text, amount, kind)?.mg ?? 0;
+    lactose += detectLactose(text, amount)?.g ?? 0;
+  };
+  if (e.entryType === "beverage") hit(e.text, e.amountMl ?? 0);
+  else if (e.foodId && e.grams) hit(e.foodName ?? e.foodId.replace(/_/g, " "), e.grams);
+  else for (const f of e.foods) hit(f.name, f.grams);
+  return { sodium: val("sodium"), sugar: val("sugar"), caffeine, lactose };
+}
+
 type DayMetric = {
-  key: "kcal" | "protein" | "carbs" | "fat" | "fiber" | keyof Micros;
+  key:
+    | "kcal"
+    | "protein"
+    | "carbs"
+    | "fat"
+    | "fiber"
+    | "sugar"
+    | "sodium"
+    | "caffeine"
+    | "lactose"
+    | keyof Micros;
   label: string;
   unit: string;
   color: string;
@@ -278,6 +309,22 @@ export function NutritionDayChart({ data }: { data: DailyNutrition }) {
       },
       { key: "fat", label: "Gordura", unit: "g", color: MACRO_COLORS.fat, target: target.fat },
       { key: "fiber", label: "Fibras", unit: "g", color: "#a3e635", target: target.fiber },
+      {
+        key: "sugar",
+        label: "Açúcar",
+        unit: "g",
+        color: "#f472b6",
+        target: Math.max(25, Math.round((target.kcal * 0.1) / 4)),
+      },
+      { key: "sodium", label: "Sódio", unit: "mg", color: "#94a3b8", target: 2000 },
+      { key: "caffeine", label: "Cafeína", unit: "mg", color: "#a16207", target: DEFAULT_LIMIT_MG },
+      {
+        key: "lactose",
+        label: "Lactose",
+        unit: "g",
+        color: "#e2e8f0",
+        target: LACTOSE_THRESHOLDS.dayOk,
+      },
       {
         key: "vitC",
         label: "Vit. C",
@@ -319,29 +366,35 @@ export function NutritionDayChart({ data }: { data: DailyNutrition }) {
   const points = useMemo(
     () =>
       entries
-        .map((e) => ({ h: hourOf(e.at), n: entryNutrients(e), text: e.text }))
-        .filter(
-          (p) => p.n.kcal > 0 || p.n.protein > 0 || p.n.carbs > 0 || p.n.fat > 0 || p.n.fiber > 0,
-        )
+        .map((e) => {
+          const n = entryNutrients(e);
+          return {
+            h: hourOf(e.at),
+            n,
+            v: { ...n, ...extrasOf(e, target) } as Record<DayMetric["key"], number>,
+            text: e.text,
+          };
+        })
+        .filter((p) => Object.values(p.v).some((x) => x > 0))
         .sort((a, b) => a.h - b.h),
-    [entries],
+    [entries, target],
   );
   const nowH = hourOf(new Date().toISOString());
   const active = metrics.filter((m) => sel.includes(m.key));
   const single = active.length === 1;
   const totals = Object.fromEntries(
-    metrics.map((m) => [m.key, points.reduce((a, p) => a + (p.n[m.key] ?? 0), 0)]),
+    metrics.map((m) => [m.key, points.reduce((a, p) => a + (p.v[m.key] ?? 0), 0)]),
   ) as Record<DayMetric["key"], number>;
   // Uma escala só: valor real quando há um nutriente; % da meta quando há vários.
   const k = (m: DayMetric) => (single || m.target <= 0 ? 1 : 100 / m.target);
   const fmtV = (v: number, m: DayMetric) =>
     `${v.toLocaleString("pt-BR", { maximumFractionDigits: v < 10 ? 1 : 0 })} ${m.unit}`;
   const lineOf = (m: DayMetric) => {
-    const mine = points.filter((p) => (p.n[m.key] ?? 0) > 0);
+    const mine = points.filter((p) => (p.v[m.key] ?? 0) > 0);
     let acc = 0;
     const out = [
       { x: Math.min(H0, mine[0]?.h ?? H0), y: 0 },
-      ...mine.map((p) => ({ x: p.h, y: (acc += p.n[m.key]) * k(m) })),
+      ...mine.map((p) => ({ x: p.h, y: (acc += p.v[m.key]) * k(m) })),
     ];
     if (nowH > out[out.length - 1].x) out.push({ x: nowH, y: acc * k(m) });
     return out;
@@ -461,7 +514,7 @@ export function NutritionDayChart({ data }: { data: DailyNutrition }) {
             <div className="mt-1.5 grid gap-1 border-t border-border pt-1.5">
               <ul className="grid gap-0.5">
                 {active.map((m) => {
-                  const v = upTo.reduce((a, p) => a + (p.n[m.key] ?? 0), 0);
+                  const v = upTo.reduce((a, p) => a + (p.v[m.key] ?? 0), 0);
                   const pct = m.target > 0 ? Math.round((v / m.target) * 100) : 0;
                   return (
                     <li key={m.key} className="flex items-center gap-2">
